@@ -104,6 +104,11 @@ test('change window name', function () {
 test('window.open', function () {
     var nativeWindowOpen = nativeMethods.windowOpen;
     var targets          = [];
+    var iframe           = document.createElement('iframe');
+
+    iframe.setAttribute('id', 'test' + Date.now());
+    iframe.setAttribute('name', '2');
+    document.body.appendChild(iframe);
 
     nativeMethods.windowOpen = function (url, target) {
         targets.push(target);
@@ -114,15 +119,18 @@ test('window.open', function () {
     window.open('http://some-url.com/', 'window_name');
     window.open('http://some-url.com/', 'unknow_name');
     window.open('http://some-url.com/');
+    window.open('http://some-url.com/', 2);
 
-    strictEqual(targets.length, 5);
+    strictEqual(targets.length, 6);
     strictEqual(targets[0], '_self');
     strictEqual(targets[1], '_top');
     strictEqual(targets[2], 'window_name');
     strictEqual(targets[3], '_top');
     strictEqual(targets[4], '_self');
+    strictEqual(targets[5], '2');
 
     nativeMethods.windowOpen = nativeWindowOpen;
+    document.body.removeChild(iframe);
 });
 
 test('case insensitive target="_blank"', function () {
