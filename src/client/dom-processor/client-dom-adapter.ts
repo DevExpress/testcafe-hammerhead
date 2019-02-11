@@ -9,84 +9,110 @@ import * as domUtils from '../utils/dom';
 import fastApply from '../utils/fast-apply';
 import DocumentWriter from '../sandbox/node/document/writer';
 import { findByName } from '../sandbox/windows-storage';
+
 export default class ClientDomAdapter extends BaseDomAdapter {
-    removeAttr(el, attr) {
+    removeAttr (el, attr) {
         return nativeMethods.removeAttribute.call(el, attr);
     }
-    getAttr(el, attr) {
+
+    getAttr (el, attr) {
         return nativeMethods.getAttribute.call(el, attr);
     }
-    hasAttr(el, attr) {
+
+    hasAttr (el, attr) {
         return el.hasAttribute(attr);
     }
-    isSVGElement(el) {
+
+    isSVGElement (el) {
         return domUtils.isSVGElement(el);
     }
-    getClassName(el) {
+
+    getClassName (el) {
         return el.className;
     }
-    hasEventHandler(el) {
+
+    hasEventHandler (el) {
         const attributes = nativeMethods.elementAttributesGetter.call(el);
+
         for (const attr of attributes) {
             if (this.EVENTS.indexOf(attr.name) !== -1)
                 return true;
         }
+
         return false;
     }
-    getTagName(el) {
+
+    getTagName (el) {
         return domUtils.getTagName(el);
     }
-    setAttr(el, attr, value) {
+
+    setAttr (el, attr, value) {
         return nativeMethods.setAttribute.call(el, attr, value);
     }
-    setScriptContent(script, content) {
+
+    setScriptContent (script, content) {
         nativeMethods.scriptTextSetter.call(script, content);
     }
-    getScriptContent(script) {
+
+    getScriptContent (script) {
         return nativeMethods.scriptTextGetter.call(script);
     }
-    getStyleContent(style) {
+
+    getStyleContent (style) {
         return nativeMethods.elementInnerHTMLGetter.call(style);
     }
-    setStyleContent(style, content) {
+
+    setStyleContent (style, content) {
         nativeMethods.elementInnerHTMLSetter.call(style, content);
     }
-    needToProcessContent(el) {
+
+    needToProcessContent (el) {
         return !DocumentWriter.hasUnclosedElementFlag(el);
     }
-    needToProcessUrl() {
+
+    needToProcessUrl () {
         return true;
     }
-    hasIframeParent(el) {
+
+    hasIframeParent (el) {
         try {
             if (el[INTERNAL_PROPS.processedContext])
                 return window.top !== el[INTERNAL_PROPS.processedContext];
+
             return window.top.document !== domUtils.findDocument(el);
         }
         catch (e) {
             return true;
         }
     }
-    attachEventEmitter(domProcessor) {
+
+    attachEventEmitter (domProcessor) {
         const eventEmitter = new EventEmitter();
-        domProcessor.on = (evt, listener) => eventEmitter.on(evt, listener);
-        domProcessor.off = (evt, listener) => eventEmitter.off(evt, listener);
+
+        domProcessor.on   = (evt, listener) => eventEmitter.on(evt, listener);
+        domProcessor.off  = (evt, listener) => eventEmitter.off(evt, listener);
         domProcessor.emit = (...args) => fastApply(eventEmitter, 'emit', args);
     }
-    getCrossDomainPort() {
+
+    getCrossDomainPort () {
         return settings.get().crossDomainProxyPort;
     }
-    getProxyUrl() {
+
+    getProxyUrl () {
         return getProxyUrl.apply(null, arguments);
     }
-    isTopParentIframe(el) {
+
+    isTopParentIframe (el) {
         const elWindow = el[INTERNAL_PROPS.processedContext];
+
         return elWindow && window.top === elWindow.parent;
     }
-    sameOriginCheck(location, checkedUrl) {
+
+    sameOriginCheck (location, checkedUrl) {
         return sameOriginCheck(location, checkedUrl);
     }
-    isExistingTarget(target) {
+
+    isExistingTarget (target) {
         return !!findByName(target);
     }
 }

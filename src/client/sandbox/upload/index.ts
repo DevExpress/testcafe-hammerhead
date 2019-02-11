@@ -11,15 +11,12 @@ export default class UploadSandbox extends SandboxBase {
     START_FILE_UPLOADING_EVENT: string = 'hammerhead|event|start-file-uploading';
     END_FILE_UPLOADING_EVENT: string = 'hammerhead|event|end-file-uploading';
 
-    infoManager: any;
+    infoManager: UploadInfoManager;
     listeners: any;
     eventSimulator: any;
 
     constructor (listeners, eventSimulator, shadowUI) {
         super();
-
-        this.START_FILE_UPLOADING_EVENT = 'hammerhead|event|start-file-uploading';
-        this.END_FILE_UPLOADING_EVENT   = 'hammerhead|event|end-file-uploading';
 
         this.infoManager = new UploadInfoManager(shadowUI);
 

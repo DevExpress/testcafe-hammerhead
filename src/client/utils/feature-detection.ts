@@ -11,8 +11,8 @@ export const emptyActionAttrFallbacksToTheLocation = nativeMethods.formActionGet
 
 // NOTE: In Chrome, toString(window) equals '[object Window]' and toString(Window.prototype) equals '[object Blob]',
 // this condition is also satisfied for Blob, Document, XMLHttpRequest, etc
-export const instanceAndPrototypeToStringAreEqual = nativeMethods.objectToString.call(window) ===
-                                                    nativeMethods.objectToString.call(Window.prototype);
+export const instanceAndPrototypeToStringAreEqual = nativeMethods.objectToString(window) ===
+                                                    nativeMethods.objectToString(Window.prototype);
 
 export const hasTouchEvents = 'ontouchstart' in window;
 

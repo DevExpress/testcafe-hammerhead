@@ -4,7 +4,7 @@ import { createOverriddenDescriptor } from '../../../utils/property-overriding';
 
 const lengthWeakMap = new WeakMap();
 
-export default function DOMStringListWrapper (window, getCrossDomainOrigin) {
+export default function DOMStringListWrapper (window: Window, getCrossDomainOrigin) {
     const nativeOrigins = window.location.ancestorOrigins;
     const length        = nativeOrigins.length;
     let parentWindow    = window.parent;

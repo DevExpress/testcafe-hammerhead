@@ -30,21 +30,21 @@ import nativeMethods from '../sandbox/native-methods';
 import IEDebugSandbox from './ie-debug';
 
 export default class Sandbox extends SandboxBase {
-    ieDebug: any;
-    cookie: any;
-    storageSandbox: any;
-    xhr: any;
-    fetch: any;
-    iframe: any;
-    shadowUI: any;
-    upload: any;
-    event: any;
-    node: any;
-    codeInstrumentation: any;
-    console: any;
-    style: any;
-    unload: any;
-    electron: any;
+    ieDebug: IEDebugSandbox;
+    cookie: CookieSandbox;
+    storageSandbox: StorageSandbox;
+    xhr: XhrSandbox;
+    fetch: FetchSandbox;
+    iframe: IframeSandbox;
+    shadowUI: ShadowUI;
+    upload: UploadSandbox;
+    event: EventSandbox;
+    node: NodeSandbox;
+    codeInstrumentation: CodeInstrumentation;
+    console: ConsoleSandbox;
+    style: StyleSandbox;
+    unload: UnloadSandbox;
+    electron: ElectronSandbox;
     windowStorage: any;
 
     constructor () {
@@ -87,7 +87,7 @@ export default class Sandbox extends SandboxBase {
 
     // NOTE: In some cases, IE raises the "Can't execute code from a freed script" exception,
     // so that we cannot use a sandbox created earlier and we have to create a new one.
-    static _canUseSandbox (sandbox) {
+    static _canUseSandbox (sandbox): boolean {
         try {
             sandbox.off();
         }
@@ -98,7 +98,7 @@ export default class Sandbox extends SandboxBase {
         return true;
     }
 
-    onIframeDocumentRecreated (iframe) {
+    onIframeDocumentRecreated (iframe): void {
         if (iframe) {
             const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
             const contentDocument = nativeMethods.contentDocumentGetter.call(iframe);
@@ -127,7 +127,7 @@ export default class Sandbox extends SandboxBase {
         }
     }
 
-    reattach (window, document) {
+    reattach (window, document): void {
         // NOTE: Assign the existing sandbox to the cleared document.
         if (isIE)
             this.nativeMethods.refreshIfNecessary(document, window);
@@ -142,7 +142,7 @@ export default class Sandbox extends SandboxBase {
         this.console.attach(window);
     }
 
-    attach (window) {
+    attach (window): void {
         super.attach(window);
 
         urlResolver.init(this.document);
@@ -176,7 +176,7 @@ export default class Sandbox extends SandboxBase {
         this.unload.on(this.unload.UNLOAD_EVENT, () => this.dispose());
     }
 
-    _removeInternalProperties () {
+    _removeInternalProperties (): void {
         const removeListeningElement = this.event.listeners.listeningCtx.removeListeningElement;
 
         removeListeningElement(this.window);
@@ -193,7 +193,7 @@ export default class Sandbox extends SandboxBase {
         }
     }
 
-    dispose () {
+    dispose (): void {
         this.event.hover.lastHoveredElement     = null;
         this.event.focusBlur.lastFocusedElement = null;
 

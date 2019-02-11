@@ -31,7 +31,7 @@ export default class CookieSandbox extends SandboxBase {
         this.pendingWindowSync = [];
     }
 
-    _canSetCookie (cookie, setByClient) {
+    _canSetCookie (cookie, setByClient): boolean {
         // eslint-disable-next-line no-restricted-properties
         if (setByClient && (cookie.length > BYTES_PER_COOKIE_LIMIT || destLocation.getParsed().protocol === 'file:'))
             return false;
@@ -48,7 +48,7 @@ export default class CookieSandbox extends SandboxBase {
         return !documentCookieIsEmpty;
     }
 
-    static _updateClientCookieStr (cookieKey, newCookieStr) {
+    static _updateClientCookieStr (cookieKey, newCookieStr): void {
         const cookieStr      = settings.get().cookie; // eslint-disable-line no-restricted-properties
         const cookies        = cookieStr ? cookieStr.split(';') : [];
         const changedCookies = [];
@@ -76,14 +76,14 @@ export default class CookieSandbox extends SandboxBase {
         settings.get().cookie = changedCookies.join('; '); // eslint-disable-line no-restricted-properties
     }
 
-    getCookie () {
+    getCookie (): string {
         this.syncCookie();
 
         // eslint-disable-next-line no-restricted-properties
         return settings.get().cookie || '';
     }
 
-    setCookie (_document, cookie) {
+    setCookie (_document, cookie): void {
         const setByClient = typeof cookie === 'string';
 
         // NOTE: Cookie cannot be set in iframe without src in IE
@@ -126,7 +126,7 @@ export default class CookieSandbox extends SandboxBase {
         }
     }
 
-    syncCookie () {
+    syncCookie (): void {
         const cookies           = nativeMethods.documentCookieGetter.call(this.document);
         const parsedCookies     = parseClientSyncCookieStr(cookies);
         const sessionId         = settings.get().sessionId;
@@ -148,7 +148,7 @@ export default class CookieSandbox extends SandboxBase {
         this._syncServerCookie(serverSyncCookies);
     }
 
-    _syncServerCookie (parsedCookies) {
+    _syncServerCookie (parsedCookies): void {
         for (const parsedCookie of parsedCookies) {
             this.setCookie(this.document, parsedCookie);
 
@@ -163,7 +163,7 @@ export default class CookieSandbox extends SandboxBase {
         });
     }
 
-    _syncClientCookie (parsedCookie) {
+    _syncClientCookie (parsedCookie): void {
         parsedCookie.isClientSync = true;
         parsedCookie.isWindowSync = true;
         parsedCookie.sid          = settings.get().sessionId;
@@ -180,7 +180,7 @@ export default class CookieSandbox extends SandboxBase {
         });
     }
 
-    _processPendingWindowSync () {
+    _processPendingWindowSync (): void {
         for (const { parsedCookies, win, resolve } of this.pendingWindowSync) {
             const syncResultPromise = this.syncWindowCookie(parsedCookies, win);
 
@@ -193,7 +193,7 @@ export default class CookieSandbox extends SandboxBase {
         this.pendingWindowSync = [];
     }
 
-    syncWindowCookie (parsedCookies, win) {
+    syncWindowCookie (parsedCookies, win: Window) {
         // NOTE: This function can be called before the 'attach' call.
         if (!this.document)
             return new Promise(resolve => this.pendingWindowSync.push({ parsedCookies, win, resolve }));
@@ -214,7 +214,7 @@ export default class CookieSandbox extends SandboxBase {
         return this.windowSync.syncBetweenWindows(actualCookies, win);
     }
 
-    attach (window) {
+    attach (window: Window): void {
         super.attach(window);
 
         this.windowSync = new WindowSync(window, this, this.messageSandbox);

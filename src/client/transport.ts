@@ -18,10 +18,13 @@ class Transport {
     constructor () {
         this.msgQueue                     = {};
         this.activeServiceMessagesCounter = 0;
+        this.shouldAddRefferer = Transport._shouldAddReferrer();
+    }
 
+    static _shouldAddReferrer (): boolean {
         const frameElement = getFrameElement(window);
 
-        this.shouldAddRefferer = frameElement && isIframeWithoutSrc(frameElement);
+        return frameElement && isIframeWithoutSrc(frameElement);
     }
 
     static _storeMessage (msg): void {
