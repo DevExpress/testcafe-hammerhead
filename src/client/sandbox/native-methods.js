@@ -553,6 +553,7 @@ class NativeMethods {
         this.styleGetPropertyValue = win.CSSStyleDeclaration.prototype.getPropertyValue;
         this.styleSetProperty      = win.CSSStyleDeclaration.prototype.setProperty;
         this.styleRemoveProperty   = win.CSSStyleDeclaration.prototype.removeProperty;
+        this.styleSheetInsertRule = win.CSSStyleSheet.prototype.insertRule;
 
         // Console
         this.console = win.console;

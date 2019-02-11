@@ -225,6 +225,12 @@ export default class StyleSandbox extends SandboxBase {
             }
         });
 
+        window.CSSStyleSheet.prototype.insertRule = function (rule, index) {
+            const newRule = styleProcessor.process(rule, getProxyUrl);
+
+            return nativeMethods.styleSheetInsertRule.call(this, newRule, index);
+        };
+
         window.CSSStyleDeclaration.prototype.getPropertyValue = function (...args) {
             const value = nativeMethods.styleGetPropertyValue.apply(this, args);
 
