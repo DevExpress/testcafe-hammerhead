@@ -36,7 +36,7 @@ export function addListeningElement (el, events) {
     }
 
     if (!isElementListening(el)) {
-        nativeMethods.objectDefineProperty.call(window.Object, el, ELEMENT_LISTENING_EVENTS_STORAGE_PROP, {
+        nativeMethods.objectDefineProperty(el, ELEMENT_LISTENING_EVENTS_STORAGE_PROP, {
             value:    elementCtx,
             writable: true
         });

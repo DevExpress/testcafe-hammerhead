@@ -238,7 +238,11 @@ gulp.step('lint-js', () => {
     const migratedToTypeScriptClientFiles = [
         '!./src/client/transport.js',
         '!./src/client/page-navigation-watch.js',
-        '!./src/client/settings.js'
+        '!./src/client/settings.js',
+        '!./src/client/sandbox/ie-debug.js',
+        '!./src/client/sandbox/event/**/*.js',
+        '!./src/client/sandbox/cookie/*.js',
+        '!./src/client/utils/dom.js'
     ];
 
     return gulp

@@ -15,14 +15,28 @@ const MESSAGE_TYPE = {
 };
 
 export default class MessageSandbox extends SandboxBase {
+    PING_DELAY: number = 200;
+    PING_IFRAME_TIMEOUT: number = 7000;
+    PING_IFRAME_MIN_TIMEOUT: number = 100;
+    SERVICE_MSG_RECEIVED_EVENT: string = 'hammerhead|event|service-msg-received';
+    RECEIVE_MSG_FN: string = 'hammerhead|receive-msg-function';
+
+    pingCallback: any;
+    pingCmd: any;
+
+    topWindow: Window;
+    window: Window;
+
+    listeners: any;
+    unloadSandbox: any;
+
+    storedOnMessageHandler: any;
+    isWindowUnloaded: boolean;
+
+    iframeInternalMsgQueue: Array<any>;
+
     constructor (listeners, unloadSandbox) {
         super();
-
-        this.PING_DELAY                 = 200;
-        this.PING_IFRAME_TIMEOUT        = 7000;
-        this.PING_IFRAME_MIN_TIMEOUT    = 100;
-        this.SERVICE_MSG_RECEIVED_EVENT = 'hammerhead|event|service-msg-received';
-        this.RECEIVE_MSG_FN             = 'hammerhead|receive-msg-function';
 
         this.pingCallback = null;
         this.pingCmd      = null;
@@ -73,7 +87,7 @@ export default class MessageSandbox extends SandboxBase {
         return null;
     }
 
-    static _wrapMessage (type, message, targetUrl) {
+    static _wrapMessage (type, message, targetUrl?: string) {
         const parsedDest = destLocation.getParsed();
         const originUrl  = formatUrl({
             /*eslint-disable no-restricted-properties*/
@@ -122,7 +136,7 @@ export default class MessageSandbox extends SandboxBase {
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
-        nativeMethods.objectDefineProperty.call(window.Object, window, this.RECEIVE_MSG_FN, {
+        nativeMethods.objectDefineProperty(window, this.RECEIVE_MSG_FN, {
             value:        onMessageHandler,
             configurable: true
         });

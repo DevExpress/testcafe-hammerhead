@@ -10,10 +10,29 @@ import DataTransfer from './drag-and-drop/data-transfer';
 import DragDataStore from './drag-and-drop/drag-data-store';
 
 export default class EventSandbox extends SandboxBase {
+    EVENT_PREVENTED_EVENT: string = 'hammerhead|event|event-prevented';
+
+    listeners: any;
+    elementEditingWatcher: any;
+    unload: any;
+    timers: any;
+    eventSimulator: any;
+    focusBlur: any;
+    selection: any;
+    hover: any;
+    shadowUI: any;
+    message: any;
+
+    DataTransfer: any;
+    DragDataStore: any;
+
+    overriddenMethods: any;
+
+    onFocus: any;
+    cancelInternalEvents: any;
+
     constructor (listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, shadowUI, timerSandbox) {
         super();
-
-        this.EVENT_PREVENTED_EVENT = 'hammerhead|event|event-prevented';
 
         this.listeners             = listeners;
         this.elementEditingWatcher = elementEditingWatcher;
@@ -105,7 +124,7 @@ export default class EventSandbox extends SandboxBase {
                 shadowUI.setLastActiveElement(activeEl);
         };
 
-        this.cancelInternalEvents = function (e, dispatched, preventEvent, cancelHandlers, stopPropagation) {
+        this.cancelInternalEvents = function (e, _dispatched, _preventEvent, _cancelHandlers, stopPropagation) {
             // NOTE: We should cancel events raised by calling the native function (focus, blur) only if the
             // element has a flag. If an event is dispatched, we shouldn't cancel it.
             // After calling a native function two events were raised

@@ -5,7 +5,7 @@ import * as listeningCtx from './listening-context';
 import { preventDefault, stopPropagation, DOM_EVENTS, isValidEventListener, callEventListener } from '../../utils/event';
 import { isWindow } from '../../utils/dom';
 
-const LISTENED_EVENTS = [
+const LISTENED_EVENTS: Array<string> = [
     'click', 'mousedown', 'mouseup', 'dblclick', 'contextmenu', 'mousemove', 'mouseover', 'mouseout',
     'pointerdown', 'pointermove', 'pointerover', 'pointerout', 'pointerup',
     'MSPointerDown', 'MSPointerMove', 'MSPointerOver', 'MSPointerOut', 'MSPointerUp',
@@ -14,14 +14,20 @@ const LISTENED_EVENTS = [
     'change', 'focus', 'blur', 'focusin', 'focusout'
 ];
 
-const EVENT_SANDBOX_DISPATCH_EVENT_FLAG = 'hammerhead|event-sandbox-dispatch-event-flag';
+const EVENT_SANDBOX_DISPATCH_EVENT_FLAG: string = 'hammerhead|event-sandbox-dispatch-event-flag';
 
 export default class Listeners extends EventEmitter {
+    EVENT_LISTENER_ATTACHED_EVENT: string = 'hammerhead|event|event-listener-attached';
+    EVENT_LISTENER_DETACHED_EVENT: string = 'hammerhead|event|event-listener-detached';
+
+    listeningCtx: any;
+
+    addInternalEventListener: any;
+    addFirstInternalHandler: any;
+    removeInternalEventListener: any;
+
     constructor () {
         super();
-
-        this.EVENT_LISTENER_ATTACHED_EVENT = 'hammerhead|event|event-listener-attached';
-        this.EVENT_LISTENER_DETACHED_EVENT = 'hammerhead|event|event-listener-detached';
 
         this.listeningCtx = listeningCtx;
 
@@ -71,7 +77,7 @@ export default class Listeners extends EventEmitter {
         };
     }
 
-    static _isDifferentHandler (outerHandlers, listener, useCapture) {
+    static _isDifferentHandler (outerHandlers, listener, useCapture: boolean) {
         for (const outerHandler of outerHandlers) {
             if (outerHandler.fn === listener && outerHandler.useCapture === useCapture)
                 return false;
@@ -188,7 +194,7 @@ export default class Listeners extends EventEmitter {
         };
     }
 
-    _createDocumentBodyOverridedMethods (doc) {
+    _createDocumentBodyOverridedMethods (doc: Document) {
         const listeners                 = this;
         const nativeAddEventListener    = (() => doc.body.addEventListener)();
         const nativeRemoveEventListener = (() => doc.body.removeEventListener)();
@@ -240,7 +246,7 @@ export default class Listeners extends EventEmitter {
         };
     }
 
-    initElementListening (el, events) {
+    initElementListening (el: HTMLElement, events) {
         const nativeAddEventListener = Listeners._getNativeAddEventListener(el);
 
         events = events || LISTENED_EVENTS;
@@ -256,7 +262,7 @@ export default class Listeners extends EventEmitter {
         el.removeEventListener = overridedMethods.removeEventListener;
     }
 
-    initDocumentBodyListening (doc) {
+    initDocumentBodyListening (doc: Document) {
         listeningCtx.addListeningElement(doc.body, DOM_EVENTS);
 
         const overridedMethods = this._createDocumentBodyOverridedMethods(doc);
@@ -265,12 +271,12 @@ export default class Listeners extends EventEmitter {
         doc.body.removeEventListener = overridedMethods.removeEventListener;
     }
 
-    restartElementListening (el) {
+    restartElementListening (el: HTMLElement) {
         const nativeAddEventListener = Listeners._getNativeAddEventListener(el);
         const elementCtx             = this.listeningCtx.getElementCtx(el);
 
         if (elementCtx) {
-            const eventNames = window.Object.keys(elementCtx);
+            const eventNames = nativeMethods.objectKeys(elementCtx);
 
             for (const eventName of eventNames)
                 nativeAddEventListener.call(el, eventName, this._createEventHandler(), true);
@@ -284,13 +290,13 @@ export default class Listeners extends EventEmitter {
             this.listeningCtx.removeListeningElement(el.body);
     }
 
-    static beforeDispatchEvent (el) {
+    static beforeDispatchEvent (el: HTMLElement) {
         const elWindow = el[INTERNAL_PROPS.processedContext] || window;
 
         elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG] = (elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG] || 0) + 1;
     }
 
-    static afterDispatchEvent (el) {
+    static afterDispatchEvent (el: HTMLElement) {
         const elWindow = el[INTERNAL_PROPS.processedContext] || window;
 
         elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG]--;
@@ -299,7 +305,7 @@ export default class Listeners extends EventEmitter {
             delete elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG];
     }
 
-    setEventListenerWrapper (el, events, wrapper) {
+    setEventListenerWrapper (el: HTMLElement, events, wrapper) {
         if (!this.listeningCtx.isElementListening(el))
             this.initElementListening(el, events);
 
@@ -310,7 +316,7 @@ export default class Listeners extends EventEmitter {
         }
     }
 
-    getEventListeners (el, event) {
+    getEventListeners (el: HTMLElement, event) {
         const eventCtx = this.listeningCtx.getEventCtx(el, event);
 
         if (!eventCtx)

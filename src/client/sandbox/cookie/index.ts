@@ -18,6 +18,10 @@ import {
 const MIN_DATE_VALUE = new nativeMethods.date(0).toUTCString(); // eslint-disable-line new-cap
 
 export default class CookieSandbox extends SandboxBase {
+    messageSandbox: any;
+    windowSync: any;
+    pendingWindowSync: Array<any>;
+
     constructor (messageSandbox) {
         super();
 
@@ -79,7 +83,7 @@ export default class CookieSandbox extends SandboxBase {
         return settings.get().cookie || '';
     }
 
-    setCookie (document, cookie) {
+    setCookie (_document, cookie) {
         const setByClient = typeof cookie === 'string';
 
         // NOTE: Cookie cannot be set in iframe without src in IE

@@ -13,6 +13,11 @@ import EFFECT_ALLOWED from './effect-allowed';
 
 // https://html.spec.whatwg.org/multipage/interaction.html#datatransfer
 export default class DataTransfer {
+    setDragImage: any;
+    getData: any;
+    setData: any;
+    clearData: any;
+
     constructor (dataStore) {
         let dropEffect    = DROP_EFFECT.none;
         let effectAllowed = EFFECT_ALLOWED.uninitialized;
@@ -32,7 +37,7 @@ export default class DataTransfer {
             return dataStore.mode === DATA_STORE_MODE.protected ? emptyListInternals : itemListInternals;
         };
 
-        nativeMethods.objectDefineProperty.call(window.Object, this, 'dropEffect', {
+        nativeMethods.objectDefineProperty(this, 'dropEffect', {
             configurable: true,
             enumerable:   true,
 
@@ -45,7 +50,7 @@ export default class DataTransfer {
             }
         });
 
-        nativeMethods.objectDefineProperty.call(window.Object, this, 'effectAllowed', {
+        nativeMethods.objectDefineProperty(this, 'effectAllowed', {
             configurable: true,
             enumerable:   true,
 
@@ -59,7 +64,7 @@ export default class DataTransfer {
         });
 
         if (!isIE11) {
-            nativeMethods.objectDefineProperty.call(window.Object, this, 'items', {
+            nativeMethods.objectDefineProperty(this, 'items', {
                 configurable: true,
                 enumerable:   true,
 
@@ -67,14 +72,14 @@ export default class DataTransfer {
             });
         }
 
-        nativeMethods.objectDefineProperty.call(window.Object, this, 'types', {
+        nativeMethods.objectDefineProperty(this, 'types', {
             configurable: true,
             enumerable:   true,
 
             get: () => getActualItemListInternals().getTypes()
         });
 
-        nativeMethods.objectDefineProperty.call(window.Object, this, 'files', {
+        nativeMethods.objectDefineProperty(this, 'files', {
             configurable: true,
             enumerable:   true,
 
@@ -113,6 +118,7 @@ export default class DataTransfer {
                 return;
 
             if (format === void 0)
+                // @ts-ignore
                 itemList.clear();
             else
                 itemListInternals.removeItem(format);

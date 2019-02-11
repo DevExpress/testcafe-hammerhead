@@ -6,6 +6,11 @@ import * as positionUtils from '../../utils/position';
 import * as browserUtils from '../../utils/browser';
 
 export default class HoverSandbox extends SandboxBase {
+    listeners: any;
+
+    hoverElementFixed: boolean;
+    lastHoveredElement: any;
+
     constructor (listeners) {
         super();
 

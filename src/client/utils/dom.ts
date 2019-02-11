@@ -57,16 +57,16 @@ function closestFallback (el, selector) {
     return null;
 }
 
-export function instanceToString (instance) {
+export function instanceToString (instance): string {
     if (!instanceAndPrototypeToStringAreEqual)
         return nativeMethods.objectToString.call(instance);
 
     return instance && typeof instance === 'object'
-        ? nativeMethods.objectToString.call(nativeMethods.objectGetPrototypeOf.call(window.Object, instance))
+        ? nativeMethods.objectToString.call(nativeMethods.objectGetPrototypeOf(instance))
         : '';
 }
 
-export function getActiveElement (currentDocument) {
+export function getActiveElement (currentDocument?: Document) {
     // NOTE: Sometimes document.activeElement returns an empty object or null (IE11).
     // https://github.com/DevExpress/testcafe-hammerhead/issues/768
     const doc           = currentDocument || document;
@@ -93,7 +93,7 @@ export function getChildVisibleIndex (select, child) {
     return childrenArray.indexOf(child);
 }
 
-export function getIframeByElement (el) {
+export function getIframeByElement (el: HTMLElement) {
     const elWindow = el[INTERNAL_PROPS.processedContext];
 
     return getFrameElement(elWindow);
@@ -317,7 +317,7 @@ export function isElementInDocument (el, currentDocument) {
     return doc.documentElement.contains(el);
 }
 
-export function isElementInIframe (el, currentDocument) {
+export function isElementInIframe (el: HTMLElement, currentDocument?: Document) {
     const doc = currentDocument || findDocument(el);
 
     return window.document !== doc;
@@ -703,7 +703,7 @@ export function parseDocumentCharset () {
     return metaCharset && metaCharset.getAttribute('charset');
 }
 
-export function getParents (el, selector) {
+export function getParents (el, selector?) {
     // eslint-disable-next-line no-restricted-properties
     let parent = el.parentNode || el.host;
 

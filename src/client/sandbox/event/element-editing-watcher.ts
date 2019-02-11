@@ -10,20 +10,22 @@ const ELEMENT_EDITING_OBSERVED_FLAG = 'hammerhead|element-editing-observed';
 const OLD_VALUE_PROPERTY            = 'hammerhead|old-value';
 
 export default class ElementEditingWatcher {
+    eventSimulator: any;
+
     constructor (eventSimulator) {
         this.eventSimulator = eventSimulator;
     }
 
-    _onBlur (e) {
+    _onBlur (e): void {
         if (!this.processElementChanging(e.target))
             this.stopWatching(e.target);
     }
 
-    _onChange (e) {
+    _onChange (e): void {
         this.stopWatching(e.target);
     }
 
-    static _getValue (el) {
+    static _getValue (el): string {
         if (isInputElement(el))
             return nativeMethods.inputValueGetter.call(el);
         else if (isTextAreaElement(el))
@@ -33,7 +35,7 @@ export default class ElementEditingWatcher {
         return el.value;
     }
 
-    stopWatching (el) {
+    stopWatching (el): void {
         if (el) {
             nativeMethods.removeEventListener.call(el, 'blur', e => this._onBlur(e));
             nativeMethods.removeEventListener.call(el, 'change', e => this._onChange(e));
@@ -46,7 +48,7 @@ export default class ElementEditingWatcher {
         }
     }
 
-    watchElementEditing (el) {
+    watchElementEditing (el: HTMLElement): void {
         if (el && !el[ELEMENT_EDITING_OBSERVED_FLAG] &&
             isTextEditableElementAndEditingAllowed(el) && !isShadowUIElement(el)) {
 
@@ -59,12 +61,12 @@ export default class ElementEditingWatcher {
         }
     }
 
-    restartWatchingElementEditing (el) {
+    restartWatchingElementEditing (el: HTMLElement): void {
         if (el && el[ELEMENT_EDITING_OBSERVED_FLAG])
             el[OLD_VALUE_PROPERTY] = ElementEditingWatcher._getValue(el);
     }
 
-    processElementChanging (el) {
+    processElementChanging (el: HTMLElement): boolean {
         if (el && el[ELEMENT_EDITING_OBSERVED_FLAG] && ElementEditingWatcher._getValue(el) !== el[OLD_VALUE_PROPERTY]) {
             this.eventSimulator.change(el);
             this.restartWatchingElementEditing(el);

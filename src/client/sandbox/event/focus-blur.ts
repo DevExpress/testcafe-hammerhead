@@ -23,6 +23,17 @@ const eventsMap = {
 };
 
 export default class FocusBlurSandbox extends SandboxBase {
+    topWindow: any;
+    lastFocusedElement: any;
+    scrollState: any;
+
+    eventSimulator: any;
+    activeWindowTracker: any;
+    shadowUI: any;
+    listeners: any;
+    elementEditingWatcher: any;
+    timersSandbox: any;
+
     constructor (listeners, eventSimulator, messageSandbox, shadowUI, timersSandbox, elementEditingWatcher) {
         super();
 
@@ -38,7 +49,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         this.timersSandbox         = timersSandbox;
     }
 
-    static _getNativeMeth (el, event) {
+    static _getNativeMeth (el: HTMLElement, event: string) {
         if (domUtils.isSVGElement(el)) {
             if (event === 'focus')
                 return nativeMethods.svgFocus;
@@ -49,7 +60,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         return nativeMethods[event];
     }
 
-    static _restoreElementScroll (el, scroll) {
+    static _restoreElementScroll (el: HTMLElement, scroll): void {
         const newScroll = styleUtils.getElementScroll(el);
 
         if (newScroll.left !== scroll.left)
@@ -59,7 +70,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             styleUtils.setScrollTop(el, scroll.top);
     }
 
-    _onChangeActiveElement (activeElement) {
+    _onChangeActiveElement (activeElement: HTMLElement): void {
         if (this.lastFocusedElement === activeElement)
             return;
 
@@ -68,7 +79,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             nativeMethods.removeAttribute.call(this.lastFocusedElement, INTERNAL_ATTRS.focusPseudoClass);
 
         if (domUtils.isElementFocusable(activeElement) && !(domUtils.isBodyElement(activeElement) &&
-            domUtils.getTabIndex(activeElement, 'tabIndex') === null)) {
+            domUtils.getTabIndex(activeElement) === null)) {
             this.lastFocusedElement = activeElement;
             nativeMethods.setAttribute.call(activeElement, INTERNAL_ATTRS.focusPseudoClass, true);
         }
@@ -76,11 +87,11 @@ export default class FocusBlurSandbox extends SandboxBase {
             this.lastFocusedElement = null;
     }
 
-    _shouldUseLabelHtmlForElement (el, type) {
+    _shouldUseLabelHtmlForElement (el, type: string): boolean {
         return type === 'focus' && domUtils.isLabelElement(el) && el.htmlFor;
     }
 
-    _getElementNonScrollableParentsScrollState (el) {
+    _getElementNonScrollableParentsScrollState (el: HTMLElement) {
         const scrollState    = [];
         const elementParents = domUtils.getParents(el);
 
@@ -117,7 +128,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             this._restoreElementNonScrollableParentsScrollState(this.scrollState.elementNonScrollableParentsScrollState);
     }
 
-    _raiseEvent (el, type, callback, { withoutHandlers, isAsync, forMouseEvent, preventScrolling, relatedTarget, focusedOnChange } ) {
+    _raiseEvent (el, type: string, callback, { withoutHandlers, isAsync, forMouseEvent, preventScrolling, relatedTarget, focusedOnChange }: { withoutHandlers?: boolean, isAsync?: boolean, forMouseEvent?: boolean, preventScrolling?: boolean, relatedTarget?: string, focusedOnChange?: boolean } ) {
         // NOTE: We cannot use Promise because 'resolve' will be called async, but we need to resolve
         // immediately in IE9 and IE10.
 
@@ -154,7 +165,7 @@ export default class FocusBlurSandbox extends SandboxBase {
                 }
             }
             else if (type === 'focus' && PREVENT_FOCUS_ON_CHANGE) {
-                const preventFocus = (e, dispatched, preventEvent, cancelHandlers, stopEventPropagation) => {
+                const preventFocus = (_e, _dispatched, _preventEvent, cancelHandlers, stopEventPropagation) => {
                     cancelHandlers();
                     stopEventPropagation();
                 };
@@ -378,7 +389,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         return null;
     }
 
-    blur (el, callback, withoutHandlers, isNativeBlur, relatedTarget) {
+    blur (el, callback, withoutHandlers, isNativeBlur, relatedTarget?: string) {
         const curDocument   = domUtils.findDocument(el);
         const activeElement = domUtils.getActiveElement(curDocument);
         // NOTE: In IE, if you call the focus() or blur() method from script, an active element is changed
