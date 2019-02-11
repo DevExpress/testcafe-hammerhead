@@ -150,7 +150,7 @@ export default class WindowSandbox extends SandboxBase {
 
     static _formatUnhandledRejectionReason (reason) {
         if (!isPrimitiveType(reason)) {
-            const reasonStr = nativeMethods.objectToString(reason);
+            const reasonStr = nativeMethods.objectToString.call(reason);
 
             if (reasonStr === '[object Error]')
                 return reason.message;
