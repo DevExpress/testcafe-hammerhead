@@ -60,7 +60,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         return nativeMethods[event];
     }
 
-    static _restoreElementScroll (el: HTMLElement, scroll): void {
+    static _restoreElementScroll (el: HTMLElement | Window, scroll): void {
         const newScroll = styleUtils.getElementScroll(el);
 
         if (newScroll.left !== scroll.left)

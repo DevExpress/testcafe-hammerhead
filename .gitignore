@@ -7,7 +7,6 @@ package-lock.json
 
 # Temporary (TypeScript migration)
 **/*.js
-!src/client/**/*.js
-!src/processing/script/tools/**/*.js
-!src/test
+!./src/client/**/*.js
+!./src/test
 !src/Gulpfile.js
