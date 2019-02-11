@@ -63,7 +63,8 @@ test('insertRule', function () {
     document.head.appendChild(style);
 
     var actualRuleIndex = document.styleSheets[0].insertRule('div { background-image: url("' + url + '"); }');
-    var actualRule = removeDoubleQuotes(document.styleSheets[0].rules[0].cssText);
+    var actualRules = document.styleSheets[0].rules || document.styleSheets[0].cssRules;
+    var actualRule = removeDoubleQuotes(actualRules[0].cssText);
 
     strictEqual(actualRuleIndex, 0);
     strictEqual(actualRule, removeDoubleQuotes('div { background-image: url("' + proxyUrl + '")' + '; }'));
