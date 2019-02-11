@@ -159,10 +159,9 @@ gulp.step('client-scripts', gulp.series('client-scripts-transpile', 'client-scri
 
 gulp.step('server-scripts', () => {
     const tsConfig = gulpTypeScript.createProject('tsconfig.json');
-    const tsFiles  = gulp.src(['./src/**/*.ts']).pipe(tsConfig());
-    const jsTools  = gulp.src(['./src/**/*.js', '!./src/client/**/*.js']);
 
-    return mergeStreams(tsFiles, jsTools)
+    return gulp.src(['./src/**/*.ts'])
+        .pipe(tsConfig())
         .pipe(gulpBabel())
         .pipe(gulp.dest('lib/'));
 });
