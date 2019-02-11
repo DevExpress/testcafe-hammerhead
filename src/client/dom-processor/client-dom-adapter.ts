@@ -11,27 +11,27 @@ import DocumentWriter from '../sandbox/node/document/writer';
 import { findByName } from '../sandbox/windows-storage';
 
 export default class ClientDomAdapter extends BaseDomAdapter {
-    removeAttr (el, attr) {
+    removeAttr (el: HTMLElement, attr: string) {
         return nativeMethods.removeAttribute.call(el, attr);
     }
 
-    getAttr (el, attr) {
+    getAttr (el: HTMLElement, attr: string) {
         return nativeMethods.getAttribute.call(el, attr);
     }
 
-    hasAttr (el, attr) {
+    hasAttr (el: HTMLElement, attr: string): boolean {
         return el.hasAttribute(attr);
     }
 
-    isSVGElement (el) {
+    isSVGElement (el: HTMLElement): boolean {
         return domUtils.isSVGElement(el);
     }
 
-    getClassName (el) {
+    getClassName (el: HTMLElement) {
         return el.className;
     }
 
-    hasEventHandler (el) {
+    hasEventHandler (el: HTMLElement): boolean {
         const attributes = nativeMethods.elementAttributesGetter.call(el);
 
         for (const attr of attributes) {
@@ -42,39 +42,39 @@ export default class ClientDomAdapter extends BaseDomAdapter {
         return false;
     }
 
-    getTagName (el) {
+    getTagName (el): string {
         return domUtils.getTagName(el);
     }
 
-    setAttr (el, attr, value) {
+    setAttr (el: HTMLElement, attr: string, value: string): void {
         return nativeMethods.setAttribute.call(el, attr, value);
     }
 
-    setScriptContent (script, content) {
+    setScriptContent (script: HTMLElement, content: string): void {
         nativeMethods.scriptTextSetter.call(script, content);
     }
 
-    getScriptContent (script) {
+    getScriptContent (script: HTMLElement) {
         return nativeMethods.scriptTextGetter.call(script);
     }
 
-    getStyleContent (style) {
+    getStyleContent (style: HTMLElement) {
         return nativeMethods.elementInnerHTMLGetter.call(style);
     }
 
-    setStyleContent (style, content) {
+    setStyleContent (style: HTMLElement, content: string) {
         nativeMethods.elementInnerHTMLSetter.call(style, content);
     }
 
-    needToProcessContent (el) {
+    needToProcessContent (el: HTMLElement): boolean {
         return !DocumentWriter.hasUnclosedElementFlag(el);
     }
 
-    needToProcessUrl () {
+    needToProcessUrl (): boolean {
         return true;
     }
 
-    hasIframeParent (el) {
+    hasIframeParent (el: HTMLElement): boolean {
         try {
             if (el[INTERNAL_PROPS.processedContext])
                 return window.top !== el[INTERNAL_PROPS.processedContext];
@@ -86,7 +86,7 @@ export default class ClientDomAdapter extends BaseDomAdapter {
         }
     }
 
-    attachEventEmitter (domProcessor) {
+    attachEventEmitter (domProcessor): void {
         const eventEmitter = new EventEmitter();
 
         domProcessor.on   = (evt, listener) => eventEmitter.on(evt, listener);
@@ -94,25 +94,25 @@ export default class ClientDomAdapter extends BaseDomAdapter {
         domProcessor.emit = (...args) => fastApply(eventEmitter, 'emit', args);
     }
 
-    getCrossDomainPort () {
+    getCrossDomainPort (): string {
         return settings.get().crossDomainProxyPort;
     }
 
-    getProxyUrl () {
+    getProxyUrl (): string {
         return getProxyUrl.apply(null, arguments);
     }
 
-    isTopParentIframe (el) {
+    isTopParentIframe (el: HTMLElement): boolean {
         const elWindow = el[INTERNAL_PROPS.processedContext];
 
         return elWindow && window.top === elWindow.parent;
     }
 
-    sameOriginCheck (location, checkedUrl) {
+    sameOriginCheck (location: string, checkedUrl: string) {
         return sameOriginCheck(location, checkedUrl);
     }
 
-    isExistingTarget (target) {
+    isExistingTarget (target: string) {
         return !!findByName(target);
     }
 }
