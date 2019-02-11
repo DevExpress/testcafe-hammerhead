@@ -93,7 +93,7 @@ export function getChildVisibleIndex (select, child): number {
     return childrenArray.indexOf(child);
 }
 
-export function getIframeByElement (el: HTMLElement) {
+export function getIframeByElement (el: HTMLElement | Document) {
     const elWindow = el[INTERNAL_PROPS.processedContext];
 
     return getFrameElement(elWindow);
