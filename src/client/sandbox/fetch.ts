@@ -26,7 +26,7 @@ export default class FetchSandbox extends SandboxBase {
         let headers       = init.headers;
 
         if (!isFetchHeaders(headers))
-            headers = init.headers = new nativeMethods.Headers(headers);
+            headers = init.headers = headers ? new nativeMethods.Headers(headers) : new nativeMethods.Headers();
 
         // eslint-disable-next-line no-restricted-properties
         nativeMethods.headersSet.call(headers, XHR_HEADERS.origin, getOriginHeader());
