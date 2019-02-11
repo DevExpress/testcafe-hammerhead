@@ -34,7 +34,7 @@ const ELEMENT_PROCESSED: string = 'hammerhead|element-processed';
 const AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER: string = 'hammerhead|autocomplete-attribute-absence-marker';
 
 export default class DomProcessor {
-    private readonly adapter: any;
+    adapter: any;
     SVG_XLINK_HREF_TAGS: string[] = SVG_XLINK_HREF_TAGS;
     AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER: string = AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
     private readonly elementProcessorPatterns: any;

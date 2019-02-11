@@ -234,24 +234,12 @@ gulp.step('templates', () => {
 });
 
 gulp.step('lint-js', () => {
-    // NOTE: remove this after migration will be completed
-    const migratedToTypeScriptClientFiles = [
-        '!./src/client/transport.js',
-        '!./src/client/page-navigation-watch.js',
-        '!./src/client/settings.js',
-        '!./src/client/sandbox/ie-debug.js',
-        '!./src/client/sandbox/event/**/*.js',
-        '!./src/client/sandbox/cookie/*.js',
-        '!./src/client/utils/dom.js'
-    ];
-
     return gulp
         .src([
-            './src/client/**/*.js',
             './test/server/*.js',
             './test/client/fixtures/**/*.js',
             'Gulpfile.js'
-        ].concat(migratedToTypeScriptClientFiles))
+        ])
         .pipe(eslint())
         .pipe(eslint.format())
         .pipe(eslint.failAfterError());
