@@ -918,9 +918,9 @@ export default class WindowSandbox extends SandboxBase {
                     domTokenList   = nativeMethods.elementClassListGetter.call(span);
                     span.className = windowSandbox.nodeSandbox.element.getAttributeCore(this, ['sandbox']) || '';
 
-                    nativeMethods.objectDefineProperty.call(window.Object, domTokenList, SANDBOX_DOM_TOKEN_LIST_OWNER, { value: this });
-                    nativeMethods.objectDefineProperty.call(window.Object, this, SANDBOX_DOM_TOKEN_LIST, { value: domTokenList });
-                    nativeMethods.objectDefineProperty.call(window.Object, this, SANDBOX_DOM_TOKEN_LIST_UPDATE_FN, {
+                    nativeMethods.objectDefineProperty(domTokenList, SANDBOX_DOM_TOKEN_LIST_OWNER, { value: this });
+                    nativeMethods.objectDefineProperty(this, SANDBOX_DOM_TOKEN_LIST, { value: domTokenList });
+                    nativeMethods.objectDefineProperty(this, SANDBOX_DOM_TOKEN_LIST_UPDATE_FN, {
                         value: function (value) {
                             span.className = value;
                         }

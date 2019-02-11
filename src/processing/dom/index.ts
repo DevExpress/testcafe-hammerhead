@@ -33,11 +33,19 @@ const ELEMENT_PROCESSED: string = 'hammerhead|element-processed';
 
 const AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER: string = 'hammerhead|autocomplete-attribute-absence-marker';
 
+interface ElementProcessingPattern {
+    selector: any;
+    urlAttr?: string;
+    targetAttr?: string;
+    elementProcessors: any;
+    relAttr?: string | undefined;
+}
+
 export default class DomProcessor {
     adapter: any;
     SVG_XLINK_HREF_TAGS: string[] = SVG_XLINK_HREF_TAGS;
     AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER: string = AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
-    private readonly elementProcessorPatterns: any;
+    private readonly elementProcessorPatterns: Array<ElementProcessingPattern>;
     forceProxySrcForImage: boolean = false;
     // Refactor this, see BaseDomAdapter;
     EVENTS: string[];
@@ -99,7 +107,7 @@ export default class DomProcessor {
         return String(this.adapter.getAttr(el, 'rel')).toLocaleLowerCase();
     }
 
-    _createProcessorPatterns (adapter: any) {
+    _createProcessorPatterns (adapter: any): Array<ElementProcessingPattern> {
         const selectors = {
             HAS_HREF_ATTR: (el: HTMLElement) => this.isUrlAttr(el, 'href'),
 
@@ -231,7 +239,8 @@ export default class DomProcessor {
     }
 
     // API
-    processElement (el, urlReplacer: object): void {
+    processElement (el: HTMLElement, urlReplacer: object): void {
+        // @ts-ignore
         if (el[ELEMENT_PROCESSED])
             return;
 
@@ -241,13 +250,14 @@ export default class DomProcessor {
             if (pattern.selector(el) && !this._isShadowElement(el)) {
                 for (let j = 0; j < pattern.elementProcessors.length; j++)
                     pattern.elementProcessors[j].call(this, el, urlReplacer, pattern);
+                // @ts-ignore
                 el[ELEMENT_PROCESSED] = true;
             }
         }
     }
 
     // Utils
-    getElementResourceType (el: HTMLElement): string {
+    getElementResourceType (el: HTMLElement): string | null {
         const tagName = this.adapter.getTagName(el);
 
         return urlUtils.getResourceTypeString({
@@ -263,16 +273,18 @@ export default class DomProcessor {
 
         attr = attr ? attr.toLowerCase() : attr;
 
+        // @ts-ignore
         if (URL_ATTR_TAGS[attr] && URL_ATTR_TAGS[attr].indexOf(tagName) !== -1)
             return true;
 
         return this.adapter.isSVGElement(el) && (attr === 'xml:base' || attr === 'base' && ns === XML_NAMESPACE);
     }
 
-    getUrlAttr (el: HTMLElement): string {
+    getUrlAttr (el: HTMLElement): string | null {
         const tagName = this.adapter.getTagName(el);
 
         for (const urlAttr of URL_ATTRS) {
+            // @ts-ignore
             if (URL_ATTR_TAGS[urlAttr].indexOf(tagName) !== -1)
                 return urlAttr;
         }
@@ -280,10 +292,11 @@ export default class DomProcessor {
         return null;
     }
 
-    getTargetAttr (el: HTMLElement): string {
+    getTargetAttr (el: HTMLElement): string | null {
         const tagName = this.adapter.getTagName(el);
 
         for (const targetAttr of TARGET_ATTRS) {
+            // @ts-ignore
             if (TARGET_ATTR_TAGS[targetAttr].indexOf(tagName) > -1)
                 return targetAttr;
         }
@@ -365,7 +378,7 @@ export default class DomProcessor {
 
     // NOTE: We simply remove the 'rel' attribute if rel='prefetch' and use stored 'rel' attribute, because the prefetch
     // resource type is unknown. https://github.com/DevExpress/testcafe/issues/2528
-    _processRelPrefetch (el: HTMLElement, _urlReplacer: object, pattern): void {
+    _processRelPrefetch (el: HTMLElement, _urlReplacer: object, pattern: ElementProcessingPattern): void {
         const storedRelAttr = DomProcessor.getStoredAttrName(pattern.relAttr);
         const processed     = this.adapter.hasAttr(el, storedRelAttr) && !this.adapter.hasAttr(el, pattern.relAttr);
         const attrValue     = this.adapter.getAttr(el, processed ? storedRelAttr : pattern.relAttr);
@@ -410,7 +423,7 @@ export default class DomProcessor {
         }
     }
 
-    _processMetaElement (el: HTMLElement, urlReplacer, pattern): void {
+    _processMetaElement (el: HTMLElement, urlReplacer, pattern: ElementProcessingPattern): void {
         const httpEquivAttrValue = this.adapter.getAttr(el, 'http-equiv').toLowerCase();
 
         if (httpEquivAttrValue === 'refresh') {
@@ -509,7 +522,7 @@ export default class DomProcessor {
         }
     }
 
-    _processTargetBlank (el: HTMLElement, _urlReplacer, pattern): void {
+    _processTargetBlank (el: HTMLElement, _urlReplacer, pattern: ElementProcessingPattern): void {
         const storedTargetAttr = DomProcessor.getStoredAttrName(pattern.targetAttr);
         const processed        = this.adapter.hasAttr(el, storedTargetAttr);
 
@@ -526,7 +539,7 @@ export default class DomProcessor {
         }
     }
 
-    _processUrlAttrs (el: HTMLElement, urlReplacer, pattern): void {
+    _processUrlAttrs (el: HTMLElement, urlReplacer, pattern: ElementProcessingPattern): void {
         if (urlReplacer && pattern.urlAttr) {
             const storedUrlAttr     = DomProcessor.getStoredAttrName(pattern.urlAttr);
             let resourceUrl         = this.adapter.getAttr(el, pattern.urlAttr);
@@ -600,12 +613,12 @@ export default class DomProcessor {
         }
     }
 
-    _processUrlJsAttr (el: HTMLElement, _urlReplacer: object, pattern): void {
+    _processUrlJsAttr (el: HTMLElement, _urlReplacer: object, pattern: ElementProcessingPattern): void {
         if (DomProcessor.isJsProtocol(this.adapter.getAttr(el, pattern.urlAttr)))
             this._processJsAttr(el, pattern.urlAttr, { isJsProtocol: true, isEventAttr: false });
     }
 
-    _processSVGXLinkHrefAttr (el: HTMLElement, _urlReplacer: object, pattern): void {
+    _processSVGXLinkHrefAttr (el: HTMLElement, _urlReplacer: object, pattern: ElementProcessingPattern): void {
         const attrValue = this.adapter.getAttr(el, pattern.urlAttr);
 
         if (urlUtils.HASH_RE.test(attrValue)) {

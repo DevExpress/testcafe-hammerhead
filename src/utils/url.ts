@@ -165,7 +165,7 @@ export function getDomain (parsed: ParsedUrl) {
     });
 }
 
-function parseRequestDescriptor (desc) {
+function parseRequestDescriptor (desc: string) {
     const params = desc.split(REQUEST_DESCRIPTOR_VALUES_SEPARATOR);
 
     if (!params.length)
@@ -316,7 +316,7 @@ export function resolveUrlAsDest (url: string, getProxyUrlMeth) {
     return url;
 }
 
-export function formatUrl (parsedUrl: ParsedUrl): string {
+export function formatUrl (parsedUrl: ParsedUrl): string | undefined {
     // NOTE: the URL is relative.
     if (parsedUrl.protocol !== 'file:' && !parsedUrl.host && (!parsedUrl.hostname || !parsedUrl.port))
         return parsedUrl.partAfterHost;

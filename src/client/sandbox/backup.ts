@@ -17,14 +17,14 @@ function findRecord (storage, iframe) {
     return void 0;
 }
 
-export function create (window, sandbox) {
+export function create (window: Window, sandbox) {
     const topSameDomainWindow = getTopSameDomainWindow(window);
     const iframe              = window !== topSameDomainWindow ? getFrameElement(window) : null;
     let storage               = topSameDomainWindow[SANDBOX_BACKUP];
 
     if (!storage) {
         storage = [];
-        nativeMethods.objectDefineProperty.call(window.Object, topSameDomainWindow, SANDBOX_BACKUP, { value: storage });
+        nativeMethods.objectDefineProperty(topSameDomainWindow, SANDBOX_BACKUP, { value: storage });
     }
 
     const record = findRecord(storage, iframe);
@@ -35,7 +35,7 @@ export function create (window, sandbox) {
         storage.push({ iframe, sandbox });
 }
 
-export function get (window) {
+export function get (window: Window) {
     const topSameDomainWindow = getTopSameDomainWindow(window);
     const storage             = topSameDomainWindow[SANDBOX_BACKUP];
     const iframe              = window !== topSameDomainWindow ? window.frameElement : null;

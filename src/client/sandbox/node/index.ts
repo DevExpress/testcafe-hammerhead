@@ -69,7 +69,7 @@ export default class NodeSandbox extends SandboxBase {
         const canUpdateExistingProp = processedContext && !nativeMethods.objectIsFrozen(el);
 
         if (canAddNewProp || canUpdateExistingProp) {
-            nativeMethods.objectDefineProperty.call(this.window, el, INTERNAL_PROPS.processedContext, {
+            nativeMethods.objectDefineProperty(el, INTERNAL_PROPS.processedContext, {
                 value:    this.window,
                 writable: true
             });
@@ -125,7 +125,7 @@ export default class NodeSandbox extends SandboxBase {
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
-        nativeMethods.objectDefineProperty.call(window.Object, window, INTERNAL_PROPS.processDomMethodName, {
+        nativeMethods.objectDefineProperty(window, INTERNAL_PROPS.processDomMethodName, {
             value: (el, doc) => {
                 // NOTE: TestCafe creates a shadow-ui root before the DOMContentLoaded event (once document.body is
                 // available). Sometimes for a very heavy DOM or a very slow loading the body doesn't contain all

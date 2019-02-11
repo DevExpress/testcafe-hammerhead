@@ -36,17 +36,17 @@ function getFocusableSelector () {
     return 'input, select, textarea, button, body, iframe, [contenteditable="true"], [contenteditable=""], [tabIndex]';
 }
 
-function isHidden (el) {
+function isHidden (el: HTMLElement) {
     return el.offsetWidth <= 0 && el.offsetHeight <= 0;
 }
 
-function isAlwaysNotEditableElement (el) {
+function isAlwaysNotEditableElement (el: HTMLElement) {
     const tagName = getTagName(el);
 
     return tagName && (NOT_CONTENT_EDITABLE_ELEMENTS_RE.test(tagName) || INPUT_ELEMENTS_RE.test(tagName));
 }
 
-function closestFallback (el, selector) {
+function closestFallback (el: Node, selector: string) {
     while (el) {
         if (matches(el, selector))
             return el;
@@ -87,7 +87,7 @@ export function getActiveElement (currentDocument?: Document) {
     return el;
 }
 
-export function getChildVisibleIndex (select, child): number {
+export function getChildVisibleIndex (select: HTMLSelectElement, child: Node): number {
     const childrenArray = getSelectVisibleChildren(select);
 
     return childrenArray.indexOf(child);
@@ -124,7 +124,7 @@ export function getIframeLocation (iframe) {
     };
 }
 
-export function getFrameElement (win) {
+export function getFrameElement (win: Window) {
     try {
         return win.frameElement;
     }
@@ -133,7 +133,7 @@ export function getFrameElement (win) {
     }
 }
 
-export function getMapContainer (el) {
+export function getMapContainer (el: HTMLMapElement) {
     const closestMap        = closest(el, 'map');
     const closestMapName    = nativeMethods.getAttribute.call(closestMap, 'name');
     const containerSelector = '[usemap="#' + closestMapName + '"]';
@@ -141,7 +141,7 @@ export function getMapContainer (el) {
     return nativeMethods.querySelector.call(findDocument(el), containerSelector);
 }
 
-export function getParentWindowWithSrc (window) {
+export function getParentWindowWithSrc (window: Window) {
     const parent           = window.parent;
     let parentFrameElement = null;
 
@@ -188,7 +188,7 @@ export function getSelectParent (child) {
     return closest(child.parentNode, 'select');
 }
 
-export function getSelectVisibleChildren (select) {
+export function getSelectVisibleChildren (select: HTMLSelectElement) {
     const children = nativeMethods.elementQuerySelectorAll.call(select, 'optgroup, option');
     const result   = [];
     const length   = nativeMethods.nodeListLengthGetter.call(children);
@@ -205,7 +205,7 @@ export function getSelectVisibleChildren (select) {
     return result;
 }
 
-export function getTopSameDomainWindow (window): Window {
+export function getTopSameDomainWindow (window: Window): Window {
     let result        = window;
     let currentWindow = window.parent;
 
@@ -226,7 +226,7 @@ export function getTopSameDomainWindow (window): Window {
     return result;
 }
 
-export function find (parent, selector, handler) {
+export function find (parent: Node, selector: string, handler) {
     const nodeList = getNativeQuerySelectorAll(parent).call(parent, selector);
 
     if (handler) {
@@ -249,7 +249,7 @@ export function findDocument (el): Document {
     return el.parentNode ? findDocument(el.parentNode) : document;
 }
 
-export function isContentEditableElement (el) {
+export function isContentEditableElement (el: Node) {
     let isContentEditable = false;
     let element           = null;
 
@@ -267,7 +267,7 @@ export function isContentEditableElement (el) {
     return false;
 }
 
-export function isCrossDomainIframe (iframe, bySrc): boolean {
+export function isCrossDomainIframe (iframe, bySrc: boolean): boolean {
     const iframeLocation = getIframeLocation(iframe);
 
     if (!bySrc && iframeLocation.documentLocation === null)
@@ -281,7 +281,7 @@ export function isCrossDomainIframe (iframe, bySrc): boolean {
     return false;
 }
 
-export function isCrossDomainWindows (window1, window2): boolean {
+export function isCrossDomainWindows (window1: Window, window2: Window): boolean {
     try {
         if (window1 === window2)
             return false;
