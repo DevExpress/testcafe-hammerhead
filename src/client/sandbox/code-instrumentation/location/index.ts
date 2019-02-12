@@ -1,8 +1,9 @@
 import LocationWrapper from './wrapper';
 import SandboxBase from '../../base';
-import { isLocation } from '../../../utils/dom';
+import { isLocation, isCrossDomainWindows } from '../../../utils/dom';
 import INSTRUCTION from '../../../../processing/script/instruction';
 import nativeMethods from '../../native-methods';
+import { isIE } from '../../../utils/browser';
 
 const LOCATION_WRAPPER = 'hammerhead|location-wrapper';
 
@@ -25,6 +26,10 @@ export default class LocationAccessorsInstrumentation extends SandboxBase {
     }
 
     static getLocationWrapper (owner) {
+        // NOTE: IE11 case. We can get cross-domain location wrapper without any exceptions.
+        if (isIE && isCrossDomainWindows(window, owner))
+            return owner.location;
+
         // NOTE: When the owner is cross-domain, we cannot get its location wrapper, so we return the original
         // location, which cannot be accessed but behaves like a real one. Cross-domain location retains the 'replace'
         // and 'assign' methods, so we intercept calls to them through MethodCallInstrumentation.

@@ -536,7 +536,7 @@ export function isLocation (instance): boolean {
 
         try {
             // eslint-disable-next-line no-proto
-            instanceCtor = instance.__proto__ && instance.__proto__.constructor;
+            instanceCtor = instance.__proto__;
         }
         catch (e) {
             // NOTE: Try to detect cross-domain window location.
@@ -544,22 +544,11 @@ export function isLocation (instance): boolean {
             return instance.replace && (isSafari || !!instance.assign);
         }
 
-        if (instanceCtor) {
-            let toStringMeth = null;
-
-            if (typeof instanceCtor === 'object')
-                toStringMeth = nativeMethods.objectToString;
-            else if (typeof instanceCtor === 'function')
-                toStringMeth = nativeMethods.functionToString;
-
-            return toStringMeth && toStringMeth.call(instanceCtor).indexOf('Location') > -1;
-        }
-
-        return false;
+        return instanceCtor && nativeMethods.objectToString.call(instanceCtor) === '[object LocationPrototype]';
     }
 
     return instance instanceof nativeMethods.locationClass ||
-           nativeMethods.objectToString.call(instance) === '[object Location]';
+        nativeMethods.objectToString.call(instance) === '[object Location]';
 }
 
 export function isSVGElement (instance): boolean {
