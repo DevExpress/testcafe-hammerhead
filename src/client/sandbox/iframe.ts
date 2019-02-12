@@ -120,7 +120,7 @@ export default class IframeSandbox extends SandboxBase {
                isIE && contentWindow[INTERNAL_PROPS.documentWasCleaned];
     }
 
-    static isWindowInited (window) {
+    static isWindowInited (window: Window) {
         return window[IFRAME_WINDOW_INITED];
     }
 

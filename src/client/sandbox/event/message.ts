@@ -111,7 +111,7 @@ export default class MessageSandbox extends SandboxBase {
         return false;
     }
 
-    attach (window) {
+    attach (window: Window) {
         super.attach(window);
         // NOTE: The window.top property may be changed after an iframe is removed from DOM in IE, so we save it.
         this.topWindow        = window.top;
@@ -141,6 +141,7 @@ export default class MessageSandbox extends SandboxBase {
             configurable: true
         });
 
+        // @ts-ignore
         overrideDescriptor(window.MessageEvent.prototype, 'data', {
             getter: function () {
                 const target = this.target;
@@ -153,6 +154,7 @@ export default class MessageSandbox extends SandboxBase {
             }
         });
 
+        // @ts-ignore
         const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;
 
         overrideDescriptor(eventPropsOwner, 'onmessage', {
@@ -167,7 +169,7 @@ export default class MessageSandbox extends SandboxBase {
         });
     }
 
-    postMessage (contentWindow, args) {
+    postMessage (contentWindow: Window, args) {
         const targetUrl = args[1] || destLocation.getOriginHeader();
 
         if (isCrossDomainWindows(this.window, contentWindow))
@@ -190,7 +192,7 @@ export default class MessageSandbox extends SandboxBase {
         return fastApply(contentWindow, 'postMessage', args);
     }
 
-    sendServiceMsg (msg, targetWindow) {
+    sendServiceMsg (msg, targetWindow: Window) {
         const message         = MessageSandbox._wrapMessage(MESSAGE_TYPE.service, msg);
         const canSendDirectly = !isCrossDomainWindows(targetWindow, this.window) && !!targetWindow[this.RECEIVE_MSG_FN];
 
@@ -233,7 +235,7 @@ export default class MessageSandbox extends SandboxBase {
         return targetWindow.postMessage(message, '*');
     }
 
-    pingIframe (targetIframe, pingMessageCommand, shortWaiting) {
+    pingIframe (targetIframe, pingMessageCommand, shortWaiting: boolean) {
         return new Promise((resolve, reject) => {
             let pingInterval = null;
             let pingTimeout  = null;

@@ -31,7 +31,7 @@ export default class CookieSandbox extends SandboxBase {
         this.pendingWindowSync = [];
     }
 
-    _canSetCookie (cookie, setByClient): boolean {
+    _canSetCookie (cookie, setByClient: boolean): boolean {
         // eslint-disable-next-line no-restricted-properties
         if (setByClient && (cookie.length > BYTES_PER_COOKIE_LIMIT || destLocation.getParsed().protocol === 'file:'))
             return false;
@@ -48,7 +48,7 @@ export default class CookieSandbox extends SandboxBase {
         return !documentCookieIsEmpty;
     }
 
-    static _updateClientCookieStr (cookieKey, newCookieStr): void {
+    static _updateClientCookieStr (cookieKey, newCookieStr: string): void {
         const cookieStr      = settings.get().cookie; // eslint-disable-line no-restricted-properties
         const cookies        = cookieStr ? cookieStr.split(';') : [];
         const changedCookies = [];

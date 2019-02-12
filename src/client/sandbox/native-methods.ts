@@ -341,18 +341,20 @@ class NativeMethods {
         this.refreshWindowMeths(win);
     }
 
-    static _getDocumentPropOwnerName (docPrototype, propName) {
+    static _getDocumentPropOwnerName (docPrototype, propName: string) {
         return docPrototype.hasOwnProperty(propName) ? 'Document' : 'HTMLDocument';
     }
 
-    getStoragesPropsOwner (win) {
+    getStoragesPropsOwner (win: Window) {
+        // @ts-ignore
         return this.isStoragePropsLocatedInProto ? win.Window.prototype : win;
     }
 
-    refreshDocumentMeths (doc, win) {
+    refreshDocumentMeths (doc: Document, win: Window) {
         doc = doc || document;
         win = win || window;
 
+        // @ts-ignore
         const docPrototype = win.Document.prototype;
 
         // Dom
@@ -381,8 +383,10 @@ class NativeMethods {
         this.querySelector        = docPrototype.querySelector;
         this.querySelectorAll     = docPrototype.querySelectorAll;
 
+        // @ts-ignore
         this.createHTMLDocument = win.DOMImplementation.prototype.createHTMLDocument;
 
+        // @ts-ignore
         if (doc.registerElement)
             this.registerElement = docPrototype.registerElement;
 
@@ -397,6 +401,7 @@ class NativeMethods {
         this.documentCookiePropOwnerName  = NativeMethods._getDocumentPropOwnerName(docPrototype, 'cookie');
         this.documentScriptsPropOwnerName = NativeMethods._getDocumentPropOwnerName(docPrototype, 'scripts');
 
+        // @ts-ignore
         const documentCookieDescriptor = win.Object.getOwnPropertyDescriptor(win[this.documentCookiePropOwnerName].prototype, 'cookie');
 
         // TODO: remove this condition after the GH-1649 fix
@@ -413,13 +418,18 @@ class NativeMethods {
             }
         }
 
+        // @ts-ignore
         this.documentReferrerGetter      = win.Object.getOwnPropertyDescriptor(docPrototype, 'referrer').get;
+        // @ts-ignore
         this.documentStyleSheetsGetter   = win.Object.getOwnPropertyDescriptor(docPrototype, 'styleSheets').get;
+        // @ts-ignore
         this.documentActiveElementGetter = win.Object.getOwnPropertyDescriptor(docPrototype, 'activeElement').get;
+        // @ts-ignore
         this.documentScriptsGetter       = win.Object.getOwnPropertyDescriptor(win[this.documentScriptsPropOwnerName].prototype, 'scripts').get;
         this.documentCookieGetter        = documentCookieDescriptor.get;
         this.documentCookieSetter        = documentCookieDescriptor.set;
 
+        // @ts-ignore
         const documentDocumentURIDescriptor = win.Object.getOwnPropertyDescriptor(docPrototype, 'documentURI');
 
         if (documentDocumentURIDescriptor)

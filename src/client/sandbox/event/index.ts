@@ -172,7 +172,7 @@ export default class EventSandbox extends SandboxBase {
         this.hover.attach(window);
     }
 
-    initDocumentListening (document) {
+    initDocumentListening (document: Document) {
         this.listeners.initElementListening(document, DOM_EVENTS);
     }
 }

@@ -37,7 +37,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         }
     }
 
-    static _setCrossDomainLocation (location, value) {
+    static _setCrossDomainLocation (location, value: string) {
         let proxyUrl = '';
 
         if (typeof value !== 'string')
@@ -101,7 +101,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         };
     }
 
-    static _getSetPropertyInstructionByOwner (owner, window) {
+    static _getSetPropertyInstructionByOwner (owner, window: Window) {
         try {
             return owner && owner[INTERNAL_PROPS.processedContext] &&
                    owner[INTERNAL_PROPS.processedContext] !== window &&
@@ -112,7 +112,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         }
     }
 
-    attach (window) {
+    attach (window: Window) {
         super.attach(window);
 
         const accessors     = this._createPropertyAccessors();
@@ -120,7 +120,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
-        nativeMethods.objectDefineProperty.call(window.Object, window, INSTRUCTION.getProperty, {
+        nativeMethods.objectDefineProperty(window, INSTRUCTION.getProperty, {
             value: (owner, propName) => {
                 if (typeUtils.isNullOrUndefined(owner))
                     PropertyAccessorsInstrumentation._error(`Cannot read property '${propName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
@@ -144,7 +144,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             configurable: true
         });
 
-        nativeMethods.objectDefineProperty.call(window.Object, window, INSTRUCTION.setProperty, {
+        nativeMethods.objectDefineProperty(window, INSTRUCTION.setProperty, {
             value: (owner, propName, value) => {
                 if (typeUtils.isNullOrUndefined(owner))
                     PropertyAccessorsInstrumentation._error(`Cannot set property '${propName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);

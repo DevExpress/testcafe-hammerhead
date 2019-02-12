@@ -43,7 +43,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
     }
 
     // NOTE: Isolate throw statement into a separate function because JS engine doesn't optimize such functions.
-    static _error (msg) {
+    static _error (msg: string) {
         throw new Error(msg);
     }
 
@@ -51,7 +51,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
         return window.top.location === location ? null : stringifyResourceType({ isIframe: true });
     }
 
-    static _isPostMessageFn (win, fn) {
+    static _isPostMessageFn (win: Window, fn) {
         // NOTE: in iOS Safari 9.3 win.postMessage === win.postMessage equals false
         if (win.postMessage === win.postMessage)
             return win.postMessage === fn;
@@ -59,7 +59,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
         return fn && typeof fn.toString === 'function' && fn.toString() === win.postMessage.toString();
     }
 
-    attach (window) {
+    attach (window: Window) {
         super.attach(window);
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.

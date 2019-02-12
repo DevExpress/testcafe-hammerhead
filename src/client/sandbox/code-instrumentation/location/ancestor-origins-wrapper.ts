@@ -27,11 +27,11 @@ export default function DOMStringListWrapper (window: Window, getCrossDomainOrig
 
 DOMStringListWrapper.prototype = nativeMethods.objectCreate(DOMStringList.prototype);
 
-DOMStringListWrapper.prototype.item = function (index) {
+DOMStringListWrapper.prototype.item = function (index: number) {
     return this[index];
 };
 
-DOMStringListWrapper.prototype.contains = function (origin) {
+DOMStringListWrapper.prototype.contains = function (origin: string) {
     if (typeof origin !== 'string')
         origin = String(origin);
 
@@ -53,7 +53,7 @@ const lengthDescriptor = createOverriddenDescriptor(DOMStringList.prototype, 'le
 
 nativeMethods.objectDefineProperty(DOMStringListWrapper.prototype, 'length', lengthDescriptor);
 
-function updateOrigin (ancestorOrigins, wrapper, index, origin) {
+function updateOrigin (ancestorOrigins, wrapper, index, origin: string) {
     const descriptor = createOverriddenDescriptor(ancestorOrigins, index, { value: origin });
 
     nativeMethods.objectDefineProperty(wrapper, index, descriptor);

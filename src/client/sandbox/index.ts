@@ -127,7 +127,7 @@ export default class Sandbox extends SandboxBase {
         }
     }
 
-    reattach (window, document): void {
+    reattach (window: Window, document: Document): void {
         // NOTE: Assign the existing sandbox to the cleared document.
         if (isIE)
             this.nativeMethods.refreshIfNecessary(document, window);
@@ -142,7 +142,7 @@ export default class Sandbox extends SandboxBase {
         this.console.attach(window);
     }
 
-    attach (window): void {
+    attach (window: Window): void {
         super.attach(window);
 
         urlResolver.init(this.document);

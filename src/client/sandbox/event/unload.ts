@@ -89,7 +89,7 @@ export default class UnloadSandbox extends SandboxBase {
         nativeMethods.windowAddEventListener.call(this.window, this.beforeUnloadEventName, this);
     }
 
-    attach (window) {
+    attach (window: Window) {
         super.attach(window);
 
         this.listeners.setEventListenerWrapper(window, [this.beforeUnloadEventName], (e, listener) => this._onBeforeUnloadHandler(e, listener));
@@ -103,6 +103,7 @@ export default class UnloadSandbox extends SandboxBase {
                 this._reattachBeforeUnloadListener();
         });
 
+        // @ts-ignore
         const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;
 
         overrideDescriptor(eventPropsOwner, 'on' + this.beforeUnloadEventName, {
@@ -111,7 +112,7 @@ export default class UnloadSandbox extends SandboxBase {
         });
     }
 
-    setOnBeforeUnload (window, handler) {
+    setOnBeforeUnload (window: Window, handler) {
         const beforeUnloadEventPropSetter = isIOS
             ? nativeMethods.winOnPageHideSetter
             : nativeMethods.winOnBeforeUnloadSetter;

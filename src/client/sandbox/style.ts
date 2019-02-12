@@ -168,12 +168,13 @@ export default class StyleSandbox extends SandboxBase {
         return proxyObject;
     }
 
-    _overrideCSSStyleDeclarationFunctionsCtx (window) {
+    _overrideCSSStyleDeclarationFunctionsCtx (window: Window) {
+        // @ts-ignore
         const styleDeclarationProto = window.CSSStyleDeclaration.prototype;
 
         for (const prop in styleDeclarationProto) {
-            // eslint-disable-next-line no-restricted-properties
-            const nativeFn = this.nativeMethods.objectGetOwnPropertyDescriptor.call(window.Object, styleDeclarationProto, prop).value;
+            // @ts-ignore
+            const nativeFn = this.nativeMethods.objectGetOwnPropertyDescriptor.call(window.Object, styleDeclarationProto, prop).value;// eslint-disable-line no-restricted-properties
 
             if (this.nativeMethods.objectHasOwnProperty.call(styleDeclarationProto, prop) &&
                 typeof nativeFn === 'function') {
@@ -184,7 +185,7 @@ export default class StyleSandbox extends SandboxBase {
         }
     }
 
-    attach (window) {
+    attach (window: Window) {
         super.attach(window);
 
         const nativeMethods = this.nativeMethods;
@@ -208,16 +209,20 @@ export default class StyleSandbox extends SandboxBase {
 
         if (this.FEATURES.protoContainsAllProps) {
             for (const prop of this.URL_PROPS)
+                // @ts-ignore
                 this._overrideStyleProp(window.CSS2Properties.prototype, prop);
 
             for (const prop of this.DASHED_URL_PROPS)
+                // @ts-ignore
                 this._overrideStyleProp(window.CSS2Properties.prototype, prop);
         }
         else if (this.FEATURES.protoContainsUrlProps) {
             for (const prop of this.URL_PROPS)
+                // @ts-ignore
                 this._overrideStyleProp(window.CSSStyleDeclaration.prototype, prop);
         }
 
+        // @ts-ignore
         overrideDescriptor(window.CSSStyleDeclaration.prototype, 'cssText', {
             getter: function () {
                 const cssText = nativeMethods.styleCssTextGetter.call(this);
@@ -232,18 +237,21 @@ export default class StyleSandbox extends SandboxBase {
             }
         });
 
+        // @ts-ignore
         window.CSSStyleSheet.prototype.insertRule = function (rule, index) {
             const newRule = styleProcessor.process(rule, getProxyUrl);
 
             return nativeMethods.styleInsertRule.call(this, newRule, index);
         };
 
+        // @ts-ignore
         window.CSSStyleDeclaration.prototype.getPropertyValue = function (...args) {
             const value = nativeMethods.styleGetPropertyValue.apply(this, args);
 
             return styleProcessor.cleanUp(value, parseProxyUrl);
         };
 
+        // @ts-ignore
         window.CSSStyleDeclaration.prototype.setProperty = function (...args) {
             const value = args[1];
 
@@ -253,6 +261,7 @@ export default class StyleSandbox extends SandboxBase {
             return nativeMethods.styleSetProperty.apply(this, args);
         };
 
+        // @ts-ignore
         window.CSSStyleDeclaration.prototype.removeProperty = function (...args) {
             const oldValue = nativeMethods.styleRemoveProperty.apply(this, args);
 

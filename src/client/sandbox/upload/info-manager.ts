@@ -26,7 +26,7 @@ export default class UploadInfoManager {
         return data;
     }
 
-    static formatValue (fileNames) {
+    static formatValue (fileNames: string | Array<string>) {
         let value = '';
 
         fileNames = typeof fileNames === 'string' ? [fileNames] : fileNames;
@@ -54,7 +54,7 @@ export default class UploadInfoManager {
         return result;
     }
 
-    static loadFilesInfoFromServer (filePaths) {
+    static loadFilesInfoFromServer (filePaths: string | Array<string>) {
         return transport.asyncServiceMsg({
             cmd:       COMMAND.getUploadedFiles,
             filePaths: typeof filePaths === 'string' ? [filePaths] : filePaths

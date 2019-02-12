@@ -73,7 +73,7 @@ function addShadowGetters (count) {
     for (let i = 0; i < count; i++) {
         const idx = collectionProtoGettersCount++;
 
-        nativeMethods.objectDefineProperty.call(Object, HTMLCollectionWrapper.prototype, idx, {
+        nativeMethods.objectDefineProperty(HTMLCollectionWrapper.prototype, idx, {
             get: function () {
                 this.item(idx);
             }
@@ -88,7 +88,7 @@ function updateCollectionIndexGetters (wrapper, oldLength, currentLength) {
     while (oldLength < currentLength) {
         const idx = oldLength++;
 
-        nativeMethods.objectDefineProperty.call(Object, wrapper, idx, {
+        nativeMethods.objectDefineProperty(wrapper, idx, {
             enumerable:   true,
             configurable: true,
             get:          () => wrapper.item(idx)
@@ -117,7 +117,7 @@ function updateNamedProps (wrapper, oldNamedProps, currentNamedProps) {
         if (!wrapper._collection[prop])
             continue;
 
-        nativeMethods.objectDefineProperty.call(Object, wrapper, prop, {
+        nativeMethods.objectDefineProperty(wrapper, prop, {
             configurable: true,
             get:          function () {
                 this._refreshCollection();

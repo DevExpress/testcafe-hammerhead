@@ -81,7 +81,7 @@ export default class XhrSandbox extends SandboxBase {
         };
 
         for (const readyState of XHR_READY_STATES) {
-            nativeMethods.objectDefineProperty.call(window.Object, xmlHttpRequestWrapper, readyState, {
+            nativeMethods.objectDefineProperty(xmlHttpRequestWrapper, readyState, {
                 value:      XMLHttpRequest[readyState],
                 enumerable: true
             });
@@ -92,7 +92,7 @@ export default class XhrSandbox extends SandboxBase {
         xmlHttpRequestWrapper.toString  = () => xmlHttpRequestToString;
 
         // NOTE: We cannot just assign constructor property in OS X 10.11 safari 9.0
-        nativeMethods.objectDefineProperty.call(window.Object, xmlHttpRequestProto, 'constructor', {
+        nativeMethods.objectDefineProperty(xmlHttpRequestProto, 'constructor', {
             value: xmlHttpRequestWrapper
         });
 

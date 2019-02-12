@@ -24,18 +24,19 @@ export default class UploadSandbox extends SandboxBase {
         this.eventSimulator = eventSimulator;
     }
 
-    _riseChangeEvent (input) {
+    _riseChangeEvent (input: HTMLInputElement) {
         this.eventSimulator.change(input);
     }
 
-    static _getCurrentInfoManager (input) {
+    static _getCurrentInfoManager (input: HTMLInputElement) {
+        // @ts-ignore
         const contextWindow = input[INTERNAL_PROPS.processedContext];
 
         return getSandboxBackup(contextWindow).upload.infoManager;
     }
 
     /*eslint-disable max-nested-callbacks */
-    attach (window) {
+    attach (window: Window) {
         super.attach(window);
 
         this.listeners.addInternalEventListener(window, ['change'], (e, dispatched) => {
@@ -81,17 +82,17 @@ export default class UploadSandbox extends SandboxBase {
 
     /*eslint-enable max-nested-callbacks */
 
-    static getFiles (input) {
+    static getFiles (input: HTMLInputElement) {
         const files = nativeMethods.inputFilesGetter.call(input);
 
         return files !== void 0 ? UploadSandbox._getCurrentInfoManager(input).getFiles(input) : void 0;
     }
 
-    static getUploadElementValue (input) {
+    static getUploadElementValue (input: HTMLInputElement) {
         return UploadSandbox._getCurrentInfoManager(input).getValue(input);
     }
 
-    setUploadElementValue (input, value) {
+    setUploadElementValue (input: HTMLInputElement, value: string) {
         if (value === '') {
             if (UploadSandbox._getCurrentInfoManager(input).clearUploadInfo(input) && isIE && browserVersion > 10)
                 this._riseChangeEvent(input);
@@ -100,7 +101,7 @@ export default class UploadSandbox extends SandboxBase {
         return value;
     }
 
-    doUpload (input, filePaths) {
+    doUpload (input: HTMLInputElement, filePaths: string | Array<string>) {
         const currentInfoManager = UploadSandbox._getCurrentInfoManager(input);
 
         filePaths = filePaths || [];

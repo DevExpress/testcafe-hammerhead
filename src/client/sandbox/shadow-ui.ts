@@ -412,7 +412,7 @@ export default class ShadowUI extends SandboxBase {
         return this.root;
     }
 
-    attach (window) {
+    attach (window: Window) {
         super.attach(window, window.document);
 
         this.markShadowUIContainers(this.document.head, this.document.body);

@@ -12,7 +12,7 @@ export default class WindowSync {
     messageIdGenerator: any;
     resolversMap: any;
 
-    constructor (win, cookieSandbox, messageSandbox) {
+    constructor (win: Window, cookieSandbox, messageSandbox) {
         this.win            = win;
         this.cookieSandbox  = cookieSandbox;
         this.messageSandbox = messageSandbox;
@@ -102,7 +102,7 @@ export default class WindowSync {
         return null;
     }
 
-    sendSyncMessage (win, cmd, cookies) {
+    sendSyncMessage (win: Window, cmd, cookies) {
         const id = this.messageIdGenerator.increment();
 
         return new Promise(resolve => {

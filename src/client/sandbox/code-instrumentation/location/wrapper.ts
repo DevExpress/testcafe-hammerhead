@@ -24,7 +24,7 @@ import { createOverriddenDescriptor } from '../../../utils/property-overriding';
 const GET_ORIGIN_CMD      = 'hammerhead|command|get-origin';
 const ORIGIN_RECEIVED_CMD = 'hammerhead|command|origin-received';
 
-function getLocationUrl (window) {
+function getLocationUrl (window: Window) {
     try {
         return window.location.toString();
     }
@@ -34,11 +34,13 @@ function getLocationUrl (window) {
 }
 
 export default class LocationWrapper {
-    constructor (window, messageSandbox?, onChanged?) {
+    constructor (window: Window, messageSandbox?, onChanged?) {
         const parsedLocation         = parseProxyUrl(getLocationUrl(window));
         const locationResourceType   = parsedLocation ? parsedLocation.resourceType : '';
         const parsedResourceType     = parseResourceType(locationResourceType);
+        // @ts-ignore
         const isLocationPropsInProto = nativeMethods.objectHasOwnProperty.call(window.Location.prototype, 'href');
+        // @ts-ignore
         const locationPropsOwner     = isLocationPropsInProto ? window.Location.prototype : window.location;
         const locationProps: any     = {};
 
