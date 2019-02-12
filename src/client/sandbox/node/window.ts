@@ -385,19 +385,11 @@ export default class WindowSandbox extends SandboxBase {
             };
         }
 
-        window.open = function () {
-            const newArgs = [];
-            const target  = arguments[1] ? nodeSandbox.element.getTarget(null, arguments[1]) : '_self';
+        window.open = function (...args) {
+            args[0] = getProxyUrl(args[0]);
+            args[1] = args[1] ? nodeSandbox.element.getTarget(null, String(args[1])) : '_self';
 
-            newArgs.push(getProxyUrl(arguments[0]));
-            newArgs.push(target);
-
-            if (arguments.length > 2)
-                newArgs.push(arguments[2]);
-            if (arguments.length > 3)
-                newArgs.push(arguments[3]);
-
-            return nativeMethods.windowOpen.apply(window, newArgs);
+            return nativeMethods.windowOpen.apply(window, args);
         };
 
         if (window.FontFace) {
