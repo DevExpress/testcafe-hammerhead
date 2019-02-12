@@ -33,7 +33,7 @@ export function assignAttributes (wrapper, attributes) {
                 attr.value = storedAttr.value;
             }
 
-            properties[attr.name] = { value: attr, configurable: true };
+            properties[attr.name] = { value: attr, configurable: true, enumerable: true };
             properties[length]    = { value: attr, configurable: true };
             length++;
         }
