@@ -675,6 +675,23 @@ if (window.fetch) {
                     strictEqual(body, 'foo');
                 });
         });
+
+        test('should process headers passed as an array', function () {
+            var headersArr = [
+                ['content-type', 'text/xml'],
+                ['breaking-bad', '<3']
+            ];
+
+            return fetch('/echo-request-headers', { method: 'post', headers: headersArr })
+                .then(function (response) {
+                    return response.json();
+                })
+                .then(function (headers) {
+                    ok(headers['content-type'], 'text/xml');
+                    ok(headers['breaking-bad'], '<3');
+                    ok(headers.hasOwnProperty(xhrHeaders.fetchRequestCredentials));
+                });
+        });
     });
 }
 
