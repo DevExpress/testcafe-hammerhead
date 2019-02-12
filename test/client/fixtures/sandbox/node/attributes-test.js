@@ -1143,3 +1143,26 @@ test('The toString function should return native string for overridden descripto
     ok(HTMLAnchorElement.prototype.__lookupGetter__('pathname').toString().indexOf('[native code]') !== -1);
     ok(HTMLAnchorElement.prototype.__lookupSetter__('pathname').toString().indexOf('[native code]') !== -1);
 });
+
+test('instance of attributesWrapper should contain enumerable attribute properties (GH-1845)', function () {
+    var input            = document.createElement('input');
+    var testSiteFunction = function (element, namespace) {
+        var result = {};
+        var regex  = new RegExp('^' + namespace, 'i');
+
+        for (var i in element.attributes) {
+            var attribute = element.attributes[i];
+
+            if (attribute && attribute.specified && regex.test(attribute.name))
+                result[attribute.name.replace(namespace, '')] = attribute.value;
+        }
+
+        return result;
+    };
+
+    input.setAttribute('data-parsley-multiple', 'should-not-change');
+    input.setAttribute('type', 'text');
+    input.setAttribute('data-parsley-test123', 'value');
+
+    deepEqual(testSiteFunction(input, 'data-parsley-'), { multiple: 'should-not-change', test123: 'value' });
+});
