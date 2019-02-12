@@ -88,7 +88,7 @@ export default class HoverSandbox extends SandboxBase {
         this.hoverElementFixed = false;
     }
 
-    attach (window) {
+    attach (window: Window) {
         super.attach(window);
 
         this.listeners.addInternalEventListener(window, ['mouseover', 'touchstart'], e => this._onHover(e));

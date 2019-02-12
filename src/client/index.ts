@@ -86,7 +86,7 @@ class Hammerhead {
         this.EventEmitter = EventEmitter;
 
         // Methods
-        this.doUpload        = (input: HTMLInputElement, filePaths) => this.sandbox.upload.doUpload(input, filePaths);
+        this.doUpload        = (input: HTMLInputElement, filePaths: string | Array<string>) => this.sandbox.upload.doUpload(input, filePaths);
         this.createNativeXHR = XhrSandbox.createNativeXHR;
 
         this.processScript = processScript;
@@ -177,7 +177,7 @@ class Hammerhead {
         }
     }
 
-    static _cleanLocalStorageServiceData (sessionId, window: Window) {
+    static _cleanLocalStorageServiceData (sessionId: string, window: Window) {
         nativeMethods.winLocalStorageGetter.call(window).removeItem(sessionId);
     }
 

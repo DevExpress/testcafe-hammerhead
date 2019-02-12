@@ -21,7 +21,7 @@ export default class CodeInstrumentation extends SandboxBase {
         this.propertyAccessorsInstrumentation = new PropertyAccessorsInstrumentation(windowSandbox);
     }
 
-    attach (window) {
+    attach (window: Window) {
         super.attach(window);
 
         this.methodCallInstrumentation.attach(window);
@@ -33,6 +33,7 @@ export default class CodeInstrumentation extends SandboxBase {
         // NOTE: GH-260
         nativeMethods.objectDefineProperty(window, INSTRUCTION.getEval, {
             value: evalFn => {
+                // @ts-ignore
                 if (evalFn !== window.eval)
                     return evalFn;
 

@@ -101,7 +101,7 @@ export default class UploadSandbox extends SandboxBase {
         return value;
     }
 
-    doUpload (input: HTMLInputElement, filePaths) {
+    doUpload (input: HTMLInputElement, filePaths: string | Array<string>) {
         const currentInfoManager = UploadSandbox._getCurrentInfoManager(input);
 
         filePaths = filePaths || [];

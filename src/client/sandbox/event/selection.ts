@@ -145,7 +145,7 @@ export default class Selection {
         return Selection._isNumberOrEmailInput(el) && browserResetInputSelection;
     }
 
-    setSelection (el, start, end, direction) {
+    setSelection (el, start: number, end: number, direction) {
         if (el.setSelectionRange)
             el.setSelectionRange(start, end, direction);
         else {

@@ -6,7 +6,7 @@ import { isIframeWithoutSrc, getFrameElement } from '../utils/dom';
 const DOCUMENT_URL_RESOLVER = 'hammerhead|document-url-resolver';
 
 export default {
-    _createResolver (doc) {
+    _createResolver (doc: Document) {
         const htmlDocument = nativeMethods.createHTMLDocument.call(doc.implementation, 'title');
         const a            = nativeMethods.createElement.call(htmlDocument, 'a');
         const base         = nativeMethods.createElement.call(htmlDocument, 'base');
@@ -17,7 +17,7 @@ export default {
         return htmlDocument;
     },
 
-    _getResolver (doc) {
+    _getResolver (doc: Document) {
         // NOTE: Once a document is recreated (document.open, document.write is called), nativeMethods will be refreshed.
         // If we call urlResolve.updateBase after this,
         // we will use native methods from an actual document.
@@ -32,7 +32,7 @@ export default {
         return doc[DOCUMENT_URL_RESOLVER];
     },
 
-    _isNestedIframeWithoutSrc (win) {
+    _isNestedIframeWithoutSrc (win: Window) {
         if (!win || !win.parent || win.parent === win || win.parent.parent === win.parent)
             return false;
 
@@ -41,15 +41,15 @@ export default {
         return !!iframeElement && isIframeWithoutSrc(iframeElement);
     },
 
-    init (doc) {
+    init (doc: Document) {
         this.updateBase(destLocation.get(), doc);
     },
 
-    getResolverElement (doc) {
+    getResolverElement (doc: Document) {
         return nativeMethods.nodeFirstChildGetter.call(this._getResolver(doc).body);
     },
 
-    resolve (url, doc) {
+    resolve (url: string, doc: Document) {
         const resolver = this.getResolverElement(doc);
         let href       = null;
 
@@ -73,7 +73,7 @@ export default {
         return ensureTrailingSlash(url, href);
     },
 
-    updateBase (url, doc) {
+    updateBase (url: string, doc: Document) {
         const resolverDocument = this._getResolver(doc);
         const baseElement      = nativeMethods.elementGetElementsByTagName.call(resolverDocument.head, 'base')[0];
 

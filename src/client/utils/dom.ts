@@ -133,7 +133,7 @@ export function getFrameElement (win: Window) {
     }
 }
 
-export function getMapContainer (el: HTMLMapElement) {
+export function getMapContainer (el: HTMLElement) {
     const closestMap        = closest(el, 'map');
     const closestMapName    = nativeMethods.getAttribute.call(closestMap, 'name');
     const containerSelector = '[usemap="#' + closestMapName + '"]';

@@ -33,7 +33,7 @@ export default class ActiveWindowTracker extends SandboxBase {
         }
     }
 
-    attach (window): void {
+    attach (window: Window): void {
         super.attach(window);
 
         this.isIframeWindow = window !== window.top;

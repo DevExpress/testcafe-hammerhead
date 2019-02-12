@@ -37,7 +37,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         }
     }
 
-    static _setCrossDomainLocation (location, value) {
+    static _setCrossDomainLocation (location, value: string) {
         let proxyUrl = '';
 
         if (typeof value !== 'string')
@@ -101,7 +101,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         };
     }
 
-    static _getSetPropertyInstructionByOwner (owner, window) {
+    static _getSetPropertyInstructionByOwner (owner, window: Window) {
         try {
             return owner && owner[INTERNAL_PROPS.processedContext] &&
                    owner[INTERNAL_PROPS.processedContext] !== window &&
@@ -112,7 +112,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         }
     }
 
-    attach (window) {
+    attach (window: Window) {
         super.attach(window);
 
         const accessors     = this._createPropertyAccessors();

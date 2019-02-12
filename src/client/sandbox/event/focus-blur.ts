@@ -264,7 +264,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             callback();
     }
 
-    focus (el, callback, silent, forMouseEvent, isNativeFocus, preventScrolling) {
+    focus (el, callback, silent: boolean, forMouseEvent: boolean, isNativeFocus: boolean, preventScrolling: boolean) {
         // NOTE: el.focus() does not raise the event if the element is invisible. If the element is located
         // within an invisible iframe, all browsers except Chrome do not raise the event (GH-442)
         const raiseEventInIframe = !isNativeFocus || browserUtils.isWebKit ||
@@ -389,7 +389,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         return null;
     }
 
-    blur (el, callback, withoutHandlers, isNativeBlur, relatedTarget?: string) {
+    blur (el, callback, withoutHandlers: boolean, isNativeBlur: boolean, relatedTarget?: string) {
         const curDocument   = domUtils.findDocument(el);
         const activeElement = domUtils.getActiveElement(curDocument);
         // NOTE: In IE, if you call the focus() or blur() method from script, an active element is changed
@@ -431,7 +431,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         }, raiseEventParameters);
     }
 
-    static _processFocusPseudoClassSelector (selector) {
+    static _processFocusPseudoClassSelector (selector: string) {
         // NOTE: When a selector that contains the ':focus' pseudo-class is used in the querySelector and
         // querySelectorAll functions, these functions return an empty result if the browser is not focused.
         // This replaces ':focus' with a custom CSS class to return the current active element in that case.
