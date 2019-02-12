@@ -18,14 +18,28 @@ export const SYNCHRONIZATION_TYPE = {
 
 const SYNCHRONIZATION_TYPE_RE = new RegExp(`^[${SYNCHRONIZATION_TYPE.server}${SYNCHRONIZATION_TYPE.client}${SYNCHRONIZATION_TYPE.window}]+`);
 
-function isSameCookies (cookie1, cookie2) {
+interface CookieRecord {
+    sid: string;
+    key: string;
+    domain: string;
+    path: string;
+    lastAccessed: Date;
+    syncKey?: string;
+    cookieStr?: string;
+    value?: string;
+    isServerSync?: boolean;
+    isClientSync?: boolean;
+    isWindowSync?: boolean;
+}
+
+function isSameCookies (cookie1: CookieRecord, cookie2: CookieRecord) {
     return cookie1.sid === cookie2.sid &&
            cookie1.key === cookie2.key &&
            cookie1.domain === cookie2.domain &&
            cookie1.path === cookie2.path;
 }
 
-function sortByOutdatedAndActual (parsedCookies) {
+function sortByOutdatedAndActual (parsedCookies: Array<CookieRecord>) {
     const outdated = [];
     const actual   = [];
 
@@ -53,13 +67,13 @@ function sortByOutdatedAndActual (parsedCookies) {
     return { outdated, actual };
 }
 
-function stringifySyncType (cookie) {
+function stringifySyncType (cookie: CookieRecord): string {
     return (cookie.isServerSync ? SYNCHRONIZATION_TYPE.server : '') +
            (cookie.isClientSync ? SYNCHRONIZATION_TYPE.client : '') +
            (cookie.isWindowSync ? SYNCHRONIZATION_TYPE.window : '');
 }
 
-function formatSyncCookieKey (cookie) {
+function formatSyncCookieKey (cookie): string {
     const syncType     = stringifySyncType(cookie);
     const key          = encodeURIComponent(cookie.key);
     const domain       = encodeURIComponent(cookie.domain);
@@ -70,7 +84,7 @@ function formatSyncCookieKey (cookie) {
     return `${syncType}|${cookie.sid}|${key}|${domain}|${path}|${expires}|${lastAccessed}`;
 }
 
-export function parseClientSyncCookieStr (cookieStr) {
+export function parseClientSyncCookieStr (cookieStr: string) {
     const cookies       = cookieStr ? cookieStr.split(';') : '';
     const parsedCookies = [];
 
@@ -84,7 +98,7 @@ export function parseClientSyncCookieStr (cookieStr) {
     return sortByOutdatedAndActual(parsedCookies);
 }
 
-export function prepareSyncCookieProperties (cookie) {
+export function prepareSyncCookieProperties (cookie: CookieRecord) {
     cookie.syncKey   = cookie.syncKey || formatSyncCookieKey(cookie);
     cookie.cookieStr = cookie.cookieStr || `${cookie.syncKey}=${cookie.value}`;
 }
@@ -120,7 +134,7 @@ export function parseSyncCookie (cookieStr: string) {
     };
 }
 
-export function changeSyncType (parsedCookie, flags) {
+export function changeSyncType (parsedCookie: CookieRecord, flags) {
     if ('server' in flags)
         parsedCookie.isServerSync = flags.server;
 
@@ -136,7 +150,7 @@ export function changeSyncType (parsedCookie, flags) {
     parsedCookie.cookieStr = parsedCookie.cookieStr.replace(SYNCHRONIZATION_TYPE_RE, newSyncTypeStr);
 }
 
-export function isOutdatedSyncCookie (currentCookie, newCookie) {
+export function isOutdatedSyncCookie (currentCookie: CookieRecord, newCookie: CookieRecord) {
     return newCookie.isServerSync === currentCookie.isServerSync &&
            newCookie.sid === currentCookie.sid &&
            newCookie.key === currentCookie.key &&
@@ -145,6 +159,6 @@ export function isOutdatedSyncCookie (currentCookie, newCookie) {
            newCookie.lastAccessed > currentCookie.lastAccessed;
 }
 
-export function generateDeleteSyncCookieStr (cookie) {
+export function generateDeleteSyncCookieStr (cookie: CookieRecord): string {
     return cookie.syncKey + CLEAR_COOKIE_VALUE_STR;
 }
