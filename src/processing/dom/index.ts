@@ -395,7 +395,7 @@ export default class DomProcessor {
         }
     }
 
-    _processJsAttr (el, attrName: string, { isJsProtocol, isEventAttr }: { isJsProtocol?: boolean, isEventAttr?: boolean}): void {
+    _processJsAttr (el: HTMLElement, attrName: string, { isJsProtocol, isEventAttr }: { isJsProtocol?: boolean, isEventAttr?: boolean}): void {
         const storedUrlAttr  = DomProcessor.getStoredAttrName(attrName);
         const processed      = this.adapter.hasAttr(el, storedUrlAttr);
         const attrValue      = this.adapter.getAttr(el, processed ? storedUrlAttr : attrName);
