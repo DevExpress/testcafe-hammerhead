@@ -22,7 +22,7 @@ class StyleProcessor {
     STYLESHEET_PROCESSING_START_COMMENT: string = STYLESHEET_PROCESSING_START_COMMENT;
     STYLESHEET_PROCESSING_END_COMMENT: string = STYLESHEET_PROCESSING_END_COMMENT;
 
-    process (css: string, urlReplacer: object, isStylesheetTable?: boolean): string {
+    process (css: string, urlReplacer: Function, isStylesheetTable?: boolean): string {
         if (!css || typeof css !== 'string' || IS_STYLE_SHEET_PROCESSED_RE.test(css))
             return css;
 
@@ -39,7 +39,7 @@ class StyleProcessor {
         return prefix + this._replaceStylsheetUrls(css, urlReplacer) + postfix;
     }
 
-    cleanUp (css: string, parseProxyUrl): string {
+    cleanUp (css: string, parseProxyUrl: Function): string {
         if (typeof css !== 'string')
             return css;
 
@@ -54,7 +54,7 @@ class StyleProcessor {
         });
     }
 
-    _replaceStylsheetUrls (css: string, processor): string {
+    _replaceStylsheetUrls (css: string, processor: Function): string {
         return css.replace(
             CSS_URL_PROPERTY_VALUE_PATTERN,
             (match, prefix1, openQuote1, url1, closeQuote1, openQuote2, url2, closeQuote2, url3, postfix,
