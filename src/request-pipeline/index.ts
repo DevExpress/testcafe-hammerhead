@@ -1,3 +1,9 @@
+/*eslint-disable no-unused-vars*/
+import net from 'net';
+import http from 'http';
+import Session from '../session';
+import { ServerInfo } from '../proxy';
+/*eslint-enable no-unused-vars*/
 import RequestPipelineContext from './context';
 import { process as processResource } from '../processing/resources';
 import { MESSAGE, getText } from '../messages';
@@ -26,7 +32,7 @@ import {
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 
 const stages = [
-    function handleSocketError (ctx) {
+    function handleSocketError (ctx: RequestPipelineContext) {
         // NOTE: In some case on MacOS, browser reset connection with server and we need to catch this exception.
         if (!ctx.isWebSocket)
             return;
@@ -43,14 +49,14 @@ const stages = [
         });
     },
 
-    async function fetchProxyRequestBody (ctx) {
+    async function fetchProxyRequestBody (ctx: RequestPipelineContext) {
         if (ctx.isPage && !ctx.isIframe && !ctx.isHtmlImport)
             ctx.session.onPageRequest(ctx);
 
         ctx.reqBody = await fetchBody(ctx.req);
     },
 
-    async function sendDestinationRequest (ctx) {
+    async function sendDestinationRequest (ctx: RequestPipelineContext) {
         if (ctx.isSpecialPage) {
             ctx.destRes = createSpecialPageResponse();
             return;
@@ -74,7 +80,7 @@ const stages = [
             await sendRequest(ctx);
     },
 
-    async function checkSameOriginPolicyCompliance (ctx) {
+    async function checkSameOriginPolicyCompliance (ctx: RequestPipelineContext) {
         ctx.buildContentInfo();
 
         if (ctx.isPassSameOriginPolicy())
@@ -89,7 +95,7 @@ const stages = [
         ctx.closeWithError(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
     },
 
-    async function decideOnProcessingStrategy (ctx) {
+    async function decideOnProcessingStrategy (ctx: RequestPipelineContext) {
         ctx.goToNextStage = false;
 
         if (ctx.isWebSocket) {
@@ -138,7 +144,7 @@ const stages = [
         ctx.goToNextStage = true;
     },
 
-    async function fetchContent (ctx) {
+    async function fetchContent (ctx: RequestPipelineContext) {
         ctx.destResBody = await fetchBody(ctx.destRes);
 
         if (ctx.requestFilterRules.length)
@@ -152,7 +158,7 @@ const stages = [
         }
     },
 
-    async function processContent (ctx) {
+    async function processContent (ctx: RequestPipelineContext) {
         try {
             ctx.destResBody = await processResource(ctx);
         }
@@ -161,7 +167,7 @@ const stages = [
         }
     },
 
-    async function sendProxyResponse (ctx) {
+    async function sendProxyResponse (ctx: RequestPipelineContext) {
         const configureResponseEvents = await Promise.all(ctx.requestFilterRules.map(async rule => {
             const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
 
@@ -183,7 +189,7 @@ const stages = [
     }
 ];
 
-export async function run (req, res, serverInfo, openSessions) {
+export async function run (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo, openSessions: Map<string, Session>): Promise<void> {
     const ctx = new RequestPipelineContext(req, res, serverInfo);
 
     if (!ctx.dispatch(openSessions)) {

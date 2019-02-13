@@ -206,7 +206,7 @@ export default abstract class Session extends EventEmitter {
 
     abstract _getIframePayloadScript (iframeWithoutSrc: boolean): string;
     abstract _getPayloadScript (): string;
-    abstract handleFileDownload (ctx: any): void;
+    abstract handleFileDownload (): void;
     abstract handlePageError (ctx, err): void;
     abstract getAuthCredentials (): any;
 

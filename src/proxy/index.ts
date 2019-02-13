@@ -1,4 +1,8 @@
-import Router from './router';
+/*eslint-disable no-unused-vars*/
+import net from 'net';
+import Session from '../session';
+import Router, { StaticContent } from './router';
+/*eslint-enable no-unused-vars*/
 import http from 'http';
 import https from 'https';
 import * as urlUtils from '../utils/url';
@@ -10,7 +14,19 @@ import { resetKeepAliveConnections } from '../request-pipeline/destination-reque
 
 const SESSION_IS_NOT_OPENED_ERR: string = 'Session is not opened in proxy';
 
-function parseAsJson (msg: string) {
+export interface ServerInfo {
+    hostname: string,
+    port: string,
+    crossDomainPort: string,
+    protocol: string,
+    domain: string
+}
+
+interface ServiceMessage {
+    sessionId: string
+}
+
+function parseAsJson (msg: string): ServiceMessage | null {
     msg = msg.toString();
 
     try {
@@ -19,14 +35,6 @@ function parseAsJson (msg: string) {
     catch (err) {
         return null;
     }
-}
-
-interface ServerInfo {
-    hostname: string,
-    port: string,
-    crossDomainPort: string,
-    protocol: string,
-    domain: string
 }
 
 function createServerInfo (hostname: string, port: string, crossDomainPort: string, protocol: string): ServerInfo {
@@ -40,41 +48,38 @@ function createServerInfo (hostname: string, port: string, crossDomainPort: stri
 }
 
 export default class Proxy extends Router {
-    private readonly openSessions: any;
+    private readonly openSessions: Map<string, Session> = new Map();
     private readonly server1Info: ServerInfo;
     private readonly server2Info: ServerInfo;
-    private readonly server1: any;
-    private readonly server2: any;
-    private readonly sockets: Array<any>;
+    private readonly server1: http.Server | https.Server;
+    private readonly server2: http.Server | https.Server;
+    private readonly sockets: Set<net.Socket>;
 
     constructor (hostname: string, port1: string, port2: string, options: any = {}) {
         super(options);
 
         const { ssl, developmentMode } = options;
-
-        this.openSessions = {};
-
-        const protocol = ssl ? 'https:' : 'http:';
+        const protocol                 = ssl ? 'https:' : 'http:';
 
         this.server1Info = createServerInfo(hostname, port1, port2, protocol);
         this.server2Info = createServerInfo(hostname, port2, port1, protocol);
 
         if (ssl) {
-            this.server1 = https.createServer(ssl, (req, res) => this._onRequest(req, res, this.server1Info));
-            this.server2 = https.createServer(ssl, (req, res) => this._onRequest(req, res, this.server2Info));
+            this.server1 = https.createServer(ssl, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server1Info));
+            this.server2 = https.createServer(ssl, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server2Info));
         }
         else {
-            this.server1 = http.createServer((req, res) => this._onRequest(req, res, this.server1Info));
-            this.server2 = http.createServer((req, res) => this._onRequest(req, res, this.server2Info));
+            this.server1 = http.createServer((req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server1Info));
+            this.server2 = http.createServer((req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server2Info));
         }
 
-        this.server1.on('upgrade', (req, socket, head) => this._onUpgradeRequest(req, socket, head, this.server1Info));
-        this.server2.on('upgrade', (req, socket, head) => this._onUpgradeRequest(req, socket, head, this.server2Info));
+        this.server1.on('upgrade', (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgradeRequest(req, socket, head, this.server1Info));
+        this.server2.on('upgrade', (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgradeRequest(req, socket, head, this.server2Info));
 
         this.server1.listen(port1);
         this.server2.listen(port2);
 
-        this.sockets = [];
+        this.sockets = new Set<net.Socket>();
 
         // BUG: GH-89
         this._startSocketsCollecting();
@@ -86,33 +91,34 @@ export default class Proxy extends Router {
     }
 
     _startSocketsCollecting () {
-        const handler = socket => {
-            this.sockets.push(socket);
-            socket.on('close', () => this.sockets.splice(this.sockets.indexOf(socket), 1));
+        const handler = (socket: net.Socket) => {
+            this.sockets.add(socket);
+
+            socket.on('close', () => this.sockets.delete(socket));
         };
 
         this.server1.on('connection', handler);
         this.server2.on('connection', handler);
     }
 
-    _registerServiceRoutes (developmentMode) {
+    _registerServiceRoutes (developmentMode: boolean) {
         const hammerheadFileName      = developmentMode ? 'hammerhead.js' : 'hammerhead.min.js';
-        const hammerheadScriptContent = read(`../client/${hammerheadFileName}`);
+        const hammerheadScriptContent = <Buffer>read(`../client/${hammerheadFileName}`);
 
         this.GET('/hammerhead.js', {
             contentType: 'application/x-javascript',
             content:     hammerheadScriptContent
         });
 
-        this.POST('/messaging', (req, res, serverInfo) => this._onServiceMessage(req, res, serverInfo));
-        this.GET('/task.js', (req, res, serverInfo) => this._onTaskScriptRequest(req, res, serverInfo, false));
-        this.GET('/iframe-task.js', (req, res, serverInfo) => this._onTaskScriptRequest(req, res, serverInfo, true));
+        this.POST('/messaging', (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onServiceMessage(req, res, serverInfo));
+        this.GET('/task.js', (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onTaskScriptRequest(req, res, serverInfo, false));
+        this.GET('/iframe-task.js', (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onTaskScriptRequest(req, res, serverInfo, true));
     }
 
-    async _onServiceMessage (req, res, serverInfo: ServerInfo) {
+    async _onServiceMessage (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) {
         const body    = await fetchBody(req);
         const msg     = parseAsJson(body);
-        const session = msg && this.openSessions[msg.sessionId];
+        const session = msg && this.openSessions.get(msg.sessionId);
 
         if (session) {
             try {
@@ -128,10 +134,10 @@ export default class Proxy extends Router {
             respond500(res, SESSION_IS_NOT_OPENED_ERR);
     }
 
-    _onTaskScriptRequest (req, res, serverInfo: ServerInfo, isIframe: boolean) {
+    _onTaskScriptRequest (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo, isIframe: boolean) {
         const referer     = req.headers['referer'];
         const refererDest = referer && urlUtils.parseProxyUrl(referer);
-        const session     = refererDest && this.openSessions[refererDest.sessionId];
+        const session     = refererDest && this.openSessions.get(refererDest.sessionId);
 
         if (session) {
             res.setHeader('content-type', 'application/x-javascript');
@@ -151,22 +157,22 @@ export default class Proxy extends Router {
             respond500(res, SESSION_IS_NOT_OPENED_ERR);
     }
 
-    _onRequest (req, res, serverInfo: ServerInfo) {
+    _onRequest (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo) {
         // NOTE: Not a service request, execute the proxy pipeline.
         if (!this._route(req, res, serverInfo))
             runRequestPipeline(req, res, serverInfo, this.openSessions);
     }
 
-    _onUpgradeRequest (req, socket, head, serverInfo: ServerInfo) {
+    _onUpgradeRequest (req: http.IncomingMessage, socket: net.Socket, head: Buffer, serverInfo: ServerInfo) {
         if (head && head.length)
             socket.unshift(head);
 
         this._onRequest(req, socket, serverInfo);
     }
 
-    _processStaticContent (handler) {
+    _processStaticContent (handler: StaticContent) {
         if (handler.isShadowUIStylesheet)
-            handler.content = prepareShadowUIStylesheet(handler.content);
+            handler.content = prepareShadowUIStylesheet(<string>handler.content);
     }
 
     // API
@@ -177,9 +183,10 @@ export default class Proxy extends Router {
         resetKeepAliveConnections();
     }
 
-    openSession (url: string, session: any, externalProxySettings) {
-        session.proxy                 = this;
-        this.openSessions[session.id] = session;
+    openSession (url: string, session: Session, externalProxySettings) {
+        session.proxy = this;
+
+        this.openSessions.set(session.id, session);
 
         if (externalProxySettings)
             session.setExternalProxySettings(externalProxySettings);
@@ -196,6 +203,7 @@ export default class Proxy extends Router {
 
     closeSession (session) {
         session.proxy = null;
-        delete this.openSessions[session.id];
+
+        this.openSessions.delete(session.id);
     }
 }
