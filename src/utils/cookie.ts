@@ -112,7 +112,7 @@ export function formatSyncCookie (cookie) {
 
 export function parseSyncCookie (cookieStr: string) {
     const [, key, value] = KEY_VALUE_REGEX.exec(cookieStr);
-    const parsedKey      = key !== void 0 && value !== void 0 && key.split('|');
+    const parsedKey: any = key !== void 0 && value !== void 0 && key.split('|');
 
     if (parsedKey && parsedKey.length !== CLIENT_COOKIE_SYNC_KEY_FRAGMENT_COUNT)
         return null;
