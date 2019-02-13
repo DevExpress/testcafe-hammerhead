@@ -1,3 +1,7 @@
+/*eslint-disable no-unused-vars*/
+import Session from '../session';
+import { ServerInfo } from '../proxy';
+/*eslint-enable no-unused-vars*/
 import XHR_HEADERS from './xhr/headers';
 import Charset from '../processing/encoding/charset';
 import * as urlUtils from '../utils/url';
@@ -10,8 +14,8 @@ import * as headerTransforms from './header-transforms';
 const REDIRECT_STATUS_CODES: Array<number> = [301, 302, 303, 307, 308];
 
 export default class RequestPipelineContext {
-    serverInfo: any;
-    session: any;
+    serverInfo: ServerInfo;
+    session: Session;
     req: any;
     reqBody: any;
     res: any;
@@ -26,6 +30,7 @@ export default class RequestPipelineContext {
     isWebSocket: boolean;
     isIframe: boolean;
     isSpecialPage: boolean;
+    isWebSocketConnectionReset: boolean = false;
     contentInfo: any;
     acceptHeader: string;
     restoringStorages: any;
@@ -41,7 +46,7 @@ export default class RequestPipelineContext {
     mock: any;
     onResponseEventData: Array<any>;
 
-    constructor (req, res, serverInfo) {
+    constructor (req, res, serverInfo: ServerInfo) {
         this.serverInfo = serverInfo;
         this.session    = null;
 
@@ -151,7 +156,7 @@ export default class RequestPipelineContext {
     }
 
     // API
-    dispatch (openSessions) {
+    dispatch (openSessions: Map<string, Session>) {
         let parsedReqUrl: any  = urlUtils.parseProxyUrl(this.req.url);
         const referer     = this.req.headers['referer'];
         let parsedReferer: any = referer && urlUtils.parseProxyUrl(referer);
@@ -165,7 +170,7 @@ export default class RequestPipelineContext {
             parsedReqUrl = this._getDestFromReferer(parsedReferer);
 
         if (parsedReqUrl) {
-            this.session = openSessions[parsedReqUrl.sessionId];
+            this.session = openSessions.get(parsedReqUrl.sessionId);
 
             if (!this.session)
                 return false;
@@ -281,7 +286,7 @@ export default class RequestPipelineContext {
         this.nonProcessedDestResBody = value;
     }
 
-    closeWithError (statusCode, resBody) {
+    closeWithError (statusCode: number, resBody?: String | Buffer) {
         this.res.statusCode = statusCode;
 
         if (resBody && !this.res.headersSent && this.res.setHeader) {

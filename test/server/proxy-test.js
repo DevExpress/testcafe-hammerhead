@@ -1312,7 +1312,7 @@ describe('Proxy', () => {
         });
 
         it('Should process scripts', () => {
-            session.id = 1337;
+            session.id = 'sessionId';
 
             return request(proxy.openSession('http://127.0.0.1:2000/script', session))
                 .then(body => {
