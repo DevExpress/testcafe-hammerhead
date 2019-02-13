@@ -160,14 +160,18 @@ gulp.step('client-scripts', gulp.series('client-scripts-transpile', 'client-scri
 gulp.step('server-scripts', () => {
     const tsConfig = gulpTypeScript.createProject('tsconfig.json');
 
-    return gulp
+    const serverAndSharedScripts = gulp
         .src([
             './src/**/*.ts',
             '!src/client/**/*.ts'
         ])
         .pipe(tsConfig())
-        .pipe(gulpBabel())
-        .pipe(gulp.dest('lib'));
+        .pipe(gulpBabel());
+
+    const toLib   = serverAndSharedScripts.pipe(clone()).pipe(gulp.dest('lib'));
+    const inPlace = serverAndSharedScripts.pipe(gulp.dest(file => file.base));
+
+    return mergeStreams(toLib, inPlace);
 });
 
 gulp.step('templates', () => {
@@ -200,9 +204,9 @@ gulp.task('lint', gulp.parallel('lint-js', 'lint-ts'));
 gulp.task('build',
     gulp.series(
         'clean',
+        'server-scripts',
         gulp.parallel(
             'client-scripts',
-            'server-scripts',
             'templates',
             'lint'
         )
