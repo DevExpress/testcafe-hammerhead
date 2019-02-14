@@ -8,7 +8,7 @@ export class RequestInfo {
     url: string;
     method: string;
     isAjax: boolean;
-    headers: Array<string>;
+    headers: { [name: string]: string };
     body: string | Buffer;
     sessionId: string;
 
