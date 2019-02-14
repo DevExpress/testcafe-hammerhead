@@ -1,6 +1,6 @@
 /*eslint-disable no-unused-vars*/
 import net from 'net';
-import Session from '../session';
+import Session, { ExternalProxySettingsRaw } from '../session';
 import Router, { StaticContent } from './router';
 /*eslint-enable no-unused-vars*/
 import http from 'http';
@@ -22,8 +22,9 @@ export interface ServerInfo {
     domain: string
 }
 
-interface ServiceMessage {
-    sessionId: string
+export interface ServiceMessage {
+    sessionId: string,
+    [propName: string]: any;
 }
 
 function parseAsJson (msg: string): ServiceMessage | null {
@@ -183,7 +184,7 @@ export default class Proxy extends Router {
         resetKeepAliveConnections();
     }
 
-    openSession (url: string, session: Session, externalProxySettings) {
+    openSession (url: string, session: Session, externalProxySettings: ExternalProxySettingsRaw) {
         session.proxy = this;
 
         this.openSessions.set(session.id, session);
