@@ -8,7 +8,7 @@ import promisifyStream from '../utils/promisify-stream';
 import ConfigureResponseEvent from '../session/events/configure-response-event';
 import RequestEvent from '../session/events/request-event';
 import ResponseEvent from '../session/events/response-event';
-import REQUEST_EVENT_NAMES from '../session/events/names';
+import RequestEventNames from '../session/events/names';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
 import { toReadableStream } from '../utils/buffer';
 import { PassThrough } from 'stream';
@@ -107,13 +107,13 @@ export async function callResponseEventCallbackForProcessedRequest (ctx, configu
     const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, configureResponseEvent.opts);
     const responseEvent        = new ResponseEvent(configureResponseEvent._requestFilterRule, preparedResponseInfo);
 
-    await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, configureResponseEvent._requestFilterRule, responseEvent);
+    await ctx.session.callRequestEventCallback(RequestEventNames.onResponse, configureResponseEvent._requestFilterRule, responseEvent);
 }
 
 export async function callOnRequestEventCallback (ctx, rule, reqInfo) {
     const requestEvent = new RequestEvent(ctx, rule, reqInfo);
 
-    await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onRequest, rule, requestEvent);
+    await ctx.session.callRequestEventCallback(RequestEventNames.onRequest, rule, requestEvent);
 }
 
 export async function callOnResponseEventCallbackForFailedSameOriginCheck (ctx, rule, configureOpts) {
@@ -124,14 +124,14 @@ export async function callOnResponseEventCallbackForFailedSameOriginCheck (ctx, 
     const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, configureOpts);
     const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
 
-    await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, rule, responseEvent);
+    await ctx.session.callRequestEventCallback(RequestEventNames.onResponse, rule, responseEvent);
 }
 
 export async function callOnConfigureResponseEventForNonProcessedRequest (ctx) {
     await ctx.forEachRequestFilterRule(async rule => {
         const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
 
-        await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
+        await ctx.session.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
 
         ctx.onResponseEventData.push({ rule, opts: configureResponseEvent.opts });
     });
@@ -151,7 +151,7 @@ export async function callOnResponseEventCallbackWithBodyForNonProcessedRequest 
             const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, opts);
             const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
 
-            await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, rule, responseEvent);
+            await ctx.session.callRequestEventCallback(RequestEventNames.onResponse, rule, responseEvent);
         }));
 
         toReadableStream(data).pipe(ctx.res);
@@ -165,7 +165,7 @@ export async function callOnResponseEventCallbackWithoutBodyForNonProcessedResou
         const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, item.opts);
         const responseEvent        = new ResponseEvent(item.rule, preparedResponseInfo);
 
-        await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, item.rule, responseEvent);
+        await ctx.session.callRequestEventCallback(RequestEventNames.onResponse, item.rule, responseEvent);
     }));
 
     ctx.destRes.pipe(ctx.res);
@@ -178,7 +178,7 @@ export async function callOnResponseEventCallbackForMotModifiedResource (ctx) {
         const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, item.opts);
         const responseEvent        = new ResponseEvent(item.rule, preparedResponseInfo);
 
-        await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, item.rule, responseEvent);
+        await ctx.session.callRequestEventCallback(RequestEventNames.onResponse, item.rule, responseEvent);
     }));
 
     ctx.res.end();

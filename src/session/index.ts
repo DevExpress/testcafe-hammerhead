@@ -1,3 +1,14 @@
+/*eslint-disable no-unused-vars*/
+import Proxy, { ServerInfo, ServiceMessage } from '../proxy';
+import RequestPipelineContext from '../request-pipeline/context';
+import RequestFilterRule from '../request-pipeline/request-hooks/request-filter-rule';
+import ResponseMock from '../request-pipeline/request-hooks/response-mock';
+import RequestEventNames from '../session/events/names';
+import { RequestInfo } from './events/info';
+import RequestEvent from './events/request-event';
+import ResponseEvent from './events/response-event';
+import ConfigureResponseEvent from './events/configure-response-event';
+/*eslint-enable no-unused-vars*/
 import mustache from 'mustache';
 import { readSync as read } from 'read-file-relative';
 import { EventEmitter } from 'events';
@@ -9,51 +20,88 @@ import generateUniqueId from '../utils/generate-unique-id';
 
 const TASK_TEMPLATE: string = read('../client/task.js.mustache');
 
+interface InjectableResources {
+    scripts: Array<string>,
+    styles: Array<string>
+}
+
+interface StateSnapshot {
+    cookies: string | null,
+    storages: { localStorage: string, sessionStorage: string } | null
+}
+
+export interface ExternalProxySettingsRaw {
+    url: string,
+    bypassRules?: Array<string>
+}
+
+interface ExternalProxySettings {
+    host: string,
+    hostname: string,
+    bypassRules?: Array<string>,
+    port?: string,
+    proxyAuth?: string,
+    authHeader?: string
+}
+
+interface RequestEventListeners {
+    [RequestEventNames.onRequest]: Function,
+    [RequestEventNames.onConfigureResponse]: Function,
+    [RequestEventNames.onResponse]: Function
+}
+
+export interface Credentials {
+    username: string,
+    password: string,
+    domain?: string,
+    workstation?: string
+}
+
+interface TaskScriptTemplateOpts {
+    serverInfo: ServerInfo,
+    isFirstPageLoad: boolean,
+    referer: string | null,
+    cookie: string | null,
+    iframeTaskScriptTemplate: string,
+    payloadScript: string
+}
+
+interface TaskScriptOpts {
+    serverInfo: ServerInfo,
+    referer: string | null,
+    cookieUrl: string,
+    isIframe: boolean,
+    withPayload: boolean
+}
+
 export default abstract class Session extends EventEmitter {
-    requireStateSwitch: boolean;
-    uploadStorage: any;
-    id: string;
-    cookies: any;
-    proxy: any;
-    externalProxySettings: any;
-    pageLoadCount: number;
-    pendingStateSnapshot: any;
-    injectable: any;
-    requestEventListeners: any;
-    mocks: any;
+    uploadStorage: UploadStorage;
+    requireStateSwitch: boolean = false;
+    id: string = generateUniqueId();
+    cookies: Cookies = new Cookies();
+    proxy: Proxy = null;
+    externalProxySettings: ExternalProxySettings | null = null;
+    pageLoadCount: number = 0;
+    pendingStateSnapshot: StateSnapshot = null;
+    injectable: InjectableResources = { scripts: ['/hammerhead.js'], styles: [] };
+    requestEventListeners: Map<RequestFilterRule, RequestEventListeners> = new Map();
+    mocks: Map<RequestFilterRule, ResponseMock> = new Map();
 
     constructor (uploadsRoot: string) {
         super();
 
         this.uploadStorage = new UploadStorage(uploadsRoot);
-
-        this.id                    = generateUniqueId();
-        this.cookies               = new Cookies();
-        this.proxy                 = null;
-        this.externalProxySettings = null;
-        this.pageLoadCount         = 0;
-
-        this.requireStateSwitch   = false;
-        this.pendingStateSnapshot = null;
-
-        this.injectable = {
-            scripts: ['/hammerhead.js'],
-            styles:  []
-        };
-
-        this.requestEventListeners = new Map();
-        this.mocks                 = new Map();
     }
 
     // State
-    getStateSnapshot () {
+    getStateSnapshot (): StateSnapshot {
         return {
             cookies:  this.cookies.serializeJar(),
             storages: null
         };
     }
 
-    useStateSnapshot (snapshot) {
+    useStateSnapshot (snapshot: StateSnapshot) {
         // NOTE: we don't perform state switch immediately, since there might be
         // pending requests from current page. Therefore, we perform switch in
         // onPageRequest handler when new page is requested.
@@ -67,15 +115,14 @@ export default abstract class Session extends EventEmitter {
         };
     }
 
-    async handleServiceMessage (msg, serverInfo) {
+    async handleServiceMessage (msg: ServiceMessage, serverInfo: ServerInfo): Promise<object> {
         if (this[msg.cmd])
             return await this[msg.cmd](msg, serverInfo);
-
 
         throw new Error('Malformed service message or message handler is not implemented');
     }
 
-    _fillTaskScriptTemplate ({ serverInfo, isFirstPageLoad, referer, cookie, iframeTaskScriptTemplate, payloadScript }) {
+    _fillTaskScriptTemplate ({ serverInfo, isFirstPageLoad, referer, cookie, iframeTaskScriptTemplate, payloadScript }: TaskScriptTemplateOpts): string {
         referer                  = referer || '{{{referer}}}';
         cookie                   = cookie || '{{{cookie}}}';
         iframeTaskScriptTemplate = iframeTaskScriptTemplate || '{{{iframeTaskScriptTemplate}}}';
@@ -95,7 +142,7 @@ export default abstract class Session extends EventEmitter {
         });
     }
 
-    getIframeTaskScriptTemplate (serverInfo) {
+    getIframeTaskScriptTemplate (serverInfo: ServerInfo): string {
         const taskScriptTemplate = this._fillTaskScriptTemplate({
             serverInfo,
             isFirstPageLoad:          false,
@@ -108,7 +155,7 @@ export default abstract class Session extends EventEmitter {
         return JSON.stringify(taskScriptTemplate);
     }
 
-    getTaskScript ({ referer, cookieUrl, serverInfo, isIframe, withPayload }) {
+    getTaskScript ({ referer, cookieUrl, serverInfo, isIframe, withPayload }: TaskScriptOpts): string {
         const cookies     = JSON.stringify(this.cookies.getClientString(cookieUrl));
         let payloadScript = '';
 
@@ -129,14 +176,15 @@ export default abstract class Session extends EventEmitter {
         return taskScript;
     }
 
-    setExternalProxySettings (proxySettings: any) {
+    setExternalProxySettings (proxySettings: ExternalProxySettingsRaw | string | null) {
         if (typeof proxySettings === 'string')
             proxySettings = { url: proxySettings };
 
-        proxySettings = proxySettings || {};
+        if (!proxySettings || !proxySettings.url)
+            return;
 
         const { url, bypassRules } = proxySettings;
-        const parsedUrl            = typeof url === 'string' ? parseUrl('http://' + url) : null;
+        const parsedUrl            = parseUrl('http://' + url);
         let settings               = null;
 
         if (parsedUrl && parsedUrl.host) {
@@ -160,9 +208,10 @@ export default abstract class Session extends EventEmitter {
         this.externalProxySettings = settings;
     }
 
-    onPageRequest (ctx) {
+    onPageRequest (ctx: RequestPipelineContext) {
         if (this.requireStateSwitch) {
             this.cookies.setJar(this.pendingStateSnapshot.cookies);
+
             ctx.restoringStorages     = this.pendingStateSnapshot.storages;
             this.requireStateSwitch   = false;
             this.pendingStateSnapshot = null;
@@ -170,25 +219,25 @@ export default abstract class Session extends EventEmitter {
     }
 
     // Request hooks
-    hasRequestEventListeners () {
+    hasRequestEventListeners (): boolean {
         return !!this.requestEventListeners.size;
     }
 
-    addRequestEventListeners (requestFilterRule, eventListeners) {
+    addRequestEventListeners (requestFilterRule: RequestFilterRule, eventListeners: RequestEventListeners) {
         this.requestEventListeners.set(requestFilterRule, eventListeners);
     }
 
-    removeRequestEventListeners (requestFilterRule) {
+    removeRequestEventListeners (requestFilterRule: RequestFilterRule) {
         this.requestEventListeners.delete(requestFilterRule);
     }
 
-    getRequestFilterRules (requestInfo) {
-        const rulesArray: any = Array.from(this.requestEventListeners.keys());
+    getRequestFilterRules (requestInfo: RequestInfo): Array<RequestFilterRule> {
+        const rulesArray:Array<RequestFilterRule> = Array.from(this.requestEventListeners.keys());
 
         return rulesArray.filter(rule => rule.match(requestInfo));
     }
 
-    async callRequestEventCallback (eventName, requestFilterRule, eventData) {
+    async callRequestEventCallback (eventName: RequestEventNames, requestFilterRule: RequestFilterRule, eventData: RequestEvent | ResponseEvent | ConfigureResponseEvent) {
         const eventListeners             = this.requestEventListeners.get(requestFilterRule);
         const targetRequestEventCallback = eventListeners[eventName];
 
@@ -196,26 +245,26 @@ export default abstract class Session extends EventEmitter {
             await targetRequestEventCallback(eventData);
     }
 
-    setMock (requestFilterRule: any, mock) {
+    setMock (requestFilterRule: RequestFilterRule, mock: ResponseMock) {
         this.mocks.set(requestFilterRule, mock);
     }
 
-    getMock (requestFilterRule) {
+    getMock (requestFilterRule: RequestFilterRule): ResponseMock {
         return this.mocks.get(requestFilterRule);
     }
 
     abstract _getIframePayloadScript (iframeWithoutSrc: boolean): string;
     abstract _getPayloadScript (): string;
     abstract handleFileDownload (): void;
-    abstract handlePageError (ctx, err): void;
-    abstract getAuthCredentials (): any;
+    abstract handlePageError (ctx: RequestPipelineContext, err: Error): void;
+    abstract getAuthCredentials (): Credentials;
 
     // Service message handlers
-    async [COMMAND.uploadFiles] (msg) {
+    async [COMMAND.uploadFiles] (msg: ServiceMessage): Promise<object> {
         return await this.uploadStorage.store(msg.fileNames, msg.data);
     }
 
-    async [COMMAND.getUploadedFiles] (msg) {
+    async [COMMAND.getUploadedFiles] (msg: ServiceMessage): Promise<object> {
         return await this.uploadStorage.get(msg.filePaths);
     }
 }

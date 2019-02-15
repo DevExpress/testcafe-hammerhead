@@ -12,8 +12,8 @@ import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from './xhr/same-origin-check-failed
 import { fetchBody, respond404 } from '../utils/http';
 import { respondOnWebSocket } from './websocket';
 import createSpecialPageResponse from './special-page';
-import * as requestEventInfo from '../session/events/info';
-import REQUEST_EVENT_NAMES from '../session/events/names';
+import { RequestInfo } from '../session/events/info';
+import RequestEventNames from '../session/events/names';
 import ConfigureResponseEvent from '../session/events/configure-response-event';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
 import {
@@ -65,7 +65,7 @@ const stages = [
         ctx.reqOpts = createReqOpts(ctx);
 
         if (ctx.session.hasRequestEventListeners()) {
-            const requestInfo = requestEventInfo.createRequestInfo(ctx, ctx.reqOpts);
+            const requestInfo = new RequestInfo(ctx, ctx.reqOpts);
 
             ctx.requestFilterRules = ctx.session.getRequestFilterRules(requestInfo);
             await ctx.forEachRequestFilterRule(async rule => {
@@ -89,7 +89,7 @@ const stages = [
         await ctx.forEachRequestFilterRule(async rule => {
             const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
 
-            await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
+            await ctx.session.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
             await callOnResponseEventCallbackForFailedSameOriginCheck(ctx, rule, configureResponseEvent);
         });
         ctx.closeWithError(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
@@ -171,7 +171,7 @@ const stages = [
         const configureResponseEvents = await Promise.all(ctx.requestFilterRules.map(async rule => {
             const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
 
-            await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
+            await ctx.session.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
 
             return configureResponseEvent;
         }));
