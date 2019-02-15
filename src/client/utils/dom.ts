@@ -527,25 +527,28 @@ export function isBlob (instance): boolean {
     return instance && instanceToString(instance) === '[object Blob]';
 }
 
+function isLocationByProto (instance): boolean {
+    let instanceCtor = null;
+
+    try {
+        // eslint-disable-next-line no-proto
+        instanceCtor = instance.__proto__;
+    }
+    catch (e) {
+        // NOTE: Try to detect cross-domain window location.
+        // A cross-domain location has no the "assign" function in Safari.
+        return instance.replace && (isSafari || !!instance.assign);
+    }
+
+    return instanceCtor && nativeMethods.objectToString.call(instanceCtor) === '[object LocationPrototype]';
+}
+
 export function isLocation (instance): boolean {
     if (!instance)
         return false;
 
-    if (isIE || isSafari) {
-        let instanceCtor = null;
-
-        try {
-            // eslint-disable-next-line no-proto
-            instanceCtor = instance.__proto__;
-        }
-        catch (e) {
-            // NOTE: Try to detect cross-domain window location.
-            // A cross-domain location has no the "assign" function in Safari.
-            return instance.replace && (isSafari || !!instance.assign);
-        }
-
-        return instanceCtor && nativeMethods.objectToString.call(instanceCtor) === '[object LocationPrototype]';
-    }
+    if (isIE || isSafari)
+        return isLocationByProto(instance);
 
     return instance instanceof nativeMethods.locationClass ||
         nativeMethods.objectToString.call(instance) === '[object Location]';
