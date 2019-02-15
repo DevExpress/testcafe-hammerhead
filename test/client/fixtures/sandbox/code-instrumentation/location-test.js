@@ -13,6 +13,8 @@ var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var domUtils      = hammerhead.utils.dom;
 
+var getLocation = window[INSTRUCTION.getLocation];
+
 var messageSandbox = hammerhead.sandbox.event.message;
 
 var getWindowMock = function (opts) {
@@ -462,29 +464,15 @@ test('should omit the default port on page navigation', function () {
 });
 
 test('"isLocation" for window.location and iframe.contentWindow.location', function () {
-    var getLocationScript = processScript('(function getLocation () {' +
-        'var location = window.location;' +
-        'return location;' +
-        '})();');
-
-    var windowLocation = eval(getLocationScript);
+    var windowLocation = getLocation(window.location);
 
     ok(windowLocation instanceof LocationWrapper);
 
     return createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/simple-page.html') })
         .then(function (crossDomainIframe) {
-            window.testIframeLocation = crossDomainIframe.contentWindow.location;
-
-            var getIframeLocationScript = processScript('(function getIframeLocation () {' +
-                'var location = window.testIframeLocation;' +
-                'return location;' +
-                '})();');
-
-            var iframeLocation = eval(getIframeLocationScript);
+            var iframeLocation = getLocation(crossDomainIframe.contentWindow.location);
 
             ok(iframeLocation instanceof LocationWrapper);
-
-            delete window.testIframeLocation;
         });
 });
 
@@ -500,10 +488,10 @@ if (window.location.ancestorOrigins) {
                 return createTestIframe({}, iframe.contentDocument.body);
             })
             .then(function (nestedIframe) {
-                var getLocation           = nestedIframe.contentWindow[INSTRUCTION.getLocation];
-                var locationWrapper       = getLocation(nestedIframe.contentWindow.location);
-                var ancestorOrigins       = locationWrapper.ancestorOrigins;
-                var nativeAncestorOrigins = nestedIframe.contentWindow.location.ancestorOrigins;
+                var getLocationInstruction = nestedIframe.contentWindow[INSTRUCTION.getLocation];
+                var locationWrapper        = getLocationInstruction(nestedIframe.contentWindow.location);
+                var ancestorOrigins        = locationWrapper.ancestorOrigins;
+                var nativeAncestorOrigins  = nestedIframe.contentWindow.location.ancestorOrigins;
 
                 nestedIframe.contentWindow.parent.parent = {
                     location: {
@@ -760,14 +748,7 @@ test('set a relative url to a cross-domain location', function () {
 });
 
 test('"isLocation" for the cloned location object should not return the "true" value (GH-1863)', function () {
-    var getLocationCopyScript = processScript('(function getLocation () {' +
-                                              extend.toString() +
-                                              'var location = extend({}, window.location);' +
-                                              'return location;' +
-                                              '})();');
+    var locationCopy = getLocation(extend({}, window.location));
 
-    var locationCopy     = eval(getLocationCopyScript);
-    var locationCopyCtor = Object.getPrototypeOf(locationCopy).constructor;
-
-    strictEqual(locationCopyCtor.toString().indexOf('LocationWrapper'), -1, 'should not contain "LocationWrapper"');
+    ok(!(locationCopy instanceof LocationWrapper));
 });

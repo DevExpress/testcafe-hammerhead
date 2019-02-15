@@ -27,6 +27,7 @@ export default class LocationAccessorsInstrumentation extends SandboxBase {
 
     static getLocationWrapper (owner) {
         // NOTE: IE11 case. We can get cross-domain location wrapper without any exceptions.
+        // We return owner.location in this case, as in other browsers.
         if (isIE && isCrossDomainWindows(window, owner))
             return owner.location;
 
