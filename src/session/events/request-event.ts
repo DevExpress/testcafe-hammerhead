@@ -1,15 +1,22 @@
-export default class RequestEvent {
-    _requestContext: any;
-    _requestFilterRule: any;
-    _requestInfo: any;
+/*eslint-disable no-unused-vars*/
+import RequestFilterRule from '../../request-pipeline/request-hooks/request-filter-rule';
+import RequestPipelineContext from '../../request-pipeline/context';
+import ResponseMock from '../../request-pipeline/request-hooks/response-mock';
+import { RequestInfo } from './info';
+/*eslint-enable no-unused-vars*/
 
-    constructor (requestContext, requestFilterRule: any, requestInfo) {
+export default class RequestEvent {
+    private readonly _requestContext: RequestPipelineContext;
+    private readonly _requestFilterRule: RequestFilterRule;
+    private readonly _requestInfo: RequestInfo;
+
+    constructor (requestContext: RequestPipelineContext, requestFilterRule: RequestFilterRule, requestInfo: RequestInfo) {
         this._requestContext    = requestContext;
         this._requestFilterRule = requestFilterRule;
         this._requestInfo       = requestInfo;
     }
 
-    setMock (mock) {
+    setMock (mock: ResponseMock) {
         this._requestContext.session.setMock(this._requestFilterRule, mock);
     }
 

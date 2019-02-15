@@ -86,6 +86,8 @@ const stages = [
         if (ctx.isPassSameOriginPolicy())
             return;
 
+        ctx.isSameOriginPolicyFailed = true;
+
         await ctx.forEachRequestFilterRule(async rule => {
             const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
 

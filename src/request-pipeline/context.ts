@@ -45,6 +45,7 @@ export default class RequestPipelineContext {
     goToNextStage: boolean;
     mock: any;
     onResponseEventData: Array<any>;
+    isSameOriginPolicyFailed: boolean = false;
 
     constructor (req, res, serverInfo: ServerInfo) {
         this.serverInfo = serverInfo;

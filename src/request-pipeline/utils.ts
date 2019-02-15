@@ -3,7 +3,7 @@ import matchUrl from 'match-url-wildcard';
 import * as headerTransforms from './header-transforms';
 import FileRequest from './file-request';
 import DestinationRequest from './destination-request';
-import * as requestEventInfo from '../session/events/info';
+import { ResponseInfo, PreparedResponseInfo } from '../session/events/info';
 import promisifyStream from '../utils/promisify-stream';
 import ConfigureResponseEvent from '../session/events/configure-response-event';
 import RequestEvent from '../session/events/request-event';
@@ -12,7 +12,6 @@ import RequestEventNames from '../session/events/names';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
 import { toReadableStream } from '../utils/buffer';
 import { PassThrough } from 'stream';
-import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from './xhr/same-origin-check-failed-status-code';
 
 export function createReqOpts (ctx) {
     const bodyWithUploads = injectUpload(ctx.req.headers['content-type'], ctx.reqBody);
@@ -103,8 +102,8 @@ export function error (ctx, err) {
 }
 
 export async function callResponseEventCallbackForProcessedRequest (ctx, configureResponseEvent) {
-    const responseInfo         = requestEventInfo.createResponseInfo(ctx);
-    const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, configureResponseEvent.opts);
+    const responseInfo         = new ResponseInfo(ctx);
+    const preparedResponseInfo = new PreparedResponseInfo(responseInfo, configureResponseEvent.opts);
     const responseEvent        = new ResponseEvent(configureResponseEvent._requestFilterRule, preparedResponseInfo);
 
     await ctx.session.callRequestEventCallback(RequestEventNames.onResponse, configureResponseEvent._requestFilterRule, responseEvent);
@@ -117,11 +116,8 @@ export async function callOnRequestEventCallback (ctx, rule, reqInfo) {
 }
 
 export async function callOnResponseEventCallbackForFailedSameOriginCheck (ctx, rule, configureOpts) {
-    const responseInfo = requestEventInfo.createResponseInfo(ctx);
-
-    responseInfo.statusCode = SAME_ORIGIN_CHECK_FAILED_STATUS_CODE;
-
-    const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, configureOpts);
+    const responseInfo         = new ResponseInfo(ctx);
+    const preparedResponseInfo = new PreparedResponseInfo(responseInfo, configureOpts);
     const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
 
     await ctx.session.callRequestEventCallback(RequestEventNames.onResponse, rule, responseEvent);
@@ -145,10 +141,10 @@ export async function callOnResponseEventCallbackWithBodyForNonProcessedRequest 
     promisifyStream(destResBodyCollectorStream).then(async data => {
         ctx.saveNonProcessedDestResBody(data);
 
-        const responseInfo = requestEventInfo.createResponseInfo(ctx);
+        const responseInfo = new ResponseInfo(ctx);
 
         await Promise.all(onResponseEventDataWithBody.map(async ({ rule, opts }) => {
-            const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, opts);
+            const preparedResponseInfo = new PreparedResponseInfo(responseInfo, opts);
             const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
 
             await ctx.session.callRequestEventCallback(RequestEventNames.onResponse, rule, responseEvent);
@@ -159,10 +155,10 @@ export async function callOnResponseEventCallbackWithBodyForNonProcessedRequest 
 }
 
 export async function callOnResponseEventCallbackWithoutBodyForNonProcessedResource (ctx, onResponseEventDataWithoutBody) {
-    const responseInfo = requestEventInfo.createResponseInfo(ctx);
+    const responseInfo = new ResponseInfo(ctx);
 
     await Promise.all(onResponseEventDataWithoutBody.map(async item => {
-        const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, item.opts);
+        const preparedResponseInfo = new PreparedResponseInfo(responseInfo, item.opts);
         const responseEvent        = new ResponseEvent(item.rule, preparedResponseInfo);
 
         await ctx.session.callRequestEventCallback(RequestEventNames.onResponse, item.rule, responseEvent);
@@ -172,10 +168,10 @@ export async function callOnResponseEventCallbackWithoutBodyForNonProcessedResou
 }
 
 export async function callOnResponseEventCallbackForMotModifiedResource (ctx) {
-    const responseInfo = requestEventInfo.createResponseInfo(ctx);
+    const responseInfo = new ResponseInfo(ctx);
 
     await Promise.all(ctx.onResponseEventData.map(async item => {
-        const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, item.opts);
+        const preparedResponseInfo = new PreparedResponseInfo(responseInfo, item.opts);
         const responseEvent        = new ResponseEvent(item.rule, preparedResponseInfo);
 
         await ctx.session.callRequestEventCallback(RequestEventNames.onResponse, item.rule, responseEvent);

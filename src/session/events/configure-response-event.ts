@@ -1,9 +1,15 @@
-export default class ConfigureResponseEvent {
-    _requestContext: any;
-    _requestFilterRule: any;
-    opts: any;
+/*eslint-disable no-unused-vars*/
+import RequestPipelineContext from '../../request-pipeline/context';
+import RequestFilterRule from '../../request-pipeline/request-hooks/request-filter-rule';
+import ConfigureResponseEventOptions from './configure-response-event-options';
+/*eslint-enable no-unused-vars*/
 
-    constructor (requestContext: any, requestFilterRule: any, opts: any) {
+export default class ConfigureResponseEvent {
+    private readonly _requestContext: RequestPipelineContext;
+    readonly _requestFilterRule: RequestFilterRule;
+    readonly opts: ConfigureResponseEventOptions;
+
+    constructor (requestContext: RequestPipelineContext, requestFilterRule: RequestFilterRule, opts: ConfigureResponseEventOptions) {
         this._requestContext    = requestContext;
         this._requestFilterRule = requestFilterRule;
         this.opts               = opts;
