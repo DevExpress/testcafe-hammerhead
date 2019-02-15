@@ -20,7 +20,7 @@ import generateUniqueId from '../utils/generate-unique-id';
 
 const TASK_TEMPLATE: string = read('../client/task.js.mustache');
 
-interface Injectable {
+interface InjectableResources {
     scripts: Array<string>,
     styles: Array<string>
 }
@@ -45,9 +45,9 @@ interface ExternalProxySettings {
 }
 
 interface RequestEventListeners {
-    onRequest: Function,
-    onConfigureResponse: Function,
-    onResponse: Function
+    [RequestEventNames.onRequest]: Function,
+    [RequestEventNames.onConfigureResponse]: Function,
+    [RequestEventNames.onResponse]: Function
 }
 
 export interface Credentials {
@@ -83,7 +83,7 @@ export default abstract class Session extends EventEmitter {
     externalProxySettings: ExternalProxySettings | null = null;
     pageLoadCount: number = 0;
     pendingStateSnapshot: StateSnapshot = null;
-    injectable: Injectable = { scripts: ['/hammerhead.js'], styles: [] };
+    injectable: InjectableResources = { scripts: ['/hammerhead.js'], styles: [] };
     requestEventListeners: Map<RequestFilterRule, RequestEventListeners> = new Map();
     mocks: Map<RequestFilterRule, ResponseMock> = new Map();
 
