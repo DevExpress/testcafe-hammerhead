@@ -36,14 +36,30 @@ function getFocusableSelector () {
     return 'input, select, textarea, button, body, iframe, [contenteditable="true"], [contenteditable=""], [tabIndex]';
 }
 
-function isHidden (el: HTMLElement) {
+function isHidden (el: HTMLElement): boolean {
     return el.offsetWidth <= 0 && el.offsetHeight <= 0;
 }
 
-function isAlwaysNotEditableElement (el: HTMLElement) {
+function isAlwaysNotEditableElement (el: HTMLElement): boolean {
     const tagName = getTagName(el);
 
     return tagName && (NOT_CONTENT_EDITABLE_ELEMENTS_RE.test(tagName) || INPUT_ELEMENTS_RE.test(tagName));
+}
+
+function isLocationByProto (instance): boolean {
+    let instanceCtor = null;
+
+    try {
+        // eslint-disable-next-line no-proto
+        instanceCtor = instance.__proto__;
+    }
+    catch (e) {
+        // NOTE: Try to detect cross-domain window location.
+        // A cross-domain location has no the "assign" function in Safari.
+        return instance.replace && (isSafari || !!instance.assign);
+    }
+
+    return instanceCtor && nativeMethods.objectToString.call(instanceCtor) === '[object LocationPrototype]';
 }
 
 function closestFallback (el: Node, selector: string) {
@@ -525,22 +541,6 @@ export function isDocument (instance): boolean {
 
 export function isBlob (instance): boolean {
     return instance && instanceToString(instance) === '[object Blob]';
-}
-
-function isLocationByProto (instance): boolean {
-    let instanceCtor = null;
-
-    try {
-        // eslint-disable-next-line no-proto
-        instanceCtor = instance.__proto__;
-    }
-    catch (e) {
-        // NOTE: Try to detect cross-domain window location.
-        // A cross-domain location has no the "assign" function in Safari.
-        return instance.replace && (isSafari || !!instance.assign);
-    }
-
-    return instanceCtor && nativeMethods.objectToString.call(instanceCtor) === '[object LocationPrototype]';
 }
 
 export function isLocation (instance): boolean {
