@@ -92,6 +92,13 @@ var ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
     }
 ];
 
+test('"isLocation" (GH-1863)', function () {
+    var locationCopy = extend({}, window.location);
+
+    ok(domUtils.isLocation(window.location));
+    ok(!domUtils.isLocation(locationCopy));
+});
+
 test('iframe with empty src', function () {
     function assert (iframe) {
         new CodeInstrumentation({}, {}, messageSandbox).attach(iframe.contentWindow);
@@ -463,19 +470,6 @@ test('should omit the default port on page navigation', function () {
     hammerhead.win = storedWindow;
 });
 
-test('"isLocation" for window.location and iframe.contentWindow.location', function () {
-    var windowLocation = getLocation(window.location);
-
-    ok(windowLocation instanceof LocationWrapper);
-
-    return createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/simple-page.html') })
-        .then(function (crossDomainIframe) {
-            var iframeLocation = getLocation(crossDomainIframe.contentWindow.location);
-
-            ok(iframeLocation instanceof LocationWrapper);
-        });
-});
-
 if (window.location.ancestorOrigins) {
     module('ancestorOrigins');
 
@@ -745,10 +739,4 @@ test('set a relative url to a cross-domain location', function () {
             checkLocation(iframes[0].contentWindow.location);
             checkLocation(iframes[1].contentWindow.location);
         });
-});
-
-test('"isLocation" for the cloned location object should not return the "true" value (GH-1863)', function () {
-    var locationCopy = getLocation(extend({}, window.location));
-
-    ok(!(locationCopy instanceof LocationWrapper));
 });
