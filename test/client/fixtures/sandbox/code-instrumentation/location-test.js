@@ -13,8 +13,6 @@ var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var domUtils      = hammerhead.utils.dom;
 
-var getLocation = window[INSTRUCTION.getLocation];
-
 var messageSandbox = hammerhead.sandbox.event.message;
 
 var getWindowMock = function (opts) {
@@ -482,10 +480,10 @@ if (window.location.ancestorOrigins) {
                 return createTestIframe({}, iframe.contentDocument.body);
             })
             .then(function (nestedIframe) {
-                var getLocationInstruction = nestedIframe.contentWindow[INSTRUCTION.getLocation];
-                var locationWrapper        = getLocationInstruction(nestedIframe.contentWindow.location);
-                var ancestorOrigins        = locationWrapper.ancestorOrigins;
-                var nativeAncestorOrigins  = nestedIframe.contentWindow.location.ancestorOrigins;
+                var getLocation           = nestedIframe.contentWindow[INSTRUCTION.getLocation];
+                var locationWrapper       = getLocation(nestedIframe.contentWindow.location);
+                var ancestorOrigins       = locationWrapper.ancestorOrigins;
+                var nativeAncestorOrigins = nestedIframe.contentWindow.location.ancestorOrigins;
 
                 nestedIframe.contentWindow.parent.parent = {
                     location: {
