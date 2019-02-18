@@ -483,6 +483,9 @@ export default class WindowSandbox extends SandboxBase {
 
             window.MutationObserver.prototype = nativeMethods.MutationObserver.prototype;
             window.MutationObserver.toString  = () => nativeMethods.MutationObserver.toString();
+
+            if (window.WebKitMutationObserver)
+                window.WebKitMutationObserver = window.MutationObserver;
         }
 
         if (window.Proxy) {

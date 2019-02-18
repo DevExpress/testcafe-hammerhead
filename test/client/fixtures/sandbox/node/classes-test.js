@@ -254,6 +254,12 @@ if (window.EventSource) {
 module('MutationObserver');
 
 if (window.MutationObserver) {
+    if (window.WebKitMutationObserver) {
+        test('WebKitMutationObserver', function () {
+            strictEqual(window.WebKitMutationObserver, MutationObserver);
+        });
+    }
+
     test('should work with the operator "instanceof" (GH-690)', function () {
         var observer = new MutationObserver(function () {
         });
