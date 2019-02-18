@@ -36,14 +36,30 @@ function getFocusableSelector () {
     return 'input, select, textarea, button, body, iframe, [contenteditable="true"], [contenteditable=""], [tabIndex]';
 }
 
-function isHidden (el: HTMLElement) {
+function isHidden (el: HTMLElement): boolean {
     return el.offsetWidth <= 0 && el.offsetHeight <= 0;
 }
 
-function isAlwaysNotEditableElement (el: HTMLElement) {
+function isAlwaysNotEditableElement (el: HTMLElement): boolean {
     const tagName = getTagName(el);
 
     return tagName && (NOT_CONTENT_EDITABLE_ELEMENTS_RE.test(tagName) || INPUT_ELEMENTS_RE.test(tagName));
+}
+
+function isLocationByProto (instance): boolean {
+    let instanceCtor = null;
+
+    try {
+        // eslint-disable-next-line no-proto
+        instanceCtor = instance.__proto__;
+    }
+    catch (e) {
+        // NOTE: Try to detect cross-domain window location.
+        // A cross-domain location has no the "assign" function in Safari.
+        return instance.replace && (isSafari || !!instance.assign);
+    }
+
+    return instanceCtor && nativeMethods.objectToString.call(instanceCtor) === '[object LocationPrototype]';
 }
 
 function closestFallback (el: Node, selector: string) {
@@ -528,19 +544,14 @@ export function isBlob (instance): boolean {
 }
 
 export function isLocation (instance): boolean {
-    if (instance instanceof nativeMethods.locationClass ||
-        nativeMethods.objectToString.call(instance) === '[object Location]')
-        return true;
+    if (!instance)
+        return false;
 
-    try {
-        // eslint-disable-next-line no-restricted-properties
-        return instance && typeof instance === 'object' && instance.href !== void 0 && instance.assign !== void 0;
-    }
-    catch (e) {
-        // NOTE: Try to detect cross-domain window location.
-        // A cross-domain location has no the "assign" function in Safari.
-        return instance.replace && (isSafari || !!instance.assign);
-    }
+    if (isIE || isSafari)
+        return isLocationByProto(instance);
+
+    return instance instanceof nativeMethods.locationClass ||
+        nativeMethods.objectToString.call(instance) === '[object Location]';
 }
 
 export function isSVGElement (instance): boolean {

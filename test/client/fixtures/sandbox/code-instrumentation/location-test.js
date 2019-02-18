@@ -6,6 +6,7 @@ var urlUtils                = hammerhead.get('./utils/url');
 var sharedUrlUtils          = hammerhead.get('../utils/url');
 var destLocation            = hammerhead.get('./utils/destination-location');
 var urlResolver             = hammerhead.get('./utils/url-resolver');
+var extend                  = hammerhead.get('./utils/extend');
 
 var Promise       = hammerhead.Promise;
 var nativeMethods = hammerhead.nativeMethods;
@@ -88,6 +89,13 @@ var ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
         shoudAddTrailingSlash: false
     }
 ];
+
+test('"isLocation" (GH-1863)', function () {
+    var locationCopy = extend({}, window.location);
+
+    ok(domUtils.isLocation(window.location));
+    ok(!domUtils.isLocation(locationCopy));
+});
 
 test('iframe with empty src', function () {
     function assert (iframe) {
