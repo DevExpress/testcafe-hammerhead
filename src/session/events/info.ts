@@ -1,16 +1,18 @@
 /*eslint-disable no-unused-vars*/
 import RequestPipelineContext from '../../request-pipeline/context';
+import ConfigureResponseEventOptions from './configure-response-event-options';
 /*eslint-enable no-unused-vars*/
+import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
 
 export class RequestInfo {
-    requestId: string;
-    userAgent: string | void;
-    url: string;
-    method: string;
-    isAjax: boolean;
-    headers: { [name: string]: string };
-    body: string | Buffer;
-    sessionId: string;
+    readonly requestId: string;
+    readonly userAgent: string | void;
+    readonly url: string;
+    readonly method: string;
+    readonly isAjax: boolean;
+    readonly headers: { [name: string]: string };
+    readonly body: string | Buffer;
+    readonly sessionId: string;
 
     constructor (ctx: RequestPipelineContext, opts) {
         this.requestId = ctx.requestId;
@@ -24,24 +26,38 @@ export class RequestInfo {
     }
 }
 
-export function createResponseInfo (ctx) {
-    return {
-        requestId:  ctx.requestId,
-        headers:    ctx.destRes.headers,
-        body:       ctx.nonProcessedDestResBody,
-        statusCode: ctx.destRes.statusCode,
-        sessionId:  ctx.session.id
-    };
+export class ResponseInfo {
+    readonly requestId: string;
+    readonly statusCode: number;
+    readonly sessionId: string;
+    readonly headers: { [name: string]: string };
+    readonly body: Buffer;
+
+    constructor (ctx: RequestPipelineContext) {
+        this.requestId  = ctx.requestId;
+        this.headers    = ctx.destRes.headers;
+        this.body       = ctx.nonProcessedDestResBody;
+        this.statusCode = ctx.isSameOriginPolicyFailed ? SAME_ORIGIN_CHECK_FAILED_STATUS_CODE : ctx.destRes.statusCode;
+        this.sessionId  = ctx.session.id;
+    }
 }
 
-export function prepareEventData (eventData, opts) {
-    const clonedEventData = Object.assign({}, eventData);
+export class PreparedResponseInfo {
+    readonly requestId: string;
+    readonly statusCode: number;
+    readonly sessionId: string;
+    readonly headers?: { [name: string]: string };
+    readonly body?: Buffer;
 
-    if (!opts.includeHeaders)
-        delete clonedEventData.headers;
+    constructor (responseInfo: ResponseInfo, opts: ConfigureResponseEventOptions) {
+        this.requestId  = responseInfo.requestId;
+        this.statusCode = responseInfo.statusCode;
+        this.sessionId  = responseInfo.sessionId;
 
-    if (!opts.includeBody)
-        delete clonedEventData.body;
+        if (opts.includeHeaders)
+            this.headers = responseInfo.headers;
 
-    return clonedEventData;
+        if (opts.includeBody)
+            this.body = responseInfo.body;
+    }
 }

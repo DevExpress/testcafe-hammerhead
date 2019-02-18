@@ -7,10 +7,10 @@ const LOCALHOST_DOMAIN: string = 'localhost';
 const LOCALHOST_IP: string     = '127.0.0.1';
 
 export default class Cookies {
-    private cookieJar: any;
+    private _cookieJar: any;
 
     constructor () {
-        this.cookieJar = new CookieJar();
+        this._cookieJar = new CookieJar();
     }
 
     static _hasLocalhostDomain (cookie): boolean {
@@ -43,7 +43,7 @@ export default class Cookies {
             if (Cookies._hasLocalhostDomain(cookie) && (isClient || parseUrl(url).hostname === cookie.domain))
                 cookie.domain = '';
 
-            const parsedCookie = this.cookieJar.setCookieSync(cookie, url, {
+            const parsedCookie = this._cookieJar.setCookieSync(cookie, url, {
                 http:        !isClient,
                 ignoreError: true,
                 loose:       true
@@ -57,11 +57,11 @@ export default class Cookies {
     }
 
     serializeJar (): string {
-        return JSON.stringify(this.cookieJar.serializeSync());
+        return JSON.stringify(this._cookieJar.serializeSync());
     }
 
     setJar (serializedJar): void {
-        this.cookieJar = serializedJar
+        this._cookieJar = serializedJar
             ? CookieJar.deserializeSync(JSON.parse(serializedJar))
             : new CookieJar();
     }
@@ -79,11 +79,11 @@ export default class Cookies {
         }
     }
 
-    getClientString (url) {
-        return this.cookieJar.getCookieStringSync(url, { http: false });
+    getClientString (url: string) {
+        return this._cookieJar.getCookieStringSync(url, { http: false });
     }
 
-    getHeader (url) {
-        return this.cookieJar.getCookieStringSync(url, { http: true }) || null;
+    getHeader (url: string): string | null {
+        return this._cookieJar.getCookieStringSync(url, { http: true }) || null;
     }
 }

@@ -1,13 +1,13 @@
 export default class ConfigureResponseEventOptions {
-    includeHeaders: boolean;
-    includeBody: boolean;
+    readonly includeHeaders: boolean;
+    readonly includeBody: boolean;
 
-    constructor (includeHeaders: boolean, includeBody: boolean) {
+    constructor (includeHeaders: boolean = false, includeBody: boolean = false) {
         this.includeHeaders = includeHeaders;
         this.includeBody    = includeBody;
     }
 
-    static get DEFAULT () {
-        return new ConfigureResponseEventOptions(false, false);
+    static get DEFAULT (): ConfigureResponseEventOptions {
+        return new ConfigureResponseEventOptions();
     }
 }
