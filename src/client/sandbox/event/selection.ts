@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars*/
 import TimersSandbox from '../timers';
 import EventSimulator from './simulator';
+import EventSandbox from './index';
 /* eslint-enable no-unused-vars*/
 
 import FocusBlurSandbox from './focus-blur';
@@ -20,7 +21,7 @@ export default class Selection {
     setSelectionRangeWrapper: any;
     selectWrapper: any;
 
-    constructor (eventSandbox) {
+    constructor (eventSandbox: EventSandbox) {
         this.focusBlurSandbox = eventSandbox.focusBlur;
         this.timersSandbox    = eventSandbox.timers;
         this.listeners        = eventSandbox.listeners;
@@ -136,14 +137,10 @@ export default class Selection {
         };
     }
 
-    static _isNumberOrEmailInput (el) {
-        return domUtils.isInputElement(el) && /^(number|email)$/.test(el.type);
-    }
-
     // NOTE: We need to store the state of element's selection
     // because it is cleared when element's type is changed
     static _needForInternalSelection (el) {
-        return Selection._isNumberOrEmailInput(el) && browserResetInputSelection;
+        return domUtils.isNumberOrEmailInput(el) && browserResetInputSelection;
     }
 
     setSelection (el, start: number, end: number, direction) {
