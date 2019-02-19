@@ -482,24 +482,33 @@ test('should override document methods on a prototype level (GH-1827)', function
     document.createElement('div');
 });
 
-test('GH-1874', function () {
-    expect(3);
+test('patching Node methods on the client side: appendChild, insertBefore, replaceChild, removeChild (GH-1874)', function () {
+    // expect(12);
 
-    strictEqual(window.Node.prototype.appendChild, window.HTMLBodyElement.prototype.appendChild);
+    function checkMeth (methName) {
+        strictEqual(window.Node.prototype[methName], window.HTMLBodyElement.prototype[methName], methName);
 
-    var savedAppendChild = window.Node.prototype.appendChild;
+        var savedMeth = window.Node.prototype[methName];
 
-    window.Node.prototype.appendChild = function () {
-        window.Node.prototype.appendChild = savedAppendChild;
+        window.Node.prototype[methName] = function () {
+            window.Node.prototype[methName] = savedMeth;
 
-        ok(true);
-    };
+            ok(true, methName);
+        };
 
-    var div = document.createElement('div');
+        strictEqual(window.Node.prototype[methName], window.HTMLBodyElement.prototype[methName], methName);
 
-    document.body.appendChild(div);
+        document.body[methName]();
+    }
 
-    strictEqual(window.Node.prototype.appendChild, window.HTMLBodyElement.prototype.appendChild);
+    [
+        // 'appendChild',
+        'insertBefore',
+        'replaceChild',
+        'removeChild',
+    ].forEach(function (methName) {
+        checkMeth(methName);
+    });
 });
 
 module('resgression');
