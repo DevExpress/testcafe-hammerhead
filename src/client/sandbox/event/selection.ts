@@ -1,3 +1,8 @@
+/* eslint-disable no-unused-vars*/
+import TimersSandbox from '../timers';
+import EventSimulator from './simulator';
+/* eslint-enable no-unused-vars*/
+
 import FocusBlurSandbox from './focus-blur';
 import Listeners from './listeners';
 import nativeMethods from '../native-methods';
@@ -5,13 +10,13 @@ import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 
-const browserResetInputSelection = browserUtils.isFirefox && browserUtils.version > 50;
+const browserResetInputSelection = browserUtils.isFirefox;
 
 export default class Selection {
-    focusBlurSandbox: any;
-    timersSandbox: any;
-    listeners: any;
-    eventSimulator: any;
+    focusBlurSandbox: FocusBlurSandbox;
+    timersSandbox: TimersSandbox;
+    listeners: Listeners;
+    eventSimulator: EventSimulator;
     setSelectionRangeWrapper: any;
     selectWrapper: any;
 
@@ -37,12 +42,12 @@ export default class Selection {
             let isElementActive      = false;
 
             const selectionSetter = () => {
-                const changeType           = Selection._needChangeInputType(el);
+                const shouldChangeType     = domUtils.isInputWithoutSelectionProperties(el);
                 const useInternalSelection = Selection._needForInternalSelection(el);
                 const savedType            = el.type;
                 let res;
 
-                if (changeType)
+                if (shouldChangeType)
                     el.type = 'text';
 
                 // NOTE: In MSEdge, an error occurs when the setSelectionRange method is called for an input with
@@ -63,7 +68,7 @@ export default class Selection {
                     };
                 }
 
-                if (changeType) {
+                if (shouldChangeType) {
                     el.type = savedType;
                     // HACK: (A problem with input type = 'number' after Chrome is updated to v.33.0.1750.117 and
                     // in Firefox 29.0.  T101195) To set right selection: if the input type is 'number' or 'email',
@@ -135,10 +140,6 @@ export default class Selection {
         return domUtils.isInputElement(el) && /^(number|email)$/.test(el.type);
     }
 
-    static _needChangeInputType (el) {
-        return (browserUtils.isWebKit || browserResetInputSelection) && Selection._isNumberOrEmailInput(el);
-    }
-
     // NOTE: We need to store the state of element's selection
     // because it is cleared when element's type is changed
     static _needForInternalSelection (el) {
@@ -155,17 +156,17 @@ export default class Selection {
     }
 
     getSelection (el) {
-        const changeType      = Selection._needChangeInputType(el);
-        const activeElement   = domUtils.getActiveElement(domUtils.findDocument(el));
-        const isElementActive = activeElement === el;
-        const savedType       = el.type;
-        let selection         = null;
+        const shouldChangeType = domUtils.isInputWithoutSelectionProperties(el);
+        const activeElement    = domUtils.getActiveElement(domUtils.findDocument(el));
+        const isElementActive  = activeElement === el;
+        const savedType        = el.type;
+        let selection          = null;
 
         // HACK: (A problem with input type = ‘number’ after Chrome is updated to v.33.0.1750.117 and in
         // Firefox 29.0. T101195) To get selection, if the input type is  'number' or 'email', we need to change
         // the type to text (B254340). However, the type is changed asynchronously in this case. To force type changing,
         // we need to call blur.Then call focus to make the element active.
-        if (changeType) {
+        if (shouldChangeType) {
             // NOTE: We shouldn't call blur while changing element's type in Firefox, cause
             // sometimes it can't be focused after. The reason of this behavior is hard to
             // be determinated, this was found during execution testcafe client tests.
@@ -183,7 +184,7 @@ export default class Selection {
             direction: internalSelection ? internalSelection.selectionDirection : el.selectionDirection
         };
 
-        if (changeType) {
+        if (shouldChangeType) {
             el.type = savedType;
 
             if (isElementActive)
