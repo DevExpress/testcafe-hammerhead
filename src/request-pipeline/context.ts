@@ -130,7 +130,7 @@ export default class RequestPipelineContext {
         return { dest, sessionId: parsed.sessionId };
     }
 
-    _getDestFromReferer (parsedReferer: { dest: DestInfo, sessionId: string }): { dest: DestInfo, sessionId: string } {
+    private _getDestFromReferer (parsedReferer: { dest: DestInfo, sessionId: string }): { dest: DestInfo, sessionId: string } {
         const dest = parsedReferer.dest;
 
         dest.partAfterHost = this.req.url;
@@ -139,7 +139,7 @@ export default class RequestPipelineContext {
         return { dest, sessionId: parsedReferer.sessionId };
     }
 
-    _isFileDownload (): boolean {
+    private _isFileDownload (): boolean {
         const contentDisposition = this.destRes.headers['content-disposition'];
 
         return contentDisposition &&
@@ -151,7 +151,7 @@ export default class RequestPipelineContext {
         return injectableUrls.map(url => this.serverInfo.domain + url);
     }
 
-    _initRequestNatureInfo () {
+    private _initRequestNatureInfo () {
         const acceptHeader = this.req.headers['accept'];
 
         this.isWebSocket    = this.dest.isWebSocket;
@@ -284,13 +284,14 @@ export default class RequestPipelineContext {
     }
 
     redirect (url: string) {
-        if ('setHeader' in this.res) {
-            this.res.statusCode = 302;
-            this.res.setHeader('location', url);
-            this.res.end();
-        }
-        else
-            throw new Error('???');
+        if (this.isWebSocket)
+            throw new Error('The RequestPipelineContext.prototype.redirect function cannot be used with a WebSocket request');
+
+        const res: http.ServerResponse = <http.ServerResponse> this.res;
+
+        res.statusCode = 302;
+        res.setHeader('location', url);
+        res.end();
     }
 
     saveNonProcessedDestResBody (value: Buffer) {
@@ -337,14 +338,14 @@ export default class RequestPipelineContext {
     }
 
     sendResponseHeaders () {
-        if ('setHeader' in this.res && !this.res.headersSent) {
-            const headers = headerTransforms.forResponse(this);
+        if (this.isWebSocket)
+            throw new Error('The RequestPipelineContext.prototype.sendResponseHeaders function cannot be used with a WebSocket request');
 
-            this.res.writeHead(this.destRes.statusCode, headers);
-            this.res.addTrailers(this.destRes.trailers);
-        }
-        else
-            throw new Error('???');
+        const headers                  = headerTransforms.forResponse(this);
+        const res: http.ServerResponse = <http.ServerResponse> this.res;
+
+        res.writeHead(this.destRes.statusCode, headers);
+        res.addTrailers(this.destRes.trailers);
     }
 
     mockResponse () {

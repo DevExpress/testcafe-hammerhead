@@ -187,7 +187,9 @@ const stages = [
                 await callResponseEventCallbackForProcessedRequest(ctx, configureResponseEvent);
             }));
 
-            (<http.ServerResponse>ctx.res).write(ctx.destResBody); // eslint-disable-line no-extra-parens
+            const res: http.ServerResponse = <http.ServerResponse>ctx.res;
+
+            res.write(ctx.destResBody);
             ctx.res.end();
         });
     }
