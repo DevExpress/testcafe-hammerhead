@@ -3,7 +3,7 @@ import { Readable } from 'stream';
 export default class IncomingMessageMock extends Readable {
     headers: any;
     trailers: any;
-    statusCode: string;
+    statusCode: number;
     _body: any;
 
     constructor (init) {

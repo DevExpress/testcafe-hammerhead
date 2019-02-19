@@ -1,3 +1,6 @@
+/*eslint-disable no-unused-vars*/
+import net from 'net';
+/*eslint-enable no-unused-vars*/
 import http from 'http';
 import https from 'https';
 import { noop } from 'lodash';
@@ -25,8 +28,15 @@ const IS_DNS_ERR_CODE_RE: RegExp         = /ECONNRESET/;
 // For details, see https://github.com/nodejs/node/issues/16196
 const IS_NODE_VERSION_GREATER_THAN_8_5: boolean = semver.gt(process.version, '8.5.0');
 
-export default class DestinationRequest extends EventEmitter {
-    private req: any = null;
+interface DestinationRequestEvents {
+    on(event: 'response', listener: (res: http.IncomingMessage) => void): this;
+    on(event: 'error', listener: (err: Error) => void): this;
+    on(event: 'socketHangUp', listener: () => void): this;
+    on(event: 'fatalError', listener: (err: string) => void): this;
+}
+
+export default class DestinationRequest extends EventEmitter implements DestinationRequestEvents {
+    private req: http.ClientRequest = null;
     private hasResponse: boolean = false;
     private credentialsSent: boolean = false;
     private aborted: boolean = false;
@@ -74,10 +84,10 @@ export default class DestinationRequest extends EventEmitter {
             this.opts.headers = storedHeaders;
 
             if (!waitForData)
-                this.req.on('response', res => this._onResponse(res));
+                this.req.on('response', (res: http.IncomingMessage) => this._onResponse(res));
 
-            this.req.on('error', err => this._onError(err));
-            this.req.on('upgrade', (res, socket, head) => this._onUpgrade(res, socket, head));
+            this.req.on('error', (err: Error) => this._onError(err));
+            this.req.on('upgrade', (res: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgrade(res, socket, head));
             this.req.setTimeout(timeout, () => this._onTimeout());
             this.req.write(this.opts.body);
             this.req.end();
@@ -98,7 +108,7 @@ export default class DestinationRequest extends EventEmitter {
         return false;
     }
 
-    _onResponse (res) {
+    _onResponse (res: http.IncomingMessage) {
         if (this._shouldResendWithCredentials(res))
             this._resendWithCredentials(res);
         else if (!this.isHttps && this.opts.proxy && res.statusCode === 407)
@@ -109,7 +119,7 @@ export default class DestinationRequest extends EventEmitter {
         }
     }
 
-    _onUpgrade (res, socket, head) {
+    _onUpgrade (res: http.IncomingMessage, socket: net.Socket, head: Buffer) {
         if (head && head.length)
             socket.unshift(head);
 
@@ -158,7 +168,7 @@ export default class DestinationRequest extends EventEmitter {
             this._fatalError(MESSAGE.destRequestTimeout);
     }
 
-    _onError (err): void {
+    _onError (err: Error): void {
         if (this._isSocketHangUpErr(err))
             this.emit('socketHangUp');
 
@@ -182,6 +192,8 @@ export default class DestinationRequest extends EventEmitter {
         }
 
         else
-            this.emit('error');
+            this.emit('error', err);
     }
+
+
 }

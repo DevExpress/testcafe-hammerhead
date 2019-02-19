@@ -1,3 +1,6 @@
+/*eslint-disable no-unused-vars*/
+import stream from 'stream';
+/*eslint-enable no-unused-vars*/
 import { defaultsDeep as defaultOptions } from 'lodash';
 import promisifyStream from '../utils/promisify-stream';
 
@@ -52,6 +55,6 @@ export function respondStatic (req: any, res: any, resource: any, cachingOptions
     }
 }
 
-export function fetchBody (r): any {
+export function fetchBody (r: stream.Readable): Promise<Buffer> {
     return promisifyStream(r);
 }

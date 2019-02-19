@@ -42,6 +42,27 @@ interface ParsedUrl {
     password?: string;
 }
 
+interface RequestDescriptor {
+    sessionId: string;
+    resourceType: string;
+    charset?: string;
+    reqOrigin?: string;
+}
+
+export interface ParsedProxyUrl {
+    destUrl: string;
+    destResourceInfo: ParsedUrl;
+    partAfterHost: string;
+    sessionId: string;
+    resourceType: string;
+    charset?: string;
+    reqOrigin?: string;
+    proxy: {
+        hostname: string;
+        port: string;
+    };
+}
+
 export function parseResourceType (resourceType: string): ResourceType {
     if (!resourceType) {
         return {
@@ -165,16 +186,16 @@ export function getDomain (parsed: ParsedUrl) {
     });
 }
 
-function parseRequestDescriptor (desc: string) {
+function parseRequestDescriptor (desc: string): RequestDescriptor {
     const params = desc.split(REQUEST_DESCRIPTOR_VALUES_SEPARATOR);
 
     if (!params.length)
         return null;
 
-    const sessionId       = params[0];
-    const resourceType    = params[1] || null;
-    const resourceData    = params[2] || null;
-    const parsedDesc: any = { sessionId, resourceType };
+    const sessionId                     = params[0];
+    const resourceType                  = params[1] || null;
+    const resourceData                  = params[2] || null;
+    const parsedDesc: RequestDescriptor = { sessionId, resourceType };
 
     if (resourceType && resourceData) {
         const parsedResourceType = parseResourceType(resourceType);
@@ -188,7 +209,7 @@ function parseRequestDescriptor (desc: string) {
     return parsedDesc;
 }
 
-export function parseProxyUrl (proxyUrl: string) {
+export function parseProxyUrl (proxyUrl: string): ParsedProxyUrl {
     // TODO: Remove it.
     const parsedUrl = parseUrl(proxyUrl);
 
@@ -214,7 +235,7 @@ export function parseProxyUrl (proxyUrl: string) {
     if (!isSpecialPage(destUrlWithoutHash) && !SUPPORTED_PROTOCOL_RE.test(destUrl))
         return null;
 
-    const destResourceInfo = !isSpecialPage(destUrlWithoutHash) ? parseUrl(match[2]) : {
+    const destResourceInfo = !isSpecialPage(destUrlWithoutHash) ? parseUrl(destUrl) : {
         protocol:      'about:',
         host:          '',
         hostname:      '',

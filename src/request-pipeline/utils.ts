@@ -1,7 +1,12 @@
+/*eslint-disable no-unused-vars*/
+import http from 'http';
+import FileRequest, { FileStream } from './file-request';
+import { Credentials, ExternalProxySettings } from '../session';
+import RequestPipelineContext from './context';
+/*eslint-enable no-unused-vars*/
 import { inject as injectUpload } from '../upload';
 import matchUrl from 'match-url-wildcard';
 import * as headerTransforms from './header-transforms';
-import FileRequest from './file-request';
 import DestinationRequest from './destination-request';
 import { ResponseInfo, PreparedResponseInfo } from '../session/events/info';
 import promisifyStream from '../utils/promisify-stream';
@@ -13,48 +18,59 @@ import ConfigureResponseEventOptions from '../session/events/configure-response-
 import { toReadableStream } from '../utils/buffer';
 import { PassThrough } from 'stream';
 
-export function createReqOpts (ctx) {
-    const bodyWithUploads = injectUpload(ctx.req.headers['content-type'], ctx.reqBody);
+export class ReqOpts {
+    url: string;
+    protocol: string;
+    hostname: string;
+    host: string;
+    port: string;
+    path: string;
+    method: string;
+    credentials: Credentials;
+    body: Buffer;
+    isXhr: boolean;
+    rawHeaders: Array<string>;
+    headers: { [name: string]: string };
+    proxy?: ExternalProxySettings;
 
-    // NOTE: First, we should rewrite the request body, because the 'content-length' header will be built based on it.
-    if (bodyWithUploads)
-        ctx.reqBody = bodyWithUploads;
+    constructor (ctx: RequestPipelineContext) {
+        const bodyWithUploads = injectUpload(ctx.req.headers['content-type'], ctx.reqBody);
 
-    // NOTE: All headers, including 'content-length', are built here.
-    const headers = headerTransforms.forRequest(ctx);
-    const proxy   = ctx.session.externalProxySettings;
-    const options = {
-        url:         ctx.dest.url,
-        protocol:    ctx.dest.protocol,
-        hostname:    ctx.dest.hostname,
-        host:        ctx.dest.host,
-        port:        ctx.dest.port,
-        path:        ctx.dest.partAfterHost,
-        method:      ctx.req.method,
-        credentials: ctx.session.getAuthCredentials(),
-        body:        ctx.reqBody,
-        isXhr:       ctx.isXhr,
-        rawHeaders:  ctx.req.rawHeaders,
-        proxy:       void 0,
+        // NOTE: First, we should rewrite the request body, because the 'content-length' header will be built based on it.
+        if (bodyWithUploads)
+            ctx.reqBody = bodyWithUploads;
 
-        headers
-    };
+        // NOTE: All headers, including 'content-length', are built here.
+        const headers = headerTransforms.forRequest(ctx);
+        const proxy   = ctx.session.externalProxySettings;
 
-    if (proxy && !matchUrl(ctx.dest.url, proxy.bypassRules)) {
-        options.proxy = proxy;
+        this.url         = ctx.dest.url;
+        this.protocol    = ctx.dest.protocol;
+        this.hostname    = ctx.dest.hostname;
+        this.host        = ctx.dest.host;
+        this.port        = ctx.dest.port;
+        this.path        = ctx.dest.partAfterHost;
+        this.method      = ctx.req.method;
+        this.credentials = ctx.session.getAuthCredentials();
+        this.body        = ctx.reqBody;
+        this.isXhr       = ctx.isXhr;
+        this.rawHeaders  = ctx.req.rawHeaders;
+        this.headers     = headers;
 
-        if (ctx.dest.protocol === 'http:') {
-            options.path     = options.protocol + '//' + options.host + options.path;
-            options.host     = proxy.host;
-            options.hostname = proxy.hostname;
-            options.port     = proxy.port;
+        if (proxy && !matchUrl(ctx.dest.url, proxy.bypassRules)) {
+            this.proxy = proxy;
 
-            if (proxy.authHeader)
-                headers['proxy-authorization'] = proxy.authHeader;
+            if (ctx.dest.protocol === 'http:') {
+                this.path     = this.protocol + '//' + this.host + this.path;
+                this.host     = proxy.host;
+                this.hostname = proxy.hostname;
+                this.port     = proxy.port;
+
+                if (proxy.authHeader)
+                    headers['proxy-authorization'] = proxy.authHeader;
+            }
         }
     }
-
-    return options;
 }
 
 export function sendRequest (ctx) {
@@ -63,7 +79,7 @@ export function sendRequest (ctx) {
 
         ctx.goToNextStage = false;
 
-        req.on('response', res => {
+        req.on('response', (res: http.IncomingMessage | FileStream) => {
             if (ctx.isWebSocketConnectionReset) {
                 res.destroy();
 

@@ -1,6 +1,15 @@
 /*eslint-disable no-unused-vars*/
-import Session from '../session';
+import net from 'net';
+import http from 'http';
+import Session, { StoragesSnapshot } from '../session';
 import { ServerInfo } from '../proxy';
+import ResponseMock from './request-hooks/response-mock';
+import { parseClientSyncCookieStr, ParsedClientSyncCookie } from '../utils/cookie';
+import RequestFilterRule from './request-hooks/request-filter-rule';
+import { FileStream } from './file-request';
+import IncomingMessageMock from './incoming-message-mock';
+import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
+import { ReqOpts } from './utils';
 /*eslint-enable no-unused-vars*/
 import XHR_HEADERS from './xhr/headers';
 import Charset from '../processing/encoding/charset';
@@ -8,67 +17,83 @@ import * as urlUtils from '../utils/url';
 import * as contentTypeUtils from '../utils/content-type';
 import genearateUniqueId from '../utils/generate-unique-id';
 import { check as checkSameOriginPolicy } from './xhr/same-origin-policy';
-import { parseClientSyncCookieStr } from '../utils/cookie';
 import * as headerTransforms from './header-transforms';
+
+interface DestInfo {
+    url: string;
+    protocol: string;
+    host: string;
+    hostname: string;
+    port: string;
+    partAfterHost: string;
+    isIframe: boolean;
+    isForm: boolean;
+    isScript: boolean;
+    isEventSource: boolean;
+    isHtmlImport: boolean;
+    isWebSocket: boolean;
+    charset: string;
+    reqOrigin: string;
+    referer?: string;
+    domain?: string;
+}
+
+interface ContentInfo {
+    charset: Charset;
+    requireProcessing: boolean;
+    isIframeWithImageSrc: boolean;
+    isCSS: boolean;
+    isScript: boolean;
+    isManifest: boolean;
+    encoding: string;
+    contentTypeUrlToken: string;
+    isFileDownload: boolean;
+    isNotModified: boolean;
+    isRedirect: boolean;
+}
+
+interface OnResponseEventData {
+    rule: RequestFilterRule;
+    opts: ConfigureResponseEventOptions;
+}
 
 const REDIRECT_STATUS_CODES: Array<number> = [301, 302, 303, 307, 308];
 
 export default class RequestPipelineContext {
-    serverInfo: ServerInfo;
-    session: Session;
-    req: any;
-    reqBody: any;
-    res: any;
-    dest: any;
-    destRes: any;
-    destResBody: any;
-    hasDestReqErr: boolean;
-    isXhr: boolean;
-    isFetch: boolean;
-    isPage: boolean;
-    isHtmlImport: boolean;
-    isWebSocket: boolean;
-    isIframe: boolean;
-    isSpecialPage: boolean;
+    private readonly serverInfo: ServerInfo;
+    readonly req: http.IncomingMessage;
+    readonly res: http.ServerResponse | net.Socket;
+    session: Session = null;
+    reqBody: Buffer = null;
+    dest: DestInfo = null;
+    destRes: http.IncomingMessage | FileStream | IncomingMessageMock = null;
+    destResBody: Buffer = null;
+    hasDestReqErr: boolean = false;
+    isXhr: boolean = false;
+    isFetch: boolean = false;
+    isPage: boolean = false;
+    isHtmlImport: boolean = false;
+    isWebSocket: boolean = false;
+    isIframe: boolean = false;
+    isSpecialPage: boolean = false;
     isWebSocketConnectionReset: boolean = false;
-    contentInfo: any;
-    acceptHeader: string;
-    restoringStorages: any;
-    requestId: string;
-    requestFilterRules: Array<any>;
-    onResponseEventDataWithoutBody: Array<any>;
-    isBrowserConnectionReset: boolean;
-    reqOpts: any;
-    parsedClientSyncCookie: any;
+    contentInfo: ContentInfo = null;
+    restoringStorages: StoragesSnapshot = null;
+    requestId: string = genearateUniqueId();
+    requestFilterRules: Array<RequestFilterRule> = [];
+    onResponseEventData: Array<OnResponseEventData> = [];
+    reqOpts: ReqOpts = null;
+    parsedClientSyncCookie: ParsedClientSyncCookie;
     isFileProtocol: boolean;
-    nonProcessedDestResBody: any;
-    goToNextStage: boolean;
-    mock: any;
-    onResponseEventData: Array<any>;
+    nonProcessedDestResBody: Buffer = null;
+    goToNextStage: boolean = true;
+    mock: ResponseMock;
     isSameOriginPolicyFailed: boolean = false;
 
-    constructor (req, res, serverInfo: ServerInfo) {
+    constructor (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo) {
         this.serverInfo = serverInfo;
-        this.session    = null;
-
-        this.req     = req;
-        this.reqBody = null;
-        this.res     = res;
-
-        this.dest          = null;
-        this.destRes       = null;
-        this.destResBody   = null;
-        this.hasDestReqErr = false;
-
-        this.isXhr         = false;
-        this.isFetch       = false;
-        this.isPage        = false;
-        this.isHtmlImport  = false;
-        this.isWebSocket   = false;
-        this.isIframe      = false;
-        this.isSpecialPage = false;
-        this.contentInfo   = null;
-        this.goToNextStage = true;
+        this.req = req;
+        this.res = res;
 
         const acceptHeader = req.headers['accept'];
 
@@ -76,63 +101,45 @@ export default class RequestPipelineContext {
         this.isFetch = !!req.headers[XHR_HEADERS.fetchRequestCredentials];
         this.isPage  = !this.isXhr && !this.isFetch && acceptHeader && contentTypeUtils.isPage(acceptHeader);
 
-        this.restoringStorages = null;
-
-        this.requestId                      = genearateUniqueId();
-        this.requestFilterRules             = [];
-        this.onResponseEventData            = [];
-
-        this.reqOpts = null;
-
         this.parsedClientSyncCookie = req.headers.cookie && parseClientSyncCookieStr(req.headers.cookie);
-
-        this.nonProcessedDestResBody = null;
     }
 
     // TODO: Rewrite parseProxyUrl instead.
-    _flattenParsedProxyUrl (parsed) {
-        if (parsed) {
-            const parsedResourceType = urlUtils.parseResourceType(parsed.resourceType);
+    private static _flattenParsedProxyUrl (parsed: urlUtils.ParsedProxyUrl): { dest: DestInfo, sessionId: string } {
+        if (!parsed)
+            return null;
 
-            const dest = {
-                url:           parsed.destUrl,
-                protocol:      parsed.destResourceInfo.protocol,
-                host:          parsed.destResourceInfo.host,
-                hostname:      parsed.destResourceInfo.hostname,
-                port:          parsed.destResourceInfo.port,
-                partAfterHost: parsed.destResourceInfo.partAfterHost,
-                isIframe:      parsedResourceType.isIframe,
-                isForm:        parsedResourceType.isForm,
-                isScript:      parsedResourceType.isScript,
-                isEventSource: parsedResourceType.isEventSource,
-                isHtmlImport:  parsedResourceType.isHtmlImport,
-                isWebSocket:   parsedResourceType.isWebSocket,
-                charset:       parsed.charset,
-                reqOrigin:     parsed.reqOrigin
-            };
+        const parsedResourceType = urlUtils.parseResourceType(parsed.resourceType);
+        const dest               = {
+            url:           parsed.destUrl,
+            protocol:      parsed.destResourceInfo.protocol,
+            host:          parsed.destResourceInfo.host,
+            hostname:      parsed.destResourceInfo.hostname,
+            port:          parsed.destResourceInfo.port,
+            partAfterHost: parsed.destResourceInfo.partAfterHost,
+            isIframe:      parsedResourceType.isIframe,
+            isForm:        parsedResourceType.isForm,
+            isScript:      parsedResourceType.isScript,
+            isEventSource: parsedResourceType.isEventSource,
+            isHtmlImport:  parsedResourceType.isHtmlImport,
+            isWebSocket:   parsedResourceType.isWebSocket,
+            charset:       parsed.charset,
+            reqOrigin:     parsed.reqOrigin
+        };
 
-            return {
-                dest:      dest,
-                sessionId: parsed.sessionId
-            };
-        }
-
-        return null;
+        return { dest, sessionId: parsed.sessionId };
     }
 
-    _getDestFromReferer (parsedReferer) {
+    _getDestFromReferer (parsedReferer: { dest: DestInfo, sessionId: string }): { dest: DestInfo, sessionId: string } {
         const dest = parsedReferer.dest;
 
         dest.partAfterHost = this.req.url;
         dest.url           = urlUtils.formatUrl(dest);
 
-        return {
-            dest:      dest,
-            sessionId: parsedReferer.sessionId
-        };
+        return { dest, sessionId: parsedReferer.sessionId };
     }
 
-    _isFileDownload () {
+    _isFileDownload (): boolean {
         const contentDisposition = this.destRes.headers['content-disposition'];
 
         return contentDisposition &&
@@ -140,8 +147,8 @@ export default class RequestPipelineContext {
                contentDisposition.includes('filename');
     }
 
-    _getInjectable (injectable) {
-        return injectable.map(url => this.serverInfo.domain + url);
+    private _resolveInjectableUrls (injectableUrls: Array<string>): Array<string> {
+        return injectableUrls.map(url => this.serverInfo.domain + url);
     }
 
     _initRequestNatureInfo () {
@@ -157,56 +164,55 @@ export default class RequestPipelineContext {
     }
 
     // API
-    dispatch (openSessions: Map<string, Session>) {
-        let parsedReqUrl: any  = urlUtils.parseProxyUrl(this.req.url);
-        const referer     = this.req.headers['referer'];
-        let parsedReferer: any = referer && urlUtils.parseProxyUrl(referer);
+    dispatch (openSessions: Map<string, Session>): boolean {
+        const parsedReqUrl  = urlUtils.parseProxyUrl(this.req.url);
+        const referer       = this.req.headers['referer'];
+        const parsedReferer = referer && urlUtils.parseProxyUrl(referer);
 
         // TODO: Remove it after parseProxyURL is rewritten.
-        parsedReqUrl  = this._flattenParsedProxyUrl(parsedReqUrl);
-        parsedReferer = this._flattenParsedProxyUrl(parsedReferer);
+        let flattenParsedReqUrl    = RequestPipelineContext._flattenParsedProxyUrl(parsedReqUrl);
+        const flattenParsedReferer = RequestPipelineContext._flattenParsedProxyUrl(parsedReferer);
 
         // NOTE: Try to extract the destination from the 'referer' header.
-        if (!parsedReqUrl && parsedReferer)
-            parsedReqUrl = this._getDestFromReferer(parsedReferer);
+        if (!flattenParsedReqUrl && flattenParsedReferer)
+            flattenParsedReqUrl = this._getDestFromReferer(flattenParsedReferer);
 
-        if (parsedReqUrl) {
-            this.session = openSessions.get(parsedReqUrl.sessionId);
+        if (!flattenParsedReqUrl)
+            return false;
 
-            if (!this.session)
-                return false;
+        this.session = openSessions.get(flattenParsedReqUrl.sessionId);
 
-            this.dest = parsedReqUrl.dest;
+        if (!this.session)
+            return false;
 
-            // Browsers add a leading slash to the pathname part of url (GH-608)
-            // For example: url http://www.example.com?gd=GID12082014 will be converted
-            // to http://www.example.com/?gd=GID12082014
-            this.dest.partAfterHost = (this.dest.partAfterHost[0] === '/' ? '' : '/') + this.dest.partAfterHost;
+        this.dest = flattenParsedReqUrl.dest;
 
-            this.dest.domain = urlUtils.getDomain(this.dest);
+        // Browsers add a leading slash to the pathname part of url (GH-608)
+        // For example: url http://www.example.com?gd=GID12082014 will be converted
+        // to http://www.example.com/?gd=GID12082014
+        this.dest.partAfterHost = (this.dest.partAfterHost[0] === '/' ? '' : '/') + this.dest.partAfterHost;
 
-            if (parsedReferer) {
-                this.dest.referer   = parsedReferer.dest.url;
-                this.dest.reqOrigin = parsedReferer.dest.protocol === 'file:'
-                    ? parsedReferer.dest.url
-                    : urlUtils.getDomain(parsedReferer.dest);
-            }
-            else if (this.req.headers[XHR_HEADERS.origin])
-                this.dest.reqOrigin = this.req.headers[XHR_HEADERS.origin];
+        this.dest.domain = urlUtils.getDomain(this.dest);
 
-            this._initRequestNatureInfo();
+        if (flattenParsedReferer) {
+            this.dest.referer   = flattenParsedReferer.dest.url;
+            this.dest.reqOrigin = flattenParsedReferer.dest.protocol === 'file:'
+                ? flattenParsedReferer.dest.url
+                : urlUtils.getDomain(flattenParsedReferer.dest);
+        }
+        else if (this.req.headers[XHR_HEADERS.origin])
+            this.dest.reqOrigin = <string> this.req.headers[XHR_HEADERS.origin];
 
-            if (this.parsedClientSyncCookie) {
-                const clientCookie = this.parsedClientSyncCookie.actual.filter(
-                    syncCookie => syncCookie.isClientSync && syncCookie.sid === this.session.id);
+        this._initRequestNatureInfo();
 
-                this.session.cookies.setByClient(clientCookie);
-            }
+        if (this.parsedClientSyncCookie) {
+            const clientCookie = this.parsedClientSyncCookie.actual.filter(
+                syncCookie => syncCookie.isClientSync && syncCookie.sid === this.session.id);
 
-            return true;
+            this.session.cookies.setByClient(clientCookie);
         }
 
-        return false;
+        return true;
     }
 
     buildContentInfo () {
@@ -227,7 +233,7 @@ export default class RequestPipelineContext {
                                         REDIRECT_STATUS_CODES.includes(this.destRes.statusCode);
         const requireAssetsProcessing = (isCSS || isScript || isManifest) && this.destRes.statusCode !== 204;
         const isNotModified           = this.req.method === 'GET' && this.destRes.statusCode === 304 &&
-                                        (this.req.headers['if-modified-since'] || this.req.headers['if-none-match']);
+                                        !!(this.req.headers['if-modified-since'] || this.req.headers['if-none-match']);
         const requireProcessing       = !this.isXhr && !this.isFetch && !isFormWithEmptyResponse && !isRedirect &&
                                         !isNotModified && (this.isPage || this.isIframe || requireAssetsProcessing);
         const isFileDownload          = this._isFileDownload() && !this.dest.isScript;
@@ -266,41 +272,44 @@ export default class RequestPipelineContext {
         };
     }
 
-    getInjectableScripts () {
+    getInjectableScripts (): Array<string> {
         const taskScript = this.isIframe ? '/iframe-task.js' : '/task.js';
         const scripts    = this.session.injectable.scripts.concat(taskScript);
 
-        return this._getInjectable(scripts);
+        return this._resolveInjectableUrls(scripts);
     }
 
-    getInjectableStyles () {
-        return this._getInjectable(this.session.injectable.styles);
+    getInjectableStyles (): Array<string> {
+        return this._resolveInjectableUrls(this.session.injectable.styles);
     }
 
-    redirect (url) {
-        this.res.statusCode = 302;
-        this.res.setHeader('location', url);
-        this.res.end();
+    redirect (url: string) {
+        if ('setHeader' in this.res) {
+            this.res.statusCode = 302;
+            this.res.setHeader('location', url);
+            this.res.end();
+        }
+        else
+            throw new Error('???');
     }
 
-    saveNonProcessedDestResBody (value) {
+    saveNonProcessedDestResBody (value: Buffer) {
         this.nonProcessedDestResBody = value;
     }
 
-    closeWithError (statusCode: number, resBody?: String | Buffer) {
-        this.res.statusCode = statusCode;
-
-        if (resBody && !this.res.headersSent && this.res.setHeader) {
+    closeWithError (statusCode: number, resBody: String | Buffer = '') {
+        if ('setHeader' in this.res && !this.res.headersSent) {
+            this.res.statusCode = statusCode;
             this.res.setHeader('content-type', 'text/html');
-            this.res.end(resBody);
+            this.res.write(resBody);
         }
-        else
-            this.res.end();
+
+        this.res.end();
 
         this.goToNextStage = false;
     }
 
-    toProxyUrl (url, isCrossDomain, resourceType, charset) {
+    toProxyUrl (url: string, isCrossDomain: boolean, resourceType: string, charset: string): string {
         const proxyHostname = this.serverInfo.hostname;
         const proxyProtocol = this.serverInfo.protocol;
         const proxyPort     = isCrossDomain ? this.serverInfo.crossDomainPort : this.serverInfo.port;
@@ -316,22 +325,26 @@ export default class RequestPipelineContext {
         });
     }
 
-    isPassSameOriginPolicy () {
+    isPassSameOriginPolicy (): boolean {
         const isAjaxRequest          = this.isXhr || this.isFetch;
         const shouldPerformCORSCheck = isAjaxRequest && !this.contentInfo.isNotModified;
 
-        return shouldPerformCORSCheck ? checkSameOriginPolicy(this) : true;
+        return !shouldPerformCORSCheck || checkSameOriginPolicy(this);
     }
 
-    async forEachRequestFilterRule (fn) {
+    async forEachRequestFilterRule (fn: (rule: RequestFilterRule) => Promise<void>): Promise<void> {
         await Promise.all(this.requestFilterRules.map(fn));
     }
 
     sendResponseHeaders () {
-        const headers = headerTransforms.forResponse(this);
+        if ('setHeader' in this.res && !this.res.headersSent) {
+            const headers = headerTransforms.forResponse(this);
 
-        this.res.writeHead(this.destRes.statusCode, headers);
-        this.res.addTrailers(this.destRes.trailers);
+            this.res.writeHead(this.destRes.statusCode, headers);
+            this.res.addTrailers(this.destRes.trailers);
+        }
+        else
+            throw new Error('???');
     }
 
     mockResponse () {
@@ -339,18 +352,18 @@ export default class RequestPipelineContext {
         this.destRes = this.mock.getResponse();
     }
 
-    setupMockIfNecessary (rule) {
+    setupMockIfNecessary (rule: RequestFilterRule) {
         const mock = this.session.getMock(rule);
 
         if (mock && !this.mock)
             this.mock = mock;
     }
 
-    isDestResBodyMalformed () {
-        return !this.destResBody || this.destResBody.length !== this.destRes.headers['content-length'];
+    isDestResBodyMalformed (): boolean {
+        return !this.destResBody || this.destResBody.length.toString() !== this.destRes.headers['content-length'];
     }
 
-    getOnResponseEventData ({ includeBody }) {
+    getOnResponseEventData ({ includeBody }: { includeBody: boolean }): Array<OnResponseEventData> {
         return this.onResponseEventData.filter(eventData => eventData.opts.includeBody === includeBody);
     }
 }
