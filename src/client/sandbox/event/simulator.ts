@@ -830,7 +830,7 @@ export default class EventSimulator {
         return this._dispatchFocusEvent(el, 'blur', relatedTarget);
     }
 
-    focus (el, relatedTarget) {
+    focus (el, relatedTarget?) {
         return this._dispatchFocusEvent(el, 'focus', relatedTarget);
     }
 

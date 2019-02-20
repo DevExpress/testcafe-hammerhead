@@ -29,6 +29,7 @@ const NOT_CONTENT_EDITABLE_ELEMENTS_RE = /^(select|option|applet|area|audio|canv
 const INPUT_ELEMENTS_RE                = /^(input|textarea|button)$/;
 const SCRIPT_OR_STYLE_RE               = /^(script|style)$/i;
 const EDITABLE_INPUT_TYPES_RE          = /^(email|number|password|search|tel|text|url)$/;
+const NUMBER_OR_EMAIL_INPUT_RE         = /^(number|email)$/;
 
 function getFocusableSelector () {
     // NOTE: We don't take into account the case of embedded contentEditable elements, and we
@@ -766,4 +767,12 @@ export function getIframes (el) {
 
 export function getScripts (el) {
     return isScriptElement(el) ? [el] : nodeListToArray(getNativeQuerySelectorAll(el).call(el, 'script'));
+}
+
+export function isNumberOrEmailInput (el): boolean {
+    return isInputElement(el) && NUMBER_OR_EMAIL_INPUT_RE.test(el.type);
+}
+
+export function isInputWithoutSelectionProperties (el): boolean {
+    return isNumberOrEmailInput(el) && (isWebKit || isFirefox);
 }
