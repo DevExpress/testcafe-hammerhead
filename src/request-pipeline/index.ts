@@ -16,8 +16,9 @@ import { RequestInfo } from '../session/events/info';
 import RequestEventNames from '../session/events/names';
 import ConfigureResponseEvent from '../session/events/configure-response-event';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
+import { noop } from 'lodash';
 import {
-    createReqOpts,
+    ReqOpts,
     sendRequest,
     error,
     callResponseEventCallbackForProcessedRequest,
@@ -38,6 +39,7 @@ const stages = [
             return;
 
         ctx.res.on('error', e => {
+            // @ts-ignore
             if (e.code === 'ECONNRESET' && !ctx.mock) {
                 if (ctx.destRes)
                     ctx.destRes.destroy();
@@ -62,7 +64,7 @@ const stages = [
             return;
         }
 
-        ctx.reqOpts = createReqOpts(ctx);
+        ctx.reqOpts = new ReqOpts(ctx);
 
         if (ctx.session.hasRequestEventListeners()) {
             const requestInfo = new RequestInfo(ctx, ctx.reqOpts);
@@ -131,7 +133,7 @@ const stages = [
 
                 // NOTE: sets 60 minutes timeout for the "event source" requests instead of 2 minutes by default
                 if (ctx.dest.isEventSource) {
-                    ctx.req.setTimeout(EVENT_SOURCE_REQUEST_TIMEOUT);
+                    ctx.req.setTimeout(EVENT_SOURCE_REQUEST_TIMEOUT, noop);
                     ctx.req.on('close', () => ctx.destRes.destroy());
                 }
             }
@@ -185,7 +187,9 @@ const stages = [
                 await callResponseEventCallbackForProcessedRequest(ctx, configureResponseEvent);
             }));
 
-            ctx.res.write(ctx.destResBody);
+            const res: http.ServerResponse = <http.ServerResponse>ctx.res;
+
+            res.write(ctx.destResBody);
             ctx.res.end();
         });
     }

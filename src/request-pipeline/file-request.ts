@@ -9,6 +9,12 @@ const DISK_RE: RegExp = /^\/[A-Za-z]:/;
 
 const TARGET_IS_NOT_FILE = 'The target of the operation is not a file';
 
+export interface FileStream extends fs.ReadStream {
+    statusCode: number;
+    trailers: object;
+    headers: { [name: string]: string };
+}
+
 export default class FileRequest extends EventEmitter {
     url: string;
     path: string;

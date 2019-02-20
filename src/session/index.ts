@@ -25,9 +25,14 @@ interface InjectableResources {
     styles: Array<string>
 }
 
+export interface StoragesSnapshot {
+    localStorage: string;
+    sessionStorage: string;
+}
+
 interface StateSnapshot {
     cookies: string | null,
-    storages: { localStorage: string, sessionStorage: string } | null
+    storages: StoragesSnapshot | null
 }
 
 export interface ExternalProxySettingsRaw {
@@ -35,7 +40,7 @@ export interface ExternalProxySettingsRaw {
     bypassRules?: Array<string>
 }
 
-interface ExternalProxySettings {
+export interface ExternalProxySettings {
     host: string,
     hostname: string,
     bypassRules?: Array<string>,

@@ -27,11 +27,9 @@ export interface ServiceMessage {
     [propName: string]: any;
 }
 
-function parseAsJson (msg: string): ServiceMessage | null {
-    msg = msg.toString();
-
+function parseAsJson (msg: Buffer): ServiceMessage | null {
     try {
-        return JSON.parse(msg);
+        return JSON.parse(msg.toString());
     }
     catch (err) {
         return null;

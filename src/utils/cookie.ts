@@ -32,6 +32,11 @@ interface CookieRecord {
     isWindowSync?: boolean;
 }
 
+export interface ParsedClientSyncCookie {
+    outdated: Array<CookieRecord>;
+    actual: Array<CookieRecord>;
+}
+
 function isSameCookies (cookie1: CookieRecord, cookie2: CookieRecord) {
     return cookie1.sid === cookie2.sid &&
            cookie1.key === cookie2.key &&
@@ -39,7 +44,7 @@ function isSameCookies (cookie1: CookieRecord, cookie2: CookieRecord) {
            cookie1.path === cookie2.path;
 }
 
-function sortByOutdatedAndActual (parsedCookies: Array<CookieRecord>) {
+function sortByOutdatedAndActual (parsedCookies: Array<CookieRecord>): ParsedClientSyncCookie {
     const outdated = [];
     const actual   = [];
 
@@ -84,7 +89,7 @@ function formatSyncCookieKey (cookie): string {
     return `${syncType}|${cookie.sid}|${key}|${domain}|${path}|${expires}|${lastAccessed}`;
 }
 
-export function parseClientSyncCookieStr (cookieStr: string) {
+export function parseClientSyncCookieStr (cookieStr: string): ParsedClientSyncCookie {
     const cookies       = cookieStr ? cookieStr.split(';') : '';
     const parsedCookies = [];
 
