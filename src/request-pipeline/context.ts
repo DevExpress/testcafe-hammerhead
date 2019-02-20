@@ -57,7 +57,8 @@ interface OnResponseEventData {
     opts: ConfigureResponseEventOptions;
 }
 
-const REDIRECT_STATUS_CODES: Array<number> = [301, 302, 303, 307, 308];
+const REDIRECT_STATUS_CODES: Array<number>   = [301, 302, 303, 307, 308];
+const CANNOT_BE_USED_WITH_WEB_SOCKET_ERR_MSG = 'The function cannot be used with a WebSocket request.';
 
 export default class RequestPipelineContext {
     private readonly serverInfo: ServerInfo;
@@ -285,7 +286,7 @@ export default class RequestPipelineContext {
 
     redirect (url: string) {
         if (this.isWebSocket)
-            throw new Error('The RequestPipelineContext.prototype.redirect function cannot be used with a WebSocket request');
+            throw new Error(CANNOT_BE_USED_WITH_WEB_SOCKET_ERR_MSG);
 
         const res: http.ServerResponse = <http.ServerResponse> this.res;
 
@@ -339,7 +340,7 @@ export default class RequestPipelineContext {
 
     sendResponseHeaders () {
         if (this.isWebSocket)
-            throw new Error('The RequestPipelineContext.prototype.sendResponseHeaders function cannot be used with a WebSocket request');
+            throw new Error(CANNOT_BE_USED_WITH_WEB_SOCKET_ERR_MSG);
 
         const headers                  = headerTransforms.forResponse(this);
         const res: http.ServerResponse = <http.ServerResponse> this.res;
