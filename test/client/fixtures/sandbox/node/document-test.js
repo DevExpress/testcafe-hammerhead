@@ -483,7 +483,7 @@ test('should override document methods on a prototype level (GH-1827)', function
 });
 
 test('patching Node methods on the client side: appendChild, insertBefore, replaceChild, removeChild (GH-1874)', function () {
-    // expect(12);
+    expect(8);
 
     function checkMeth (methName) {
         strictEqual(window.Node.prototype[methName], window.HTMLBodyElement.prototype[methName], methName);
@@ -496,13 +496,11 @@ test('patching Node methods on the client side: appendChild, insertBefore, repla
             ok(true, methName);
         };
 
-        strictEqual(window.Node.prototype[methName], window.HTMLBodyElement.prototype[methName], methName);
-
         document.body[methName]();
     }
 
     [
-        // 'appendChild',
+        'appendChild',
         'insertBefore',
         'replaceChild',
         'removeChild',
