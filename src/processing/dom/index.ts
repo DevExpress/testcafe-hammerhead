@@ -17,7 +17,7 @@ const HTML_COMMENT_POSTFIX_REG_EX: RegExp        = /(\/\/[^\n]*|\n\s*)-->[^\n]*(
 const HTML_COMMENT_PREFIX_REG_EX: RegExp         = /^(\s)*<!--[^\n]*\n/;
 const HTML_COMMENT_SIMPLE_POSTFIX_REG_EX: RegExp = /-->\s*$/;
 const JAVASCRIPT_PROTOCOL_REG_EX: RegExp         = /^\s*javascript\s*:/i;
-const EXECUTABLE_SCRIPT_TYPES_REG_EX: RegExp     = /^\s*(application\/(x-)?(ecma|java)script|text\/(javascript(1\.[0-5])?|((x-)?ecma|x-java|js|live)script))\s*$/i;
+const EXECUTABLE_SCRIPT_TYPES_REG_EX: RegExp     = /^\s*(application\/(x-)?(ecma|java)script|text\/(javascript(1\.[0-5])?|((x-)?ecma|x-java|js|live)script)|module)\s*$/i;
 
 const SVG_XLINK_HREF_TAGS: Array<string> = [
     'animate', 'animateColor', 'animateMotion', 'animateTransform', 'mpath', 'set', //animation elements
@@ -38,7 +38,7 @@ interface ElementProcessingPattern {
     urlAttr?: string;
     targetAttr?: string;
     elementProcessors: any;
-    relAttr?: string | undefined;
+    relAttr?: string;
 }
 
 export default class DomProcessor {
