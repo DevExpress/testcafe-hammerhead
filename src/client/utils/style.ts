@@ -332,7 +332,7 @@ export function isElementVisible (el, doc) {
         if (get(el, 'display', doc) === 'none' || get(el, 'visibility', doc) === 'hidden')
             return false;
 
-        el = el.parentNode;
+        el = nativeMethods.nodeParentNodeGetter.call(el);
     }
 
     return true;
