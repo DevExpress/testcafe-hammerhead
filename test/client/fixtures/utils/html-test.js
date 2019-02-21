@@ -257,6 +257,15 @@ test('init script for iframe template', function () {
     check('<body>{0}</body>');
 });
 
+test('script with the "module" type', function () {
+    var div        = document.createElement('div');
+    var scriptText = 'var a = 5;';
+
+    div.innerHTML = '<script type="module">' + scriptText + '<' + '/script>';
+
+    strictEqual(nativeMethods.nodeTextContentGetter.call(div.firstChild), processScript(scriptText, true));
+});
+
 module('regression');
 
 test('markup with special characters must be cleaned up (T112153)', function () {

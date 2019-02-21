@@ -13,26 +13,37 @@ export const SCRIPT_PROCESSING_END_HEADER_COMMENT: string = '/*hammerhead|script
 
 const STRICT_MODE_PLACEHOLDER: string = '{strict-placeholder}';
 
-const HEADER: string = [
-    SCRIPT_PROCESSING_START_COMMENT,
-    STRICT_MODE_PLACEHOLDER,
-    'if(typeof window!=="undefined"&&window){',
-    `window["${INTERNAL_PROPS.processDomMethodName}"] && window["${INTERNAL_PROPS.processDomMethodName}"]();`,
-    '}',
-    'else{',
-    `var ${ INSTRUCTION.getLocation }=function(l){return l},`,
-    `${ INSTRUCTION.setLocation }=function(l,v){return l = v},`,
-    `${ INSTRUCTION.setProperty }=function(o,p,v){return o[p] = v},`,
-    `${ INSTRUCTION.getProperty }=function(o,p){return o[p]},`,
-    `${ INSTRUCTION.callMethod }=function(o,p,a){return o[p].apply(o,a)},`,
-    `${ INSTRUCTION.getEval }=function(e){return e},`,
-    `${ INSTRUCTION.processScript }=function(s){return s},`,
-    `${ INSTRUCTION.processHtml }=function(h){return h},`,
-    `${ INSTRUCTION.getPostMessage }=function(w,p){return arguments.length===1?w.postMessage:p};`,
-    '}',
-    SCRIPT_PROCESSING_END_HEADER_COMMENT,
-    '\n'
-].join('');
+const HEADER: string = `
+    ${SCRIPT_PROCESSING_START_COMMENT}
+    ${STRICT_MODE_PLACEHOLDER}
+
+    if (typeof window !== 'undefined' && window){
+        window['${INTERNAL_PROPS.processDomMethodName}'] && window['${INTERNAL_PROPS.processDomMethodName}']();
+
+        if (window.${INSTRUCTION.getProperty} && typeof ${INSTRUCTION.getProperty} === 'undefined') {
+            var ${INSTRUCTION.getLocation} = window.${INSTRUCTION.getLocation},
+                ${INSTRUCTION.setLocation} = window.${INSTRUCTION.setLocation},
+                ${INSTRUCTION.setProperty} = window.${INSTRUCTION.setProperty},
+                ${INSTRUCTION.getProperty} = window.${INSTRUCTION.getProperty},
+                ${INSTRUCTION.callMethod} = window.${INSTRUCTION.callMethod},
+                ${INSTRUCTION.getEval} = window.${INSTRUCTION.getEval},
+                ${INSTRUCTION.processScript} = window.${INSTRUCTION.processScript},
+                ${INSTRUCTION.processHtml} = window.${INSTRUCTION.processHtml},
+                ${INSTRUCTION.getPostMessage} = window.${INSTRUCTION.getPostMessage};
+        }
+    } else {
+        var ${INSTRUCTION.getLocation} = function(l){return l},
+            ${INSTRUCTION.setLocation} = function(l,v){return l = v},
+            ${INSTRUCTION.setProperty} = function(o,p,v){return o[p] = v},
+            ${INSTRUCTION.getProperty} = function(o,p){return o[p]},
+            ${INSTRUCTION.callMethod} = function(o,p,a){return o[p].apply(o,a)},
+            ${INSTRUCTION.getEval} = function(e){return e},
+            ${INSTRUCTION.processScript} = function(s){return s},
+            ${INSTRUCTION.processHtml} = function(h){return h},
+            ${INSTRUCTION.getPostMessage} = function(w,p){return arguments.length===1?w.postMessage:p};
+    }
+    ${SCRIPT_PROCESSING_END_HEADER_COMMENT}
+`.replace(/\n(?!$)\s*/g, '');
 
 // NOTE: IE removes trailing newlines in script.textContent,
 // so a trailing newline in RegExp is optional
