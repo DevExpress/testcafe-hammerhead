@@ -694,6 +694,30 @@ test('head.getElementsByTagName', function () {
     ok(!found, 'check that document.head.getElementsByTagName does not return Hammerhead elements');
 });
 
+test('html.getElementsByTagName', function () {
+    var found = false;
+    var link  = document.createElement('link');
+
+    link.rel  = 'stylesheet';
+    link.type = 'text/css';
+
+    nativeMethods.linkHrefSetter.call(link, '/test.css');
+
+    shadowUI.addClass(link, 'ui-stylesheet');
+    document.head.appendChild(link);
+
+    var children = document.documentElement.getElementsByTagName('link');
+
+    for (var i = 0; i < children.length; i++) {
+        if (children[i] === link)
+            found = true;
+    }
+
+    document.head.removeChild(link);
+
+    ok(!found, 'check that document.documentElement.getElementsByTagName does not return Hammerhead elements');
+});
+
 test('body.querySelector', function () {
     var root   = shadowUI.getRoot();
     var uiElem = document.createElement('div');

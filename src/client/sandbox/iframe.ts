@@ -42,12 +42,12 @@ export default class IframeSandbox extends SandboxBase {
         const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
         const contentDocument = nativeMethods.contentDocumentGetter.call(iframe);
 
-        if (!this.iframeNativeMethodsBackup && this._shouldSaveIframeNativeMethods(iframe))
-            this.iframeNativeMethodsBackup = new this.nativeMethods.constructor(contentDocument, contentWindow);
-        else if (this.iframeNativeMethodsBackup) {
+        if (this.iframeNativeMethodsBackup) {
             this.iframeNativeMethodsBackup.restoreDocumentMeths(contentWindow, contentDocument);
             this.iframeNativeMethodsBackup = null;
         }
+        else if (this._shouldSaveIframeNativeMethods(iframe))
+            this.iframeNativeMethodsBackup = new this.nativeMethods.constructor(contentDocument, contentWindow);
     }
 
     _ensureIframeNativeMethodsForIE (iframe) {

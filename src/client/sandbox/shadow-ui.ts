@@ -325,16 +325,17 @@ export default class ShadowUI extends SandboxBase {
     }
 
     _overrideElementMethods (window) {
-        const bodyProto = window.HTMLBodyElement.prototype;
-        const headProto = window.HTMLHeadElement.prototype;
+        const elementProto = window.Element.prototype;
+        const bodyProto    = window.HTMLBodyElement.prototype;
+        const headProto    = window.HTMLHeadElement.prototype;
+
+        elementProto.getElementsByTagName = this.wrapperCreators.getElementsByTagName('elementGetElementsByTagName');
 
         bodyProto.getElementsByClassName = this.wrapperCreators.getElementsByClassName('elementGetElementsByClassName');
-        bodyProto.getElementsByTagName   = this.wrapperCreators.getElementsByTagName('elementGetElementsByTagName');
         bodyProto.querySelector          = this.wrapperCreators.querySelector('elementQuerySelector', 'elementQuerySelectorAll');
         bodyProto.querySelectorAll       = this.wrapperCreators.querySelectorAll('elementQuerySelectorAll');
 
         headProto.getElementsByClassName = bodyProto.getElementsByClassName;
-        headProto.getElementsByTagName   = bodyProto.getElementsByTagName;
         headProto.querySelector          = bodyProto.querySelector;
         headProto.querySelectorAll       = bodyProto.querySelectorAll;
     }
