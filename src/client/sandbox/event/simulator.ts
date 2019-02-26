@@ -548,9 +548,10 @@ export default class EventSimulator {
         // button, not a child, so the child does not receive the click event.
         if (browserUtils.isIE) {
             if (args.type === 'click' || args.type === 'mouseup' || args.type === 'mousedown') {
-                const closestButton = domUtils.closest(el.parentNode, 'button');
+                const elParent      = nativeMethods.nodeParentNodeGetter.call(el);
+                const closestButton = domUtils.closest(elParent, 'button');
 
-                if (el.parentNode && closestButton) {
+                if (elParent && closestButton) {
                     if (nativeMethods.getAttribute.call(closestButton, 'type') === 'submit')
                         el = closestButton;
                 }

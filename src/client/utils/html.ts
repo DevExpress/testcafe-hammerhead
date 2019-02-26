@@ -120,7 +120,9 @@ function processHtmlInternal (html, process) {
 
     let processedHtml = process(container) ? nativeMethods.elementInnerHTMLGetter.call(container) : html;
 
-    nativeMethods.removeChild.call(container.parentNode, container);
+    const containerParent = nativeMethods.nodeParentNodeGetter.call(container);
+
+    nativeMethods.removeChild.call(containerParent, container);
     processedHtml = unwrapHtmlText(processedHtml);
 
     // NOTE: hack for IE (GH-1083)
@@ -215,8 +217,10 @@ export function cleanUpHtml (html) {
         });
 
         find(container, SHADOW_UI_ELEMENTS_SELECTOR, el => {
-            if (el.parentNode) {
-                nativeMethods.removeChild.call(el.parentNode, el);
+            const parent = nativeMethods.nodeParentNodeGetter.call(el);
+
+            if (parent) {
+                nativeMethods.removeChild.call(parent, el);
                 changed = true;
             }
         });
@@ -331,8 +335,8 @@ export function dispose () {
 }
 
 export function isInternalHtmlParserElement (el) {
-    while (el.parentNode)
-        el = el.parentNode;
+    while (nativeMethods.nodeParentNodeGetter.call(el))
+        el = nativeMethods.nodeParentNodeGetter.call(el);
 
     return !!el[HTML_PARSER_ELEMENT_FLAG];
 }

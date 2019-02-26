@@ -129,8 +129,10 @@ export default class DocumentWriter {
         while (nativeMethods.elementFirstElementChildGetter.call(beginMarker))
             beginMarker = nativeMethods.elementFirstElementChildGetter.call(beginMarker);
 
-        if (nativeMethods.nodeFirstChildGetter.call(beginMarker.parentNode) !== beginMarker)
-            beginMarker = nativeMethods.nodeFirstChildGetter.call(beginMarker.parentNode);
+        const beginMarkerParent = nativeMethods.nodeParentNodeGetter.call(beginMarker);
+
+        if (nativeMethods.nodeFirstChildGetter.call(beginMarkerParent) !== beginMarker)
+            beginMarker = nativeMethods.nodeFirstChildGetter.call(beginMarkerParent);
         else if (isCommentNode(nativeMethods.nodeFirstChildGetter.call(beginMarker)))
             beginMarker = nativeMethods.nodeFirstChildGetter.call(beginMarker);
 
@@ -148,8 +150,10 @@ export default class DocumentWriter {
         while (nativeMethods.elementLastElementChildGetter.call(endMarker))
             endMarker = nativeMethods.elementLastElementChildGetter.call(endMarker);
 
-        if (nativeMethods.nodeLastChildGetter.call(endMarker.parentNode) !== endMarker)
-            endMarker = nativeMethods.nodeLastChildGetter.call(endMarker.parentNode);
+        const endMarkerParent = nativeMethods.nodeParentNodeGetter.call(endMarker);
+
+        if (nativeMethods.nodeLastChildGetter.call(endMarkerParent) !== endMarker)
+            endMarker = nativeMethods.nodeLastChildGetter.call(endMarkerParent);
         else if (isCommentNode(nativeMethods.nodeLastChildGetter.call(endMarker)))
             endMarker = nativeMethods.nodeLastChildGetter.call(endMarker);
 
@@ -157,18 +161,18 @@ export default class DocumentWriter {
     }
 
     _updateParentTagChain (container, endMarker) {
-        let endMarkerParent = getTagName(endMarker) !== END_MARKER_TAG_NAME ? endMarker : endMarker.parentNode;
+        let endMarkerParent = getTagName(endMarker) !== END_MARKER_TAG_NAME ? endMarker : nativeMethods.nodeParentNodeGetter.call(endMarker);
 
         if (isCommentNode(endMarker)) {
             this.isNonClosedComment = true;
-            endMarkerParent         = endMarker.parentNode;
+            endMarkerParent         = nativeMethods.nodeParentNodeGetter.call(endMarker);
         }
 
         this.parentTagChain = [];
 
         while (endMarkerParent !== container) {
             this.parentTagChain.unshift(getTagName(endMarkerParent));
-            endMarkerParent = endMarkerParent.parentNode;
+            endMarkerParent = nativeMethods.nodeParentNodeGetter.call(endMarkerParent);
         }
     }
 
@@ -191,7 +195,9 @@ export default class DocumentWriter {
 
         beginMarker = nativeMethods.createElement.call(document, BEGIN_MARKER_TAG_NAME);
 
-        nativeMethods.insertBefore.call(elWithContent.parentNode, beginMarker, elWithContent);
+        const elWithContentParent = nativeMethods.nodeParentNodeGetter.call(elWithContent);
+
+        nativeMethods.insertBefore.call(elWithContentParent, beginMarker, elWithContent);
     }
 
     static _createStartsWithClosingTagRegExp (tagName) {
@@ -240,13 +246,16 @@ export default class DocumentWriter {
             }
         }
 
-        nativeMethods.appendChild.call(elWithContent.parentNode, endMarker);
+        const elWithContentParent = nativeMethods.nodeParentNodeGetter.call(elWithContent);
+
+        nativeMethods.appendChild.call(elWithContentParent, endMarker);
     }
 
     static _addOnDocumentRecreationScript (endMarker) {
-        const span = nativeMethods.createElement.call(endMarker.ownerDocument, 'span');
+        const span            = nativeMethods.createElement.call(endMarker.ownerDocument, 'span');
+        const endMarkerParent = nativeMethods.nodeParentNodeGetter.call(endMarker);
 
-        nativeMethods.insertBefore.call(endMarker.parentNode, span, endMarker);
+        nativeMethods.insertBefore.call(endMarkerParent, span, endMarker);
         nativeMethods.elementOuterHTMLSetter.call(span, ON_WINDOW_RECREATION_SCRIPT_TEMPLATE);
     }
 

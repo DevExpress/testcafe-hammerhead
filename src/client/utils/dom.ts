@@ -68,7 +68,7 @@ function closestFallback (el: Node, selector: string) {
         if (matches(el, selector))
             return el;
 
-        el = el.parentNode;
+        el = nativeMethods.nodeParentNodeGetter.call(el);
     }
 
     return null;
@@ -195,14 +195,19 @@ export function getScrollbarSize () {
         const scrollbarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth;
 
         scrollbarSize = scrollbarWidth;
-        scrollDiv.parentNode.removeChild(scrollDiv);
+
+        const parent = nativeMethods.nodeParentNodeGetter.call(scrollDiv);
+
+        parent.removeChild(scrollDiv);
     }
 
     return scrollbarSize;
 }
 
 export function getSelectParent (child) {
-    return closest(child.parentNode, 'select');
+    const parent = nativeMethods.nodeParentNodeGetter.call(child);
+
+    return closest(parent, 'select');
 }
 
 export function getSelectVisibleChildren (select: HTMLSelectElement) {
@@ -263,7 +268,9 @@ export function findDocument (el): Document {
     if (el.ownerDocument && el.ownerDocument.defaultView)
         return el.ownerDocument;
 
-    return el.parentNode ? findDocument(el.parentNode) : document;
+    const parent = isElementNode(el) && nativeMethods.nodeParentNodeGetter.call(el);
+
+    return parent ? findDocument(parent) : document;
 }
 
 export function isContentEditableElement (el: Node) {
@@ -271,7 +278,7 @@ export function isContentEditableElement (el: Node) {
     let element           = null;
 
     if (isTextNode(el))
-        element = el.parentElement || el.parentNode;
+        element = el.parentElement || nativeMethods.nodeParentNodeGetter.call(el);
     else
         element = el;
 
@@ -718,7 +725,7 @@ export function parseDocumentCharset () {
 
 export function getParents (el, selector?) {
     // eslint-disable-next-line no-restricted-properties
-    let parent = el.parentNode || el.host;
+    let parent = nativeMethods.nodeParentNodeGetter.call(el) || el.host;
 
     const parents = [];
 
@@ -728,7 +735,7 @@ export function getParents (el, selector?) {
             parents.push(parent);
 
         // eslint-disable-next-line no-restricted-properties
-        parent = parent.parentNode || parent.host;
+        parent = nativeMethods.nodeParentNodeGetter.call(parent) || parent.host;
     }
 
     return parents;
@@ -736,13 +743,13 @@ export function getParents (el, selector?) {
 
 export function findParent (node, includeSelf = false, predicate) {
     if (!includeSelf)
-        node = node.parentNode;
+        node = nativeMethods.nodeParentNodeGetter.call(node);
 
     while (node) {
         if (typeof predicate !== 'function' || predicate(node))
             return node;
 
-        node = node.parentNode;
+        node = nativeMethods.nodeParentNodeGetter.call(node);
     }
 
     return null;
