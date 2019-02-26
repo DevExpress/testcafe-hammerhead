@@ -417,6 +417,13 @@ export function isHeadOrBodyElement (el: HTMLElement): boolean {
     return elString === '[object HTMLHeadElement]' || elString === '[object HTMLBodyElement]';
 }
 
+export function isHeadOrBodyOrHtmlElement (el: HTMLElement): boolean {
+    const elString = instanceToString(el);
+
+    return elString === '[object HTMLHeadElement]' || elString === '[object HTMLBodyElement]' ||
+           elString === '[object HTMLHtmlElement]';
+}
+
 export function isBaseElement (el: HTMLElement): boolean {
     return instanceToString(el) === '[object HTMLBaseElement]';
 }

@@ -2,6 +2,7 @@ var SHADOW_UI_CLASSNAME = hammerhead.get('./../shadow-ui/class-name');
 var ShadowUI            = hammerhead.get('./sandbox/shadow-ui');
 var INTERNAL_PROPS      = hammerhead.get('../processing/dom/internal-properties');
 var INTERNAL_ATTRS      = hammerhead.get('../processing/dom/internal-attributes');
+var hiddenInfo          = hammerhead.get('./sandbox/upload/hidden-info');
 
 var shadowUI      = hammerhead.sandbox.shadowUI;
 var domUtils      = hammerhead.utils.dom;
@@ -716,6 +717,23 @@ test('html.getElementsByTagName', function () {
     document.head.removeChild(link);
 
     ok(!found, 'check that document.documentElement.getElementsByTagName does not return Hammerhead elements');
+});
+
+test('el.getElementsByTagName("input")', function () {
+    var div = document.createElement('div');
+
+    div.innerHTML = '<form><input value="123"></form>';
+
+    var input = div.querySelector('input');
+
+    hiddenInfo.setFormInfo(input, {});
+
+    var nativeCollection  = nativeMethods.elementGetElementsByTagName.call(div, 'input');
+    var wrappedCollection = div.getElementsByTagName('input');
+
+    strictEqual(nativeCollection.length, 2);
+    strictEqual(wrappedCollection.length, 1);
+    strictEqual(wrappedCollection[0], input);
 });
 
 test('body.querySelector', function () {
