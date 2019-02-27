@@ -165,10 +165,9 @@ gulp.step('server-scripts', () => {
             './src/**/*.ts',
             '!src/client/**/*.ts'
         ])
-        .pipe(tsConfig())
-        .pipe(gulpBabel());
+        .pipe(tsConfig());
 
-    const toLib   = serverAndSharedScripts.pipe(clone()).pipe(gulp.dest('lib'));
+    const toLib   = serverAndSharedScripts.pipe(clone()).pipe(gulpBabel()).pipe(gulp.dest('lib'));
     const inPlace = serverAndSharedScripts.pipe(gulp.dest(file => file.base));
 
     return mergeStreams(toLib, inPlace);
