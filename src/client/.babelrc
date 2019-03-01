@@ -1,15 +1,14 @@
 {
   "compact": false,
   "presets": [
-    ["env", {
+    ["@babel/env", {
       "loose": true,
       "exclude": [
-        "transform-es2015-typeof-symbol"
+        "@babel/plugin-transform-typeof-symbol"
       ]
     }]
   ],
   "plugins": [
-    "add-module-exports",
-    "transform-for-of-as-array"
+    "babel-plugin-transform-for-of-as-array"
   ]
 }

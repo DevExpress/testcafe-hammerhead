@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2017",
-    "allowJs": false,
+    "target": "esnext",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "noUnusedLocals": true,
