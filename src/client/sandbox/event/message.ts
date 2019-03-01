@@ -57,7 +57,17 @@ export default class MessageSandbox extends SandboxBase {
     static _getMessageData (e) {
         const rawData = isMessageEvent(e) ? nativeMethods.messageEventDataGetter.call(e) : e.data;
 
-        return typeof rawData === 'string' ? parseJSON(rawData) : rawData;
+        if (typeof rawData !== 'string') return rawData;
+
+        let data = {};
+
+        try {
+            data = parseJSON(rawData);
+        }
+        // eslint-disable-next-line no-empty
+        catch (error) {
+        }
+        return data;
     }
 
     _onMessage (e) {
