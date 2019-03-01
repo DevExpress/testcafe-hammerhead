@@ -1,4 +1,4 @@
-const babel          = require('babel-core');
+const babel          = require('@babel/core');
 const gulpBabel      = require('gulp-babel');
 const gulpTypeScript = require('gulp-typescript');
 const del            = require('del');

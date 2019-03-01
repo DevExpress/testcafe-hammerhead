@@ -1,16 +1,16 @@
 {
   "compact": false,
   "presets": [
-    ["env", {
+    ["@babel/env", {
       "targets": { "node": "6" },
       "loose": true,
       "exclude": [
-        "transform-regenerator"
+        "@babel/plugin-transform-regenerator"
       ]
     }]
   ],
   "plugins": [
-    "add-module-exports",
-    "transform-async-to-generator"
+    "babel-plugin-add-module-exports",
+    "@babel/plugin-transform-async-to-generator"
   ]
 }
