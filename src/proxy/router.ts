@@ -2,19 +2,12 @@
 import net from 'net';
 import http from 'http';
 import { respondStatic } from '../utils/http';
-import { ServerInfo } from './index';
+import { StaticContent, ServerInfo } from '../typings/proxy';
 /*eslint-enable no-unused-vars*/
 import md5 from 'crypto-md5';
 import { getPathname } from '../utils/url';
 
 const PARAM_RE: RegExp = /^{(\S+)}$/;
-
-export interface StaticContent {
-    content: string | Buffer,
-    contentType: string,
-    etag?: string,
-    isShadowUIStylesheet?: boolean
-}
 
 interface Route {
     handler: StaticContent | Function,

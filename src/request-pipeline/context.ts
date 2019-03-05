@@ -1,15 +1,17 @@
 /*eslint-disable no-unused-vars*/
 import net from 'net';
 import http from 'http';
-import Session, { StoragesSnapshot } from '../session';
-import { ServerInfo } from '../proxy';
+import Session from '../session';
+import { StoragesSnapshot, FileStream } from '../typings/session';
+import { ServerInfo } from '../typings/proxy';
 import ResponseMock from './request-hooks/response-mock';
-import { parseClientSyncCookieStr, ParsedClientSyncCookie } from '../utils/cookie';
+import { parseClientSyncCookieStr } from '../utils/cookie';
+import { ParsedClientSyncCookie } from '../typings/cookie';
 import RequestFilterRule from './request-hooks/request-filter-rule';
-import { FileStream } from './file-request';
 import IncomingMessageMock from './incoming-message-mock';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
-import { ReqOpts } from './utils';
+import RequestOptions from './request-options';
+import { ParsedProxyUrl } from '../typings/url';
 /*eslint-enable no-unused-vars*/
 import XHR_HEADERS from './xhr/headers';
 import Charset from '../processing/encoding/charset';
@@ -83,7 +85,7 @@ export default class RequestPipelineContext {
     requestId: string = genearateUniqueId();
     requestFilterRules: Array<RequestFilterRule> = [];
     onResponseEventData: Array<OnResponseEventData> = [];
-    reqOpts: ReqOpts = null;
+    reqOpts: RequestOptions = null;
     parsedClientSyncCookie: ParsedClientSyncCookie;
     isFileProtocol: boolean;
     nonProcessedDestResBody: Buffer = null;
@@ -106,7 +108,7 @@ export default class RequestPipelineContext {
     }
 
     // TODO: Rewrite parseProxyUrl instead.
-    private static _flattenParsedProxyUrl (parsed: urlUtils.ParsedProxyUrl): { dest: DestInfo, sessionId: string } {
+    private static _flattenParsedProxyUrl (parsed: ParsedProxyUrl): { dest: DestInfo, sessionId: string } {
         if (!parsed)
             return null;
 
