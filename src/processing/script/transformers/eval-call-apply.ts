@@ -3,6 +3,10 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
+/*eslint-disable no-unused-vars*/
+import { CallExpression, Identifier, MemberExpression } from 'estree';
+import { Transformer } from './index';
+/*eslint-enable no-unused-vars*/
 import { createProcessScriptMethCall } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
 import replaceNode from './replace-node';
@@ -15,37 +19,43 @@ const INVOCATION_FUNC_NAME_RE = /^(call|apply)$/;
 // eval.call(ctx, __proc$Script(script));
 // eval.apply(ctx, __proc$Script(script, true));
 
-export default {
+const transformer: Transformer = {
     nodeReplacementRequireTransform: false,
 
-    nodeTypes: [Syntax.CallExpression],
+    nodeTypes: Syntax.CallExpression,
 
-    condition: node => {
+    condition: (node: CallExpression): boolean => {
         // eval.<meth>(ctx, script, ...)
         if (node.arguments.length < 2)
             return false;
 
-        if (node.callee.type === Syntax.MemberExpression && INVOCATION_FUNC_NAME_RE.test(node.callee.property.name)) {
+        if (node.callee.type === Syntax.MemberExpression && node.callee.property.type === Syntax.Identifier &&
+            INVOCATION_FUNC_NAME_RE.test(node.callee.property.name)) {
             const obj = node.callee.object;
 
-            // obj.eval.<meth>(), obj[eval].<meth>(),
-            if (obj.type === Syntax.MemberExpression && (obj.property.value || obj.property.name) === 'eval')
+            // eval.<meth>()
+            if (obj.type === Syntax.Identifier && obj.name === 'eval')
                 return true;
 
-            // eval.<meth>()
-            if (obj.name === 'eval')
+            // obj.eval.<meth>(), obj[eval].<meth>()
+            if (obj.type === Syntax.MemberExpression &&
+                (obj.property.type === Syntax.Identifier && obj.property.name ||
+                 obj.property.type === Syntax.Literal && obj.property.value) === 'eval')
                 return true;
         }
 
         return false;
     },
 
-    run: node => {
-        const isApply = node.callee.property.name === 'apply';
-        const newArg  = createProcessScriptMethCall(node.arguments[1], isApply);
+    run: (node: CallExpression) => {
+        const callee   = <MemberExpression>node.callee;
+        const property = <Identifier>callee.property;
+        const newArg   = createProcessScriptMethCall(node.arguments[1], property.name === 'apply');
 
         replaceNode(node.arguments[1], newArg, node, 'arguments');
 
         return null;
     }
 };
+
+export default transformer;

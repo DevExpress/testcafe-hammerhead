@@ -2,8 +2,11 @@
 // WARNING: this file is used by both the client and the server.
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
-
-import transform from './transform';
+/*eslint-disable no-unused-vars*/
+import { Program, Node } from 'estree';
+import transform, { CodeChange } from './transform';
+import { ModifiedProgram } from './transformers/js-protocol-last-expression';
+/*eslint-enable no-unused-vars*/
 import INSTRUCTION from './instruction';
 import { add as addHeader, remove as removeHeader } from './header';
 import { parse } from 'acorn-hammerhead';
@@ -16,8 +19,7 @@ const OBJECT_RE: RegExp             = /^\s*\{.*\}\s*$/;
 const TRAILING_SEMICOLON_RE: RegExp = /;\s*$/;
 const OBJECT_WRAPPER_RE: RegExp     = /^\s*\((.*)\);\s*$/;
 const SOURCEMAP_RE: RegExp          = /(?:\/\/[@#][ \t]+sourceMappingURL=([^\s'"]+?)[ \t]*$)/gm;
-
-const PROCESSED_SCRIPT_RE: RegExp = new RegExp([
+const PROCESSED_SCRIPT_RE: RegExp   = new RegExp([
     reEscape(INSTRUCTION.getLocation),
     reEscape(INSTRUCTION.setLocation),
     reEscape(INSTRUCTION.getProperty),
@@ -28,13 +30,8 @@ const PROCESSED_SCRIPT_RE: RegExp = new RegExp([
     reEscape(INSTRUCTION.getPostMessage)
 ].join('|'));
 
-const PARSER_OPTIONS: object = {
-    allowReturnOutsideFunction: true,
-    ecmaVersion:                8
-};
-
 // Code pre/post-processing
-function removeHtmlComments (code: string) {
+function removeHtmlComments (code: string): string {
     // NOTE: The JS parser removes the line that follows'<!--'. (T226589)
     do
         code = code.replace(HTML_COMMENT_RE, '\n');
@@ -43,21 +40,21 @@ function removeHtmlComments (code: string) {
     return code;
 }
 
-function preprocess (code: string) {
+function preprocess (code: string): { bom: string, preprocessed: string } {
     const bom        = getBOM(code);
     let preprocessed = bom ? code.substring(bom.length) : code;
 
     preprocessed = removeHeader(preprocessed);
-    preprocessed = removeSourceMapIfNecessary(preprocessed);
+    preprocessed = removeSourceMap(preprocessed);
 
     return { bom, preprocessed };
 }
 
-function removeSourceMapIfNecessary (code: string) {
-    return SOURCEMAP_RE.test(code) ? code.replace(SOURCEMAP_RE, '') : code;
+function removeSourceMap (code: string): string {
+    return code.replace(SOURCEMAP_RE, '');
 }
 
-function postprocess (processed: string, withHeader: boolean, bom: string, strictMode: boolean) {
+function postprocess (processed: string, withHeader: boolean, bom: string, strictMode: boolean): string {
     // NOTE: If the 'use strict' directive is not in the beginning of the file, it is ignored.
     // As we insert our header in the beginning of the script, we must put a new 'use strict'
     // before the header, otherwise it will be ignored.
@@ -69,24 +66,24 @@ function postprocess (processed: string, withHeader: boolean, bom: string, stric
 
 
 // Parse/generate code
-function removeTrailingSemicolonIfNecessary (processed: string, src: string) {
+function removeTrailingSemicolon (processed: string, src: string): string {
     return TRAILING_SEMICOLON_RE.test(src) ? processed : processed.replace(TRAILING_SEMICOLON_RE, '');
 }
 
-function getAst (src: string, isObject: boolean) {
+function getAst (src: string, isObject: boolean): Program {
     // NOTE: In case of objects (e.g.eval('{ 1: 2}')) without wrapping
     // object will be parsed as label. To avoid this we parenthesize src
     src = isObject ? `(${src})` : src;
 
     try {
-        return parse(src, PARSER_OPTIONS);
+        return parse(src, { allowReturnOutsideFunction: true });
     }
     catch (err) {
         return null;
     }
 }
 
-function getCode (ast: object, src: string) {
+function getCode (ast: Node, src: string): string {
     const code = generate(ast, {
         format: {
             quotes:     'double',
@@ -95,12 +92,12 @@ function getCode (ast: object, src: string) {
         }
     });
 
-    return src ? removeTrailingSemicolonIfNecessary(code, src) : code;
+    return src ? removeTrailingSemicolon(code, src) : code;
 }
 
 
 // Analyze code
-function analyze (code: string) {
+function analyze (code: string): { ast: Program, isObject: boolean } {
     let isObject = OBJECT_RE.test(code);
     let ast      = getAst(code, isObject);
 
@@ -113,13 +110,15 @@ function analyze (code: string) {
     return { ast, isObject };
 }
 
-function isArrayDataScript (ast): boolean {
+function isArrayDataScript (ast: Program): boolean {
+    const firstChild = ast.body[0];
+
     return ast.body.length === 1 &&
-           ast.body[0].type === Syntax.ExpressionStatement &&
-           ast.body[0].expression.type === Syntax.ArrayExpression;
+           firstChild.type === Syntax.ExpressionStatement &&
+           firstChild.expression.type === Syntax.ArrayExpression;
 }
 
-function isStrictMode (ast): boolean {
+function isStrictMode (ast: Program): boolean {
     if (ast.body.length) {
         const firstChild = ast.body[0];
 
@@ -130,7 +129,7 @@ function isStrictMode (ast): boolean {
     return false;
 }
 
-function applyChanges (script, changes, isObject: boolean) {
+function applyChanges (script: string, changes: Array<CodeChange>, isObject: boolean): string {
     const indexOffset = isObject ? -1 : 0;
     const chunks      = [];
     let index         = 0;
@@ -140,11 +139,10 @@ function applyChanges (script, changes, isObject: boolean) {
 
     changes.sort((a, b) => a.start - b.start);
 
-    for (let i = 0; i < changes.length; i++) {
-        const change      = changes[i];
-        const changeStart = change.start + indexOffset;
-        const changeEnd   = change.end + indexOffset;
-        let replacement   = change.parent[change.key];
+    for (const change of changes) {
+        const changeStart     = change.start + indexOffset;
+        const changeEnd       = change.end + indexOffset;
+        let replacement: Node = change.parent[change.key];
 
         replacement = change.index !== -1 ? replacement[change.index] : replacement;
         chunks.push(script.substring(index, changeStart));
@@ -162,7 +160,7 @@ export function isScriptProcessed (code: string): boolean {
     return PROCESSED_SCRIPT_RE.test(code);
 }
 
-export function processScript (src: string, withHeader?: boolean, wrapLastExprWithProcessHtml?: boolean) {
+export function processScript (src: string, withHeader?: boolean, wrapLastExprWithProcessHtml?: boolean): string {
     const { bom, preprocessed } = preprocess(src);
     const withoutHtmlComments   = removeHtmlComments(preprocessed);
     const { ast, isObject }     = analyze(withoutHtmlComments);
@@ -172,7 +170,8 @@ export function processScript (src: string, withHeader?: boolean, wrapLastExprWi
 
     withHeader = withHeader && !isObject && !isArrayDataScript(ast);
 
-    ast.wrapLastExprWithProcessHtml = wrapLastExprWithProcessHtml;
+    // eslint-disable-next-line no-extra-parens
+    (<ModifiedProgram>ast).wrapLastExprWithProcessHtml = wrapLastExprWithProcessHtml;
 
     const changes = transform(ast);
     let processed = changes.length ? applyChanges(withoutHtmlComments, changes, isObject) : preprocessed;

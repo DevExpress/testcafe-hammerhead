@@ -3,6 +3,10 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
+/*eslint-disable no-unused-vars*/
+import { Identifier, Node } from 'estree';
+import { Transformer } from './index';
+/*eslint-enable no-unused-vars*/
 import INSTRUCTION from '../instruction';
 import { createGetPostMessageMethCall } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
@@ -12,12 +16,12 @@ import { Syntax } from 'esotope-hammerhead';
 // -->
 // const foo = _get$PostMessage(postMessage); foo = _get$PostMessage(postMessage); { _postMessage: _get$PostMessage(postMessage) }; return _get$PostMessage(postMessage);
 
-export default {
+const transformer: Transformer = {
     nodeReplacementRequireTransform: false,
 
-    nodeTypes: [Syntax.Identifier],
+    nodeTypes: Syntax.Identifier,
 
-    condition: (node, parent) => {
+    condition: (node: Identifier, parent: Node): boolean => {
         if (node.name === 'postMessage') {
             // Skip: window.postMessage, postMessage.call
             if (parent.type === Syntax.MemberExpression)
@@ -55,13 +59,13 @@ export default {
                 return false;
 
             // Skip: postMessage++ || postMessage-- || ++postMessage || --postMessage
-            if (parent.type === Syntax.UpdateExpression && parent.operator === '++' || parent.operator === '--')
+            if (parent.type === Syntax.UpdateExpression && (parent.operator === '++' || parent.operator === '--'))
                 return false;
 
             // Skip already transformed: __get$PostMessage(postMessage) || __call$(obj, postMessage, args...);
-            if (parent.type === Syntax.CallExpression && (parent.callee.name === INSTRUCTION.getPostMessage ||
-                                                          parent.callee.name === INSTRUCTION.callMethod &&
-                                                          parent.arguments[1] === node))
+            if (parent.type === Syntax.CallExpression && parent.callee.type === Syntax.Identifier &&
+                (parent.callee.name === INSTRUCTION.getPostMessage ||
+                 parent.callee.name === INSTRUCTION.callMethod && parent.arguments[1] === node))
                 return false;
 
             // Skip: function x (...postMessage) {}
@@ -76,3 +80,5 @@ export default {
 
     run: createGetPostMessageMethCall
 };
+
+export default transformer;

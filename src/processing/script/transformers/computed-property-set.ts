@@ -2,7 +2,10 @@
 // WARNING: this file is used by both the client and the server.
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
-
+/*eslint-disable no-unused-vars*/
+import { AssignmentExpression, MemberExpression, Expression, CallExpression } from 'estree';
+import { Transformer } from './index';
+/*eslint-enable no-unused-vars*/
 import { createComputedPropertySetWrapper } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
 import { shouldInstrumentProperty } from '../instrumented';
@@ -11,12 +14,12 @@ import { shouldInstrumentProperty } from '../instrumented';
 // obj[prop] = value -->
 // __set$(object, prop, value)
 
-export default {
+const transformer: Transformer = {
     nodeReplacementRequireTransform: true,
 
-    nodeTypes: [Syntax.AssignmentExpression],
+    nodeTypes: Syntax.AssignmentExpression,
 
-    condition: node => {
+    condition: (node: AssignmentExpression): boolean => {
         const left = node.left;
 
         // super[prop] = value
@@ -29,5 +32,11 @@ export default {
         return false;
     },
 
-    run: node => createComputedPropertySetWrapper(node.left.property, node.left.object, node.right)
+    run: (node: AssignmentExpression): CallExpression => {
+        const memberExpression = <MemberExpression>node.left;
+
+        return createComputedPropertySetWrapper(memberExpression.property, <Expression>memberExpression.object, node.right);
+    }
 };
+
+export default transformer;

@@ -3,6 +3,10 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
+/*eslint-disable no-unused-vars*/
+import { Node, Identifier } from 'estree';
+import { Transformer } from './index';
+/*eslint-enable no-unused-vars*/
 import { createLocationGetWrapper } from '../node-builder';
 import INSTRUCTION from '../instruction';
 import { Syntax } from 'esotope-hammerhead';
@@ -11,12 +15,12 @@ import { Syntax } from 'esotope-hammerhead';
 // location -->
 // __get$Loc(location)
 
-export default {
+const transformer: Transformer = {
     nodeReplacementRequireTransform: false,
 
-    nodeTypes: [Syntax.Identifier],
+    nodeTypes: Syntax.Identifier,
 
-    condition: (node, parent) => {
+    condition: (node: Identifier, parent: Node): boolean => {
         if (node.name !== 'location')
             return false;
 
@@ -43,7 +47,7 @@ export default {
             return false;
 
         // Skip: location++ || location-- || ++location || --location
-        if (parent.type === Syntax.UpdateExpression && parent.operator === '++' || parent.operator === '--')
+        if (parent.type === Syntax.UpdateExpression && (parent.operator === '++' || parent.operator === '--'))
             return false;
 
         // Skip: function (location) { ... } || function func(location) { ... } || location => { ... }
@@ -52,7 +56,8 @@ export default {
             return false;
 
         // Skip already transformed: __get$Loc(location)
-        if (parent.type === Syntax.CallExpression && parent.callee.name === INSTRUCTION.getLocation)
+        if (parent.type === Syntax.CallExpression && parent.callee.type === Syntax.Identifier &&
+            parent.callee.name === INSTRUCTION.getLocation)
             return false;
 
         // Skip: class X { location () {} }
@@ -70,5 +75,7 @@ export default {
         return true;
     },
 
-    run: () => createLocationGetWrapper()
+    run: createLocationGetWrapper
 };
+
+export default transformer;

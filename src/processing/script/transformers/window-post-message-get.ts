@@ -3,6 +3,10 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
+/*eslint-disable no-unused-vars*/
+import { MemberExpression, Node } from 'estree';
+import { Transformer } from './index';
+/*eslint-enable no-unused-vars*/
 import INSTRUCTION from '../instruction';
 import { createGetPostMessageMethCall } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
@@ -12,12 +16,12 @@ import { Syntax } from 'esotope-hammerhead';
 // -->
 // const foo = _get$PostMessage(window.postMessage); foo = _get$PostMessage(window.postMessage); { _postMessage: _get$PostMessage(window.postMessage) }; return _get$PostMessage(window.postMessage);
 
-export default {
+const transformer: Transformer = {
     nodeReplacementRequireTransform: false,
 
-    nodeTypes: [Syntax.MemberExpression],
+    nodeTypes: Syntax.MemberExpression,
 
-    condition: (node, parent) => {
+    condition: (node: MemberExpression, parent: Node): boolean => {
         // Skip: window.postMessage.field
         if (parent.type === Syntax.MemberExpression && (parent.property === node || parent.object === node))
             return false;
@@ -31,7 +35,8 @@ export default {
             return false;
 
         // Skip already transformed: __get$PostMessage(window.postMessage), __get$PostMessage(window["postMessage"])
-        if (parent.type === Syntax.CallExpression && parent.callee.name === INSTRUCTION.getPostMessage)
+        if (parent.type === Syntax.CallExpression && parent.callee.type === Syntax.Identifier &&
+            parent.callee.name === INSTRUCTION.getPostMessage)
             return false;
 
         // window.postMessage
@@ -47,3 +52,5 @@ export default {
 
     run: createGetPostMessageMethCall
 };
+
+export default transformer;

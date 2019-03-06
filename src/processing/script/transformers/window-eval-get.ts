@@ -3,6 +3,10 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
+/*eslint-disable no-unused-vars*/
+import { MemberExpression, Node } from 'estree';
+import { Transformer } from './index';
+/*eslint-enable no-unused-vars*/
 import INSTRUCTION from '../instruction';
 import { createGetEvalMethCall } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
@@ -12,12 +16,12 @@ import { Syntax } from 'esotope-hammerhead';
 // -->
 // const foo = _get$Eval(window.eval); foo = _get$Eval(window.eval); { _eval: _get$Eval(window.eval) }; return _get$Eval(window.eval);
 
-export default {
+const transformer: Transformer = {
     nodeReplacementRequireTransform: false,
 
-    nodeTypes: [Syntax.MemberExpression],
+    nodeTypes: Syntax.MemberExpression,
 
-    condition: (node, parent) => {
+    condition: (node: MemberExpression, parent: Node): boolean => {
         // Skip: window.eval.field
         if (parent.type === Syntax.MemberExpression && (parent.property === node || parent.object === node))
             return false;
@@ -31,7 +35,8 @@ export default {
             return false;
 
         // Skip already transformed: __get$Eval(window.eval), __get$Eval(window["eval"])
-        if (parent.type === Syntax.CallExpression && parent.callee.name === INSTRUCTION.getEval)
+        if (parent.type === Syntax.CallExpression && parent.callee.type === Syntax.Identifier &&
+            parent.callee.name === INSTRUCTION.getEval)
             return false;
 
         // window.eval
@@ -47,3 +52,5 @@ export default {
 
     run: createGetEvalMethCall
 };
+
+export default transformer;

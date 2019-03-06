@@ -3,6 +3,10 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
+/*eslint-disable no-unused-vars*/
+import { Syntax } from 'esotope-hammerhead';
+import { Node } from 'estree';
+/*eslint-enable no-unused-vars*/
 import computedPropertyGetTransformer from './computed-property-get';
 import computedPropertySetTransformer from './computed-property-set';
 import concatOperatorTransformer from './concat-operator';
@@ -23,8 +27,14 @@ import propertySetTransformer from './property-set';
 import methodCallTransformer from './method-call';
 import jsProtocolLastExpression from './js-protocol-last-expression';
 
+export interface Transformer {
+    nodeReplacementRequireTransform: boolean;
+    nodeTypes: Syntax;
+    condition: (node: Node, parent?: Node) => boolean;
+    run: (node: Node, parent?: Node, key?: string) => Node;
+}
 
-const TRANSFORMERS = [
+const TRANSFORMERS: Array<Transformer> = [
     computedPropertyGetTransformer,
     computedPropertySetTransformer,
     concatOperatorTransformer,
@@ -46,22 +56,19 @@ const TRANSFORMERS = [
     jsProtocolLastExpression
 ];
 
+function createTransformerMap (): Map<Syntax, Array<Transformer>> {
+    const transformerMap: Map<Syntax, Array<Transformer>> = new Map();
 
-export default (function createTransformerMap () {
-    const transformerMap = {};
+    for (const transformer of TRANSFORMERS) {
+        const nodeType = transformer.nodeTypes;
 
-    for (let i = 0; i < TRANSFORMERS.length; i++) {
-        const transformer = TRANSFORMERS[i];
+        if (!transformerMap.has(nodeType))
+            transformerMap.set(nodeType, []);
 
-        for (let j = 0; j < transformer.nodeTypes.length; j++) {
-            const nodeType = transformer.nodeTypes[j];
-
-            if (!transformerMap[nodeType])
-                transformerMap[nodeType] = [];
-
-            transformerMap[nodeType].push(transformer);
-        }
+        transformerMap.get(nodeType).push(transformer);
     }
 
     return transformerMap;
-})();
+}
+
+export default createTransformerMap();

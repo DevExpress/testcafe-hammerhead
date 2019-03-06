@@ -3,6 +3,10 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
+/*eslint-disable no-unused-vars*/
+import { Identifier, Node } from 'estree';
+import { Transformer } from './index';
+/*eslint-enable no-unused-vars*/
 import INSTRUCTION from '../instruction';
 import { createGetEvalMethCall } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
@@ -12,12 +16,12 @@ import { Syntax } from 'esotope-hammerhead';
 // -->
 // const foo = _get$Eval(eval); foo = _get$Eval(eval); { _eval: _get$Eval(eval) }; return _get$Eval(eval);
 
-export default {
+const transformer: Transformer = {
     nodeReplacementRequireTransform: false,
 
-    nodeTypes: [Syntax.Identifier],
+    nodeTypes: Syntax.Identifier,
 
-    condition: (node, parent) => {
+    condition: (node: Identifier, parent: Node): boolean => {
         if (node.name === 'eval') {
             // Skip: eval()
             if (parent.type === Syntax.CallExpression && parent.callee === node)
@@ -59,12 +63,12 @@ export default {
                 return false;
 
             // Skip: eval++ || eval-- || ++eval || --eval
-            if (parent.type === Syntax.UpdateExpression && parent.operator === '++' ||
-                parent.operator === '--')
+            if (parent.type === Syntax.UpdateExpression && (parent.operator === '++' || parent.operator === '--'))
                 return false;
 
             // Skip already transformed: __get$Eval(eval)
-            if (parent.type === Syntax.CallExpression && parent.callee.name === INSTRUCTION.getEval)
+            if (parent.type === Syntax.CallExpression && parent.callee.type === Syntax.Identifier &&
+                parent.callee.name === INSTRUCTION.getEval)
                 return false;
 
             // Skip: function x (...eval) {}
@@ -79,3 +83,5 @@ export default {
 
     run: createGetEvalMethCall
 };
+
+export default transformer;

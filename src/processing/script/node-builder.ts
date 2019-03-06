@@ -2,12 +2,15 @@
 // WARNING: this file is used by both the client and the server.
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
-
+/*eslint-disable no-unused-vars*/
+import { Literal, Identifier, ExpressionStatement, BlockStatement, Expression, CallExpression,
+    AssignmentExpression, MemberExpression, SpreadElement, VariableDeclaration, Statement } from 'estree';
+/*eslint-enable no-unused-vars*/
 import { Syntax } from 'esotope-hammerhead';
 import INTERNAL_LITERAL from './internal-literal';
 import INSTRUCTION from './instruction';
 
-export function createStringLiteral (value) {
+export function createStringLiteral (value: string): Literal {
     return {
         type:  Syntax.Literal,
         value: value,
@@ -15,14 +18,14 @@ export function createStringLiteral (value) {
     };
 }
 
-export function createTempVarIdentifier () {
+export function createTempVarIdentifier (): Identifier {
     return {
         type: Syntax.Identifier,
         name: INTERNAL_LITERAL.tempVar
     };
 }
 
-export function createAssignmentExprStmt (left, right) {
+export function createAssignmentExprStmt (left: MemberExpression, right: Identifier): ExpressionStatement {
     return {
         type: Syntax.ExpressionStatement,
 
@@ -35,14 +38,14 @@ export function createAssignmentExprStmt (left, right) {
     };
 }
 
-export function createBlockExprStmt (children) {
+export function createBlockExprStmt (children: Array<Statement>): BlockStatement {
     return {
         type: Syntax.BlockStatement,
         body: children
     };
 }
 
-export function createVarDeclaration (identifier: any, init?: any) {
+export function createVarDeclaration (identifier: Identifier, init?: Expression): VariableDeclaration {
     return {
         type: Syntax.VariableDeclaration,
 
@@ -58,8 +61,18 @@ export function createVarDeclaration (identifier: any, init?: any) {
     };
 }
 
-export function createProcessScriptMethCall (arg, isApply?: boolean) {
-    const ast = {
+export function createProcessScriptMethCall (arg: Expression | SpreadElement, isApply?: boolean): CallExpression {
+    const args: Array<Expression | SpreadElement> = [arg];
+
+    if (isApply) {
+        args.push({
+            type:  Syntax.Literal,
+            value: true,
+            raw:   'true'
+        });
+    }
+
+    return {
         type: Syntax.CallExpression,
 
         callee: {
@@ -67,21 +80,11 @@ export function createProcessScriptMethCall (arg, isApply?: boolean) {
             name: INSTRUCTION.processScript
         },
 
-        arguments: [arg]
+        arguments: args
     };
-
-    if (isApply) {
-        ast.arguments.push({
-            type:  Syntax.Literal,
-            value: true,
-            raw:   'true'
-        });
-    }
-
-    return ast;
 }
 
-export function createLocationGetWrapper () {
+export function createLocationGetWrapper (): CallExpression {
     return {
         type: Syntax.CallExpression,
 
@@ -99,14 +102,14 @@ export function createLocationGetWrapper () {
     };
 }
 
-export function createLocationSetWrapper (value, wrapWithSequence) {
-    const tempIdentifier = createTempVarIdentifier();
-    const locationIdentifier = {
+export function createLocationSetWrapper (value: Expression, wrapWithSequence: boolean): Expression {
+    const tempIdentifier     = createTempVarIdentifier();
+    const locationIdentifier = <Identifier>{
         type: Syntax.Identifier,
         name: 'location'
     };
 
-    let wrapper: any = {
+    let wrapper: Expression = {
         type: Syntax.CallExpression,
 
         callee: {
@@ -114,10 +117,9 @@ export function createLocationSetWrapper (value, wrapWithSequence) {
             computed: false,
 
             object: {
-                type:     Syntax.FunctionExpression,
-                id:       null,
-                params:   [],
-                defaults: [],
+                type:   Syntax.FunctionExpression,
+                id:     null,
+                params: [],
 
                 body: {
                     type: Syntax.BlockStatement,
@@ -152,9 +154,7 @@ export function createLocationSetWrapper (value, wrapWithSequence) {
                     ]
                 },
 
-                rest:       null,
-                generator:  false,
-                expression: false
+                generator: false
             },
 
             property: {
@@ -188,7 +188,7 @@ export function createLocationSetWrapper (value, wrapWithSequence) {
     return wrapper;
 }
 
-export function createPropertySetWrapper (propertyName, obj, value) {
+export function createPropertySetWrapper (propertyName: string, obj: Expression, value: Expression): CallExpression {
     return {
         type: Syntax.CallExpression,
 
@@ -197,15 +197,11 @@ export function createPropertySetWrapper (propertyName, obj, value) {
             name: INSTRUCTION.setProperty
         },
 
-        arguments: [
-            obj,
-            createStringLiteral(propertyName),
-            value
-        ]
+        arguments: [obj, createStringLiteral(propertyName), value]
     };
 }
 
-export function createMethCallWrapper (owner, meth, args) {
+export function createMethCallWrapper (owner: Expression, meth: Literal, args: Array<Expression | SpreadElement>): CallExpression {
     return {
         type: Syntax.CallExpression,
 
@@ -214,18 +210,14 @@ export function createMethCallWrapper (owner, meth, args) {
             name: INSTRUCTION.callMethod
         },
 
-        arguments: [
-            owner,
-            meth,
-            {
-                type:     Syntax.ArrayExpression,
-                elements: args
-            }
-        ]
+        arguments: [owner, meth, {
+            type:     Syntax.ArrayExpression,
+            elements: args
+        }]
     };
 }
 
-export function createPropertyGetWrapper (propertyName, owner) {
+export function createPropertyGetWrapper (propertyName: string, owner: Expression): CallExpression {
     return {
         type: Syntax.CallExpression,
 
@@ -234,14 +226,11 @@ export function createPropertyGetWrapper (propertyName, owner) {
             name: INSTRUCTION.getProperty
         },
 
-        arguments: [
-            owner,
-            createStringLiteral(propertyName)
-        ]
+        arguments: [owner, createStringLiteral(propertyName)]
     };
 }
 
-export function createComputedPropertyGetWrapper (property, owner) {
+export function createComputedPropertyGetWrapper (property: Expression, owner: Expression): CallExpression {
     return {
         type: Syntax.CallExpression,
 
@@ -250,14 +239,11 @@ export function createComputedPropertyGetWrapper (property, owner) {
             name: INSTRUCTION.getProperty
         },
 
-        arguments: [
-            owner,
-            property
-        ]
+        arguments: [owner, property]
     };
 }
 
-export function createComputedPropertySetWrapper (property, owner, value) {
+export function createComputedPropertySetWrapper (property: Expression, owner: Expression, value: Expression): CallExpression {
     return {
         type: Syntax.CallExpression,
 
@@ -266,15 +252,11 @@ export function createComputedPropertySetWrapper (property, owner, value) {
             name: INSTRUCTION.setProperty
         },
 
-        arguments: [
-            owner,
-            property,
-            value
-        ]
+        arguments: [owner, property, value]
     };
 }
 
-export function createGetEvalMethCall (node) {
+export function createGetEvalMethCall (node: Expression): CallExpression {
     return {
         type: Syntax.CallExpression,
 
@@ -283,14 +265,12 @@ export function createGetEvalMethCall (node) {
             name: INSTRUCTION.getEval
         },
 
-        arguments: [
-            node
-        ]
+        arguments: [node]
     };
 }
 
-export function createGetPostMessageMethCall (node) {
-    const parentObject = node.object;
+export function createGetPostMessageMethCall (node: Expression): CallExpression {
+    const parentObject = node.type === Syntax.MemberExpression ? <Expression>node.object : null;
 
     return {
         type: Syntax.CallExpression,
@@ -310,7 +290,7 @@ export function createGetPostMessageMethCall (node) {
     };
 }
 
-export function createExpandedConcatOperation (left, right) {
+export function createExpandedConcatOperation (left: Identifier | MemberExpression, right: Expression): AssignmentExpression {
     return {
         type:     Syntax.AssignmentExpression,
         operator: '=',
@@ -325,26 +305,28 @@ export function createExpandedConcatOperation (left, right) {
     };
 }
 
-export function createHtmlProcessorWrapper (node) {
+export function createHtmlProcessorWrapper (node: ExpressionStatement): Statement {
+    const member = <MemberExpression>{
+        type: Syntax.MemberExpression,
+
+        object: {
+            type: Syntax.Identifier,
+            name: 'parent'
+        },
+
+        property: {
+            type: Syntax.Identifier,
+            name: INSTRUCTION.processHtml
+        }
+    };
+
     return {
         type: Syntax.ExpressionStatement,
 
         expression: {
             type: Syntax.CallExpression,
 
-            callee: {
-                type: Syntax.MemberExpression,
-
-                object: {
-                    type: Syntax.Identifier,
-                    name: 'parent'
-                },
-
-                property: {
-                    type: Syntax.Identifier,
-                    name: INSTRUCTION.processHtml
-                }
-            },
+            callee: member,
 
             arguments: [
                 {
