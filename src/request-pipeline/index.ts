@@ -2,7 +2,7 @@
 import net from 'net';
 import http from 'http';
 import Session from '../session';
-import { ServerInfo } from '../proxy';
+import { ServerInfo } from '../typings/proxy';
 /*eslint-enable no-unused-vars*/
 import RequestPipelineContext from './context';
 import { process as processResource } from '../processing/resources';
@@ -17,8 +17,8 @@ import RequestEventNames from '../session/events/names';
 import ConfigureResponseEvent from '../session/events/configure-response-event';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
 import { noop } from 'lodash';
+import RequestOptions from './request-options';
 import {
-    ReqOpts,
     sendRequest,
     error,
     callResponseEventCallbackForProcessedRequest,
@@ -64,7 +64,7 @@ const stages = [
             return;
         }
 
-        ctx.reqOpts = new ReqOpts(ctx);
+        ctx.reqOpts = new RequestOptions(ctx);
 
         if (ctx.session.hasRequestEventListeners()) {
             const requestInfo = new RequestInfo(ctx, ctx.reqOpts);

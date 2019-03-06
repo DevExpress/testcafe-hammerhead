@@ -4,6 +4,9 @@
 // -------------------------------------------------------------
 
 import trim from './string-trim';
+/*eslint-disable no-unused-vars*/
+import { CookieRecord, ParsedClientSyncCookie } from '../typings/cookie';
+/*eslint-enable no-unused-vars*/
 
 const TIME_RADIX: number                            = 36;
 const CLEAR_COOKIE_VALUE_STR: string                = '=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT';
@@ -17,25 +20,6 @@ export const SYNCHRONIZATION_TYPE = {
 };
 
 const SYNCHRONIZATION_TYPE_RE = new RegExp(`^[${SYNCHRONIZATION_TYPE.server}${SYNCHRONIZATION_TYPE.client}${SYNCHRONIZATION_TYPE.window}]+`);
-
-interface CookieRecord {
-    sid: string;
-    key: string;
-    domain: string;
-    path: string;
-    lastAccessed: Date;
-    syncKey?: string;
-    cookieStr?: string;
-    value?: string;
-    isServerSync?: boolean;
-    isClientSync?: boolean;
-    isWindowSync?: boolean;
-}
-
-export interface ParsedClientSyncCookie {
-    outdated: Array<CookieRecord>;
-    actual: Array<CookieRecord>;
-}
 
 function isSameCookies (cookie1: CookieRecord, cookie2: CookieRecord) {
     return cookie1.sid === cookie2.sid &&

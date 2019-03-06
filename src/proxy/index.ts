@@ -1,7 +1,9 @@
 /*eslint-disable no-unused-vars*/
 import net from 'net';
-import Session, { ExternalProxySettingsRaw } from '../session';
-import Router, { StaticContent } from './router';
+import Session from '../session';
+import { ExternalProxySettingsRaw } from '../typings/session';
+import Router from './router';
+import { StaticContent, ServiceMessage, ServerInfo } from '../typings/proxy';
 /*eslint-enable no-unused-vars*/
 import http from 'http';
 import https from 'https';
@@ -13,19 +15,6 @@ import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
 import { resetKeepAliveConnections } from '../request-pipeline/destination-request/agent';
 
 const SESSION_IS_NOT_OPENED_ERR: string = 'Session is not opened in proxy';
-
-export interface ServerInfo {
-    hostname: string,
-    port: string,
-    crossDomainPort: string,
-    protocol: string,
-    domain: string
-}
-
-export interface ServiceMessage {
-    sessionId: string,
-    [propName: string]: any;
-}
 
 function parseAsJson (msg: Buffer): ServiceMessage | null {
     try {

@@ -4,6 +4,9 @@
 // -------------------------------------------------------------
 
 import trim from './string-trim';
+/*eslint-disable no-unused-vars*/
+import { ParsedUrl, ResourceType, RequestDescriptor, ParsedProxyUrl } from '../typings/url';
+/*eslint-enable no-unused-vars*/
 
 const PROTOCOL_RE: RegExp        = /^([\w-]+?:)(\/\/|[^\\/]|$)/;
 const LEADING_SLASHES_RE: RegExp = /^(\/\/)/;
@@ -22,46 +25,6 @@ export const SPECIAL_PAGES: Array<string>                = ['about:blank', 'abou
 
 export const HTTP_DEFAULT_PORT: string  = '80';
 export const HTTPS_DEFAULT_PORT: string = '443';
-
-interface ResourceType {
-    isIframe: boolean;
-    isForm?: boolean;
-    isScript?: boolean;
-    isEventSource?: boolean;
-    isHtmlImport?: boolean;
-    isWebSocket?: boolean;
-}
-
-interface ParsedUrl {
-    protocol: string;
-    host: string;
-    hostname: string;
-    port: string;
-    partAfterHost?: string;
-    username?: string;
-    password?: string;
-}
-
-interface RequestDescriptor {
-    sessionId: string;
-    resourceType: string;
-    charset?: string;
-    reqOrigin?: string;
-}
-
-export interface ParsedProxyUrl {
-    destUrl: string;
-    destResourceInfo: ParsedUrl;
-    partAfterHost: string;
-    sessionId: string;
-    resourceType: string;
-    charset?: string;
-    reqOrigin?: string;
-    proxy: {
-        hostname: string;
-        port: string;
-    };
-}
 
 export function parseResourceType (resourceType: string): ResourceType {
     if (!resourceType) {

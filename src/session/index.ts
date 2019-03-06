@@ -1,5 +1,6 @@
 /*eslint-disable no-unused-vars*/
-import Proxy, { ServerInfo, ServiceMessage } from '../proxy';
+import Proxy from '../proxy';
+import { ServerInfo, ServiceMessage } from '../typings/proxy';
 import RequestPipelineContext from '../request-pipeline/context';
 import RequestFilterRule from '../request-pipeline/request-hooks/request-filter-rule';
 import ResponseMock from '../request-pipeline/request-hooks/response-mock';
@@ -8,6 +9,7 @@ import { RequestInfo } from './events/info';
 import RequestEvent from './events/request-event';
 import ResponseEvent from './events/response-event';
 import ConfigureResponseEvent from './events/configure-response-event';
+import { StoragesSnapshot, Credentials, ExternalProxySettings, ExternalProxySettingsRaw } from '../typings/session';
 /*eslint-enable no-unused-vars*/
 import mustache from 'mustache';
 import { readSync as read } from 'read-file-relative';
@@ -25,41 +27,15 @@ interface InjectableResources {
     styles: Array<string>
 }
 
-export interface StoragesSnapshot {
-    localStorage: string;
-    sessionStorage: string;
-}
-
 interface StateSnapshot {
     cookies: string | null,
     storages: StoragesSnapshot | null
-}
-
-export interface ExternalProxySettingsRaw {
-    url: string,
-    bypassRules?: Array<string>
-}
-
-export interface ExternalProxySettings {
-    host: string,
-    hostname: string,
-    bypassRules?: Array<string>,
-    port?: string,
-    proxyAuth?: string,
-    authHeader?: string
 }
 
 interface RequestEventListeners {
     [RequestEventNames.onRequest]: Function,
     [RequestEventNames.onConfigureResponse]: Function,
     [RequestEventNames.onResponse]: Function
-}
-
-export interface Credentials {
-    username: string,
-    password: string,
-    domain?: string,
-    workstation?: string
 }
 
 interface TaskScriptTemplateOpts {
