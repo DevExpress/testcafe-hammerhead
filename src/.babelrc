@@ -7,7 +7,8 @@
       "exclude": [
         "@babel/plugin-transform-regenerator"
       ]
-    }]
+    }],
+    "@babel/preset-typescript"
   ],
   "plugins": [
     "babel-plugin-add-module-exports",

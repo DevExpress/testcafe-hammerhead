@@ -112,7 +112,15 @@ gulp.task('clean', () => {
 gulp.step('client-scripts-transpile', () => {
     const tsConfig = gulpTypeScript.createProject('tsconfig.json');
 
-    return gulp.src(['./src/client/**/*.ts'])
+    const sharedScripts = [
+        './src/processing/**/*.ts',
+        './src/shadow-ui/*.ts',
+        './src/typings/*.ts',
+        './src/upload/*.ts',
+        './src/utils/*.ts'
+    ];
+
+    return gulp.src(['./src/client/**/*.ts'].concat(sharedScripts))
         .pipe(tsConfig())
         .pipe(gulp.dest(file => file.base));
 });
@@ -158,19 +166,13 @@ gulp.step('client-scripts-processing', () => {
 gulp.step('client-scripts', gulp.series('client-scripts-transpile', 'client-scripts-bundle', 'client-scripts-processing'));
 
 gulp.step('server-scripts', () => {
-    const tsConfig = gulpTypeScript.createProject('tsconfig.json');
-
-    const serverAndSharedScripts = gulp
+    return gulp
         .src([
             './src/**/*.ts',
             '!src/client/**/*.ts'
         ])
-        .pipe(tsConfig());
-
-    const toLib   = serverAndSharedScripts.pipe(clone()).pipe(gulpBabel()).pipe(gulp.dest('lib'));
-    const inPlace = serverAndSharedScripts.pipe(gulp.dest(file => file.base));
-
-    return mergeStreams(toLib, inPlace);
+        .pipe(gulpBabel())
+        .pipe(gulp.dest('lib'));
 });
 
 gulp.step('templates', () => {
