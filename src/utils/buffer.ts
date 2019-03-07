@@ -44,7 +44,7 @@ export function startsWith (buffer: Buffer, searchBuffer: Buffer) {
     return true;
 }
 
-export function toReadableStream (buffer) {
+export function toReadableStream (buffer: Buffer) {
     const stream = new Readable();
 
     stream.push(buffer);

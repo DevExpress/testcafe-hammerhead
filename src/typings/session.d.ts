@@ -2,6 +2,11 @@
 import { ReadStream } from 'fs';
 /*eslint-enable no-unused-vars*/
 
+export interface WindowCredentials {
+    domain?: string,
+    workstation?: string
+}
+
 export interface Credentials {
     username: string,
     password: string,
@@ -33,3 +38,4 @@ export interface FileStream extends ReadStream {
     trailers: object;
     headers: { [name: string]: string };
 }
+

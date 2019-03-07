@@ -1,6 +1,8 @@
 /*eslint-disable no-unused-vars*/
 import http from 'http';
 import { FileStream } from '../typings/session';
+import RequestPipelineContext from './context';
+import RequestFilterRule from './request-hooks/request-filter-rule';
 /*eslint-enable no-unused-vars*/
 import FileRequest from './file-request';
 import DestinationRequest from './destination-request';
@@ -14,9 +16,9 @@ import ConfigureResponseEventOptions from '../session/events/configure-response-
 import { toReadableStream } from '../utils/buffer';
 import { PassThrough } from 'stream';
 
-export function sendRequest (ctx) {
+export function sendRequest (ctx: RequestPipelineContext) {
     return new Promise(resolve => {
-        const req = ctx.isFileProtocol ? new FileRequest(ctx.reqOpts) : new DestinationRequest(ctx.reqOpts);
+        const req = ctx.isFileProtocol ? new FileRequest(ctx.reqOpts.url) : new DestinationRequest(ctx.reqOpts);
 
         ctx.goToNextStage = false;
 
@@ -49,7 +51,7 @@ export function sendRequest (ctx) {
     });
 }
 
-export function error (ctx, err) {
+export function error (ctx: RequestPipelineContext, err: string) {
     if (ctx.isPage && !ctx.isIframe)
         ctx.session.handlePageError(ctx, err);
     else if (ctx.isFetch || ctx.isXhr)
@@ -58,7 +60,7 @@ export function error (ctx, err) {
         ctx.closeWithError(500, err.toString());
 }
 
-export async function callResponseEventCallbackForProcessedRequest (ctx, configureResponseEvent) {
+export async function callResponseEventCallbackForProcessedRequest (ctx: RequestPipelineContext, configureResponseEvent) {
     const responseInfo         = new ResponseInfo(ctx);
     const preparedResponseInfo = new PreparedResponseInfo(responseInfo, configureResponseEvent.opts);
     const responseEvent        = new ResponseEvent(configureResponseEvent._requestFilterRule, preparedResponseInfo);
@@ -66,13 +68,13 @@ export async function callResponseEventCallbackForProcessedRequest (ctx, configu
     await ctx.session.callRequestEventCallback(RequestEventNames.onResponse, configureResponseEvent._requestFilterRule, responseEvent);
 }
 
-export async function callOnRequestEventCallback (ctx, rule, reqInfo) {
+export async function callOnRequestEventCallback (ctx: RequestPipelineContext, rule: RequestFilterRule, reqInfo) {
     const requestEvent = new RequestEvent(ctx, rule, reqInfo);
 
     await ctx.session.callRequestEventCallback(RequestEventNames.onRequest, rule, requestEvent);
 }
 
-export async function callOnResponseEventCallbackForFailedSameOriginCheck (ctx, rule, configureOpts) {
+export async function callOnResponseEventCallbackForFailedSameOriginCheck (ctx: RequestPipelineContext, rule: RequestFilterRule, configureOpts) {
     const responseInfo         = new ResponseInfo(ctx);
     const preparedResponseInfo = new PreparedResponseInfo(responseInfo, configureOpts);
     const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
@@ -80,7 +82,7 @@ export async function callOnResponseEventCallbackForFailedSameOriginCheck (ctx, 
     await ctx.session.callRequestEventCallback(RequestEventNames.onResponse, rule, responseEvent);
 }
 
-export async function callOnConfigureResponseEventForNonProcessedRequest (ctx) {
+export async function callOnConfigureResponseEventForNonProcessedRequest (ctx: RequestPipelineContext) {
     await ctx.forEachRequestFilterRule(async rule => {
         const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
 
@@ -90,7 +92,7 @@ export async function callOnConfigureResponseEventForNonProcessedRequest (ctx) {
     });
 }
 
-export async function callOnResponseEventCallbackWithBodyForNonProcessedRequest (ctx, onResponseEventDataWithBody) {
+export async function callOnResponseEventCallbackWithBodyForNonProcessedRequest (ctx: RequestPipelineContext, onResponseEventDataWithBody) {
     const destResBodyCollectorStream = new PassThrough();
 
     ctx.destRes.pipe(destResBodyCollectorStream);
@@ -111,7 +113,7 @@ export async function callOnResponseEventCallbackWithBodyForNonProcessedRequest 
     });
 }
 
-export async function callOnResponseEventCallbackWithoutBodyForNonProcessedResource (ctx, onResponseEventDataWithoutBody) {
+export async function callOnResponseEventCallbackWithoutBodyForNonProcessedResource (ctx: RequestPipelineContext, onResponseEventDataWithoutBody) {
     const responseInfo = new ResponseInfo(ctx);
 
     await Promise.all(onResponseEventDataWithoutBody.map(async item => {
@@ -124,7 +126,7 @@ export async function callOnResponseEventCallbackWithoutBodyForNonProcessedResou
     ctx.destRes.pipe(ctx.res);
 }
 
-export async function callOnResponseEventCallbackForMotModifiedResource (ctx) {
+export async function callOnResponseEventCallbackForMotModifiedResource (ctx: RequestPipelineContext) {
     const responseInfo = new ResponseInfo(ctx);
 
     await Promise.all(ctx.onResponseEventData.map(async item => {

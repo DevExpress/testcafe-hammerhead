@@ -15,6 +15,6 @@ export const access         = promisify(fs.access);
 export const readDir        = promisify(fs.readdir);
 export const makeDir        = promisify(fs.mkdir);
 export const writeFile      = promisify(fs.writeFile);
-export const fsObjectExists = fsPath => stat(fsPath).then(() => true, () => false);
+export const fsObjectExists = (fsPath: string) => stat(fsPath).then(() => true, () => false);
 
 export const exec = promisify(childProcess.exec);

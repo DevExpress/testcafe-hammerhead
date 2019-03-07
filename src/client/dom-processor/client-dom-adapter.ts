@@ -42,7 +42,7 @@ export default class ClientDomAdapter extends BaseDomAdapter {
         return false;
     }
 
-    getTagName (el): string {
+    getTagName (el: HTMLElement): string {
         return domUtils.getTagName(el);
     }
 
@@ -76,7 +76,9 @@ export default class ClientDomAdapter extends BaseDomAdapter {
 
     hasIframeParent (el: HTMLElement): boolean {
         try {
+            // @ts-ignore
             if (el[INTERNAL_PROPS.processedContext])
+                // @ts-ignore
                 return window.top !== el[INTERNAL_PROPS.processedContext];
 
             return window.top.document !== domUtils.findDocument(el);
@@ -89,9 +91,9 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     attachEventEmitter (domProcessor): void {
         const eventEmitter = new EventEmitter();
 
-        domProcessor.on   = (evt, listener) => eventEmitter.on(evt, listener);
-        domProcessor.off  = (evt, listener) => eventEmitter.off(evt, listener);
-        domProcessor.emit = (...args) => fastApply(eventEmitter, 'emit', args);
+        domProcessor.on   = (evt, listener: Function) => eventEmitter.on(evt, listener);
+        domProcessor.off  = (evt, listener: Function) => eventEmitter.off(evt, listener);
+        domProcessor.emit = (...args: any) => fastApply(eventEmitter, 'emit', args);
     }
 
     getCrossDomainPort (): string {
@@ -103,6 +105,7 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     }
 
     isTopParentIframe (el: HTMLElement): boolean {
+        // @ts-ignore
         const elWindow = el[INTERNAL_PROPS.processedContext];
 
         return elWindow && window.top === elWindow.parent;

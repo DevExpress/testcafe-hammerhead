@@ -1,5 +1,5 @@
 /*eslint-disable no-unused-vars*/
-import stream from 'stream';
+import { Readable } from 'stream';
 /*eslint-enable no-unused-vars*/
 import { defaultsDeep as defaultOptions } from 'lodash';
 import promisifyStream from '../utils/promisify-stream';
@@ -24,7 +24,7 @@ export function respond404 (res: any) {
     res.end();
 }
 
-export function respond500 (res: any, err) {
+export function respond500 (res: any, err: string) {
     res.statusCode = 500;
     res.end(err || '');
 }
@@ -55,6 +55,6 @@ export function respondStatic (req: any, res: any, resource: any, cachingOptions
     }
 }
 
-export function fetchBody (r: stream.Readable): Promise<Buffer> {
+export function fetchBody (r: Readable): Promise<Buffer> {
     return promisifyStream(r);
 }

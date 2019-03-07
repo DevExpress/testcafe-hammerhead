@@ -5,7 +5,7 @@
 
 import trim from './string-trim';
 /*eslint-disable no-unused-vars*/
-import { ParsedUrl, ResourceType, RequestDescriptor, ParsedProxyUrl } from '../typings/url';
+import { ParsedUrl, ResourceType, RequestDescriptor, ParsedProxyUrl, ProxyUrlOptions } from '../typings/url';
 /*eslint-enable no-unused-vars*/
 
 const PROTOCOL_RE: RegExp        = /^([\w-]+?:)(\/\/|[^\\/]|$)/;
@@ -120,7 +120,7 @@ export function getURLString (url: string): string {
     return String(url).replace(/\n|\t/g, '');
 }
 
-export function getProxyUrl (url: string, opts) {
+export function getProxyUrl (url: string, opts: ProxyUrlOptions) {
     let params: any = [opts.sessionId];
 
     if (opts.resourceType)
@@ -149,7 +149,7 @@ export function getDomain (parsed: ParsedUrl) {
     });
 }
 
-function parseRequestDescriptor (desc: string): RequestDescriptor {
+function parseRequestDescriptor (desc: string): RequestDescriptor | null {
     const params = desc.split(REQUEST_DESCRIPTOR_VALUES_SEPARATOR);
 
     if (!params.length)
@@ -172,7 +172,7 @@ function parseRequestDescriptor (desc: string): RequestDescriptor {
     return parsedDesc;
 }
 
-export function parseProxyUrl (proxyUrl: string): ParsedProxyUrl {
+export function parseProxyUrl (proxyUrl: string): ParsedProxyUrl | null {
     // TODO: Remove it.
     const parsedUrl = parseUrl(proxyUrl);
 
@@ -287,7 +287,7 @@ export function isSupportedProtocol (url: string): boolean {
     return SUPPORTED_PROTOCOL_RE.test(protocol[0]);
 }
 
-export function resolveUrlAsDest (url: string, getProxyUrlMeth) {
+export function resolveUrlAsDest (url: string, getProxyUrlMeth: Function) {
     getProxyUrlMeth = getProxyUrlMeth || getProxyUrl;
 
     if (isSupportedProtocol(url)) {
@@ -300,9 +300,10 @@ export function resolveUrlAsDest (url: string, getProxyUrlMeth) {
     return url;
 }
 
-export function formatUrl (parsedUrl: ParsedUrl): string | undefined {
+export function formatUrl (parsedUrl: ParsedUrl): string {
     // NOTE: the URL is relative.
     if (parsedUrl.protocol !== 'file:' && !parsedUrl.host && (!parsedUrl.hostname || !parsedUrl.port))
+        //@ts-ignore
         return parsedUrl.partAfterHost;
 
     let url = parsedUrl.protocol || '';
