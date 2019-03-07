@@ -1,6 +1,9 @@
 import zlib from 'zlib';
 import { gzip, deflate, gunzip, inflate, inflateRaw } from '../../utils/promisified-functions';
 import charsetEncoder from 'iconv-lite';
+/*eslint-disable no-unused-vars*/
+import Charset from './charset';
+/*eslint-enable no-unused-vars*/
 
 const GZIP_CONTENT_ENCODING: string    = 'gzip';
 const DEFLATE_CONTENT_ENCODING: string = 'deflate';
@@ -20,7 +23,7 @@ async function inflateWithFallback (data: Buffer) {
     }
 }
 
-export async function decodeContent (content, encoding, charset) {
+export async function decodeContent (content: Buffer, encoding: string, charset: Charset) {
     if (encoding === GZIP_CONTENT_ENCODING) {
         // NOTE: https://github.com/request/request/pull/2492/files
         // Be more lenient with decoding compressed responses, since (very rarely)
@@ -42,7 +45,7 @@ export async function decodeContent (content, encoding, charset) {
     return charsetEncoder.decode(content, charset.get());
 }
 
-export async function encodeContent (content, encoding, charset) {
+export async function encodeContent (content: Buffer, encoding: string, charset: Charset) {
     content = charsetEncoder.encode(content, charset.get(), { addBOM: charset.isFromBOM() });
 
     if (encoding === GZIP_CONTENT_ENCODING)

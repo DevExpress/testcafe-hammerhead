@@ -1,6 +1,6 @@
 import FormData from './form-data';
 
-export function inject (contentTypeHeader, body): Buffer {
+export function inject (contentTypeHeader: string, body): Buffer | null {
     const formData = new FormData();
 
     formData.parseContentTypeHeader(contentTypeHeader);

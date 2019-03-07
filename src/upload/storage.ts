@@ -1,3 +1,4 @@
+// @ts-ignore
 import mime from 'mime';
 import path from 'path';
 import { format } from 'util';
@@ -29,7 +30,7 @@ export default class UploadStorage {
         return { filesToCopy, errs };
     }
 
-    static _generateName (existingNames, fileName) {
+    static _generateName (existingNames: Array<string>, fileName: string) {
         const extName  = path.extname(fileName);
         const template = path.basename(fileName, extName) + ' %s' + extName;
         let index      = 0;
@@ -40,7 +41,7 @@ export default class UploadStorage {
         return fileName;
     }
 
-    static async _getExistingFiles (uploadsRoot) {
+    static async _getExistingFiles (uploadsRoot: string) {
         try {
             return await readDir(uploadsRoot);
         }
@@ -49,7 +50,7 @@ export default class UploadStorage {
         }
     }
 
-    async store (fileNames, data) {
+    async store (fileNames: Array<string>, data) {
         const storedFiles = [];
         const err         = await UploadStorage.ensureUploadsRoot(this.uploadsRoot);
 
@@ -76,7 +77,7 @@ export default class UploadStorage {
         return storedFiles;
     }
 
-    async get (filePathList) {
+    async get (filePathList: Array<string>) {
         const result = [];
 
         for (const filePath of filePathList) {
@@ -103,7 +104,7 @@ export default class UploadStorage {
         return result;
     }
 
-    static async copy (uploadsRoot, files) {
+    static async copy (uploadsRoot: string, files) {
         const { filesToCopy, errs } = await UploadStorage._getFilesToCopy(files);
         const copiedFiles           = [];
 
@@ -130,7 +131,7 @@ export default class UploadStorage {
         return { copiedFiles, errs };
     }
 
-    static async ensureUploadsRoot (uploadsRoot) {
+    static async ensureUploadsRoot (uploadsRoot: string) {
         try {
             if (!await fsObjectExists(uploadsRoot))
                 await makeDir(uploadsRoot);

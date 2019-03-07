@@ -3,7 +3,7 @@ import { exec } from '../../utils/promisified-functions';
 import { WindowCredentials } from '../../typings/session';
 /*eslint-enable no-unused-vars*/
 
-let cached: WindowCredentials = {};
+let cached: WindowCredentials | null = null;
 
 async function queryOSForCredential (cmd: string): Promise<string> {
     try {
