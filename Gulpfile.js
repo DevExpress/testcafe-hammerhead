@@ -114,6 +114,7 @@ gulp.step('client-scripts-transpile', () => {
 
     const sharedScripts = [
         './src/processing/**/*.ts',
+        './src/request-pipeline/xhr/*.ts',
         './src/shadow-ui/*.ts',
         './src/typings/*.ts',
         './src/upload/*.ts',
