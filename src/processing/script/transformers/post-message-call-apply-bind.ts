@@ -3,6 +3,10 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
+/*eslint-disable no-unused-vars*/
+import { CallExpression, Expression, MemberExpression } from 'estree';
+import { Transformer } from './index';
+/*eslint-enable no-unused-vars*/
 import { createGetPostMessageMethCall } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
 import replaceNode from './replace-node';
@@ -17,13 +21,14 @@ const INVOCATION_FUNC_NAME_RE = /^(call|apply|bind)$/;
 // __get$PostMessage(postMessage).apply(ctx, script);
 // __get$PostMessage(postMessage).bind(...);
 
-export default {
+const transformer: Transformer = {
     nodeReplacementRequireTransform: false,
 
-    nodeTypes: [Syntax.CallExpression],
+    nodeTypes: Syntax.CallExpression,
 
-    condition: node => {
-        if (node.callee.type === Syntax.MemberExpression && INVOCATION_FUNC_NAME_RE.test(node.callee.property.name)) {
+    condition: (node: CallExpression): boolean => {
+        if (node.callee.type === Syntax.MemberExpression && node.callee.property.type === Syntax.Identifier &&
+            INVOCATION_FUNC_NAME_RE.test(node.callee.property.name)) {
             // postMessage.<call|apply>(ctx, script, ...)
             if (node.arguments.length < 2 && node.callee.property.name !== 'bind')
                 return false;
@@ -31,22 +36,27 @@ export default {
             const obj = node.callee.object;
 
             // obj.postMessage.<meth>(), obj[postMessage].<meth>(),
-            if (obj.type === Syntax.MemberExpression && (obj.property.value || obj.property.name) === 'postMessage')
+            if (obj.type === Syntax.MemberExpression &&
+                (obj.property.type === Syntax.Identifier && obj.property.name ||
+                 obj.property.type === Syntax.Literal && obj.property.value) === 'postMessage')
                 return true;
 
             // postMessage.<meth>()
-            if (obj.name === 'postMessage')
+            if (obj.type === Syntax.Identifier && obj.name === 'postMessage')
                 return true;
         }
 
         return false;
     },
 
-    run: node => {
-        const nodeX = createGetPostMessageMethCall(node.callee.object);
+    run: (node: CallExpression) => {
+        const callee             = <MemberExpression>node.callee;
+        const getPostMessageNode = createGetPostMessageMethCall(<Expression>callee.object);
 
-        replaceNode(node.callee.object, nodeX, node.callee, 'object');
+        replaceNode(callee.object, getPostMessageNode, node.callee, 'object');
 
         return null;
     }
 };
+
+export default transformer;

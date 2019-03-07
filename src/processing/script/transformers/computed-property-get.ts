@@ -2,7 +2,10 @@
 // WARNING: this file is used by both the client and the server.
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
-
+/*eslint-disable no-unused-vars*/
+import { MemberExpression, Expression, ForInStatement, CallExpression } from 'estree';
+import { Transformer } from './index';
+/*eslint-enable no-unused-vars*/
 import { createComputedPropertyGetWrapper } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
 import { shouldInstrumentProperty } from '../instrumented';
@@ -10,13 +13,12 @@ import { shouldInstrumentProperty } from '../instrumented';
 // Transform:
 // obj[prop] -->
 // __get$(obj, prop)
-
-export default {
+const transformer: Transformer = {
     nodeReplacementRequireTransform: true,
 
-    nodeTypes: [Syntax.MemberExpression],
+    nodeTypes: Syntax.MemberExpression,
 
-    condition: (node, parent) => {
+    condition: (node: MemberExpression, parent: Expression | ForInStatement): boolean => {
         if (!node.computed)
             return false;
 
@@ -36,7 +38,7 @@ export default {
             return false;
 
         // object[prop]++ || object[prop]-- || ++object[prop] || --object[prop]
-        if (parent.type === Syntax.UpdateExpression && parent.operator === '++' || parent.operator === '--')
+        if (parent.type === Syntax.UpdateExpression && (parent.operator === '++' || parent.operator === '--'))
             return false;
 
         // object[prop]()
@@ -54,5 +56,7 @@ export default {
         return true;
     },
 
-    run: node => createComputedPropertyGetWrapper(node.property, node.object)
+    run: (node: MemberExpression): CallExpression => createComputedPropertyGetWrapper(node.property, <Expression>node.object)
 };
+
+export default transformer;

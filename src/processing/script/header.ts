@@ -50,13 +50,13 @@ const HEADER: string = `
 const HEADER_RE: RegExp                 = new RegExp(`${reEscape(SCRIPT_PROCESSING_START_COMMENT)}[\\S\\s]+?${reEscape(SCRIPT_PROCESSING_END_HEADER_COMMENT)}\n?`, 'gi');
 const PROCESSING_END_COMMENT_RE: RegExp = new RegExp(`\n?${ reEscape(SCRIPT_PROCESSING_END_COMMENT) }\\s*`, 'gi');
 
-export function remove (code: string) {
+export function remove (code: string): string {
     return code
         .replace(HEADER_RE, '')
         .replace(PROCESSING_END_COMMENT_RE, '');
 }
 
-export function add (code: string, isStrictMode: boolean) {
+export function add (code: string, isStrictMode: boolean): string {
     const header = HEADER.replace(STRICT_MODE_PLACEHOLDER, isStrictMode ? '"use strict";' : '');
 
     return header + code + '\n' + SCRIPT_PROCESSING_END_COMMENT;

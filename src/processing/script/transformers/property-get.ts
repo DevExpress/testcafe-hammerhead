@@ -3,6 +3,10 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
+/*eslint-disable no-unused-vars*/
+import { CallExpression, MemberExpression, Expression, ForInStatement, Identifier } from 'estree';
+import { Transformer } from './index';
+/*eslint-enable no-unused-vars*/
 import { createPropertyGetWrapper } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
 import { shouldInstrumentProperty } from '../instrumented';
@@ -11,16 +15,16 @@ import { shouldInstrumentProperty } from '../instrumented';
 // obj.<wrappable-property> -->
 // __get$(obj, '<wrappable-property>')
 
-export default {
+const transformer: Transformer = {
     nodeReplacementRequireTransform: true,
 
-    nodeTypes: [Syntax.MemberExpression],
+    nodeTypes: Syntax.MemberExpression,
 
-    condition: (node, parent) => {
+    condition: (node: MemberExpression, parent: Expression | ForInStatement) => {
         if (node.computed)
             return false;
 
-        if (!shouldInstrumentProperty(node.property.name))
+        if (node.property.type === Syntax.Identifier && !shouldInstrumentProperty(node.property.name))
             return false;
 
         // Skip: super.prop
@@ -40,7 +44,7 @@ export default {
             return false;
 
         // Skip: object.prop++ || object.prop-- || ++object.prop || --object.prop
-        if (parent.type === Syntax.UpdateExpression && parent.operator === '++' || parent.operator === '--')
+        if (parent.type === Syntax.UpdateExpression && (parent.operator === '++' || parent.operator === '--'))
             return false;
 
         // Skip: new (object.prop)() || new (object.prop)
@@ -54,5 +58,8 @@ export default {
         return true;
     },
 
-    run: node => createPropertyGetWrapper(node.property.name, node.object)
+    // eslint-disable-next-line
+    run: (node: MemberExpression): CallExpression => createPropertyGetWrapper((<Identifier>node.property).name, <Expression>node.object)
 };
+
+export default transformer;

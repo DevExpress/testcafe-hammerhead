@@ -3,7 +3,13 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-export default function replaceNode (node, newNode, parent, key) {
+/*eslint-disable no-unused-vars*/
+import { Node } from 'estree';
+import { NodeWithLocation } from '../transform';
+/*eslint-enable no-unused-vars*/
+
+
+export default function replaceNode (node: Node | Array<Node>, newNode: Node, parent: Node, key: string) {
     if (Array.isArray(parent[key])) {
         if (node) {
             const idx = parent[key].indexOf(node);
@@ -16,13 +22,14 @@ export default function replaceNode (node, newNode, parent, key) {
     else
         parent[key] = newNode;
 
-    if (node) {
-        newNode.originStart = newNode.start = node.start;
-        newNode.originEnd = newNode.end = node.end;
-    }
-    else {
-        const parentStart = parseInt(parent.start, 10) + 1;
+    const newNodeWithLocation = <NodeWithLocation>newNode;
+    const nodeWithLocation    = <NodeWithLocation>node;
+    const parentWithLocation  = <NodeWithLocation>parent;
 
-        newNode.originStart = newNode.originEnd = parentStart;
+    if (node) {
+        newNodeWithLocation.originStart = newNodeWithLocation.start = nodeWithLocation.start;
+        newNodeWithLocation.originEnd = newNodeWithLocation.end = nodeWithLocation.end;
     }
+    else
+        newNodeWithLocation.originStart = newNodeWithLocation.originEnd = parentWithLocation.start + 1;
 }

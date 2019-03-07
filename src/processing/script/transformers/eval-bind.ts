@@ -3,6 +3,10 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
+/*eslint-disable no-unused-vars*/
+import { CallExpression, MemberExpression, Expression } from 'estree';
+import { Transformer } from './index';
+/*eslint-enable no-unused-vars*/
 import { createGetEvalMethCall } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
 import replaceNode from './replace-node';
@@ -11,32 +15,38 @@ import replaceNode from './replace-node';
 // foo = eval.bind(...); -->
 // foo = __get$Eval(eval).bind(...);
 
-export default {
+const transformer: Transformer = {
     nodeReplacementRequireTransform: false,
 
-    nodeTypes: [Syntax.CallExpression],
+    nodeTypes: Syntax.CallExpression,
 
-    condition: node => {
-        if (node.callee.type === Syntax.MemberExpression && node.callee.property.name === 'bind') {
+    condition: (node: CallExpression): boolean => {
+        if (node.callee.type === Syntax.MemberExpression && node.callee.property.type === Syntax.Identifier &&
+            node.callee.property.name === 'bind') {
             const obj = node.callee.object;
 
-            // obj.eval.bind(), obj[eval].bind(),
-            if (obj.type === Syntax.MemberExpression && (obj.property.value || obj.property.name) === 'eval')
+            // obj.eval.bind(), obj[eval].bind()
+            if (obj.type === Syntax.MemberExpression &&
+                (obj.property.type === Syntax.Identifier && obj.property.name ||
+                 obj.property.type === Syntax.Literal && obj.property.value) === 'eval')
                 return true;
 
             // eval.bind()
-            if (obj.name === 'eval')
+            if (obj.type === Syntax.Identifier && obj.name === 'eval')
                 return true;
         }
 
         return false;
     },
 
-    run: node => {
-        const getEvalNode = createGetEvalMethCall(node.callee.object);
+    run: (node: CallExpression) => {
+        const callee      = <MemberExpression>node.callee;
+        const getEvalNode = createGetEvalMethCall(<Expression>callee.object);
 
-        replaceNode(node.callee.object, getEvalNode, node.callee, 'object');
+        replaceNode(callee.object, getEvalNode, node.callee, 'object');
 
         return null;
     }
 };
+
+export default transformer;

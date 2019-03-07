@@ -3,6 +3,10 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
+/*eslint-disable no-unused-vars*/
+import { ForInStatement, MemberExpression } from 'estree';
+import { Transformer } from './index';
+/*eslint-enable no-unused-vars*/
 import { Syntax } from 'esotope-hammerhead';
 import {
     createTempVarIdentifier,
@@ -16,17 +20,17 @@ import replaceNode from './replace-node';
 // for(obj[prop] in src), for(obj.prop in src) -->
 // for(const __set$temp in src) { obj[prop] = __set$temp; }
 
-export default {
+const transformer: Transformer = {
     nodeReplacementRequireTransform: false,
 
-    nodeTypes: [Syntax.ForInStatement],
+    nodeTypes: Syntax.ForInStatement,
 
-    condition: node => node.left.type === Syntax.MemberExpression,
+    condition: (node: ForInStatement) => node.left.type === Syntax.MemberExpression,
 
-    run: node => {
+    run: (node: ForInStatement) => {
         const tempVarAst         = createTempVarIdentifier();
         const varDeclaration     = createVarDeclaration(tempVarAst);
-        const assignmentExprStmt = createAssignmentExprStmt(node.left, tempVarAst);
+        const assignmentExprStmt = createAssignmentExprStmt(<MemberExpression>node.left, tempVarAst);
 
         if (node.body.type !== Syntax.BlockStatement)
             replaceNode(node.body, createBlockExprStmt([assignmentExprStmt, node.body]), node, 'body');
@@ -39,3 +43,4 @@ export default {
     }
 };
 
+export default transformer;
