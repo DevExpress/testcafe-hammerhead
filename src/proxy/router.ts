@@ -29,11 +29,13 @@ function buildRouteParamsMap (routeMatch, paramNames) {
 
 export default abstract class Router {
     private readonly options: any;
-    private readonly routes: Map<string, Route> = new Map();
-    private readonly routesWithParams: Array<RouteWithParams> = [];
+    private readonly routes: Map<string, Route>;
+    private readonly routesWithParams: Array<RouteWithParams>;
 
     protected constructor (options = {}) {
-        this.options = options;
+        this.options          = options;
+        this.routes           = new Map();
+        this.routesWithParams = [];
     }
 
     _registerRoute (route: string, method: string, handler: StaticContent | Function) {
