@@ -19,7 +19,7 @@ export interface ParsedUrl {
 
 export interface RequestDescriptor {
     sessionId: string;
-    resourceType: string;
+    resourceType: string | null;
     charset?: string;
     reqOrigin?: string;
 }
@@ -36,4 +36,14 @@ export interface ParsedProxyUrl {
         hostname: string;
         port: string;
     };
+}
+
+export interface ProxyUrlOptions {
+    sessionId: string;
+    resourceType?: string;
+    charset?: string;
+    reqOrigin?: string;
+    proxyProtocol: string;
+    proxyHostname: string;
+    proxyPort: string;
 }

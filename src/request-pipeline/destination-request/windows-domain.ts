@@ -1,6 +1,9 @@
 import { exec } from '../../utils/promisified-functions';
+/*eslint-disable no-unused-vars*/
+import { WindowCredentials } from '../../typings/session';
+/*eslint-enable no-unused-vars*/
 
-let cached = null;
+let cached: WindowCredentials = {};
 
 async function queryOSForCredential (cmd: string): Promise<string> {
     try {
@@ -13,7 +16,7 @@ async function queryOSForCredential (cmd: string): Promise<string> {
     }
 }
 
-export async function assign (credentials) {
+export async function assign (credentials: WindowCredentials) {
     if (!cached) {
         cached = {
             domain:      await queryOSForCredential('echo %userdomain%'),
