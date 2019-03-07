@@ -118,7 +118,8 @@ gulp.step('client-scripts-transpile', () => {
         './src/shadow-ui/*.ts',
         './src/typings/*.ts',
         './src/upload/*.ts',
-        './src/utils/*.ts'
+        './src/utils/*.ts',
+        './src/session/cookie-limit.ts'
     ];
 
     return gulp.src(['./src/client/**/*.ts'].concat(sharedScripts))
