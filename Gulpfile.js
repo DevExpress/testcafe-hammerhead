@@ -119,7 +119,7 @@ gulp.step('client-scripts-transpile', () => {
         './src/typings/*.ts',
         './src/upload/*.ts',
         './src/utils/*.ts',
-        './src/session/cookie-limit.ts'
+        './src/session/*.ts'
     ];
 
     return gulp.src(['./src/client/**/*.ts'].concat(sharedScripts))
