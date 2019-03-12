@@ -49,6 +49,9 @@ export default class DomProcessor {
     forceProxySrcForImage: boolean = false;
     // Refactor this, see BaseDomAdapter;
     EVENTS: string[];
+    on: any;
+    off: any;
+    emit: any;
 
     constructor (adapter: any) {
         this.adapter = adapter;

@@ -81,7 +81,7 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
         return true;
     }
 
-    attachEventEmitter (domProcessor) {
+    attachEventEmitter (domProcessor: DomProcessor) {
         const eventEmitter = new events.EventEmitter();
 
         domProcessor.on   = eventEmitter.on.bind(eventEmitter);

@@ -5,7 +5,7 @@ const COOKIE_PAIR_REGEX        = /^((?:=)?([^=;]*)\s*=\s*)?([^\n\r\0]*)/;
 const TRAILING_SEMICOLON_REGEX = /;+$/;
 const FIX_COOKIE_DATE          = /((?:\s|,)[0-9]{1,2})(?:\s|-)([A-Za-z]{3})(?:\s|-)([0-9]{4}\s)/;
 
-export function parse (str) {
+export function parse (str: string) {
     str = trim(str);
 
     const trailingSemicolonCheck = TRAILING_SEMICOLON_REGEX.exec(str);
@@ -90,7 +90,7 @@ export function parse (str) {
     return parsedCookie;
 }
 
-export function formatClientString (parsedCookie) {
+export function formatClientString (parsedCookie): string {
     // eslint-disable-next-line no-restricted-properties
     let cookieStr = parsedCookie.value || '';
 
@@ -100,7 +100,7 @@ export function formatClientString (parsedCookie) {
     return cookieStr;
 }
 
-export function setDefaultValues (parsedCookie, { hostname, pathname }) {
+export function setDefaultValues (parsedCookie, { hostname, pathname }): void {
     if (!parsedCookie.domain)
         parsedCookie.domain = hostname; // eslint-disable-line no-restricted-properties
 
@@ -115,7 +115,7 @@ export function setDefaultValues (parsedCookie, { hostname, pathname }) {
         parsedCookie.expires = 'Infinity';
 }
 
-export function domainMatch (currentDomain, cookieDomain) {
+export function domainMatch (currentDomain: string, cookieDomain: string): boolean {
     if (!cookieDomain)
         return true;
 
@@ -132,7 +132,7 @@ export function domainMatch (currentDomain, cookieDomain) {
            currentDomain.charAt(cookieDomainIdx - 1) === '.';
 }
 
-export function pathMatch (currentPath, cookiePath) {
+export function pathMatch (currentPath: string, cookiePath: string): boolean {
     if (!cookiePath || cookiePath.charAt(0) !== '/' || currentPath === cookiePath)
         return true;
 
@@ -140,7 +140,7 @@ export function pathMatch (currentPath, cookiePath) {
            (cookiePath.charAt(cookiePath.length - 1) === '/' || currentPath.charAt(cookiePath.length) === '/');
 }
 
-export function getUTCDate (timestamp?: any) {
+export function getUTCDate (timestamp?: any): Date {
     if (!arguments.length)
         timestamp = nativeMethods.dateNow();
     else if (isNaN(timestamp))
