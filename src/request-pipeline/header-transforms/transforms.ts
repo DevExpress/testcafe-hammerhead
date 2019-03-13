@@ -8,26 +8,30 @@ import {
     isOutdatedSyncCookie
 } from '../../utils/cookie';
 
+/*eslint-disable no-unused-vars*/
+import RequestPipelineContext from '../context';
+/*eslint-enable no-unused-vars*/
+
 function skip () {
     return void 0;
 }
 
-function skipIfStateSnapshotIsApplied (src, ctx) {
+function skipIfStateSnapshotIsApplied (src: string, ctx: RequestPipelineContext) {
     return ctx.restoringStorages ? void 0 : src;
 }
 
-function isCrossDomainXhrWithoutCredentials (ctx): boolean {
+function isCrossDomainXhrWithoutCredentials (ctx: RequestPipelineContext): boolean {
     return ctx.isXhr && !ctx.req.headers[XHR_HEADERS.withCredentials] && ctx.dest.reqOrigin !== ctx.dest.domain;
 }
 
-function transformAuthorizationHeader (src, ctx) {
+function transformAuthorizationHeader (src: string, ctx: RequestPipelineContext) {
     if (src.includes(AUTHORIZATION.valuePrefix))
         return src.replace(AUTHORIZATION.valuePrefix, '');
 
     return isCrossDomainXhrWithoutCredentials(ctx) ? void 0 : src;
 }
 
-function transformCookieForFetch (src, ctx) {
+function transformCookieForFetch (src: string | undefined, ctx: RequestPipelineContext): string | undefined {
     const requestCredentials = ctx.req.headers[XHR_HEADERS.fetchRequestCredentials];
 
     switch (requestCredentials) {
@@ -42,7 +46,7 @@ function transformCookieForFetch (src, ctx) {
     }
 }
 
-function transformCookie (src, ctx): string {
+function transformCookie (src: string | undefined, ctx: RequestPipelineContext): string | undefined {
     if (ctx.isXhr)
         return isCrossDomainXhrWithoutCredentials(ctx) ? void 0 : src;
     else if (ctx.isFetch)
@@ -51,7 +55,7 @@ function transformCookie (src, ctx): string {
     return src;
 }
 
-function generateSyncCookie (ctx, parsedServerCookies) {
+function generateSyncCookie (ctx: RequestPipelineContext, parsedServerCookies: Array<any>) {
     parsedServerCookies = parsedServerCookies.filter(cookie => !cookie.httpOnly);
 
     let syncWithClientCookies = parsedServerCookies
@@ -84,7 +88,7 @@ function generateSyncCookie (ctx, parsedServerCookies) {
     return syncWithClientCookies;
 }
 
-function resolveAndGetProxyUrl (url, ctx) {
+function resolveAndGetProxyUrl (url: string, ctx: RequestPipelineContext): string {
     url = urlUtils.prepareUrl(url);
 
     const { host }    = parseUrl(url);
@@ -103,16 +107,16 @@ function resolveAndGetProxyUrl (url, ctx) {
     return ctx.toProxyUrl(url, isCrossDomain, ctx.contentInfo.contentTypeUrlToken);
 }
 
-function transformRefreshHeader (src, ctx) {
+function transformRefreshHeader (src: string, ctx: RequestPipelineContext) {
     return src.replace(/(url=)(.*)$/i, (_match, prefix, url) => prefix + resolveAndGetProxyUrl(url, ctx));
 }
 
 // Request headers
 export const requestTransforms = Object.assign({
-    'host':                                (_src, ctx) => ctx.dest.host,
-    'referer':                             (_src, ctx) => ctx.dest.referer || void 0,
-    'origin':                              (src, ctx) => ctx.dest.reqOrigin || src,
-    'content-length':                      (_src, ctx) => ctx.reqBody.length,
+    'host':                                (_src: string, ctx: RequestPipelineContext) => ctx.dest.host,
+    'referer':                             (_src: string, ctx: RequestPipelineContext) => ctx.dest.referer || void 0,
+    'origin':                              (src: string, ctx: RequestPipelineContext) => ctx.dest.reqOrigin || src,
+    'content-length':                      (_src: string, ctx: RequestPipelineContext) => ctx.reqBody.length,
     'cookie':                              skip,
     'if-modified-since':                   skipIfStateSnapshotIsApplied,
     'if-none-match':                       skipIfStateSnapshotIsApplied,
@@ -120,18 +124,18 @@ export const requestTransforms = Object.assign({
     [XHR_HEADERS.withCredentials]:         skip,
     [XHR_HEADERS.origin]:                  skip,
     [XHR_HEADERS.fetchRequestCredentials]: skip
-}, AUTHORIZATION.headers.reduce((obj, header) => {
+}, AUTHORIZATION.headers.reduce((obj: any, header: string) => {
     obj[header] = transformAuthorizationHeader;
 
     return obj;
 }, {}));
 
 export const forcedRequestTransforms = {
-    'cookie': (_src, ctx) => transformCookie(ctx.session.cookies.getHeader(ctx.dest.url) || void 0, ctx),
+    'cookie': (_src: string, ctx: RequestPipelineContext) => transformCookie(ctx.session.cookies.getHeader(ctx.dest.url) || void 0, ctx),
 
     // NOTE: All browsers except Chrome don't send the 'Origin' header in case of the same domain XHR requests.
     // So, if the request is actually cross-domain, we need to force the 'Origin' header to support CORS. (B234325)
-    'origin': (src, ctx) => {
+    'origin': (src: string, ctx: RequestPipelineContext) => {
         const force = (ctx.isXhr || ctx.isFetch) && !src && ctx.dest.domain !== ctx.dest.reqOrigin;
 
         return force ? ctx.dest.reqOrigin : src;
@@ -156,10 +160,10 @@ export const responseTransforms = {
 
     // NOTE: Change the transform type if we have an iframe with an image as src,
     // because it was transformed to HTML with the image tag.
-    'content-type':   (src, ctx) => ctx.contentInfo.isIframeWithImageSrc ? 'text/html' : src,
-    'content-length': (src, ctx) => ctx.contentInfo.requireProcessing ? ctx.destResBody.length : src,
+    'content-type':   (src: string, ctx: RequestPipelineContext) => ctx.contentInfo.isIframeWithImageSrc ? 'text/html' : src,
+    'content-length': (src: string, ctx: RequestPipelineContext) => ctx.contentInfo.requireProcessing ? ctx.destResBody.length : src,
 
-    'location': (src, ctx) => {
+    'location': (src: string, ctx: RequestPipelineContext) => {
         // NOTE: The RFC 1945 standard requires location URLs to be absolute. However, most popular browsers
         // accept relative URLs. We transform relative URLs to absolute to correctly handle this situation.
         if (ctx.contentInfo.isRedirect)
@@ -168,7 +172,7 @@ export const responseTransforms = {
         return src;
     },
 
-    'x-frame-options': (src, ctx) => {
+    'x-frame-options': (src: string, ctx: RequestPipelineContext) => {
         const cspHeader = ctx.destRes.headers['content-security-policy'];
 
         if (cspHeader && cspHeader.includes('frame-ancestors '))
@@ -189,9 +193,9 @@ export const responseTransforms = {
 
     'referrer-policy': () => 'unsafe-url',
 
-    'refresh': (src, ctx) => transformRefreshHeader(src, ctx),
+    'refresh': (src: string, ctx: RequestPipelineContext) => transformRefreshHeader(src, ctx),
 
-    'link': src => {
+    'link': (src: string) => {
         if (/[;\s]rel=\s*prefetch/i.test(src))
             return void 0;
 
@@ -200,7 +204,7 @@ export const responseTransforms = {
 };
 
 export const forcedResponseTransforms = {
-    'set-cookie': (src, ctx) => {
+    'set-cookie': (src: string, ctx: RequestPipelineContext) => {
         let parsedCookies;
 
         if (src)

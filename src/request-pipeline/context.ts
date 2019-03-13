@@ -66,11 +66,11 @@ export default class RequestPipelineContext {
     private readonly serverInfo: ServerInfo;
     readonly req: http.IncomingMessage;
     readonly res: http.ServerResponse | net.Socket;
-    session: Session = null;
-    reqBody: Buffer = null;
-    dest: DestInfo = null;
-    destRes: http.IncomingMessage | FileStream | IncomingMessageMock = null;
-    destResBody: Buffer = null;
+    session: Session;
+    reqBody: Buffer;
+    dest: DestInfo;
+    destRes: http.IncomingMessage | FileStream | IncomingMessageMock;
+    destResBody: Buffer;
     hasDestReqErr: boolean = false;
     isXhr: boolean = false;
     isFetch: boolean = false;
@@ -80,12 +80,12 @@ export default class RequestPipelineContext {
     isIframe: boolean = false;
     isSpecialPage: boolean = false;
     isWebSocketConnectionReset: boolean = false;
-    contentInfo: ContentInfo = null;
-    restoringStorages: StoragesSnapshot = null;
+    contentInfo: ContentInfo;
+    restoringStorages: StoragesSnapshot;
     requestId: string = genearateUniqueId();
     requestFilterRules: Array<RequestFilterRule> = [];
     onResponseEventData: Array<OnResponseEventData> = [];
-    reqOpts: RequestOptions = null;
+    reqOpts: RequestOptions;
     parsedClientSyncCookie: ParsedClientSyncCookie;
     isFileProtocol: boolean;
     nonProcessedDestResBody: Buffer = null;
@@ -313,7 +313,7 @@ export default class RequestPipelineContext {
         this.goToNextStage = false;
     }
 
-    toProxyUrl (url: string, isCrossDomain: boolean, resourceType: string, charset: string): string {
+    toProxyUrl (url: string, isCrossDomain: boolean, resourceType: string, charset?: string): string {
         const proxyHostname = this.serverInfo.hostname;
         const proxyProtocol = this.serverInfo.protocol;
         const proxyPort     = isCrossDomain ? this.serverInfo.crossDomainPort : this.serverInfo.port;

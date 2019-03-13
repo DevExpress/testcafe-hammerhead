@@ -60,10 +60,10 @@ export default abstract class Session extends EventEmitter {
     requireStateSwitch: boolean = false;
     id: string = generateUniqueId();
     cookies: Cookies = new Cookies();
-    proxy: Proxy = null;
-    externalProxySettings: ExternalProxySettings | null = null;
+    proxy: Proxy;
+    externalProxySettings: ExternalProxySettings | null;
     pageLoadCount: number = 0;
-    pendingStateSnapshot: StateSnapshot = null;
+    pendingStateSnapshot: StateSnapshot | null;
     injectable: InjectableResources = { scripts: ['/hammerhead.js'], styles: [] };
     requestEventListeners: Map<RequestFilterRule, RequestEventListeners> = new Map();
     mocks: Map<RequestFilterRule, ResponseMock> = new Map();
@@ -166,7 +166,7 @@ export default abstract class Session extends EventEmitter {
 
         const { url, bypassRules } = proxySettings;
         const parsedUrl            = parseUrl('http://' + url);
-        let settings               = null;
+        let settings: any          = null;
 
         if (parsedUrl && parsedUrl.host) {
             settings = {
