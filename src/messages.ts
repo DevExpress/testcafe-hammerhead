@@ -8,8 +8,11 @@ export const MESSAGE = {
     cantReadFile:                     'Failed to read a file at <a href="{url}">{url}</a> because of the error:\n\n{message}'
 };
 
-export function getText (template: string, url: string, message?: string | undefined) {
-    return template
-        .replace(/\{message\}/g, message)
-        .replace(/\{url\}/g, url);
+export function getText (template: string, url: string, message?: string) {
+    template = template.replace(/\{url\}/g, url);
+
+    if (message)
+        template = template.replace(/\{message\}/g, message);
+
+    return template;
 }

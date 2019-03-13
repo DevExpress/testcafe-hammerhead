@@ -21,7 +21,7 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
         parse5Utils.removeAttr(el, attr);
     }
 
-    getAttr (el, attr: string) {
+    getAttr (el, attr: string): string {
         return parse5Utils.getAttr(el, attr);
     }
 
@@ -74,7 +74,7 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
         return true;
     }
 
-    needToProcessUrl (tagName, target) {
+    needToProcessUrl (tagName: string, target: string) {
         if (DomProcessor.isIframeFlagTag(tagName) && target === '_parent')
             return false;
 

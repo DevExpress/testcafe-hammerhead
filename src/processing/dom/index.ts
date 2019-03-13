@@ -381,7 +381,7 @@ export default class DomProcessor {
 
     // NOTE: We simply remove the 'rel' attribute if rel='prefetch' and use stored 'rel' attribute, because the prefetch
     // resource type is unknown. https://github.com/DevExpress/testcafe/issues/2528
-    _processRelPrefetch (el: HTMLElement, _urlReplacer: object, pattern: ElementProcessingPattern): void {
+    _processRelPrefetch (el: HTMLElement, _urlReplacer: any, pattern: ElementProcessingPattern): void {
         const storedRelAttr = DomProcessor.getStoredAttrName(pattern.relAttr);
         const processed     = this.adapter.hasAttr(el, storedRelAttr) && !this.adapter.hasAttr(el, pattern.relAttr);
         const attrValue     = this.adapter.getAttr(el, processed ? storedRelAttr : pattern.relAttr);
@@ -426,11 +426,11 @@ export default class DomProcessor {
         }
     }
 
-    _processMetaElement (el: HTMLElement, urlReplacer, pattern: ElementProcessingPattern): void {
+    _processMetaElement (el: HTMLElement, urlReplacer: any, pattern: ElementProcessingPattern): void {
         const httpEquivAttrValue = this.adapter.getAttr(el, 'http-equiv').toLowerCase();
 
         if (httpEquivAttrValue === 'refresh') {
-            let attr = this.adapter.getAttr(el, pattern.urlAttr);
+            let attr: string = this.adapter.getAttr(el, pattern.urlAttr);
 
             attr = attr.replace(/(url=)(.*)$/i, (_match, prefix, url) => prefix + urlReplacer(url));
 
@@ -508,14 +508,14 @@ export default class DomProcessor {
         }
     }
 
-    _processStyleAttr (el: HTMLElement, urlReplacer): void {
+    _processStyleAttr (el: HTMLElement, urlReplacer: any): void {
         const style = this.adapter.getAttr(el, 'style');
 
         if (style)
             this.adapter.setAttr(el, 'style', styleProcessor.process(style, urlReplacer, false));
     }
 
-    _processStylesheetElement (el: HTMLElement, urlReplacer): void {
+    _processStylesheetElement (el: HTMLElement, urlReplacer: any): void {
         let content = this.adapter.getStyleContent(el);
 
         if (content && urlReplacer && this.adapter.needToProcessContent(el)) {
@@ -525,7 +525,7 @@ export default class DomProcessor {
         }
     }
 
-    _processTargetBlank (el: HTMLElement, _urlReplacer, pattern: ElementProcessingPattern): void {
+    _processTargetBlank (el: HTMLElement, _urlReplacer: any, pattern: ElementProcessingPattern): void {
         const storedTargetAttr = DomProcessor.getStoredAttrName(pattern.targetAttr);
         const processed        = this.adapter.hasAttr(el, storedTargetAttr);
 
@@ -542,7 +542,7 @@ export default class DomProcessor {
         }
     }
 
-    _processUrlAttrs (el: HTMLElement, urlReplacer, pattern: ElementProcessingPattern): void {
+    _processUrlAttrs (el: HTMLElement, urlReplacer: any, pattern: ElementProcessingPattern): void {
         if (urlReplacer && pattern.urlAttr) {
             const storedUrlAttr     = DomProcessor.getStoredAttrName(pattern.urlAttr);
             let resourceUrl         = this.adapter.getAttr(el, pattern.urlAttr);
