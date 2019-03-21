@@ -18,7 +18,7 @@ import nativeMethods from '../../native-methods';
 import urlResolver from '../../../utils/url-resolver';
 import DomProcessor from '../../../../processing/dom/index';
 import DOMStringListWrapper from './ancestor-origins-wrapper';
-import createIntegerIdGenerator from '../../../utils/integer-id-generator';
+import IntegerIdGenerator from '../../../utils/integer-id-generator';
 import { createOverriddenDescriptor } from '../../../utils/property-overriding';
 
 const GET_ORIGIN_CMD      = 'hammerhead|command|get-origin';
@@ -143,7 +143,7 @@ export default class LocationWrapper {
 
         if (window.location.ancestorOrigins) {
             const callbacks   = nativeMethods.objectCreate(null);
-            const idGenerator = createIntegerIdGenerator();
+            const idGenerator = new IntegerIdGenerator();
 
             const getCrossDomainOrigin = (win, callback) => {
                 const id = idGenerator.increment();

@@ -1,7 +1,7 @@
 import nativeMethods from '../../native-methods';
 import { getTagName, isShadowUIElement } from '../../../utils/dom';
 import { getNativeQuerySelectorAll } from '../../../utils/query-selector';
-import createIntegerIdGenerator from '../../../utils/integer-id-generator';
+import IntegerIdGenerator from '../../../utils/integer-id-generator';
 
 class DOMMutationTracker {
     _mutations: any;
@@ -58,7 +58,7 @@ class DOMMutationTracker {
         const isTagTracked = tagName in this._mutations;
 
         if (!isTagTracked)
-            this._mutations[tagName] = createIntegerIdGenerator();
+            this._mutations[tagName] = new IntegerIdGenerator();
 
         const lastVersion = this._mutations[tagName].value; // eslint-disable-line no-restricted-properties
 
