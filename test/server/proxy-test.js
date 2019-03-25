@@ -1633,7 +1633,7 @@ describe('Proxy', () => {
         });
     });
 
-    describe.only('State switching', () => {
+    describe('State switching', () => {
         function makeRequest (url, opts) {
             opts = opts || { isPage: true };
 
