@@ -9,7 +9,8 @@ import { RequestInfo } from './events/info';
 import RequestEvent from './events/request-event';
 import ResponseEvent from './events/response-event';
 import ConfigureResponseEvent from './events/configure-response-event';
-import { StoragesSnapshot, Credentials, ExternalProxySettings, ExternalProxySettingsRaw } from '../typings/session';
+import { Credentials, ExternalProxySettings, ExternalProxySettingsRaw } from '../typings/session';
+import StateSnapshot from './state-snapshot';
 /*eslint-enable no-unused-vars*/
 import mustache from 'mustache';
 import { readSync as read } from 'read-file-relative';
@@ -25,11 +26,6 @@ const TASK_TEMPLATE: string = read('../client/task.js.mustache');
 interface InjectableResources {
     scripts: Array<string>,
     styles: Array<string>
-}
-
-interface StateSnapshot {
-    cookies: string | null,
-    storages: StoragesSnapshot | null
 }
 
 interface RequestEventListeners {
@@ -76,10 +72,7 @@ export default abstract class Session extends EventEmitter {
 
     // State
     getStateSnapshot (): StateSnapshot {
-        return {
-            cookies:  this.cookies.serializeJar(),
-            storages: null
-        };
+        return new StateSnapshot(this.cookies.serializeJar(), null);
     }
 
     useStateSnapshot (snapshot: StateSnapshot) {
@@ -87,13 +80,7 @@ export default abstract class Session extends EventEmitter {
         // pending requests from current page. Therefore, we perform switch in
         // onPageRequest handler when new page is requested.
         this.requireStateSwitch   = true;
-        this.pendingStateSnapshot = snapshot || {
-            cookies:  null,
-            storages: {
-                localStorage:   '[[],[]]',
-                sessionStorage: '[[],[]]'
-            }
-        };
+        this.pendingStateSnapshot = snapshot;
     }
 
     async handleServiceMessage (msg: ServiceMessage, serverInfo: ServerInfo): Promise<object> {

@@ -1,5 +1,3 @@
-'use strict';
-
 const fs                                   = require('fs');
 const os                                   = require('os');
 const http                                 = require('http');
@@ -8,14 +6,14 @@ const urlLib                               = require('url');
 const request                              = require('request-promise-native');
 const path                                 = require('path');
 const net                                  = require('net');
-const expect                               = require('chai').expect;
+const { expect }                           = require('chai');
 const express                              = require('express');
-const read                                 = require('read-file-relative').readSync;
+const { readSync }                         = require('read-file-relative');
 const selfSignedCertificate                = require('openssl-self-signed-certificate');
-const getFreePort                          = require('endpoint-utils').getFreePort;
+const { getFreePort }                      = require('endpoint-utils');
 const WebSocket                            = require('ws');
-const noop                                 = require('lodash').noop;
-const isWindows                            = require('os-family').win;
+const { noop }                             = require('lodash');
+const { win: isWindows }                   = require('os-family');
 const promisifyEvent                       = require('promisify-event');
 const XHR_HEADERS                          = require('../../lib/request-pipeline/xhr/headers');
 const AUTHORIZATION                        = require('../../lib/request-pipeline/xhr/authorization');
@@ -25,10 +23,11 @@ const Session                              = require('../../lib/session');
 const ResponseMock                         = require('../../lib/request-pipeline/request-hooks/response-mock');
 const RequestFilterRule                    = require('../../lib/request-pipeline/request-hooks/request-filter-rule');
 const DestinationRequest                   = require('../../lib/request-pipeline/destination-request');
+const StateSnapshot                        = require('../../lib/session/state-snapshot');
 const RequestPipelineContext               = require('../../lib/request-pipeline/context');
 const scriptHeader                         = require('../../lib/processing/script/header');
 const resourceProcessor                    = require('../../lib/processing/resources/');
-const gzip                                 = require('../../lib/utils/promisified-functions').gzip;
+const { gzip }                             = require('../../lib/utils/promisified-functions');
 const urlUtils                             = require('../../lib/utils/url');
 
 const EMPTY_PAGE_MARKUP = '<html></html>';
@@ -1419,8 +1418,8 @@ describe('Proxy', () => {
 
     describe('Shadow UI', () => {
         it('Should process shadow ui stylesheet', () => {
-            const src      = read('/data/shadow-ui-stylesheet/src.css').toString();
-            const expected = read('/data/shadow-ui-stylesheet/expected.css').toString();
+            const src      = readSync('/data/shadow-ui-stylesheet/src.css').toString();
+            const expected = readSync('/data/shadow-ui-stylesheet/expected.css').toString();
 
             proxy.GET('/testcafe-ui-styles.css', {
                 contentType:          'text/css',
@@ -1634,7 +1633,7 @@ describe('Proxy', () => {
         });
     });
 
-    describe('State switching', () => {
+    describe.only('State switching', () => {
         function makeRequest (url, opts) {
             opts = opts || { isPage: true };
 
@@ -1689,7 +1688,7 @@ describe('Proxy', () => {
             ];
 
             function initializeState (testCase) {
-                session.useStateSnapshot(null);
+                session.useStateSnapshot(StateSnapshot.empty());
 
                 return forEachSequentially(testCase.urls, makeRequest).then(() => {
                     testCase.state = session.getStateSnapshot();
@@ -1724,7 +1723,7 @@ describe('Proxy', () => {
                 .then(() => {
                     state = session.getStateSnapshot();
 
-                    session.useStateSnapshot(null);
+                    session.useStateSnapshot(StateSnapshot.empty());
                 })
 
                 // Try request empty state with non-page and page requests
@@ -1794,7 +1793,7 @@ describe('Proxy', () => {
                 }
             };
 
-            session.useStateSnapshot(null);
+            session.useStateSnapshot(StateSnapshot.empty());
 
             return request(options)
                 .then(body => {
