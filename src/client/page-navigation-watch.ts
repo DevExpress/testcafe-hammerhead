@@ -85,7 +85,7 @@ export default class PageNavigationWatch extends EventEmiter {
     }
 
     _linkWatch (eventSandbox): void {
-        eventSandbox.listeners.initElementListening(window, ['click']);
+        eventSandbox.listeners.initElementListening(window, ['click', 'hashchange']);
         eventSandbox.listeners.addInternalEventListener(window, ['click'], e => {
             const link = isAnchorElement(e.target) ? e.target : closest(e.target, 'a');
 
@@ -110,6 +110,9 @@ export default class PageNavigationWatch extends EventEmiter {
                             PageNavigationWatch._onNavigationTriggeredInWindow(targetWindow, href);
                     });
             }
+        });
+        eventSandbox.listeners.addInternalEventListener(window, ['hashchange'], e => {
+            this.emit(this.PAGE_LOCATION_HASH_CHANGED_EVENT, e.newURL);
         });
     }
 
@@ -138,6 +141,7 @@ export default class PageNavigationWatch extends EventEmiter {
             const isOnlyHashChanged = url.charAt(0) === '#' || isChangedOnlyHash(currentLocation, url);
 
             if (isOnlyHashChanged)
+                // TODO: does we need this way?
                 this.emit(this.PAGE_LOCATION_HASH_CHANGED_EVENT, url);
 
             if (isOnlyHashChanged || DomProcessor.isJsProtocol(url))
