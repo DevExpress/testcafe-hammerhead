@@ -3,12 +3,18 @@ import Promise from 'pinkie';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import IntegerIdGenerator from '../../utils/integer-id-generator';
 import nativeMethods from '../native-methods';
-import { changeSyncType, formatSyncCookie, generateDeleteSyncCookieStr } from '../../../utils/cookie';
+import {
+    changeSyncType,
+    formatSyncCookie,
+    generateDeleteSyncCookieStr,
+    parseClientSyncCookieStr
+} from '../../../utils/cookie';
+import settings from '../../settings';
 
 const SYNC_COOKIE_START_CMD      = 'hammerhead|command|sync-cookie-start';
 const SYNC_COOKIE_DONE_CMD       = 'hammerhead|command|sync-cookie-done';
 const SYNC_MESSAGE_TIMEOUT       = 500;
-const SYNC_MESSAGE_ATTEMPT_COUNT = 10;
+const SYNC_MESSAGE_ATTEMPT_COUNT = 5;
 
 export default class WindowSync {
     private readonly _win: Window;
@@ -17,7 +23,7 @@ export default class WindowSync {
     private readonly _messageSandbox: any;
     private readonly _messageIdGenerator: IntegerIdGenerator;
 
-    constructor (win: Window, cookieSandbox: CookieSandbox, messageSandbox) {
+    constructor (win: Window, cookieSandbox: CookieSandbox, messageSandbox, unloadSandbox) {
         this._win                = win;
         this._cookieSandbox      = cookieSandbox;
         this._messageSandbox     = messageSandbox;
@@ -25,6 +31,9 @@ export default class WindowSync {
         this._resolversMap       = win === win.top ? new Map() : null;
 
         messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => this._onMsgReceived(e));
+
+        if (win === win.top)
+            unloadSandbox.on(unloadSandbox.UNLOAD_EVENT, WindowSync._removeAllWindowSyncCookie);
     }
 
     private static _getCookieSandbox (win) {
@@ -39,6 +48,26 @@ export default class WindowSync {
         }
     }
 
+    private static _removeAllWindowSyncCookie () {
+        const cookies       = nativeMethods.documentCookieGetter.call(document);
+        const parsedCookies = parseClientSyncCookieStr(cookies);
+        const sessionId     = settings.get().sessionId;
+
+        for (const outdatedCookie of parsedCookies.outdated)
+            nativeMethods.documentCookieSetter.call(document, generateDeleteSyncCookieStr(outdatedCookie));
+
+        for (const parsedCookie of parsedCookies.actual) {
+            if (parsedCookie.sid === sessionId && parsedCookie.isWindowSync) {
+                nativeMethods.documentCookieSetter.call(document, generateDeleteSyncCookieStr(parsedCookie));
+
+                if (parsedCookie.isClientSync) {
+                    changeSyncType(parsedCookie, { window: false });
+                    nativeMethods.documentCookieSetter.call(document, formatSyncCookie(parsedCookie));
+                }
+            }
+        }
+    }
+
     private _onMsgReceived ({ message, source }) {
         if (message.cmd === SYNC_COOKIE_START_CMD) {
             this._cookieSandbox.syncWindowCookie(message.cookies);
@@ -49,10 +78,8 @@ export default class WindowSync {
                 this.syncBetweenWindows(message.cookies, source);
         }
         else if (message.cmd === SYNC_COOKIE_DONE_CMD) {
-            if (this._resolversMap.has(message.id)) {
+            if (this._resolversMap.has(message.id))
                 this._resolversMap.get(message.id)();
-                this._resolversMap.delete(message.id);
-            }
         }
     }
 
@@ -68,33 +95,28 @@ export default class WindowSync {
 
     private _sendSyncMessage (win: Window, cmd: string, cookies) {
         const id     = this._messageIdGenerator.increment();
-        let attempts = SYNC_MESSAGE_ATTEMPT_COUNT;
+        let attempts = 0;
 
         return new Promise(resolve => {
             let timeoutId = null;
-            const sendMsg = () => {
-                if (attempts--) {
-                    // NOTE: The window was removed if the parent property is null.
-                    if (!win.parent) {
-                        this._resolversMap.delete(id);
-                        resolve();
-                    }
-                    else {
-                        this._messageSandbox.sendServiceMsg({ id, cmd, cookies }, win);
-                        timeoutId = nativeMethods.setTimeout.call(this._win, sendMsg, SYNC_MESSAGE_TIMEOUT);
-                    }
-                }
-                else {
-                    this._resolversMap.delete(id);
-                    resolve();
-                }
+
+            const resolveWrapper = () => {
+                nativeMethods.clearTimeout.call(this._win, timeoutId);
+                this._resolversMap.delete(id);
+                resolve();
             };
 
-            this._resolversMap.set(id, () => {
-                nativeMethods.clearTimeout.call(this._win, timeoutId);
-                resolve();
-            });
+            const sendMsg = () => {
+                // NOTE: The window was removed if the parent property is null.
+                if (attempts++ < SYNC_MESSAGE_ATTEMPT_COUNT || !win.parent) {
+                    this._messageSandbox.sendServiceMsg({ id, cmd, cookies }, win);
+                    timeoutId = nativeMethods.setTimeout.call(this._win, sendMsg, SYNC_MESSAGE_TIMEOUT * attempts);
+                }
+                else
+                    resolveWrapper();
+            };
 
+            this._resolversMap.set(id, resolveWrapper);
             sendMsg();
         });
     }

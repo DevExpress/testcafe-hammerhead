@@ -20,11 +20,13 @@ export default class CookieSandbox extends SandboxBase {
     messageSandbox: any;
     windowSync: any;
     pendingWindowSync: Array<any>;
+    unloadSandbox: any;
 
-    constructor (messageSandbox) {
+    constructor (messageSandbox, unloadSandbox) {
         super();
 
         this.messageSandbox = messageSandbox;
+        this.unloadSandbox  = unloadSandbox;
         this.windowSync     = null;
 
         this.pendingWindowSync = [];
@@ -192,6 +194,6 @@ export default class CookieSandbox extends SandboxBase {
     attach (window: Window): void {
         super.attach(window);
 
-        this.windowSync = new WindowSync(window, this, this.messageSandbox);
+        this.windowSync = new WindowSync(window, this, this.messageSandbox, this.unloadSandbox);
     }
 }
