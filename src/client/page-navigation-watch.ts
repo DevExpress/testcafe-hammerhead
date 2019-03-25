@@ -11,6 +11,7 @@ import INTERNAL_PROPS from '../processing/dom/internal-properties';
 
 export default class PageNavigationWatch extends EventEmiter {
     PAGE_NAVIGATION_TRIGGERED_EVENT: string = 'hammerhead|event|page-navigation-triggered';
+    PAGE_LOCATION_HASH_CHANGED_EVENT: string = 'hammerhead|event|page-location-changed-event';
 
     lastLocationValue: string;
 
@@ -133,9 +134,15 @@ export default class PageNavigationWatch extends EventEmiter {
 
         this.lastLocationValue = window.location.toString();
 
-        if (url !== currentLocation && (url.charAt(0) === '#' || isChangedOnlyHash(currentLocation, url)) ||
-            DomProcessor.isJsProtocol(url))
-            return;
+        if (url !== currentLocation) {
+            const isOnlyHashChanged = url.charAt(0) === '#' || isChangedOnlyHash(currentLocation, url);
+
+            if (isOnlyHashChanged)
+                this.emit(this.PAGE_LOCATION_HASH_CHANGED_EVENT, url);
+
+            if (isOnlyHashChanged || DomProcessor.isJsProtocol(url))
+                return;
+        }
 
         this.emit(this.PAGE_NAVIGATION_TRIGGERED_EVENT, parseProxyUrl(url).destUrl);
     }

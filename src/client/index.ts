@@ -55,24 +55,25 @@ class Hammerhead {
             this.sandbox.node.element);
 
         this.EVENTS = {
-            beforeFormSubmit:        this.sandbox.node.element.BEFORE_FORM_SUBMIT_EVENT,
-            beforeBeforeUnload:      this.sandbox.event.unload.BEFORE_BEFORE_UNLOAD_EVENT,
-            beforeUnload:            this.sandbox.event.unload.BEFORE_UNLOAD_EVENT,
-            unload:                  this.sandbox.event.unload.UNLOAD_EVENT,
-            bodyCreated:             this.sandbox.node.mutation.BODY_CREATED_EVENT,
-            documentCleaned:         this.sandbox.node.mutation.DOCUMENT_CLEANED_EVENT,
-            uncaughtJsError:         this.sandbox.node.win.UNCAUGHT_JS_ERROR_EVENT,
-            unhandledRejection:      this.sandbox.node.win.UNHANDLED_REJECTION_EVENT,
-            startFileUploading:      this.sandbox.upload.START_FILE_UPLOADING_EVENT,
-            endFileUploading:        this.sandbox.upload.END_FILE_UPLOADING_EVENT,
-            evalIframeScript:        this.sandbox.iframe.EVAL_EXTERNAL_SCRIPT_EVENT,
-            xhrCompleted:            this.sandbox.xhr.XHR_COMPLETED_EVENT,
-            xhrError:                this.sandbox.xhr.XHR_ERROR_EVENT,
-            beforeXhrSend:           this.sandbox.xhr.BEFORE_XHR_SEND_EVENT,
-            fetchSent:               this.sandbox.fetch.FETCH_REQUEST_SENT_EVENT,
-            pageNavigationTriggered: this.pageNavigationWatch.PAGE_NAVIGATION_TRIGGERED_EVENT,
-            scriptElementAdded:      this.sandbox.node.element.SCRIPT_ELEMENT_ADDED_EVENT,
-            consoleMethCalled:       this.sandbox.console.CONSOLE_METH_CALLED_EVENT
+            beforeFormSubmit:                this.sandbox.node.element.BEFORE_FORM_SUBMIT_EVENT,
+            beforeBeforeUnload:              this.sandbox.event.unload.BEFORE_BEFORE_UNLOAD_EVENT,
+            beforeUnload:                    this.sandbox.event.unload.BEFORE_UNLOAD_EVENT,
+            unload:                          this.sandbox.event.unload.UNLOAD_EVENT,
+            bodyCreated:                     this.sandbox.node.mutation.BODY_CREATED_EVENT,
+            documentCleaned:                 this.sandbox.node.mutation.DOCUMENT_CLEANED_EVENT,
+            uncaughtJsError:                 this.sandbox.node.win.UNCAUGHT_JS_ERROR_EVENT,
+            unhandledRejection:              this.sandbox.node.win.UNHANDLED_REJECTION_EVENT,
+            startFileUploading:              this.sandbox.upload.START_FILE_UPLOADING_EVENT,
+            endFileUploading:                this.sandbox.upload.END_FILE_UPLOADING_EVENT,
+            evalIframeScript:                this.sandbox.iframe.EVAL_EXTERNAL_SCRIPT_EVENT,
+            xhrCompleted:                    this.sandbox.xhr.XHR_COMPLETED_EVENT,
+            xhrError:                        this.sandbox.xhr.XHR_ERROR_EVENT,
+            beforeXhrSend:                   this.sandbox.xhr.BEFORE_XHR_SEND_EVENT,
+            fetchSent:                       this.sandbox.fetch.FETCH_REQUEST_SENT_EVENT,
+            pageNavigationTriggered:         this.pageNavigationWatch.PAGE_NAVIGATION_TRIGGERED_EVENT,
+            pageLocationLocationHashChanged: this.pageNavigationWatch.PAGE_LOCATION_HASH_CHANGED_EVENT,
+            scriptElementAdded:              this.sandbox.node.element.SCRIPT_ELEMENT_ADDED_EVENT,
+            consoleMethCalled:               this.sandbox.console.CONSOLE_METH_CALLED_EVENT
         };
 
         this.PROCESSING_COMMENTS = {
@@ -135,6 +136,7 @@ class Hammerhead {
     _getEventOwner (evtName) {
         switch (evtName) {
             case this.EVENTS.pageNavigationTriggered:
+            case this.EVENTS.pageLocationLocationHashChanged:
                 return this.pageNavigationWatch;
 
             case this.EVENTS.beforeUnload:
