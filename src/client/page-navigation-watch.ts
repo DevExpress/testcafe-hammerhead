@@ -112,6 +112,7 @@ export default class PageNavigationWatch extends EventEmiter {
             }
         });
         eventSandbox.listeners.addInternalEventListener(window, ['hashchange'], e => {
+            // NOTE: can we prevent this event?
             this.emit(this.PAGE_LOCATION_HASH_CHANGED_EVENT, e.newURL);
         });
     }
