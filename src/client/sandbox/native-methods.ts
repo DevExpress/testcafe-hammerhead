@@ -148,6 +148,7 @@ class NativeMethods {
     arrayMap: any;
     arrayJoin: any;
     arraySplice: any;
+    arrayIsArray: any;
     DOMParserParseFromString: any;
     arrayBufferIsView: any;
     elementHTMLPropOwnerName: string;
@@ -608,12 +609,13 @@ class NativeMethods {
         this.objectGetPrototypeOf           = win.Object.getPrototypeOf;
 
         // Array
-        this.arraySlice  = win.Array.prototype.slice;
-        this.arrayConcat = win.Array.prototype.concat;
-        this.arrayFilter = win.Array.prototype.filter;
-        this.arrayMap    = win.Array.prototype.map;
-        this.arrayJoin   = win.Array.prototype.join;
-        this.arraySplice = win.Array.prototype.splice;
+        this.arraySlice   = win.Array.prototype.slice;
+        this.arrayConcat  = win.Array.prototype.concat;
+        this.arrayFilter  = win.Array.prototype.filter;
+        this.arrayMap     = win.Array.prototype.map;
+        this.arrayJoin    = win.Array.prototype.join;
+        this.arraySplice  = win.Array.prototype.splice;
+        this.arrayIsArray = win.Array.isArray;
 
         this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
 

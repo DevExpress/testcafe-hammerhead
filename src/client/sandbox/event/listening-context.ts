@@ -1,6 +1,7 @@
 // NOTE: For internal usage of Listeners.
 import { isIE, version as browserVersion } from '../../utils/browser';
 import nativeMethods from '../native-methods';
+import ensureArray from '../../utils/ensure-array';
 
 const ELEMENT_LISTENING_EVENTS_STORAGE_PROP = 'hammerhead|element-listening-events-storage-prop';
 
@@ -48,6 +49,8 @@ export function removeListeningElement (el) {
 }
 
 export function addFirstInternalHandler (el, events, handler) {
+    events = ensureArray(events);
+
     const elementCtx = getElementCtx(el);
 
     for (const event of events)
@@ -55,6 +58,8 @@ export function addFirstInternalHandler (el, events, handler) {
 }
 
 export function addInternalHandler (el, events, handler) {
+    events = ensureArray(events);
+
     const elementCtx = getElementCtx(el);
 
     for (const event of events)
@@ -62,6 +67,8 @@ export function addInternalHandler (el, events, handler) {
 }
 
 export function removeInternalHandler (el, events, handler) {
+    events = ensureArray(events);
+
     const elementCtx = getElementCtx(el);
 
     for (const event of events) {

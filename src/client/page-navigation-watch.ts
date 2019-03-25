@@ -86,7 +86,7 @@ export default class PageNavigationWatch extends EventEmiter {
 
     _linkWatch (eventSandbox): void {
         eventSandbox.listeners.initElementListening(window, ['click', 'hashchange']);
-        eventSandbox.listeners.addInternalEventListener(window, ['click'], e => {
+        eventSandbox.listeners.addInternalEventListener(window, 'click', e => {
             const link = isAnchorElement(e.target) ? e.target : closest(e.target, 'a');
 
             if (link && !isShadowUIElement(link)) {
@@ -111,7 +111,7 @@ export default class PageNavigationWatch extends EventEmiter {
                     });
             }
         });
-        eventSandbox.listeners.addInternalEventListener(window, ['hashchange'], e => {
+        eventSandbox.listeners.addInternalEventListener(window, 'hashchange', e => {
             // NOTE: can we prevent this event?
             this.emit(this.PAGE_LOCATION_HASH_CHANGED_EVENT, e.newURL);
         });
