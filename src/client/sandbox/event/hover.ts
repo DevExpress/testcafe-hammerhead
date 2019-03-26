@@ -28,7 +28,7 @@ export default class HoverSandbox extends SandboxBase {
             // NOTE: Assign a pseudo-class marker to the elements until the joint parent is found.
             if (newHoveredElement !== jointParent) {
                 nativeMethods.setAttribute.call(newHoveredElement, INTERNAL_ATTRS.hoverPseudoClass, '');
-                newHoveredElement = newHoveredElement.parentNode;
+                newHoveredElement = nativeMethods.nodeParentNodeGetter.call(newHoveredElement);
             }
             else
                 break;
@@ -48,7 +48,7 @@ export default class HoverSandbox extends SandboxBase {
                 // NOTE: Check that the current element is a joint parent for the hovered elements.
                 if (!el.contains(newHoveredElement)) {
                     nativeMethods.removeAttribute.call(el, INTERNAL_ATTRS.hoverPseudoClass);
-                    el = el.parentNode;
+                    el = nativeMethods.nodeParentNodeGetter.call(el);
                 }
                 else {
                     jointParent = el;

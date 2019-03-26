@@ -230,7 +230,7 @@ export default class ShadowUI extends SandboxBase {
 
     _bringRootToWindowTopLeft () {
         let rootHasParentWithNonStaticPosition = false;
-        let parent                             = this.root.parentNode;
+        let parent                             = nativeMethods.nodeParentNodeGetter.call(this.root);
 
         while (parent) {
             const elementPosition = getStyle(parent, 'position');
@@ -238,7 +238,7 @@ export default class ShadowUI extends SandboxBase {
             if (IS_NON_STATIC_POSITION_RE.test(elementPosition))
                 rootHasParentWithNonStaticPosition = true;
 
-            parent = parent.parentNode;
+            parent = nativeMethods.nodeParentNodeGetter.call(parent);
         }
 
         if (rootHasParentWithNonStaticPosition) {
@@ -441,7 +441,7 @@ export default class ShadowUI extends SandboxBase {
         // NOTE: Fix for B239138 - The 'Cannot read property 'document' of null' error
         // is thrown on recording on the unroll.me site. There was an issue when
         // document.body was replaced, so we need to reattach a UI to a new body manually.
-        const isRootInBody = this.root.parentNode === this.document.body;
+        const isRootInBody = nativeMethods.nodeParentNodeGetter.call(this.root) === this.document.body;
 
         if (!(isRootInDom && isRootLastChild && isRootInBody))
             this.nativeMethods.appendChild.call(this.document.body, this.root);
@@ -532,7 +532,7 @@ export default class ShadowUI extends SandboxBase {
                 shadowUIElements.push(item);
         }
 
-        const collectionOwner = shadowUIElements.length && shadowUIElements[0].parentNode;
+        const collectionOwner = shadowUIElements.length && nativeMethods.nodeParentNodeGetter.call(shadowUIElements[0]);
 
         for (const shadowUIElement of shadowUIElements)
             nativeMethods.appendChild.call(collectionOwner, shadowUIElement);
@@ -602,8 +602,11 @@ export default class ShadowUI extends SandboxBase {
             '.' + SHADOW_UI_CLASS_NAME.selfRemovingScript);
         const length              = nativeMethods.nodeListLengthGetter.call(selfRemovingScripts);
 
-        for (let i = 0; i < length; i++)
-            nativeMethods.removeChild.call(selfRemovingScripts[i].parentNode, selfRemovingScripts[i]);
+        for (let i = 0; i < length; i++) {
+            const parent = nativeMethods.nodeParentNodeGetter.call(selfRemovingScripts[i]);
+
+            nativeMethods.removeChild.call(parent, selfRemovingScripts[i]);
+        }
     }
 
     // API
@@ -679,7 +682,7 @@ export default class ShadowUI extends SandboxBase {
     }
 
     insertBeforeRoot (el) {
-        const rootParent      = this.getRoot().parentNode;
+        const rootParent      = this.nativeMethods.nodeParentNodeGetter.call(this.getRoot());
         const lastParentChild = this.nativeMethods.nodeLastChildGetter.call(rootParent);
 
         return nativeMethods.insertBefore.call(rootParent, el, lastParentChild);

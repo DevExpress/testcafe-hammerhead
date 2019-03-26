@@ -476,7 +476,7 @@ export default class ElementSandbox extends SandboxBase {
                 const position = args[0];
                 const html     = args[1];
                 const el       = this;
-                const parentEl = el.parentNode;
+                const parentEl = nativeMethods.nodeParentNodeGetter.call(el);
 
                 if (args.length > 1 && html !== null) {
                     args[1] = processHtml(String(html), {
@@ -674,7 +674,9 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     static _hasShadowUIParentOrContainsShadowUIClassPostfix (el) {
-        return el.parentNode && domUtils.isShadowUIElement(el.parentNode) || ShadowUI.containsShadowUIClassPostfix(el);
+        const parent = nativeMethods.nodeParentNodeGetter.call(el);
+
+        return parent && domUtils.isShadowUIElement(parent) || ShadowUI.containsShadowUIClassPostfix(el);
     }
 
     _isFirstBaseTagOnPage (el) {
@@ -779,10 +781,6 @@ export default class ElementSandbox extends SandboxBase {
 
         this._createOverridedMethods();
 
-        window.Element.prototype.insertBefore              = this.overriddenMethods.insertBefore;
-        window.Element.prototype.appendChild               = this.overriddenMethods.appendChild;
-        window.Element.prototype.replaceChild              = this.overriddenMethods.replaceChild;
-        window.Element.prototype.removeChild               = this.overriddenMethods.removeChild;
         window.Element.prototype.setAttribute              = this.overriddenMethods.setAttribute;
         window.Element.prototype.setAttributeNS            = this.overriddenMethods.setAttributeNS;
         window.Element.prototype.getAttribute              = this.overriddenMethods.getAttribute;

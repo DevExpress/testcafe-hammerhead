@@ -205,7 +205,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             const activeElement = domUtils.getActiveElement(curDocument);
 
             // NOTE: If the element was not focused and has a parent with tabindex, we focus this parent.
-            const parent             = el.parentNode;
+            const parent             = nativeMethods.nodeParentNodeGetter.call(el);
             const parentWithTabIndex = parent === document ? null : domUtils.closest(parent, '[tabindex]');
 
             if (type === 'focus' && activeElement !== el && parentWithTabIndex && forMouseEvent) {

@@ -482,6 +482,33 @@ test('should override document methods on a prototype level (GH-1827)', function
     document.createElement('div');
 });
 
+test('patching Node methods on the client side: appendChild, insertBefore, replaceChild, removeChild (GH-1874)', function () {
+    expect(8);
+
+    function checkMeth (methName) {
+        strictEqual(window.Node.prototype[methName], window.HTMLBodyElement.prototype[methName], methName);
+
+        var savedMeth = window.Node.prototype[methName];
+
+        window.Node.prototype[methName] = function () {
+            window.Node.prototype[methName] = savedMeth;
+
+            ok(true, methName);
+        };
+
+        document.body[methName]();
+    }
+
+    [
+        'appendChild',
+        'insertBefore',
+        'replaceChild',
+        'removeChild',
+    ].forEach(function (methName) {
+        checkMeth(methName);
+    });
+});
+
 module('resgression');
 
 test('document.write for several tags in iframe (T215136)', function () {
