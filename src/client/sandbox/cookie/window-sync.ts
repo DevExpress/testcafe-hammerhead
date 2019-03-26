@@ -1,3 +1,7 @@
+/*eslint-disable no-unused-vars*/
+import MessageSandbox from '../event/message';
+import UnloadSandbox from '../event/unload';
+/*eslint-enable no-unused-vars*/
 import CookieSandbox from './index';
 import Promise from 'pinkie';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
@@ -16,27 +20,23 @@ const SYNC_COOKIE_DONE_CMD       = 'hammerhead|command|sync-cookie-done';
 const SYNC_MESSAGE_TIMEOUT       = 500;
 const SYNC_MESSAGE_ATTEMPT_COUNT = 5;
 
+interface SyncCookieMsg {
+    id?: number;
+    cmd: string;
+    cookies: Array<any>;
+}
+
 export default class WindowSync {
-    private readonly _win: Window;
-    private readonly _resolversMap: Map<number, () => void>;
-    private readonly _cookieSandbox: CookieSandbox;
-    private readonly _messageSandbox: any;
-    private readonly _messageIdGenerator: IntegerIdGenerator;
+    private _win: Window;
+    private _messageIdGenerator: IntegerIdGenerator;
+    private _resolversMap: Map<number, () => void>;
 
-    constructor (win: Window, cookieSandbox: CookieSandbox, messageSandbox, unloadSandbox) {
-        this._win                = win;
-        this._cookieSandbox      = cookieSandbox;
-        this._messageSandbox     = messageSandbox;
-        this._messageIdGenerator = win === win.top ? new IntegerIdGenerator() : null;
-        this._resolversMap       = win === win.top ? new Map() : null;
-
-        messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => this._onMsgReceived(e));
-
-        if (win === win.top)
-            unloadSandbox.on(unloadSandbox.UNLOAD_EVENT, WindowSync._removeAllWindowSyncCookie);
+    constructor (private readonly _cookieSandbox: CookieSandbox,   // eslint-disable-line
+                 private readonly _messageSandbox: MessageSandbox, // eslint-disable-line
+                 private readonly _unloadSandbox: UnloadSandbox) { // eslint-disable-line
     }
 
-    private static _getCookieSandbox (win) {
+    private static _getCookieSandbox (win: Window): CookieSandbox {
         try {
             // eslint-disable-next-line no-restricted-properties
             const cookieSandbox = win[INTERNAL_PROPS.hammerhead].sandbox.cookie;
@@ -68,7 +68,7 @@ export default class WindowSync {
         }
     }
 
-    private _onMsgReceived ({ message, source }) {
+    private _onMsgReceived ({ message, source }: { message: SyncCookieMsg, source: Window }) {
         if (message.cmd === SYNC_COOKIE_START_CMD) {
             this._cookieSandbox.syncWindowCookie(message.cookies);
 
@@ -78,17 +78,20 @@ export default class WindowSync {
                 this.syncBetweenWindows(message.cookies, source);
         }
         else if (message.cmd === SYNC_COOKIE_DONE_CMD) {
-            if (this._resolversMap.has(message.id))
-                this._resolversMap.get(message.id)();
+            const resolver = this._resolversMap.get(message.id);
+
+            if (resolver)
+                resolver();
         }
     }
 
-    private _getWindowsForSync (initiator: Window, currentWindow: Window = this._win.top, windows: Array<Window> = []) {
+    private _getWindowsForSync (initiator: Window, currentWindow: Window = this._win.top, windows: Array<Window> = []): Array<Window> {
         if (currentWindow !== initiator && currentWindow !== this._win.top)
             windows.push(currentWindow);
 
-        for (let i = 0; i < currentWindow.frames.length; i++)
-            this._getWindowsForSync(initiator, currentWindow.frames[i], windows);
+        // @ts-ignore
+        for (const frameWindow of currentWindow.frames)
+            this._getWindowsForSync(initiator, frameWindow, windows);
 
         return windows;
     }
@@ -121,12 +124,12 @@ export default class WindowSync {
         });
     }
 
-    private _delegateSyncBetweenWindowsToTop (cookies): void {
+    private _delegateSyncBetweenWindowsToTop (cookies) {
         const cookieSandboxTop = WindowSync._getCookieSandbox(this._win.top);
 
         if (cookieSandboxTop) {
             cookieSandboxTop.syncWindowCookie(cookies);
-            cookieSandboxTop.windowSync.syncBetweenWindows(cookies, this._win);
+            cookieSandboxTop.getWindowSync().syncBetweenWindows(cookies, this._win);
         }
         else
             this._messageSandbox.sendServiceMsg({ cmd: SYNC_COOKIE_START_CMD, cookies }, this._win.top);
@@ -169,5 +172,18 @@ export default class WindowSync {
             Promise.all(syncMessages).then(() => this._removeSyncCookie(cookies));
         else
             this._removeSyncCookie(cookies);
+    }
+
+    attach (win: Window) {
+        this._win = win;
+
+        this._messageSandbox.on(this._messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => this._onMsgReceived(e));
+
+        if (win === win.top) {
+            this._messageIdGenerator = this._messageIdGenerator || new IntegerIdGenerator();
+            this._resolversMap       = this._resolversMap || new Map();
+
+            this._unloadSandbox.on(this._unloadSandbox.UNLOAD_EVENT, WindowSync._removeAllWindowSyncCookie);
+        }
     }
 }

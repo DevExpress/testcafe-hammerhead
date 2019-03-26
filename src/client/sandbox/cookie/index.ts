@@ -1,3 +1,7 @@
+/*eslint-disable no-unused-vars*/
+import MessageSandbox from '../event/message';
+import UnloadSandbox from '../event/unload';
+/*eslint-enable no-unused-vars*/
 import SandboxBase from '../base';
 import settings from '../../settings';
 import WindowSync from './window-sync';
@@ -17,19 +21,12 @@ import {
 const MIN_DATE_VALUE = new nativeMethods.date(0).toUTCString(); // eslint-disable-line new-cap
 
 export default class CookieSandbox extends SandboxBase {
-    messageSandbox: any;
-    windowSync: any;
-    pendingWindowSync: Array<any>;
-    unloadSandbox: any;
+    private readonly _windowSync: WindowSync;
 
-    constructor (messageSandbox, unloadSandbox) {
+    constructor (messageSandbox: MessageSandbox, unloadSandbox: UnloadSandbox) {
         super();
 
-        this.messageSandbox = messageSandbox;
-        this.unloadSandbox  = unloadSandbox;
-        this.windowSync     = null;
-
-        this.pendingWindowSync = [];
+        this._windowSync = new WindowSync(this, messageSandbox, unloadSandbox);
     }
 
     _canSetCookie (cookie, setByClient: boolean): boolean {
@@ -159,7 +156,7 @@ export default class CookieSandbox extends SandboxBase {
             nativeMethods.documentCookieSetter.call(this.document, formatSyncCookie(parsedCookie));
         }
 
-        this.windowSync.syncBetweenWindows(parsedCookies);
+        this._windowSync.syncBetweenWindows(parsedCookies);
     }
 
     _syncClientCookie (parsedCookie): void {
@@ -172,7 +169,7 @@ export default class CookieSandbox extends SandboxBase {
 
         nativeMethods.documentCookieSetter.call(this.document, formatSyncCookie(parsedCookie));
 
-        this.windowSync.syncBetweenWindows([parsedCookie]);
+        this._windowSync.syncBetweenWindows([parsedCookie]);
     }
 
     static isSyncCookieExists (parsedCookie, clientCookieStr: string): boolean {
@@ -191,9 +188,13 @@ export default class CookieSandbox extends SandboxBase {
         }
     }
 
+    getWindowSync (): WindowSync {
+        return this._windowSync;
+    }
+
     attach (window: Window): void {
         super.attach(window);
 
-        this.windowSync = new WindowSync(window, this, this.messageSandbox, this.unloadSandbox);
+        this._windowSync.attach(window);
     }
 }
