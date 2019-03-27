@@ -925,7 +925,7 @@ test('inspect html elements', function () {
         { tagName: 'input', assertFn: domUtils.isCheckboxElement, attributes: { type: 'checkbox' } }
     ];
 
-    if (!browserUtils.isIE11)
+    if (!browserUtils.isIE11 && !browserUtils.isSafari)
         htmlElements.push({ tagName: 'input', assertFn: domUtils.isColorInputElement, attributes: { type: 'color' } });
 
     htmlElements.forEach(function (info) {
