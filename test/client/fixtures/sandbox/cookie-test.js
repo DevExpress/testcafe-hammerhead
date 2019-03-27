@@ -261,7 +261,7 @@ test('valid the secure and path parameters', function () {
         'c|sessionId|test|example.com|%2F||lastAccessed=test');
 });
 
-module('synchronization between frames');
+module('synchronization between windows');
 
 test('same-domain frames', function () {
     var sameDomainSrc  = getSameDomainPageUrl('../../data/cookie-sandbox/same-domain-iframe.html');
@@ -427,6 +427,87 @@ test('actual cookie in iframe even if a synchronization message does not receive
             return window.QUnitGlobals.wait(function () {
                 return nativeMethods.documentCookieGetter.call(document) === '';
             }, 5000);
+        });
+});
+
+test('synchronization cookies must be removed after the unload event of the top window ', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            var unloadSandbox       = window['%hammerhead%'].sandbox.event.unload;
+            var iframeUnloadSandbox = iframe.contentWindow['%hammerhead%'].sandbox.event.unload;
+            var syncCookies         = [
+                's|sessionId|cookie1|example.com|%2F||1fckm5lnl=outdated;path=/',
+                's|sessionId|cookie1|example.com|%2F||1fckm5lnz=server;path=/',
+                'w|sessionId|cookie2|example.com|%2F||1fckm5lnl=remove;path=/',
+                'cw|sessionId|cookie3|example.com|%2F||1fckm5lnl=stay client;path=/'
+            ];
+
+            for (var i = 0; i < syncCookies.length; i++)
+                nativeMethods.documentCookieSetter.call(document, syncCookies[i]);
+
+            iframeUnloadSandbox.emit(iframeUnloadSandbox.UNLOAD_EVENT);
+
+            var currentSyncCookies = nativeMethods.documentCookieGetter.call(document).split('; ').sort();
+
+            deepEqual(currentSyncCookies, [
+                'cw|sessionId|cookie3|example.com|%2F||1fckm5lnl=stay client',
+                's|sessionId|cookie1|example.com|%2F||1fckm5lnl=outdated',
+                's|sessionId|cookie1|example.com|%2F||1fckm5lnz=server',
+                'w|sessionId|cookie2|example.com|%2F||1fckm5lnl=remove'
+            ]);
+
+            unloadSandbox.emit(iframeUnloadSandbox.UNLOAD_EVENT);
+
+            currentSyncCookies = nativeMethods.documentCookieGetter.call(document).split('; ').sort();
+
+            deepEqual(currentSyncCookies, [
+                'c|sessionId|cookie3|example.com|%2F||1fckm5lnl=stay client',
+                's|sessionId|cookie1|example.com|%2F||1fckm5lnz=server'
+            ]);
+        });
+});
+
+/*eslint-disable*/
+test('iframe is not loaded', function () {
+    var iframe                  = document.createElement('iframe');
+    var timeouts                = [];
+    var nativeSetTimeout        = nativeMethods.setTimeout;
+    var nativeSetTimeoutWrapper = window.setTimeout;
+
+    nativeMethods.iframeSrcSetter.call(iframe, '/destroy-connection');
+
+    document.body.appendChild(iframe);
+
+    return new Promise(function (resolve) {
+        nativeMethods.setTimeout.call(window, resolve, 500);
+    })
+        .then(function () {
+            nativeMethods.setTimeout = function (fn, timeout) {
+                timeouts.push(timeout);
+
+                return nativeSetTimeout.call(window, fn, timeout / 100);
+            };
+
+            window.setTimeout = function (fn, timeout) {
+                return nativeSetTimeout.call(window, fn, timeout);
+            };
+
+            document.cookie = 'test=not found';
+
+            strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
+                'cw|sessionId|test|example.com|%2F||lastAccessed=not found');
+
+            return window.QUnitGlobals.wait(function () {
+                return nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed=') ===
+                       'c|sessionId|test|example.com|%2F||lastAccessed=not found';
+            }, 8500);
+        })
+        .then(function () {
+            deepEqual(timeouts, [500, 1000, 1500, 2000, 2500]);
+
+            nativeMethods.setTimeout = nativeSetTimeout;
+            window.setTimeout = nativeSetTimeoutWrapper;
+            document.body.removeChild(iframe);
         });
 });
 

@@ -1,4 +1,7 @@
-import Promise from 'pinkie';
+/*eslint-disable no-unused-vars*/
+import MessageSandbox from '../event/message';
+import UnloadSandbox from '../event/unload';
+/*eslint-enable no-unused-vars*/
 import SandboxBase from '../base';
 import settings from '../../settings';
 import WindowSync from './window-sync';
@@ -18,17 +21,12 @@ import {
 const MIN_DATE_VALUE = new nativeMethods.date(0).toUTCString(); // eslint-disable-line new-cap
 
 export default class CookieSandbox extends SandboxBase {
-    messageSandbox: any;
-    windowSync: any;
-    pendingWindowSync: Array<any>;
+    private readonly _windowSync: WindowSync;
 
-    constructor (messageSandbox) {
+    constructor (messageSandbox: MessageSandbox, unloadSandbox: UnloadSandbox) {
         super();
 
-        this.messageSandbox = messageSandbox;
-        this.windowSync     = null;
-
-        this.pendingWindowSync = [];
+        this._windowSync = new WindowSync(this, messageSandbox, unloadSandbox);
     }
 
     _canSetCookie (cookie, setByClient: boolean): boolean {
@@ -145,7 +143,8 @@ export default class CookieSandbox extends SandboxBase {
                 this.setCookie(this.document, parsedCookie);
         }
 
-        this._syncServerCookie(serverSyncCookies);
+        if (serverSyncCookies.length)
+            this._syncServerCookie(serverSyncCookies);
     }
 
     _syncServerCookie (parsedCookies): void {
@@ -157,10 +156,7 @@ export default class CookieSandbox extends SandboxBase {
             nativeMethods.documentCookieSetter.call(this.document, formatSyncCookie(parsedCookie));
         }
 
-        this.windowSync.syncBetweenWindows(parsedCookies, null, () => {
-            for (const parsedCookie of parsedCookies)
-                nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(parsedCookie));
-        });
+        this._windowSync.syncBetweenWindows(parsedCookies);
     }
 
     _syncClientCookie (parsedCookie): void {
@@ -173,52 +169,32 @@ export default class CookieSandbox extends SandboxBase {
 
         nativeMethods.documentCookieSetter.call(this.document, formatSyncCookie(parsedCookie));
 
-        this.windowSync.syncBetweenWindows([parsedCookie], null, () => {
-            nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(parsedCookie));
-            changeSyncType(parsedCookie, { window: false });
-            nativeMethods.documentCookieSetter.call(this.document, formatSyncCookie(parsedCookie));
-        });
+        this._windowSync.syncBetweenWindows([parsedCookie]);
     }
 
-    _processPendingWindowSync (): void {
-        for (const { parsedCookies, win, resolve } of this.pendingWindowSync) {
-            const syncResultPromise = this.syncWindowCookie(parsedCookies, win);
+    static isSyncCookieExists (parsedCookie, clientCookieStr: string): boolean {
+        const startIndex = clientCookieStr.indexOf(parsedCookie.cookieStr);
+        const endIndex   = startIndex + parsedCookie.cookieStr.length;
 
-            if (syncResultPromise)
-                syncResultPromise.then(resolve);
-            else
-                resolve();
-        }
-
-        this.pendingWindowSync = [];
+        return startIndex > -1 && (clientCookieStr.length === endIndex || clientCookieStr.charAt(endIndex) === ';');
     }
 
-    syncWindowCookie (parsedCookies, win: Window) {
-        // NOTE: This function can be called before the 'attach' call.
-        if (!this.document)
-            return new Promise(resolve => this.pendingWindowSync.push({ parsedCookies, win, resolve }));
-
-        const clientCookie  = nativeMethods.documentCookieGetter.call(this.document);
-        const actualCookies = [];
+    syncWindowCookie (parsedCookies): void {
+        const clientCookie = nativeMethods.documentCookieGetter.call(this.document);
 
         for (const parsedCookie of parsedCookies) {
-            const startIndex = clientCookie.indexOf(parsedCookie.cookieStr);
-            const endIndex   = startIndex + parsedCookie.cookieStr.length;
-
-            if (startIndex > -1 && (clientCookie.length === endIndex || clientCookie.charAt(endIndex) === ';')) {
+            if (CookieSandbox.isSyncCookieExists(parsedCookie, clientCookie))
                 this.setCookie(this.document, parsedCookie);
-                actualCookies.push(parsedCookie);
-            }
         }
+    }
 
-        return this.windowSync.syncBetweenWindows(actualCookies, win);
+    getWindowSync (): WindowSync {
+        return this._windowSync;
     }
 
     attach (window: Window): void {
         super.attach(window);
 
-        this.windowSync = new WindowSync(window, this, this.messageSandbox);
-
-        this._processPendingWindowSync();
+        this._windowSync.attach(window);
     }
 }
