@@ -53,7 +53,6 @@ interface TaskScriptOpts {
 
 export default abstract class Session extends EventEmitter {
     uploadStorage: UploadStorage;
-    requireStateSwitch: boolean = false;
     id: string = generateUniqueId();
     cookies: Cookies = new Cookies();
     proxy: Proxy = null;
@@ -75,11 +74,10 @@ export default abstract class Session extends EventEmitter {
         return new StateSnapshot(this.cookies.serializeJar(), null);
     }
 
-    useStateSnapshot (snapshot: StateSnapshot) {
+    useStateSnapshot (snapshot: StateSnapshot): void {
         // NOTE: we don't perform state switch immediately, since there might be
         // pending requests from current page. Therefore, we perform switch in
         // onPageRequest handler when new page is requested.
-        this.requireStateSwitch   = true;
         this.pendingStateSnapshot = snapshot;
     }
 
@@ -177,13 +175,17 @@ export default abstract class Session extends EventEmitter {
     }
 
     onPageRequest (ctx: RequestPipelineContext) {
-        if (this.requireStateSwitch) {
-            this.cookies.setJar(this.pendingStateSnapshot.cookies);
+        if (!this.pendingStateSnapshot)
+            return;
 
-            ctx.restoringStorages     = this.pendingStateSnapshot.storages;
-            this.requireStateSwitch   = false;
-            this.pendingStateSnapshot = null;
-        }
+        this.cookies.setJar(this.pendingStateSnapshot.cookies);
+
+        ctx.restoringStorages     = this.pendingStateSnapshot.storages;
+        this.pendingStateSnapshot = null;
+    }
+
+    setCookie (cookie: any) {
+        this.cookies.setJar(cookie);
     }
 
     // Request hooks
