@@ -441,7 +441,19 @@ export function isOptionElement (el: HTMLElement): boolean {
     return instanceToString(el) === '[object HTMLOptionElement]';
 }
 
-export function isSelectElement (el: HTMLElement): boolean {
+export function isRadioButtonElement (el): boolean {
+    return isInputElement(el) && el.type.toLowerCase() === 'radio';
+}
+
+export function isColorInputElement (el): boolean {
+    return isInputElement(el) && el.type.toLowerCase() === 'color';
+}
+
+export function isCheckboxElement (el): boolean {
+    return isInputElement(el) && el.type.toLowerCase() === 'checkbox';
+}
+
+export function isSelectElement (el): boolean {
     return instanceToString(el) === '[object HTMLSelectElement]';
 }
 
