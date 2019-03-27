@@ -204,4 +204,8 @@ module.exports = function (app) {
                                       'QAAAAMSURBVBhXY9j6TBYABAwBuZFzS6sAAAAASUVORK5CYII=', 'base64'));
             });
     });
+
+    app.get('/destroy-connection', function (req, res) {
+        res.destroy();
+    })
 };
