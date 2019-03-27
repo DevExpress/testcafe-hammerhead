@@ -899,27 +899,52 @@ test("An object with the 'tagName' and 'nodeName' properties shouldn't be recogn
 });
 
 test('inspect html elements', function () {
-    ok(domUtils.isIframeElement(nativeMethods.createElement.call(document, 'iframe')), 'iframe');
-    ok(domUtils.isImgElement(nativeMethods.createElement.call(document, 'img')), 'img');
-    ok(domUtils.isInputElement(nativeMethods.createElement.call(document, 'input')), 'input');
-    ok(domUtils.isHtmlElement(nativeMethods.querySelector.call(document, 'html')), 'html');
-    ok(domUtils.isBodyElement(nativeMethods.querySelector.call(document, 'body')), 'body');
-    ok(domUtils.isHeadElement(nativeMethods.querySelector.call(document, 'head')), 'head');
-    ok(domUtils.isHeadOrBodyElement(nativeMethods.querySelector.call(document, 'body')), 'body');
-    ok(domUtils.isHeadOrBodyElement(nativeMethods.querySelector.call(document, 'head')), 'head');
-    ok(domUtils.isBaseElement(nativeMethods.createElement.call(document, 'base')), 'base');
-    ok(domUtils.isScriptElement(nativeMethods.querySelector.call(document, 'script')), 'script');
-    ok(domUtils.isStyleElement(nativeMethods.createElement.call(document, 'style')), 'style');
-    ok(domUtils.isLabelElement(nativeMethods.createElement.call(document, 'label')), 'label');
-    ok(domUtils.isTextAreaElement(nativeMethods.createElement.call(document, 'textarea')), 'textarea');
-    ok(domUtils.isOptionElement(nativeMethods.createElement.call(document, 'option')), 'option');
-    ok(domUtils.isSelectElement(nativeMethods.createElement.call(document, 'select')), 'select');
-    ok(domUtils.isFormElement(nativeMethods.createElement.call(document, 'form')), 'form');
-    ok(domUtils.isMapElement(nativeMethods.createElement.call(document, 'map')), 'map');
-    ok(domUtils.isMapElement(nativeMethods.createElement.call(document, 'area')), 'area');
-    ok(domUtils.isAnchorElement(nativeMethods.createElement.call(document, 'a')), 'a');
-    ok(domUtils.isTableElement(nativeMethods.createElement.call(document, 'table')), 'table');
-    ok(domUtils.isTableDataCellElement(nativeMethods.createElement.call(document, 'td')), 'td');
+    const htmlElements = [
+        { tagName: 'iframe', assertFn: domUtils.isIframeElement },
+        { tagName: 'img', assertFn: domUtils.isImgElement },
+        { tagName: 'input', assertFn: domUtils.isInputElement },
+        { tagName: 'html', assertFn: domUtils.isHtmlElement },
+        { tagName: 'body', assertFn: domUtils.isBodyElement },
+        { tagName: 'head', assertFn: domUtils.isHeadElement },
+        { tagName: 'body', assertFn: domUtils.isHeadOrBodyElement },
+        { tagName: 'head', assertFn: domUtils.isHeadOrBodyElement },
+        { tagName: 'base', assertFn: domUtils.isBaseElement },
+        { tagName: 'script', assertFn: domUtils.isScriptElement },
+        { tagName: 'style', assertFn: domUtils.isStyleElement },
+        { tagName: 'label', assertFn: domUtils.isLabelElement },
+        { tagName: 'textarea', assertFn: domUtils.isTextAreaElement },
+        { tagName: 'option', assertFn: domUtils.isOptionElement },
+        { tagName: 'select', assertFn: domUtils.isSelectElement },
+        { tagName: 'form', assertFn: domUtils.isFormElement },
+        { tagName: 'map', assertFn: domUtils.isMapElement },
+        { tagName: 'area', assertFn: domUtils.isMapElement },
+        { tagName: 'a', assertFn: domUtils.isAnchorElement },
+        { tagName: 'table', assertFn: domUtils.isTableElement },
+        { tagName: 'td', assertFn: domUtils.isTableDataCellElement },
+        { tagName: 'input', assertFn: domUtils.isRadioButtonElement, attributes: { type: 'radio' } },
+        { tagName: 'input', assertFn: domUtils.isCheckboxElement, attributes: { type: 'checkbox' } }
+    ];
+
+    if (!browserUtils.isIE11 && !browserUtils.isSafari)
+        htmlElements.push({ tagName: 'input', assertFn: domUtils.isColorInputElement, attributes: { type: 'color' } });
+
+    htmlElements.forEach(function (info) {
+        var existingTags = ['html', 'body', 'script', 'head'];
+        var element      = null;
+
+        if (existingTags.indexOf(info.tagName) > -1)
+            element = nativeMethods.querySelector.call(document, info.tagName);
+        else
+            element = nativeMethods.createElement.call(document, info.tagName);
+
+        if (info.attributes) {
+            Object.keys(info.attributes).forEach(function (attr) {
+                nativeMethods.setAttribute.call(element, attr, info.attributes[attr]);
+            });
+        }
+
+        ok(info.assertFn(element), info.tagName);
+    });
 });
 
 if (browserUtils.isChrome) {
