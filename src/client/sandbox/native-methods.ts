@@ -1,4 +1,6 @@
 /*global Document, Window */
+const NATIVE_CODE_RE = /\[native code]/;
+
 class NativeMethods {
     isStoragePropsLocatedInProto: boolean;
     createDocumentFragment: any;
@@ -406,8 +408,8 @@ class NativeMethods {
         const documentCookieDescriptor = win.Object.getOwnPropertyDescriptor(win[this.documentCookiePropOwnerName].prototype, 'cookie');
 
         // TODO: remove this condition after the GH-1649 fix
-        if (documentCookieDescriptor.get.toString().indexOf('native code') === -1 ||
-            documentCookieDescriptor.get.toString.toString().indexOf('native code') === -1) {
+        if (!NATIVE_CODE_RE.test(documentCookieDescriptor.get.toString()) ||
+            !NATIVE_CODE_RE.test(documentCookieDescriptor.get.toString.toString())) {
             try {
                 const parentNativeMethods = win.parent['%hammerhead%'].nativeMethods;
 
@@ -469,6 +471,18 @@ class NativeMethods {
         this.anchorToString                = win.HTMLAnchorElement.prototype.toString;
         this.matches                       = nativeElement.matches || nativeElement.msMatchesSelector;
         this.closest                       = nativeElement.closest;
+
+        // TODO: remove this condition after the GH-1649 fix
+        if (!NATIVE_CODE_RE.test(this.elementGetElementsByTagName.toString())) {
+            try {
+                const parentNativeMethods = win.parent['%hammerhead%'].nativeMethods;
+
+                this.elementGetElementsByTagName = parentNativeMethods.elementGetElementsByTagName;
+            }
+            // eslint-disable-next-line no-empty
+            catch (e) {
+            }
+        }
 
         // Event
         this.addEventListener          = nativeElement.addEventListener;
