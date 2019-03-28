@@ -387,16 +387,17 @@ asyncTest('mouse events in iframe', function () {
                 'mousemove',
                 'pointerover',
                 'mouseover',
+                'pointerenter',
                 'mouseenter',
                 'click',
                 'dblclick',
                 'contextmenu'
             ];
 
-            var eventsInsideFrame = ['pointerover', 'mouseover', 'mouseenter'];
+            var eventsInsideFrame = ['pointerover', 'mouseover', 'pointerenter', 'mouseenter'];
 
             if (!eventUtils.hasPointerEvents) {
-                const pointerRegExp = /pointer(down|up|move|over)/;
+                const pointerRegExp = /pointer(down|up|move|over|enter)/;
 
                 allEvents = allEvents.filter(function (eventName) {
                     return !pointerRegExp.test(eventName);

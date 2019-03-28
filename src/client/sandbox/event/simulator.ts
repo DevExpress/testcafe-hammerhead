@@ -541,7 +541,7 @@ export default class EventSimulator {
         if (args.type !== 'mouseover' && args.type !== 'mouseenter' && shouldIgnoreMouseEventInsideIframe(el, args.clientX, args.clientY))
             return true;
 
-        const pointerRegExp = /mouse(down|up|move|over|out)/;
+        const pointerRegExp = /mouse(down|up|move|over|enter|out)/;
 
         // NOTE: In IE, submit doesn't work if a click is simulated for some submit button's children (for example,
         // img, B236676). In addition, if a test is being recorded in IE, the target of a click event is always a
