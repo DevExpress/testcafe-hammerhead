@@ -195,13 +195,16 @@ class Hammerhead {
             eventOwner.off(evtName, handler);
     }
 
-    navigateTo (url) {
+    navigateTo (url: string, forceReload: boolean): void {
         const navigationUrl = urlUtils.getNavigationUrl(url, this.win);
 
         if (!navigationUrl)
             return;
 
         this.win.location = navigationUrl;
+
+        if (forceReload)
+            this.win.location.reload(true);
     }
 
     start (initSettings, win: Window) {

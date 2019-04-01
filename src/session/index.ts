@@ -9,8 +9,9 @@ import { RequestInfo } from './events/info';
 import RequestEvent from './events/request-event';
 import ResponseEvent from './events/response-event';
 import ConfigureResponseEvent from './events/configure-response-event';
-import { StoragesSnapshot, Credentials, ExternalProxySettings, ExternalProxySettingsRaw } from '../typings/session';
+import { Credentials, ExternalProxySettings, ExternalProxySettingsRaw } from '../typings/session';
 import { GetUploadedFilesServiceMessage, StoreUploadedFilesServiceMessage } from '../typings/upload';
+import StateSnapshot from './state-snapshot';
 /*eslint-enable no-unused-vars*/
 import mustache from 'mustache';
 import { readSync as read } from 'read-file-relative';
@@ -26,11 +27,6 @@ const TASK_TEMPLATE: string = read('../client/task.js.mustache');
 interface InjectableResources {
     scripts: Array<string>,
     styles: Array<string>
-}
-
-interface StateSnapshot {
-    cookies: string | null,
-    storages: StoragesSnapshot | null
 }
 
 interface RequestEventListeners {
@@ -58,7 +54,6 @@ interface TaskScriptOpts {
 
 export default abstract class Session extends EventEmitter {
     uploadStorage: UploadStorage;
-    requireStateSwitch: boolean = false;
     id: string = generateUniqueId();
     cookies: Cookies = new Cookies();
     proxy: Proxy = null;
@@ -69,7 +64,7 @@ export default abstract class Session extends EventEmitter {
     requestEventListeners: Map<RequestFilterRule, RequestEventListeners> = new Map();
     mocks: Map<RequestFilterRule, ResponseMock> = new Map();
 
-    constructor (uploadsRoot: string) {
+    protected constructor (uploadsRoot: string) {
         super();
 
         this.uploadStorage = new UploadStorage(uploadsRoot);
@@ -77,24 +72,14 @@ export default abstract class Session extends EventEmitter {
 
     // State
     getStateSnapshot (): StateSnapshot {
-        return {
-            cookies:  this.cookies.serializeJar(),
-            storages: null
-        };
+        return new StateSnapshot(this.cookies.serializeJar(), null);
     }
 
     useStateSnapshot (snapshot: StateSnapshot) {
         // NOTE: we don't perform state switch immediately, since there might be
         // pending requests from current page. Therefore, we perform switch in
         // onPageRequest handler when new page is requested.
-        this.requireStateSwitch   = true;
-        this.pendingStateSnapshot = snapshot || {
-            cookies:  null,
-            storages: {
-                localStorage:   '[[],[]]',
-                sessionStorage: '[[],[]]'
-            }
-        };
+        this.pendingStateSnapshot = snapshot;
     }
 
     async handleServiceMessage (msg: ServiceMessage, serverInfo: ServerInfo): Promise<object> {
@@ -191,13 +176,13 @@ export default abstract class Session extends EventEmitter {
     }
 
     onPageRequest (ctx: RequestPipelineContext) {
-        if (this.requireStateSwitch) {
-            this.cookies.setJar(this.pendingStateSnapshot.cookies);
+        if (!this.pendingStateSnapshot)
+            return;
 
-            ctx.restoringStorages     = this.pendingStateSnapshot.storages;
-            this.requireStateSwitch   = false;
-            this.pendingStateSnapshot = null;
-        }
+        this.cookies.setJar(this.pendingStateSnapshot.cookies);
+
+        ctx.restoringStorages     = this.pendingStateSnapshot.storages;
+        this.pendingStateSnapshot = null;
     }
 
     // Request hooks
