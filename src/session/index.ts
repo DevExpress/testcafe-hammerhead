@@ -76,6 +76,9 @@ export default abstract class Session extends EventEmitter {
     }
 
     useStateSnapshot (snapshot: StateSnapshot) {
+        if (!snapshot)
+            throw new Error('"snapshot" parameter cannot be null. Use StateSnapshot.empty() instead of it.');
+
         // NOTE: we don't perform state switch immediately, since there might be
         // pending requests from current page. Therefore, we perform switch in
         // onPageRequest handler when new page is requested.
