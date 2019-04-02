@@ -1,4 +1,6 @@
 /*global Document, Window */
+const NATIVE_CODE_RE = /\[native code]/;
+
 class NativeMethods {
     isStoragePropsLocatedInProto: boolean;
     createDocumentFragment: any;
@@ -406,8 +408,8 @@ class NativeMethods {
         const documentCookieDescriptor = win.Object.getOwnPropertyDescriptor(win[this.documentCookiePropOwnerName].prototype, 'cookie');
 
         // TODO: remove this condition after the GH-1649 fix
-        if (documentCookieDescriptor.get.toString().indexOf('native code') === -1 ||
-            documentCookieDescriptor.get.toString.toString().indexOf('native code') === -1) {
+        if (!NativeMethods.isNativeCode(documentCookieDescriptor.get) ||
+            !NativeMethods.isNativeCode(documentCookieDescriptor.get.toString)) {
             try {
                 const parentNativeMethods = win.parent['%hammerhead%'].nativeMethods;
 
@@ -469,6 +471,18 @@ class NativeMethods {
         this.anchorToString                = win.HTMLAnchorElement.prototype.toString;
         this.matches                       = nativeElement.matches || nativeElement.msMatchesSelector;
         this.closest                       = nativeElement.closest;
+
+        // TODO: remove this condition after the GH-1649 fix
+        if (!NativeMethods.isNativeCode(this.elementGetElementsByTagName)) {
+            try {
+                const parentNativeMethods = win.parent['%hammerhead%'].nativeMethods;
+
+                this.elementGetElementsByTagName = parentNativeMethods.elementGetElementsByTagName;
+            }
+            // eslint-disable-next-line no-empty
+            catch (e) {
+            }
+        }
 
         // Event
         this.addEventListener          = nativeElement.addEventListener;
@@ -1051,6 +1065,10 @@ class NativeMethods {
         // NOTE: T239109
         if (needToRefreshWindowMethods)
             this.refreshWindowMeths(win);
+    }
+
+    static isNativeCode (fn) {
+        return NATIVE_CODE_RE.test(fn.toString());
     }
 }
 

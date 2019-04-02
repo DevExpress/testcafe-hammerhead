@@ -1,12 +1,15 @@
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import nativeMethods from '../native-methods';
 import * as JSON from 'json-hammerhead';
+import ShadowUI from '../shadow-ui';
 
 function createInput (form) {
     const hiddenInput = nativeMethods.createElement.call(document, 'input');
 
     hiddenInput.type  = 'hidden';
     hiddenInput.name  = INTERNAL_ATTRS.uploadInfoHiddenInputName;
+
+    ShadowUI.markElementAsShadow(hiddenInput);
 
     nativeMethods.inputValueSetter.call(hiddenInput, '[]');
     nativeMethods.appendChild.call(form, hiddenInput);

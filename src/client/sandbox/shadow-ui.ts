@@ -173,7 +173,8 @@ export default class ShadowUI extends SandboxBase {
                     const nativeCollection = nativeMethods[nativeGetElementsByTagNameFnName].apply(this, args);
                     const tagName          = args[0];
 
-                    if (typeof tagName !== 'string')
+                    if (typeof tagName !== 'string' || !domUtils.isHeadOrBodyOrHtmlElement(this) &&
+                        tagName.toLowerCase() !== 'input' && nativeGetElementsByTagNameFnName !== 'getElementsByTagName')
                         return nativeCollection;
 
                     if (!nativeCollection[HTML_COLLECTION_WRAPPER])
@@ -325,16 +326,17 @@ export default class ShadowUI extends SandboxBase {
     }
 
     _overrideElementMethods (window) {
-        const bodyProto = window.HTMLBodyElement.prototype;
-        const headProto = window.HTMLHeadElement.prototype;
+        const elementProto = window.Element.prototype;
+        const bodyProto    = window.HTMLBodyElement.prototype;
+        const headProto    = window.HTMLHeadElement.prototype;
+
+        elementProto.getElementsByTagName = this.wrapperCreators.getElementsByTagName('elementGetElementsByTagName');
 
         bodyProto.getElementsByClassName = this.wrapperCreators.getElementsByClassName('elementGetElementsByClassName');
-        bodyProto.getElementsByTagName   = this.wrapperCreators.getElementsByTagName('elementGetElementsByTagName');
         bodyProto.querySelector          = this.wrapperCreators.querySelector('elementQuerySelector', 'elementQuerySelectorAll');
         bodyProto.querySelectorAll       = this.wrapperCreators.querySelectorAll('elementQuerySelectorAll');
 
         headProto.getElementsByClassName = bodyProto.getElementsByClassName;
-        headProto.getElementsByTagName   = bodyProto.getElementsByTagName;
         headProto.querySelector          = bodyProto.querySelector;
         headProto.querySelectorAll       = bodyProto.querySelectorAll;
     }
@@ -365,7 +367,7 @@ export default class ShadowUI extends SandboxBase {
             const refNode = head.children[i] || null;
             const newNode = nativeMethods.cloneNode.call(parser.children[i]);
 
-            ShadowUI._markElementAsShadow(newNode);
+            ShadowUI.markElementAsShadow(newNode);
             this.nativeMethods.insertBefore.call(head, newNode, refNode);
         }
     }
@@ -381,7 +383,7 @@ export default class ShadowUI extends SandboxBase {
             const headChild = head.children[i];
 
             if (ShadowUI.containsShadowUIClassPostfix(headChild))
-                ShadowUI._markElementAsShadow(headChild);
+                ShadowUI.markElementAsShadow(headChild);
         }
     }
 
@@ -393,7 +395,7 @@ export default class ShadowUI extends SandboxBase {
                 nativeMethods.setAttribute.call(this.root, 'id', ShadowUI.patchId(this.ROOT_ID));
                 nativeMethods.setAttribute.call(this.root, 'contenteditable', 'false');
                 this.addClass(this.root, this.ROOT_CLASS);
-                ShadowUI._markElementAsShadow(this.root);
+                ShadowUI.markElementAsShadow(this.root);
                 nativeMethods.appendChild.call(this.document.body, this.root);
 
                 for (const event of DomProcessor.EVENTS)
@@ -688,12 +690,12 @@ export default class ShadowUI extends SandboxBase {
         return nativeMethods.insertBefore.call(rootParent, el, lastParentChild);
     }
 
-    static _markElementAsShadow (el) {
+    static markElementAsShadow (el) {
         el[INTERNAL_PROPS.shadowUIElement] = true;
     }
 
     static markElementAndChildrenAsShadow (el) {
-        ShadowUI._markElementAsShadow(el);
+        ShadowUI.markElementAsShadow(el);
 
         // NOTE: For Text, Comment and ProcessingInstruction nodes
         if (!el.querySelectorAll)
@@ -703,7 +705,7 @@ export default class ShadowUI extends SandboxBase {
         const length        = nativeMethods.nodeListLengthGetter.call(childElements);
 
         for (let i = 0; i < length; i++)
-            ShadowUI._markElementAsShadow(childElements[i]);
+            ShadowUI.markElementAsShadow(childElements[i]);
     }
 
     static _markAsShadowContainer (container) {
