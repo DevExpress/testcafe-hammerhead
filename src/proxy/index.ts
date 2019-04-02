@@ -36,7 +36,7 @@ function createServerInfo (hostname: string, port: string, crossDomainPort: stri
 }
 
 export default class Proxy extends Router {
-    private readonly openSessions: Map<string, Session>;
+    private readonly openSessions: Map<string, Session> = new Map();
     private readonly server1Info: ServerInfo;
     private readonly server2Info: ServerInfo;
     private readonly server1: http.Server | https.Server;
@@ -45,8 +45,6 @@ export default class Proxy extends Router {
 
     constructor (hostname: string, port1: string, port2: string, options: any = {}) {
         super(options);
-
-        this.openSessions = new Map();
 
         const { ssl, developmentMode } = options;
         const protocol                 = ssl ? 'https:' : 'http:';
