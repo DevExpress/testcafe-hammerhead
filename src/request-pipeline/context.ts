@@ -313,7 +313,7 @@ export default class RequestPipelineContext {
         this.goToNextStage = false;
     }
 
-    toProxyUrl (url: string, isCrossDomain: boolean, resourceType: string, charset: string): string {
+    toProxyUrl (url: string, isCrossDomain: boolean, resourceType: string, charset?: string): string {
         const proxyHostname = this.serverInfo.hostname;
         const proxyProtocol = this.serverInfo.protocol;
         const proxyPort     = isCrossDomain ? this.serverInfo.crossDomainPort : this.serverInfo.port;

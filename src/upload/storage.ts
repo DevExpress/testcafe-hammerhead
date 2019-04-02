@@ -4,16 +4,26 @@ import path from 'path';
 import { format } from 'util';
 import { readFile, stat, readDir, makeDir, writeFile, fsObjectExists } from '../utils/promisified-functions';
 
+interface CopiedFileInfo {
+    path: string,
+    name: string
+}
+
+interface CopyingError {
+    err: Error,
+    path: string
+}
+
 export default class UploadStorage {
-    private uploadsRoot: string;
+    uploadsRoot: string;
 
     constructor (uploadsRoot: string) {
         this.uploadsRoot = uploadsRoot;
     }
 
-    static async _getFilesToCopy (files) {
-        const filesToCopy = [];
-        const errs        = [];
+    static async _getFilesToCopy (files: Array<CopiedFileInfo>): Promise<{ filesToCopy: Array<CopiedFileInfo>, errs: Array<CopyingError> }> {
+        const filesToCopy: Array<CopiedFileInfo> = [];
+        const errs: Array<CopyingError>          = [];
 
         for (const file of files) {
             try {
@@ -41,7 +51,7 @@ export default class UploadStorage {
         return fileName;
     }
 
-    static async _getExistingFiles (uploadsRoot: string) {
+    static async _getExistingFiles (uploadsRoot: string): Promise<Array<string>> {
         try {
             return await readDir(uploadsRoot);
         }
@@ -50,7 +60,7 @@ export default class UploadStorage {
         }
     }
 
-    async store (fileNames: Array<string>, data) {
+    async store (fileNames: Array<string>, data: Array<string>) {
         const storedFiles = [];
         const err         = await UploadStorage.ensureUploadsRoot(this.uploadsRoot);
 
@@ -104,9 +114,9 @@ export default class UploadStorage {
         return result;
     }
 
-    static async copy (uploadsRoot: string, files) {
-        const { filesToCopy, errs } = await UploadStorage._getFilesToCopy(files);
-        const copiedFiles           = [];
+    static async copy (uploadsRoot: string, files: Array<CopiedFileInfo>): Promise<{ copiedFiles: Array<string>, errs: Array<CopyingError> }> {
+        const { filesToCopy, errs }      = await UploadStorage._getFilesToCopy(files);
+        const copiedFiles: Array<string> = [];
 
         if (!filesToCopy.length)
             return { copiedFiles, errs };

@@ -10,6 +10,7 @@ import RequestEvent from './events/request-event';
 import ResponseEvent from './events/response-event';
 import ConfigureResponseEvent from './events/configure-response-event';
 import { StoragesSnapshot, Credentials, ExternalProxySettings, ExternalProxySettingsRaw } from '../typings/session';
+import { GetUploadedFilesServiceMessage, StoreUploadedFilesServiceMessage } from '../typings/upload';
 /*eslint-enable no-unused-vars*/
 import mustache from 'mustache';
 import { readSync as read } from 'read-file-relative';
@@ -241,11 +242,11 @@ export default abstract class Session extends EventEmitter {
     abstract getAuthCredentials (): Credentials;
 
     // Service message handlers
-    async [COMMAND.uploadFiles] (msg: ServiceMessage): Promise<object> {
+    async [COMMAND.uploadFiles] (msg: StoreUploadedFilesServiceMessage): Promise<object> {
         return await this.uploadStorage.store(msg.fileNames, msg.data);
     }
 
-    async [COMMAND.getUploadedFiles] (msg: ServiceMessage): Promise<object> {
+    async [COMMAND.getUploadedFiles] (msg: GetUploadedFilesServiceMessage): Promise<object> {
         return await this.uploadStorage.get(msg.filePaths);
     }
 }
