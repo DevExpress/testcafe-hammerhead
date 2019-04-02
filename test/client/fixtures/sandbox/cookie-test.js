@@ -460,10 +460,7 @@ test('synchronization cookies must be removed after the unload event of the top 
 
             currentSyncCookies = nativeMethods.documentCookieGetter.call(document).split('; ').sort();
 
-            deepEqual(currentSyncCookies, [
-                'c|sessionId|cookie3|example.com|%2F||1fckm5lnl=stay client',
-                's|sessionId|cookie1|example.com|%2F||1fckm5lnz=server'
-            ]);
+            deepEqual(currentSyncCookies, ['c|sessionId|cookie3|example.com|%2F||1fckm5lnl=stay client']);
         });
 });
 
