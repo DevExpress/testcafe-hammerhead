@@ -23,10 +23,31 @@ const MIN_DATE_VALUE = new nativeMethods.date(0).toUTCString(); // eslint-disabl
 export default class CookieSandbox extends SandboxBase {
     private readonly _windowSync: WindowSync;
 
-    constructor (messageSandbox: MessageSandbox, unloadSandbox: UnloadSandbox) {
+    constructor (messageSandbox: MessageSandbox,
+                 private readonly _unloadSandbox: UnloadSandbox) { // eslint-disable-line
         super();
 
-        this._windowSync = new WindowSync(this, messageSandbox, unloadSandbox);
+        this._windowSync = new WindowSync(this, messageSandbox);
+    }
+
+    private static _removeAllSyncCookie () {
+        const cookies       = nativeMethods.documentCookieGetter.call(document);
+        const parsedCookies = parseClientSyncCookieStr(cookies);
+        const sessionId     = settings.get().sessionId;
+
+        for (const outdatedCookie of parsedCookies.outdated)
+            nativeMethods.documentCookieSetter.call(document, generateDeleteSyncCookieStr(outdatedCookie));
+
+        for (const parsedCookie of parsedCookies.actual) {
+            if (parsedCookie.sid === sessionId && (parsedCookie.isWindowSync || parsedCookie.isServerSync)) {
+                nativeMethods.documentCookieSetter.call(document, generateDeleteSyncCookieStr(parsedCookie));
+
+                if (parsedCookie.isClientSync) {
+                    changeSyncType(parsedCookie, { window: false });
+                    nativeMethods.documentCookieSetter.call(document, formatSyncCookie(parsedCookie));
+                }
+            }
+        }
     }
 
     _canSetCookie (cookie, setByClient: boolean): boolean {
@@ -196,5 +217,8 @@ export default class CookieSandbox extends SandboxBase {
         super.attach(window);
 
         this._windowSync.attach(window);
+
+        if (window === window.top)
+            this._unloadSandbox.on(this._unloadSandbox.UNLOAD_EVENT, CookieSandbox._removeAllSyncCookie);
     }
 }
