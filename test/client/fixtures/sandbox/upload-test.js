@@ -538,6 +538,47 @@ asyncTest('change event', function () {
     uploadSandbox.doUpload(fileInput, './file.txt');
 });
 
+test('change event in the case of the same file/files selection (GH-1844)', function () {
+    var assertionsCount     = browserUtils.isFirefox ? 4 : 0;
+    var isChangeEventNeeded = browserUtils.isFirefox;
+
+    expect(assertionsCount);
+
+    var fileInput = $('<input type="file" name="test" id="777">')[0];
+
+    var changeHandler = function () {
+        ok(isChangeEventNeeded);
+    };
+
+    return uploadSandbox.doUpload(fileInput, './file.txt')
+        .then(function () {
+            fileInput.onchange = changeHandler;
+
+            return uploadSandbox.doUpload(fileInput, './file.txt');
+        })
+        .then(function () {
+            return uploadSandbox.doUpload(fileInput, ['./file.txt']);
+        })
+        .then(function () {
+            fileInput.onchange = null;
+
+            return uploadSandbox.doUpload(fileInput, ['folder/file.png', './file.txt']);
+        })
+        .then(function () {
+            fileInput.onchange = changeHandler;
+
+            return uploadSandbox.doUpload(fileInput, ['folder/file.png', './file.txt']);
+        })
+        .then(function () {
+            fileInput.onchange = changeHandler;
+
+            return uploadSandbox.doUpload(fileInput, ['./file.txt', 'folder/file.png']);
+        })
+        .then(function () {
+            fileInput.onchange = null;
+        });
+});
+
 test('multi-select files', function () {
     var fileInput = $('<input type="file" name="test" id="id">')[0];
     var value     = '';

@@ -104,6 +104,28 @@ export default class UploadSandbox extends SandboxBase {
         return value;
     }
 
+    // GH-1844
+    static _isChangeEventNeeded (fileList, inputInfoFiles) : boolean {
+        if (isFirefox)
+            return true;
+
+        for (let i = 0; i < fileList.length; i++ ) {
+            let found = false;
+
+            for (let j = 0; j < inputInfoFiles.length; j++) {
+                if (fileList[i].name === inputInfoFiles[j].name) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found === false)
+                return true;
+        }
+
+        return false;
+    }
+
     doUpload (input: HTMLInputElement, filePaths: string | Array<string>) {
         const currentInfoManager = UploadSandbox._getCurrentInfoManager(input);
 
@@ -113,10 +135,16 @@ export default class UploadSandbox extends SandboxBase {
             .then(filesInfo => UploadInfoManager.prepareFileListWrapper(filesInfo))
             .then(data => {
                 if (!data.errs.length) {
-                    const value = UploadInfoManager.formatValue(filePaths);
+                    const value     = UploadInfoManager.formatValue(filePaths);
+                    const inputInfo = currentInfoManager.getUploadInfo(input);
 
                     currentInfoManager.setUploadInfo(input, data.fileList, value);
-                    this._riseChangeEvent(input);
+
+                    /*eslint-disable no-restricted-properties*/
+                    if (!inputInfo || data.fileList.length !== inputInfo.files.length ||
+                        UploadSandbox._isChangeEventNeeded(data.fileList, inputInfo.files))
+                        this._riseChangeEvent(input);
+                    /*eslint-enable no-restricted-properties*/
                 }
 
                 return data.errs;
