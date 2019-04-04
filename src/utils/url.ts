@@ -21,7 +21,9 @@ export const SUPPORTED_PROTOCOL_RE: RegExp               = /^(?:https?|file):/i;
 export const HASH_RE: RegExp                             = /^#/;
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR: string = '!';
 export const TRAILING_SLASH_RE: RegExp                   = /\/$/;
-export const SPECIAL_PAGES: Array<string>                = ['about:blank', 'about:error'];
+export const SPECIAL_BLANK_PAGE                          = 'about:blank';
+export const SPECIAL_ERROR_PAGE                          = 'about:error';
+export const SPECIAL_PAGES: Array<string>                = [SPECIAL_BLANK_PAGE, SPECIAL_ERROR_PAGE];
 
 export const HTTP_DEFAULT_PORT: string  = '80';
 export const HTTPS_DEFAULT_PORT: string = '443';

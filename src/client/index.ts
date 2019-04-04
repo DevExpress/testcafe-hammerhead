@@ -27,6 +27,8 @@ import extend from './utils/extend';
 import INTERNAL_PROPS from '../processing/dom/internal-properties';
 import PageNavigationWatch from './page-navigation-watch';
 import domProcessor from './dom-processor';
+import checkByCondition from './utils/check-by-condition';
+import { SPECIAL_ERROR_PAGE } from '../utils/url';
 
 class Hammerhead {
     win: Window;
@@ -203,8 +205,17 @@ class Hammerhead {
 
         this.win.location = navigationUrl;
 
-        if (forceReload)
-            this.win.location.reload(true);
+        if (forceReload) {
+            checkByCondition(() => {
+                return this.win.location !== navigationUrl;
+            }, { win: this.win })
+                .then(() => this.win.location.reload(true))
+                .catch(() => {
+                    const errorPageUrl = urlUtils.getNavigationUrl(SPECIAL_ERROR_PAGE, this.win);
+
+                    this.win.location = errorPageUrl;
+                });
+        }
     }
 
     start (initSettings, win: Window) {

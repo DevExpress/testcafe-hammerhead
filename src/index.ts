@@ -7,6 +7,7 @@ import { processScript, isScriptProcessed } from './processing/script';
 import ConfigureResponseEventOptions from './session/events/configure-response-event-options';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from './request-pipeline/xhr/same-origin-check-failed-status-code';
 import StateSnapshot from './session/state-snapshot';
+import { SPECIAL_BLANK_PAGE } from './utils/url';
 
 export default {
     Proxy,
@@ -18,5 +19,6 @@ export default {
     RequestFilterRule,
     ConfigureResponseEventOptions,
     SAME_ORIGIN_CHECK_FAILED_STATUS_CODE,
-    StateSnapshot
+    StateSnapshot,
+    SPECIAL_BLANK_PAGE
 };
