@@ -3,3 +3,9 @@ export interface ICheckByConditionOptions {
     checkConditionEveryMs?: number;
     abortAfterMs?: number;
 }
+
+export interface IHammerheadInitSettings {
+    isFirstPageLoad: boolean;
+    sessionId: string;
+    forceProxySrcForImage: boolean;
+}

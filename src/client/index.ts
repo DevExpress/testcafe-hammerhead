@@ -1,9 +1,11 @@
+//@ts-ignore
 import Promise from 'pinkie';
 import Sandbox from './sandbox';
 import EventEmitter from './utils/event-emitter';
 import XhrSandbox from './sandbox/xhr';
 import settings from './settings';
 import transport from './transport';
+//@ts-ignore
 import * as JSON from 'json-hammerhead';
 import * as browserUtils from './utils/browser';
 import * as domUtils from './utils/dom';
@@ -29,6 +31,9 @@ import PageNavigationWatch from './page-navigation-watch';
 import domProcessor from './dom-processor';
 import checkByCondition from './utils/check-by-condition';
 import { SPECIAL_ERROR_PAGE } from '../utils/url';
+/*eslint-disable no-unused-vars*/
+import { IHammerheadInitSettings } from '../typings/client';
+/*eslint-enable no-unused-vars*/
 
 class Hammerhead {
     win: Window;
@@ -51,6 +56,7 @@ class Hammerhead {
     utils: any;
 
     constructor () {
+        //@ts-ignore
         this.win                 = null;
         this.sandbox             = new Sandbox();
         this.pageNavigationWatch = new PageNavigationWatch(this.sandbox.event, this.sandbox.codeInstrumentation,
@@ -134,7 +140,7 @@ class Hammerhead {
         };
     }
 
-    _getEventOwner (evtName) {
+    _getEventOwner (evtName: string) {
         switch (evtName) {
             case this.EVENTS.pageNavigationTriggered:
                 return this.pageNavigationWatch;
@@ -183,21 +189,21 @@ class Hammerhead {
         nativeMethods.winLocalStorageGetter.call(window).removeItem(sessionId);
     }
 
-    on (evtName, handler) {
+    on (evtName: string, handler: Function): void {
         const eventOwner = this._getEventOwner(evtName);
 
         if (eventOwner)
             eventOwner.on(evtName, handler);
     }
 
-    off (evtName, handler) {
+    off (evtName: string, handler: Function): void {
         const eventOwner = this._getEventOwner(evtName);
 
         if (eventOwner)
             eventOwner.off(evtName, handler);
     }
 
-    _createChangeLocationPromise (newLocation: string): Promise<any> {
+    _createChangeLocationPromise (newLocation: string): Promise<void> {
         if (this.win.location.toString() === newLocation)
             return Promise.resolve();
 
@@ -225,7 +231,7 @@ class Hammerhead {
         }
     }
 
-    start (initSettings, win: Window) {
+    start (initSettings: IHammerheadInitSettings | null, win: Window) {
         this.win = win || window;
 
         if (initSettings) {
