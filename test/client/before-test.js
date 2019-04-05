@@ -28,7 +28,7 @@
     var iframeTaskScriptTempate = [
         'window["%hammerhead%"].get("./utils/destination-location").forceLocation("{{{location}}}");',
         'window["%hammerhead%"].start({',
-        '    referer : "{{{referer}}}",',
+        '    referer : {{{referer}}},',
         '    cookie: {{{cookie}}},',
         '    serviceMsgUrl : "{{{serviceMsgUrl}}}",',
         '    sessionId : "sessionId",',
@@ -39,7 +39,7 @@
 
     window.getIframeTaskScript = function (referer, serviceMsgUrl, location, cookie) {
         return iframeTaskScriptTempate
-            .replace('{{{referer}}}', referer || '')
+            .replace('{{{referer}}}', JSON.stringify(referer || ''))
             .replace('{{{serviceMsgUrl}}}', serviceMsgUrl || '')
             .replace('{{{location}}}', location || '')
             .replace('{{{cookie}}}', JSON.stringify(cookie || ''));
@@ -56,7 +56,7 @@
             e.iframe.contentWindow.eval.call(e.iframe.contentWindow, [
                 'window["%hammerhead%"].get("./utils/destination-location").forceLocation("' + location + '");',
                 'window["%hammerhead%"].start({',
-                '    referer: "' + referer + '",',
+                '    referer: ' + JSON.stringify(referer) + ',',
                 '    serviceMsgUrl: "' + serviceMsgUrl + '",',
                 '    sessionId: "sessionId",',
                 '    cookie: ' + JSON.stringify(cookie) + ',',

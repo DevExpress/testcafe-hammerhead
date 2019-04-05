@@ -87,8 +87,8 @@ test('take sequences starting with "$" into account when generating task scripts
     return createTestIframe()
         .then(function (iframe) {
             iframe.contentWindow.eval = function (processed) {
-                strictEqual(processed, '$$ $& $` $\' $n $nn "' + cookieSandbox.getCookie() + '"' +
-                                       window.location.toString() + '"' + iframeTemplate + '"');
+                strictEqual(processed, '$$ $& $` $\' $n $nn "' + cookieSandbox.getCookie() + '""' +
+                                       window.location.toString() + '""' + iframeTemplate + '"');
             };
 
             var templateSettings = settings.get();

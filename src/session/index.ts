@@ -105,7 +105,7 @@ export default abstract class Session extends EventEmitter {
     }
 
     _fillTaskScriptTemplate ({ serverInfo, isFirstPageLoad, referer, cookie, iframeTaskScriptTemplate, payloadScript }: TaskScriptTemplateOpts): string {
-        referer                  = referer || '{{{referer}}}';
+        referer                  = referer && JSON.stringify(referer) || '{{{referer}}}';
         cookie                   = cookie || '{{{cookie}}}';
         iframeTaskScriptTemplate = iframeTaskScriptTemplate || '{{{iframeTaskScriptTemplate}}}';
 
