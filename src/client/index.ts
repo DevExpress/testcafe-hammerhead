@@ -197,6 +197,15 @@ class Hammerhead {
             eventOwner.off(evtName, handler);
     }
 
+    _createChangeLocationPromise (newLocation: string): Promise<any> {
+        if (this.win.location.toString() === newLocation)
+            return Promise.resolve();
+
+        return checkByCondition(() => {
+            return this.win.location.toString() !== newLocation;
+        }, { win: this.win });
+    }
+
     navigateTo (url: string, forceReload: boolean): void {
         const navigationUrl = urlUtils.getNavigationUrl(url, this.win);
 
@@ -206,9 +215,7 @@ class Hammerhead {
         this.win.location = navigationUrl;
 
         if (forceReload) {
-            checkByCondition(() => {
-                return this.win.location !== navigationUrl;
-            }, { win: this.win })
+            this._createChangeLocationPromise(navigationUrl)
                 .then(() => this.win.location.reload(true))
                 .catch(() => {
                     const errorPageUrl = urlUtils.getNavigationUrl(SPECIAL_ERROR_PAGE, this.win);
