@@ -9,7 +9,10 @@ export const MESSAGE = {
 };
 
 export function getText (template: string, url: string, message?: string) {
-    return template
-        .replace(/\{message\}/g, message)
-        .replace(/\{url\}/g, url);
+    let errorStr = template.replace(/\{url\}/g, url);
+
+    if (message)
+        errorStr = errorStr.replace(/\{message\}/g, message);
+
+    return errorStr;
 }

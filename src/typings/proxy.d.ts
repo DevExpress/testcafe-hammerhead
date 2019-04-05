@@ -7,8 +7,8 @@ export interface ServerInfo {
 }
 
 export interface ServiceMessage {
-    sessionId: string,
-    [propName: string]: any;
+    sessionId: string;
+    cmd: string;
 }
 
 export interface StaticContent {

@@ -60,27 +60,27 @@ describe('Upload', () => {
             cases.forEach(item => {
                 const formData = initFormData(item);
 
-                expect(formData.entries).to.be.empty;
-                expect(formData.preamble).to.be.empty;
+                expect(formData._entries).to.be.empty;
+                expect(formData._preamble).to.be.empty;
             });
         });
 
         it('Should parse filename', () => {
             const formData = initFormData('filename-name');
-            const entry    = formData.entries[0];
+            const entry    = formData._entries[0];
             const body     = Buffer.concat(entry.body).toString();
 
             expect(entry.name).eql('upload');
             expect(entry.fileName).eql('plain.txt');
-            expect(entry.headers['Content-Type']).eql('text/plain');
+            expect(entry._headers['Content-Type']).eql('text/plain');
             expect(body).eql('I am a plain text file\r\n');
         });
 
         it('Should parse filename with special characters', () => {
             const formData = initFormData('special-chars-in-file-name');
-            const entry0   = formData.entries[0];
+            const entry0   = formData._entries[0];
             const body0    = Buffer.concat(entry0.body).toString();
-            const entry1   = formData.entries[1];
+            const entry1   = formData._entries[1];
             const body1    = Buffer.concat(entry1.body).toString();
 
 
@@ -89,80 +89,80 @@ describe('Upload', () => {
 
             expect(entry1.name).eql('upload');
             expect(entry1.fileName).eql(': \\ ? % * | &#9731; %22 < > . ? ; \' @ # $ ^ & ( ) - _ = + { } [ ] ` ~.txt');
-            expect(entry1.headers['Content-Type']).eql('text/plain');
+            expect(entry1._headers['Content-Type']).eql('text/plain');
             expect(body1).eql('I am a text file with a funky name!\r\n');
         });
 
         it('Should parse empty filename', () => {
             const formData = initFormData('filename-no-name');
-            const entry    = formData.entries[0];
+            const entry    = formData._entries[0];
             const body     = Buffer.concat(entry.body).toString();
 
             expect(entry.name).eql('upload');
             expect(entry.fileName).to.be.empty;
-            expect(entry.headers['Content-Type']).eql('text/plain');
+            expect(entry._headers['Content-Type']).eql('text/plain');
             expect(body).eql('I am a plain text file\r\n');
         });
 
         it('Should parse preamble', () => {
             const formData = initFormData('preamble-string');
-            const entry    = formData.entries[0];
+            const entry    = formData._entries[0];
             const body     = Buffer.concat(entry.body).toString();
 
-            expect(formData.preamble).to.have.length(1);
-            expect(formData.preamble[0].toString()).eql('This is a preamble which should be ignored');
+            expect(formData._preamble).to.have.length(1);
+            expect(formData._preamble[0].toString()).eql('This is a preamble which should be ignored');
             expect(entry.name).eql('upload');
             expect(entry.fileName).eql('plain.txt');
-            expect(entry.headers['Content-Type']).eql('text/plain');
+            expect(entry._headers['Content-Type']).eql('text/plain');
             expect(body).eql('I am a plain text file\r\n');
         });
 
         it('Should parse new line preamble', () => {
             const formData = initFormData('preamble-newline');
-            const entry    = formData.entries[0];
+            const entry    = formData._entries[0];
             const body     = Buffer.concat(entry.body).toString();
 
-            expect(formData.preamble).to.have.length(1);
-            expect(formData.preamble[0].toString()).to.be.empty;
+            expect(formData._preamble).to.have.length(1);
+            expect(formData._preamble[0].toString()).to.be.empty;
             expect(entry.name).eql('upload');
             expect(entry.fileName).eql('plain.txt');
-            expect(entry.headers['Content-Type']).eql('text/plain');
+            expect(entry._headers['Content-Type']).eql('text/plain');
             expect(body).eql('I am a plain text file\r\n');
         });
 
         it('Should parse epilogue', () => {
             const formData = initFormData('epilogue-string');
-            const entry    = formData.entries[0];
+            const entry    = formData._entries[0];
             const body     = Buffer.concat(entry.body).toString();
 
-            expect(formData.epilogue).to.have.length(1);
-            expect(formData.epilogue[0].toString()).eql('This is a epilogue which should be ignored');
+            expect(formData._epilogue).to.have.length(1);
+            expect(formData._epilogue[0].toString()).eql('This is a epilogue which should be ignored');
             expect(entry.name).eql('upload');
             expect(entry.fileName).eql('plain.txt');
-            expect(entry.headers['Content-Type']).eql('text/plain');
+            expect(entry._headers['Content-Type']).eql('text/plain');
             expect(body).eql('I am a plain text file\r\n');
         });
 
         it('Should parse if separator misses trailing hyphens', () => {
             const formData = initFormData('missing-hyphens');
-            const entry    = formData.entries[0];
+            const entry    = formData._entries[0];
             const body     = Buffer.concat(entry.body).toString();
 
             expect(entry.name).eql('upload');
             expect(entry.fileName).eql('plain.txt');
-            expect(entry.headers['Content-Type']).eql('text/plain');
+            expect(entry._headers['Content-Type']).eql('text/plain');
             expect(body).eql('I am a plain text file\r\n');
         });
 
         it('Should parse empty headers', () => {
             const formData = initFormData('empty-headers');
-            const entry    = formData.entries[0];
+            const entry    = formData._entries[0];
             const body     = Buffer.concat(entry.body).toString();
 
             expect(entry.name).to.be.not.ok;
             expect(entry.fileName).to.be.not.ok;
-            expect(entry.headers['Content-Type']).to.be.empty;
-            expect(entry.headers['Content-Disposition']).to.be.empty;
+            expect(entry._headers['Content-Type']).to.be.empty;
+            expect(entry._headers['Content-Disposition']).to.be.empty;
             expect(body).eql('text');
         });
 

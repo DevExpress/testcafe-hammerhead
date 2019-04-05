@@ -1,3 +1,6 @@
+/*eslint-disable no-unused-vars*/
+import { FileInputInfo } from '../typings/upload';
+/*eslint-enable no-unused-vars*/
 import INTERNAL_ATTRS from '../processing/dom/internal-attributes';
 import FormDataEntry from './form-data-entry';
 import * as bufferUtils from '../utils/buffer';
@@ -14,18 +17,18 @@ enum ParserState {
 /*eslint-enable no-unused-vars*/
 
 export default class FormData {
-    boundary: Buffer = null;
-    private boundaryEnd: Buffer = null;
-    private epilogue: Array<any> = [];
-    private entries: Array<any> = [];
-    private preamble: Array<any> = [];
+    boundary: Buffer | null = null;
+    private _boundaryEnd: Buffer | null = null;
+    private _epilogue: Array<Buffer> = [];
+    private _entries: Array<FormDataEntry> = [];
+    private _preamble: Array<Buffer> = [];
 
-    _removeEntry (name: string) {
-        this.entries = this.entries.filter(entry => entry.name !== name);
+    private _removeEntry (name: string) {
+        this._entries = this._entries.filter(entry => entry.name !== name);
     }
 
-    _injectFileInfo (fileInfo) {
-        const entries = this.getEntriesByName(fileInfo.name);
+    private _injectFileInfo (fileInfo: FileInputInfo) {
+        const entries = this._getEntriesByName(fileInfo.name);
 
         for (let idx = 0; idx < fileInfo.files.length; idx++) {
             let entry = entries[idx];
@@ -33,23 +36,23 @@ export default class FormData {
             if (!entry) {
                 entry = new FormDataEntry();
 
-                this.entries.push(entry);
+                this._entries.push(entry);
             }
 
             entry.addFileInfo(fileInfo, idx);
         }
     }
 
-    _isBoundary (line: Buffer): boolean {
-        return this.boundary.equals(line);
+    private _isBoundary (line: Buffer): boolean {
+        return (<Buffer> this.boundary).equals(line); // eslint-disable-line no-extra-parens
     }
 
-    _isBoundaryEnd (line: Buffer): boolean {
-        return this.boundaryEnd.equals(line);
+    private _isBoundaryEnd (line: Buffer): boolean {
+        return (<Buffer> this._boundaryEnd).equals(line); // eslint-disable-line no-extra-parens
     }
 
-    getEntriesByName (name: string) {
-        return this.entries.reduce((found, entry) => {
+    private _getEntriesByName (name: string): Array<FormDataEntry> {
+        return this._entries.reduce((found: Array<FormDataEntry>, entry: FormDataEntry) => {
             if (entry.name === name)
                 found.push(entry);
 
@@ -58,11 +61,11 @@ export default class FormData {
     }
 
     expandUploads (): void {
-        const uploadsEntry = this.getEntriesByName(INTERNAL_ATTRS.uploadInfoHiddenInputName)[0];
+        const uploadsEntry = this._getEntriesByName(INTERNAL_ATTRS.uploadInfoHiddenInputName)[0];
 
         if (uploadsEntry) {
             const body  = Buffer.concat(uploadsEntry.body).toString();
-            const files = JSON.parse(body);
+            const files = <Array<FileInputInfo>>JSON.parse(body);
 
             this._removeEntry(INTERNAL_ATTRS.uploadInfoHiddenInputName);
             files.forEach(fileInfo => this._injectFileInfo(fileInfo));
@@ -77,8 +80,8 @@ export default class FormData {
             const token         = boundaryMatch && boundaryMatch[1];
 
             if (token) {
-                this.boundary    = Buffer.from('--' + token);
-                this.boundaryEnd = Buffer.from('--' + token + '--');
+                this.boundary     = Buffer.from('--' + token);
+                this._boundaryEnd = Buffer.from('--' + token + '--');
             }
         }
     }
@@ -91,7 +94,7 @@ export default class FormData {
         for (const line of lines) {
             if (this._isBoundary(line)) {
                 if (currentEntry)
-                    this.entries.push(currentEntry);
+                    this._entries.push(currentEntry);
 
                 state        = ParserState.inHeaders;
                 currentEntry = new FormDataEntry();
@@ -99,51 +102,53 @@ export default class FormData {
 
             else if (this._isBoundaryEnd(line)) {
                 if (currentEntry)
-                    this.entries.push(currentEntry);
+                    this._entries.push(currentEntry);
 
                 state = ParserState.inEpilogue;
             }
 
             else if (state === ParserState.inPreamble)
-                bufferUtils.appendLine(this.preamble, line);
+                bufferUtils.appendLine(this._preamble, line);
 
             else if (state === ParserState.inHeaders) {
                 if (line.length)
-                    currentEntry.setHeader(line.toString());
-
+                    (<FormDataEntry>currentEntry).setHeader(line.toString()); // eslint-disable-line no-extra-parens
                 else
                     state = ParserState.inBody;
             }
 
             else if (state === ParserState.inEpilogue)
-                bufferUtils.appendLine(this.epilogue, line);
+                bufferUtils.appendLine(this._epilogue, line);
 
             else if (state === ParserState.inBody)
-                bufferUtils.appendLine(currentEntry.body, line);
+                bufferUtils.appendLine((<FormDataEntry>currentEntry).body, line); // eslint-disable-line no-extra-parens
         }
     }
 
-    toBuffer (): Buffer {
-        let chunks = this.preamble;
+    toBuffer (): Buffer | null {
+        if (!this._boundaryEnd || !this.boundary)
+            return null;
+
+        let chunks = this._preamble;
 
         if (chunks.length)
             chunks.push(bufferUtils.CRLF);
 
-        this.entries.forEach(entry => {
+        for (const entry of this._entries) {
             chunks.push(
                 this.boundary,
                 bufferUtils.CRLF,
                 entry.toBuffer(),
                 bufferUtils.CRLF
             );
-        });
+        }
 
         chunks.push(
-            this.boundaryEnd,
+            this._boundaryEnd,
             bufferUtils.CRLF
         );
 
-        chunks = chunks.concat(this.epilogue);
+        chunks = chunks.concat(this._epilogue);
 
         return Buffer.concat(chunks);
     }
