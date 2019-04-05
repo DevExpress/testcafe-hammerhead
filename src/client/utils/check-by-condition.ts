@@ -16,13 +16,8 @@ export default function (predicate: Function, options: ICheckByConditionOptions 
         let checkIntervalId: number = null;
         let abortTimeoutId: number  = null;
 
-        const clearTimeouts = () => {
-            nativeMethods.clearInterval.call(win, checkIntervalId);
-            nativeMethods.clearTimeout.call(win, abortTimeoutId);
-        };
-
         abortTimeoutId = nativeMethods.setTimeout.call(win, () => {
-            clearTimeouts();
+            nativeMethods.clearInterval.call(win, checkIntervalId);
             reject();
         }, abortAfterMs);
 
@@ -30,7 +25,8 @@ export default function (predicate: Function, options: ICheckByConditionOptions 
             const result = predicate();
 
             if (result) {
-                clearTimeouts();
+                nativeMethods.clearInterval.call(win, checkIntervalId);
+                nativeMethods.clearTimeout.call(win, abortTimeoutId);
                 resolve();
             }
 
