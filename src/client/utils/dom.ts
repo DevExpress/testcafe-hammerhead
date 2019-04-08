@@ -141,7 +141,7 @@ export function getIframeLocation (iframe) {
     };
 }
 
-export function getFrameElement (win: Window) {
+export function getFrameElement (win: Window): Element | null {
     try {
         return win.frameElement;
     }
@@ -261,7 +261,7 @@ export function find (parent: Node, selector: string, handler) {
     return nodeList;
 }
 
-export function findDocument (el): Document {
+export function findDocument (el: any): Document {
     if (el.documentElement)
         return el;
 
@@ -335,10 +335,10 @@ export function getTagName (el): string {
     return el && typeof el.tagName === 'string' ? el.tagName.toLowerCase() : '';
 }
 
-export function isElementInDocument (el, currentDocument?: Document): boolean {
+export function isElementInDocument (el: Element, currentDocument?: Document): boolean {
     const doc = currentDocument || document;
 
-    return doc.documentElement.contains(el);
+    return doc.documentElement ? doc.documentElement.contains(el) : false;
 }
 
 export function isElementInIframe (el: HTMLElement, currentDocument?: Document): boolean {

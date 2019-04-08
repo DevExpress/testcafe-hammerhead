@@ -11,7 +11,9 @@ export default class SandboxBase extends EventEmitter {
     constructor () {
         super();
 
+        // @ts-ignore
         this.window        = null;
+        // @ts-ignore
         this.document      = null;
         this.nativeMethods = nativeMethods;
     }
@@ -23,10 +25,11 @@ export default class SandboxBase extends EventEmitter {
             // eslint-disable-next-line no-unused-expressions
             this.document.body;
 
+            //@ts-ignore
             if (this.window[INTERNAL_PROPS.hammerhead]) {
                 const frameElement = getFrameElement(this.window);
 
-                return frameElement && !isElementInDocument(frameElement, findDocument(frameElement));
+                return !!(frameElement && !isElementInDocument(frameElement, findDocument(frameElement)));
             }
         }
         // eslint-disable-next-line no-empty

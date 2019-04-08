@@ -7,19 +7,21 @@ import DomProcessor from '../processing/dom';
 import nextTick from './utils/next-tick';
 import nativeMethods from './sandbox/native-methods';
 import INTERNAL_PROPS from '../processing/dom/internal-properties';
-import EventSandbox from "./sandbox/event";
-import CodeInstrumentation from "./sandbox/code-instrumentation";
-import ElementSandbox from "./sandbox/node/element";
-
+/*eslint-disable no-unused-vars*/
+import EventSandbox from './sandbox/event';
+import CodeInstrumentation from './sandbox/code-instrumentation';
+import ElementSandbox from './sandbox/node/element';
+import { ElementSandboxBeforeFormSubmitEvent } from '../typings/client';
+/*eslint-enable no-unused-vars*/
 
 export default class PageNavigationWatch extends EventEmiter {
     PAGE_NAVIGATION_TRIGGERED_EVENT: string = 'hammerhead|event|page-navigation-triggered';
 
     _lastLocationValue: string;
 
-    constructor (private readonly _eventSandbox: EventSandbox,
-                 private readonly _codeInstrumentation: CodeInstrumentation,
-                 private readonly _elementSandbox: ElementSandbox) {
+    constructor (private readonly _eventSandbox: EventSandbox,               // eslint-disable-line
+                 private readonly _codeInstrumentation: CodeInstrumentation, // eslint-disable-line
+                 private readonly _elementSandbox: ElementSandbox) {         // eslint-disable-line
         super();
 
         this._lastLocationValue = window.location.toString();
@@ -33,14 +35,14 @@ export default class PageNavigationWatch extends EventEmiter {
         };
 
         // NOTE: fires when form.submit() is called
-        elementSandbox.on(elementSandbox.BEFORE_FORM_SUBMIT_EVENT, e => onFormSubmit(e.form));
+        elementSandbox.on(elementSandbox.BEFORE_FORM_SUBMIT_EVENT, (e: ElementSandboxBeforeFormSubmitEvent) => onFormSubmit(e.form));
 
         // NOTE: fires when the form is submitted by clicking the submit button
         eventSandbox.listeners.initElementListening(window, ['submit']);
         eventSandbox.listeners.addInternalEventListener(window, ['submit'], (e: Event) => {
             let prevented = false;
 
-            if (!isFormElement(e.target))
+            if (!isFormElement(e.target as HTMLElement))
                 return;
 
             const onPreventDefault = (preventedEvent: Event) => {
@@ -56,7 +58,7 @@ export default class PageNavigationWatch extends EventEmiter {
                     // NOTE: the defaultPrevented flag is saved between event raises in all browsers
                     // except IE. In IE, it is reset to false before the next handler is executed.
                     if (!e.defaultPrevented && !prevented)
-                        onFormSubmit(e.target);
+                        onFormSubmit(e.target as HTMLFormElement);
                 });
         });
     }
@@ -108,7 +110,7 @@ export default class PageNavigationWatch extends EventEmiter {
     }
 
     _locationWatch (codeInstrumentation: CodeInstrumentation): void {
-        const locationAccessorsInstrumentation = codeInstrumentation.locationAccessorsInstrumentation;
+        const locationAccessorsInstrumentation = codeInstrumentation._locationAccessorsInstrumentation;
         const locationChangedHandler           = (newLocation: string) => this.onNavigationTriggered(newLocation);
 
         locationAccessorsInstrumentation.on(locationAccessorsInstrumentation.LOCATION_CHANGED_EVENT, locationChangedHandler);

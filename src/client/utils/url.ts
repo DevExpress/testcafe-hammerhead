@@ -177,19 +177,19 @@ export function formatUrl (parsedUrl) {
     return sharedUrlUtils.formatUrl(parsedUrl);
 }
 
-export function parseProxyUrl (proxyUrl) {
+export function parseProxyUrl (proxyUrl: string) {
     return sharedUrlUtils.parseProxyUrl(proxyUrl);
 }
 
-export function parseUrl (url) {
+export function parseUrl (url: string) {
     return sharedUrlUtils.parseUrl(url);
 }
 
-export function convertToProxyUrl (url, resourceType, charset) {
+export function convertToProxyUrl (url: string, resourceType, charset) {
     return getProxyUrl(url, { resourceType, charset });
 }
 
-export function changeDestUrlPart (proxyUrl, nativePropSetter, value, resourceType) {
+export function changeDestUrlPart (proxyUrl: string, nativePropSetter, value, resourceType) {
     const parsed = sharedUrlUtils.parseProxyUrl(proxyUrl);
 
     if (parsed) {

@@ -4,28 +4,28 @@ import { isLocation, isCrossDomainWindows } from '../../../utils/dom';
 import INSTRUCTION from '../../../../processing/script/instruction';
 import nativeMethods from '../../native-methods';
 import { isIE } from '../../../utils/browser';
+/*eslint-disable no-unused-vars*/
+import MessageSandbox from '../../event/message';
+/*eslint-enable no-unused-vars*/
 
 const LOCATION_WRAPPER = 'hammerhead|location-wrapper';
 
 export default class LocationAccessorsInstrumentation extends SandboxBase {
     LOCATION_CHANGED_EVENT: string = 'hammerhead|event|location-changed';
 
-    messageSandbox: any;
-    locationChangedEventCallback: any;
+    _locationChangedEventCallback: any;
 
-    constructor (messageSandbox) {
+    constructor (private readonly _messageSandbox: MessageSandbox) { // eslint-disable-line
         super();
 
-        this.messageSandbox = messageSandbox;
-
-        this.locationChangedEventCallback = e => this.emit(this.LOCATION_CHANGED_EVENT, e);
+        this._locationChangedEventCallback = (e: string) => this.emit(this.LOCATION_CHANGED_EVENT, e);
     }
 
-    static isLocationWrapper (obj) {
+    static isLocationWrapper (obj: any) {
         return obj instanceof LocationWrapper;
     }
 
-    static getLocationWrapper (owner) {
+    static getLocationWrapper (owner: any) {
         // NOTE: IE11 case. We can get cross-domain location wrapper without any exceptions.
         // We return owner.location in this case, as in other browsers.
         if (isIE && isCrossDomainWindows(window, owner))
@@ -46,18 +46,18 @@ export default class LocationAccessorsInstrumentation extends SandboxBase {
         super.attach(window);
 
         const document        = window.document;
-        const locationWrapper = new LocationWrapper(window, this.messageSandbox, this.locationChangedEventCallback);
+        const locationWrapper = new LocationWrapper(window, this._messageSandbox, this._locationChangedEventCallback);
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
         nativeMethods.objectDefineProperty(window, LOCATION_WRAPPER, { value: locationWrapper, configurable: true });
         nativeMethods.objectDefineProperty(document, LOCATION_WRAPPER, { value: locationWrapper, configurable: true });
         nativeMethods.objectDefineProperty(window, INSTRUCTION.getLocation, {
-            value:        location => isLocation(location) ? locationWrapper : location,
+            value:        (location: any) => isLocation(location) ? locationWrapper : location,
             configurable: true
         });
         nativeMethods.objectDefineProperty(window, INSTRUCTION.setLocation, {
-            value: (location, value) => {
+            value: (location: any, value: any) => {
                 if (isLocation(location) && typeof value === 'string') {
                     // @ts-ignore
                     locationWrapper.href = value;// eslint-disable-line no-restricted-properties

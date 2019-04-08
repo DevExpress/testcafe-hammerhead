@@ -2,24 +2,26 @@ import nativeMethods from '../../native-methods';
 import LocationAccessorsInstrumentation from './index';
 import { createOverriddenDescriptor } from '../../../utils/property-overriding';
 
-const lengthWeakMap = new WeakMap();
+const lengthWeakMap = new WeakMap<DOMStringListWrapper, number>();
 
-export default function DOMStringListWrapper (window: Window, getCrossDomainOrigin) {
+export default function DOMStringListWrapper (window: Window, getCrossDomainOrigin: Function) {
     const nativeOrigins = window.location.ancestorOrigins;
     const length        = nativeOrigins.length;
     let parentWindow    = window.parent;
 
+    //@ts-ignore
     lengthWeakMap.set(this, length);
 
     for (let i = 0; i < length; i++) {
         const parentLocationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(parentWindow);
         const isCrossDomainParent   = parentLocationWrapper === parentWindow.location;
 
-        // eslint-disable-next-line no-restricted-properties
-        updateOrigin(nativeOrigins, this, i, isCrossDomainParent ? '' : parentLocationWrapper.origin);
+        // @ts-ignore
+        updateOrigin(nativeOrigins, this, i.toString(), isCrossDomainParent ? '' : parentLocationWrapper.origin);// eslint-disable-line no-restricted-properties
 
         if (isCrossDomainParent)
-            getCrossDomainOrigin(parentWindow, origin => updateOrigin(nativeOrigins, this, i, origin));
+            //@ts-ignore
+            getCrossDomainOrigin(parentWindow, (origin: string) => updateOrigin(nativeOrigins, this, i, origin));
 
         parentWindow = parentWindow.parent;
     }
@@ -35,7 +37,7 @@ DOMStringListWrapper.prototype.contains = function (origin: string) {
     if (typeof origin !== 'string')
         origin = String(origin);
 
-    const length = lengthWeakMap.get(this);
+    const length = lengthWeakMap.get(this) || 0;
 
     for (let i = 0; i < length; i++) {
         if (this[i] === origin)
@@ -53,7 +55,7 @@ const lengthDescriptor = createOverriddenDescriptor(DOMStringList.prototype, 'le
 
 nativeMethods.objectDefineProperty(DOMStringListWrapper.prototype, 'length', lengthDescriptor);
 
-function updateOrigin (ancestorOrigins, wrapper, index, origin: string) {
+function updateOrigin (ancestorOrigins: DOMStringList, wrapper: DOMStringListWrapper, index: string, origin: string) {
     const descriptor = createOverriddenDescriptor(ancestorOrigins, index, { value: origin });
 
     nativeMethods.objectDefineProperty(wrapper, index, descriptor);

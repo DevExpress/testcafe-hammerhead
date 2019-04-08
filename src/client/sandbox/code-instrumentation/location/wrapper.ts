@@ -21,11 +21,14 @@ import DomProcessor from '../../../../processing/dom/index';
 import DOMStringListWrapper from './ancestor-origins-wrapper';
 import IntegerIdGenerator from '../../../utils/integer-id-generator';
 import { createOverriddenDescriptor } from '../../../utils/property-overriding';
+/*eslint-disable no-unused-vars*/
+import MessageSandbox from '../../event/message';
+/*eslint-enable no-unused-vars*/
 
 const GET_ORIGIN_CMD      = 'hammerhead|command|get-origin';
 const ORIGIN_RECEIVED_CMD = 'hammerhead|command|origin-received';
 
-function getLocationUrl (window: Window) {
+function getLocationUrl (window: Window): string | undefined {
     try {
         return window.location.toString();
     }
@@ -35,7 +38,7 @@ function getLocationUrl (window: Window) {
 }
 
 export default class LocationWrapper {
-    constructor (window: Window, messageSandbox?, onChanged?) {
+    constructor (window: Window, messageSandbox?: MessageSandbox, onChanged?: Function) {
         const parsedLocation         = parseProxyUrl(getLocationUrl(window));
         const locationResourceType   = parsedLocation ? parsedLocation.resourceType : '';
         const parsedResourceType     = parseResourceType(locationResourceType);
@@ -65,7 +68,7 @@ export default class LocationWrapper {
 
             return ensureTrailingSlash(href, locationUrl);
         };
-        const getProxiedHref = href => {
+        const getProxiedHref = (href: any) => {
             if (typeof href !== 'string')
                 href = String(href);
 
@@ -101,7 +104,7 @@ export default class LocationWrapper {
         // eslint-disable-next-line no-restricted-properties
         locationProps.href = createOverriddenDescriptor(locationPropsOwner, 'href', {
             getter: getHref,
-            setter: href => {
+            setter: (href: string) => {
                 const proxiedHref = getProxiedHref(href);
 
                 // eslint-disable-next-line no-restricted-properties
