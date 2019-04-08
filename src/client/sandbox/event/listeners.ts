@@ -246,7 +246,7 @@ export default class Listeners extends EventEmitter {
         };
     }
 
-    initElementListening (el: HTMLElement | Document, events) {
+    initElementListening (el: HTMLElement | Document | Window, events) {
         const nativeAddEventListener = Listeners._getNativeAddEventListener(el);
 
         events = events || LISTENED_EVENTS;

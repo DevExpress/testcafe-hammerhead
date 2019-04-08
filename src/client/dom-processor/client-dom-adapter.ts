@@ -9,6 +9,7 @@ import * as domUtils from '../utils/dom';
 import fastApply from '../utils/fast-apply';
 import DocumentWriter from '../sandbox/node/document/writer';
 import { findByName } from '../sandbox/windows-storage';
+import DomProcessor from '../../processing/dom';
 
 export default class ClientDomAdapter extends BaseDomAdapter {
     removeAttr (el: HTMLElement, attr: string) {
@@ -88,11 +89,14 @@ export default class ClientDomAdapter extends BaseDomAdapter {
         }
     }
 
-    attachEventEmitter (domProcessor): void {
+    attachEventEmitter (domProcessor: DomProcessor): void {
         const eventEmitter = new EventEmitter();
 
-        domProcessor.on   = (evt, listener: Function) => eventEmitter.on(evt, listener);
-        domProcessor.off  = (evt, listener: Function) => eventEmitter.off(evt, listener);
+        //@ts-ignore
+        domProcessor.on   = (evt: string, listener: Function) => eventEmitter.on(evt, listener);
+        //@ts-ignore
+        domProcessor.off  = (evt: string, listener: Function) => eventEmitter.off(evt, listener);
+        //@ts-ignore
         domProcessor.emit = (...args: any) => fastApply(eventEmitter, 'emit', args);
     }
 

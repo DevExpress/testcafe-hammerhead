@@ -3,7 +3,7 @@ import nativeMethods from './native-methods';
 
 const SANDBOX_BACKUP = 'hammerhead|sandbox-backup';
 
-function findRecord (storage, iframe) {
+function findRecord (storage, iframe: HTMLIFrameElement | null) {
     for (let i = storage.length - 1; i >= 0; i--) {
         try {
             if (storage[i].iframe === iframe)
@@ -20,6 +20,7 @@ function findRecord (storage, iframe) {
 export function create (window: Window, sandbox) {
     const topSameDomainWindow = getTopSameDomainWindow(window);
     const iframe              = window !== topSameDomainWindow ? getFrameElement(window) : null;
+    // @ts-ignore
     let storage               = topSameDomainWindow[SANDBOX_BACKUP];
 
     if (!storage) {
@@ -37,6 +38,7 @@ export function create (window: Window, sandbox) {
 
 export function get (window: Window) {
     const topSameDomainWindow = getTopSameDomainWindow(window);
+    //@ts-ignore
     const storage             = topSameDomainWindow[SANDBOX_BACKUP];
     const iframe              = window !== topSameDomainWindow ? window.frameElement : null;
 
