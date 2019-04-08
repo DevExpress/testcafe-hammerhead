@@ -22,6 +22,7 @@ const AUTHORIZATION                        = require('../../lib/request-pipeline
 const SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = require('../../lib/request-pipeline/xhr/same-origin-check-failed-status-code');
 const Proxy                                = require('../../lib/proxy');
 const Session                              = require('../../lib/session');
+const StateSnaphot                         = require('../../lib/session/state-snapshot');
 const ResponseMock                         = require('../../lib/request-pipeline/request-hooks/response-mock');
 const RequestFilterRule                    = require('../../lib/request-pipeline/request-hooks/request-filter-rule');
 const DestinationRequest                   = require('../../lib/request-pipeline/destination-request');
@@ -1689,7 +1690,7 @@ describe('Proxy', () => {
             ];
 
             function initializeState (testCase) {
-                session.useStateSnapshot(null);
+                session.useStateSnapshot(StateSnaphot.empty());
 
                 return forEachSequentially(testCase.urls, makeRequest).then(() => {
                     testCase.state = session.getStateSnapshot();
@@ -1724,7 +1725,7 @@ describe('Proxy', () => {
                 .then(() => {
                     state = session.getStateSnapshot();
 
-                    session.useStateSnapshot(null);
+                    session.useStateSnapshot(StateSnaphot.empty());
                 })
 
                 // Try request empty state with non-page and page requests
@@ -1794,7 +1795,7 @@ describe('Proxy', () => {
                 }
             };
 
-            session.useStateSnapshot(null);
+            session.useStateSnapshot(StateSnaphot.empty());
 
             return request(options)
                 .then(body => {

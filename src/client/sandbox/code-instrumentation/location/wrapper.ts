@@ -12,7 +12,8 @@ import {
     getResourceTypeString,
     sameOriginCheck,
     ensureTrailingSlash,
-    prepareUrl
+    prepareUrl,
+    SPECIAL_BLANK_PAGE
 } from '../../../../utils/url';
 import nativeMethods from '../../native-methods';
 import urlResolver from '../../../utils/url-resolver';
@@ -52,8 +53,8 @@ export default class LocationWrapper {
         });
         const getHref        = () => {
             // eslint-disable-next-line no-restricted-properties
-            if (window !== window.top && window.location.href === 'about:blank')
-                return 'about:blank';
+            if (window !== window.top && window.location.href === SPECIAL_BLANK_PAGE)
+                return SPECIAL_BLANK_PAGE;
 
             const locationUrl    = getDestLocation();
             const resolveElement = urlResolver.getResolverElement(window.document);
