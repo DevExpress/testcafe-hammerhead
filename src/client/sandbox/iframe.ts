@@ -134,7 +134,7 @@ export default class IframeSandbox extends SandboxBase {
         const iframeTaskScriptTemplate = JSON.stringify(taskScriptTemplate);
         const taskScript               = taskScriptTemplate
             .replace('{{{cookie}}}', escapeStringPatterns(cookie))
-            .replace('{{{referer}}}', escapeStringPatterns(referer))
+            .replace('{{{referer}}}', escapeStringPatterns(JSON.stringify(referer)))
             .replace('{{{iframeTaskScriptTemplate}}}', escapeStringPatterns(iframeTaskScriptTemplate));
 
         const contentWindow = nativeMethods.contentWindowGetter.call(e.iframe);
