@@ -27,11 +27,18 @@ export const KEYBOARD_MODIFIERS_PARAMETER = {
     metaKey:  'Meta'
 };
 
-export const DOM_EVENTS = ['click', 'mousedown', 'mouseup', 'dblclick', 'contextmenu', 'mousemove', 'mouseover',
-    'mouseout', 'touchstart', 'touchmove', 'touchend', 'keydown', 'keypress', 'textInput', 'textinput', 'input', 'keyup', 'change', 'focus', 'blur',
-    'MSPointerDown', 'MSPointerMove', 'MSPointerOver', 'MSPointerOut', 'MSPointerUp', 'pointerdown',
-    'pointermove', 'pointerover', 'pointerout', 'pointerup', 'focusin', 'focusout', 'mouseenter', 'mouseleave',
-    'pointerenter', 'pointerleave'];
+export const DOM_EVENTS = [
+    'click', 'dblclick', 'contextmenu',
+    'mousedown', 'mouseup', 'mousemove', 'mouseover', 'mouseout', 'mouseenter', 'mouseleave',
+    'touchstart', 'touchmove', 'touchend',
+    'keydown', 'keypress', 'keyup',
+    'textInput', 'textinput', 'input', 'change',
+    'focus', 'blur',
+    'MSPointerDown', 'MSPointerMove', 'MSPointerOver', 'MSPointerOut', 'MSPointerUp',
+    'pointerdown', 'pointermove', 'pointerover', 'pointerout', 'pointerup', 'pointerenter', 'pointerleave',
+    'dragstart', 'drop',
+    'focusin', 'focusout'
+];
 
 export function preventDefault (ev, allowBubbling?: boolean) {
     if (ev.preventDefault)
