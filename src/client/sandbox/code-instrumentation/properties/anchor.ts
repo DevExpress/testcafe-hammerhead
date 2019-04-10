@@ -4,7 +4,7 @@ import nativeMethods from '../../native-methods';
 let anchor      = nativeMethods.createElement.call(document, 'a');
 let emptyAnchor = nativeMethods.createElement.call(document, 'a');
 
-export function getAnchorProperty (el: HTMLElement, nativePropGetter) {
+export function getAnchorProperty (el: HTMLElement, nativePropGetter: Function) {
     const href = nativeMethods.anchorHrefGetter.call(el);
 
     if (href) {
@@ -18,7 +18,7 @@ export function getAnchorProperty (el: HTMLElement, nativePropGetter) {
     return nativePropGetter.call(emptyAnchor);
 }
 
-export function setAnchorProperty (el: HTMLElement, nativePropSetter, value: string) {
+export function setAnchorProperty (el: HTMLElement, nativePropSetter: Function, value: string) {
     const href = nativeMethods.anchorHrefGetter.call(el);
 
     if (href) {

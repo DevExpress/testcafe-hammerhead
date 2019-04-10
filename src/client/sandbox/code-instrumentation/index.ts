@@ -6,38 +6,43 @@ import { processScript } from '../../../processing/script';
 import INSTRUCTION from '../../../processing/script/instruction';
 import nativeMethods from '../../sandbox/native-methods';
 import { processHtml } from '../../utils/html';
+/*eslint-disable no-unused-vars*/
+import EventSandbox from '../event';
+import WindowSandbox from '../node/window';
+import MessageSandbox from '../event/message';
+/*eslint-enable no-unused-vars*/
 
 export default class CodeInstrumentation extends SandboxBase {
-    methodCallInstrumentation: any;
-    locationAccessorsInstrumentation: any;
-    propertyAccessorsInstrumentation: any;
+    _methodCallInstrumentation: MethodCallInstrumentation;
+    _locationAccessorsInstrumentation: LocationAccessorsInstrumentation;
+    _propertyAccessorsInstrumentation: PropertyAccessorsInstrumentation;
     elementPropertyAccessors: any;
 
-    constructor (eventSandbox, windowSandbox, messageSandbox) {
+    constructor (eventSandbox: EventSandbox, windowSandbox: WindowSandbox, messageSandbox: MessageSandbox) {
         super();
 
-        this.methodCallInstrumentation        = new MethodCallInstrumentation(eventSandbox.message);
-        this.locationAccessorsInstrumentation = new LocationAccessorsInstrumentation(messageSandbox);
-        this.propertyAccessorsInstrumentation = new PropertyAccessorsInstrumentation(windowSandbox);
+        this._methodCallInstrumentation        = new MethodCallInstrumentation(eventSandbox.message);
+        this._locationAccessorsInstrumentation = new LocationAccessorsInstrumentation(messageSandbox);
+        this._propertyAccessorsInstrumentation = new PropertyAccessorsInstrumentation(windowSandbox);
     }
 
     attach (window: Window) {
         super.attach(window);
 
-        this.methodCallInstrumentation.attach(window);
-        this.locationAccessorsInstrumentation.attach(window);
-        this.elementPropertyAccessors = this.propertyAccessorsInstrumentation.attach(window);
+        this._methodCallInstrumentation.attach(window);
+        this._locationAccessorsInstrumentation.attach(window);
+        this.elementPropertyAccessors = this._propertyAccessorsInstrumentation.attach(window);
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
         // NOTE: GH-260
         nativeMethods.objectDefineProperty(window, INSTRUCTION.getEval, {
-            value: evalFn => {
+            value: (evalFn: Function) => {
                 // @ts-ignore
                 if (evalFn !== window.eval)
                     return evalFn;
 
-                return script => {
+                return (script: any) => {
                     if (typeof script === 'string')
                         script = processScript(script);
 
@@ -48,7 +53,7 @@ export default class CodeInstrumentation extends SandboxBase {
         });
 
         nativeMethods.objectDefineProperty(window, INSTRUCTION.processScript, {
-            value: (script, isApply) => {
+            value: (script: any, isApply: true) => {
                 if (isApply) {
                     if (script && script.length && typeof script[0] === 'string') {
                         const args = [processScript(script[0], false)];
@@ -71,7 +76,7 @@ export default class CodeInstrumentation extends SandboxBase {
         });
 
         nativeMethods.objectDefineProperty(window, INSTRUCTION.processHtml, {
-            value: (win, html) => {
+            value: (win: Window, html: any) => {
                 if (typeof html === 'string')
                     html = processHtml(`<html><body>${html}</body></html>`, { processedContext: win });
 

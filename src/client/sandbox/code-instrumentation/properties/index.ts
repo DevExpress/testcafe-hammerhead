@@ -12,23 +12,22 @@ import nativeMethods from '../../native-methods';
 import DomProcessor from '../../../../processing/dom';
 import settings from '../../../settings';
 import { isIE } from '../../../utils/browser';
+/*eslint-disable no-unused-vars*/
+import WindowSandbox from '../../node/window';
+/*eslint-enable no-unused-vars*/
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
-    windowSandbox: any;
-
-    constructor (windowSandbox) {
+    constructor (private readonly _windowSandbox: WindowSandbox) { // eslint-disable-line no-unused-vars
         super();
-
-        this.windowSandbox  = windowSandbox;
     }
 
     // NOTE: Isolate throw statements into a separate function because the
     // JS engine doesn't optimize such functions.
-    static _error (msg) {
+    static _error (msg: string) {
         throw new Error(msg);
     }
 
-    static _safeIsShadowUIElement (el) {
+    static _safeIsShadowUIElement (el: any) {
         try {
             return domUtils.isShadowUIElement(el);
         }
@@ -37,7 +36,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         }
     }
 
-    static _setCrossDomainLocation (location, value: string) {
+    static _setCrossDomainLocation (location: Location, value: any) {
         let proxyUrl = '';
 
         if (typeof value !== 'string')
@@ -66,26 +65,28 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 condition: domUtils.isLocation,
 
                 // eslint-disable-next-line no-restricted-properties
-                get: crossDomainLocation => crossDomainLocation.href,
+                get: (crossDomainLocation: Location) => crossDomainLocation.href,
 
                 set: PropertyAccessorsInstrumentation._setCrossDomainLocation
             },
 
             location: {
-                condition: owner => domUtils.isDocument(owner) || domUtils.isWindow(owner),
+                condition: (owner: any) => domUtils.isDocument(owner) || domUtils.isWindow(owner),
 
-                get: owner => {
+                get: (owner: Window | Document) => {
                     const locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(owner);
 
                     if (locationWrapper)
                         return locationWrapper;
 
+                    //@ts-ignore
                     const wnd = domUtils.isWindow(owner) ? owner : owner.defaultView;
 
                     return new LocationWrapper(wnd);
                 },
 
-                set: (owner, location) => {
+                set: (owner: Window | Document, location: Location) => {
+                    //@ts-ignore
                     const ownerWindow     = domUtils.isWindow(owner) ? owner : owner.defaultView;
                     const locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(ownerWindow);
 
@@ -116,7 +117,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         super.attach(window);
 
         const accessors     = this._createPropertyAccessors();
-        const windowSandbox = this.windowSandbox;
+        const windowSandbox = this._windowSandbox;
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.

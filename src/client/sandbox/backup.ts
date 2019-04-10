@@ -1,9 +1,17 @@
 import { getTopSameDomainWindow, getFrameElement } from '../utils/dom';
 import nativeMethods from './native-methods';
+/*eslint-disable no-unused-vars*/
+import Sandbox from './index';
+/*eslint-enable no-unused-vars*/
 
 const SANDBOX_BACKUP = 'hammerhead|sandbox-backup';
 
-function findRecord (storage, iframe) {
+interface SandboxBackupEntry {
+    iframe: Element;
+    sandbox: Sandbox;
+}
+
+function findRecord (storage: Array<SandboxBackupEntry>, iframe: Element | null) {
     for (let i = storage.length - 1; i >= 0; i--) {
         try {
             if (storage[i].iframe === iframe)
@@ -17,9 +25,10 @@ function findRecord (storage, iframe) {
     return void 0;
 }
 
-export function create (window: Window, sandbox) {
+export function create (window: Window, sandbox: Sandbox) {
     const topSameDomainWindow = getTopSameDomainWindow(window);
     const iframe              = window !== topSameDomainWindow ? getFrameElement(window) : null;
+    // @ts-ignore
     let storage               = topSameDomainWindow[SANDBOX_BACKUP];
 
     if (!storage) {
@@ -37,6 +46,7 @@ export function create (window: Window, sandbox) {
 
 export function get (window: Window) {
     const topSameDomainWindow = getTopSameDomainWindow(window);
+    //@ts-ignore
     const storage             = topSameDomainWindow[SANDBOX_BACKUP];
     const iframe              = window !== topSameDomainWindow ? window.frameElement : null;
 

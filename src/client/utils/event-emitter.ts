@@ -34,7 +34,7 @@ export default class EventEmitter {
         }
     }
 
-    off (evt, listener) {
+    off (evt: string, listener) {
         const listeners = this.eventsListeners[evt];
 
         if (!listeners)
@@ -43,7 +43,7 @@ export default class EventEmitter {
         this.eventsListeners[evt] = nativeMethods.arrayFilter.call(listeners, currentListener => currentListener !== listener);
     }
 
-    on (evt, listener) {
+    on (evt: string, listener) {
         this.eventsListeners[evt] = this.eventsListeners[evt] || [];
 
         if (this.eventsListeners[evt].indexOf(listener) === -1)

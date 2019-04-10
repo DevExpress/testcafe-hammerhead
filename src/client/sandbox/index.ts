@@ -87,8 +87,9 @@ export default class Sandbox extends SandboxBase {
 
     // NOTE: In some cases, IE raises the "Can't execute code from a freed script" exception,
     // so that we cannot use a sandbox created earlier and we have to create a new one.
-    static _canUseSandbox (sandbox): boolean {
+    static _canUseSandbox (sandbox: Sandbox): boolean {
         try {
+            //@ts-ignore
             sandbox.off();
         }
         catch (e) {

@@ -347,13 +347,13 @@ test('assign a "formaction" attribute to elements with the "formtarget" attribut
 module('location');
 
 test('change a url via location from cross-domain window', function () {
-    hammerhead.sandbox.codeInstrumentation.methodCallInstrumentation.methodWrappers.assign.method({
+    hammerhead.sandbox.codeInstrumentation._methodCallInstrumentation.methodWrappers.assign.method({
         assign: function (url) {
             ok(hasIframeFlag(url));
         }
     }, ['https://example.com/']);
 
-    hammerhead.sandbox.codeInstrumentation.methodCallInstrumentation.methodWrappers.replace.method({
+    hammerhead.sandbox.codeInstrumentation._methodCallInstrumentation.methodWrappers.replace.method({
         replace: function (url) {
             ok(hasIframeFlag(url));
         }

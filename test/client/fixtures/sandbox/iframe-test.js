@@ -423,7 +423,7 @@ if (!browserUtils.isFirefox) {
                 var testedSandboxes = [
                     iframeHammerhead.shadowUI.iframeSandbox,
                     iframeHammerhead.shadowUI.nodeMutation,
-                    iframeHammerhead.sandbox.codeInstrumentation.locationAccessorsInstrumentation
+                    iframeHammerhead.sandbox.codeInstrumentation._locationAccessorsInstrumentation
                 ];
 
                 testedSandboxes.forEach(function (sandbox) {
