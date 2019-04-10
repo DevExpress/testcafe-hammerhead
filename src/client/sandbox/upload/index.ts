@@ -2,30 +2,32 @@ import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import SandboxBase from '../base';
 import UploadInfoManager from './info-manager';
 import { isFileInput } from '../../utils/dom';
-import { isIE, version as browserVersion } from '../../utils/browser';
+import { isIE, isFirefox, version as browserVersion } from '../../utils/browser';
 import { stopPropagation, preventDefault } from '../../utils/event';
 import { get as getSandboxBackup } from '../backup';
 import nativeMethods from '../native-methods';
+/*eslint-disable no-unused-vars*/
+import Listeners from '../event/listeners';
+import EventSimulator from '../event/simulator';
+import ShadowUI from '../shadow-ui';
+/*eslint-enable no-unused-vars*/
 
 export default class UploadSandbox extends SandboxBase {
     START_FILE_UPLOADING_EVENT: string = 'hammerhead|event|start-file-uploading';
     END_FILE_UPLOADING_EVENT: string = 'hammerhead|event|end-file-uploading';
 
     infoManager: UploadInfoManager;
-    listeners: any;
-    eventSimulator: any;
 
-    constructor (listeners, eventSimulator, shadowUI) {
+    constructor (private readonly _listeners: Listeners, //eslint-disable-line no-unused-vars
+                 private readonly _eventSimulator: EventSimulator, //eslint-disable-line no-unused-vars
+                 shadowUI: ShadowUI) {
         super();
 
         this.infoManager = new UploadInfoManager(shadowUI);
-
-        this.listeners = listeners;
-        this.eventSimulator = eventSimulator;
     }
 
     _riseChangeEvent (input: HTMLInputElement) {
-        this.eventSimulator.change(input);
+        this._eventSimulator.change(input);
     }
 
     static _getCurrentInfoManager (input: HTMLInputElement) {
@@ -39,11 +41,11 @@ export default class UploadSandbox extends SandboxBase {
     attach (window: Window) {
         super.attach(window);
 
-        this.listeners.addInternalEventListener(window, ['change'], (e, dispatched) => {
+        this._listeners.addInternalEventListener(window, ['change'], (e, dispatched) => {
             const input              = e.target;
             const currentInfoManager = UploadSandbox._getCurrentInfoManager(input);
 
-            if (isFileInput(input) && !dispatched) {
+            if (!dispatched && isFileInput(input)) {
                 stopPropagation(e);
                 preventDefault(e);
 
@@ -69,12 +71,13 @@ export default class UploadSandbox extends SandboxBase {
             }
         });
 
-        if (isIE) {
-            // NOTE: Prevent the browser's open file dialog.
-            this.listeners.addInternalEventListener(window, ['click'], (e, dispatched) => {
-                const input = e.target || e.srcElement;
-
-                if (isFileInput(input) && dispatched)
+        if (isIE || isFirefox) {
+            // NOTE: Google Chrome does not open the native browser dialog when TestCafe clicks on the input.
+            // 'Click' is a complex emulated action that uses 'dispatchEvent' method internally.
+            // Another browsers open the native browser dialog in this case.
+            // This is why, we are forced to prevent the browser's open file dialog.
+            this._listeners.addInternalEventListener(window, ['click'], (e: Event, dispatched: boolean) => {
+                if (dispatched && isFileInput(e.target as HTMLInputElement))
                     preventDefault(e, true);
             });
         }

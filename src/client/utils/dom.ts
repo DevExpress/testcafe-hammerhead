@@ -31,11 +31,12 @@ const SCRIPT_OR_STYLE_RE               = /^(script|style)$/i;
 const EDITABLE_INPUT_TYPES_RE          = /^(email|number|password|search|tel|text|url)$/;
 const NUMBER_OR_EMAIL_INPUT_RE         = /^(number|email)$/;
 
-function getFocusableSelector () {
-    // NOTE: We don't take into account the case of embedded contentEditable elements, and we
-    // specify the contentEditable attribute for focusable elements.
-    return 'input, select, textarea, button, body, iframe, [contenteditable="true"], [contenteditable=""], [tabIndex]';
-}
+// NOTE: input with 'file' type processed separately in 'UploadSandbox'
+const INPUT_WITH_NATIVE_DIALOG         = /^(color|date|datetime-local|month|week)$/;
+
+// NOTE: We don't take into account the case of embedded contentEditable elements, and we
+// specify the contentEditable attribute for focusable elements.
+const FOCUSABLE_SELECTOR = 'input, select, textarea, button, body, iframe, [contenteditable="true"], [contenteditable=""], [tabIndex]';
 
 function isHidden (el: HTMLElement): boolean {
     return el.offsetWidth <= 0 && el.offsetHeight <= 0;
@@ -387,89 +388,93 @@ export function isIframeWithoutSrc (iframe): boolean {
     return !iframeDocumentLocationHaveSupportedProtocol;
 }
 
-export function isImgElement (el: HTMLElement): boolean {
+export function isImgElement (el: any): boolean {
     return instanceToString(el) === '[object HTMLImageElement]';
 }
 
-export function isInputElement (el: HTMLElement): boolean {
+export function isInputElement (el: any): boolean {
     return instanceToString(el) === '[object HTMLInputElement]';
 }
 
-export function isButtonElement (el: HTMLElement): boolean {
+export function isButtonElement (el: any): boolean {
     return instanceToString(el) === '[object HTMLButtonElement]';
 }
 
-export function isHtmlElement (el): boolean {
+export function isHtmlElement (el: any): boolean {
     return instanceToString(el) === '[object HTMLHtmlElement]';
 }
 
-export function isBodyElement (el): boolean {
+export function isBodyElement (el: any): boolean {
     return instanceToString(el) === '[object HTMLBodyElement]';
 }
 
-export function isHeadElement (el: HTMLElement): boolean {
+export function isHeadElement (el: any): boolean {
     return instanceToString(el) === '[object HTMLHeadElement]';
 }
 
-export function isHeadOrBodyElement (el: HTMLElement): boolean {
+export function isHeadOrBodyElement (el: any): boolean {
     const elString = instanceToString(el);
 
     return elString === '[object HTMLHeadElement]' || elString === '[object HTMLBodyElement]';
 }
 
-export function isHeadOrBodyOrHtmlElement (el: HTMLElement): boolean {
+export function isHeadOrBodyOrHtmlElement (el: any): boolean {
     const elString = instanceToString(el);
 
     return elString === '[object HTMLHeadElement]' || elString === '[object HTMLBodyElement]' ||
            elString === '[object HTMLHtmlElement]';
 }
 
-export function isBaseElement (el: HTMLElement): boolean {
+export function isBaseElement (el: any): boolean {
     return instanceToString(el) === '[object HTMLBaseElement]';
 }
 
-export function isScriptElement (el: HTMLElement): boolean {
+export function isScriptElement (el: any): boolean {
     return instanceToString(el) === '[object HTMLScriptElement]';
 }
 
-export function isStyleElement (el: HTMLElement): boolean {
+export function isStyleElement (el: any): boolean {
     return instanceToString(el) === '[object HTMLStyleElement]';
 }
 
-export function isLabelElement (el: HTMLElement): boolean {
+export function isLabelElement (el: any): boolean {
     return instanceToString(el) === '[object HTMLLabelElement]';
 }
 
-export function isTextAreaElement (el: HTMLElement): boolean {
+export function isTextAreaElement (el: any): boolean {
     return instanceToString(el) === '[object HTMLTextAreaElement]';
 }
 
-export function isOptionElement (el: HTMLElement): boolean {
+export function isOptionElement (el: any): boolean {
     return instanceToString(el) === '[object HTMLOptionElement]';
 }
 
-export function isRadioButtonElement (el): boolean {
+export function isRadioButtonElement (el: HTMLInputElement): boolean {
     return isInputElement(el) && el.type.toLowerCase() === 'radio';
 }
 
-export function isColorInputElement (el): boolean {
+export function isColorInputElement (el: HTMLInputElement): boolean {
     return isInputElement(el) && el.type.toLowerCase() === 'color';
 }
 
-export function isCheckboxElement (el): boolean {
+export function isCheckboxElement (el: HTMLInputElement): boolean {
     return isInputElement(el) && el.type.toLowerCase() === 'checkbox';
 }
 
-export function isSelectElement (el): boolean {
+export function isSelectElement (el: any): boolean {
     return instanceToString(el) === '[object HTMLSelectElement]';
 }
 
-export function isFormElement (el: HTMLElement): boolean {
+export function isFormElement (el: any): boolean {
     return instanceToString(el) === '[object HTMLFormElement]';
 }
 
 export function isFileInput (el: HTMLInputElement): boolean {
     return isInputElement(el) && el.type.toLowerCase() === 'file';
+}
+
+export function isInputWithNativeDialog (el: HTMLInputElement): boolean {
+    return isInputElement(el) && INPUT_WITH_NATIVE_DIALOG.test(el.type.toLowerCase());
 }
 
 export function isBodyElementWithChildren (el: HTMLElement): boolean {
@@ -520,10 +525,10 @@ export function isElementFocusable (el: HTMLElement): boolean {
     if (isTableDataCellElement(el) && isIE)
         return true;
 
-    return matches(el, getFocusableSelector()) || tabIndex !== null;
+    return matches(el, FOCUSABLE_SELECTOR) || tabIndex !== null;
 }
 
-export function isShadowUIElement (element: HTMLElement): boolean {
+export function isShadowUIElement (element: any): boolean {
     // @ts-ignore
     return !!element[INTERNAL_PROPS.shadowUIElement];
 }
