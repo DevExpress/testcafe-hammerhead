@@ -1,4 +1,4 @@
-var activeWindowTracker = hammerhead.sandbox.event.focusBlur.activeWindowTracker;
+var activeWindowTracker = hammerhead.sandbox.event.focusBlur._activeWindowTracker;
 var Promise             = hammerhead.Promise;
 var nativeMethods       = hammerhead.nativeMethods;
 
@@ -21,7 +21,7 @@ test('check changing active window', function () {
         })
         .then(function () {
             return window.QUnitGlobals.wait(function () {
-                return activeWindowTracker.activeWindow === iframe.contentWindow;
+                return activeWindowTracker._activeWindow === iframe.contentWindow;
             });
         })
         .then(function () {
@@ -32,7 +32,7 @@ test('check changing active window', function () {
         })
         .then(function () {
             return window.QUnitGlobals.wait(function () {
-                return activeWindowTracker.activeWindow === window.top &&
+                return activeWindowTracker._activeWindow === window.top &&
                        !iframe.contentWindow.activeWindowTracker.isCurrentWindowActive();
             });
         })
@@ -56,7 +56,7 @@ test('check switching active window (between two iframes)', function () {
         })
         .then(function () {
             return window.QUnitGlobals.wait(function () {
-                return activeWindowTracker.activeWindow === firstIframe.contentWindow;
+                return activeWindowTracker._activeWindow === firstIframe.contentWindow;
             });
         })
         .then(function () {
@@ -68,7 +68,7 @@ test('check switching active window (between two iframes)', function () {
         })
         .then(function () {
             return window.QUnitGlobals.wait(function () {
-                return activeWindowTracker.activeWindow === secondIframe.contentWindow &&
+                return activeWindowTracker._activeWindow === secondIframe.contentWindow &&
                        !firstIframe.contentWindow.activeWindowTracker.isCurrentWindowActive();
             });
         })
@@ -86,7 +86,7 @@ test('check that an error does not rise when trying to send serviceMessage to th
     var iframe            = null;
     var anchor            = document.createElement('a');
     var checkActiveWindow = function () {
-        return activeWindowTracker.activeWindow === iframe.contentWindow;
+        return activeWindowTracker._activeWindow === iframe.contentWindow;
     };
 
     anchor.setAttribute('href', '#');
@@ -142,7 +142,7 @@ test('no error occurs when a focused iframe is removed and a different iframe ge
         })
         .then(function () {
             return window.QUnitGlobals.wait(function () {
-                return activeWindowTracker.activeWindow === secondIframe.contentWindow;
+                return activeWindowTracker._activeWindow === secondIframe.contentWindow;
             });
         })
         .then(function () {

@@ -195,8 +195,8 @@ export default class Sandbox extends SandboxBase {
     }
 
     dispose (): void {
-        this.event.hover.lastHoveredElement     = null;
-        this.event.focusBlur.lastFocusedElement = null;
+        this.event.hover._lastHoveredElement     = null;
+        this.event.focusBlur._lastFocusedElement = null;
 
         htmlUtilDispose();
         anchorCodeInstumentationDispose();

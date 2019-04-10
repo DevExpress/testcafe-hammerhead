@@ -827,7 +827,7 @@ export default class EventSimulator {
     // NOTE: Control events.
     // NOTE: "focus", "blur" and "selectionchange" shouldn't bubble (T229732),
     // but "input", "change" and "submit" should do it (GH-318).
-    blur (el, relatedTarget) {
+    blur (el, relatedTarget?) {
         return this._dispatchFocusEvent(el, 'blur', relatedTarget);
     }
 

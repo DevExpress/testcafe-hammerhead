@@ -5,21 +5,18 @@ import nativeMethods from '../sandbox/native-methods';
 export default class ConsoleSandbox extends SandboxBase {
     CONSOLE_METH_CALLED_EVENT: string = 'hammerhead|event|console-meth-called';
 
-    messageSandbox: any;
-    serviceMsgReceivedEventCallback: any;
+    _serviceMsgReceivedEventCallback: Function;
 
-    constructor (messageSandbox) {
+    constructor (private readonly _messageSandbox) { //eslint-disable-line no-unused-vars
         super();
 
-        this.messageSandbox = messageSandbox;
-
-        this.serviceMsgReceivedEventCallback = ({ message }) => {
+        this._serviceMsgReceivedEventCallback = ({ message }) => {
             if (message.cmd === this.CONSOLE_METH_CALLED_EVENT)
                 this.emit(this.CONSOLE_METH_CALLED_EVENT, { meth: message.meth, line: message.line });
         };
     }
 
-    _toString (obj) {
+    _toString (obj:any): string {
         try {
             return String(obj);
         }
@@ -28,15 +25,16 @@ export default class ConsoleSandbox extends SandboxBase {
         }
     }
 
-    _proxyConsoleMeth (meth) {
-        this.window.console[meth] = (...args) => {
+    _proxyConsoleMeth (meth: string) {
+        //@ts-ignore
+        this.window.console[meth] = (...args: Array<any>) => {
             if (!isCrossDomainWindows(window, window.top)) {
                 const sendToTopWindow = window !== window.top;
                 const line            = nativeMethods.arrayMap.call(args, this._toString).join(' ');
 
                 if (sendToTopWindow) {
                     this.emit(this.CONSOLE_METH_CALLED_EVENT, { meth, line, inIframe: true });
-                    this.messageSandbox.sendServiceMsg({ meth, line, cmd: this.CONSOLE_METH_CALLED_EVENT }, window.top);
+                    this._messageSandbox.sendServiceMsg({ meth, line, cmd: this.CONSOLE_METH_CALLED_EVENT }, window.top);
                 }
                 else
                     this.emit(this.CONSOLE_METH_CALLED_EVENT, { meth, line });
@@ -54,8 +52,6 @@ export default class ConsoleSandbox extends SandboxBase {
         this._proxyConsoleMeth('error');
         this._proxyConsoleMeth('warn');
 
-        const messageSandbox = this.messageSandbox;
-
-        messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, this.serviceMsgReceivedEventCallback);
+        this._messageSandbox.on(this._messageSandbox.SERVICE_MSG_RECEIVED_EVENT, this._serviceMsgReceivedEventCallback);
     }
 }

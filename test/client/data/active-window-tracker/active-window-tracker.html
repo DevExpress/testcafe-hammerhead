@@ -12,7 +12,7 @@
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/https://example.com');
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
-    window.activeWindowTracker = hammerhead.sandbox.event.focusBlur.activeWindowTracker;
+    window.activeWindowTracker = hammerhead.sandbox.event.focusBlur._activeWindowTracker;
 </script>
 <div></div>
 </body>
