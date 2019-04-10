@@ -2,7 +2,7 @@ import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import SandboxBase from '../base';
 import UploadInfoManager from './info-manager';
 import { isFileInput } from '../../utils/dom';
-import { isIE, isFirefox, version as browserVersion } from '../../utils/browser';
+import { isIE, isFirefox, isChrome, isMacPlatform, isSafari, version as browserVersion } from '../../utils/browser';
 import { stopPropagation, preventDefault } from '../../utils/event';
 import { get as getSandboxBackup } from '../backup';
 import nativeMethods from '../native-methods';
@@ -105,8 +105,8 @@ export default class UploadSandbox extends SandboxBase {
     }
 
     // GH-1844
-    static _isChangeEventNeeded (fileList, inputInfoFiles) : boolean {
-        if (isFirefox)
+    static _needToRaiseChangeEvent (fileList, inputInfoFiles) : boolean {
+        if (isFirefox || (isMacPlatform && isChrome || isSafari))
             return true;
 
         for (let i = 0; i < fileList.length; i++ ) {
@@ -142,7 +142,7 @@ export default class UploadSandbox extends SandboxBase {
 
                     /*eslint-disable no-restricted-properties*/
                     if (!inputInfo || data.fileList.length !== inputInfo.files.length ||
-                        UploadSandbox._isChangeEventNeeded(data.fileList, inputInfo.files))
+                        UploadSandbox._needToRaiseChangeEvent(data.fileList, inputInfo.files))
                         this._riseChangeEvent(input);
                     /*eslint-enable no-restricted-properties*/
                 }
