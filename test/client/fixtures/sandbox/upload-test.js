@@ -544,15 +544,15 @@ asyncTest('change event', function () {
 });
 
 test('change event in the case of the same file/files selection (GH-1844)', function () {
-    var isChangeEventNeeded = isFirefox || (isMacPlatform && isChrome || isSafari);
-    var assertionsCount     = isChangeEventNeeded ? 4 : 0;
+    var needToRaiseChangeEvent = isFirefox || (isMacPlatform && isChrome || isSafari);
+    var assertionsCount        = needToRaiseChangeEvent ? 4 : 0;
 
     expect(assertionsCount);
 
     var fileInput = $('<input type="file" name="test" id="777">')[0];
 
     var changeHandler = function () {
-        ok(isChangeEventNeeded);
+        ok(needToRaiseChangeEvent);
     };
 
     return uploadSandbox.doUpload(fileInput, './file.txt')
