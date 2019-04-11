@@ -6,6 +6,13 @@ import nativeMethods from '../native-methods';
 import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
 import * as styleUtils from '../../utils/style';
+/*eslint-disable no-unused-vars*/
+import Listeners from './listeners';
+import EventSimulator from './simulator';
+import MessageSandbox from './message';
+import TimersSandbox from '../timers';
+import ElementEditingWatcher from './element-editing-watcher';
+/*eslint-enable no-unused-vars*/
 
 const INTERNAL_FOCUS_BLUR_FLAG_PREFIX = 'hammerhead|event|internal-';
 
@@ -23,30 +30,22 @@ const eventsMap = {
 };
 
 export default class FocusBlurSandbox extends SandboxBase {
-    topWindow: any;
-    lastFocusedElement: any;
-    scrollState: any;
+    private _topWindow: Window = null;
+    private _lastFocusedElement: any = null;
+    private _scrollState: any = {};
 
-    eventSimulator: any;
-    activeWindowTracker: any;
-    shadowUI: any;
-    listeners: any;
-    elementEditingWatcher: any;
-    timersSandbox: any;
+    private _activeWindowTracker: ActiveWindowTracker;
+    private _elementEditingWatcher: ElementEditingWatcher;
 
-    constructor (listeners, eventSimulator, messageSandbox, shadowUI, timersSandbox, elementEditingWatcher) {
+    constructor (private readonly _listeners: Listeners, //eslint-disable-line no-unused-vars
+                 private readonly _eventSimulator: EventSimulator, //eslint-disable-line no-unused-vars
+                 messageSandbox: MessageSandbox,
+                 private readonly _timersSandbox: TimersSandbox, //eslint-disable-line no-unused-vars
+                 elementEditingWatcher: ElementEditingWatcher) {
         super();
 
-        this.topWindow          = null;
-        this.lastFocusedElement = null;
-        this.scrollState        = {};
-
-        this.eventSimulator        = eventSimulator;
-        this.activeWindowTracker   = new ActiveWindowTracker(messageSandbox);
-        this.shadowUI              = shadowUI;
-        this.listeners             = listeners;
-        this.elementEditingWatcher = elementEditingWatcher;
-        this.timersSandbox         = timersSandbox;
+        this._activeWindowTracker   = new ActiveWindowTracker(messageSandbox);
+        this._elementEditingWatcher = elementEditingWatcher;
     }
 
     static _getNativeMeth (el: HTMLElement, event: string) {
@@ -71,20 +70,20 @@ export default class FocusBlurSandbox extends SandboxBase {
     }
 
     _onChangeActiveElement (activeElement: HTMLElement): void {
-        if (this.lastFocusedElement === activeElement)
+        if (this._lastFocusedElement === activeElement)
             return;
 
-        if (this.lastFocusedElement &&
-            nativeMethods.getAttribute.call(this.lastFocusedElement, INTERNAL_ATTRS.focusPseudoClass))
-            nativeMethods.removeAttribute.call(this.lastFocusedElement, INTERNAL_ATTRS.focusPseudoClass);
+        if (this._lastFocusedElement &&
+            nativeMethods.getAttribute.call(this._lastFocusedElement, INTERNAL_ATTRS.focusPseudoClass))
+            nativeMethods.removeAttribute.call(this._lastFocusedElement, INTERNAL_ATTRS.focusPseudoClass);
 
         if (domUtils.isElementFocusable(activeElement) && !(domUtils.isBodyElement(activeElement) &&
             domUtils.getTabIndex(activeElement) === null)) {
-            this.lastFocusedElement = activeElement;
+            this._lastFocusedElement = activeElement;
             nativeMethods.setAttribute.call(activeElement, INTERNAL_ATTRS.focusPseudoClass, true);
         }
         else
-            this.lastFocusedElement = null;
+            this._lastFocusedElement = null;
     }
 
     _shouldUseLabelHtmlForElement (el, type: string): boolean {
@@ -114,18 +113,18 @@ export default class FocusBlurSandbox extends SandboxBase {
 
     _saveScrollStateIfNecessary (el, preventScrolling) {
         if (preventScrolling)
-            this.scrollState.windowScroll = styleUtils.getElementScroll(this.window);
+            this._scrollState.windowScroll = styleUtils.getElementScroll(this.window);
 
         if (browserUtils.isIE)
-            this.scrollState.elementNonScrollableParentsScrollState = this._getElementNonScrollableParentsScrollState(el);
+            this._scrollState.elementNonScrollableParentsScrollState = this._getElementNonScrollableParentsScrollState(el);
     }
 
     _restoreScrollStateIfNecessary (preventScrolling) {
         if (preventScrolling)
-            FocusBlurSandbox._restoreElementScroll(this.window, this.scrollState.windowScroll);
+            FocusBlurSandbox._restoreElementScroll(this.window, this._scrollState.windowScroll);
 
         if (browserUtils.isIE)
-            this._restoreElementNonScrollableParentsScrollState(this.scrollState.elementNonScrollableParentsScrollState);
+            this._restoreElementNonScrollableParentsScrollState(this._scrollState.elementNonScrollableParentsScrollState);
     }
 
     _raiseEvent (el, type: string, callback, { withoutHandlers, isAsync, forMouseEvent, preventScrolling, relatedTarget, focusedOnChange }: { withoutHandlers?: boolean, isAsync?: boolean, forMouseEvent?: boolean, preventScrolling?: boolean, relatedTarget?: string, focusedOnChange?: boolean } ) {
@@ -152,16 +151,16 @@ export default class FocusBlurSandbox extends SandboxBase {
 
                 if (isAsync) {
                     // NOTE: focusin, focusout events are synchronously
-                    this.eventSimulator[bubblesEventType](el, relatedTarget);
-                    this.timersSandbox.deferFunction(() => this.eventSimulator[type](el, relatedTarget));
+                    this._eventSimulator[bubblesEventType](el, relatedTarget);
+                    this._timersSandbox.deferFunction(() => this._eventSimulator[type](el, relatedTarget));
                 }
                 else if (bubblesEventShouldRaiseFirstly) {
-                    this.eventSimulator[bubblesEventType](el, relatedTarget);
-                    this.eventSimulator[type](el, relatedTarget);
+                    this._eventSimulator[bubblesEventType](el, relatedTarget);
+                    this._eventSimulator[type](el, relatedTarget);
                 }
                 else {
-                    this.eventSimulator[type](el, relatedTarget);
-                    this.eventSimulator[bubblesEventType](el, relatedTarget);
+                    this._eventSimulator[type](el, relatedTarget);
+                    this._eventSimulator[bubblesEventType](el, relatedTarget);
                 }
             }
             else if (type === 'focus' && PREVENT_FOCUS_ON_CHANGE) {
@@ -170,9 +169,9 @@ export default class FocusBlurSandbox extends SandboxBase {
                     stopEventPropagation();
                 };
 
-                this.listeners.addInternalEventListener(window, ['focus'], preventFocus);
-                this.eventSimulator['focus'](el, relatedTarget);
-                this.listeners.removeInternalEventListener(window, ['focus'], preventFocus);
+                this._listeners.addInternalEventListener(window, ['focus'], preventFocus);
+                this._eventSimulator['focus'](el, relatedTarget);
+                this._listeners.removeInternalEventListener(window, ['focus'], preventFocus);
             }
 
             callback();
@@ -244,10 +243,10 @@ export default class FocusBlurSandbox extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        this.activeWindowTracker.attach(window);
-        this.topWindow = domUtils.isCrossDomainWindows(window, window.top) ? window : window.top;
+        this._activeWindowTracker.attach(window);
+        this._topWindow = domUtils.isCrossDomainWindows(window, window.top) ? window : window.top;
 
-        this.listeners.addInternalEventListener(window, ['focus', 'blur'], () => {
+        this._listeners.addInternalEventListener(window, ['focus', 'blur'], () => {
             const activeElement = domUtils.getActiveElement(this.document);
 
             this._onChangeActiveElement(activeElement);
@@ -258,7 +257,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         // NOTE: In MSEdge, the 'selectionchange' event doesn't occur immediately (it occurs with a some delay)
         // so we should raise it right after the 'focus' event is raised.
         if (browserUtils.isMSEdge && el && domUtils.isTextEditableElement(el))
-            this.eventSimulator.selectionchange(el);
+            this._eventSimulator.selectionchange(el);
 
         if (typeof callback === 'function')
             callback();
@@ -286,7 +285,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         let needBlurIframe  = false;
 
         const isContentEditable     = domUtils.isContentEditableElement(el);
-        const isCurrentWindowActive = this.activeWindowTracker.isCurrentWindowActive();
+        const isCurrentWindowActive = this._activeWindowTracker.isCurrentWindowActive();
 
         if (activeElement === el)
             withoutHandlers = !(isBodyElement && isContentEditable && !isCurrentWindowActive);
@@ -298,7 +297,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         let isAsync           = false;
         const raiseFocusEvent = () => {
             if (!isCurrentWindowActive && !domUtils.isShadowUIElement(el))
-                this.activeWindowTracker.makeCurrentWindowActive();
+                this._activeWindowTracker.makeCurrentWindowActive();
 
             const raiseEventArgs = {
                 withoutHandlers: withoutHandlers || silent,
@@ -310,12 +309,12 @@ export default class FocusBlurSandbox extends SandboxBase {
 
             this._raiseEvent(el, 'focus', () => {
                 if (!silent)
-                    this.elementEditingWatcher.watchElementEditing(el);
+                    this._elementEditingWatcher.watchElementEditing(el);
 
                 // NOTE: If we call focus for an unfocusable element (like 'div' or 'image') in iframe, we should
                 // specify document.active for this iframe manually, so we call focus without handlers.
                 if (isElementInIframe && iframeElement &&
-                    domUtils.getActiveElement(this.topWindow.document) !== iframeElement)
+                    domUtils.getActiveElement(this._topWindow.document) !== iframeElement)
                     this._raiseEvent(iframeElement, 'focus', () => this._raiseSelectionChange(callback, el), { withoutHandlers: true, isAsync });
                 else
                     this._raiseSelectionChange(callback, el);
@@ -326,7 +325,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         if (isNativeFocus && browserUtils.isIE) {
             // NOTE: In IE, the focus() method does not have any effect if it is called in the focus event handler
             // during the  second event phase.
-            if ((this.eventSimulator.isSavedWindowsEventsExists() || browserUtils.version > 10) &&
+            if ((this._eventSimulator.isSavedWindowsEventsExists() || browserUtils.version > 10) &&
                 this.window.event &&
                 this.window.event.type === 'focus' && this.window.event.srcElement === el) {
                 this._raiseSelectionChange(callback, el);
@@ -349,9 +348,9 @@ export default class FocusBlurSandbox extends SandboxBase {
                     // blur function for the body because this moves the browser window into the background.
                     if (!silent && browserUtils.isIE) {
                         if (isAsync)
-                            this.timersSandbox.setTimeout.call(this.window, () => this.eventSimulator.blur(activeElement), 0);
+                            this._timersSandbox.setTimeout.call(this.window, () => this._eventSimulator.blur(activeElement), 0);
                         else
-                            this.eventSimulator.blur(activeElement);
+                            this._eventSimulator.blur(activeElement);
                     }
                 }
                 else if (!el.disabled)
@@ -367,7 +366,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             if (browserUtils.isIE) {
                 // NOTE: We should call blur for iframe with handlers in IE but we can't call the method 'blur'
                 // because activeElement !== element and handlers will not be called.
-                this.eventSimulator.blur(domUtils.getIframeByElement(activeElement));
+                this._eventSimulator.blur(domUtils.getIframeByElement(activeElement));
                 raiseFocusEvent();
             }
             else
@@ -408,14 +407,14 @@ export default class FocusBlurSandbox extends SandboxBase {
             };
 
             if (PREVENT_FOCUS_ON_CHANGE)
-                this.listeners.addInternalEventListener(window, ['focus'], focusOnChangeHandler);
+                this._listeners.addInternalEventListener(window, ['focus'], focusOnChangeHandler);
 
-            this.elementEditingWatcher.processElementChanging(el);
+            this._elementEditingWatcher.processElementChanging(el);
 
             if (PREVENT_FOCUS_ON_CHANGE)
-                this.listeners.removeInternalEventListener(window, ['focus'], focusOnChangeHandler);
+                this._listeners.removeInternalEventListener(window, ['focus'], focusOnChangeHandler);
 
-            this.elementEditingWatcher.stopWatching(el);
+            this._elementEditingWatcher.stopWatching(el);
         }
 
         const raiseEventParameters = {

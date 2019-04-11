@@ -4,20 +4,16 @@ import nativeMethods from '../native-methods';
 import * as domUtils from '../../utils/dom';
 import * as positionUtils from '../../utils/position';
 import * as browserUtils from '../../utils/browser';
+/*eslint-disable no-unused-vars*/
+import Listeners from './listeners';
+/*eslint-enable no-unused-vars*/
 
 export default class HoverSandbox extends SandboxBase {
-    listeners: any;
+    private _hoverElementFixed: boolean = false;
+    private _lastHoveredElement: any = null;
 
-    hoverElementFixed: boolean;
-    lastHoveredElement: any;
-
-    constructor (listeners) {
+    constructor (private readonly _listeners: Listeners) { //eslint-disable-line no-unused-vars
         super();
-
-        this.listeners = listeners;
-
-        this.hoverElementFixed  = false;
-        this.lastHoveredElement = null;
     }
 
     static _setHoverMarker (newHoveredElement, jointParent) {
@@ -41,8 +37,8 @@ export default class HoverSandbox extends SandboxBase {
     _clearHoverMarkerUntilJointParent (newHoveredElement) {
         let jointParent = null;
 
-        if (this.lastHoveredElement) {
-            let el = this.lastHoveredElement;
+        if (this._lastHoveredElement) {
+            let el = this._lastHoveredElement;
 
             while (el && el.tagName && el.contains) {
                 // NOTE: Check that the current element is a joint parent for the hovered elements.
@@ -71,26 +67,26 @@ export default class HoverSandbox extends SandboxBase {
     }
 
     _hover (el) {
-        if (!this.hoverElementFixed && !domUtils.isShadowUIElement(el)) {
+        if (!this._hoverElementFixed && !domUtils.isShadowUIElement(el)) {
             const jointParent = this._clearHoverMarkerUntilJointParent(el);
 
             HoverSandbox._setHoverMarker(el, jointParent);
 
-            this.lastHoveredElement = el;
+            this._lastHoveredElement = el;
         }
     }
 
     fixHoveredElement () {
-        this.hoverElementFixed = true;
+        this._hoverElementFixed = true;
     }
 
     freeHoveredElement () {
-        this.hoverElementFixed = false;
+        this._hoverElementFixed = false;
     }
 
     attach (window: Window) {
         super.attach(window);
 
-        this.listeners.addInternalEventListener(window, ['mouseover', 'touchstart'], e => this._onHover(e));
+        this._listeners.addInternalEventListener(window, ['mouseover', 'touchstart'], e => this._onHover(e));
     }
 }

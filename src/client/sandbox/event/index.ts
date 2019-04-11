@@ -39,7 +39,7 @@ export default class EventSandbox extends SandboxBase {
         this.unload                = unloadSandbox;
         this.timers                = timerSandbox;
         this.eventSimulator        = eventSimulator;
-        this.focusBlur             = new FocusBlurSandbox(listeners, eventSimulator, messageSandbox, shadowUI, timerSandbox, elementEditingWatcher);
+        this.focusBlur             = new FocusBlurSandbox(listeners, eventSimulator, messageSandbox, timerSandbox, elementEditingWatcher);
         this.selection             = new Selection(this);
         this.hover                 = new HoverSandbox(listeners);
         this.shadowUI              = shadowUI;

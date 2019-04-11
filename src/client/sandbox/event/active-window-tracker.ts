@@ -1,31 +1,26 @@
 import SandboxBase from '../base';
+/*eslint-disable no-unused-vars*/
+import MessageSandbox from './message';
+/*eslint-enable no-unused-vars*/
 
 const WINDOW_ACTIVATED_EVENT   = 'hammerhead|event|window-activated';
 const WINDOW_DEACTIVATED_EVENT = 'hammerhead|event|window-deactivated';
 
 export default class ActiveWindowTracker extends SandboxBase {
-    messageSandbox: any;
+    private _isIframeWindow: boolean = false;
+    private _activeWindow: Window = null;
+    private _isActive: boolean = false;
 
-    isIframeWindow: boolean;
-    activeWindow: Window;
-    isActive: boolean;
-
-    constructor (messageSandbox) {
+    constructor (private readonly _messageSandbox: MessageSandbox) { //eslint-disable-line no-unused-vars
         super();
-
-        this.messageSandbox = messageSandbox;
-
-        this.isIframeWindow = null;
-        this.activeWindow   = null;
-        this.isActive       = null;
     }
 
     _notifyPrevActiveWindow (): void {
         try {
-            if (this.activeWindow.top && this.activeWindow !== this.activeWindow.top) {
-                this.messageSandbox.sendServiceMsg({
+            if (this._activeWindow.top && this._activeWindow !== this._activeWindow.top) {
+                this._messageSandbox.sendServiceMsg({
                     cmd: WINDOW_DEACTIVATED_EVENT
-                }, this.activeWindow);
+                }, this._activeWindow);
             }
         }
         catch (err) {
@@ -36,36 +31,36 @@ export default class ActiveWindowTracker extends SandboxBase {
     attach (window: Window): void {
         super.attach(window);
 
-        this.isIframeWindow = window !== window.top;
-        this.activeWindow   = !this.isIframeWindow ? window.top : null;
-        this.isActive       = !this.isIframeWindow;
+        this._isIframeWindow = window !== window.top;
+        this._activeWindow   = !this._isIframeWindow ? window.top : null;
+        this._isActive       = !this._isIframeWindow;
 
-        this.messageSandbox.on(this.messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
+        this._messageSandbox.on(this._messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
             if (e.message.cmd === WINDOW_ACTIVATED_EVENT) {
                 this._notifyPrevActiveWindow();
 
-                this.isActive     = false;
-                this.activeWindow = e.source;
+                this._isActive     = false;
+                this._activeWindow = e.source;
             }
             else if (e.message.cmd === WINDOW_DEACTIVATED_EVENT)
-                this.isActive = false;
+                this._isActive = false;
         });
     }
 
     isCurrentWindowActive (): boolean {
-        return this.isActive;
+        return this._isActive;
     }
 
     makeCurrentWindowActive (): void {
-        this.isActive = true;
+        this._isActive = true;
 
-        if (!this.isIframeWindow) {
+        if (!this._isIframeWindow) {
             this._notifyPrevActiveWindow();
 
-            this.activeWindow = this.window;
+            this._activeWindow = this.window;
         }
         else {
-            this.messageSandbox.sendServiceMsg({
+            this._messageSandbox.sendServiceMsg({
                 cmd: WINDOW_ACTIVATED_EVENT
             }, this.window.top);
         }

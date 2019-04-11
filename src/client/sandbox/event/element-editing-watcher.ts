@@ -6,14 +6,15 @@ import {
     isTextAreaElement
 } from '../../utils/dom';
 
+/*eslint-disable no-unused-vars*/
+import EventSimulator from './simulator';
+/*eslint-enable no-unused-vars*/
+
 const ELEMENT_EDITING_OBSERVED_FLAG = 'hammerhead|element-editing-observed';
 const OLD_VALUE_PROPERTY            = 'hammerhead|old-value';
 
 export default class ElementEditingWatcher {
-    eventSimulator: any;
-
-    constructor (eventSimulator) {
-        this.eventSimulator = eventSimulator;
+    constructor (private readonly _eventSimulator: EventSimulator) { //eslint-disable-line no-unused-vars
     }
 
     _onBlur (e): void {
@@ -68,7 +69,7 @@ export default class ElementEditingWatcher {
 
     processElementChanging (el: HTMLElement): boolean {
         if (el && el[ELEMENT_EDITING_OBSERVED_FLAG] && ElementEditingWatcher._getValue(el) !== el[OLD_VALUE_PROPERTY]) {
-            this.eventSimulator.change(el);
+            this._eventSimulator.change(el);
             this.restartWatchingElementEditing(el);
 
             return true;
