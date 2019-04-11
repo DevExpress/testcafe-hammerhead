@@ -947,6 +947,28 @@ test('inspect html elements', function () {
     });
 });
 
+test('isInputWithNativeDialog', function () {
+    var checkedInputTypes = ['color', 'date', 'datetime-local', 'month', 'week'];
+    var countCheckedTypes = 0;
+
+    for (var i = 0; i < checkedInputTypes.length; i++) {
+        var checkedInputType = checkedInputTypes[i];
+        var checkedInput = document.createElement('input');
+
+        checkedInput.type = checkedInputType;
+
+        // NOTE: check the browser support for the specified input type
+        if (checkedInput.type !== checkedInputType)
+            continue;
+
+        countCheckedTypes++;
+        ok(domUtils.isInputWithNativeDialog(checkedInput), checkedInputType);
+    }
+
+    if (countCheckedTypes === 0)
+        expect(0);
+});
+
 if (browserUtils.isChrome) {
     test('should return active element inside shadow DOM', function () {
         var host  = document.createElement('div');

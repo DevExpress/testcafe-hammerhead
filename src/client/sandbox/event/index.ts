@@ -5,9 +5,17 @@ import Selection from './selection';
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import * as domUtils from '../../utils/dom';
-import { DOM_EVENTS } from '../../utils/event';
+import { DOM_EVENTS, preventDefault } from '../../utils/event';
 import DataTransfer from './drag-and-drop/data-transfer';
 import DragDataStore from './drag-and-drop/drag-data-store';
+/*eslint-disable no-unused-vars*/
+import EventSimulator from './simulator';
+import ElementEditingWatcher from './element-editing-watcher';
+import UnloadSandbox from './unload';
+import MessageSandbox from './message';
+import ShadowUI from '../shadow-ui';
+import TimersSandbox from '../timers';
+/*eslint-enable no-unused-vars*/
 
 export default class EventSandbox extends SandboxBase {
     EVENT_PREVENTED_EVENT: string = 'hammerhead|event|event-prevented';
@@ -31,7 +39,7 @@ export default class EventSandbox extends SandboxBase {
     onFocus: any;
     cancelInternalEvents: any;
 
-    constructor (listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, shadowUI, timerSandbox) {
+    constructor (listeners: Listeners, eventSimulator: EventSimulator, elementEditingWatcher: ElementEditingWatcher, unloadSandbox: UnloadSandbox, messageSandbox: MessageSandbox, shadowUI: ShadowUI, timerSandbox: TimersSandbox) {
         super();
 
         this.listeners             = listeners;
@@ -116,7 +124,7 @@ export default class EventSandbox extends SandboxBase {
         const document       = this.document;
         const eventSimulator = this.eventSimulator;
 
-        this.onFocus = function (e) {
+        this.onFocus = function (e: Event) {
             const focusedEl = e.target;
             const activeEl  = domUtils.getActiveElement(document);
 
@@ -124,7 +132,7 @@ export default class EventSandbox extends SandboxBase {
                 shadowUI.setLastActiveElement(activeEl);
         };
 
-        this.cancelInternalEvents = function (e, _dispatched, _preventEvent, _cancelHandlers, stopPropagation) {
+        this.cancelInternalEvents = function (e, _dispatched: boolean, _preventEvent: boolean, _cancelHandlers, stopPropagation: Function) {
             // NOTE: We should cancel events raised by calling the native function (focus, blur) only if the
             // element has a flag. If an event is dispatched, we shouldn't cancel it.
             // After calling a native function two events were raised
@@ -139,31 +147,53 @@ export default class EventSandbox extends SandboxBase {
         };
     }
 
-    attach (window) {
+    _preventInputNativeDialogs (window: Window): void {
+        this.listeners.addInternalEventListener(window, ['click'], (e: Event, dispatched: boolean) => {
+            if (dispatched && domUtils.isInputWithNativeDialog(e.target as HTMLInputElement))
+                preventDefault(e, true);
+        });
+    }
+
+    attach (window: Window) {
         super.attach(window);
 
+        //@ts-ignore
         window.HTMLInputElement.prototype.setSelectionRange    = this.overriddenMethods.setSelectionRange;
+        //@ts-ignore
         window.HTMLTextAreaElement.prototype.setSelectionRange = this.overriddenMethods.setSelectionRange;
+        //@ts-ignore
         window.Window.prototype.dispatchEvent                  = this.overriddenMethods.dispatchEvent;
+        //@ts-ignore
         window.Document.prototype.dispatchEvent                = this.overriddenMethods.dispatchEvent;
+        //@ts-ignore
         window.HTMLElement.prototype.dispatchEvent             = this.overriddenMethods.dispatchEvent;
+        //@ts-ignore
         window.SVGElement.prototype.dispatchEvent              = this.overriddenMethods.dispatchEvent;
+        //@ts-ignore
         window.HTMLElement.prototype.focus                     = this.overriddenMethods.focus;
+        //@ts-ignore
         window.HTMLElement.prototype.blur                      = this.overriddenMethods.blur;
+        //@ts-ignore
         window.HTMLElement.prototype.click                     = this.overriddenMethods.click;
+        //@ts-ignore
         window.Window.focus                                    = this.overriddenMethods.focus;
+        //@ts-ignore
         window.Window.blur                                     = this.overriddenMethods.blur;
+        //@ts-ignore
         window.Event.prototype.preventDefault                  = this.overriddenMethods.preventDefault;
 
-        if (window.TextRange && window.TextRange.prototype.select)
+        //@ts-ignore
+        if (window.TextRange && window.TextRange.prototype.select) {
+            //@ts-ignore
             window.TextRange.prototype.select = this.overriddenMethods.select;
+        }
 
         this.initDocumentListening(window.document);
-
         this.listeners.initElementListening(window, DOM_EVENTS.concat(['load', 'beforeunload', 'pagehide', 'unload', 'message']));
-
         this.listeners.addInternalEventListener(window, ['focus'], this.onFocus);
         this.listeners.addInternalEventListener(window, ['focus', 'blur', 'change', 'focusin', 'focusout'], this.cancelInternalEvents);
+
+        this._preventInputNativeDialogs(window);
 
         this.unload.attach(window);
         this.message.attach(window);
