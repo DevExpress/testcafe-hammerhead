@@ -137,18 +137,17 @@ test('getPropertyValue, setProperty, getPropertyValue (GH-1212)', function () {
 module('regression');
 
 test('the getAttribute function should return cleaned style (GH-1922)', function () {
-    var div           = document.createElement('div');
-    var correctionStr = browserUtils.isFirefox ? ' none repeat scroll 0% 0%' : '';
+    var div = document.createElement('div');
 
-    div.setAttribute('style', 'background: red;');
+    div.setAttribute('style', 'background-color: red;');
 
-    strictEqual(div.getAttribute('style'), 'background: red;');
+    strictEqual(div.getAttribute('style'), 'background-color: red;');
 
-    div.style.background = 'green';
+    div.style.backgroundColor = 'green';
 
-    strictEqual(div.getAttribute('style').replace(correctionStr, ''), 'background: green;');
+    strictEqual(div.getAttribute('style'), 'background-color: green;');
 
     div.style.display = 'none';
 
-    strictEqual(div.getAttribute('style').replace(correctionStr, ''), 'background: green; display: none;');
+    strictEqual(div.getAttribute('style'), 'background-color: green; display: none;');
 });
