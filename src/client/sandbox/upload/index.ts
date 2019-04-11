@@ -105,15 +105,15 @@ export default class UploadSandbox extends SandboxBase {
     }
 
     // GH-1844
-    static _needToRaiseChangeEvent (fileList, inputInfoFiles) : boolean {
+    static _needToRaiseChangeEvent (filesToUpload, currentFiles) : boolean {
         if (isFirefox || (isMacPlatform && isChrome || isSafari))
             return true;
 
-        for (let i = 0; i < fileList.length; i++ ) {
+        for (const file of filesToUpload) {
             let found = false;
 
-            for (let j = 0; j < inputInfoFiles.length; j++) {
-                if (fileList[i].name === inputInfoFiles[j].name) {
+            for (const currentFile of currentFiles) {
+                if (file.name === currentFile.name) {
                     found = true;
                     break;
                 }
