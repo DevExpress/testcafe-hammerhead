@@ -9,14 +9,11 @@ import Listeners from './listeners';
 /*eslint-enable no-unused-vars*/
 
 export default class HoverSandbox extends SandboxBase {
-    _hoverElementFixed: boolean;
-    _lastHoveredElement: any;
+    private _hoverElementFixed: boolean = false;
+    private _lastHoveredElement: any = null;
 
     constructor (private readonly _listeners: Listeners) { //eslint-disable-line no-unused-vars
         super();
-
-        this._hoverElementFixed  = false;
-        this._lastHoveredElement = null;
     }
 
     static _setHoverMarker (newHoveredElement, jointParent) {

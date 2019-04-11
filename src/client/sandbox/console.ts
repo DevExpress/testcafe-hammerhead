@@ -5,7 +5,7 @@ import nativeMethods from '../sandbox/native-methods';
 export default class ConsoleSandbox extends SandboxBase {
     CONSOLE_METH_CALLED_EVENT: string = 'hammerhead|event|console-meth-called';
 
-    _serviceMsgReceivedEventCallback: Function;
+    private _serviceMsgReceivedEventCallback: Function;
 
     constructor (private readonly _messageSandbox) { //eslint-disable-line no-unused-vars
         super();

@@ -30,12 +30,12 @@ const eventsMap = {
 };
 
 export default class FocusBlurSandbox extends SandboxBase {
-    _topWindow: Window;
-    _lastFocusedElement: any;
-    _scrollState: any;
+    private _topWindow: Window = null;
+    private _lastFocusedElement: any = null;
+    private _scrollState: any = {};
 
-    _activeWindowTracker: ActiveWindowTracker;
-    _elementEditingWatcher: ElementEditingWatcher;
+    private _activeWindowTracker: ActiveWindowTracker;
+    private _elementEditingWatcher: ElementEditingWatcher;
 
     constructor (private readonly _listeners: Listeners, //eslint-disable-line no-unused-vars
                  private readonly _eventSimulator: EventSimulator, //eslint-disable-line no-unused-vars
@@ -43,10 +43,6 @@ export default class FocusBlurSandbox extends SandboxBase {
                  private readonly _timersSandbox: TimersSandbox, //eslint-disable-line no-unused-vars
                  elementEditingWatcher: ElementEditingWatcher) {
         super();
-
-        this._topWindow          = null;
-        this._lastFocusedElement = null;
-        this._scrollState        = {};
 
         this._activeWindowTracker   = new ActiveWindowTracker(messageSandbox);
         this._elementEditingWatcher = elementEditingWatcher;
