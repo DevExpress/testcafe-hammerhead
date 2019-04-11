@@ -575,8 +575,6 @@ test('change event in the case of the same file/files selection (GH-1844)', func
             return uploadSandbox.doUpload(fileInput, ['folder/file.png', './file.txt']);
         })
         .then(function () {
-            fileInput.onchange = changeHandler;
-
             return uploadSandbox.doUpload(fileInput, ['./file.txt', 'folder/file.png']);
         })
         .then(function () {
