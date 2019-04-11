@@ -5,10 +5,9 @@ import Selection from './selection';
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import * as domUtils from '../../utils/dom';
-import { DOM_EVENTS } from '../../utils/event';
+import { DOM_EVENTS, preventDefault } from '../../utils/event';
 import DataTransfer from './drag-and-drop/data-transfer';
 import DragDataStore from './drag-and-drop/drag-data-store';
-import preventInputNativeDialogs from './prevent-input-native-dialogs';
 /*eslint-disable no-unused-vars*/
 import EventSimulator from './simulator';
 import ElementEditingWatcher from './element-editing-watcher';
@@ -148,6 +147,13 @@ export default class EventSandbox extends SandboxBase {
         };
     }
 
+    _preventInputNativeDialogs (window: Window): void {
+        this.listeners.addInternalEventListener(window, ['click'], (e: Event, dispatched: boolean) => {
+            if (dispatched && domUtils.isInputWithNativeDialog(e.target as HTMLInputElement))
+                preventDefault(e, true);
+        });
+    }
+
     attach (window: Window) {
         super.attach(window);
 
@@ -187,7 +193,7 @@ export default class EventSandbox extends SandboxBase {
         this.listeners.addInternalEventListener(window, ['focus'], this.onFocus);
         this.listeners.addInternalEventListener(window, ['focus', 'blur', 'change', 'focusin', 'focusout'], this.cancelInternalEvents);
 
-        preventInputNativeDialogs(window, this.listeners);
+        this._preventInputNativeDialogs(window);
 
         this.unload.attach(window);
         this.message.attach(window);
