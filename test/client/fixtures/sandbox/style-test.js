@@ -149,5 +149,7 @@ test('the getAttribute function should return cleaned style (GH-1922)', function
 
     div.style.display = 'none';
 
-    strictEqual(div.getAttribute('style'), 'background-color: green; display: none;');
+    strictEqual(div.getAttribute('style'), browserUtils.isIE
+        ? 'display: none; background-color: green;'
+        : 'background-color: green; display: none;');
 });
