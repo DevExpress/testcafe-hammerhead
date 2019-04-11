@@ -2,6 +2,7 @@ var urlUtils      = hammerhead.get('./utils/url');
 var nativeMethods = hammerhead.nativeMethods;
 var StyleSandbox  = hammerhead.get('./sandbox/style');
 var styleSandbox  = hammerhead.sandbox.style;
+var browserUtils  = hammerhead.utils.browser;
 
 function getNativeStylePropValue (el, prop) {
     var nativeStyle = nativeMethods.htmlElementStyleGetter.call(el);
@@ -33,12 +34,18 @@ test('set the "style" attribute', function () {
     var div                         = document.createElement('div');
     var proxiedBackgroundImageValue = 'url("' + urlUtils.getProxyUrl('index.png') + '")';
 
-    div.setAttribute('style', 'background-image:url(index.png);');
+    div.setAttribute('style', 'background-image: url(index.png);');
 
     var actualBackgroundImageValue = removeDoubleQuotes(getNativeStylePropValue(div, 'background-image'));
 
     strictEqual(actualBackgroundImageValue, removeDoubleQuotes(proxiedBackgroundImageValue));
-    strictEqual(div.getAttribute('style'), 'background-image:url(index.png);');
+
+    var getAttributeResult = 'background-image: url("' + urlUtils.resolveUrlAsDest('index.png') + '");';
+
+    if (!browserUtils.isIE11)
+        getAttributeResult = removeDoubleQuotes(getAttributeResult);
+
+    strictEqual(div.getAttribute('style'), getAttributeResult);
 });
 
 test('cssText', function () {
@@ -125,4 +132,24 @@ test('getPropertyValue, setProperty, getPropertyValue (GH-1212)', function () {
     ok(!div.style.background);
     ok(!div.style.getPropertyValue('background'));
     ok(!div.style.removeProperty('background'));
+});
+
+module('regression');
+
+test('the getAttribute function should return cleaned style (GH-1922)', function () {
+    var div = document.createElement('div');
+
+    div.setAttribute('style', 'background-color: red;');
+
+    strictEqual(div.getAttribute('style'), 'background-color: red;');
+
+    div.style.backgroundColor = 'green';
+
+    strictEqual(div.getAttribute('style'), 'background-color: green;');
+
+    div.style.display = 'none';
+
+    strictEqual(div.getAttribute('style'), browserUtils.isIE
+        ? 'display: none; background-color: green;'
+        : 'background-color: green; display: none;');
 });
