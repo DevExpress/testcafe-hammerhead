@@ -102,6 +102,9 @@ export default class ElementSandbox extends SandboxBase {
         const getAttrMeth = isNs ? nativeMethods.getAttributeNS : nativeMethods.getAttribute;
         const tagName     = domUtils.getTagName(el);
 
+        if (loweredAttr === 'style')
+            return styleProcessor.cleanUp(getAttrMeth.apply(el, args), urlUtils.parseProxyUrl);
+
         // OPTIMIZATION: The hasAttribute method is very slow.
         if (domProcessor.isUrlAttr(el, loweredAttr, ns) ||
             domProcessor.EVENTS.indexOf(loweredAttr) !== -1 ||
@@ -265,12 +268,9 @@ export default class ElementSandbox extends SandboxBase {
             if (!HASH_RE.test(value))
                 args[valueIndex] = urlUtils.getProxyUrl(value);
         }
-        else if (loweredAttr === 'style') {
-            const storedStyleAttr = DomProcessor.getStoredAttrName(attr);
-
-            setAttrMeth.apply(el, isNs ? [ns, storedStyleAttr, value] : [storedStyleAttr, value]);
+        else if (loweredAttr === 'style')
             args[valueIndex] = styleProcessor.process(value, urlUtils.getProxyUrl);
-        }
+
         else if (!isNs && loweredAttr === 'integrity' && DomProcessor.isTagWithIntegrityAttr(tagName)) {
             const storedIntegrityAttr = DomProcessor.getStoredAttrName(attr);
 
