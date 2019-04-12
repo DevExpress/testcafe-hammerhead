@@ -2,7 +2,7 @@ import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import SandboxBase from '../base';
 import UploadInfoManager from './info-manager';
 import { isFileInput } from '../../utils/dom';
-import { isIE, isFirefox, version as browserVersion } from '../../utils/browser';
+import { isIE, isFirefox, isChrome, isMacPlatform, isSafari, version as browserVersion } from '../../utils/browser';
 import { stopPropagation, preventDefault } from '../../utils/event';
 import { get as getSandboxBackup } from '../backup';
 import nativeMethods from '../native-methods';
@@ -104,6 +104,28 @@ export default class UploadSandbox extends SandboxBase {
         return value;
     }
 
+    // GH-1844
+    static _needToRaiseChangeEvent (filesToUpload, currentFiles) : boolean {
+        if (isFirefox || (isMacPlatform && isChrome || isSafari))
+            return true;
+
+        for (const file of filesToUpload) {
+            let found = false;
+
+            for (const currentFile of currentFiles) {
+                if (file.name === currentFile.name) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found === false)
+                return true;
+        }
+
+        return false;
+    }
+
     doUpload (input: HTMLInputElement, filePaths: string | Array<string>) {
         const currentInfoManager = UploadSandbox._getCurrentInfoManager(input);
 
@@ -113,10 +135,16 @@ export default class UploadSandbox extends SandboxBase {
             .then(filesInfo => UploadInfoManager.prepareFileListWrapper(filesInfo))
             .then(data => {
                 if (!data.errs.length) {
-                    const value = UploadInfoManager.formatValue(filePaths);
+                    const value     = UploadInfoManager.formatValue(filePaths);
+                    const inputInfo = currentInfoManager.getUploadInfo(input);
 
                     currentInfoManager.setUploadInfo(input, data.fileList, value);
-                    this._riseChangeEvent(input);
+
+                    /*eslint-disable no-restricted-properties*/
+                    if (!inputInfo || data.fileList.length !== inputInfo.files.length ||
+                        UploadSandbox._needToRaiseChangeEvent(data.fileList, inputInfo.files))
+                        this._riseChangeEvent(input);
+                    /*eslint-enable no-restricted-properties*/
                 }
 
                 return data.errs;

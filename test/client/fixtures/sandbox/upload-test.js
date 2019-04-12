@@ -6,11 +6,16 @@ var INTERNAL_PROPS    = hammerhead.get('../processing/dom/internal-properties');
 
 var Promise        = hammerhead.Promise;
 var transport      = hammerhead.transport;
-var browserUtils   = hammerhead.utils.browser;
 var uploadSandbox  = hammerhead.sandbox.upload;
 var infoManager    = hammerhead.sandbox.upload.infoManager;
 var eventSimulator = hammerhead.sandbox.event.eventSimulator;
 var nativeMethods  = hammerhead.nativeMethods;
+
+var browserUtils  = hammerhead.utils.browser;
+var isChrome      = browserUtils.isChrome;
+var isFirefox     = browserUtils.isFirefox;
+var isSafari      = browserUtils.isSafari;
+var isMacPlatform = browserUtils.isMacPlatform;
 
 // ----- Server API mock ---------
 // Virtual file system:
@@ -536,6 +541,45 @@ asyncTest('change event', function () {
     };
 
     uploadSandbox.doUpload(fileInput, './file.txt');
+});
+
+test('change event in the case of the same file/files selection (GH-1844)', function () {
+    var needToRaiseChangeEvent = isFirefox || (isMacPlatform && isChrome || isSafari);
+    var assertionsCount        = needToRaiseChangeEvent ? 4 : 0;
+
+    expect(assertionsCount);
+
+    var fileInput = $('<input type="file" name="test" id="777">')[0];
+
+    var changeHandler = function () {
+        ok(needToRaiseChangeEvent);
+    };
+
+    return uploadSandbox.doUpload(fileInput, './file.txt')
+        .then(function () {
+            fileInput.onchange = changeHandler;
+
+            return uploadSandbox.doUpload(fileInput, './file.txt');
+        })
+        .then(function () {
+            return uploadSandbox.doUpload(fileInput, ['./file.txt']);
+        })
+        .then(function () {
+            fileInput.onchange = null;
+
+            return uploadSandbox.doUpload(fileInput, ['folder/file.png', './file.txt']);
+        })
+        .then(function () {
+            fileInput.onchange = changeHandler;
+
+            return uploadSandbox.doUpload(fileInput, ['folder/file.png', './file.txt']);
+        })
+        .then(function () {
+            return uploadSandbox.doUpload(fileInput, ['./file.txt', 'folder/file.png']);
+        })
+        .then(function () {
+            fileInput.onchange = null;
+        });
 });
 
 test('multi-select files', function () {
