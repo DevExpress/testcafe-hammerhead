@@ -8,7 +8,7 @@ export function getElementCtx (el) {
     return el[ELEMENT_LISTENING_EVENTS_STORAGE_PROP];
 }
 
-export function getEventCtx (el, event) {
+export function getEventCtx (el: Window | Document | HTMLElement, event: string) {
     event = isIE && browserVersion > 10 && /MSPointer/.test(event) ? event.replace('MS', '').toLowerCase() : event;
 
     const elementCtx = getElementCtx(el);
