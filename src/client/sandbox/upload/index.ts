@@ -72,7 +72,7 @@ export default class UploadSandbox extends SandboxBase {
         });
 
         if (isIE || isFirefox) {
-            // NOTE: Google Chrome does not open the native browser dialog when TestCafe clicks on the input.
+            // NOTE: Google Chrome and Safari don't open the native browser dialog when TestCafe clicks on the input.
             // 'Click' is a complex emulated action that uses 'dispatchEvent' method internally.
             // Another browsers open the native browser dialog in this case.
             // This is why, we are forced to prevent the browser's open file dialog.

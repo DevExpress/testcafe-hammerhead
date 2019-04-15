@@ -12,6 +12,7 @@ import EventSimulator from './simulator';
 import MessageSandbox from './message';
 import TimersSandbox from '../timers';
 import ElementEditingWatcher from './element-editing-watcher';
+import { ScrollState } from '../../../typings/client';
 /*eslint-enable no-unused-vars*/
 
 const INTERNAL_FOCUS_BLUR_FLAG_PREFIX = 'hammerhead|event|internal-';
@@ -30,8 +31,8 @@ const eventsMap = {
 };
 
 export default class FocusBlurSandbox extends SandboxBase {
-    private _topWindow: Window = null;
-    private _lastFocusedElement: any = null;
+    private _topWindow: Window | null = null;
+    private _lastFocusedElement: HTMLElement | null = null;
     private _scrollState: any = {};
 
     private _activeWindowTracker: ActiveWindowTracker;
@@ -56,10 +57,11 @@ export default class FocusBlurSandbox extends SandboxBase {
                 return nativeMethods.svgBlur;
         }
 
+        //@ts-ignore
         return nativeMethods[event];
     }
 
-    static _restoreElementScroll (el: HTMLElement | Window, scroll): void {
+    static _restoreElementScroll (el: HTMLElement | Window, scroll: ScrollState): void {
         const newScroll = styleUtils.getElementScroll(el);
 
         if (newScroll.left !== scroll.left)
@@ -86,7 +88,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             this._lastFocusedElement = null;
     }
 
-    _shouldUseLabelHtmlForElement (el, type: string): boolean {
+    _shouldUseLabelHtmlForElement (el: any, type: string): boolean {
         return type === 'focus' && domUtils.isLabelElement(el) && el.htmlFor;
     }
 
@@ -111,7 +113,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             FocusBlurSandbox._restoreElementScroll(scrollStateEntry.element, scrollStateEntry.state);
     }
 
-    _saveScrollStateIfNecessary (el, preventScrolling) {
+    _saveScrollStateIfNecessary (el: any, preventScrolling: boolean) {
         if (preventScrolling)
             this._scrollState.windowScroll = styleUtils.getElementScroll(this.window);
 
@@ -119,7 +121,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             this._scrollState.elementNonScrollableParentsScrollState = this._getElementNonScrollableParentsScrollState(el);
     }
 
-    _restoreScrollStateIfNecessary (preventScrolling) {
+    _restoreScrollStateIfNecessary (preventScrolling: boolean) {
         if (preventScrolling)
             FocusBlurSandbox._restoreElementScroll(this.window, this._scrollState.windowScroll);
 
@@ -127,7 +129,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             this._restoreElementNonScrollableParentsScrollState(this._scrollState.elementNonScrollableParentsScrollState);
     }
 
-    _raiseEvent (el, type: string, callback, { withoutHandlers, isAsync, forMouseEvent, preventScrolling, relatedTarget, focusedOnChange }: { withoutHandlers?: boolean, isAsync?: boolean, forMouseEvent?: boolean, preventScrolling?: boolean, relatedTarget?: string, focusedOnChange?: boolean } ) {
+    _raiseEvent (el: any, type: string, callback: Function, { withoutHandlers, isAsync, forMouseEvent, preventScrolling, relatedTarget, focusedOnChange }: { withoutHandlers?: boolean, isAsync?: boolean, forMouseEvent?: boolean, preventScrolling?: boolean, relatedTarget?: string, focusedOnChange?: boolean } ) {
         // NOTE: We cannot use Promise because 'resolve' will be called async, but we need to resolve
         // immediately in IE9 and IE10.
 
@@ -440,5 +442,9 @@ export default class FocusBlurSandbox extends SandboxBase {
             return selector.replace(/\s*:focus\b/gi, '[' + INTERNAL_ATTRS.focusPseudoClass + ']');
 
         return selector;
+    }
+
+    dispose () {
+        this._lastFocusedElement = null;
     }
 }
