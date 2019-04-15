@@ -131,7 +131,10 @@ export default class Listeners extends EventEmitter {
                 stopPropagation(e);
             };
 
-            for (const internalHandler of internalHandlers) {
+            // NOTE: Some listeners can remove itself when executed, so we need to copy the list of listeners here
+            const currentInternalHandlers = internalHandlers.slice(0);
+
+            for (const internalHandler of currentInternalHandlers) {
                 internalHandler.call(el, e, elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG], preventEvent, cancelHandlers, stopEventPropagation);
 
                 if (eventPrevented || stopPropagationCalled)

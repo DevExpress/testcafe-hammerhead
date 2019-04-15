@@ -492,6 +492,34 @@ test('only one of several handlers must be called (element handlers) (T233158)',
     $container.off('click', clickHandler);
 });
 
+test('should allow removing a listener inside a listener (testcafe/#3652', function () {
+    var event                       = 'click';
+    var expendableHandlerCallCount  = 0;
+    var normalHandlerCallCount      = 0;
+
+    function expendableHandler () {
+        expendableHandlerCallCount++;
+
+        listeners.removeInternalEventListener(container, [event], expendableHandler);
+    }
+
+    function normalEventHandler () {
+        normalHandlerCallCount++;
+    }
+
+    listeners.initElementListening(container, [event]);
+
+    listeners.addInternalEventListener(container, [event], normalEventHandler);
+    listeners.addInternalEventListener(container, [event], expendableHandler);
+    listeners.addInternalEventListener(container, [event], normalEventHandler);
+
+    dispatchEvent(container, event);
+    dispatchEvent(container, event);
+
+    strictEqual(normalHandlerCallCount, 4);
+    strictEqual(expendableHandlerCallCount, 1);
+});
+
 if (browserUtils.isIE) {
     test('only one of several handlers must be called (MSPointerDown, pointerdown combination) (T233158)', function () {
         var events              = browserUtils.isMSEdge ? 'pointerdown MSPointerDown' : 'pointerdown';
