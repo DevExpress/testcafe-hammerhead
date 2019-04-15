@@ -22,9 +22,9 @@ export default class Listeners extends EventEmitter {
 
     listeningCtx: any;
 
-    addInternalEventListener: any;
-    addFirstInternalHandler: any;
-    removeInternalEventListener: any;
+    addInternalEventListener: Function;
+    addFirstInternalHandler: Function;
+    removeInternalEventListener: Function;
 
     constructor () {
         super();
@@ -36,8 +36,8 @@ export default class Listeners extends EventEmitter {
         this.removeInternalEventListener = this.listeningCtx.removeInternalHandler;
     }
 
-    static _getBodyEventListenerWrapper (documentEventCtx, listener) {
-        return function (e) {
+    static _getBodyEventListenerWrapper (documentEventCtx, listener: Function) {
+        return function (e: Event) {
             if (documentEventCtx.cancelOuterHandlers)
                 return null;
 
@@ -45,7 +45,7 @@ export default class Listeners extends EventEmitter {
         };
     }
 
-    static _getNativeAddEventListener (el) {
+    static _getNativeAddEventListener (el: any) {
         if (isWindow(el))
             return nativeMethods.windowAddEventListener;
 
@@ -60,7 +60,7 @@ export default class Listeners extends EventEmitter {
     }
 
     static _getEventListenerWrapper (eventCtx, listener) {
-        return function (e) {
+        return function (e: Event) {
             const isIEServiceHandler = listener.toString() === '[object FunctionWrapper]';
 
             // NOTE: Ignore IE11's and Edge's service handlers (GH-379)
@@ -77,7 +77,7 @@ export default class Listeners extends EventEmitter {
         };
     }
 
-    static _isDifferentHandler (outerHandlers, listener, useCapture: boolean) {
+    static _isDifferentHandler (outerHandlers, listener, useCapture: boolean): boolean {
         for (const outerHandler of outerHandlers) {
             if (outerHandler.fn === listener && outerHandler.useCapture === useCapture)
                 return false;
@@ -86,7 +86,7 @@ export default class Listeners extends EventEmitter {
         return true;
     }
 
-    static _getUseCaptureParam (optionalParam) {
+    static _getUseCaptureParam (optionalParam: boolean | any) {
         if (optionalParam && typeof optionalParam === 'boolean')
             return optionalParam;
         else if (optionalParam && typeof optionalParam === 'object')
@@ -95,11 +95,12 @@ export default class Listeners extends EventEmitter {
         return false;
     }
 
-    _createEventHandler () {
+    _createEventHandler (): Function {
         const listeners = this;
 
-        return function (e) {
-            const el                  = this;
+        return function (e: Event) {
+            const el                  = this as HTMLElement;
+            //@ts-ignore
             const elWindow            = el[INTERNAL_PROPS.processedContext] || window;
             let eventPrevented        = false;
             let handlersCancelled     = false;
@@ -132,7 +133,7 @@ export default class Listeners extends EventEmitter {
             };
 
             // NOTE: Some listeners can remove itself when executed, so we need to copy the list of listeners here
-            const currentInternalHandlers = internalHandlers.slice(0);
+            const currentInternalHandlers = nativeMethods.arraySlice.call(internalHandlers);
 
             for (const internalHandler of currentInternalHandlers) {
                 internalHandler.call(el, e, elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG], preventEvent, cancelHandlers, stopEventPropagation);
@@ -143,11 +144,11 @@ export default class Listeners extends EventEmitter {
         };
     }
 
-    _createElementOverridedMethods (el) {
+    _createElementOverridedMethods (el: HTMLElement) {
         const listeners = this;
 
         return {
-            addEventListener: function (...args) {
+            addEventListener: function (...args: Array<any>) {
                 const type                   = args[0];
                 const listener               = args[1];
                 const useCapture             = Listeners._getUseCaptureParam(args[2]);
@@ -167,6 +168,7 @@ export default class Listeners extends EventEmitter {
 
                 listeningCtx.wrapEventListener(eventListeningInfo, listener, wrapper, useCapture);
 
+                //@ts-ignore
                 args[1] = wrapper;
 
                 const res = nativeAddEventListener.apply(el, args);
@@ -176,7 +178,7 @@ export default class Listeners extends EventEmitter {
                 return res;
             },
 
-            removeEventListener: function (...args) {
+            removeEventListener: function (...args: Array<any>) {
                 const type                      = args[0];
                 const listener                  = args[1];
                 const useCapture                = Listeners._getUseCaptureParam(args[2]);
@@ -203,7 +205,7 @@ export default class Listeners extends EventEmitter {
         const nativeRemoveEventListener = (() => doc.body.removeEventListener)();
 
         return {
-            addEventListener: function (...args) {
+            addEventListener: function (...args: Array<any>) {
                 const type                  = args[0];
                 const listener              = args[1];
                 const useCapture            = Listeners._getUseCaptureParam(args[2]);
@@ -234,7 +236,7 @@ export default class Listeners extends EventEmitter {
                 return res;
             },
 
-            removeEventListener: function (...args) {
+            removeEventListener: function (...args: Array<any>) {
                 const type       = args[0];
                 const listener   = args[1];
                 const useCapture = Listeners._getUseCaptureParam(args[2]);
@@ -249,7 +251,7 @@ export default class Listeners extends EventEmitter {
         };
     }
 
-    initElementListening (el: HTMLElement | Document | Window, events) {
+    initElementListening (el: any, events) {
         const nativeAddEventListener = Listeners._getNativeAddEventListener(el);
 
         events = events || LISTENED_EVENTS;
@@ -286,7 +288,7 @@ export default class Listeners extends EventEmitter {
         }
     }
 
-    cancelElementListening (el) {
+    cancelElementListening (el: any) {
         this.listeningCtx.removeListeningElement(el);
 
         if (el.body)
@@ -294,12 +296,14 @@ export default class Listeners extends EventEmitter {
     }
 
     static beforeDispatchEvent (el: HTMLElement) {
+        // @ts-ignore
         const elWindow = el[INTERNAL_PROPS.processedContext] || window;
 
         elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG] = (elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG] || 0) + 1;
     }
 
     static afterDispatchEvent (el: HTMLElement) {
+        // @ts-ignore
         const elWindow = el[INTERNAL_PROPS.processedContext] || window;
 
         elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG]--;
@@ -308,7 +312,7 @@ export default class Listeners extends EventEmitter {
             delete elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG];
     }
 
-    setEventListenerWrapper (el: HTMLElement, events, wrapper) {
+    setEventListenerWrapper (el: HTMLElement, events: Array<string>, wrapper) {
         if (!this.listeningCtx.isElementListening(el))
             this.initElementListening(el, events);
 
@@ -319,7 +323,7 @@ export default class Listeners extends EventEmitter {
         }
     }
 
-    getEventListeners (el: HTMLElement, event) {
+    getEventListeners (el: HTMLElement, event: string) {
         const eventCtx = this.listeningCtx.getEventCtx(el, event);
 
         if (!eventCtx)
