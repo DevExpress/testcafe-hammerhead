@@ -88,8 +88,8 @@ export default class FocusBlurSandbox extends SandboxBase {
             this._lastFocusedElement = null;
     }
 
-    _shouldUseLabelHtmlForElement (el: any, type: string): boolean {
-        return type === 'focus' && domUtils.isLabelElement(el) && el.htmlFor;
+    _shouldUseLabelHtmlForElement (el: HTMLLabelElement, type: string): boolean {
+        return type === 'focus' && domUtils.isLabelElement(el) && !!el.htmlFor;
     }
 
     _getElementNonScrollableParentsScrollState (el: HTMLElement) {
