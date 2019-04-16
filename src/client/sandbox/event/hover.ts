@@ -89,4 +89,8 @@ export default class HoverSandbox extends SandboxBase {
 
         this._listeners.addInternalEventListener(window, ['mouseover', 'touchstart'], e => this._onHover(e));
     }
+
+    dispose () {
+        this._lastHoveredElement = null;
+    }
 }

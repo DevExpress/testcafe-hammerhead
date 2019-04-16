@@ -2,6 +2,9 @@ import * as domUtils from './dom';
 import * as browserUtils from './browser';
 import * as featureDetection from './feature-detection';
 import nativeMethods from '../sandbox/native-methods';
+/*eslint-disable no-unused-vars*/
+import { ScrollState } from '../../typings/client';
+/*eslint-enable no-unused-vars*/
 
 // NOTE: For Chrome.
 const MIN_SELECT_SIZE_VALUE = 4;
@@ -66,7 +69,7 @@ export function getElementPadding (el) {
     };
 }
 
-export function getElementScroll (el) {
+export function getElementScroll (el: any): ScrollState {
     const isHtmlElement = domUtils.isHtmlElement(el);
     let currentWindow   = window;
 

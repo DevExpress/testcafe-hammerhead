@@ -19,3 +19,8 @@ export interface ElementSandboxBeforeFormSubmitEvent {
     form: HTMLFormElement;
 }
 
+export interface ScrollState {
+    left: number;
+    top: number;
+}
+
