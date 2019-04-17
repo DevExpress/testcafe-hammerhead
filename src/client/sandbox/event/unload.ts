@@ -45,37 +45,29 @@ export default class UnloadSandbox extends SandboxBase {
     }
 
     _onBeforeUnloadHandler (e, originListener): void {
-        let eventObj = e;
+        // NOTE: Overriding the returnValue property to prevent a native dialog.
+        nativeMethods.objectDefineProperty(e, 'returnValue', createPropertyDesc({
+            get: () => this.storedBeforeUnloadReturnValue,
+            set: value => {
+                // NOTE: In all browsers, if the property is set to any value, unload is prevented. In FireFox,
+                // only if a value is set to an empty string, the unload operation is prevented.
+                this.storedBeforeUnloadReturnValue = value;
 
-        // NOTE: 'window.event' required for safari 9.0 because it calls the handler without 'e' (GH-698)
-        if (!e && window.event && window.event.type === this.beforeUnloadEventName)
-            eventObj = window.event;
+                this.prevented = isFirefox ? value !== '' : true;
+            }
+        }));
 
-        if (eventObj) {
-            // NOTE: Overriding the returnValue property to prevent a native dialog.
-            nativeMethods.objectDefineProperty(eventObj, 'returnValue', createPropertyDesc({
-                get: () => this.storedBeforeUnloadReturnValue,
-                set: value => {
-                    // NOTE: In all browsers, if the property is set to any value, unload is prevented. In FireFox,
-                    // only if a value is set to an empty string, the unload operation is prevented.
-                    this.storedBeforeUnloadReturnValue = value;
+        nativeMethods.objectDefineProperty(e, 'preventDefault', createPropertyDesc({
+            get: () => () => {
+                this.prevented = true;
 
-                    this.prevented = isFirefox ? value !== '' : true;
-                }
-            }));
+                return true;
+            },
 
-            nativeMethods.objectDefineProperty(eventObj, 'preventDefault', createPropertyDesc({
-                get: () => () => {
-                    this.prevented = true;
+            set: () => void 0
+        }));
 
-                    return true;
-                },
-
-                set: () => void 0
-            }));
-        }
-
-        const res = e ? originListener(e) : originListener();
+        const res = originListener(e);
 
         if (res !== void 0) {
             this.storedBeforeUnloadReturnValue = res;
