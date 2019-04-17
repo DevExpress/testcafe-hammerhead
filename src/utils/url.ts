@@ -107,10 +107,12 @@ export function sameOriginCheck (location: string, checkedUrl: string): boolean 
 
 // NOTE: Convert the destination protocol and hostname to the lower case. (GH-1)
 function convertHostToLowerCase (url: string): string {
-    const parsedUrl             = parseUrl(url);
-    const protocolHostSeparator = parsedUrl.protocol === 'about:' ? '' : '//';
+    const parsedUrl = parseUrl(url);
 
-    return (parsedUrl.protocol + protocolHostSeparator + parsedUrl.host).toLowerCase() + parsedUrl.partAfterHost;
+    parsedUrl.protocol = parsedUrl.protocol && parsedUrl.protocol.toLowerCase();
+    parsedUrl.host     = parsedUrl.host && parsedUrl.host.toLowerCase();
+
+    return formatUrl(parsedUrl);
 }
 
 export function getURLString (url: string): string {
@@ -209,9 +211,10 @@ export function parseProxyUrl (proxyUrl: string): ParsedProxyUrl | null {
     };
 
     return {
-        destUrl:          destUrl,
-        destResourceInfo: destResourceInfo,
-        partAfterHost:    parsedUrl.partAfterHost,
+        destUrl,
+        destResourceInfo,
+
+        partAfterHost: parsedUrl.partAfterHost,
 
         proxy: {
             hostname: parsedUrl.hostname,
@@ -265,6 +268,15 @@ export function parseUrl (url: string): ParsedUrl {
             return restPartSeparator;
         });
 
+    if (typeof parsed.host === 'string') {
+        const authHostArr = parsed.host.split('@');
+
+        if (authHostArr.length === 2) {
+            parsed.auth = authHostArr[0];
+            parsed.host = authHostArr[1];
+        }
+    }
+
     parsed.hostname = parsed.host ? parsed.host.replace(PORT_RE, (_str: string, port: string) => {
         parsed.port = port;
         return '';
@@ -310,10 +322,11 @@ export function formatUrl (parsedUrl: ParsedUrl): string {
 
     let url = parsedUrl.protocol || '';
 
-    url += '//';
+    if (parsedUrl.protocol !== 'about:')
+        url += '//';
 
-    if (parsedUrl.username || parsedUrl.password)
-        url += parsedUrl.username + ':' + parsedUrl.password + '@';
+    if (parsedUrl.auth)
+        url += parsedUrl.auth + '@';
 
     if (parsedUrl.host)
         url += parsedUrl.host;

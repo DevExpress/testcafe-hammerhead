@@ -135,5 +135,18 @@ describe('Authentication', () => {
                     expect(err.response.headers['www-authenticate']).to.be.undefined;
                 });
         });
+
+        it('Should authorize with correct credentials that passed through url', () => {
+            const options = {
+                url:                     proxy.openSession('http://username:password@127.0.0.1:1507/', session),
+                resolveWithFullResponse: true
+            };
+
+            return request(options)
+                .then(res => {
+                    expect(res.statusCode).equal(200);
+                    expect(res.body).equal('Access granted');
+                });
+        });
     });
 });

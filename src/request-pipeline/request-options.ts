@@ -19,6 +19,7 @@ export default class RequestOptions {
     isXhr: boolean;
     rawHeaders: Array<string>;
     headers: { [name: string]: string };
+    auth: string | void;
     proxy?: ExternalProxySettings;
 
     constructor (ctx: RequestPipelineContext) {
@@ -38,6 +39,7 @@ export default class RequestOptions {
         this.host        = ctx.dest.host;
         this.port        = ctx.dest.port;
         this.path        = ctx.dest.partAfterHost;
+        this.auth        = ctx.dest.auth;
         this.method      = ctx.req.method;
         this.credentials = ctx.session.getAuthCredentials();
         this.body        = ctx.reqBody;

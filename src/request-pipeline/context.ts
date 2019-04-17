@@ -38,6 +38,7 @@ interface DestInfo {
     reqOrigin: string;
     referer?: string;
     domain?: string;
+    auth?: string;
 }
 
 interface ContentInfo {
@@ -120,6 +121,7 @@ export default class RequestPipelineContext {
             hostname:      parsed.destResourceInfo.hostname,
             port:          parsed.destResourceInfo.port,
             partAfterHost: parsed.destResourceInfo.partAfterHost,
+            auth:          parsed.destResourceInfo.auth,
             isIframe:      parsedResourceType.isIframe,
             isForm:        parsedResourceType.isForm,
             isScript:      parsedResourceType.isScript,
