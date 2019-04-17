@@ -91,12 +91,12 @@ class PageProcessor extends ResourceProcessorBase {
             });
         }
 
-        for (let i = result.length - 1; i > -1; i--)
-            parse5Utils.insertElement(result[i], head);
+        for (let i = 0; i < result.length; i++)
+            parse5Utils.pushElement(result[i], head);
     }
 
     static _addCharsetInfo (head: any, charset: any) {
-        parse5Utils.insertElement(parse5Utils.createElement('meta', [
+        parse5Utils.unshiftElement(parse5Utils.createElement('meta', [
             { name: 'class', value: SHADOW_UI_CLASSNAME.charset },
             { name: 'charset', value: charset }
         ]), head);
@@ -123,11 +123,11 @@ class PageProcessor extends ResourceProcessorBase {
         const storageKey            = getStorageKey(ctx.session.id, ctx.dest.host);
         const restoreStoragesScript = this._createRestoreStoragesScript(storageKey, ctx.restoringStorages);
 
-        parse5Utils.insertElement(restoreStoragesScript, head);
+        parse5Utils.pushElement(restoreStoragesScript, head);
     }
 
     _addBodyCreatedEventScript (body: any) {
-        parse5Utils.insertElement(this.PARSED_BODY_CREATED_EVENT_SCRIPT, body);
+        parse5Utils.unshiftElement(this.PARSED_BODY_CREATED_EVENT_SCRIPT, body);
     }
 
     shouldProcessResource (ctx) {
@@ -165,11 +165,11 @@ class PageProcessor extends ResourceProcessorBase {
         parse5Utils.walkElements(root, el => domProcessor.processElement(el, replacer));
 
         if (!_ctx.isHtmlImport) {
-            PageProcessor._addPageResources(head, processingOpts);
-            this._addBodyCreatedEventScript(body);
-
             if (_ctx.restoringStorages && !processingOpts.isIframe)
                 this._addRestoreStoragesScript(_ctx, head);
+
+            this._addBodyCreatedEventScript(body);
+            PageProcessor._addPageResources(head, processingOpts);
         }
 
         PageProcessor._changeMetas(metas, domAdapter);

@@ -38,10 +38,16 @@ export function createElement (tagName: string, attrs) {
     };
 }
 
-export function insertElement (el, parent) {
+export function unshiftElement (el, parent) {
     el.namespaceURI = parent.namespaceURI;
     el.parentNode   = parent;
     parent.childNodes.unshift(el);
+}
+
+export function pushElement (el, parent) {
+    el.namespaceURI = parent.namespaceURI;
+    el.parentNode   = parent;
+    parent.childNodes.push(el);
 }
 
 export function removeNode (node) {
