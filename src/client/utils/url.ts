@@ -238,7 +238,7 @@ export function stringifyResourceType (resourceType) {
     return sharedUrlUtils.getResourceTypeString(resourceType);
 }
 
-export function isChangedOnlyHash (currentUrl, newUrl) {
+export function isChangedOnlyHash (currentUrl: string, newUrl: string): boolean {
     // NOTE: we compare proxied urls because urls passed into the function may be proxied, non-proxied
     // or relative. The getProxyUrl function solves all the corresponding problems.
     return getProxyUrl(currentUrl).replace(HASH_RE, '') === getProxyUrl(newUrl).replace(HASH_RE, '');
