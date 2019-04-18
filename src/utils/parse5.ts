@@ -44,10 +44,20 @@ export function unshiftElement (el, parent) {
     parent.childNodes.unshift(el);
 }
 
-export function pushElement (el, parent) {
+export function insertBeforeFirstScript (el, parent) {
     el.namespaceURI = parent.namespaceURI;
     el.parentNode   = parent;
-    parent.childNodes.push(el);
+
+    let index = parent.childNodes.length;
+
+    for (let i = 0; i < parent.childNodes.length; i++) {
+        if (parent.childNodes[i].tagName === 'script') {
+            index = i;
+            break;
+        }
+    }
+
+    parent.childNodes.splice(index, 0, el);
 }
 
 export function removeNode (node) {
