@@ -207,14 +207,13 @@ class Hammerhead {
         if (!navigationUrl)
             return;
 
-        const oldLocation = this.win.location.toString();
-
         this.win.location = navigationUrl;
 
-        if (forceReload &&
-            oldLocation !== navigationUrl &&
-            urlUtils.isChangedOnlyHash(oldLocation, navigationUrl))
-            this.win.location.reload(true);
+        if (forceReload) {
+            this.sandbox.node.win.on(this.sandbox.node.win.HASH_CHANGE_EVENT, () => {
+                this.win.location.reload(true);
+            });
+        }
     }
 
     start (initSettings: IHammerheadInitSettings | null, win: Window) {

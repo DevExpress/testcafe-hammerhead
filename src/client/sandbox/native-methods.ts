@@ -150,6 +150,7 @@ class NativeMethods {
     arrayMap: any;
     arrayJoin: any;
     arraySplice: any;
+    arrayForEach: any;
     DOMParserParseFromString: any;
     arrayBufferIsView: any;
     elementHTMLPropOwnerName: string;
@@ -204,6 +205,7 @@ class NativeMethods {
     winOnMessageSetter: any;
     winOnErrorSetter: any;
     winOnUnhandledRejectionSetter: any;
+    winOnHashChangeSetter: any;
     webSocketUrlGetter: any;
     elementClassListPropOwnerName: string;
     elementClassListGetter: any;
@@ -623,12 +625,13 @@ class NativeMethods {
         this.objectGetPrototypeOf           = win.Object.getPrototypeOf;
 
         // Array
-        this.arraySlice  = win.Array.prototype.slice;
-        this.arrayConcat = win.Array.prototype.concat;
-        this.arrayFilter = win.Array.prototype.filter;
-        this.arrayMap    = win.Array.prototype.map;
-        this.arrayJoin   = win.Array.prototype.join;
-        this.arraySplice = win.Array.prototype.splice;
+        this.arraySlice   = win.Array.prototype.slice;
+        this.arrayConcat  = win.Array.prototype.concat;
+        this.arrayFilter  = win.Array.prototype.filter;
+        this.arrayMap     = win.Array.prototype.map;
+        this.arrayJoin    = win.Array.prototype.join;
+        this.arraySplice  = win.Array.prototype.splice;
+        this.arrayForEach = win.Array.prototype.forEach;
 
         this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
 
@@ -746,6 +749,7 @@ class NativeMethods {
         this.winOnPageHideSetter     = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onpagehide').set;
         this.winOnMessageSetter      = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onmessage').set;
         this.winOnErrorSetter        = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onerror').set;
+        this.winOnHashChangeSetter   = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onhashchange').set;
 
         const winOnUnhandledRejectionDescriptor = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onunhandledrejection');
 
