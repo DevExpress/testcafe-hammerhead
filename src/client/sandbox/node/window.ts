@@ -36,6 +36,7 @@ import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-called-without-new-keyword';
 import INSTRUCTION from '../../../processing/script/instruction';
+// @ts-ignore
 import Promise from 'pinkie';
 import getMimeType from '../../utils/get-mime-type';
 import { overrideDescriptor } from '../../utils/property-overriding';
@@ -49,6 +50,14 @@ import { remove as removeProcessingHeader } from '../../../processing/script/hea
 import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
 import { getAttributes } from './attributes';
 import replaceProxiedUrlsInStack from '../../utils/replace-proxied-urls-in-stack';
+/*eslint-disable no-unused-vars*/
+import NodeSandbox from './index';
+import EventSandbox from '../event';
+import NodeMutation from './mutation';
+import MessageSandbox from '../event/message';
+import Listeners from '../event/listeners';
+import ElementEditingWatcher from '../event/element-editing-watcher';
+/*eslint-enable no-unused-vars*/
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -69,23 +78,26 @@ const SANDBOX_DOM_TOKEN_LIST_UPDATE_FN = 'hammerhead|sandbox-dom-token-list-upda
 
 const NO_STACK_TRACE_AVAILABLE_MESSAGE = 'No stack trace available';
 
+const TRACKED_EVENTS = ['error', 'unhandledrejection', 'hashchange'];
+
 export default class WindowSandbox extends SandboxBase {
-    nodeSandbox: any;
-    messageSandbox: any;
-    listenersSandbox: any;
-    elementEditingWatcher: any;
-    uploadSandbox: any;
-    shadowUI: any;
-    nodeMutation: any;
+    nodeSandbox: NodeSandbox;
+    messageSandbox: MessageSandbox;
+    listenersSandbox: Listeners;
+    elementEditingWatcher: ElementEditingWatcher;
+    uploadSandbox: UploadSandbox;
+    shadowUI: ShadowUI;
+    nodeMutation: NodeMutation;
 
     UNCAUGHT_JS_ERROR_EVENT: string = 'hammerhead|event|uncaught-js-error';
     UNHANDLED_REJECTION_EVENT: string = 'hammerhead|event|unhandled-rejection';
+    HASH_CHANGE_EVENT: string = 'hammerhead|event|hashchange-event';
 
     SANDBOX_DOM_TOKEN_LIST_UPDATE_FN: any;
 
     isInternalGetter: boolean;
 
-    constructor (nodeSandbox, eventSandbox, uploadSandbox, nodeMutation) {
+    constructor (nodeSandbox: NodeSandbox, eventSandbox: EventSandbox, uploadSandbox: UploadSandbox, nodeMutation: NodeMutation) {
         super();
 
         this.nodeSandbox           = nodeSandbox;
@@ -101,7 +113,7 @@ export default class WindowSandbox extends SandboxBase {
         this.isInternalGetter = false;
     }
 
-    static _prepareStack (msg, stack) {
+    static _prepareStack (msg: string, stack: string): string {
         // NOTE: Firefox does not include an error message in a stack trace (unlike other browsers)
         // It is possible to get a stack trace for unhandled Promise rejections only if Promise is rejected with the 'Error' instance value.
         // This is why we should convert the stack to a common format.
@@ -114,7 +126,7 @@ export default class WindowSandbox extends SandboxBase {
         return stack;
     }
 
-    _raiseUncaughtJsErrorEvent (type, event, window) {
+    _raiseUncaughtJsErrorEvent (type: string, event: any, window: Window) {
         if (isCrossDomainWindows(window, window.top))
             return;
 
@@ -143,12 +155,12 @@ export default class WindowSandbox extends SandboxBase {
             this.emit(type, { msg, pageUrl, stack });
     }
 
-    _reattachHandler (window, eventName) {
+    _reattachHandler (window: Window, eventName: string) {
         nativeMethods.windowRemoveEventListener.call(window, eventName, this);
         nativeMethods.windowAddEventListener.call(window, eventName, this);
     }
 
-    static _formatUnhandledRejectionReason (reason) {
+    static _formatUnhandledRejectionReason (reason: any) {
         if (!isPrimitiveType(reason)) {
             const reasonStr = nativeMethods.objectToString.call(reason);
 
@@ -161,7 +173,7 @@ export default class WindowSandbox extends SandboxBase {
         return String(reason);
     }
 
-    static _getUrlAttr (el, attr) {
+    static _getUrlAttr (el: HTMLElement, attr: string) {
         const attrValue       = nativeMethods.getAttribute.call(el, attr);
         const currentDocument = el.ownerDocument || document;
 
@@ -180,7 +192,7 @@ export default class WindowSandbox extends SandboxBase {
         return resolveUrlAsDest(attrValue);
     }
 
-    static _removeProcessingInstructions (text) {
+    static _removeProcessingInstructions (text: string): string {
         if (text) {
             text = removeProcessingHeader(text);
 
@@ -190,7 +202,7 @@ export default class WindowSandbox extends SandboxBase {
         return text;
     }
 
-    static _processTextPropValue (el, text) {
+    static _processTextPropValue (el: HTMLElement, text: string): string {
         const processedText = text !== null && text !== void 0 ? String(text) : text;
 
         if (processedText) {
@@ -245,7 +257,7 @@ export default class WindowSandbox extends SandboxBase {
         });
     }
 
-    _overrideErrEventPropDescriptor (window, eventName, nativePropSetter) {
+    _overrideEventPropDescriptor (window, eventName, nativePropSetter) {
         const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;
 
         overrideDescriptor(eventPropsOwner, 'on' + eventName, {
@@ -277,7 +289,7 @@ export default class WindowSandbox extends SandboxBase {
         };
     }
 
-    static _isSecureOrigin (url) {
+    static _isSecureOrigin (url: string): boolean {
         // NOTE: https://www.chromium.org/Home/chromium-security/prefer-secure-origins-for-powerful-new-features
         const parsedUrl = parseUrl(resolveUrlAsDest(url));
 
@@ -299,6 +311,8 @@ export default class WindowSandbox extends SandboxBase {
             else
                 this._raiseUncaughtJsErrorEvent(this.UNCAUGHT_JS_ERROR_EVENT, event, window);
         }
+        else if (event.type === 'hashchange')
+            this.emit(this.HASH_CHANGE_EVENT);
     }
 
     attach (window) {
@@ -308,22 +322,23 @@ export default class WindowSandbox extends SandboxBase {
         const nodeSandbox    = this.nodeSandbox;
         const windowSandbox  = this;
 
-        this._reattachHandler(window, 'unhandledrejection');
-        this._reattachHandler(window, 'error');
-        this.listenersSandbox.initElementListening(window, ['error', 'unhandledrejection']);
+        nativeMethods.arrayForEach.call(TRACKED_EVENTS, (event: string) => {
+            this._reattachHandler(window, event);
+        });
+
+        this.listenersSandbox.initElementListening(window, TRACKED_EVENTS);
         this.listenersSandbox.on(this.listenersSandbox.EVENT_LISTENER_ATTACHED_EVENT, e => {
             if (e.el !== window)
                 return;
 
-            if (e.eventType === 'unhandledrejection')
-                this._reattachHandler(window, 'unhandledrejection');
-            else if (e.eventType === 'error')
-                this._reattachHandler(window, 'error');
+            if (TRACKED_EVENTS.indexOf(e.eventType) !== -1)
+                this._reattachHandler(window, e.eventType);
         });
-        this._overrideErrEventPropDescriptor(window, 'error', nativeMethods.winOnErrorSetter);
+        this._overrideEventPropDescriptor(window, 'error', nativeMethods.winOnErrorSetter);
+        this._overrideEventPropDescriptor(window, 'hashchange', nativeMethods.winOnHashChangeSetter);
 
         if (nativeMethods.winOnUnhandledRejectionSetter)
-            this._overrideErrEventPropDescriptor(window, 'unhandledrejection', nativeMethods.winOnUnhandledRejectionSetter);
+            this._overrideEventPropDescriptor(window, 'unhandledrejection', nativeMethods.winOnUnhandledRejectionSetter);
 
         messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
             const { msg, pageUrl, stack, cmd } = e.message;

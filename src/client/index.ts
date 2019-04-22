@@ -29,8 +29,6 @@ import extend from './utils/extend';
 import INTERNAL_PROPS from '../processing/dom/internal-properties';
 import PageNavigationWatch from './page-navigation-watch';
 import domProcessor from './dom-processor';
-import checkByCondition from './utils/check-by-condition';
-import { SPECIAL_ERROR_PAGE } from '../utils/url';
 /*eslint-disable no-unused-vars*/
 import { IHammerheadInitSettings } from '../typings/client';
 /*eslint-enable no-unused-vars*/
@@ -42,10 +40,10 @@ class Hammerhead {
     EVENTS: any;
     PROCESSING_COMMENTS: any;
     EventEmitter: any;
-    doUpload: any;
-    createNativeXHR: any;
-    processScript: any;
-    get: any;
+    doUpload: Function;
+    createNativeXHR: Function;
+    processScript: Function;
+    get: Function;
     Promise: any;
     json: any;
     transport: any;
@@ -203,15 +201,6 @@ class Hammerhead {
             eventOwner.off(evtName, handler);
     }
 
-    _createChangeLocationPromise (newLocation: string): Promise<void> {
-        if (this.win.location.toString() === newLocation)
-            return Promise.resolve();
-
-        return checkByCondition(() => {
-            return this.win.location.toString() !== newLocation;
-        }, { win: this.win });
-    }
-
     navigateTo (url: string, forceReload: boolean): void {
         const navigationUrl = urlUtils.getNavigationUrl(url, this.win);
 
@@ -221,13 +210,9 @@ class Hammerhead {
         this.win.location = navigationUrl;
 
         if (forceReload) {
-            this._createChangeLocationPromise(navigationUrl)
-                .then(() => this.win.location.reload(true))
-                .catch(() => {
-                    const errorPageUrl = urlUtils.getNavigationUrl(SPECIAL_ERROR_PAGE, this.win);
-
-                    this.win.location = errorPageUrl;
-                });
+            this.sandbox.node.win.on(this.sandbox.node.win.HASH_CHANGE_EVENT, () => {
+                this.win.location.reload(true);
+            });
         }
     }
 

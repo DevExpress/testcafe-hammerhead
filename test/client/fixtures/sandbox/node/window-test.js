@@ -650,3 +650,32 @@ if (window.Proxy) {
         notOk(handledWasCalled);
     });
 }
+
+asyncTest('window.onhashchange should be instrumented', function () {
+    strictEqual(window.onhashchange, null);
+
+    window.onhashchange = 123;
+
+    strictEqual(window.onhashchange, null);
+
+    var handlerIsCalled = false;
+
+    var handler = function (event) {
+        handlerIsCalled = true;
+
+        ok(event instanceof window.HashChangeEvent);
+    };
+
+    window.onhashchange = handler;
+
+    strictEqual(window.onhashchange, handler);
+
+    windowSandox.on(windowSandox.HASH_CHANGE_EVENT, function onHashChangeEvent () {
+        ok(handlerIsCalled);
+        windowSandox.off(windowSandox.HASH_CHANGE_EVENT, onHashChangeEvent);
+
+        start();
+    });
+
+    window.location += '#test';
+});
