@@ -13,8 +13,7 @@ export interface ParsedUrl {
     hostname: string;
     port: string;
     partAfterHost?: string;
-    username?: string;
-    password?: string;
+    auth?: string
 }
 
 export interface RequestDescriptor {

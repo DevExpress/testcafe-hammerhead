@@ -81,8 +81,7 @@ test('formatUrl', function () {
         hostname: 'localhost',
         port:     '1400',
         protocol: 'http:',
-        username: 'test',
-        password: 'test'
+        auth:     'test:test'
     };
 
     strictEqual(urlUtils.formatUrl(parsedUrl), 'http://test:test@localhost:1400');
@@ -91,11 +90,10 @@ test('formatUrl', function () {
         hostname:      'localhost',
         port:          '1400',
         protocol:      'http:',
-        username:      'test',
-        password:      'test',
+        auth:          'test',
         partAfterHost: '/path'
     };
-    strictEqual(urlUtils.formatUrl(parsedUrl), 'http://test:test@localhost:1400/path');
+    strictEqual(urlUtils.formatUrl(parsedUrl), 'http://test@localhost:1400/path');
 });
 
 test('isRelativeUrl', function () {
@@ -161,6 +159,12 @@ test('additional slashes before path', function () {
     var parsingResult = urlUtils.parseUrl(url);
 
     strictEqual(parsingResult.hostname, 'example.com');
+});
+
+test('auth', function () {
+    strictEqual(urlUtils.parseUrl('http://username:password@example.com').auth, 'username:password');
+    strictEqual(urlUtils.parseUrl('http://username@example.com').auth, 'username');
+    strictEqual(urlUtils.parseUrl('http://example.com').auth, void 0);
 });
 
 module('get proxy url');
