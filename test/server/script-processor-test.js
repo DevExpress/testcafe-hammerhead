@@ -898,6 +898,14 @@ describe('Script processor', () => {
                 {
                     src:      'const y = { async [x] () { await 0; } }[x]', // GH-1862
                     expected: 'const y = __get$({ async [x] () { await 0; } }, x)'
+                },
+                {
+                    src:      'new X(() => {(async () => { b[c] = d; })(); })', // GH-2002
+                    expected: 'new X(() => {(async () => { __set$(b, c, d); })(); })'
+                },
+                {
+                    src:      'new X(() => {(async function () { b[c] = d; })(); })', // GH-2002
+                    expected: 'new X(() => {(async function () { __set$(b, c, d); }()); })'
                 }
             ]);
         });
