@@ -104,9 +104,16 @@ export default class UploadSandbox extends SandboxBase {
         return value;
     }
 
-    // GH-1844
-    static _needToRaiseChangeEvent (filesToUpload, currentFiles) : boolean {
-        if (isFirefox || (isMacPlatform && isChrome || isSafari))
+    // GH-1844, GH-2007
+    static _needToRaiseChangeEvent (filesToUpload, currentUploadInfo) : boolean {
+        if (!currentUploadInfo)
+            return true;
+
+        // eslint-disable-next-line no-restricted-properties
+        const currentFiles = currentUploadInfo.files;
+
+        if (filesToUpload.length !== currentFiles.length ||
+            isFirefox || (isMacPlatform && isChrome || isSafari))
             return true;
 
         for (const file of filesToUpload) {
@@ -135,16 +142,14 @@ export default class UploadSandbox extends SandboxBase {
             .then(filesInfo => UploadInfoManager.prepareFileListWrapper(filesInfo))
             .then(data => {
                 if (!data.errs.length) {
-                    const value     = UploadInfoManager.formatValue(filePaths);
-                    const inputInfo = currentInfoManager.getUploadInfo(input);
+                    const value                 = UploadInfoManager.formatValue(filePaths);
+                    const inputInfo             = currentInfoManager.getUploadInfo(input);
+                    const needToRiseChangeEvent = UploadSandbox._needToRaiseChangeEvent(data.fileList, inputInfo);
 
                     currentInfoManager.setUploadInfo(input, data.fileList, value);
 
-                    /*eslint-disable no-restricted-properties*/
-                    if (!inputInfo || data.fileList.length !== inputInfo.files.length ||
-                        UploadSandbox._needToRaiseChangeEvent(data.fileList, inputInfo.files))
+                    if (needToRiseChangeEvent)
                         this._riseChangeEvent(input);
-                    /*eslint-enable no-restricted-properties*/
                 }
 
                 return data.errs;

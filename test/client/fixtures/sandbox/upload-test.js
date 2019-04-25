@@ -543,6 +543,23 @@ asyncTest('change event', function () {
     uploadSandbox.doUpload(fileInput, './file.txt');
 });
 
+test('change event in the case of another file selection (GH-2007)', function () {
+    expect(2);
+
+    var fileInput = $('<input type="file" name="test" id="id">')[0];
+
+    var changeHandler = function () {
+        ok(true);
+    };
+
+    fileInput.onchange = changeHandler;
+
+    return uploadSandbox.doUpload(fileInput, './file.txt')
+        .then(function () {
+            return uploadSandbox.doUpload(fileInput, 'folder/file.png');
+        });
+});
+
 test('change event in the case of the same file/files selection (GH-1844)', function () {
     var needToRaiseChangeEvent = isFirefox || (isMacPlatform && isChrome || isSafari);
     var assertionsCount        = needToRaiseChangeEvent ? 4 : 0;
@@ -576,9 +593,6 @@ test('change event in the case of the same file/files selection (GH-1844)', func
         })
         .then(function () {
             return uploadSandbox.doUpload(fileInput, ['./file.txt', 'folder/file.png']);
-        })
-        .then(function () {
-            fileInput.onchange = null;
         });
 });
 
