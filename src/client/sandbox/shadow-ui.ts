@@ -696,6 +696,7 @@ export default class ShadowUI extends SandboxBase {
 
     // GH-2009
     static markFormAsShadow (form) {
+        ShadowUI._markAsShadowContainer(form);
         ShadowUI.markAsShadowContainerCollection(form.elements);
         ShadowUI.markAsShadowContainerCollection(form.children);
         ShadowUI.markAsShadowContainerCollection(form.childNodes);
