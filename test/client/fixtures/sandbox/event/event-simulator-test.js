@@ -629,6 +629,18 @@ test('mouse event buttons properties', function () {
     });
 });
 
+if (!browserUtils.isIE) {
+    test('timestamp', function () {
+        var options = { timeStamp: 'timestamp' };
+
+        domElement.addEventListener('click', function (event) {
+            strictEqual(event.timeStamp, 'timestamp');
+        });
+
+        eventSimulator.click(domElement, options);
+    });
+}
+
 test('mouse events on disabled elements', function () {
     var button           = document.createElement('button');
     var span             = document.createElement('span');

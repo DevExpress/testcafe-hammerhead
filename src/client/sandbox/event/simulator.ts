@@ -243,7 +243,7 @@ export default class EventSimulator {
 
             args = EventSimulator._getMouseEventArgs(event, opts);
             // eslint-disable-next-line no-shadow
-            dispatch = (el, args) => this._dispatchMouseRelatedEvents(el, args, userOptions ? userOptions.dataTransfer : void 0);
+            dispatch = (el, args) => this._dispatchMouseRelatedEvents(el, args, userOptions ? userOptions : {});
         }
 
         else if (KEY_EVENT_NAME_RE.test(event)) {
@@ -537,7 +537,7 @@ export default class EventSimulator {
         this._raiseDispatchEvent(el, pointEvent);
     }
 
-    _dispatchMouseRelatedEvents (el, args, dataTransfer) {
+    _dispatchMouseRelatedEvents (el, args, userOptions) {
         if (args.type !== 'mouseover' && args.type !== 'mouseenter' && shouldIgnoreMouseEventInsideIframe(el, args.clientX, args.clientY))
             return true;
 
@@ -561,10 +561,10 @@ export default class EventSimulator {
         if (eventUtils.hasPointerEvents && pointerRegExp.test(args.type))
             this._dispatchPointerEvent(el, args);
 
-        return this._dispatchMouseEvent(el, args, dataTransfer);
+        return this._dispatchMouseEvent(el, args, userOptions);
     }
 
-    _dispatchMouseEvent (el, args, dataTransfer) {
+    _dispatchMouseEvent (el, args, { dataTransfer, timeStamp }) {
         const disabledParent = domUtils.findParent(el, true, node => node.disabled);
 
         if (disabledParent)
@@ -607,6 +607,12 @@ export default class EventSimulator {
         if (args.which !== void 0 && browserUtils.isWebKit) {
             nativeMethods.objectDefineProperty(event, 'which', {
                 get: () => args.which
+            });
+        }
+
+        if (timeStamp && !browserUtils.isIE) {
+            nativeMethods.objectDefineProperty(event, 'timeStamp', {
+                get: () => timeStamp
             });
         }
 
