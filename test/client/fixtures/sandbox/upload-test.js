@@ -159,6 +159,21 @@ function getFiles (filesInfo) {
 
 module('hidden info');
 
+test('hidden input should not affect the length value (form.elements, form.children, form.childNodes) (GH-2009)', function () {
+    var form  = document.createElement('form');
+    var input = document.createElement('input');
+
+    document.body.appendChild(form);
+    form.appendChild(input);
+
+    return uploadSandbox.doUpload(input, ['./file.txt'])
+        .then(function () {
+            strictEqual(form.elements.length, 1);
+            strictEqual(form.children.length, 1);
+            strictEqual(form.childNodes.length, 1);
+        });
+});
+
 test('get/set upload info', function () {
     var fileInputWithoutForm = $('<input type="file">')[0];
     var fileInputWithForm    = $('<form><input type="file"></form>').children()[0];

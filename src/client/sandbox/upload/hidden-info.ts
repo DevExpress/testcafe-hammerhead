@@ -14,6 +14,8 @@ function createInput (form) {
     nativeMethods.inputValueSetter.call(hiddenInput, '[]');
     nativeMethods.appendChild.call(form, hiddenInput);
 
+    ShadowUI.markFormAsShadow(form);
+
     return hiddenInput;
 }
 
