@@ -105,7 +105,7 @@ export default class UploadSandbox extends SandboxBase {
     }
 
     // GH-1844, GH-2007
-    static _needToRaiseChangeEvent (filesToUpload, currentUploadInfo) : boolean {
+    static _shouldRaiseChangeEvent (filesToUpload, currentUploadInfo) : boolean {
         if (!currentUploadInfo)
             return true;
 
@@ -144,11 +144,11 @@ export default class UploadSandbox extends SandboxBase {
                 if (!data.errs.length) {
                     const value                 = UploadInfoManager.formatValue(filePaths);
                     const inputInfo             = currentInfoManager.getUploadInfo(input);
-                    const needToRiseChangeEvent = UploadSandbox._needToRaiseChangeEvent(data.fileList, inputInfo);
+                    const shouldRaiseChangeEvent = UploadSandbox._shouldRaiseChangeEvent(data.fileList, inputInfo);
 
                     currentInfoManager.setUploadInfo(input, data.fileList, value);
 
-                    if (needToRiseChangeEvent)
+                    if (shouldRaiseChangeEvent)
                         this._riseChangeEvent(input);
                 }
 

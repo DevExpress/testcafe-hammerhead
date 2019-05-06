@@ -544,12 +544,15 @@ asyncTest('change event', function () {
 });
 
 test('change event in the case of another file selection (GH-2007)', function () {
-    expect(2);
+    var changeEventCounter = 0;
+    var fileInput          = document.createElement('input');
 
-    var fileInput = $('<input type="file" name="test" id="id">')[0];
+    fileInput.type = 'file';
+
+    document.body.appendChild(fileInput);
 
     var changeHandler = function () {
-        ok(true);
+        changeEventCounter++;
     };
 
     fileInput.onchange = changeHandler;
@@ -557,6 +560,11 @@ test('change event in the case of another file selection (GH-2007)', function ()
     return uploadSandbox.doUpload(fileInput, './file.txt')
         .then(function () {
             return uploadSandbox.doUpload(fileInput, 'folder/file.png');
+        })
+        .then(function () {
+            strictEqual(changeEventCounter, 2);
+
+            fileInput.parentNode.removeChild(fileInput);
         });
 });
 
