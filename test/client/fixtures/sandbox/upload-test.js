@@ -172,6 +172,8 @@ test('hidden input should not affect both the length value (form.elements, form.
             strictEqual(form.children.length, 1);
             strictEqual(form.childNodes.length, 1);
             strictEqual(form.childElementCount, 1);
+
+            form.parentNode.removeChild(form);
         });
 });
 
