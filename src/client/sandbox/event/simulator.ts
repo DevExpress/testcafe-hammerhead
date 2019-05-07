@@ -243,7 +243,7 @@ export default class EventSimulator {
 
             args = EventSimulator._getMouseEventArgs(event, opts);
             // eslint-disable-next-line no-shadow
-            dispatch = (el, args) => this._dispatchMouseRelatedEvents(el, args, userOptions ? userOptions : {});
+            dispatch = (el, args) => this._dispatchMouseRelatedEvents(el, args, userOptions);
         }
 
         else if (KEY_EVENT_NAME_RE.test(event)) {
@@ -537,7 +537,7 @@ export default class EventSimulator {
         this._raiseDispatchEvent(el, pointEvent);
     }
 
-    _dispatchMouseRelatedEvents (el, args, userOptions) {
+    _dispatchMouseRelatedEvents (el, args, userOptions = {}) {
         if (args.type !== 'mouseover' && args.type !== 'mouseenter' && shouldIgnoreMouseEventInsideIframe(el, args.clientX, args.clientY))
             return true;
 
@@ -564,7 +564,7 @@ export default class EventSimulator {
         return this._dispatchMouseEvent(el, args, userOptions);
     }
 
-    _dispatchMouseEvent (el, args, { dataTransfer, timeStamp }) {
+    _dispatchMouseEvent (el, args, { dataTransfer, timeStamp }:any) {
         const disabledParent = domUtils.findParent(el, true, node => node.disabled);
 
         if (disabledParent)

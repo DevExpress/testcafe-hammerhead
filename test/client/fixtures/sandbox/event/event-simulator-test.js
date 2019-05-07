@@ -631,10 +631,10 @@ test('mouse event buttons properties', function () {
 
 if (!browserUtils.isIE) {
     test('timestamp', function () {
-        var options = { timeStamp: 'timestamp' };
+        var options = { timeStamp: 1000 };
 
         domElement.addEventListener('click', function (event) {
-            strictEqual(event.timeStamp, 'timestamp');
+            strictEqual(event.timeStamp, 1000);
         });
 
         eventSimulator.click(domElement, options);
