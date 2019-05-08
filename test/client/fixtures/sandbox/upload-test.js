@@ -170,16 +170,17 @@ test('hidden input should not affect both the length value (form.elements, form.
     document.body.appendChild(form);
     form.appendChild(input1);
 
-    var expectedElements = [input1, input2];
+    var expectedElements = [input1, input2]; // eslint-disable-line no-unused-vars
 
-    function testForOfLoop (iterable) {
-        var index = 0;
-
-        for (var el of iterable) {
-            strictEqual(el, expectedElements[index]);
-
-            index++;
-        }
+    // NOTE: We are forced to use this hack because IE11 raises a syntax error if a page contains the 'for..of' loop
+    function getForOfLoopCode (iterableObjString) {
+        return [
+            'var index = 0;',
+            'for (var el of ' + iterableObjString + ') {',
+            '    strictEqual(el, expectedElements[index]);',
+            '    index++;',
+            '}'
+        ].join('\n');
     }
 
     return uploadSandbox.doUpload(input1, './file.txt')
@@ -214,9 +215,9 @@ test('hidden input should not affect both the length value (form.elements, form.
             strictEqual(form.lastElementChild, input2);
 
             if (!browserUtils.isIE11) {
-                testForOfLoop(form.elements);
-                testForOfLoop(form.children);
-                testForOfLoop(form.childNodes);
+                eval(getForOfLoopCode('form.elements'));
+                eval(getForOfLoopCode('form.children'));
+                eval(getForOfLoopCode('form.childNodes'));
             }
 
             form.parentNode.removeChild(form);
