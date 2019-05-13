@@ -70,7 +70,7 @@ class PageProcessor extends ResourceProcessorBase {
 
         if (processingOptions.stylesheets) {
             processingOptions.stylesheets.forEach(stylesheetUrl => {
-                result.push(parse5Utils.createElement('link', [
+                result.unshift(parse5Utils.createElement('link', [
                     { name: 'rel', value: 'stylesheet' },
                     { name: 'type', value: 'text/css' },
                     { name: 'class', value: SHADOW_UI_CLASSNAME.uiStylesheet },
@@ -92,11 +92,11 @@ class PageProcessor extends ResourceProcessorBase {
         }
 
         for (let i = result.length - 1; i > -1; i--)
-            parse5Utils.insertElement(result[i], head);
+            parse5Utils.insertBeforeFirstScript(result[i], head);
     }
 
     static _addCharsetInfo (head: any, charset: any) {
-        parse5Utils.insertElement(parse5Utils.createElement('meta', [
+        parse5Utils.unshiftElement(parse5Utils.createElement('meta', [
             { name: 'class', value: SHADOW_UI_CLASSNAME.charset },
             { name: 'charset', value: charset }
         ]), head);
@@ -123,11 +123,11 @@ class PageProcessor extends ResourceProcessorBase {
         const storageKey            = getStorageKey(ctx.session.id, ctx.dest.host);
         const restoreStoragesScript = this._createRestoreStoragesScript(storageKey, ctx.restoringStorages);
 
-        parse5Utils.insertElement(restoreStoragesScript, head);
+        parse5Utils.insertBeforeFirstScript(restoreStoragesScript, head);
     }
 
     _addBodyCreatedEventScript (body: any) {
-        parse5Utils.insertElement(this.PARSED_BODY_CREATED_EVENT_SCRIPT, body);
+        parse5Utils.unshiftElement(this.PARSED_BODY_CREATED_EVENT_SCRIPT, body);
     }
 
     shouldProcessResource (ctx) {

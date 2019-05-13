@@ -38,10 +38,20 @@ export function createElement (tagName: string, attrs) {
     };
 }
 
-export function insertElement (el, parent) {
+export function unshiftElement (el, parent) {
     el.namespaceURI = parent.namespaceURI;
     el.parentNode   = parent;
     parent.childNodes.unshift(el);
+}
+
+export function insertBeforeFirstScript (el, parent) {
+    el.namespaceURI = parent.namespaceURI;
+    el.parentNode   = parent;
+
+    const firstScriptIndex = parent.childNodes.findIndex(node => node.tagName === 'script');
+    const elIndex          = firstScriptIndex !== -1 ? firstScriptIndex : parent.childNodes.length;
+
+    parent.childNodes.splice(elIndex, 0, el);
 }
 
 export function removeNode (node) {
