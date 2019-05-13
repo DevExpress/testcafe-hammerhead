@@ -159,7 +159,7 @@ function getFiles (filesInfo) {
 
 module('hidden info');
 
-test('hidden input should not affect both the length value (form.elements, form.children, form.childNodes) and childElementCount (GH-2009)', function () {
+test('hidden input should not affect both the length/count value and the elements order (GH-2009)', function () {
     var form   = document.createElement('form');
     var input1 = document.createElement('input');
     var input2 = document.createElement('input');
@@ -183,42 +183,35 @@ test('hidden input should not affect both the length value (form.elements, form.
         ].join('\n');
     }
 
+    function checkLength (expeсted) {
+        strictEqual(form.elements.length, expeсted);
+        strictEqual(form.children.length, expeсted);
+        strictEqual(form.childNodes.length, expeсted);
+        strictEqual(form.childElementCount, expeсted);
+    }
+
     return uploadSandbox.doUpload(input1, './file.txt')
         .then(function () {
-            strictEqual(form.elements.length, 1);
-            strictEqual(form.children.length, 1);
-            strictEqual(form.childNodes.length, 1);
-            strictEqual(form.childElementCount, 1);
+            checkLength(1);
+
+            strictEqual(form.firstChild, form.lastChild);
+            strictEqual(form.firstElementChild, form.lastElementChild);
+
 
             form.appendChild(input2);
 
-            return uploadSandbox.doUpload(input2, 'folder/file.png');
-        })
-        .then(function () {
-            strictEqual(form.elements.length, 2);
-            strictEqual(form.children.length, 2);
-            strictEqual(form.childNodes.length, 2);
-            strictEqual(form.childElementCount, 2);
-
-            strictEqual(form.elements[0], input1);
-            strictEqual(form.elements[1], input2);
-
-            strictEqual(form.children[0], input1);
-            strictEqual(form.children[1], input2);
-
-            strictEqual(form.childNodes[0], input1);
-            strictEqual(form.childNodes[1], input2);
-
-            strictEqual(form.firstChild, input1);
-            strictEqual(form.firstElementChild, input1);
-            strictEqual(form.lastChild, input2);
-            strictEqual(form.lastElementChild, input2);
+            checkLength(2);
 
             if (!browserUtils.isIE11) {
                 eval(getForOfLoopCode('form.elements'));
                 eval(getForOfLoopCode('form.children'));
                 eval(getForOfLoopCode('form.childNodes'));
             }
+
+            strictEqual(form.firstChild, input1);
+            strictEqual(form.firstElementChild, input1);
+            strictEqual(form.lastChild, input2);
+            strictEqual(form.lastElementChild, input2);
 
             form.parentNode.removeChild(form);
         });
