@@ -225,3 +225,9 @@
 #root-hammerhead-shadow-ui.root-hammerhead-shadow-ui .tcOptionList-hammerhead-shadow-ui .tcOption-hammerhead-shadow-ui {
   margin: 1px 5px;
 }
+
+@media print {
+  #root-hammerhead-shadow-ui.test-hammerhead-shadow-ui .cursor-hammerhead-shadow-ui {
+    margin: 0;
+  }
+}

@@ -225,3 +225,9 @@
 #root.root .tcOptionList .tcOption {
   margin: 1px 5px;
 }
+
+@media print {
+  #root.test .cursor {
+    margin: 0;
+  }
+}
