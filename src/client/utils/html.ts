@@ -315,8 +315,14 @@ export function processHtml (html, options: ProcessHTMLOptions = {}) {
 
         if (!parentTag) {
             if (htmlElements.length) {
-                for (const htmlElement of htmlElements)
-                    nativeMethods.insertAdjacentHTML.call(htmlElement, 'afterbegin', INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
+                for (const htmlElement of htmlElements) {
+                    const firstScriptOrStyle = nativeMethods.elementQuerySelector.call(htmlElement, 'script,link[rel="stylesheet"]');
+
+                    if (firstScriptOrStyle)
+                        nativeMethods.insertAdjacentHTML.call(firstScriptOrStyle, 'beforebegin', INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
+                    else
+                        nativeMethods.insertAdjacentHTML.call(htmlElement, 'beforeend', INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
+                }
             }
             else if (doctypeElement && isIE)
                 nativeMethods.insertAdjacentHTML.call(doctypeElement, 'afterend', INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
