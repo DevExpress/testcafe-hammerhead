@@ -494,6 +494,7 @@ test('a self-removing script should not stop the parsing stream (GH-2000)', func
                 '<body><script>var x = 5;<' + '/script><div id="mountPoint"></div></body></html>');
             iframeDoc.close();
 
-            strictEqual(iframeDoc.querySelector('#mountPoint'), browserUtils.isChrome ? null : iframeDoc.body.children[1]);
+            strictEqual(iframeDoc.querySelector('#mountPoint'),
+                browserUtils.isChrome || browserUtils.isSafari ? null : iframeDoc.body.children[1]);
         });
 });
