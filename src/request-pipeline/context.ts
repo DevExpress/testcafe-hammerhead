@@ -55,7 +55,7 @@ interface ContentInfo {
     isRedirect: boolean;
 }
 
-interface OnResponseEventData {
+export interface OnResponseEventData {
     rule: RequestFilterRule;
     opts: ConfigureResponseEventOptions;
 }
@@ -350,7 +350,7 @@ export default class RequestPipelineContext {
         const res: http.ServerResponse = <http.ServerResponse> this.res;
 
         res.writeHead(this.destRes.statusCode, headers);
-        res.addTrailers(this.destRes.trailers);
+        res.addTrailers(this.destRes.trailers as http.OutgoingHttpHeaders);
     }
 
     mockResponse () {

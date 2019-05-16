@@ -23,7 +23,7 @@ export default class FileRequest extends EventEmitter {
         this._initEvents();
     }
 
-    _initEvents () {
+    private _initEvents () {
         stat(this.path)
             .then((stats: fs.Stats) => {
                 if (!stats.isFile())
@@ -35,7 +35,7 @@ export default class FileRequest extends EventEmitter {
             .catch((err: Error) => this._onError(err));
     }
 
-    static _getPath (proxiedUrl: string): string {
+    private static _getPath (proxiedUrl: string): string {
         const parsedUrl = parse(proxiedUrl);
         // @ts-ignore
         let path = decodeURIComponent(parsedUrl.pathname);
@@ -46,11 +46,11 @@ export default class FileRequest extends EventEmitter {
         return path;
     }
 
-    _onError (err: Error) {
+    private _onError (err: Error) {
         this.emit('fatalError', getText(MESSAGE.cantReadFile, this.url, err.message));
     }
 
-    _onOpen () {
+    private _onOpen () {
         let stream = fs.createReadStream(this.path);
 
         stream = Object.assign(stream, {

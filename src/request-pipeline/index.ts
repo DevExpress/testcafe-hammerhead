@@ -94,7 +94,7 @@ const stages = [
             const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
 
             await ctx.session.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
-            await callOnResponseEventCallbackForFailedSameOriginCheck(ctx, rule, configureResponseEvent);
+            await callOnResponseEventCallbackForFailedSameOriginCheck(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
         });
         ctx.closeWithError(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
     },

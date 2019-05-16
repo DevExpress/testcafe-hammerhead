@@ -1,12 +1,22 @@
+/*eslint-disable no-unused-vars*/
+import { IncomingHttpHeaders } from 'http';
+/*eslint-enable no-unused-vars*/
 import { Readable } from 'stream';
 
-export default class IncomingMessageMock extends Readable {
-    headers: any;
-    trailers: any;
+type InitOptions = {
+    headers: { [name: string]: string|Array<string> };
+    trailers: { [key: string]: string | undefined };
     statusCode: number;
-    _body: any;
+    _body: object|string|Buffer|null;
+};
 
-    constructor (init) {
+export default class IncomingMessageMock extends Readable {
+    private _body: Buffer|null;
+    headers: IncomingHttpHeaders;
+    trailers: { [key: string]: string | undefined };
+    statusCode: number;
+
+    constructor (init: InitOptions) {
         super();
 
         this.headers    = init.headers;
@@ -20,7 +30,7 @@ export default class IncomingMessageMock extends Readable {
         this._body = null;
     }
 
-    _getBody (body) {
+    private _getBody (body: object|string|Buffer|null): Buffer {
         if (!body)
             return Buffer.alloc(0);
 

@@ -1,5 +1,6 @@
 /*eslint-disable no-unused-vars*/
 import net from 'net';
+import RequestOptions from '../request-options';
 /*eslint-enable no-unused-vars*/
 import http from 'http';
 import https from 'https';
@@ -36,18 +37,18 @@ interface DestinationRequestEvents {
 }
 
 export default class DestinationRequest extends EventEmitter implements DestinationRequestEvents {
-    private req: http.ClientRequest = null;
+    private req: http.ClientRequest;
     private hasResponse: boolean = false;
     private credentialsSent: boolean = false;
     private aborted: boolean = false;
-    private opts: any;
+    private opts: RequestOptions;
     private isHttps: boolean;
     private protocolInterface: any;
 
     static TIMEOUT: number = 25 * 1000;
     static XHR_TIMEOUT: number = 2 * 60 * 1000;
 
-    constructor (opts) {
+    constructor (opts: RequestOptions) {
         super();
 
         this.opts              = opts;
