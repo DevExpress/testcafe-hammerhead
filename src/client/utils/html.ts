@@ -12,6 +12,7 @@ import * as urlResolver from './url-resolver';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import { URL_ATTRS, ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../processing/dom/attributes';
 import createSelfRemovingScript from '../../utils/create-self-removing-script';
+import InsertPosition from './insert-position';
 
 interface ProcessHTMLOptions {
     parentTag?: any;
@@ -72,13 +73,6 @@ export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = createSelfRemovingScript(`
 `);
 
 const SCRIPT_AND_STYLE_SELECTOR = 'script,link[rel="stylesheet"]';
-
-export enum InsertPosition {
-    beforeBegin = 'beforebegin', // eslint-disable-line no-unused-vars
-    afterBegin = 'afterbegin', // eslint-disable-line no-unused-vars
-    beforeEnd = 'beforeend', // eslint-disable-line no-unused-vars
-    afterEnd = 'afterend' // eslint-disable-line no-unused-vars
-}
 
 let htmlDocument = nativeMethods.createHTMLDocument.call(document.implementation, 'title');
 let htmlParser   = nativeMethods.createDocumentFragment.call(htmlDocument);

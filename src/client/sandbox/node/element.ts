@@ -23,6 +23,7 @@ import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
 import { ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../../processing/dom/attributes';
 import settings from '../../settings';
 import { overrideDescriptor } from '../../utils/property-overriding';
+import InsertPosition from '../../utils/insert-position';
 
 const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
@@ -488,7 +489,7 @@ export default class ElementSandbox extends SandboxBase {
                 nativeMethods.insertAdjacentHTML.apply(el, args);
                 sandbox.nodeSandbox.processNodes(parentEl || el);
 
-                if (position === 'afterbegin' || position === 'beforeend')
+                if (position === InsertPosition.afterBegin || position === InsertPosition.beforeEnd)
                     DOMMutationTracker.onChildrenChanged(el);
                 else if (parentEl)
                     DOMMutationTracker.onChildrenChanged(parentEl);
