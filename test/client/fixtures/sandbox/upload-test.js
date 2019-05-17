@@ -159,6 +159,64 @@ function getFiles (filesInfo) {
 
 module('hidden info');
 
+test('hidden input should not affect both the length/count value and the elements order (GH-2009)', function () {
+    var form   = document.createElement('form');
+    var input1 = document.createElement('input');
+    var input2 = document.createElement('input');
+
+    input1.id = 'input1';
+    input2.id = 'input2';
+
+    document.body.appendChild(form);
+    form.appendChild(input1);
+
+    var expectedElements = [input1, input2]; // eslint-disable-line no-unused-vars
+
+    // NOTE: We are forced to use this hack because IE11 raises a syntax error if a page contains the 'for..of' loop
+    function getForOfLoopCode (iterableObjString) {
+        return [
+            'var index = 0;',
+            'for (var el of ' + iterableObjString + ') {',
+            '    strictEqual(el, expectedElements[index]);',
+            '    index++;',
+            '}'
+        ].join('\n');
+    }
+
+    function checkLength (expeсted) {
+        strictEqual(form.elements.length, expeсted);
+        strictEqual(form.children.length, expeсted);
+        strictEqual(form.childNodes.length, expeсted);
+        strictEqual(form.childElementCount, expeсted);
+    }
+
+    return uploadSandbox.doUpload(input1, './file.txt')
+        .then(function () {
+            checkLength(1);
+
+            strictEqual(form.firstChild, form.lastChild);
+            strictEqual(form.firstElementChild, form.lastElementChild);
+
+
+            form.appendChild(input2);
+
+            checkLength(2);
+
+            if (!browserUtils.isIE11) {
+                eval(getForOfLoopCode('form.elements'));
+                eval(getForOfLoopCode('form.children'));
+                eval(getForOfLoopCode('form.childNodes'));
+            }
+
+            strictEqual(form.firstChild, input1);
+            strictEqual(form.firstElementChild, input1);
+            strictEqual(form.lastChild, input2);
+            strictEqual(form.lastElementChild, input2);
+
+            form.parentNode.removeChild(form);
+        });
+});
+
 test('get/set upload info', function () {
     var fileInputWithoutForm = $('<input type="file">')[0];
     var fileInputWithForm    = $('<form><input type="file"></form>').children()[0];
