@@ -12,6 +12,7 @@ import * as urlResolver from './url-resolver';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import { URL_ATTRS, ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../processing/dom/attributes';
 import createSelfRemovingScript from '../../utils/create-self-removing-script';
+import InsertPosition from './insert-position';
 
 interface ProcessHTMLOptions {
     parentTag?: any;
@@ -70,6 +71,8 @@ export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = createSelfRemovingScript(`
     if (parentHammerhead)
         parentHammerhead.sandbox.onIframeDocumentRecreated(window.frameElement);
 `);
+
+const SCRIPT_AND_STYLE_SELECTOR = 'script,link[rel="stylesheet"]';
 
 let htmlDocument = nativeMethods.createHTMLDocument.call(document.implementation, 'title');
 let htmlParser   = nativeMethods.createDocumentFragment.call(htmlDocument);
@@ -315,11 +318,17 @@ export function processHtml (html, options: ProcessHTMLOptions = {}) {
 
         if (!parentTag) {
             if (htmlElements.length) {
-                for (const htmlElement of htmlElements)
-                    nativeMethods.insertAdjacentHTML.call(htmlElement, 'afterbegin', INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
+                for (const htmlElement of htmlElements) {
+                    const firstScriptOrStyle = nativeMethods.elementQuerySelector.call(htmlElement, SCRIPT_AND_STYLE_SELECTOR);
+
+                    if (firstScriptOrStyle)
+                        nativeMethods.insertAdjacentHTML.call(firstScriptOrStyle, InsertPosition.beforeBegin, INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
+                    else
+                        nativeMethods.insertAdjacentHTML.call(htmlElement, InsertPosition.beforeEnd, INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
+                }
             }
             else if (doctypeElement && isIE)
-                nativeMethods.insertAdjacentHTML.call(doctypeElement, 'afterend', INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
+                nativeMethods.insertAdjacentHTML.call(doctypeElement, InsertPosition.afterEnd, INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
         }
 
         // @ts-ignore

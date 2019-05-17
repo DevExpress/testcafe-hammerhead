@@ -469,3 +469,32 @@ test('hammerhead should not use overridden contentWindow, contentDocument getter
             strictEqual(domUtils.getIframeLocation(iframe).documentLocation, 'about:blank');
         });
 });
+
+test('a self-removing script should not stop the parsing stream (GH-2000)', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            var iframeDoc = iframe.contentDocument;
+
+            iframeDoc.open('text/html', 'replace');
+            iframeDoc.write('<!DOCTYPE html><html><head><link rel="stylesheet" href="./style.css"></head>',
+                '<body><div id="mountPoint"></div></body></html>');
+            iframeDoc.close();
+
+            notEqual(iframeDoc.querySelector('#mountPoint'), null);
+
+            iframeDoc.open('text/html', 'replace');
+            iframeDoc.write('<!DOCTYPE html><html><head><link rel="stylesheet" href="./style.css"></head>',
+                '<body><div id="mountPoint"></div><script>var x = 5;<' + '/script></body></html>');
+            iframeDoc.close();
+
+            notEqual(iframeDoc.querySelector('#mountPoint'), null);
+
+            iframeDoc.open('text/html', 'replace');
+            iframeDoc.write('<!DOCTYPE html><html><head><link rel="stylesheet" href="./style.css"></head>',
+                '<body><script>var x = 5;<' + '/script><div id="mountPoint"></div></body></html>');
+            iframeDoc.close();
+
+            strictEqual(iframeDoc.querySelector('#mountPoint'),
+                browserUtils.isChrome || browserUtils.isSafari ? null : iframeDoc.body.children[1]);
+        });
+});
