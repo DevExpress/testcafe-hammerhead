@@ -46,7 +46,7 @@ export default class FetchSandbox extends SandboxBase {
             init    = init || {};
             args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init);
         }
-        else if (init)
+        else if (init && init.headers)
             args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init);
     }
 
