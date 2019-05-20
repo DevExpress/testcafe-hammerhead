@@ -692,6 +692,24 @@ if (window.fetch) {
                     ok(headers.hasOwnProperty(xhrHeaders.fetchRequestCredentials));
                 });
         });
+
+        test('should not lost the headers if an request object and an option object without headers are passed to fetch (GH-2020)', function () {
+            var request = new Request('/echo-request-headers', {
+                headers: {
+                    'Authorization': '123',
+                    'Content-Type':  'charset=utf-8'
+                }
+            });
+
+            return fetch(request, { cache: 'no-cache' })
+                .then(function (response) {
+                    return response.json();
+                })
+                .then(function (headers) {
+                    strictEqual(headers.authorization, '123', 'Authorization');
+                    strictEqual(headers['content-type'], 'charset=utf-8', 'Content-Type');
+                });
+        });
     });
 }
 
