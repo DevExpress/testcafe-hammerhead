@@ -75,8 +75,8 @@ export function findElementsByTagNames (root, tagNames: Array<string>): any {
 }
 
 export function walkElements (el, processor) {
-    if (el.nodeName !== '#document' && el.nodeName !== '#text' && el.nodeName !== '#documentType' &&
-        el.nodeName !== '#comment' && el.nodeName !== '#document-fragment')
+    if (el.nodeName !== '#document' && el.nodeName !== '#text' &&
+        el.nodeName !== '#documentType' && el.nodeName !== '#comment')
         processor(el);
 
     if (el.childNodes)
