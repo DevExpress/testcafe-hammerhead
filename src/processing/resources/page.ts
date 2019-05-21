@@ -1,6 +1,4 @@
-/*eslint-disable no-unused-vars*/
 import parse5 from 'parse5';
-/*eslint-enable no-unused-vars*/
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import DomProcessor from '../dom';
 import DomAdapter from '../dom/parse5-dom-adapter';
