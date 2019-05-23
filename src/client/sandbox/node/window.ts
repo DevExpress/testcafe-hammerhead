@@ -418,22 +418,25 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.Worker) {
-            window.Worker           = function (scriptURL, options) {
-                if (constructorIsCalledWithoutNewKeyword(this, window.Worker))
-                    nativeMethods.Worker.apply(this, arguments);
+            const WorkerWrapper = function (scriptURL, options) {
+                const isCalledWithoutNewKeyword = constructorIsCalledWithoutNewKeyword(this, WorkerWrapper);
 
                 if (arguments.length === 0)
-                    return new nativeMethods.Worker();
+                    return isCalledWithoutNewKeyword ? nativeMethods.Worker() : new nativeMethods.Worker();
 
                 if (typeof scriptURL === 'string')
                     scriptURL = getProxyUrl(scriptURL, { resourceType: stringifyResourceType({ isScript: true }) });
 
-                return arguments.length === 1
-                    ? new nativeMethods.Worker(scriptURL)
-                    : new nativeMethods.Worker(scriptURL, options);
+                if (arguments.length === 1)
+                    return isCalledWithoutNewKeyword ? nativeMethods.Worker.call(this, scriptURL) : new nativeMethods.Worker(scriptURL);
+
+                return isCalledWithoutNewKeyword ? nativeMethods.Worker.call(this, scriptURL, options) : new nativeMethods.Worker(scriptURL, options);
             };
-            window.Worker.prototype = nativeMethods.Worker.prototype;
-            window.Worker.toString  = () => nativeMethods.Worker.toString();
+
+            window.Worker                       = WorkerWrapper;
+            window.Worker.prototype             = nativeMethods.Worker.prototype;
+            window.Worker.prototype.constructor = WorkerWrapper;
+            window.Worker.toString              = () => nativeMethods.Worker.toString();
         }
 
         if (window.Blob) {
