@@ -15,29 +15,26 @@ const BODY_CREATED_EVENT_SCRIPT: string = createSelfRemovingScript(`
 `);
 
 class PageProcessor extends ResourceProcessorBase {
-    parser: any;
     RESTART_PROCESSING: Symbol;
     PARSED_BODY_CREATED_EVENT_SCRIPT: any;
-    serializer: any;
 
     constructor () {
         super();
 
-        this.parser = new parse5.Parser();
+        const parsedDocumentFragment = parse5.parseFragment(BODY_CREATED_EVENT_SCRIPT);
 
         this.RESTART_PROCESSING               = Symbol();
-        this.PARSED_BODY_CREATED_EVENT_SCRIPT = this.parser.parseFragment(BODY_CREATED_EVENT_SCRIPT).childNodes[0];
-
-        this.serializer = new parse5.Serializer();
+        this.PARSED_BODY_CREATED_EVENT_SCRIPT = parsedDocumentFragment.childNodes[0];
     }
 
     _createRestoreStoragesScript (storageKey, storages) {
-        const scriptStr = createSelfRemovingScript(`
+        const scriptStr              = createSelfRemovingScript(`
             window.localStorage.setItem("${ storageKey }", ${ JSON.stringify(storages.localStorage) });
             window.sessionStorage.setItem("${ storageKey }", ${ JSON.stringify(storages.sessionStorage) });
         `);
+        const parsedDocumentFragment = parse5.parseFragment(scriptStr);
 
-        return this.parser.parseFragment(scriptStr).childNodes[0];
+        return parsedDocumentFragment.childNodes[0];
     }
 
     static _getPageProcessingOptions (ctx, urlReplacer) {
@@ -146,7 +143,7 @@ class PageProcessor extends ResourceProcessorBase {
 
         PageProcessor._prepareHtml(html, processingOpts);
 
-        const root       = this.parser.parse(html);
+        const root       = parse5.parse(html);
         const domAdapter = new DomAdapter(processingOpts.isIframe, processingOpts.crossDomainProxyPort);
         const elements   = parse5Utils.findElementsByTagNames(root, ['base', 'meta', 'head', 'body', 'frameset']);
         const base       = elements.base ? elements.base[0] : null;
@@ -175,7 +172,7 @@ class PageProcessor extends ResourceProcessorBase {
         PageProcessor._changeMetas(metas, domAdapter);
         PageProcessor._addCharsetInfo(head, _charset.get());
 
-        return (bom || '') + this.serializer.serialize(root);
+        return (bom || '') + parse5.serialize(root);
     }
 }
 

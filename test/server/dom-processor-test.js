@@ -14,10 +14,9 @@ const testCrossDomainPort = 1338;
 const testProxyHostName   = 'localhost';
 const testProxyPort       = 80;
 
-const parser = new parse5.Parser();
 
 function process (html, isIframe) {
-    const root             = parser.parse(html);
+    const root             = parse5.parse(html);
     const testDomProcessor = new DomProcessor(new DomAdapter(isIframe, testCrossDomainPort));
     const urlReplacer      = (url, resourceType) => {
         if (url.indexOf('//') === 0)
@@ -50,7 +49,7 @@ describe('DOM processor', () => {
     it('Should process sandboxed <iframe>', () => {
         const root = process('<html><head></head><body><iframe sandbox="allow-forms"></iframe></body></html>');
 
-        expect(new parse5.Serializer().serialize(root)).contains('<iframe sandbox="allow-forms allow-same-origin allow-scripts" ' +
+        expect(parse5.serialize(root)).contains('<iframe sandbox="allow-forms allow-same-origin allow-scripts" ' +
                                                                  DomProcessor.getStoredAttrName('sandbox') +
                                                                  '="allow-forms">');
     });
@@ -58,7 +57,7 @@ describe('DOM processor', () => {
     it('Should process style attribute', () => {
         const root = process('<div style="background: url(\'http://example.com/style.css\')"></div>');
 
-        expect(new parse5.Serializer().serialize(root)).eql('<html><head></head><body><div style="background: ' +
+        expect(parse5.serialize(root)).eql('<html><head></head><body><div style="background: ' +
                                                             'url(\'http://localhost:80/sessionId/http://example.com/style.css\')"></div></body></html>');
     });
 
@@ -185,7 +184,7 @@ describe('DOM processor', () => {
         it('Should not process documentFragment node (GH-912)', () => {
             const root                 = process('<body><template><div></div></template></body>');
             const templateNode         = parse5Utils.findElementsByTagNames(root, 'template').template[0];
-            const documentFragmentNode = templateNode.childNodes[0];
+            const documentFragmentNode = templateNode.content;
 
             expect(documentFragmentNode['hammerhead|element-processed']).to.not.to.be.true;
         });
