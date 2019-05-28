@@ -427,10 +427,10 @@ export default class WindowSandbox extends SandboxBase {
                 if (typeof scriptURL === 'string')
                     scriptURL = getProxyUrl(scriptURL, { resourceType: stringifyResourceType({ isScript: true }) });
 
-                if (arguments.length === 1)
-                    return isCalledWithoutNewKeyword ? nativeMethods.Worker.call(this, scriptURL) : new nativeMethods.Worker(scriptURL);
+                if (isCalledWithoutNewKeyword)
+                    return nativeMethods.Worker.apply(this, arguments);
 
-                return isCalledWithoutNewKeyword ? nativeMethods.Worker.call(this, scriptURL, options) : new nativeMethods.Worker(scriptURL, options);
+                return arguments.length === 1 ? new nativeMethods.Worker(scriptURL) : new nativeMethods.Worker(scriptURL, options);
             };
 
             window.Worker                       = WorkerWrapper;
