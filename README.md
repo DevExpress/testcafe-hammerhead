@@ -46,6 +46,6 @@ This opens a playground page where you can specify a webpage to proxy. Enter the
 
 [![Sauce Test Status](https://saucelabs.com/browser-matrix/testcafebot.svg)](https://saucelabs.com/u/testcafebot)
 
-[![Health Monitor](https://testcafe-hhhm.devexpress.com/badge/last-commit.svg)](https://testcafe-hhhm.devexpress.com)
+[![Health Monitor](http://66.55.147.18:13500/badge/last-commit.svg)](http://66.55.147.18:13500/)
 
 
