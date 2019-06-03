@@ -35,6 +35,11 @@ interface RequestEventListeners {
     [RequestEventNames.onResponse]: Function
 }
 
+interface RequestEventListenersData {
+    listeners: RequestEventListeners,
+    errorHandler: Function
+}
+
 interface TaskScriptTemplateOpts {
     serverInfo: ServerInfo,
     isFirstPageLoad: boolean,
@@ -61,7 +66,7 @@ export default abstract class Session extends EventEmitter {
     pageLoadCount: number = 0;
     pendingStateSnapshot: StateSnapshot = null;
     injectable: InjectableResources = { scripts: ['/hammerhead.js'], styles: [] };
-    requestEventListeners: Map<RequestFilterRule, RequestEventListeners> = new Map();
+    requestEventListeners: Map<RequestFilterRule, RequestEventListenersData> = new Map();
     mocks: Map<RequestFilterRule, ResponseMock> = new Map();
 
     protected constructor (uploadsRoot: string) {
@@ -193,8 +198,13 @@ export default abstract class Session extends EventEmitter {
         return !!this.requestEventListeners.size;
     }
 
-    addRequestEventListeners (requestFilterRule: RequestFilterRule, eventListeners: RequestEventListeners) {
-        this.requestEventListeners.set(requestFilterRule, eventListeners);
+    addRequestEventListeners (requestFilterRule: RequestFilterRule, eventListeners: RequestEventListeners, errorHandler: Function) {
+        const listenersData = {
+            listeners: eventListeners,
+            errorHandler
+        };
+
+        this.requestEventListeners.set(requestFilterRule, listenersData);
     }
 
     removeRequestEventListeners (requestFilterRule: RequestFilterRule) {
@@ -208,11 +218,21 @@ export default abstract class Session extends EventEmitter {
     }
 
     async callRequestEventCallback (eventName: RequestEventNames, requestFilterRule: RequestFilterRule, eventData: RequestEvent | ResponseEvent | ConfigureResponseEvent) {
-        const eventListeners             = this.requestEventListeners.get(requestFilterRule);
-        const targetRequestEventCallback = eventListeners[eventName];
+        const { listeners, errorHandler } = this.requestEventListeners.get(requestFilterRule);
+        const targetRequestEventCallback  = listeners[eventName];
 
-        if (typeof targetRequestEventCallback === 'function')
+        if (typeof targetRequestEventCallback !== 'function')
+            return;
+
+        try {
             await targetRequestEventCallback(eventData);
+        }
+        catch (e) {
+            if (typeof errorHandler !== 'function')
+                return;
+
+            errorHandler(e);
+        }
     }
 
     setMock (requestFilterRule: RequestFilterRule, mock: ResponseMock) {

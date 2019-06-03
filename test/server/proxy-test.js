@@ -2388,6 +2388,45 @@ describe('Proxy', () => {
                         session.removeRequestEventListeners(rule);
                     });
             });
+
+            it('Should handle errors inside the request event handlers', () => {
+                const url             = 'http://127.0.0.1:2000/script';
+                const rule            = new RequestFilterRule(url);
+                const collectedErrors = [];
+
+                session.addRequestEventListeners(rule, {
+                    onRequest: () => {
+                        throw new Error('inside onRequest');
+                    },
+
+                    onConfigureResponse: () => {
+                        throw new Error('inside onConfigureResponse');
+                    },
+
+                    onResponse: () => {
+                        throw new Error('inside onResponse');
+                    }
+                }, e => {
+                    collectedErrors.push(e);
+                });
+
+                const options = {
+                    url:     proxy.openSession(url, session),
+                    headers: {
+                        'content-type': 'application/javascript; charset=utf-8'
+                    }
+                };
+
+                return request(options)
+                    .then(() => {
+                        expect(collectedErrors.length).eql(3);
+                        expect(collectedErrors[0].message).eql('inside onRequest');
+                        expect(collectedErrors[1].message).eql('inside onConfigureResponse');
+                        expect(collectedErrors[2].message).eql('inside onResponse');
+
+                        session.removeRequestEventListeners(rule);
+                    });
+            });
         });
 
         describe('Response mock', () => {
