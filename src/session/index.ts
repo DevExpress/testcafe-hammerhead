@@ -198,9 +198,9 @@ export default abstract class Session extends EventEmitter {
         return !!this.requestEventListeners.size;
     }
 
-    addRequestEventListeners (requestFilterRule: RequestFilterRule, eventListeners: RequestEventListeners, errorHandler: Function) {
+    addRequestEventListeners (requestFilterRule: RequestFilterRule, listeners: RequestEventListeners, errorHandler: Function) {
         const listenersData = {
-            listeners: eventListeners,
+            listeners,
             errorHandler
         };
 
