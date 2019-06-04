@@ -222,7 +222,12 @@ export default abstract class Session extends EventEmitter {
     }
 
     async callRequestEventCallback (eventName: RequestEventNames, requestFilterRule: RequestFilterRule, eventData: RequestEvent | ResponseEvent | ConfigureResponseEvent) {
-        const { listeners, errorHandler } = this.requestEventListeners.get(requestFilterRule);
+        const requestEventListenerData = this.requestEventListeners.get(requestFilterRule);
+
+        if (!requestEventListenerData)
+            return;
+
+        const { listeners, errorHandler } = requestEventListenerData;
         const targetRequestEventCallback  = listeners[eventName];
 
         if (typeof targetRequestEventCallback !== 'function')
