@@ -211,6 +211,10 @@ export default abstract class Session extends EventEmitter {
         this.requestEventListeners.delete(requestFilterRule);
     }
 
+    clearRequestEventListeners (): void {
+        this.requestEventListeners.clear();
+    }
+
     getRequestFilterRules (requestInfo: RequestInfo): Array<RequestFilterRule> {
         const rulesArray:Array<RequestFilterRule> = Array.from(this.requestEventListeners.keys());
 
