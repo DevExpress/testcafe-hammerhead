@@ -9,7 +9,12 @@ import { RequestInfo } from './events/info';
 import RequestEvent from './events/request-event';
 import ResponseEvent from './events/response-event';
 import ConfigureResponseEvent from './events/configure-response-event';
-import { Credentials, ExternalProxySettings, ExternalProxySettingsRaw } from '../typings/session';
+import {
+    Credentials,
+    ExternalProxySettings,
+    ExternalProxySettingsRaw,
+    RequestEventListenerError
+} from '../typings/session';
 import { GetUploadedFilesServiceMessage, StoreUploadedFilesServiceMessage } from '../typings/upload';
 import StateSnapshot from './state-snapshot';
 /*eslint-enable no-unused-vars*/
@@ -37,7 +42,7 @@ interface RequestEventListeners {
 
 interface RequestEventListenersData {
     listeners: RequestEventListeners,
-    errorHandler: Function
+    errorHandler: (event: RequestEventListenerError) => void
 }
 
 interface TaskScriptTemplateOpts {
@@ -61,10 +66,10 @@ export default abstract class Session extends EventEmitter {
     uploadStorage: UploadStorage;
     id: string = generateUniqueId();
     cookies: Cookies = new Cookies();
-    proxy: Proxy = null;
+    proxy: Proxy | null = null;
     externalProxySettings: ExternalProxySettings | null = null;
     pageLoadCount: number = 0;
-    pendingStateSnapshot: StateSnapshot = null;
+    pendingStateSnapshot: StateSnapshot | null = null;
     injectable: InjectableResources = { scripts: ['/hammerhead.js'], styles: [] };
     requestEventListeners: Map<RequestFilterRule, RequestEventListenersData> = new Map();
     mocks: Map<RequestFilterRule, ResponseMock> = new Map();
@@ -198,7 +203,7 @@ export default abstract class Session extends EventEmitter {
         return !!this.requestEventListeners.size;
     }
 
-    addRequestEventListeners (requestFilterRule: RequestFilterRule, listeners: RequestEventListeners, errorHandler: Function) {
+    addRequestEventListeners (requestFilterRule: RequestFilterRule, listeners: RequestEventListeners, errorHandler: (event: RequestEventListenerError) => void) {
         const listenersData = {
             listeners,
             errorHandler
@@ -240,7 +245,12 @@ export default abstract class Session extends EventEmitter {
             if (typeof errorHandler !== 'function')
                 return;
 
-            errorHandler(e);
+            const event = {
+                error:      e,
+                methodName: eventName
+            };
+
+            errorHandler(event);
         }
     }
 

@@ -2390,9 +2390,9 @@ describe('Proxy', () => {
             });
 
             it('Should handle errors inside the request event handlers', () => {
-                const url             = 'http://127.0.0.1:2000/script';
-                const rule            = new RequestFilterRule(url);
-                const collectedErrors = [];
+                const url                  = 'http://127.0.0.1:2000/script';
+                const rule                 = new RequestFilterRule(url);
+                const collectedErrorEvents = [];
 
                 session.addRequestEventListeners(rule, {
                     onRequest: () => {
@@ -2407,7 +2407,7 @@ describe('Proxy', () => {
                         throw new Error('inside onResponse');
                     }
                 }, e => {
-                    collectedErrors.push(e);
+                    collectedErrorEvents.push(e);
                 });
 
                 const options = {
@@ -2419,10 +2419,13 @@ describe('Proxy', () => {
 
                 return request(options)
                     .then(() => {
-                        expect(collectedErrors.length).eql(3);
-                        expect(collectedErrors[0].message).eql('inside onRequest');
-                        expect(collectedErrors[1].message).eql('inside onConfigureResponse');
-                        expect(collectedErrors[2].message).eql('inside onResponse');
+                        expect(collectedErrorEvents.length).eql(3);
+                        expect(collectedErrorEvents[0].error.message).eql('inside onRequest');
+                        expect(collectedErrorEvents[0].methodName).eql('onRequest');
+                        expect(collectedErrorEvents[1].error.message).eql('inside onConfigureResponse');
+                        expect(collectedErrorEvents[1].methodName).eql('onConfigureResponse');
+                        expect(collectedErrorEvents[2].error.message).eql('inside onResponse');
+                        expect(collectedErrorEvents[2].methodName).eql('onResponse');
 
                         session.removeRequestEventListeners(rule);
                     });
