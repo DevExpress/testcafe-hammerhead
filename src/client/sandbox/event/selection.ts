@@ -11,7 +11,9 @@ import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 
-const browserResetInputSelection = browserUtils.isFirefox;
+// NOTE: These browsers cannot restore the `selectionStart` and `selectionEnd` properties when we change the `type` attribute.
+// So we need to use our own mechanism to store the `selectionStart` and `selectionEnd` properties.
+const browserResetInputSelection = browserUtils.isFirefox || browserUtils.isChrome && browserUtils.version > 74;
 
 export default class Selection {
     focusBlurSandbox: FocusBlurSandbox;
