@@ -155,10 +155,9 @@ export default class DestinationRequest extends EventEmitter implements Destinat
 
     _isSocketHangUpErr (err): boolean {
         return err.message && SOCKET_HANG_UP_ERR_RE.test(err.message) &&
-               // NOTE: Only for nodejs 4 error with a same message will be generated for different cases.
-               // This is why, we filter a 'SocketHangUpErr' by stack.
-               // Remove filtering by stack content after ending support of nodejs 4.
-               err.stack && err.stack.includes('createHangUpError');
+        // NOTE: At this moment, we determinate the socket hand up error by internal stack trace.
+        // TODO: After what we will change minimal node.js version up to 8 need to rethink this code.
+        err.stack && (err.stack.includes('createHangUpError') || err.stack.includes('connResetException'));
     }
 
     _onTimeout (): void {
