@@ -1661,6 +1661,78 @@ describe('Proxy', () => {
 
             request(options);
         });
+
+        it('Should pass an error to the session if target (an "asar" archive) does not exist (GH-2033)', done => {
+            const url = getFileProtocolUrl('./data/file-in-asar-archive/non-exist-asar-archive.asar/non-exist-file.txt');
+
+            session.id = 'sessionId';
+
+            session.handlePageError = (ctx, err) => {
+                expect(err).contains([
+                    'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
+                    '',
+                    'The asar archive target of the operation is not a file'
+                ].join('\n'));
+
+                ctx.res.end();
+                done();
+                return true;
+            };
+
+            const options = {
+                url:     proxy.openSession(url, session),
+                headers: {
+                    accept: 'text/html,*/*;q=0.1'
+                }
+            };
+
+            request(options);
+        });
+
+        it('Should pass an error to the session if target (a file in an "asar" archive) does not exist (GH-2033)', done => {
+            const url = getFileProtocolUrl('./data/file-in-asar-archive/app.asar/non-exist-file.txt');
+
+            session.id = 'sessionId';
+
+            session.handlePageError = (ctx, err) => {
+                expect(err).contains([
+                    'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
+                    '',
+                    'Cannot read property \'link\' of undefined'
+                ].join('\n'));
+
+                ctx.res.end();
+                done();
+                return true;
+            };
+
+            const options = {
+                url:     proxy.openSession(url, session),
+                headers: {
+                    accept: 'text/html,*/*;q=0.1'
+                }
+            };
+
+            request(options);
+        });
+
+        it('Should resolve an asar archive file (GH-2033)', () => {
+            session.id = 'sessionId';
+
+            const fileUrl = getFileProtocolUrl('./data/file-in-asar-archive/app.asar/src.txt');
+
+            const options = {
+                url:     proxy.openSession(fileUrl, session),
+                headers: {
+                    accept: '*/*'
+                }
+            };
+
+            return request(options)
+                .then(body => {
+                    expect(body).eql('asar archive: src.txt');
+                });
+        });
     });
 
     describe('State switching', () => {
