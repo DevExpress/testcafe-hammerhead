@@ -2388,6 +2388,48 @@ describe('Proxy', () => {
                         session.removeRequestEventListeners(rule);
                     });
             });
+
+            it('Should handle errors inside the request event handlers', () => {
+                const url                  = 'http://127.0.0.1:2000/script';
+                const rule                 = new RequestFilterRule(url);
+                const collectedErrorEvents = [];
+
+                session.addRequestEventListeners(rule, {
+                    onRequest: () => {
+                        throw new Error('inside onRequest');
+                    },
+
+                    onConfigureResponse: () => {
+                        throw new Error('inside onConfigureResponse');
+                    },
+
+                    onResponse: () => {
+                        throw new Error('inside onResponse');
+                    }
+                }, e => {
+                    collectedErrorEvents.push(e);
+                });
+
+                const options = {
+                    url:     proxy.openSession(url, session),
+                    headers: {
+                        'content-type': 'application/javascript; charset=utf-8'
+                    }
+                };
+
+                return request(options)
+                    .then(() => {
+                        expect(collectedErrorEvents.length).eql(3);
+                        expect(collectedErrorEvents[0].error.message).eql('inside onRequest');
+                        expect(collectedErrorEvents[0].methodName).eql('onRequest');
+                        expect(collectedErrorEvents[1].error.message).eql('inside onConfigureResponse');
+                        expect(collectedErrorEvents[1].methodName).eql('onConfigureResponse');
+                        expect(collectedErrorEvents[2].error.message).eql('inside onResponse');
+                        expect(collectedErrorEvents[2].methodName).eql('onResponse');
+
+                        session.removeRequestEventListeners(rule);
+                    });
+            });
         });
 
         describe('Response mock', () => {

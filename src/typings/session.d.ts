@@ -39,3 +39,8 @@ export interface FileStream extends ReadStream {
     headers: { [name: string]: string };
 }
 
+export interface RequestEventListenerError {
+    error: Error;
+    methodName: string;
+}
+

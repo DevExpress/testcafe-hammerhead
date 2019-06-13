@@ -9,7 +9,12 @@ import { RequestInfo } from './events/info';
 import RequestEvent from './events/request-event';
 import ResponseEvent from './events/response-event';
 import ConfigureResponseEvent from './events/configure-response-event';
-import { Credentials, ExternalProxySettings, ExternalProxySettingsRaw } from '../typings/session';
+import {
+    Credentials,
+    ExternalProxySettings,
+    ExternalProxySettingsRaw,
+    RequestEventListenerError
+} from '../typings/session';
 import { GetUploadedFilesServiceMessage, StoreUploadedFilesServiceMessage } from '../typings/upload';
 import StateSnapshot from './state-snapshot';
 /*eslint-enable no-unused-vars*/
@@ -35,6 +40,11 @@ interface RequestEventListeners {
     [RequestEventNames.onResponse]: Function
 }
 
+interface RequestEventListenersData {
+    listeners: RequestEventListeners,
+    errorHandler: (event: RequestEventListenerError) => void
+}
+
 interface TaskScriptTemplateOpts {
     serverInfo: ServerInfo,
     isFirstPageLoad: boolean,
@@ -56,12 +66,12 @@ export default abstract class Session extends EventEmitter {
     uploadStorage: UploadStorage;
     id: string = generateUniqueId();
     cookies: Cookies = new Cookies();
-    proxy: Proxy = null;
+    proxy: Proxy | null = null;
     externalProxySettings: ExternalProxySettings | null = null;
     pageLoadCount: number = 0;
-    pendingStateSnapshot: StateSnapshot = null;
+    pendingStateSnapshot: StateSnapshot | null = null;
     injectable: InjectableResources = { scripts: ['/hammerhead.js'], styles: [] };
-    requestEventListeners: Map<RequestFilterRule, RequestEventListeners> = new Map();
+    requestEventListeners: Map<RequestFilterRule, RequestEventListenersData> = new Map();
     mocks: Map<RequestFilterRule, ResponseMock> = new Map();
 
     protected constructor (uploadsRoot: string) {
@@ -193,12 +203,21 @@ export default abstract class Session extends EventEmitter {
         return !!this.requestEventListeners.size;
     }
 
-    addRequestEventListeners (requestFilterRule: RequestFilterRule, eventListeners: RequestEventListeners) {
-        this.requestEventListeners.set(requestFilterRule, eventListeners);
+    addRequestEventListeners (requestFilterRule: RequestFilterRule, listeners: RequestEventListeners, errorHandler: (event: RequestEventListenerError) => void) {
+        const listenersData = {
+            listeners,
+            errorHandler
+        };
+
+        this.requestEventListeners.set(requestFilterRule, listenersData);
     }
 
     removeRequestEventListeners (requestFilterRule: RequestFilterRule) {
         this.requestEventListeners.delete(requestFilterRule);
+    }
+
+    clearRequestEventListeners (): void {
+        this.requestEventListeners.clear();
     }
 
     getRequestFilterRules (requestInfo: RequestInfo): Array<RequestFilterRule> {
@@ -208,11 +227,31 @@ export default abstract class Session extends EventEmitter {
     }
 
     async callRequestEventCallback (eventName: RequestEventNames, requestFilterRule: RequestFilterRule, eventData: RequestEvent | ResponseEvent | ConfigureResponseEvent) {
-        const eventListeners             = this.requestEventListeners.get(requestFilterRule);
-        const targetRequestEventCallback = eventListeners[eventName];
+        const requestEventListenersData = this.requestEventListeners.get(requestFilterRule);
 
-        if (typeof targetRequestEventCallback === 'function')
+        if (!requestEventListenersData)
+            return;
+
+        const { listeners, errorHandler } = requestEventListenersData;
+        const targetRequestEventCallback  = listeners[eventName];
+
+        if (typeof targetRequestEventCallback !== 'function')
+            return;
+
+        try {
             await targetRequestEventCallback(eventData);
+        }
+        catch (e) {
+            if (typeof errorHandler !== 'function')
+                return;
+
+            const event = {
+                error:      e,
+                methodName: eventName
+            };
+
+            errorHandler(event);
+        }
     }
 
     setMock (requestFilterRule: RequestFilterRule, mock: ResponseMock) {
