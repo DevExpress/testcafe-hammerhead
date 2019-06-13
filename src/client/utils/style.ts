@@ -262,7 +262,7 @@ export function setScrollLeft (el, value) {
         const win       = domUtils.findDocument(el).defaultView;
         const scrollTop = getScrollTop(el);
 
-        win.scrollTo(value, scrollTop);
+        nativeMethods.scrollTo.call(win, value, scrollTop);
     }
     else
         el.scrollLeft = value;
@@ -276,7 +276,7 @@ export function setScrollTop (el, value) {
         const win        = domUtils.findDocument(el).defaultView;
         const scrollLeft = getScrollLeft(el);
 
-        win.scrollTo(scrollLeft, value);
+        nativeMethods.scrollTo.call(win, scrollLeft, value);
     }
     else
         el.scrollTop = value;
