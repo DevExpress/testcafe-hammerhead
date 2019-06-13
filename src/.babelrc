@@ -2,7 +2,7 @@
   "compact": false,
   "presets": [
     ["@babel/env", {
-      "targets": { "node": "6" },
+      "targets": { "node": "8" },
       "loose": true,
       "exclude": [
         "@babel/plugin-transform-regenerator"
@@ -12,7 +12,6 @@
   ],
   "plugins": [
     "babel-plugin-add-module-exports",
-    "@babel/plugin-transform-async-to-generator",
     "@babel/plugin-proposal-class-properties"
   ]
 }
