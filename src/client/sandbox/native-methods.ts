@@ -337,6 +337,7 @@ class NativeMethods {
     runInContext: any;
     runInNewContext: any;
     runInThisContext: any;
+    scrollTo: any;
 
     constructor (doc?: Document, win?: Window) {
         win = win || window;
@@ -938,6 +939,8 @@ class NativeMethods {
         this.tokenListSupports = win.DOMTokenList.prototype.supports;
         this.tokenListToggle   = win.DOMTokenList.prototype.toggle;
         this.tokenListContains = win.DOMTokenList.prototype.contains;
+
+        this.scrollTo = win.scrollTo;
 
         this.refreshClasses(win);
     }

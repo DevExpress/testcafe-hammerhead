@@ -103,6 +103,26 @@ test('setScrollLeft, setScrollTop', function () {
     $div.remove();
 });
 
+test('should use the native "window.scrollTo" function internally', function () {
+    var storedScrollToFn = window.scrollTo;
+
+    window.scrollTo = function () {
+        throw new Error('An error in the "scrollTo" function');
+    };
+
+    try {
+        styleUtils.setScrollTop(window, 0);
+        styleUtils.setScrollLeft(window, 0);
+
+        ok(true);
+    }
+    catch (e) {
+        ok(false, e.toString());
+    }
+
+    window.scrollTo = storedScrollToFn;
+});
+
 test('getInnerWidth', function () {
     strictEqual(styleUtils.getInnerWidth(null), null);
     strictEqual($(window).innerWidth(), styleUtils.getInnerWidth(window));
