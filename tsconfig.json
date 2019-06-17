@@ -7,11 +7,7 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "strict": false,
-    "newLine": "lf",
-    "typeRoots": [
-      "./@types",
-      "./node_modules/@types"
-    ]
+    "newLine": "lf"
   },
   "exclude": [
     "node_modules"
