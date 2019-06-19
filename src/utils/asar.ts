@@ -1,3 +1,4 @@
+// @ts-ignore
 import asar from 'asar';
 import { toReadableStream } from './buffer';
 import { Readable } from 'stream'; // eslint-disable-line no-unused-vars
