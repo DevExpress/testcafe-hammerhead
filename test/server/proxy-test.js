@@ -1671,7 +1671,7 @@ describe('Proxy', () => {
                 expect(err).contains([
                     'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
                     '',
-                    'The asar archive target of the operation is not a file'
+                    'The asar archive target of the operation not found'
                 ].join('\n'));
 
                 ctx.res.end();

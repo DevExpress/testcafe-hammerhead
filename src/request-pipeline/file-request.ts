@@ -9,8 +9,8 @@ import { isAsarPath, getArchivePath, extractFileToReadStream } from '../utils/as
 
 const DISK_RE: RegExp = /^\/[A-Za-z]:/;
 
-const TARGET_IS_NOT_FILE              = 'The target of the operation is not a file';
-const ASAR_ARCHIVE_TARGET_IS_NOT_FILE = 'The asar archive target of the operation is not a file';
+const TARGET_IS_NOT_FILE            = 'The target of the operation is not a file';
+const ASAR_ARCHIVE_TARGET_NOT_FOUND = 'The asar archive target of the operation not found';
 
 export default class FileRequest extends EventEmitter {
     url: string;
@@ -33,14 +33,11 @@ export default class FileRequest extends EventEmitter {
 
             stat(asarArchivePath)
                 .catch(() => {
-                    throw new Error(ASAR_ARCHIVE_TARGET_IS_NOT_FILE);
+                    throw new Error(ASAR_ARCHIVE_TARGET_NOT_FOUND);
                 })
                 .then(() => access(asarArchivePath, fs.constants.R_OK))
                 .then(() => this._onOpen())
-                .catch((err: Error) => {
-
-                    return this._onError(err);
-                });
+                .catch((err: Error) => this._onError(err));
         }
         else {
             stat(this.path)
