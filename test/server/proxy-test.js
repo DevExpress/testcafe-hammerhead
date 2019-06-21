@@ -561,17 +561,6 @@ describe('Proxy', () => {
         });
 
         it('Should pass service message processing to session', () => {
-            const options = {
-                method: 'POST',
-                url:    'http://localhost:1836/messaging',
-                json:   true,
-                body:   {
-                    cmd:       'ServiceTestCmd',
-                    data:      '42',
-                    sessionId: session.id
-                }
-            };
-
             proxy.openSession('http://example.com', session);
 
             session['ServiceTestCmd'] = (msg, serverInfo) => {
@@ -579,10 +568,23 @@ describe('Proxy', () => {
                 return 'answer: ' + msg.data;
             };
 
-            return request(options)
-                .then(parsedBody => {
-                    expect(parsedBody).eql('answer: 42');
-                });
+            const ws = new WebSocket('ws://localhost:1836/messaging');
+
+            return new Promise(resolve => ws.on('open', resolve))
+                .then(() => new Promise(resolve => {
+                    ws.once('message', resolve);
+                    ws.send(JSON.stringify({
+                        cmd:       'ServiceTestCmd',
+                        data:      '42',
+                        sessionId: session.id
+                    }));
+                }))
+                .then(msg => new Promise(resolve => {
+                    expect(msg).eql('{"result":"answer: 42"}');
+
+                    ws.on('close', resolve);
+                    ws.close();
+                }));
         });
 
         it('Should render task script', () => {

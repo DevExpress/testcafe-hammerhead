@@ -1,10 +1,10 @@
 import COMMAND from '../../../session/command';
 import FileListWrapper from './file-list-wrapper';
-import transport from '../../transport';
 import * as Browser from '../../utils/browser';
 import * as HiddenInfo from './hidden-info';
 // @ts-ignore
 import Promise from 'pinkie';
+import hammerhead from '../../index';
 
 // NOTE: https://html.spec.whatwg.org/multipage/forms.html#fakepath-srsly.
 const FAKE_PATH_STRING = 'C:\\fakepath\\';
@@ -54,8 +54,9 @@ export default class UploadInfoManager {
     }
 
     static loadFilesInfoFromServer (filePaths: string | Array<string>) {
-        return transport.asyncServiceMsg({
+        return hammerhead.transport.asyncServiceMsg({
             cmd:       COMMAND.getUploadedFiles,
+            // @ts-ignore
             filePaths: typeof filePaths === 'string' ? [filePaths] : filePaths
         });
     }
@@ -78,8 +79,9 @@ export default class UploadInfoManager {
     }
 
     static sendFilesInfoToServer (fileList, fileNames) {
-        return transport.asyncServiceMsg({
+        return hammerhead.transport.asyncServiceMsg({
             cmd:       COMMAND.uploadFiles,
+            // @ts-ignore
             data:      UploadInfoManager._getFileListData(fileList),
             fileNames: fileNames
         });

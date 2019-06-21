@@ -15,6 +15,7 @@ import { run as runRequestPipeline } from '../request-pipeline';
 import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
 import { resetKeepAliveConnections } from '../request-pipeline/destination-request/agent';
 import SERVICE_ROUTES from './service-routes';
+import ws from 'ws';
 
 const SESSION_IS_NOT_OPENED_ERR: string = 'Session is not opened in proxy';
 
@@ -27,13 +28,14 @@ function parseAsJson (msg: Buffer): ServiceMessage | null {
     }
 }
 
-function createServerInfo (hostname: string, port: string, crossDomainPort: string, protocol: string): ServerInfo {
+function createServerInfo (hostname: string, port: string, crossDomainPort: string, protocol: string, wsProtocol: string): ServerInfo {
     return {
         hostname:        hostname,
         port:            port,
         crossDomainPort: crossDomainPort,
         protocol:        protocol,
-        domain:          `${protocol}//${hostname}:${port}`
+        domain:          `${protocol}//${hostname}:${port}`,
+        wsOrigin:        `${wsProtocol}//${hostname}:${port}`
     };
 }
 
@@ -44,15 +46,21 @@ export default class Proxy extends Router {
     private readonly server1: http.Server | https.Server;
     private readonly server2: http.Server | https.Server;
     private readonly sockets: Set<net.Socket>;
+    private readonly _webSocketServer: ws.Server;
 
     constructor (hostname: string, port1: string, port2: string, options: any = {}) {
         super(options);
 
         const { ssl, developmentMode } = options;
         const protocol                 = ssl ? 'https:' : 'http:';
+        const wsProtocol               = ssl ? 'wss:' : 'ws:';
 
-        this.server1Info = createServerInfo(hostname, port1, port2, protocol);
-        this.server2Info = createServerInfo(hostname, port2, port1, protocol);
+        this.server1Info = createServerInfo(hostname, port1, port2, protocol, wsProtocol);
+        this.server2Info = createServerInfo(hostname, port2, port1, protocol, wsProtocol);
+
+        this._webSocketServer = new ws.Server({
+            noServer: true
+        });
 
         if (ssl) {
             this.server1 = https.createServer(ssl, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server1Info));
@@ -100,28 +108,9 @@ export default class Proxy extends Router {
             content:     hammerheadScriptContent
         });
 
-        this.POST(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onServiceMessage(req, res, serverInfo));
+        this.GET(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: net.Socket, serverInfo: ServerInfo) => this._onTransportWebSocket(req, res, serverInfo));
         this.GET(SERVICE_ROUTES.task, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onTaskScriptRequest(req, res, serverInfo, false));
         this.GET(SERVICE_ROUTES.iframeTask, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onTaskScriptRequest(req, res, serverInfo, true));
-    }
-
-    async _onServiceMessage (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) {
-        const body    = await fetchBody(req);
-        const msg     = parseAsJson(body);
-        const session = msg && this.openSessions.get(msg.sessionId);
-
-        if (session) {
-            try {
-                const result = await session.handleServiceMessage(msg, serverInfo);
-
-                respondWithJSON(res, result, false);
-            }
-            catch (err) {
-                respond500(res, err.toString());
-            }
-        }
-        else
-            respond500(res, SESSION_IS_NOT_OPENED_ERR);
     }
 
     _onTaskScriptRequest (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo, isIframe: boolean) {
@@ -158,6 +147,28 @@ export default class Proxy extends Router {
             socket.unshift(head);
 
         this._onRequest(req, socket, serverInfo);
+    }
+
+    _onTransportWebSocket (req: http.IncomingMessage, socket: net.Socket, serverInfo: ServerInfo) {
+        this._webSocketServer.handleUpgrade(req, socket, Buffer.alloc(0), client => {
+            client.addEventListener('message', async event => {
+                const msg     = parseAsJson(event.data);
+                const session = msg && this.openSessions.get(msg.sessionId);
+
+                if (session) {
+                    try {
+                        const result = await session.handleServiceMessage(msg, serverInfo);
+
+                        client.send(JSON.stringify({ id: msg.id, result }));
+                    }
+                    catch (err) {
+                        client.send(JSON.stringify({ id: msg.id, err: err.toString() }));
+                    }
+                }
+                else
+                    client.send(JSON.stringify({ id: msg.id, err: SESSION_IS_NOT_OPENED_ERR }));
+            });
+        });
     }
 
     _processStaticContent (handler: StaticContent) {

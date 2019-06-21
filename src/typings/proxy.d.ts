@@ -3,12 +3,15 @@ export interface ServerInfo {
     port: string,
     crossDomainPort: string,
     protocol: string,
-    domain: string
+    domain: string,
+    wsOrigin: string
 }
 
 export interface ServiceMessage {
     sessionId: string;
     cmd: string;
+    allowRejecting?: boolean;
+    id: number;
 }
 
 export interface StaticContent {

@@ -1,174 +1,149 @@
+/* eslint-disable no-unused-vars */
+import { ServiceMessage } from '../typings/proxy';
+/* eslint-enable no-unused-vars */
 import nativeMethods from './sandbox/native-methods';
 import settings from './settings';
-import XhrSandbox from './sandbox/xhr';
 // @ts-ignore
-import { stringify as stringifyJSON, parse as parseJSON } from 'json-hammerhead';
-import { isWebKit, isFirefox } from './utils/browser';
+import json from 'json-hammerhead';
+// import { isWebKit, isFirefox } from './utils/browser';
+//import { isIframeWithoutSrc, getFrameElement } from './utils/dom';
 import createUnresolvablePromise from './utils/create-unresolvable-promise';
 import noop from './utils/noop';
 // @ts-ignore
 import Promise from 'pinkie';
-import { isIframeWithoutSrc, getFrameElement } from './utils/dom';
+import IntegerIdGenerator from './utils/integer-id-generator';
 
 const SERVICE_MESSAGES_WAITING_INTERVAL: number = 50;
+const RECONNECTION_TIMEOUT = 200;
 
-class Transport {
-    msgQueue: any;
-    activeServiceMessagesCounter: number;
-    shouldAddRefferer: boolean;
+export default class Transport {
+    private readonly _messageIdGenerator: IntegerIdGenerator = new IntegerIdGenerator();
+    private readonly _msgQueue: { [command: string]: Promise<any> } = {};
+    private _pendingMessages: Array<string> = [];
+    private _isConnected: boolean = false;
+    private _socket: WebSocket|null;
+    private _callbacks: Map<number, { resolve: Function, reject: Function }> = new Map();
 
     constructor () {
-        this.msgQueue                     = {};
-        this.activeServiceMessagesCounter = 0;
-        this.shouldAddRefferer = Transport._shouldAddReferrer();
     }
 
-    static _shouldAddReferrer (): boolean {
-        const frameElement = getFrameElement(window);
+    private _onMessage (e: MessageEvent) {
+        const answer = json.parse(e.data);
+        const callbacks = this._callbacks.get(answer.id);
 
-        return frameElement && isIframeWithoutSrc(frameElement);
-    }
+        if (callbacks) {
+            if (answer.err)
+                callbacks.reject(answer.err);
+            else
+                callbacks.resolve(answer.result);
 
-    static _storeMessage (msg): void {
-        const storedMessages = Transport._getStoredMessages();
-
-        storedMessages.push(msg);
-
-        nativeMethods.winLocalStorageGetter.call(window).setItem(settings.get().sessionId, stringifyJSON(storedMessages));
-    }
-
-    static _getStoredMessages (): Array<any> {
-        const storedMessagesStr = nativeMethods.winLocalStorageGetter.call(window).getItem(settings.get().sessionId);
-
-        return storedMessagesStr ? parseJSON(storedMessagesStr) : [];
-    }
-
-    static _removeMessageFromStore (cmd): void {
-        const messages = Transport._getStoredMessages();
-
-        for (let i = 0; i < messages.length; i++) {
-            if (messages[i].cmd === cmd) {
-                messages.splice(i, 1);
-
-                break;
-            }
+            this._callbacks.delete(answer.id);
         }
-
-        nativeMethods.winLocalStorageGetter.call(window).setItem(settings.get().sessionId, stringifyJSON(messages));
     }
 
-    // TODO: Rewrite this using Promise after getting rid of syncServiceMsg.
-    _performRequest (msg, callback): void {
+    private _onConnectionOpen () {
+        this._isConnected = true;
+
+        for (const msg of this._pendingMessages)
+            this._socket.send(msg);
+    }
+
+    private _onConnectionClose (e: CloseEvent) {
+        this._isConnected = false;
+        this._socket = null;
+
+        if (!e.wasClean)
+            nativeMethods.setTimeout.call(window, () => this.createConnection(), RECONNECTION_TIMEOUT);
+    }
+
+    private _sendMessage (msg: ServiceMessage): Promise<any> {
         msg.sessionId = settings.get().sessionId;
+        msg.id        = this._messageIdGenerator.increment();
 
-        if (this.shouldAddRefferer)
-            msg.referer = settings.get().referer;
+        return new Promise((resolve, reject) => {
+            this._callbacks.set(msg.id, { resolve, reject });
 
-        const sendMsg = (forced?: boolean) => {
-            this.activeServiceMessagesCounter++;
+            const msgStr = json.stringify(msg);
 
-            const isAsyncRequest = !forced;
-            const transport      = this;
-            let request          = XhrSandbox.createNativeXHR();
+            if (this._isConnected)
+                this._socket.send(msgStr);
+            else
+                this._pendingMessages.push(msgStr);
+        });
 
-            const msgCallback = function () {
-                // NOTE: The 500 status code is returned by server when an error occurred into service message handler
-                if (nativeMethods.xhrStatusGetter.call(this) === 500 && this.responseText) {
-                    msg.disableResending = true;
-                    errorHandler.call(this); // eslint-disable-line no-use-before-define
-                    return;
-                }
+        //     const errorHandler = function () {
+        //         if (msg.disableResending) {
+        //             transport.activeServiceMessagesCounter--;
+        //
+        //             let errorMsg = `XHR request failed with ${request.status} status code.`;
+        //
+        //             if (this.responseText)
+        //                 errorMsg += `\nError message: ${this.responseText}`;
+        //
+        //             callback(new Error(errorMsg));
+        //
+        //             return;
+        //         }
+        //
+        //         if (isWebKit || isFirefox) {
+        //             Transport._storeMessage(msg);
+        //             msgCallback.call(this);
+        //         }
+        //         else
+        //             sendMsg(true);
+        //     };
+        // };
+        //
+        // Transport._removeMessageFromStore(msg.cmd);
+        // sendMsg();
+    }
 
-                transport.activeServiceMessagesCounter--;
+    createConnection () {
+        if (window !== window.top)
+            return;
 
-                const response = this.responseText && parseJSON(this.responseText);
+        // eslint-disable-next-line no-restricted-properties
+        const socket: WebSocket = new nativeMethods.WebSocket(settings.get().serviceMsgUrl);
 
-                request = null;
-                callback(null, response);
-            };
+        socket.addEventListener('error', (e: Event) => nativeMethods.consoleMeths.error.call(console, e));
+        socket.addEventListener('open', () => this._onConnectionOpen());
+        socket.addEventListener('message', (e: MessageEvent) => this._onMessage(e));
+        socket.addEventListener('close', (e: CloseEvent) => this._onConnectionClose(e));
 
-            const errorHandler = function () {
-                if (msg.disableResending) {
-                    transport.activeServiceMessagesCounter--;
-
-                    let errorMsg = `XHR request failed with ${request.status} status code.`;
-
-                    if (this.responseText)
-                        errorMsg += `\nError message: ${this.responseText}`;
-
-                    callback(new Error(errorMsg));
-
-                    return;
-                }
-
-                if (isWebKit || isFirefox) {
-                    Transport._storeMessage(msg);
-                    msgCallback.call(this);
-                }
-                else
-                    sendMsg(true);
-            };
-
-            XhrSandbox.openNativeXhr(request, settings.get().serviceMsgUrl, isAsyncRequest);
-
-            if (forced) {
-                request.addEventListener('readystatechange', function () {
-                    if (this.readyState !== 4)
-                        return;
-
-                    msgCallback.call(this);
-                });
-            }
-            else {
-                request.addEventListener('load', msgCallback);
-                request.addEventListener('abort', errorHandler);
-                request.addEventListener('error', errorHandler);
-                request.addEventListener('timeout', errorHandler);
-            }
-
-            request.send(stringifyJSON(msg));
-        };
-
-        Transport._removeMessageFromStore(msg.cmd);
-        sendMsg();
+        this._socket = socket;
     }
 
     waitForServiceMessagesCompleted (timeout: number): Promise<void> {
         return new Promise(resolve => {
-            if (!this.activeServiceMessagesCounter) {
+            if (!this._callbacks.size) {
                 resolve();
                 return;
             }
 
             let intervalId  = null;
-            const timeoutId = window.setTimeout(() => {
+            const timeoutId = nativeMethods.setTimeout.call(window, () => {
                 nativeMethods.clearInterval.call(window, intervalId);
                 resolve();
             }, timeout);
 
             intervalId = window.setInterval(() => {
-                if (!this.activeServiceMessagesCounter) {
-                    nativeMethods.clearInterval.call(window, intervalId);
-                    nativeMethods.clearTimeout.call(window, timeoutId);
-                    resolve();
-                }
+                if (this._callbacks.size)
+                    return;
+
+                nativeMethods.clearInterval.call(window, intervalId);
+                nativeMethods.clearTimeout.call(window, timeoutId);
+                resolve();
             }, SERVICE_MESSAGES_WAITING_INTERVAL);
         });
     }
 
-    asyncServiceMsg (msg): Promise<any> {
-        return new Promise((resolve, reject) => {
-            this._performRequest(msg, (err, data) => {
-                if (!err)
-                    resolve(data);
-                else if (msg.allowRejecting)
-                    reject(err);
-            });
-        });
+    asyncServiceMsg (msg: ServiceMessage): Promise<any> {
+        return this._sendMessage(msg)
+            .catch(err => msg.allowRejecting && Promise.reject(err));
     }
 
     batchUpdate (): Promise<any> {
-        const storedMessages = Transport._getStoredMessages();
+        const storedMessages = [];//Transport._getStoredMessages();
 
         if (storedMessages.length) {
             const tasks = [];
@@ -183,19 +158,19 @@ class Transport {
         return Promise.resolve();
     }
 
-    queuedAsyncServiceMsg (msg): Promise<any> {
-        if (!this.msgQueue[msg.cmd])
-            this.msgQueue[msg.cmd] = Promise.resolve();
+    queuedAsyncServiceMsg (msg: ServiceMessage): Promise<any> {
+        if (!this._msgQueue[msg.cmd])
+            this._msgQueue[msg.cmd] = Promise.resolve();
 
         const isRejectingAllowed = msg.allowRejecting;
 
         msg.allowRejecting = true;
 
-        this.msgQueue[msg.cmd] = this.msgQueue[msg.cmd]
+        this._msgQueue[msg.cmd] = this._msgQueue[msg.cmd]
             .catch(noop)
             .then(() => this.asyncServiceMsg(msg));
 
-        return this.msgQueue[msg.cmd]
+        return this._msgQueue[msg.cmd]
             .catch(err => {
                 if (isRejectingAllowed)
                     return Promise.reject(err);
@@ -205,4 +180,54 @@ class Transport {
     }
 }
 
-export default new Transport();
+// class Transport {
+//     static _shouldAddReferrer (): boolean {
+//         const frameElement = getFrameElement(window);
+//
+//         return frameElement && isIframeWithoutSrc(frameElement);
+//     }
+//
+//     static _storeMessage (msg): void {
+//         const storedMessages = Transport._getStoredMessages();
+//
+//         storedMessages.push(msg);
+//
+//         nativeMethods.winLocalStorageGetter.call(window).setItem(settings.get().sessionId, stringifyJSON(storedMessages));
+//     }
+//
+//     static _getStoredMessages (): Array<any> {
+//         const storedMessagesStr = nativeMethods.winLocalStorageGetter.call(window).getItem(settings.get().sessionId);
+//
+//         return storedMessagesStr ? parseJSON(storedMessagesStr) : [];
+//     }
+//
+//     static _removeMessageFromStore (cmd): void {
+//         const messages = Transport._getStoredMessages();
+//
+//         for (let i = 0; i < messages.length; i++) {
+//             if (messages[i].cmd === cmd) {
+//                 messages.splice(i, 1);
+//
+//                 break;
+//             }
+//         }
+//
+//         nativeMethods.winLocalStorageGetter.call(window).setItem(settings.get().sessionId, stringifyJSON(messages));
+//     }
+//
+//     batchUpdate (): Promise<any> {
+//         const storedMessages = Transport._getStoredMessages();
+//
+//         if (storedMessages.length) {
+//             const tasks = [];
+//
+//             nativeMethods.winLocalStorageGetter.call(window).removeItem(settings.get().sessionId);
+//
+//             for (const storedMessage of storedMessages)
+//                 tasks.push(this.queuedAsyncServiceMsg(storedMessage));
+//
+//             return Promise.all(tasks);
+//         }
+//         return Promise.resolve();
+//     }
+// }

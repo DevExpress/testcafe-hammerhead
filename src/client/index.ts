@@ -4,7 +4,7 @@ import Sandbox from './sandbox';
 import EventEmitter from './utils/event-emitter';
 import XhrSandbox from './sandbox/xhr';
 import settings from './settings';
-import transport from './transport';
+import Transport from './transport';
 //@ts-ignore
 import * as JSON from 'json-hammerhead';
 import * as browserUtils from './utils/browser';
@@ -46,7 +46,7 @@ class Hammerhead {
     get: Function;
     Promise: any;
     json: any;
-    transport: any;
+    transport: Transport;
     nativeMethods: any;
     shadowUI: any;
     storages: any;
@@ -105,7 +105,7 @@ class Hammerhead {
         // Modules
         this.Promise       = Promise;
         this.json          = JSON;
-        this.transport     = transport;
+        this.transport     = new Transport();
         this.nativeMethods = this.sandbox.nativeMethods;
         this.shadowUI      = this.sandbox.shadowUI;
         this.storages      = this.sandbox.storageSandbox;
@@ -230,6 +230,7 @@ class Hammerhead {
 
         this.sandbox.attach(this.win);
         this.pageNavigationWatch.start();
+        this.transport.createConnection();
     }
 }
 

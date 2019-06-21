@@ -71,7 +71,8 @@
         sessionId:             'sessionId',
         cookie:                '',
         crossDomainProxyPort:  2001,
-        forceProxySrcForImage: false
+        forceProxySrcForImage: false,
+        serviceMsgUrl:         location.protocol.replace('http', 'ws') + '//' + location.host + '/service-msg'
     });
 
     window.processDomMeth = window[INTERNAL_PROPS.processDomMethodName];

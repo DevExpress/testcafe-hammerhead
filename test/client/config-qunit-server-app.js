@@ -1,6 +1,7 @@
 var urlParser = require('url');
 var fs        = require('fs');
 var CookieJar = require('tough-cookie').CookieJar;
+var expressWs = require('express-ws');
 
 var unchangeableUrlSession = 'unchangeableUrlSession';
 var cookies                = {};
@@ -202,5 +203,25 @@ module.exports = function (app) {
 
     app.get('/destroy-connection', function (req, res) {
         res.destroy();
-    })
+    });
+
+    expressWs(app);
+
+    app.ws('/service-msg', function (ws) {
+        ws.on('message', function (msg) {
+            msg = JSON.parse(msg);
+
+            if (msg.respondWithError)
+                ws.send(JSON.stringify({ id: msg.id, err: 'Error message: An error occurred!!!' }));
+
+            else {
+                var delay = msg.delay || 0;
+
+                setTimeout(function () {
+                    if (ws.readyState === ws.OPEN)
+                        ws.send(JSON.stringify({ id: msg.id, result: msg }));
+                }, delay);
+            }
+        });
+    });
 };

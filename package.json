@@ -37,9 +37,11 @@
     "semver": "5.5.0",
     "tough-cookie": "2.3.3",
     "tunnel-agent": "0.6.0",
-    "webauth": "^1.1.0"
+    "webauth": "^1.1.0",
+    "ws": "^6.0.0"
   },
   "devDependencies": {
+    "@types/ws": "^6.0.1",
     "@babel/core": "^7.4.0",
     "@babel/plugin-proposal-class-properties": "^7.4.0",
     "@babel/plugin-transform-async-to-generator": "^7.4.0",
@@ -67,6 +69,7 @@
     "eslint-plugin-typescript": "^0.14.0",
     "express": "4.16.3",
     "express-ntlm": "2.1.5",
+    "express-ws": "^4.0.0",
     "gulp": "^4.0.0",
     "gulp-babel": "8.0.0",
     "gulp-clone": "^2.0.1",
@@ -91,8 +94,7 @@
     "tmp": "0.0.26",
     "typescript": "~3.1.1",
     "typescript-eslint-parser": "^21.0.2",
-    "webmake": "0.3.42",
-    "ws": "^5.2.0"
+    "webmake": "0.3.42"
   },
   "main": "lib/index",
   "types": "ts-defs/index.d.ts",

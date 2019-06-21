@@ -114,11 +114,11 @@ export default abstract class Session extends EventEmitter {
         cookie                   = cookie || '{{{cookie}}}';
         iframeTaskScriptTemplate = iframeTaskScriptTemplate || '{{{iframeTaskScriptTemplate}}}';
 
-        const { domain, crossDomainPort } = serverInfo;
+        const { wsOrigin, crossDomainPort } = serverInfo;
 
         return mustache.render(TASK_TEMPLATE, {
             sessionId:             this.id,
-            serviceMsgUrl:         domain + '/messaging',
+            serviceMsgUrl:         wsOrigin + '/messaging',
             forceProxySrcForImage: this.hasRequestEventListeners(),
             crossDomainPort,
             isFirstPageLoad,
