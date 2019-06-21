@@ -9,14 +9,14 @@ export function isAsarPath (fullPath: string) : boolean {
     return ASAR_ARCHIVE_PATH.test(fullPath);
 }
 
-export function getArchivePath (fullPath: string) : string {
-    const match = fullPath.match(ASAR_ARCHIVE_PATH);
+export function getArchiveName (fullName: string) : string {
+    const match = fullName.match(ASAR_ARCHIVE_PATH);
 
     return match ? match[1] : '';
 }
 
 export function extractFileToReadStream (fullPath: string) : Readable {
-    const archive       = getArchivePath(fullPath);
+    const archive       = getArchiveName(fullPath);
     const fileName      = fullPath.replace(ASAR_ARCHIVE_PATH, './');
     const extractedFile = asar.extractFile(archive, fileName);
 

@@ -5,12 +5,11 @@ import { EventEmitter } from 'events';
 import { parse } from 'url';
 import { MESSAGE, getText } from '../messages';
 import { stat, access } from '../utils/promisified-functions';
-import { isAsarPath, getArchivePath, extractFileToReadStream } from '../utils/asar';
+import { isAsarPath, getArchiveName, extractFileToReadStream } from '../utils/asar';
 
 const DISK_RE: RegExp = /^\/[A-Za-z]:/;
 
-const TARGET_IS_NOT_FILE            = 'The target of the operation is not a file';
-const ASAR_ARCHIVE_TARGET_NOT_FOUND = 'The asar archive target of the operation is not found';
+const TARGET_IS_NOT_FILE = 'The target of the operation is not a file';
 
 export default class FileRequest extends EventEmitter {
     url: string;
@@ -28,28 +27,26 @@ export default class FileRequest extends EventEmitter {
     }
 
     private _initEvents () {
-        if (this.isAsarPath) {
-            const asarArchivePath = getArchivePath(this.path);
+        const pathToCheck = this.isAsarPath ? getArchiveName(this.path) : this.path;
 
-            stat(asarArchivePath)
-                .catch(() => {
-                    throw new Error(ASAR_ARCHIVE_TARGET_NOT_FOUND);
-                })
-                .then(() => access(asarArchivePath, fs.constants.R_OK))
-                .then(() => this._onOpen())
-                .catch((err: Error) => this._onError(err));
-        }
-        else {
-            stat(this.path)
-                .then((stats: fs.Stats) => {
-                    if (!stats.isFile())
-                        throw new Error(TARGET_IS_NOT_FILE);
+        stat(pathToCheck)
+            .catch((err: Error) => {
+                if (this.isAsarPath)
+                    throw new Error(`The asar archive target ("${getArchiveName(this.url)}") of the operation is not found`);
 
-                    return access(this.path, fs.constants.R_OK);
-                })
-                .then(() => this._onOpen())
-                .catch((err: Error) => this._onError(err));
-        }
+                throw err;
+            })
+            .then((stats: fs.Stats) => {
+                if (!stats.isFile()) {
+                    throw new Error(this.isAsarPath
+                        ? `The asar archive target ("${getArchiveName(this.url)}") of the operation is not a file`
+                        : TARGET_IS_NOT_FILE);
+                }
+
+                return access(pathToCheck, fs.constants.R_OK);
+            })
+            .then(() => this._onOpen())
+            .catch((err: Error) => this._onError(err));
     }
 
     private static _getPath (proxiedUrl: string): string {

@@ -1663,7 +1663,8 @@ describe('Proxy', () => {
         });
 
         it('Should pass an error to the session if target (an "asar" archive) does not exist (GH-2033)', done => {
-            const url = getFileProtocolUrl('./data/file-in-asar-archive/non-exist-asar-archive.asar/non-exist-file.txt');
+            const url            = getFileProtocolUrl('./data/file-in-asar-archive/non-exist-asar-archive.asar/non-exist-file.txt');
+            const asarArchiveUrl = url.replace('/non-exist-file.txt', '');
 
             session.id = 'sessionId';
 
@@ -1671,7 +1672,35 @@ describe('Proxy', () => {
                 expect(err).contains([
                     'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
                     '',
-                    'The asar archive target of the operation is not found'
+                    'The asar archive target ("' + asarArchiveUrl + '") of the operation is not found'
+                ].join('\n'));
+
+                ctx.res.end();
+                done();
+                return true;
+            };
+
+            const options = {
+                url:     proxy.openSession(url, session),
+                headers: {
+                    accept: 'text/html,*/*;q=0.1'
+                }
+            };
+
+            request(options);
+        });
+
+        it('Should pass an error if target (an "asar" archive) is not a file (GH-2033)', done => {
+            const url            = getFileProtocolUrl('./data/file-in-asar-archive/directory.asar/file-in-asar-directory.txt');
+            const asarArchiveUrl = url.replace('/file-in-asar-directory.txt', '');
+
+            session.id = 'sessionId';
+
+            session.handlePageError = (ctx, err) => {
+                expect(err).contains([
+                    'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
+                    '',
+                    'The asar archive target ("' + asarArchiveUrl + '") of the operation is not a file'
                 ].join('\n'));
 
                 ctx.res.end();
