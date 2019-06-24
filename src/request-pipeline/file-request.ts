@@ -5,7 +5,7 @@ import { EventEmitter } from 'events';
 import { parse } from 'url';
 import { MESSAGE, getText } from '../messages';
 import { stat, access } from '../utils/promisified-functions';
-import { isAsarPath, getArchiveName, extractFileToReadStream } from '../utils/asar';
+import { isAsarPath, getArchivePath, extractFileToReadStream } from '../utils/asar';
 
 const DISK_RE: RegExp = /^\/[A-Za-z]:/;
 
@@ -27,19 +27,19 @@ export default class FileRequest extends EventEmitter {
     }
 
     private _initEvents () {
-        const pathToCheck = this.isAsarPath ? getArchiveName(this.path) : this.path;
+        const pathToCheck = this.isAsarPath ? getArchivePath(this.path) : this.path;
 
         stat(pathToCheck)
             .catch((err: Error) => {
                 if (this.isAsarPath)
-                    throw new Error(`The asar archive target ("${getArchiveName(this.url)}") of the operation is not found`);
+                    throw new Error(`The asar archive target ("${getArchivePath(this.url)}") of the operation is not found`);
 
                 throw err;
             })
             .then((stats: fs.Stats) => {
                 if (!stats.isFile()) {
                     throw new Error(this.isAsarPath
-                        ? `The asar archive target ("${getArchiveName(this.url)}") of the operation is not a file`
+                        ? `The asar archive target ("${getArchivePath(this.url)}") of the operation is not a file`
                         : TARGET_IS_NOT_FILE);
                 }
 
