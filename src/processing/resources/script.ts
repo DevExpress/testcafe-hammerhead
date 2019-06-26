@@ -8,7 +8,7 @@ class ScriptResourceProcessor extends ResourceProcessorBase {
     constructor () {
         super();
 
-        this.jsCache = new Lru({
+        this.jsCache = new Lru<string, string>({
             // NOTE: Max cache size is 50 MBytes.
             max: 50 * 1024 * 1024,
 

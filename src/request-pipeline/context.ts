@@ -9,9 +9,9 @@ import { parseClientSyncCookieStr } from '../utils/cookie';
 import { ParsedClientSyncCookie } from '../typings/cookie';
 import RequestFilterRule from './request-hooks/request-filter-rule';
 import IncomingMessageMock from './incoming-message-mock';
-import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
 import RequestOptions from './request-options';
 import { ParsedProxyUrl } from '../typings/url';
+import { OnResponseEventData } from '../typings/context';
 /*eslint-enable no-unused-vars*/
 import XHR_HEADERS from './xhr/headers';
 import Charset from '../processing/encoding/charset';
@@ -53,11 +53,6 @@ interface ContentInfo {
     isFileDownload: boolean;
     isNotModified: boolean;
     isRedirect: boolean;
-}
-
-interface OnResponseEventData {
-    rule: RequestFilterRule;
-    opts: ConfigureResponseEventOptions;
 }
 
 const REDIRECT_STATUS_CODES: Array<number>   = [301, 302, 303, 307, 308];
@@ -350,7 +345,7 @@ export default class RequestPipelineContext {
         const res: http.ServerResponse = <http.ServerResponse> this.res;
 
         res.writeHead(this.destRes.statusCode, headers);
-        res.addTrailers(this.destRes.trailers);
+        res.addTrailers(this.destRes.trailers as http.OutgoingHttpHeaders);
     }
 
     mockResponse () {

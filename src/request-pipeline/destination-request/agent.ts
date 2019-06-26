@@ -1,3 +1,6 @@
+/*eslint-disable no-unused-vars*/
+import RequestOptions from '../request-options';
+/*eslint-enable no-unused-vars*/
 import http from 'http';
 import https from 'https';
 import LRUCache from 'lru-cache';
@@ -53,7 +56,7 @@ function isSSLProtocolErr (err): boolean {
 
 
 // API
-export function assign (reqOpts): void {
+export function assign (reqOpts: RequestOptions): void {
     const proxy = reqOpts.proxy;
 
     if (proxy && reqOpts.protocol === 'https:') {

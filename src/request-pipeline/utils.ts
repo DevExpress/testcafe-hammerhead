@@ -3,10 +3,11 @@ import http from 'http';
 import { FileStream } from '../typings/session';
 import RequestPipelineContext from './context';
 import RequestFilterRule from './request-hooks/request-filter-rule';
+import { RequestInfo, ResponseInfo, PreparedResponseInfo } from '../session/events/info';
+import { OnResponseEventData } from '../typings/context';
 /*eslint-enable no-unused-vars*/
 import FileRequest from './file-request';
 import DestinationRequest from './destination-request';
-import { ResponseInfo, PreparedResponseInfo } from '../session/events/info';
 import promisifyStream from '../utils/promisify-stream';
 import ConfigureResponseEvent from '../session/events/configure-response-event';
 import RequestEvent from '../session/events/request-event';
@@ -60,7 +61,7 @@ export function error (ctx: RequestPipelineContext, err: string) {
         ctx.closeWithError(500, err.toString());
 }
 
-export async function callResponseEventCallbackForProcessedRequest (ctx: RequestPipelineContext, configureResponseEvent) {
+export async function callResponseEventCallbackForProcessedRequest (ctx: RequestPipelineContext, configureResponseEvent: ConfigureResponseEvent) {
     const responseInfo         = new ResponseInfo(ctx);
     const preparedResponseInfo = new PreparedResponseInfo(responseInfo, configureResponseEvent.opts);
     const responseEvent        = new ResponseEvent(configureResponseEvent._requestFilterRule, preparedResponseInfo);
@@ -68,13 +69,13 @@ export async function callResponseEventCallbackForProcessedRequest (ctx: Request
     await ctx.session.callRequestEventCallback(RequestEventNames.onResponse, configureResponseEvent._requestFilterRule, responseEvent);
 }
 
-export async function callOnRequestEventCallback (ctx: RequestPipelineContext, rule: RequestFilterRule, reqInfo) {
+export async function callOnRequestEventCallback (ctx: RequestPipelineContext, rule: RequestFilterRule, reqInfo: RequestInfo) {
     const requestEvent = new RequestEvent(ctx, rule, reqInfo);
 
     await ctx.session.callRequestEventCallback(RequestEventNames.onRequest, rule, requestEvent);
 }
 
-export async function callOnResponseEventCallbackForFailedSameOriginCheck (ctx: RequestPipelineContext, rule: RequestFilterRule, configureOpts) {
+export async function callOnResponseEventCallbackForFailedSameOriginCheck (ctx: RequestPipelineContext, rule: RequestFilterRule, configureOpts: ConfigureResponseEventOptions) {
     const responseInfo         = new ResponseInfo(ctx);
     const preparedResponseInfo = new PreparedResponseInfo(responseInfo, configureOpts);
     const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
@@ -92,7 +93,7 @@ export async function callOnConfigureResponseEventForNonProcessedRequest (ctx: R
     });
 }
 
-export async function callOnResponseEventCallbackWithBodyForNonProcessedRequest (ctx: RequestPipelineContext, onResponseEventDataWithBody) {
+export async function callOnResponseEventCallbackWithBodyForNonProcessedRequest (ctx: RequestPipelineContext, onResponseEventDataWithBody: Array<OnResponseEventData>) {
     const destResBodyCollectorStream = new PassThrough();
 
     ctx.destRes.pipe(destResBodyCollectorStream);
@@ -113,7 +114,7 @@ export async function callOnResponseEventCallbackWithBodyForNonProcessedRequest 
     });
 }
 
-export async function callOnResponseEventCallbackWithoutBodyForNonProcessedResource (ctx: RequestPipelineContext, onResponseEventDataWithoutBody) {
+export async function callOnResponseEventCallbackWithoutBodyForNonProcessedResource (ctx: RequestPipelineContext, onResponseEventDataWithoutBody: Array<OnResponseEventData>) {
     const responseInfo = new ResponseInfo(ctx);
 
     await Promise.all(onResponseEventDataWithoutBody.map(async item => {

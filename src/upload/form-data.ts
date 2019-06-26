@@ -72,7 +72,7 @@ export default class FormData {
         }
     }
 
-    parseContentTypeHeader (header: string) {
+    parseContentTypeHeader (header: string|void) {
         header = String(header);
 
         if (header.includes('multipart/form-data')) {

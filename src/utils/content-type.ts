@@ -30,7 +30,7 @@ const SCRIPT_MIMES: Array<string> = [
     'text/x-javascript'
 ];
 
-export function isPage (header: string) {
+export function isPage (header: string): boolean {
     header = header.toLowerCase();
 
     return PAGE_MIMES.some(mime => header.includes(mime));

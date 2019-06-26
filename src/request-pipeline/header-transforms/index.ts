@@ -27,7 +27,7 @@ function transformHeaders (srcHeaders, ctx, transformList, forcedTransforms) {
 }
 
 // API
-export function forRequest (ctx) {
+export function forRequest (ctx): { [name: string]: string|Array<string> } {
     return transformHeaders(ctx.req.headers, ctx, requestTransforms, forcedRequestTransforms);
 }
 

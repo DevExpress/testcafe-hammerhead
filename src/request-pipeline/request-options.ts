@@ -11,16 +11,19 @@ export default class RequestOptions {
     protocol: string;
     hostname: string;
     host: string;
-    port: string;
+    port: string|void;
     path: string;
-    method: string;
+    method: string|void;
     credentials: Credentials;
     body: Buffer;
     isXhr: boolean;
     rawHeaders: Array<string>;
-    headers: { [name: string]: string };
+    headers: { [name: string]: string|Array<string> };
     auth: string | void;
     proxy?: ExternalProxySettings;
+    agent?: any;
+    ecdhCurve?: string;
+    rejectUnauthorized?: boolean;
 
     constructor (ctx: RequestPipelineContext) {
         const bodyWithUploads = injectUpload(ctx.req.headers['content-type'], ctx.reqBody);

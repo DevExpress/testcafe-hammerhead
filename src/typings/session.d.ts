@@ -1,5 +1,6 @@
 /*eslint-disable no-unused-vars*/
 import { ReadStream } from 'fs';
+import { IncomingHttpHeaders } from 'http';
 /*eslint-enable no-unused-vars*/
 
 export interface WindowCredentials {
@@ -36,7 +37,7 @@ export interface ExternalProxySettings {
 export interface FileStream extends ReadStream {
     statusCode: number;
     trailers: object;
-    headers: { [name: string]: string };
+    headers: IncomingHttpHeaders;
 }
 
 export interface RequestEventListenerError {
