@@ -20,6 +20,7 @@ import * as contentTypeUtils from '../utils/content-type';
 import genearateUniqueId from '../utils/generate-unique-id';
 import { check as checkSameOriginPolicy } from './xhr/same-origin-policy';
 import * as headerTransforms from './header-transforms';
+import { RequestInfo } from '../session/events/info';
 
 interface DestInfo {
     url: string;
@@ -272,9 +273,17 @@ export default class RequestPipelineContext {
         };
     }
 
+    _getInjectableUserScripts () {
+        const requestInfo = new RequestInfo(this);
+
+        return this.session.injectable.userScripts
+            .filter(userScript => userScript.page.match(requestInfo))
+            .map(userScript => userScript.url);
+    }
+
     getInjectableScripts (): Array<string> {
         const taskScript = this.isIframe ? '/iframe-task.js' : '/task.js';
-        const scripts    = this.session.injectable.scripts.concat(taskScript);
+        const scripts    = [].concat(this.session.injectable.scripts, this._getInjectableUserScripts(), taskScript);
 
         return this._resolveInjectableUrls(scripts);
     }

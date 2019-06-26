@@ -14,14 +14,14 @@ export class RequestInfo {
     readonly body: string | Buffer;
     readonly sessionId: string;
 
-    constructor (ctx: RequestPipelineContext, opts) {
+    constructor (ctx: RequestPipelineContext) {
         this.requestId = ctx.requestId;
-        this.userAgent = opts.headers['user-agent'];
-        this.url       = opts.url;
-        this.method    = opts.method.toLowerCase();
+        this.userAgent = ctx.reqOpts.headers['user-agent'];
+        this.url       = ctx.reqOpts.url;
+        this.method    = ctx.reqOpts.method.toLowerCase();
         this.isAjax    = ctx.isXhr || ctx.isFetch;
-        this.headers   = opts.headers;
-        this.body      = opts.body;
+        this.headers   = ctx.reqOpts.headers;
+        this.body      = ctx.reqOpts.body;
         this.sessionId = ctx.session.id;
     }
 }

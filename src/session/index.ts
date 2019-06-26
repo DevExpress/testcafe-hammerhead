@@ -29,9 +29,15 @@ import generateUniqueId from '../utils/generate-unique-id';
 
 const TASK_TEMPLATE: string = read('../client/task.js.mustache');
 
+interface UserScript {
+    url: string,
+    page: RequestFilterRule;
+}
+
 interface InjectableResources {
     scripts: Array<string>,
-    styles: Array<string>
+    styles: Array<string>,
+    userScripts: Array<UserScript>
 }
 
 interface RequestEventListeners {
@@ -70,7 +76,7 @@ export default abstract class Session extends EventEmitter {
     externalProxySettings: ExternalProxySettings | null = null;
     pageLoadCount: number = 0;
     pendingStateSnapshot: StateSnapshot | null = null;
-    injectable: InjectableResources = { scripts: ['/hammerhead.js'], styles: [] };
+    injectable: InjectableResources = { scripts: ['/hammerhead.js'], styles: [], userScripts: [] };
     requestEventListeners: Map<RequestFilterRule, RequestEventListenersData> = new Map();
     mocks: Map<RequestFilterRule, ResponseMock> = new Map();
 
