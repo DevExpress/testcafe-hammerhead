@@ -32,8 +32,9 @@ export default class FileRequest extends EventEmitter {
             .then((stats: fs.Stats) => {
                 if (!stats.isFile())
                     throw new Error(TARGET_IS_NOT_FILE);
+
+                return access(this.path, fs.constants.R_OK);
             })
-            .then(() => access(this.path, fs.constants.R_OK))
             .then(() => this._onOpen())
             .catch((err: Error) => {
                 const asarArchivePath = getParentAsarArchivePath(this.path);
