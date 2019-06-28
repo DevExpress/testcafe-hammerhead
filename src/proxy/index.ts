@@ -10,7 +10,7 @@ import https from 'https';
 import * as urlUtils from '../utils/url';
 // @ts-ignore
 import { readSync as read } from 'read-file-relative';
-import { respond500, respondWithJSON, fetchBody, addPreventCachingHeaders } from '../utils/http';
+import { respond500, addPreventCachingHeaders } from '../utils/http';
 import { run as runRequestPipeline } from '../request-pipeline';
 import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
 import { resetKeepAliveConnections } from '../request-pipeline/destination-request/agent';

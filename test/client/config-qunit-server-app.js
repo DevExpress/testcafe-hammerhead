@@ -205,9 +205,13 @@ module.exports = function (app) {
         res.destroy();
     });
 
+    console.log('qunit-harness version = ', require('qunit-harness/package.json').version);
+
     expressWs(app);
 
     app.ws('/service-msg', function (ws) {
+        console.log('/service-msg request');
+
         ws.on('message', function (msg) {
             msg = JSON.parse(msg);
 
