@@ -5,7 +5,7 @@ import { EventEmitter } from 'events';
 import { parse } from 'url';
 import { MESSAGE, getText } from '../messages';
 import { stat, access } from '../utils/promisified-functions';
-import { isAsarPath, getArchivePath, extractFileToReadStream } from '../utils/asar';
+import { getParentAsarArchivePath, extractFileToReadStream } from '../utils/asar';
 
 const DISK_RE: RegExp = /^\/[A-Za-z]:/;
 
@@ -15,38 +15,47 @@ export default class FileRequest extends EventEmitter {
     url: string;
     path: string;
     isAsarPath: boolean;
+    asarArchivePath: string;
 
     constructor (url: string) {
         super();
 
         this.url        = url;
         this.path       = FileRequest._getPath(url);
-        this.isAsarPath = isAsarPath(this.path);
+        this.isAsarPath = false;
 
         this._initEvents();
     }
 
     private _initEvents () {
-        const pathToCheck = this.isAsarPath ? getArchivePath(this.path) : this.path;
-
-        stat(pathToCheck)
-            .catch((err: Error) => {
-                if (this.isAsarPath)
-                    throw new Error(`The asar archive target ("${getArchivePath(this.url)}") of the operation is not found`);
-
-                throw err;
-            })
+        stat(this.path)
             .then((stats: fs.Stats) => {
-                if (!stats.isFile()) {
-                    throw new Error(this.isAsarPath
-                        ? `The asar archive target ("${getArchivePath(this.url)}") of the operation is not a file`
-                        : TARGET_IS_NOT_FILE);
+                if (!stats.isFile())
+                    throw new Error(TARGET_IS_NOT_FILE);
+            })
+            .then(() => access(this.path, fs.constants.R_OK))
+            .then(() => this._onOpen())
+            .catch((err: Error) => {
+                const asarArchivePath = getParentAsarArchivePath(this.path);
+
+                if (asarArchivePath) {
+                    this.isAsarPath      = true;
+                    this.asarArchivePath = asarArchivePath;
+
+                    return access(this.asarArchivePath, fs.constants.R_OK)
+                        .then(() => this._onOpen());
                 }
 
-                return access(pathToCheck, fs.constants.R_OK);
+                return this._onError(err);
             })
-            .then(() => this._onOpen())
-            .catch((err: Error) => this._onError(err));
+            .catch((err: Error) => {
+                const fileName  = this.path.replace(this.asarArchivePath, '');
+                const arhiveUrl = this.url.replace(fileName, '');
+
+                err.message = 'The target file (".' + fileName + '") in asar archive ("' + arhiveUrl + '") is not found';
+
+                return this._onError(err);
+            });
     }
 
     private static _getPath (proxiedUrl: string): string {
@@ -65,9 +74,15 @@ export default class FileRequest extends EventEmitter {
     }
 
     private _onOpen () {
-        let stream = this.isAsarPath
-            ? extractFileToReadStream(this.path)
-            : fs.createReadStream(this.path);
+        let stream;
+
+        if (this.isAsarPath) {
+            const fileName = this.path.replace(this.asarArchivePath, '.');
+
+            stream = extractFileToReadStream(this.asarArchivePath, fileName);
+        }
+        else
+            stream = fs.createReadStream(this.path);
 
         stream = Object.assign(stream, {
             statusCode: 200,
