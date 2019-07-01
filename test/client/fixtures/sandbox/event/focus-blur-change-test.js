@@ -989,6 +989,41 @@ test('label.htmlFor', function () {
         });
 });
 
+test('label.htmlFor with tabIndex', function () {
+    var label   = document.createElement('label');
+    var input   = document.createElement('input');
+    var focused = false;
+
+    var handler  = function () {
+        focused = true;
+    };
+
+    label.id = 'testLabel';
+    input.id = 'testInput';
+
+    label.addEventListener('focus', handler);
+
+    document.body.appendChild(label);
+    document.body.appendChild(input);
+
+    var focusLabel = function () {
+        return new Promise(function (resolve) {
+            focusBlur.focus(label, resolve);
+        });
+    };
+
+    label.htmlFor  = 'testInput';
+    label.tabIndex = 1;
+
+    return focusLabel()
+        .then(function () {
+            strictEqual(focused, true);
+
+            label.parentNode.removeChild(label);
+            input.parentNode.removeChild(input);
+        });
+});
+
 module('regression');
 
 test('querySelector must return active element even when browser is not focused (T285078)', function () {
