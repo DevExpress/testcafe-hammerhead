@@ -6,7 +6,7 @@ import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/sam
 
 export class RequestInfo {
     readonly requestId: string;
-    readonly userAgent: string | void;
+    readonly userAgent: string;
     readonly url: string;
     readonly method: string;
     readonly isAjax: boolean;

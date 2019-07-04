@@ -13,12 +13,12 @@ export default class RequestOptions {
     host: string;
     port: string|void;
     path: string;
-    method: string|void;
+    method: string;
     credentials: Credentials;
     body: Buffer;
     isXhr: boolean;
     rawHeaders: Array<string>;
-    headers: { [name: string]: string|Array<string> };
+    headers: { [name: string]: string };
     auth: string | void;
     proxy?: ExternalProxySettings;
     agent?: any;
