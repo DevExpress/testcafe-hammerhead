@@ -62,6 +62,15 @@ import settings from '../../settings';
 import DefaultTarget from '../child-window/default-target';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
+const INSTRUCTION_VALUES    = (() => {
+    const values = [];
+    const keys   = nativeMethods.objectKeys(INSTRUCTION);
+
+    for (const key of keys)
+        values.push(INSTRUCTION[key]);
+
+    return values;
+})();
 
 const HTTP_PROTOCOL_RE = /^http/i;
 
@@ -569,6 +578,8 @@ export default class WindowSandbox extends SandboxBase {
                     handler.get = function (getterTarget, name, receiver) {
                         if (name === IS_PROXY_OBJECT_INTERNAL_PROP_NAME)
                             return IS_PROXY_OBJECT_INTERNAL_PROP_VALUE;
+                        else if (INSTRUCTION_VALUES.indexOf(name) > -1)
+                            return window[name];
 
                         return storedGet.call(this, getterTarget, name, receiver);
                     };
