@@ -1,5 +1,3 @@
-'use strict';
-
 const fs                  = require('fs');
 const request             = require('request-promise-native');
 const expect              = require('chai').expect;

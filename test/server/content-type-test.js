@@ -1,5 +1,3 @@
-'use strict';
-
 const contentTypeUtils = require('../../lib/utils/content-type');
 const expect           = require('chai').expect;
 

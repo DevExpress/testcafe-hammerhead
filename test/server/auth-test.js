@@ -1,5 +1,3 @@
-'use strict';
-
 const expect       = require('chai').expect;
 const express      = require('express');
 const ntlm         = require('express-ntlm');

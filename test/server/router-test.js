@@ -1,11 +1,9 @@
-'use strict';
+const { expect } = require('chai');
+const Router     = require('../../lib/proxy/router');
+const md5        = require('crypto-md5');
+const { noop }   = require('lodash');
 
-const expect = require('chai').expect;
-const Router = require('../../lib/proxy/router');
-const md5    = require('crypto-md5');
-const noop   = require('lodash').noop;
-
-describe('Router', () => {
+describe.only('Router', () => {
     it('Should route requests', () => {
         const router        = new Router();
         let calledHandlerId = null;
@@ -214,5 +212,30 @@ describe('Router', () => {
 
         expect(resMock.statusCode).eql(304);
         expect(resMock.content).to.be.empty;
+    });
+
+    it('Should unregister routes', () => {
+        const router        = new Router();
+        let calledHandlerId = null;
+
+        router.GET('/yo/42/test/', () => {
+            calledHandlerId = 'getWithoutParams';
+        });
+
+        router.GET('/yo/1/{param1}', () => {
+            calledHandlerId = 'getWithParams';
+        });
+
+        expect(router._route({ url: '/yo/42/test/', method: 'GET' })).to.be.true;
+        expect(calledHandlerId).eql('getWithoutParams');
+
+        expect(router._route({ url: '/yo/1/42', method: 'GET' })).to.be.true;
+        expect(calledHandlerId).eql('getWithParams');
+
+        router.unRegisterRoute('/yo/42/test/', 'GET');
+        expect(router._route({ url: '/yo/42/test/', method: 'GET' })).to.be.false;
+
+        router.unRegisterRoute('/yo/1/{param1}', 'GET');
+        expect(router._route({ url: '/yo/1/42', method: 'GET' })).to.be.false;
     });
 });

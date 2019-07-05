@@ -6,6 +6,7 @@ import { StaticContent, ServerInfo } from '../typings/proxy';
 /*eslint-enable no-unused-vars*/
 import md5 from 'crypto-md5';
 import { getPathname } from '../utils/url';
+import { isEqual } from 'lodash';
 
 const PARAM_RE: RegExp = /^{(\S+)}$/;
 
@@ -40,10 +41,8 @@ export default abstract class Router {
         const tokens            = route.split('/');
         const isRouteWithParams = tokens.some(token => PARAM_RE.test(token));
 
-        if (isRouteWithParams) {
-            if (typeof handler === 'function')
-                this._registerRouteWithParams(tokens, method, handler);
-        }
+        if (isRouteWithParams && typeof handler === 'function')
+            this._registerRouteWithParams(tokens, method, handler);
         else {
             const routeName = `${method} ${route}`;
 
@@ -59,7 +58,7 @@ export default abstract class Router {
         }
     }
 
-    _registerRouteWithParams (tokens: Array<string>, method: string, handler: Function) {
+    _prepareParamInfo (tokens: Array<string>, method: string) {
         const paramNames = [];
         const reParts    = tokens.map(token => {
             const paramMatch = token.match(PARAM_RE);
@@ -72,7 +71,27 @@ export default abstract class Router {
             return token;
         });
 
-        this.routesWithParams.push({ handler, paramNames, re: new RegExp(`^${method} ${reParts.join('/')}$`) });
+        return {
+            paramNames,
+            re: new RegExp(`^${method} ${reParts.join('/')}$`)
+        };
+    }
+
+    _registerRouteWithParams (tokens: Array<string>, method: string, handler: Function) {
+        const { paramNames, re } = this._prepareParamInfo(tokens, method);
+
+        this.routesWithParams.push({ handler, paramNames, re });
+    }
+
+    _unregisterRouteWithParams (tokens: Array<string>, method: string) {
+        const { paramNames, re } = this._prepareParamInfo(tokens, method);
+
+        const routeIndex = this.routesWithParams.findIndex(routeWithParam => {
+            return isEqual(routeWithParam.re, re) && isEqual(routeWithParam.paramNames, paramNames);
+        });
+
+        if (routeIndex !== -1)
+            this.routesWithParams.splice(routeIndex, 1);
     }
 
     _route (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo): boolean {
@@ -113,5 +132,17 @@ export default abstract class Router {
 
     POST (route: string, handler: StaticContent | Function) {
         this._registerRoute(route, 'POST', handler);
+    }
+
+    unRegisterRoute (route: string, method: string) {
+        const tokens            = route.split('/');
+        const isRouteWithParams = tokens.some(token => PARAM_RE.test(token));
+
+        if (isRouteWithParams)
+            return this._unregisterRouteWithParams(tokens, method);
+
+        const routeName = `${method} ${route}`;
+
+        return this.routes.delete(routeName);
     }
 }

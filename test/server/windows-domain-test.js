@@ -1,5 +1,3 @@
-'use strict';
-
 const OS            = require('os-family');
 const expect        = require('chai').expect;
 const windowsDomain = require('../../lib/request-pipeline/destination-request/windows-domain');
