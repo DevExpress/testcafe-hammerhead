@@ -3095,22 +3095,34 @@ describe('Proxy', () => {
                     expectedPort: '443443'
                 }
             ];
-            const req                    = {
+            const req = {
                 headers: {
                     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
                 }
             };
-            const requestPipelineContext = new RequestPipelineContext(req, {}, {});
+            const ctx = new RequestPipelineContext(req, {}, {});
 
-            for (let i = 0; i < testCases.length; i++) {
-                requestPipelineContext.req.url = proxy.openSession(testCases[i].url, session);
-                if (testCases[i].referer)
-                    requestPipelineContext.req.headers.referer = proxy.openSession(testCases[i].referer, session);
+            proxy.openSession('about:blank', session);
 
-                requestPipelineContext.dispatch(proxy.openSessions);
+            for (const testCase of testCases) {
+                ctx.req.url = urlUtils.getProxyUrl(testCase.url, {
+                    proxyHostname: '127.0.0.1',
+                    proxyPort:     1836,
+                    sessionId:     session.id,
+                });
 
-                expect(requestPipelineContext.dest.host).eql(testCases[i].expectedHost);
-                expect(requestPipelineContext.dest.port).eql(testCases[i].expectedPort);
+                if (testCase.referer) {
+                    ctx.req.headers.referer = urlUtils.getProxyUrl(testCase.referer, {
+                        proxyHostname: '127.0.0.1',
+                        proxyPort:     1836,
+                        sessionId:     session.id,
+                    });
+                }
+
+                ctx.dispatch(proxy.openSessions);
+
+                expect(ctx.dest.host).eql(testCase.expectedHost);
+                expect(ctx.dest.port).eql(testCase.expectedPort);
             }
         });
 

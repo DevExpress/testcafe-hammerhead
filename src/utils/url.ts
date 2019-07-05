@@ -202,7 +202,7 @@ export function parseProxyUrl (proxyUrl: string): ParsedProxyUrl | null {
     if (!isSpecialPage(destUrlWithoutHash) && !SUPPORTED_PROTOCOL_RE.test(destUrl))
         return null;
 
-    const destResourceInfo = !isSpecialPage(destUrlWithoutHash) ? parseUrl(destUrl) : {
+    const destResourceInfo = !isSpecialPage(destUrlWithoutHash) ? parseUrl(omitDefaultPort(destUrl)) : {
         protocol:      'about:',
         host:          '',
         hostname:      '',
