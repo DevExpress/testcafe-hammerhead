@@ -145,12 +145,13 @@ test('non-processed attributes', function () {
 
 //http://www.w3.org/TR/css3-selectors/#attribute-selectors
 test('attrubute types', function () {
-    var link = document.createElement('a');
-    var div  = document.createElement('div');
+    var anchor = document.createElement('a');
+    var div    = document.createElement('div');
 
-    link.setAttribute('href', 'http://some.domain.com');
+    anchor.setAttribute('href', 'http://some.domain.com');
+    anchor.setAttribute('action', 'edit');
     div.className = 'container';
-    div.appendChild(link);
+    div.appendChild(anchor);
 
     document.body.appendChild(div);
 
@@ -159,6 +160,7 @@ test('attrubute types', function () {
 
     // [attribute=value]
     ok(document.querySelector('[href="http://some.domain.com"]'));
+    ok(document.querySelector('[action=edit]'));
 
     // [attribute~=value] - whitespace-separated values
     // Proxied attributes don't contain whitespace-separated values
@@ -174,7 +176,7 @@ test('attrubute types', function () {
 
     // [attribute*=value] - contains value
     ok(document.querySelector('[href*=domain]'));
-    link.parentNode.removeChild(link);
+    anchor.parentNode.removeChild(anchor);
 });
 
 test('document, documentFragment, element', function () {
