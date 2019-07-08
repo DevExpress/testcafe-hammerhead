@@ -7,6 +7,7 @@ import getStorageKey from '../../../utils/get-storage-key';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import * as JSON from 'json-hammerhead';
 import { createOverriddenDescriptor } from '../../utils/property-overriding';
+import hammerhead from '../../index';
 
 export default class StorageSandbox extends SandboxBase {
     localStorageWrapper: any;
@@ -65,6 +66,13 @@ export default class StorageSandbox extends SandboxBase {
             this.sessionStorageWrapper = new StorageWrapper(this.window, this.nativeMethods.winSessionStorageGetter.call(this.window), storageKey);
 
             this.unloadSandbox.on(this.unloadSandbox.BEFORE_UNLOAD_EVENT, () => {
+                if (!this.isLocked) {
+                    this.localStorageWrapper.saveToNativeStorage();
+                    this.sessionStorageWrapper.saveToNativeStorage();
+                }
+            });
+
+            hammerhead.pageNavigationWatch.on(hammerhead.pageNavigationWatch.PAGE_NAVIGATION_TRIGGERED_EVENT, () => {
                 if (!this.isLocked) {
                     this.localStorageWrapper.saveToNativeStorage();
                     this.sessionStorageWrapper.saveToNativeStorage();
