@@ -1663,9 +1663,9 @@ describe('Proxy', () => {
         });
 
         it('Should pass an error to the session if target (a file in an "asar" archive) does not exist (GH-2033)', done => {
-            const url        = getFileProtocolUrl('./data/file-in-asar-archive/directory-looks-like-archive.asar/app.asar/non-exist-file.txt');
-            const archiveUrl = url.replace('/non-exist-file.txt', '');
-            const fileName   = './non-exist-file.txt';
+            const url      = getFileProtocolUrl('./data/file-in-asar-archive/directory-looks-like-archive.asar/app.asar/non-exist-file.txt');
+            const archive  = path.resolve(__dirname, './data/file-in-asar-archive/directory-looks-like-archive.asar/app.asar').replace(/\\/g, '/');
+            const fileName = './non-exist-file.txt';
 
             session.id = 'sessionId';
 
@@ -1673,7 +1673,7 @@ describe('Proxy', () => {
                 expect(err).contains([
                     'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
                     '',
-                    'The target file ("' + fileName + '") in asar archive ("' + archiveUrl + '") is not found'
+                    'The target file ("' + fileName + '") in asar archive ("' + archive + '") is not found'
                 ].join('\n'));
 
                 ctx.res.end();
