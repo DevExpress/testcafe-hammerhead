@@ -383,3 +383,21 @@ test("should work with keys named as wrapper's internal members (GH-735)", funct
         strictEqual(sessionStorage.getItem(method), 'test');
     });
 });
+
+test('localStorage should be saved after location.replace (GH-1999)', function () {
+    var event = null;
+
+    window.addEventListener('message', function (e) {
+        event = e;
+    });
+
+    return createTestIframe({ src: getCrossDomainPageUrl('../../data/storages/location-replace.html') })
+        .then(function () {
+            return window.QUnitGlobals.wait(function () {
+                return event !== null;
+            });
+        })
+        .then(function () {
+            strictEqual(event.data, 'data');
+        });
+});

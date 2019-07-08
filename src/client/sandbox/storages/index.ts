@@ -7,6 +7,7 @@ import getStorageKey from '../../../utils/get-storage-key';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import * as JSON from 'json-hammerhead';
 import { createOverriddenDescriptor } from '../../utils/property-overriding';
+import hammerhead from '../../index';
 
 export default class StorageSandbox extends SandboxBase {
     localStorageWrapper: any;
@@ -64,12 +65,18 @@ export default class StorageSandbox extends SandboxBase {
             // @ts-ignore
             this.sessionStorageWrapper = new StorageWrapper(this.window, this.nativeMethods.winSessionStorageGetter.call(this.window), storageKey);
 
-            this.unloadSandbox.on(this.unloadSandbox.BEFORE_UNLOAD_EVENT, () => {
+            const saveToNativeStorages = () => {
                 if (!this.isLocked) {
                     this.localStorageWrapper.saveToNativeStorage();
                     this.sessionStorageWrapper.saveToNativeStorage();
                 }
-            });
+            };
+
+            this.unloadSandbox.on(this.unloadSandbox.BEFORE_UNLOAD_EVENT, saveToNativeStorages);
+            // NOTE: In some case, a browser does not emit the onBeforeUnload event and we need manually watch navigation (GH-1999).
+            // Also, on iOS devices, we realize the BEFORE_UNLOAD_EVENT through the onPageHide event that browser emits too late
+            // and we do not have time to save the localStorage wrapper to the native localStorage (GH-1507).
+            hammerhead.pageNavigationWatch.on(hammerhead.pageNavigationWatch.PAGE_NAVIGATION_TRIGGERED_EVENT, saveToNativeStorages);
 
             // NOTE: Push to the top same-domain sandbox.
             topSameDomainStorages[storageKey] = {
