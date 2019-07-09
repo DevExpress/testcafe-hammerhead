@@ -3,7 +3,7 @@ const Router     = require('../../lib/proxy/router');
 const md5        = require('crypto-md5');
 const { noop }   = require('lodash');
 
-describe.only('Router', () => {
+describe('Router', () => {
     it('Should route requests', () => {
         const router        = new Router();
         let calledHandlerId = null;

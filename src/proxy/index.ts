@@ -13,6 +13,7 @@ import { respond500, respondWithJSON, fetchBody, preventCaching } from '../utils
 import { run as runRequestPipeline } from '../request-pipeline';
 import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
 import { resetKeepAliveConnections } from '../request-pipeline/destination-request/agent';
+import SERVICE_ROUTES from './service-routes';
 
 const SESSION_IS_NOT_OPENED_ERR: string = 'Session is not opened in proxy';
 
@@ -93,14 +94,14 @@ export default class Proxy extends Router {
         const hammerheadFileName      = developmentMode ? 'hammerhead.js' : 'hammerhead.min.js';
         const hammerheadScriptContent = <Buffer>read(`../client/${hammerheadFileName}`);
 
-        this.GET('/hammerhead.js', {
+        this.GET(SERVICE_ROUTES.hammerhead, {
             contentType: 'application/x-javascript',
             content:     hammerheadScriptContent
         });
 
-        this.POST('/messaging', (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onServiceMessage(req, res, serverInfo));
-        this.GET('/task.js', (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onTaskScriptRequest(req, res, serverInfo, false));
-        this.GET('/iframe-task.js', (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onTaskScriptRequest(req, res, serverInfo, true));
+        this.POST(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onServiceMessage(req, res, serverInfo));
+        this.GET(SERVICE_ROUTES.task, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onTaskScriptRequest(req, res, serverInfo, false));
+        this.GET(SERVICE_ROUTES.iframeTask, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onTaskScriptRequest(req, res, serverInfo, true));
     }
 
     async _onServiceMessage (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) {
