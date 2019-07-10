@@ -52,7 +52,7 @@ const stages = [
     },
 
     async function fetchProxyRequestBody (ctx: RequestPipelineContext) {
-        if (ctx.isPage && !ctx.isIframe && !ctx.isHtmlImport)
+        if (ctx.isHTMLPage)
             ctx.session.onPageRequest(ctx);
 
         ctx.reqBody = await fetchBody(ctx.req);

@@ -639,6 +639,28 @@ describe('Proxy', () => {
 
             return Promise.all(specialPageProxyUrls.map(testSpecialPageRequest));
         });
+
+        it('Should append to response prevent caching headers', () => {
+            session.disablePageCaching = true;
+
+            const options = {
+                headers: {
+                    referer: proxy.openSession('http://example.com', session),
+                    accept:  'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                },
+
+                url:                     proxy.openSession('http://127.0.0.1:2000/page/', session),
+                resolveWithFullResponse: true
+            };
+
+            return request(options)
+                .then(res => {
+                    expect(res.headers['cache-control']).eql('no-cache, no-store, must-revalidate');
+                    expect(res.headers['pragma']).eql('no-cache');
+
+                    session.disablePageCaching = false;
+                });
+        });
     });
 
     describe('Cookies', () => {

@@ -79,6 +79,7 @@ export default abstract class Session extends EventEmitter {
     injectable: InjectableResources = { scripts: ['/hammerhead.js'], styles: [], userScripts: [] };
     requestEventListeners: Map<RequestFilterRule, RequestEventListenersData> = new Map();
     mocks: Map<RequestFilterRule, ResponseMock> = new Map();
+    disablePageCaching:boolean = false;
 
     protected constructor (uploadsRoot: string) {
         super();
