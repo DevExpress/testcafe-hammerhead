@@ -1,8 +1,9 @@
-// @ts-ignore
+// NOTE: There is no @types/asar
+// @ts-ignore: Could not find a declaration file for module 'asar'
 import asar from 'asar';
 import { toReadableStream } from './buffer';
 import path from 'path';
-import fs from 'fs';
+import { stat } from './promisified-functions';
 /*eslint-disable no-unused-vars*/
 import { Readable } from 'stream';
 /*eslint-enable no-unused-vars*/
@@ -15,41 +16,30 @@ interface ParsedPath {
 const ASAR_EXTNAME: string = '.asar';
 
 export default class Asar {
-    private static _instance: Asar = new Asar();
-
     private _archivePaths: Array<string> = [];
-
-    constructor () {
-        if (Asar._instance)
-            throw new Error('Error: Instantiation failed: Use Asar.getInstance() instead of new.');
-
-        Asar._instance = this;
-    }
-
-    static getInstance () : Asar {
-        return Asar._instance;
-    }
 
     private _addPath (asarPath: string) {
         if (this._archivePaths.indexOf(asarPath) === -1)
             this._archivePaths.push(asarPath);
     }
 
-    private _findArchivePath (fullPath: string) : string {
+    private static async _isFile (fullPath: string) : Promise<boolean> {
+        try {
+            const stats = await stat(fullPath);
+
+            return stats.isFile();
+        }
+        catch (e) {
+            return false;
+        }
+    }
+
+    private async _findArchivePath (fullPath: string) : Promise<string> {
         let currentPath = fullPath;
         let currentDir  = path.dirname(currentPath);
 
         while (currentPath !== currentDir) {
-            let isFile = false;
-
-            try {
-                isFile = fs.statSync(currentPath).isFile();
-            }
-            // eslint-disable-next-line no-empty
-            catch (e) {
-            }
-
-            if (isFile && path.extname(currentPath) === ASAR_EXTNAME)
+            if (await Asar._isFile(currentPath) && path.extname(currentPath) === ASAR_EXTNAME)
                 return currentPath;
 
             currentPath = path.dirname(currentPath);
@@ -75,13 +65,13 @@ export default class Asar {
         return { archive, fileName };
     }
 
-    isAsar (fullPath: string) : boolean {
+    async isAsar (fullPath: string) : Promise<boolean> {
         for (const archivePath of this._archivePaths) {
             if (fullPath.startsWith(archivePath))
                 return true;
         }
 
-        const archivePath = this._findArchivePath(fullPath);
+        const archivePath = await this._findArchivePath(fullPath);
 
         if (archivePath) {
             this._addPath(archivePath);

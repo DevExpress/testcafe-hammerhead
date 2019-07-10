@@ -11,7 +11,7 @@ const DISK_RE: RegExp = /^\/[A-Za-z]:/;
 
 const TARGET_IS_NOT_FILE: string = 'The target of the operation is not a file';
 
-const asar = Asar.getInstance();
+const asar = new Asar();
 
 export default class FileRequest extends EventEmitter {
     private _url: string;
@@ -36,8 +36,8 @@ export default class FileRequest extends EventEmitter {
                 return access(this._path, fs.constants.R_OK);
             })
             .then(() => this._onOpen())
-            .catch((err: Error) => {
-                if (asar.isAsar(this._path)) {
+            .catch(async (err: Error) => {
+                if (await asar.isAsar(this._path)) {
                     this._isAsar = true;
 
                     const asarArchivePath = asar.getArchivePath(this._path);
