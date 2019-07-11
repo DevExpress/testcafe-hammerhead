@@ -5,6 +5,8 @@ import nanoIdAlphabet from 'nanoid/url';
 
 const UNIQUE_ID_ALPHABET: string = nanoIdAlphabet.replace(/-|~/g, '');
 
-export default function (): string {
-    return nanoIdGenerate(UNIQUE_ID_ALPHABET, 9);
+const DEFAULT_ID_LENGTH = 9;
+
+export default function (length?: number): string {
+    return nanoIdGenerate(UNIQUE_ID_ALPHABET, length || DEFAULT_ID_LENGTH);
 }
