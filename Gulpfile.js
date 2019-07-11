@@ -54,7 +54,8 @@ const CLIENT_TESTS_BROWSERS = [
     },
     {
         platform:    'Windows 10',
-        browserName: 'firefox'
+        browserName: 'firefox',
+        version:     '67'
     },
     {
         platform:    'Windows 10',
@@ -85,7 +86,8 @@ const CLIENT_TESTS_BROWSERS = [
     },
     {
         browserName: 'firefox',
-        platform:    'OS X 10.11'
+        platform:    'OS X 10.11',
+        version:     '67'
     }
 ];
 
