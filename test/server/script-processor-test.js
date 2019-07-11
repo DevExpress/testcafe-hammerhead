@@ -377,14 +377,14 @@ describe('Script processor', () => {
                 src:      'obj.{0}+=obj.{0}+value',
                 expected: '__set$(obj,"{0}",__get$(obj, "{0}")+(__get$(obj, "{0}")+value))'
             },
-            { src: 'obj.{0}.field+=value', expected: '__get$(obj, "{0}").field = __get$(obj, "{0}").field + value' },
+            { src: 'obj.{0}.field+=value', expected: '__get$(obj,"{0}").field +=value' },
             {
                 src:      'obj.{0}[field]+=value',
                 expected: '__set$(__get$(obj,"{0}"),field,__get$(__get$(obj,"{0}"), field) + value)'
             },
             {
                 src:      'obj.{0}["field"]+=value',
-                expected: '__get$(obj,"{0}")["field"]=__get$(obj,"{0}")["field"] + value'
+                expected: '__get$(obj,"{0}")["field"]+=value'
             },
             {
                 src:      'obj.{0}["href"]+=value',
