@@ -29,6 +29,7 @@ const scriptHeader                         = require('../../lib/processing/scrip
 const resourceProcessor                    = require('../../lib/processing/resources/');
 const gzip                                 = require('../../lib/utils/promisified-functions').gzip;
 const urlUtils                             = require('../../lib/utils/url');
+const Asar                                 = require('../../lib/utils/asar');
 
 const EMPTY_PAGE_MARKUP = '<html></html>';
 const TEST_OBJ          = {
@@ -1706,6 +1707,35 @@ describe('Proxy', () => {
             return request(options)
                 .then(body => {
                     expect(body).eql('asar archive: src.txt');
+                });
+        });
+    });
+
+    describe('Asar', () => {
+        it('isAsar (GH-2033)', () => {
+            const asar = new Asar();
+
+            const filePath            = path.resolve(__dirname, './data/file-in-asar-archive/directory-looks-like-archive.asar/app.asar/src.txt').replace(/\\/g, '/');
+            const expectedArchivePath = filePath.replace('/src.txt', '');
+
+            const nonExistPath        = path.resolve(__dirname, './data/file-in-asar-archive/directory-looks-like-archive.asar/non-exist-app.asar/non-exist-file.txt').replace(/\\/g, '/');
+            const nonExistArchivePath = nonExistPath.replace('/non-exist-file.txt', '');
+
+            asar._archivePaths.add(nonExistArchivePath);
+
+            expect(asar._archivePaths.size).eql(1);
+
+            return asar.isAsar(nonExistPath)
+                .then(result => {
+                    expect(result).eql(false);
+                    expect(asar._archivePaths.size).eql(0);
+
+                    return asar.isAsar(filePath);
+                })
+                .then(result => {
+                    expect(result).eql(true);
+                    expect(asar._archivePaths.size).eql(1);
+                    expect(asar._archivePaths.has(expectedArchivePath)).eql(true);
                 });
         });
     });

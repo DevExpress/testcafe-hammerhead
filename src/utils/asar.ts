@@ -16,18 +16,13 @@ interface ParsedPath {
 const ASAR_EXTNAME: string = '.asar';
 
 export default class Asar {
-    private _archivePaths: Array<string> = [];
+    private _archivePaths: Set<string> = new Set<string>();
 
-    private _addPath (asarPath: string) {
-        if (this._archivePaths.indexOf(asarPath) === -1)
-            this._archivePaths.push(asarPath);
-    }
-
-    private static async _isFile (fullPath: string) : Promise<boolean> {
+    private static async _isAsarArchive (archivePath: string) : Promise<boolean> {
         try {
-            const stats = await stat(fullPath);
+            const stats = await stat(archivePath);
 
-            return stats.isFile();
+            return stats.isFile() && path.extname(archivePath) === ASAR_EXTNAME;
         }
         catch (e) {
             return false;
@@ -39,7 +34,7 @@ export default class Asar {
         let currentDir  = path.dirname(currentPath);
 
         while (currentPath !== currentDir) {
-            if (await Asar._isFile(currentPath) && path.extname(currentPath) === ASAR_EXTNAME)
+            if (await Asar._isAsarArchive(currentPath))
                 return currentPath;
 
             currentPath = path.dirname(currentPath);
@@ -67,14 +62,21 @@ export default class Asar {
 
     async isAsar (fullPath: string) : Promise<boolean> {
         for (const archivePath of this._archivePaths) {
-            if (fullPath.startsWith(archivePath))
+            if (fullPath.startsWith(archivePath)) {
+                if (!await Asar._isAsarArchive(archivePath)) {
+                    this._archivePaths.delete(archivePath);
+
+                    break;
+                }
+
                 return true;
+            }
         }
 
         const archivePath = await this._findArchivePath(fullPath);
 
         if (archivePath) {
-            this._addPath(archivePath);
+            this._archivePaths.add(archivePath);
 
             return true;
         }
