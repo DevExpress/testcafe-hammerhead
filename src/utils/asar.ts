@@ -94,7 +94,7 @@ export default class Asar {
     getFileInAsarNotFoundMessage (fullPath: string) : string {
         const parsedAsarPath = this._parse(fullPath);
 
-        return 'The target file ("' + parsedAsarPath.fileName + '") in asar archive ("' + parsedAsarPath.archive + '") is not found';
+        return `The target file ("${parsedAsarPath.fileName}") in the "asar" archive ("${parsedAsarPath.archive}") is not found`;
     }
 
     getArchivePath (fullPath: string) : string {

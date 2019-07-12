@@ -1674,7 +1674,7 @@ describe('Proxy', () => {
                 expect(err).contains([
                     'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
                     '',
-                    'The target file ("' + fileName + '") in asar archive ("' + archive + '") is not found'
+                    'The target file ("' + fileName + '") in the "asar" archive ("' + archive + '") is not found'
                 ].join('\n'));
 
                 ctx.res.end();
@@ -1692,7 +1692,7 @@ describe('Proxy', () => {
             request(options);
         });
 
-        it('Should resolve an asar archive file (GH-2033)', () => {
+        it('Should resolve an "asar" archive file (GH-2033)', () => {
             session.id = 'sessionId';
 
             const fileUrl = getFileProtocolUrl('./data/file-in-asar-archive/directory-looks-like-archive.asar/app.asar/src.txt');

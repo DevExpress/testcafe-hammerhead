@@ -37,21 +37,20 @@ export default class FileRequest extends EventEmitter {
             })
             .then(() => this._onOpen())
             .catch(async (err: Error) => {
-                if (await asar.isAsar(this._path)) {
-                    this._isAsar = true;
+                if (!await asar.isAsar(this._path))
+                    return this._onError(err);
 
-                    const asarArchivePath = asar.getArchivePath(this._path);
+                this._isAsar = true;
 
-                    return access(asarArchivePath, fs.constants.R_OK)
-                        .then(() => this._onOpen())
-                        .catch((asarErr: Error) => {
-                            asarErr.message = asar.getFileInAsarNotFoundMessage(this._path);
+                const asarArchivePath = asar.getArchivePath(this._path);
 
-                            return this._onError(asarErr);
-                        });
-                }
+                return access(asarArchivePath, fs.constants.R_OK)
+                    .then(() => this._onOpen())
+                    .catch((asarErr: Error) => {
+                        asarErr.message = asar.getFileInAsarNotFoundMessage(this._path);
 
-                return this._onError(err);
+                        return this._onError(asarErr);
+                    });
             });
     }
 
