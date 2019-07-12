@@ -320,10 +320,13 @@ describe('Script processor', () => {
         ]);
     });
 
-    it('Should expand concat operator', () => {
+    it('Should expand concat operator only if necessary', () => {
         testProcessing([
-            { src: 'prop += 1', expected: 'prop = prop + 1' },
-            { src: 'prop += 2 + prop + 1', expected: 'prop = prop + (2 + prop + 1)' }
+            { src: 'prop += 1', expected: 'prop += 1' },
+            { src: 'prop += 2 + prop + 1', expected: 'prop += 2 + prop + 1' },
+            { src: '(a = b) += c', expected: '(a = b) += c' },
+            { src: 'prop.href += 1', expected: '__set$(prop,"href",__get$(prop,"href")+1)' },
+            { src: 'prop.location += 2 + prop.location + 1', expected: '__set$(prop,"location",__get$(prop,"location")+(2 + __get$(prop,"location") + 1 ))' }
         ]);
     });
 
@@ -375,14 +378,14 @@ describe('Script processor', () => {
                 src:      'obj.{0}+=obj.{0}+value',
                 expected: '__set$(obj,"{0}",__get$(obj, "{0}")+(__get$(obj, "{0}")+value))'
             },
-            { src: 'obj.{0}.field+=value', expected: '__get$(obj, "{0}").field = __get$(obj, "{0}").field + value' },
+            { src: 'obj.{0}.field+=value', expected: '__get$(obj,"{0}").field +=value' },
             {
                 src:      'obj.{0}[field]+=value',
                 expected: '__set$(__get$(obj,"{0}"),field,__get$(__get$(obj,"{0}"), field) + value)'
             },
             {
                 src:      'obj.{0}["field"]+=value',
-                expected: '__get$(obj,"{0}")["field"]=__get$(obj,"{0}")["field"] + value'
+                expected: '__get$(obj,"{0}")["field"]+=value'
             },
             {
                 src:      'obj.{0}["href"]+=value',
