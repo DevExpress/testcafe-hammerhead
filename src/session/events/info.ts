@@ -1,6 +1,7 @@
 /*eslint-disable no-unused-vars*/
 import RequestPipelineContext from '../../request-pipeline/context';
 import ConfigureResponseEventOptions from './configure-response-event-options';
+import { IncomingHttpHeaders } from 'http';
 /*eslint-enable no-unused-vars*/
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
 
@@ -10,7 +11,7 @@ export class RequestInfo {
     readonly url: string;
     readonly method: string;
     readonly isAjax: boolean;
-    readonly headers: { [name: string]: string };
+    readonly headers: IncomingHttpHeaders;
     readonly body: string | Buffer;
     readonly sessionId: string;
 

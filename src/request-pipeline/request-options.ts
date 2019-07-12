@@ -1,6 +1,7 @@
 /*eslint-disable no-unused-vars*/
 import RequestPipelineContext from './context';
 import { Credentials, ExternalProxySettings } from '../typings/session';
+import { IncomingHttpHeaders } from 'http';
 /*eslint-enable no-unused-vars*/
 import * as headerTransforms from './header-transforms';
 import { inject as injectUpload } from '../upload';
@@ -18,7 +19,7 @@ export default class RequestOptions {
     body: Buffer;
     isXhr: boolean;
     rawHeaders: Array<string>;
-    headers: { [name: string]: string };
+    headers: IncomingHttpHeaders;
     auth: string | void;
     proxy?: ExternalProxySettings;
     agent?: any;

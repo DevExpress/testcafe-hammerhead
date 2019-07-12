@@ -1,11 +1,11 @@
 /*eslint-disable no-unused-vars*/
 import net from 'net';
-import http from 'http';
 import RequestPipelineContext from './context';
+import { OutgoingHttpHeaders, IncomingMessage } from 'http';
 /*eslint-enable no-unused-vars*/
 import * as headerTransforms from './header-transforms';
 
-function writeWebSocketHead (socket: net.Socket, destRes: http.IncomingMessage, headers: { [name: string]: string|Array<string> }) {
+function writeWebSocketHead (socket: net.Socket, destRes: IncomingMessage, headers: OutgoingHttpHeaders) {
     const { httpVersion, statusCode, statusMessage } = destRes;
 
     const resRaw       = [`HTTP/${httpVersion} ${statusCode} ${statusMessage}`];
@@ -29,7 +29,7 @@ function writeWebSocketHead (socket: net.Socket, destRes: http.IncomingMessage, 
 
 export function respondOnWebSocket (ctx: RequestPipelineContext) {
     const headers = headerTransforms.forResponse(ctx);
-    const destRes = <http.IncomingMessage>ctx.destRes;
+    const destRes = <IncomingMessage>ctx.destRes;
 
     writeWebSocketHead(<net.Socket>ctx.res, destRes, headers);
 

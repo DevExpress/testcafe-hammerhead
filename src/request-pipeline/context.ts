@@ -100,7 +100,7 @@ export default class RequestPipelineContext {
 
         this.isXhr   = !!req.headers[XHR_HEADERS.requestMarker];
         this.isFetch = !!req.headers[XHR_HEADERS.fetchRequestCredentials];
-        this.isPage  = !this.isXhr && !this.isFetch && acceptHeader && contentTypeUtils.isPage(acceptHeader);
+        this.isPage  = !this.isXhr && !this.isFetch && !!acceptHeader && contentTypeUtils.isPage(acceptHeader);
 
         this.parsedClientSyncCookie = req.headers.cookie && parseClientSyncCookieStr(req.headers.cookie);
     }
@@ -284,7 +284,7 @@ export default class RequestPipelineContext {
 
     getInjectableScripts (): Array<string> {
         const taskScript = this.isIframe ? SERVICE_ROUTES.iframeTask : SERVICE_ROUTES.task;
-        const scripts    = [].concat(this.session.injectable.scripts, taskScript, this._getInjectableUserScripts());
+        const scripts    = this.session.injectable.scripts.concat(taskScript, this._getInjectableUserScripts());
 
         return this._resolveInjectableUrls(scripts);
     }

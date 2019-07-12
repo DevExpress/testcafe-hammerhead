@@ -1,3 +1,7 @@
+/*eslint-disable no-unused-vars*/
+import { IncomingHttpHeaders, OutgoingHttpHeaders } from 'http';
+/*eslint-enable no-unused-vars*/
+
 import {
     requestTransforms,
     forcedRequestTransforms,
@@ -5,7 +9,6 @@ import {
     forcedResponseTransforms
 } from './transforms';
 
-// Transformation routine
 function transformHeaders (srcHeaders, ctx, transformList, forcedTransforms) {
     const destHeaders = {};
 
@@ -27,11 +30,11 @@ function transformHeaders (srcHeaders, ctx, transformList, forcedTransforms) {
 }
 
 // API
-export function forRequest (ctx): { [name: string]: string } {
+export function forRequest (ctx): IncomingHttpHeaders {
     return transformHeaders(ctx.req.headers, ctx, requestTransforms, forcedRequestTransforms);
 }
 
-export function forResponse (ctx) {
+export function forResponse (ctx): OutgoingHttpHeaders {
     return transformHeaders(ctx.destRes.headers, ctx, responseTransforms, forcedResponseTransforms);
 }
 
