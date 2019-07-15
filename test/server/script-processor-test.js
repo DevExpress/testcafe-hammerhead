@@ -899,8 +899,8 @@ describe('Script processor', () => {
                     expected: 'const foo = new class { async bar() { async function t() {}; var t = async function () {}; return async () => { await t(__get$(obj, prop)); }; }}();'
                 },
                 {
-                    src:      'const y = { async [x] () { await 0; } }[x]', // GH-1862
-                    expected: 'const y = __get$({ async [x] () { await 0; } }, x)'
+                    src:      'const y = { async [x] () { await (0); } }[x]', // GH-1862
+                    expected: 'const y = __get$({ async [x] () { await (0); } }, x)'
                 },
                 {
                     src:      'new X(() => {(async () => { b[c] = d; })(); })', // GH-2002
@@ -909,6 +909,10 @@ describe('Script processor', () => {
                 {
                     src:      'new X(() => {(async function () { b[c] = d; })(); })', // GH-2002
                     expected: 'new X(() => {(async function () { __set$(b, c, d); }()); })'
+                },
+                {
+                    src:      'd[f]=async function(){await(x={qwe:123},y(x))}', // GH-2072
+                    expected: '__set$(d,f,async function(){await (x={qwe:123},y(x));})'
                 }
             ]);
         });
