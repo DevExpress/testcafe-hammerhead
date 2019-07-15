@@ -1,5 +1,8 @@
 import { isRegExp, isString } from 'lodash';
 import { ensureOriginTrailingSlash } from '../../utils/url';
+/*eslint-disable no-unused-vars*/
+import { RequestInfo } from '../../session/events/info';
+/*eslint-enable no-unused-vars*/
 
 const DEFAULT_OPTIONS = {
     url:    void 0,
@@ -14,12 +17,12 @@ const STRINGIFIED_FUNCTION_OPTIONS: string = '{ <predicate> }';
 export default class RequestFilterRule {
     private readonly options: any;
 
-    constructor (options) {
+    constructor (options: any) {
         this.options = this._initializeOptions(options);
     }
 
-    _initializeOptions (options) {
-        let tmpOptions = Object.assign({}, DEFAULT_OPTIONS);
+    _initializeOptions (options: any) {
+        let tmpOptions: any = Object.assign({}, DEFAULT_OPTIONS);
 
         if (typeof options === 'string' || isRegExp(options))
             tmpOptions.url = options;
@@ -36,7 +39,7 @@ export default class RequestFilterRule {
         return tmpOptions;
     }
 
-    _matchUrl (optionValue, checkedValue) {
+    _matchUrl (optionValue: any, checkedValue: any) {
         if (optionValue === void 0)
             return true;
 
@@ -46,14 +49,13 @@ export default class RequestFilterRule {
             return optionValue === checkedValue;
         }
 
-
         else if (isRegExp(optionValue))
             return optionValue.test(checkedValue);
 
         return false;
     }
 
-    _matchMethod (optionValue, checkedValue) {
+    _matchMethod (optionValue: any, checkedValue: any) {
         if (optionValue === void 0)
             return true;
 
@@ -63,7 +65,7 @@ export default class RequestFilterRule {
         return false;
     }
 
-    _matchIsAjax (optionValue, checkedValue) {
+    _matchIsAjax (optionValue: any, checkedValue: any) {
         if (optionValue === void 0)
             return true;
 
@@ -73,13 +75,13 @@ export default class RequestFilterRule {
         return false;
     }
 
-    _matchUsingObjectOptions (requestInfo) {
+    _matchUsingObjectOptions (requestInfo: RequestInfo) {
         return this._matchUrl(this.options.url, requestInfo.url) &&
                this._matchMethod(this.options.method, requestInfo.method) &&
                this._matchIsAjax(this.options.isAjax, requestInfo.isAjax);
     }
 
-    _matchUsingFunctionOptions (requestInfo) {
+    _matchUsingFunctionOptions (requestInfo: RequestInfo) {
         return !!this.options.call(this, requestInfo);
     }
 
@@ -101,7 +103,7 @@ export default class RequestFilterRule {
         return `{ ${msg} }`;
     }
 
-    match (requestInfo) {
+    match (requestInfo: RequestInfo) {
         if (typeof this.options === 'function')
             return this._matchUsingFunctionOptions(requestInfo);
 

@@ -17,7 +17,7 @@ export class RequestInfo {
 
     constructor (ctx: RequestPipelineContext) {
         this.requestId = ctx.requestId;
-        this.userAgent = ctx.reqOpts.headers['user-agent'];
+        this.userAgent = ctx.reqOpts.headers['user-agent'] || '';
         this.url       = ctx.reqOpts.url;
         this.method    = ctx.reqOpts.method.toLowerCase();
         this.isAjax    = ctx.isXhr || ctx.isFetch;
