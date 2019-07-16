@@ -43,11 +43,11 @@ export default class Selection {
             const selectionSetter = () => {
                 // NOTE: These browsers cannot restore the `selectionStart` and `selectionEnd` properties when we change the `type` attribute.
                 // So we need to use our own mechanism to store the `selectionStart` and `selectionEnd` properties.
-                const shouldChangeType     = domUtils.isInputWithoutSelectionProperties(el);
+                const useInternalSelection = domUtils.isInputWithoutSelectionProperties(el);
                 const savedType            = el.type;
                 let res;
 
-                if (shouldChangeType)
+                if (useInternalSelection)
                     el.type = 'text';
 
                 // NOTE: In MSEdge, an error occurs when the setSelectionRange method is called for an input with
@@ -60,7 +60,7 @@ export default class Selection {
                     res = fn.call(el, 0, 0, selectionDirection);
                 }
 
-                if (shouldChangeType) {
+                if (useInternalSelection ) {
                     el[INTERNAL_PROPS.selection] = {
                         selectionStart:     el.selectionStart,
                         selectionEnd:       el.selectionEnd,

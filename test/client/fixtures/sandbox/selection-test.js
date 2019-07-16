@@ -47,7 +47,7 @@ test('Get selection on input with "email" type', function () {
     var input     = createTestInput('email', inputTestValue);
     var selection = selectionSandbox.getSelection(input);
 
-    var isNotSupportedBrowser = browserUtils.isFirefox && browserVersion < 51 || isIE || browserUtils.isChrome && browserVersion > 74;
+    var isNotSupportedBrowser = browserUtils.isFirefox && browserVersion > 67 || isIE || browserUtils.isChrome && browserVersion > 74;
 
     strictEqual(selection.start, isNotSupportedBrowser ? 0 : inputTestValue.length);
     strictEqual(selection.end, isNotSupportedBrowser ? 0 : inputTestValue.length);
