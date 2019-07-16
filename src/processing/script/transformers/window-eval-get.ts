@@ -4,7 +4,7 @@
 // -------------------------------------------------------------
 
 /*eslint-disable no-unused-vars*/
-import { MemberExpression, Node } from 'estree';
+import { MemberExpression } from 'estree';
 import { Transformer } from './index';
 /*eslint-enable no-unused-vars*/
 import INSTRUCTION from '../instruction';
@@ -16,12 +16,15 @@ import { Syntax } from 'esotope-hammerhead';
 // -->
 // const foo = _get$Eval(window.eval); foo = _get$Eval(window.eval); { _eval: _get$Eval(window.eval) }; return _get$Eval(window.eval);
 
-const transformer: Transformer = {
+const transformer: Transformer<MemberExpression> = {
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.MemberExpression,
 
-    condition: (node: MemberExpression, parent: Node): boolean => {
+    condition: (node, parent) => {
+        if (!parent)
+            return false;
+
         // Skip: window.eval.field
         if (parent.type === Syntax.MemberExpression && (parent.property === node || parent.object === node))
             return false;

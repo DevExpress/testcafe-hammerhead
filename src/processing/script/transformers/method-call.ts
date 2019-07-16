@@ -15,12 +15,12 @@ import { shouldInstrumentMethod } from '../instrumented';
 // obj.method(args...); obj[method](args...); -->
 // _call$(obj, 'method', args...); _call$(obj, method, args...);
 
-const transformer: Transformer = {
+const transformer: Transformer<CallExpression> = {
     nodeReplacementRequireTransform: true,
 
     nodeTypes: Syntax.CallExpression,
 
-    condition: (node: CallExpression) => {
+    condition: node => {
         const callee = node.callee;
 
         if (callee.type === Syntax.MemberExpression) {
@@ -37,12 +37,13 @@ const transformer: Transformer = {
         return false;
     },
 
-    run: (node: CallExpression): CallExpression => {
-        const callee = <MemberExpression>node.callee;
-        // eslint-disable-next-line
-        const method = callee.computed ? <Literal>callee.property : createStringLiteral((<Identifier>callee.property).name);
+    run: node => {
+        const callee = node.callee as MemberExpression;
+        const method = callee.computed
+            ? callee.property as Literal
+            : createStringLiteral((callee.property as Identifier).name); // eslint-disable-line no-extra-parens
 
-        return createMethCallWrapper(<Expression>callee.object, method, node.arguments);
+        return createMethCallWrapper(callee.object as Expression, method, node.arguments);
     }
 };
 

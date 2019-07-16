@@ -3,7 +3,7 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 /*eslint-disable no-unused-vars*/
-import { AssignmentExpression, MemberExpression, Expression, CallExpression } from 'estree';
+import { AssignmentExpression, MemberExpression, Expression } from 'estree';
 import { Transformer } from './index';
 /*eslint-enable no-unused-vars*/
 import { createComputedPropertySetWrapper } from '../node-builder';
@@ -14,12 +14,12 @@ import { shouldInstrumentProperty } from '../instrumented';
 // obj[prop] = value -->
 // __set$(object, prop, value)
 
-const transformer: Transformer = {
+const transformer: Transformer<AssignmentExpression> = {
     nodeReplacementRequireTransform: true,
 
     nodeTypes: Syntax.AssignmentExpression,
 
-    condition: (node: AssignmentExpression): boolean => {
+    condition: node => {
         const left = node.left;
 
         // super[prop] = value
@@ -32,10 +32,10 @@ const transformer: Transformer = {
         return false;
     },
 
-    run: (node: AssignmentExpression): CallExpression => {
-        const memberExpression = <MemberExpression>node.left;
+    run: node => {
+        const memberExpression = node.left as MemberExpression;
 
-        return createComputedPropertySetWrapper(memberExpression.property, <Expression>memberExpression.object, node.right);
+        return createComputedPropertySetWrapper(memberExpression.property, memberExpression.object as Expression, node.right);
     }
 };
 

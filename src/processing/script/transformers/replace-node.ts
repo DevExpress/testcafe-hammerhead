@@ -5,31 +5,35 @@
 
 /*eslint-disable no-unused-vars*/
 import { Node } from 'estree';
-import { NodeWithLocation } from '../transform';
 /*eslint-enable no-unused-vars*/
 
-
-export default function replaceNode (node: Node | Array<Node>, newNode: Node, parent: Node, key: string) {
-    if (Array.isArray(parent[key])) {
-        if (node) {
-            const idx = parent[key].indexOf(node);
-
-            parent[key][idx] = newNode;
-        }
-        else
-            parent[key].unshift(newNode);
+declare module 'estree' {
+    interface BaseNode {
+        start?: number;
+        end?: number;
+        originStart?: number;
+        originEnd?: number;
     }
-    else
-        parent[key] = newNode;
+}
 
-    const newNodeWithLocation = <NodeWithLocation>newNode;
-    const nodeWithLocation    = <NodeWithLocation>node;
-    const parentWithLocation  = <NodeWithLocation>parent;
+export default function replaceNode<T extends Node> (node: Node | null, newNode: Node, parent: T, key: keyof T) {
+    const oldNode = parent[key];
+
+    if (oldNode instanceof Array) {
+        if (node)
+            oldNode[oldNode.indexOf(node)] = newNode;
+        else
+            oldNode.unshift(newNode);
+    }
+    else {
+        // @ts-ignore
+        parent[key] = newNode;
+    }
 
     if (node) {
-        newNodeWithLocation.originStart = newNodeWithLocation.start = nodeWithLocation.start;
-        newNodeWithLocation.originEnd = newNodeWithLocation.end = nodeWithLocation.end;
+        newNode.originStart = newNode.start = node.start;
+        newNode.originEnd = newNode.end = node.end;
     }
     else
-        newNodeWithLocation.originStart = newNodeWithLocation.originEnd = parentWithLocation.start + 1;
+        newNode.originStart = newNode.originEnd = parent.start! + 1;
 }

@@ -4,7 +4,7 @@
 // -------------------------------------------------------------
 
 /*eslint-disable no-unused-vars*/
-import { Node, MemberExpression } from 'estree';
+import { MemberExpression } from 'estree';
 import { Transformer } from './index';
 /*eslint-enable no-unused-vars*/
 import { createLocationGetWrapper } from '../node-builder';
@@ -15,14 +15,14 @@ import replaceNode from './replace-node';
 // location.field; location[field] -->
 // __get$Loc(location).field; __get$Loc(location)[field];
 
-const transformer: Transformer = {
+const transformer: Transformer<MemberExpression> = {
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.MemberExpression,
 
-    condition: (node: MemberExpression, parent: Node): boolean => {
+    condition: (node, parent) => {
         // Skip: for(location.field in obj)
-        if (parent.type === Syntax.ForInStatement && parent.left === node)
+        if (parent && parent.type === Syntax.ForInStatement && parent.left === node)
             return false;
 
         return node.object.type === Syntax.Identifier && node.object.name === 'location';

@@ -20,17 +20,17 @@ import replaceNode from './replace-node';
 // for(obj[prop] in src), for(obj.prop in src) -->
 // for(const __set$temp in src) { obj[prop] = __set$temp; }
 
-const transformer: Transformer = {
+const transformer: Transformer<ForInStatement> = {
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.ForInStatement,
 
-    condition: (node: ForInStatement) => node.left.type === Syntax.MemberExpression,
+    condition: node => node.left.type === Syntax.MemberExpression,
 
-    run: (node: ForInStatement) => {
+    run: node => {
         const tempVarAst         = createTempVarIdentifier();
         const varDeclaration     = createVarDeclaration(tempVarAst);
-        const assignmentExprStmt = createAssignmentExprStmt(<MemberExpression>node.left, tempVarAst);
+        const assignmentExprStmt = createAssignmentExprStmt(node.left as MemberExpression, tempVarAst);
 
         if (node.body.type !== Syntax.BlockStatement)
             replaceNode(node.body, createBlockExprStmt([assignmentExprStmt, node.body]), node, 'body');

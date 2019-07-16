@@ -32,10 +32,10 @@ const test = (regexp: RegExp, str: string) => regexp.test ? regexp.test(str) : r
 // cases like `WRAPPABLE_METHOD['toString']` will fail.
 // We could use the hasOwnProperty test, but it is
 // significantly slower than the regular expression test
-export function shouldInstrumentMethod (name: string|number|boolean|RegExp): boolean {
+export function shouldInstrumentMethod (name: string|number|boolean|RegExp|null|void): boolean {
     return test(INSTRUMENTED_METHOD_RE, String(name));
 }
 
-export function shouldInstrumentProperty (name: string|number|boolean|RegExp): boolean {
+export function shouldInstrumentProperty (name: string|number|boolean|RegExp|null|void): boolean {
     return test(INSTRUMENTED_PROPERTY_RE, String(name));
 }

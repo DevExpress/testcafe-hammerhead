@@ -4,7 +4,6 @@
 // -------------------------------------------------------------
 
 /*eslint-disable no-unused-vars*/
-import { Syntax } from 'esotope-hammerhead';
 import { Node } from 'estree';
 /*eslint-enable no-unused-vars*/
 import computedPropertyGetTransformer from './computed-property-get';
@@ -29,17 +28,17 @@ import jsProtocolLastExpression from './js-protocol-last-expression';
 import staticImportTransformer from './static-import';
 import dynamicImportTransformer from './dynamic-import';
 
-export interface Transformer {
+export interface Transformer<C extends Node> {
     nodeReplacementRequireTransform: boolean;
-    nodeTypes: Syntax;
-    condition: (node: Node, parent?: Node) => boolean;
-    run: (node: Node, parent?: Node, key?: string) => Node;
+    nodeTypes: C['type'];
+    condition: (node: C, parent?: Node) => boolean;
+    run: <P extends Node>(node: C, parent?: P, key?: keyof P) => Node|null;
     baseUrl?: string;
     wrapLastExpr?: boolean;
     resolver?: Function
 }
 
-const TRANSFORMERS: Array<Transformer> = [
+const TRANSFORMERS: Array<Transformer<any>> = [
     computedPropertyGetTransformer,
     computedPropertySetTransformer,
     concatOperatorTransformer,
@@ -63,16 +62,19 @@ const TRANSFORMERS: Array<Transformer> = [
     dynamicImportTransformer
 ];
 
-function createTransformerMap (): Map<Syntax, Array<Transformer>> {
-    const transformerMap: Map<Syntax, Array<Transformer>> = new Map();
+function createTransformerMap (): Map<Transformer<Node>['nodeTypes'], Array<Transformer<Node>>> {
+    const transformerMap: Map<Transformer<Node>['nodeTypes'], Array<Transformer<Node>>> = new Map();
 
     for (const transformer of TRANSFORMERS) {
-        const nodeType = transformer.nodeTypes;
+        const nodeType   = transformer.nodeTypes;
+        let transformers = transformerMap.get(nodeType);
 
-        if (!transformerMap.has(nodeType))
-            transformerMap.set(nodeType, []);
+        if (!transformers) {
+            transformers = [];
+            transformerMap.set(nodeType, transformers);
+        }
 
-        transformerMap.get(nodeType).push(transformer);
+        transformers.push(transformer);
     }
 
     return transformerMap;

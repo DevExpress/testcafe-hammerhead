@@ -3,7 +3,7 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 /*eslint-disable no-unused-vars*/
-import { MemberExpression, Expression, ForInStatement, CallExpression } from 'estree';
+import { MemberExpression, Expression } from 'estree';
 import { Transformer } from './index';
 /*eslint-enable no-unused-vars*/
 import { createComputedPropertyGetWrapper } from '../node-builder';
@@ -13,13 +13,13 @@ import { shouldInstrumentProperty } from '../instrumented';
 // Transform:
 // obj[prop] -->
 // __get$(obj, prop)
-const transformer: Transformer = {
+const transformer: Transformer<MemberExpression> = {
     nodeReplacementRequireTransform: true,
 
     nodeTypes: Syntax.MemberExpression,
 
-    condition: (node: MemberExpression, parent: Expression | ForInStatement): boolean => {
-        if (!node.computed)
+    condition: (node, parent) => {
+        if (!node.computed || !parent)
             return false;
 
         if (node.property.type === Syntax.Literal && !shouldInstrumentProperty(node.property.value))
@@ -56,7 +56,7 @@ const transformer: Transformer = {
         return true;
     },
 
-    run: (node: MemberExpression): CallExpression => createComputedPropertyGetWrapper(node.property, <Expression>node.object)
+    run: node => createComputedPropertyGetWrapper(node.property, node.object as Expression)
 };
 
 export default transformer;

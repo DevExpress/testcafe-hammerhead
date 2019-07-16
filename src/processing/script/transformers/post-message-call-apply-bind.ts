@@ -21,12 +21,12 @@ const INVOCATION_FUNC_NAME_RE = /^(call|apply|bind)$/;
 // __get$PostMessage(postMessage).apply(ctx, script);
 // __get$PostMessage(postMessage).bind(...);
 
-const transformer: Transformer = {
+const transformer: Transformer<CallExpression> = {
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.CallExpression,
 
-    condition: (node: CallExpression): boolean => {
+    condition: node => {
         if (node.callee.type === Syntax.MemberExpression && node.callee.property.type === Syntax.Identifier &&
             INVOCATION_FUNC_NAME_RE.test(node.callee.property.name)) {
             // postMessage.<call|apply>(ctx, script, ...)
@@ -49,11 +49,11 @@ const transformer: Transformer = {
         return false;
     },
 
-    run: (node: CallExpression) => {
-        const callee             = <MemberExpression>node.callee;
-        const getPostMessageNode = createGetPostMessageMethCall(<Expression>callee.object);
+    run: node => {
+        const callee             = node.callee as MemberExpression;
+        const getPostMessageNode = createGetPostMessageMethCall(callee.object as Expression);
 
-        replaceNode(callee.object, getPostMessageNode, node.callee, 'object');
+        replaceNode(callee.object, getPostMessageNode, callee, 'object');
 
         return null;
     }

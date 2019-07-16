@@ -4,7 +4,7 @@
 // -------------------------------------------------------------
 
 /*eslint-disable no-unused-vars*/
-import { Identifier, Node } from 'estree';
+import { Identifier } from 'estree';
 import { Transformer } from './index';
 /*eslint-enable no-unused-vars*/
 import INSTRUCTION from '../instruction';
@@ -16,66 +16,65 @@ import { Syntax } from 'esotope-hammerhead';
 // -->
 // const foo = _get$PostMessage(postMessage); foo = _get$PostMessage(postMessage); { _postMessage: _get$PostMessage(postMessage) }; return _get$PostMessage(postMessage);
 
-const transformer: Transformer = {
+const transformer: Transformer<Identifier> = {
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.Identifier,
 
-    condition: (node: Identifier, parent: Node): boolean => {
-        if (node.name === 'postMessage') {
-            // Skip: window.postMessage, postMessage.call
-            if (parent.type === Syntax.MemberExpression)
-                return false;
+    condition: (node, parent) => {
+        if (node.name !== 'postMessage' || !parent)
+            return false;
 
-            // Skip: class X { postMessage () {} }
-            if (parent.type === Syntax.MethodDefinition)
-                return false;
+        // Skip: window.postMessage, postMessage.call
+        if (parent.type === Syntax.MemberExpression)
+            return false;
 
-            // Skip: class postMessage { x () {} }
-            if (parent.type === Syntax.ClassDeclaration)
-                return false;
+        // Skip: class X { postMessage () {} }
+        if (parent.type === Syntax.MethodDefinition)
+            return false;
 
-            // Skip: function postMessage () { ... }
-            if ((parent.type === Syntax.FunctionExpression || parent.type === Syntax.FunctionDeclaration) &&
-                parent.id === node)
-                return false;
+        // Skip: class postMessage { x () {} }
+        if (parent.type === Syntax.ClassDeclaration)
+            return false;
 
-            // Skip: function (postMessage) { ... } || function func(postMessage) { ... } || postMessage => { ... }
-            if ((parent.type === Syntax.FunctionExpression || parent.type === Syntax.FunctionDeclaration ||
-                 parent.type === Syntax.ArrowFunctionExpression) && parent.params.indexOf(node) !== -1)
-                return false;
+        // Skip: function postMessage () { ... }
+        if ((parent.type === Syntax.FunctionExpression || parent.type === Syntax.FunctionDeclaration) &&
+            parent.id === node)
+            return false;
 
-            // Skip: { postMessage: value }
-            if (parent.type === Syntax.Property && parent.key === node)
-                return false;
+        // Skip: function (postMessage) { ... } || function func(postMessage) { ... } || postMessage => { ... }
+        if ((parent.type === Syntax.FunctionExpression || parent.type === Syntax.FunctionDeclaration ||
+             parent.type === Syntax.ArrowFunctionExpression) && parent.params.indexOf(node) !== -1)
+            return false;
 
-            // Skip: postMessage = value || function x (postMessage = value) { ... }
-            if ((parent.type === Syntax.AssignmentExpression || parent.type === Syntax.AssignmentPattern) &&
-                parent.left === node)
-                return false;
+        // Skip: { postMessage: value }
+        if (parent.type === Syntax.Property && parent.key === node)
+            return false;
 
-            // Skip: const postMessage = value;
-            if (parent.type === Syntax.VariableDeclarator && parent.id === node)
-                return false;
+        // Skip: postMessage = value || function x (postMessage = value) { ... }
+        if ((parent.type === Syntax.AssignmentExpression || parent.type === Syntax.AssignmentPattern) &&
+            parent.left === node)
+            return false;
 
-            // Skip: postMessage++ || postMessage-- || ++postMessage || --postMessage
-            if (parent.type === Syntax.UpdateExpression && (parent.operator === '++' || parent.operator === '--'))
-                return false;
+        // Skip: const postMessage = value;
+        if (parent.type === Syntax.VariableDeclarator && parent.id === node)
+            return false;
 
-            // Skip already transformed: __get$PostMessage(postMessage) || __call$(obj, postMessage, args...);
-            if (parent.type === Syntax.CallExpression && parent.callee.type === Syntax.Identifier &&
-                (parent.callee.name === INSTRUCTION.getPostMessage ||
-                 parent.callee.name === INSTRUCTION.callMethod && parent.arguments[1] === node))
-                return false;
+        // Skip: postMessage++ || postMessage-- || ++postMessage || --postMessage
+        if (parent.type === Syntax.UpdateExpression && (parent.operator === '++' || parent.operator === '--'))
+            return false;
 
-            // Skip: function x (...postMessage) {}
-            if (parent.type === Syntax.RestElement)
-                return false;
+        // Skip already transformed: __get$PostMessage(postMessage) || __call$(obj, postMessage, args...);
+        if (parent.type === Syntax.CallExpression && parent.callee.type === Syntax.Identifier &&
+            (parent.callee.name === INSTRUCTION.getPostMessage ||
+             parent.callee.name === INSTRUCTION.callMethod && parent.arguments[1] === node))
+            return false;
 
-            return true;
-        }
+        // Skip: function x (...postMessage) {}
+        if (parent.type === Syntax.RestElement)
+            return false;
 
-        return false;
+        return true;
     },
 
     run: createGetPostMessageMethCall

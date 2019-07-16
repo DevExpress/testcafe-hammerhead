@@ -4,7 +4,7 @@
 // -------------------------------------------------------------
 
 /*eslint-disable no-unused-vars*/
-import { AssignmentExpression, CallExpression, MemberExpression, Expression, Identifier } from 'estree';
+import { AssignmentExpression, MemberExpression, Expression, Identifier } from 'estree';
 import { Transformer } from './index';
 /*eslint-enable no-unused-vars*/
 import { createPropertySetWrapper } from '../node-builder';
@@ -15,12 +15,12 @@ import { shouldInstrumentProperty } from '../instrumented';
 // obj.<wrappable-property> = value -->
 // __set$(obj, '<wrappable-property>', value)
 
-const transformer: Transformer = {
+const transformer: Transformer<AssignmentExpression> = {
     nodeReplacementRequireTransform: true,
 
     nodeTypes: Syntax.AssignmentExpression,
 
-    condition: (node: AssignmentExpression) => {
+    condition: node => {
         // super.prop = value
         if (node.left.type === Syntax.MemberExpression && node.left.object.type === Syntax.Super)
             return false;
@@ -31,11 +31,11 @@ const transformer: Transformer = {
                shouldInstrumentProperty(node.left.property.name);
     },
 
-    run: (node: AssignmentExpression): CallExpression => {
-        const memberExpression = <MemberExpression>node.left;
-        const identifier       = <Identifier>memberExpression.property;
+    run: node => {
+        const memberExpression = node.left as MemberExpression;
+        const identifier       = memberExpression.property as Identifier;
 
-        return createPropertySetWrapper(identifier.name, <Expression>memberExpression.object, node.right);
+        return createPropertySetWrapper(identifier.name, memberExpression.object as Expression, node.right);
     }
 };
 

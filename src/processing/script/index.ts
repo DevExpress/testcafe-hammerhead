@@ -45,7 +45,7 @@ function removeHtmlComments (code: string): string {
     return code;
 }
 
-function preprocess (code: string): { bom: string, preprocessed: string } {
+function preprocess (code: string): { bom: string | null, preprocessed: string } {
     const bom        = getBOM(code);
     let preprocessed = bom ? code.substring(bom.length) : code;
 
@@ -59,7 +59,7 @@ function removeSourceMap (code: string): string {
     return code.replace(SOURCEMAP_RE, '');
 }
 
-function postprocess (processed: string, withHeader: boolean, bom: string, strictMode: boolean): string {
+function postprocess (processed: string, withHeader: boolean, bom: string | null, strictMode: boolean): string {
     // NOTE: If the 'use strict' directive is not in the beginning of the file, it is ignored.
     // As we insert our header in the beginning of the script, we must put a new 'use strict'
     // before the header, otherwise it will be ignored.
@@ -75,7 +75,7 @@ function removeTrailingSemicolon (processed: string, src: string): string {
     return TRAILING_SEMICOLON_RE.test(src) ? processed : processed.replace(TRAILING_SEMICOLON_RE, '');
 }
 
-function getAst (src: string, isObject: boolean): Program {
+function getAst (src: string, isObject: boolean): Program | null {
     // NOTE: In case of objects (e.g.eval('{ 1: 2}')) without wrapping
     // object will be parsed as label. To avoid this we parenthesize src
     src = isObject ? `(${src})` : src;
@@ -102,7 +102,7 @@ function getCode (ast: Node, src: string): string {
 
 
 // Analyze code
-function analyze (code: string): { ast: Program, isObject: boolean } {
+function analyze (code: string): { ast: Program | null, isObject: boolean } {
     let isObject = OBJECT_RE.test(code);
     let ast      = getAst(code, isObject);
 
@@ -145,11 +145,12 @@ function applyChanges (script: string, changes: Array<CodeChange>, isObject: boo
     changes.sort((a, b) => a.start - b.start);
 
     for (const change of changes) {
-        const changeStart     = change.start + indexOffset;
-        const changeEnd       = change.end + indexOffset;
-        let replacement: Node = change.parent[change.key];
+        const changeStart = change.start + indexOffset;
+        const changeEnd   = change.end + indexOffset;
+        const nodeOrNodes = change.parent[change.key];
+        // @ts-ignore
+        const replacement = change.index > -1 ? nodeOrNodes[change.index] as Node : nodeOrNodes as Node;
 
-        replacement = change.index !== -1 ? replacement[change.index] : replacement;
         chunks.push(script.substring(index, changeStart));
         chunks.push(' ');
         chunks.push(getCode(replacement, script.substring(changeStart, changeEnd)));
