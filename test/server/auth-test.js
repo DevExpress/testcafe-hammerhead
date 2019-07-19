@@ -131,8 +131,6 @@ describe('Authentication', () => {
                 .catch(err => {
                     expect(err.statusCode).equal(401);
                     expect(err.error).equal('Access denied');
-                    // NOTE: prevent showing the native credentials window.
-                    expect(err.response.headers['www-authenticate']).to.be.undefined;
                 });
         });
 

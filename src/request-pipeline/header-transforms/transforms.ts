@@ -151,9 +151,6 @@ export const responseTransforms = {
     'x-content-security-policy-report-only': skip,
     'x-webkit-csp':                          skip,
 
-    // NOTE: Even if we are not able to be authorized, we should prevent showing the native credentials window.
-    'www-authenticate': skip,
-
     // NOTE: We perform CORS checks on our side, so we skip the related headers.
     'access-control-allow-origin': skip,
 
