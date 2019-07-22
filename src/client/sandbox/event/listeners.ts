@@ -144,59 +144,59 @@ export default class Listeners extends EventEmitter {
         };
     }
 
-    private _createElementOverridedMethods (el: HTMLElement) {
-        const listeners = this;
+    private _createElementOverridedMethods (el: HTMLElement|Window|Document) {
+        const listeners           = this;
+        const addEventListener    = function (...args: Array<any>) {
+            const type                   = args[0];
+            const listener               = args[1];
+            const useCapture             = Listeners._getUseCaptureParam(args[2]);
+            const eventListeningInfo     = listeningCtx.getEventCtx(el, type);
+            const nativeAddEventListener = Listeners._getNativeAddEventListener(el);
 
-        return {
-            addEventListener: function (...args: Array<any>) {
-                const type                   = args[0];
-                const listener               = args[1];
-                const useCapture             = Listeners._getUseCaptureParam(args[2]);
-                const eventListeningInfo     = listeningCtx.getEventCtx(el, type);
-                const nativeAddEventListener = Listeners._getNativeAddEventListener(el);
+            if (!eventListeningInfo || !isValidEventListener(listener))
+                return nativeAddEventListener.apply(el, args);
 
-                if (!eventListeningInfo || !isValidEventListener(listener))
-                    return nativeAddEventListener.apply(el, args);
+            // NOTE: T233158
+            const isDifferentHandler = Listeners._isDifferentHandler(eventListeningInfo.outerHandlers, listener, useCapture);
 
-                // NOTE: T233158
-                const isDifferentHandler = Listeners._isDifferentHandler(eventListeningInfo.outerHandlers, listener, useCapture);
+            if (!isDifferentHandler)
+                return null;
 
-                if (!isDifferentHandler)
-                    return null;
+            const wrapper = Listeners._getEventListenerWrapper(eventListeningInfo, listener);
 
-                const wrapper = Listeners._getEventListenerWrapper(eventListeningInfo, listener);
+            listeningCtx.wrapEventListener(eventListeningInfo, listener, wrapper, useCapture);
 
-                listeningCtx.wrapEventListener(eventListeningInfo, listener, wrapper, useCapture);
+            //@ts-ignore
+            args[1] = wrapper;
 
-                //@ts-ignore
-                args[1] = wrapper;
+            const res = nativeAddEventListener.apply(el, args);
 
-                const res = nativeAddEventListener.apply(el, args);
+            listeners.emit(listeners.EVENT_LISTENER_ATTACHED_EVENT, { el, listener, eventType: type });
 
-                listeners.emit(listeners.EVENT_LISTENER_ATTACHED_EVENT, { el, listener, eventType: type });
-
-                return res;
-            },
-
-            removeEventListener: function (...args: Array<any>) {
-                const type                      = args[0];
-                const listener                  = args[1];
-                const useCapture                = Listeners._getUseCaptureParam(args[2]);
-                const nativeRemoveEventListener = Listeners._getNativeRemoveEventListener(el);
-                const eventCtx                  = listeningCtx.getEventCtx(el, type);
-
-                if (!eventCtx || !isValidEventListener(listener))
-                    return nativeRemoveEventListener.apply(el, args);
-
-                args[1] = listeningCtx.getWrapper(eventCtx, listener, useCapture);
-
-                const res = nativeRemoveEventListener.apply(el, args);
-
-                listeners.emit(listeners.EVENT_LISTENER_DETACHED_EVENT, { el, listener, eventType: type });
-
-                return res;
-            }
+            return res;
         };
+        const removeEventListener = function (...args: Array<any>) {
+            const type                      = args[0];
+            const listener                  = args[1];
+            const useCapture                = Listeners._getUseCaptureParam(args[2]);
+            const nativeRemoveEventListener = Listeners._getNativeRemoveEventListener(el);
+            const eventCtx                  = listeningCtx.getEventCtx(el, type);
+
+            if (!eventCtx || !isValidEventListener(listener))
+                return nativeRemoveEventListener.apply(el, args);
+
+            args[1] = listeningCtx.getWrapper(eventCtx, listener, useCapture);
+
+            const res = nativeRemoveEventListener.apply(el, args);
+
+            listeners.emit(listeners.EVENT_LISTENER_DETACHED_EVENT, { el, listener, eventType: type });
+
+            return res;
+        };
+
+        addEventListener.isHammerhead = removeEventListener.isHammerhead = true;
+
+        return { addEventListener, removeEventListener };
     }
 
     private _createDocumentBodyOverridedMethods (doc: Document) {
@@ -251,20 +251,23 @@ export default class Listeners extends EventEmitter {
         };
     }
 
-    initElementListening (el: any, events) {
+    initElementListening (el: HTMLElement|Window|Document, events: Array<string> = LISTENED_EVENTS) {
         const nativeAddEventListener = Listeners._getNativeAddEventListener(el);
 
-        events = events || LISTENED_EVENTS;
+        for (const event of events) {
+            if (!this.listeningCtx.getEventCtx(el, event))
+                nativeAddEventListener.call(el, event, this._createEventHandler(), true);
+        }
 
         this.listeningCtx.addListeningElement(el, events);
 
-        for (const event of events)
-            nativeAddEventListener.call(el, event, this._createEventHandler(), true);
+        // @ts-ignore
+        if (!el.addEventListener.isHammerhead) {
+            const overridedMethods = this._createElementOverridedMethods(el);
 
-        const overridedMethods = this._createElementOverridedMethods(el);
-
-        el.addEventListener    = overridedMethods.addEventListener;
-        el.removeEventListener = overridedMethods.removeEventListener;
+            el.addEventListener    = overridedMethods.addEventListener;
+            el.removeEventListener = overridedMethods.removeEventListener;
+        }
     }
 
     initDocumentBodyListening (doc: Document) {

@@ -476,5 +476,31 @@ asyncTest('hover style in iframe', function () {
 
             start();
         });
+});
 
+asyncTest('events should not be called twice (GH-2062)', function () {
+    var eventCallCounter    = 0;
+    var internalCallCounter = 0;
+
+    listeners.initElementListening(window, ['keypress']);
+
+    window.addEventListener('keypress', function () {
+        ++eventCallCounter;
+    });
+
+    listeners.addInternalEventListener(window, ['keypress'], function () {
+        ++internalCallCounter;
+    });
+
+    var eventObj = new Event('keypress');
+
+    eventObj.key = 'a';
+
+    window.dispatchEvent(eventObj);
+
+    setTimeout(function () {
+        strictEqual(eventCallCounter, 1);
+        strictEqual(internalCallCounter, 1);
+        start();
+    }, 1000);
 });
