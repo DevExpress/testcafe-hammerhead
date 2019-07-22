@@ -319,6 +319,8 @@ test('add element with `formaction` tag to the form', function () {
 
 module('should create a proxy url for the img src attribute if the image has the load handler (GH-651)', function () {
     module('onload property', function () {
+        var origin = location.origin || location.protocol + location.host;
+
         test('attach the load handler before setting up the src', function () {
             var img         = document.createElement('img');
             var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
@@ -367,7 +369,7 @@ module('should create a proxy url for the img src attribute if the image has the
 
             destLocation.forceLocation('http://localhost/sessionId/' + location.origin);
 
-            img.src = 'http://localhost:2000/image.png?rand=' + Math.random() + '&timeout=0';
+            img.src = origin + '/image.png?rand=' + Math.random() + '&timeout=0';
 
             nativeMethods.htmlElementOnloadSetter.call(img, function () {
                 var onloadHandlerCalled = false;
@@ -395,7 +397,7 @@ module('should create a proxy url for the img src attribute if the image has the
 
             destLocation.forceLocation('http://localhost/sessionId/' + location.origin);
 
-            img.src    = 'http://localhost:2000/image.png?rand=' + Math.random() + '&timeout=300';
+            img.src    = origin + '/image.png?rand=' + Math.random() + '&timeout=300';
             img.onload = function () {
                 ok(true);
                 destLocation.forceLocation(storedForcedLocation);
@@ -409,7 +411,7 @@ module('should create a proxy url for the img src attribute if the image has the
 
             destLocation.forceLocation('http://localhost/sessionId/' + location.origin);
 
-            img.src = 'http://localhost:2000/image.png?rand=' + Math.random() + '&timeout=0';
+            img.src = origin + '/image.png?rand=' + Math.random() + '&timeout=0';
 
             nativeMethods.htmlElementOnloadSetter.call(img, function () {
                 img.onload = function () {
@@ -419,7 +421,28 @@ module('should create a proxy url for the img src attribute if the image has the
                     start();
                 };
 
-                img.src = 'http://localhost:2000/image.png?rand=' + Math.random() + '&timeout=0';
+                img.src = origin + '/image.png?rand=' + Math.random() + '&timeout=0';
+            });
+        });
+
+        asyncTest('attach the load handler after setting up the cached src(image is loaded, but load event is not emitted) (GH-1959)', function () {
+            var img                  = document.createElement('img');
+            var imgSrc               = origin + '/image.png?rand=' + Math.random() + '&timeout=0&expires=' +
+                                       new Date(Date.now() + 1e6).toUTCString();
+            var storedForcedLocation = destLocation.getLocation();
+
+            destLocation.forceLocation('http://localhost/sessionId/' + location.origin);
+
+            img.src = imgSrc;
+            nativeMethods.htmlElementOnloadSetter.call(img, function () {
+                var anotherImg = document.createElement('img');
+
+                anotherImg.src    = imgSrc;
+                anotherImg.onload = function () {
+                    ok(true);
+                    destLocation.forceLocation(storedForcedLocation);
+                    start();
+                };
             });
         });
     });

@@ -24,6 +24,7 @@ import { ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../../processing/dom/attri
 import settings from '../../settings';
 import { overrideDescriptor } from '../../utils/property-overriding';
 import InsertPosition from '../../utils/insert-position';
+import { isFirefox } from '../../utils/browser';
 
 const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
@@ -83,17 +84,18 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     static _setProxiedSrc (img) {
-        if (!img[INTERNAL_PROPS.forceProxySrcForImage]) {
-            const imgSrc            = nativeMethods.imageSrcGetter.call(img);
-            const skipNextLoadEvent = !!imgSrc && img.complete;
+        if (img[INTERNAL_PROPS.forceProxySrcForImage])
+            return;
 
-            img[INTERNAL_PROPS.forceProxySrcForImage] = true;
+        const imgSrc            = nativeMethods.imageSrcGetter.call(img);
+        const skipNextLoadEvent = !!imgSrc && img.complete && !img[INTERNAL_PROPS.cachedImage];
 
-            if (imgSrc)
-                img.setAttribute('src', imgSrc);
+        img[INTERNAL_PROPS.forceProxySrcForImage] = true;
 
-            img[INTERNAL_PROPS.skipNextLoadEventForImage] = skipNextLoadEvent;
-        }
+        if (imgSrc)
+            img.setAttribute('src', imgSrc);
+
+        img[INTERNAL_PROPS.skipNextLoadEventForImage] = skipNextLoadEvent;
     }
 
     getAttributeCore (el, args, isNs?: boolean) {
@@ -316,6 +318,9 @@ export default class ElementSandbox extends SandboxBase {
         }
 
         const result = setAttrMeth.apply(el, args);
+
+        if (tagName === 'img' && !el[INTERNAL_PROPS.forceProxySrcForImage] && el.complete && !isFirefox)
+            el[INTERNAL_PROPS.cachedImage] = true;
 
         if (needToCallTargetChanged)
             ElementSandbox._onTargetChanged(el);
@@ -894,6 +899,9 @@ export default class ElementSandbox extends SandboxBase {
             case 'img':
                 this.eventSandbox.listeners.initElementListening(el, ['load']);
                 this.eventSandbox.listeners.addInternalEventListener(el, ['load'], (_e, _dispatched, preventEvent, _cancelHandlers, stopEventPropagation) => {
+                    if (el[INTERNAL_PROPS.cachedImage])
+                        el[INTERNAL_PROPS.cachedImage] = false;
+
                     if (!el[INTERNAL_PROPS.skipNextLoadEventForImage])
                         return;
 
