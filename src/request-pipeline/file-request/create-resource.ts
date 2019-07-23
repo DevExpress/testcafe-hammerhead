@@ -9,7 +9,8 @@ export default async function createResource (path: string) : Promise<BaseResour
 
     await resource.init();
 
-    if (resource.error && resource.error.code === 'ENOENT') {
+    if (resource.error &&
+        (resource.error.code === 'ENOENT' || resource.error.code === 'ENOTDIR')) {
         const asarResource = new AsarResource(path);
 
         await asarResource.init();
