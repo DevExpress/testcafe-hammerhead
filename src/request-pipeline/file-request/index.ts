@@ -14,8 +14,8 @@ export default class FileRequest extends EventEmitter {
     constructor (url: string) {
         super();
 
-        this._url      = url;
-        this._path     = FileRequest._getPath(url);
+        this._url  = url;
+        this._path = FileRequest._getPath(url);
 
         this._createResource();
     }
