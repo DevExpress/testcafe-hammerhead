@@ -183,26 +183,21 @@ module.exports = function (app) {
     app.get('/:url', iframeLocationUrlCallback);
 
     app.get('/image.png', function (req, res) {
-        var promise = null;
+        var image = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUA' +
+                                'AAAJcEhZcwAADsMAAA7DAcdvqGQAAAAMSURBVBhXY9j6TBYABAwBuZFzS6sAAAAASUVORK5CYII=', 'base64');
 
-        if (req.query.timeout) {
-            promise = new Promise(function (resolve) {
-                setTimeout(resolve, req.query.timeout);
-            });
-        }
-        else
-            promise = Promise.resolve();
+        setTimeout(function () {
+            res.set('content-type', 'image/png');
 
-        promise
-            .then(function () {
-                res
-                    .set('content-type', 'image/png')
-                    .set('cache-control', 'no-cache, no-store, must-revalidate')
-                    .set('pragma', 'no-cache')
-                    .send(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAAXNSR0I' +
-                                      'Ars4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqG' +
-                                      'QAAAAMSURBVBhXY9j6TBYABAwBuZFzS6sAAAAASUVORK5CYII=', 'base64'));
-            });
+            if (!req.query.expires) {
+                res.set('cache-control', 'no-cache, no-store, must-revalidate');
+                res.set('pragma', 'no-cache');
+            }
+            else
+                res.set('expires', req.query.expires);
+
+            res.send(image);
+        }, req.query.timeout || 0);
     });
 
     app.get('/destroy-connection', function (req, res) {
