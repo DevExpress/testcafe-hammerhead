@@ -44,20 +44,13 @@ export default class Asar {
         return '';
     }
 
-    private _parse (fullPath: string) : ParsedPath {
-        let archive  = '';
-        let fileName = '';
-
+    parse (fullPath: string) : ParsedPath {
         for (const archivePath of this._archivePaths) {
-            if (fullPath.startsWith(archivePath)) {
-                archive  = archivePath;
-                fileName = fullPath.replace(archivePath, '.');
-
-                break;
-            }
+            if (fullPath.startsWith(archivePath))
+                return { archive: archivePath, fileName: fullPath.replace(archivePath, '.') };
         }
 
-        return { archive, fileName };
+        return { archive: '', fileName: '' };
     }
 
     async isAsar (fullPath: string) : Promise<boolean> {
@@ -84,20 +77,17 @@ export default class Asar {
         return false;
     }
 
-    extractFileToReadStream (fullPath: string) : Readable {
-        const parsedPath    = this._parse(fullPath);
-        const extractedFile = asar.extractFile(parsedPath.archive, parsedPath.fileName);
+    extractFileToReadStream (archive: string, fileName: string) : Readable {
+        const extractedFile = asar.extractFile(archive, fileName);
 
         return toReadableStream(extractedFile);
     }
 
-    getFileInAsarNotFoundMessage (fullPath: string) : string {
-        const parsedAsarPath = this._parse(fullPath);
-
-        return `The target file ("${parsedAsarPath.fileName}") in the "asar" archive ("${parsedAsarPath.archive}") is not found`;
+    getFileInAsarNotFoundMessage (archive: string, fileName: string) : string {
+        return `The target file ("${fileName}") in the "asar" archive ("${archive}") is not found`;
     }
 
     getArchivePath (fullPath: string) : string {
-        return this._parse(fullPath).archive;
+        return this.parse(fullPath).archive;
     }
 }
