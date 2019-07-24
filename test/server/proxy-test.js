@@ -646,7 +646,7 @@ describe('Proxy', () => {
             const options = {
                 headers: {
                     referer: proxy.openSession('http://example.com', session),
-                    accept:  'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                    accept:  PAGE_ACCEPT_HEADER
                 },
 
                 url:                     proxy.openSession('http://127.0.0.1:2000/page/', session),
