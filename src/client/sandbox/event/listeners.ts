@@ -262,7 +262,7 @@ export default class Listeners extends EventEmitter {
         this.listeningCtx.addListeningElement(el, events);
 
         // @ts-ignore
-        if (!el.addEventListener.isHammerhead) {
+        if (!el.addEventListener || !el.addEventListener.isHammerhead) {
             const overridedMethods = this._createElementOverridedMethods(el);
 
             el.addEventListener    = overridedMethods.addEventListener;
