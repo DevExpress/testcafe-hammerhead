@@ -27,16 +27,17 @@ export default class AsarResource extends BaseResource {
     }
 
     async init () : Promise<void> {
-        if (await asar.isAsar(this._path)) {
-            const { archive, fileName } = await asar.parse(this._path);
+        if (!await asar.isAsar(this._path))
+            return;
 
-            this._archive  = archive;
-            this._fileName = fileName;
+        const { archive, fileName } = await asar.parse(this._path);
 
-            await this._checkAccess(this._archive);
+        this._archive  = archive;
+        this._fileName = fileName;
 
-            if (!this._error)
-                this._createContentStream();
-        }
+        await this._checkAccess(this._archive);
+
+        if (!this._error)
+            this._createContentStream();
     }
 }

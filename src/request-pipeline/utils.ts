@@ -49,6 +49,9 @@ export function sendRequest (ctx: RequestPipelineContext) {
             ctx.req.socket.end();
             resolve();
         });
+
+        if (req instanceof FileRequest)
+            req.init();
     });
 }
 

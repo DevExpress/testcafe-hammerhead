@@ -16,11 +16,9 @@ export default class FileRequest extends EventEmitter {
 
         this._url  = url;
         this._path = FileRequest._getPath(url);
-
-        this._createResource();
     }
 
-    private async _createResource () {
+    async init () : Promise<void> {
         const resource = await createResource(this._path);
 
         if (resource.error)
