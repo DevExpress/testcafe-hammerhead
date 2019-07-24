@@ -1,5 +1,3 @@
-'use strict';
-
 const expect        = require('chai').expect;
 const parse5        = require('parse5');
 const DomProcessor  = require('../../lib/processing/dom');

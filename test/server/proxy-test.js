@@ -1,5 +1,3 @@
-'use strict';
-
 const fs                                   = require('fs');
 const os                                   = require('os');
 const http                                 = require('http');
@@ -72,6 +70,8 @@ const ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
         shoudAddTrailingSlash: false
     }
 ];
+
+const PAGE_ACCEPT_HEADER = 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8';
 
 function trim (str) {
     return str.replace(/^\s+|\s+$/g, '');
@@ -174,6 +174,11 @@ describe('Proxy', () => {
         app.get('/page', (req, res) => {
             res.setHeader('content-type', 'text/html');
             res.end(fs.readFileSync('test/server/data/page/src.html').toString());
+        });
+
+        app.get('/page-with-custom-client-script', (req, res) => {
+            res.setHeader('content-type', 'text/html');
+            res.end(fs.readFileSync('test/server/data/page-with-custom-client-script/src.html').toString());
         });
 
         app.get('/html-import-page', (req, res) => {
@@ -529,7 +534,7 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('http://www.some-unresolvable.url', session),
                 headers: {
-                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                    accept: PAGE_ACCEPT_HEADER
                 }
             };
 
@@ -547,7 +552,7 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('https://127.0.0.1:2000', session),
                 headers: {
-                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                    accept: PAGE_ACCEPT_HEADER
                 }
             };
 
@@ -621,7 +626,8 @@ describe('Proxy', () => {
                 const options = {
                     url:     url,
                     headers: {
-                        accept: 'text/html'
+                        accept:  'text/html',
+                        headers: { accept: PAGE_ACCEPT_HEADER }
                     }
                 };
 
@@ -1208,7 +1214,7 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/page', session),
                 headers: {
-                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                    accept: PAGE_ACCEPT_HEADER
                 }
             };
 
@@ -1280,7 +1286,7 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/page', session),
                 headers: {
-                    accept:                      'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
+                    accept:                      PAGE_ACCEPT_HEADER,
                     referer:                     proxy.openSession('http://127.0.0.1:2000/', session),
                     [XHR_HEADERS.requestMarker]: 'true'
                 }
@@ -1377,7 +1383,7 @@ describe('Proxy', () => {
                 url:     proxy.openSession('http://127.0.0.1:2000/download', session),
                 method:  'GET',
                 headers: {
-                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                    accept: PAGE_ACCEPT_HEADER
                 }
             };
 
@@ -1415,6 +1421,28 @@ describe('Proxy', () => {
                     });
 
             }));
+        });
+
+        it('Should append custom user scripts to the page', () => {
+            session.injectable.userScripts.push(
+                { url: '/custom-user-script-1', page: RequestFilterRule.ANY },
+                { url: '/custom-user-script-2', page: new RequestFilterRule(new RegExp('/page-with-custom-client-script')) },
+                { url: '/custom-user-script-3', page: new RequestFilterRule('/another-page') }
+            );
+
+            const options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/page-with-custom-client-script', session),
+                headers: {
+                    accept: PAGE_ACCEPT_HEADER
+                }
+            };
+
+            return request(options)
+                .then(body => {
+                    const expected = fs.readFileSync('test/server/data/page-with-custom-client-script/expected.html').toString();
+
+                    compareCode(body, expected);
+                });
         });
     });
 
@@ -1486,7 +1514,7 @@ describe('Proxy', () => {
                 url: proxy.openSession(getFileProtocolUrl('./data/page/src.html') + '?a=1&b=3', session),
 
                 headers: {
-                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                    accept: PAGE_ACCEPT_HEADER
                 }
             };
 
@@ -1648,7 +1676,7 @@ describe('Proxy', () => {
                 }),
 
                 headers: {
-                    accept: opts.isPage ? 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8' : '*/*'
+                    accept: opts.isPage ? PAGE_ACCEPT_HEADER : '*/*'
                 }
             };
 
@@ -1789,7 +1817,7 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/echo-headers', session),
                 headers: {
-                    accept:              'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
+                    accept:              PAGE_ACCEPT_HEADER,
                     'if-modified-since': 'Mon, 17 Jul 2017 14:56:15 GMT',
                     'if-none-match':     'W/"1322-15d510cbdf8"'
                 }
@@ -2454,7 +2482,7 @@ describe('Proxy', () => {
                 const options = {
                     url:     proxy.openSession(url, session),
                     headers: {
-                        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                        accept: PAGE_ACCEPT_HEADER
                     }
                 };
 
@@ -2487,7 +2515,7 @@ describe('Proxy', () => {
                     url:                     proxy.openSession(url, session),
                     resolveWithFullResponse: true,
                     headers:                 {
-                        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                        accept: PAGE_ACCEPT_HEADER
                     }
                 };
 
@@ -2523,7 +2551,7 @@ describe('Proxy', () => {
                 const options = {
                     url:     proxy.openSession(url, session),
                     headers: {
-                        accept:                      'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
+                        accept:                      PAGE_ACCEPT_HEADER,
                         referer:                     proxy.openSession('http://example.com', session),
                         [XHR_HEADERS.requestMarker]: 'true'
                     }
@@ -2667,7 +2695,7 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/page', session),
                 headers: {
-                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                    accept: PAGE_ACCEPT_HEADER
                 }
             };
 
@@ -2744,7 +2772,7 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/T224541/hang-forever', session),
                 headers: {
-                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                    accept: PAGE_ACCEPT_HEADER
                 }
             };
 
@@ -2787,7 +2815,7 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/B239430/empty-page', session),
                 headers: {
-                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                    accept: PAGE_ACCEPT_HEADER
                 }
             };
 
@@ -2804,7 +2832,7 @@ describe('Proxy', () => {
                 url:                     proxy.openSession('http://127.0.0.1:2000/GH-306/empty-resource', session),
                 resolveWithFullResponse: true,
                 headers:                 {
-                    accept:            'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
+                    accept:            PAGE_ACCEPT_HEADER,
                     'x-resource-type': 'text/html; charset=utf-8'
                 }
             };
@@ -2825,7 +2853,7 @@ describe('Proxy', () => {
                 url:                     url.replace(/^(.*?\/\/.*?\/.*?)(\/.*)$/, '$1!script$2'),
                 resolveWithFullResponse: true,
                 headers:                 {
-                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                    accept: PAGE_ACCEPT_HEADER
                 }
             };
 
@@ -2882,7 +2910,7 @@ describe('Proxy', () => {
                 url:                     url.replace(session.id, session.id + '!f'),
                 resolveWithFullResponse: true,
                 headers:                 {
-                    accept:            'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
+                    accept:            PAGE_ACCEPT_HEADER,
                     'x-resource-type': 'text/html; charset=utf-8'
                 }
             };
@@ -2909,7 +2937,7 @@ describe('Proxy', () => {
                     const options = {
                         url:     proxy.openSession(host, session),
                         headers: {
-                            accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                            accept: PAGE_ACCEPT_HEADER
                         }
                     };
 
@@ -3097,7 +3125,7 @@ describe('Proxy', () => {
             ];
             const req = {
                 headers: {
-                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                    accept: PAGE_ACCEPT_HEADER
                 }
             };
             const ctx = new RequestPipelineContext(req, {}, {});
@@ -3133,7 +3161,7 @@ describe('Proxy', () => {
                 url: proxy.openSession('about:blank', session),
 
                 headers: {
-                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                    accept: PAGE_ACCEPT_HEADER
                 }
             };
 
@@ -3238,7 +3266,7 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/page-with-frameset', session),
                 headers: {
-                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                    accept: PAGE_ACCEPT_HEADER
                 }
             };
 
@@ -3256,7 +3284,7 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/GH-1014/pdf-content-type', session),
                 headers: {
-                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                    accept: PAGE_ACCEPT_HEADER
                 }
             };
 
@@ -3272,7 +3300,7 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/GH-1014/empty-page-without-content-type/', session),
                 headers: {
-                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                    accept: PAGE_ACCEPT_HEADER
                 }
             };
 
@@ -3510,7 +3538,7 @@ describe('Proxy', () => {
                 url:                     proxy.openSession('http://127.0.0.1:2000/referrer-policy', session),
                 resolveWithFullResponse: true,
                 headers:                 {
-                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                    accept: PAGE_ACCEPT_HEADER
                 }
             };
 
@@ -3528,7 +3556,7 @@ describe('Proxy', () => {
 
                     resolveWithFullResponse: true,
                     headers:                 {
-                        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                        accept: PAGE_ACCEPT_HEADER
                     }
                 };
 

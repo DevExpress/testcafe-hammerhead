@@ -1,27 +1,28 @@
 /*eslint-disable no-unused-vars*/
 import RequestPipelineContext from '../../request-pipeline/context';
 import ConfigureResponseEventOptions from './configure-response-event-options';
+import { IncomingHttpHeaders } from 'http';
 /*eslint-enable no-unused-vars*/
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
 
 export class RequestInfo {
     readonly requestId: string;
-    readonly userAgent: string | void;
+    readonly userAgent: string;
     readonly url: string;
     readonly method: string;
     readonly isAjax: boolean;
-    readonly headers: { [name: string]: string };
+    readonly headers: IncomingHttpHeaders;
     readonly body: string | Buffer;
     readonly sessionId: string;
 
-    constructor (ctx: RequestPipelineContext, opts) {
+    constructor (ctx: RequestPipelineContext) {
         this.requestId = ctx.requestId;
-        this.userAgent = opts.headers['user-agent'];
-        this.url       = opts.url;
-        this.method    = opts.method.toLowerCase();
+        this.userAgent = ctx.reqOpts.headers['user-agent'] || '';
+        this.url       = ctx.reqOpts.url;
+        this.method    = ctx.reqOpts.method.toLowerCase();
         this.isAjax    = ctx.isXhr || ctx.isFetch;
-        this.headers   = opts.headers;
-        this.body      = opts.body;
+        this.headers   = ctx.reqOpts.headers;
+        this.body      = ctx.reqOpts.body;
         this.sessionId = ctx.session.id;
     }
 }

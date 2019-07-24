@@ -59,15 +59,15 @@ const stages = [
     },
 
     async function sendDestinationRequest (ctx: RequestPipelineContext) {
+        ctx.reqOpts = new RequestOptions(ctx);
+
         if (ctx.isSpecialPage) {
             ctx.destRes = createSpecialPageResponse();
             return;
         }
 
-        ctx.reqOpts = new RequestOptions(ctx);
-
         if (ctx.session.hasRequestEventListeners()) {
-            const requestInfo = new RequestInfo(ctx, ctx.reqOpts);
+            const requestInfo = new RequestInfo(ctx);
 
             ctx.requestFilterRules = ctx.session.getRequestFilterRules(requestInfo);
             await ctx.forEachRequestFilterRule(async rule => {

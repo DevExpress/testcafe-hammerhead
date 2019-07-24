@@ -8,6 +8,7 @@ import ConfigureResponseEventOptions from './session/events/configure-response-e
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from './request-pipeline/xhr/same-origin-check-failed-status-code';
 import StateSnapshot from './session/state-snapshot';
 import { SPECIAL_BLANK_PAGE, SPECIAL_ERROR_PAGE } from './utils/url';
+import generateUniqueId from './utils/generate-unique-id';
 
 export default {
     Proxy,
@@ -21,5 +22,6 @@ export default {
     SAME_ORIGIN_CHECK_FAILED_STATUS_CODE,
     StateSnapshot,
     SPECIAL_BLANK_PAGE,
-    SPECIAL_ERROR_PAGE
+    SPECIAL_ERROR_PAGE,
+    generateUniqueId
 };

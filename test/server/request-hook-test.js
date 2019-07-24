@@ -1,5 +1,3 @@
-'use strict';
-
 const url                           = require('url');
 const expect                        = require('chai').expect;
 const ResponseMock                  = require('../../lib/request-pipeline/request-hooks/response-mock');
