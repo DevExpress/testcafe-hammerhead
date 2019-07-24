@@ -492,9 +492,9 @@ asyncTest('events should not be called twice (GH-2062)', function () {
         ++internalCallCounter;
     });
 
-    var eventObj = new Event('keypress');
+    var eventObj = document.createEvent('KeyboardEvent');
 
-    eventObj.key = 'a';
+    eventObj.initKeyboardEvent('keypress', true, true, window, 0, 0, 0, 0, 0, '1');
 
     window.dispatchEvent(eventObj);
 
