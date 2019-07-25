@@ -8,26 +8,27 @@ import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import * as JSON from 'json-hammerhead';
 import { createOverriddenDescriptor } from '../../utils/property-overriding';
 import hammerhead from '../../index';
+/*eslint-disable no-unused-vars*/
+import Listeners from '../event/listeners';
+import UnloadSandbox from '../event/unload';
+import EventSimulator from '../event/simulator';
+/*eslint-enable no-unused-vars*/
 
 export default class StorageSandbox extends SandboxBase {
-    localStorageWrapper: any;
-    sessionStorageWrapper: any;
-    listeners: any;
-    unloadSandbox: any;
-    eventSimulator: any;
+    localStorageWrapper: StorageWrapper;
+    sessionStorageWrapper: StorageWrapper;
     storages: any;
     isLocked: boolean;
     onLocalStorageChangeListener: any;
     onSessionStorageListener: any;
 
-    constructor (listeners, unloadSandbox, eventSimulator) {
+    constructor (private readonly _listeners: Listeners, //eslint-disable-line no-unused-vars
+                 private readonly _unloadSandbox: UnloadSandbox, //eslint-disable-line no-unused-vars
+                 private readonly _eventSimulator: EventSimulator) { //eslint-disable-line no-unused-vars
         super();
 
         this.localStorageWrapper   = null;
         this.sessionStorageWrapper = null;
-        this.listeners             = listeners;
-        this.unloadSandbox         = unloadSandbox;
-        this.eventSimulator        = eventSimulator;
         this.storages              = {};
         this.isLocked              = false;
     }
@@ -38,7 +39,7 @@ export default class StorageSandbox extends SandboxBase {
 
         if (storageArea && storageArea.getContext() !== this.window) {
             event.storageArea = storageArea;
-            this.eventSimulator.storage(this.window, event);
+            this._eventSimulator.storage(this.window, event);
         }
     }
 
@@ -72,7 +73,7 @@ export default class StorageSandbox extends SandboxBase {
                 }
             };
 
-            this.unloadSandbox.on(this.unloadSandbox.BEFORE_UNLOAD_EVENT, saveToNativeStorages);
+            this._unloadSandbox.on(this._unloadSandbox.BEFORE_UNLOAD_EVENT, saveToNativeStorages);
             // NOTE: In some case, a browser does not emit the onBeforeUnload event and we need manually watch navigation (GH-1999).
             // Also, on iOS devices, we realize the BEFORE_UNLOAD_EVENT through the onPageHide event that browser emits too late
             // and we do not have time to save the localStorage wrapper to the native localStorage (GH-1507).
@@ -144,8 +145,8 @@ export default class StorageSandbox extends SandboxBase {
         this.onSessionStorageListener     = this.sessionStorageWrapper.on(this.sessionStorageWrapper.STORAGE_CHANGED_EVENT,
             e => this._simulateStorageEventIfNecessary(e, this.sessionStorageWrapper));
 
-        this.listeners.initElementListening(window, ['storage']);
-        this.listeners.addInternalEventListener(window, ['storage'], (_e, dispatched, preventEvent) => {
+        this._listeners.initElementListening(window, ['storage']);
+        this._listeners.addInternalEventListener(window, ['storage'], (_e, dispatched, preventEvent) => {
             if (!dispatched)
                 preventEvent();
         });

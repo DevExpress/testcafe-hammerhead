@@ -36,7 +36,8 @@ export default class MessageSandbox extends SandboxBase {
 
     iframeInternalMsgQueue: Array<any>;
 
-    constructor (private readonly _listeners: Listeners, private readonly _unloadSandbox: UnloadSandbox) { //eslint-disable-line no-unused-vars
+    constructor (private readonly _listeners: Listeners, //eslint-disable-line no-unused-vars
+                 private readonly _unloadSandbox: UnloadSandbox) { //eslint-disable-line no-unused-vars
         super();
 
         this.pingCallback = null;

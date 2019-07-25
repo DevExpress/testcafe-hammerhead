@@ -3,7 +3,7 @@ import nativeMethods from '../native-methods';
 import * as JSON from 'json-hammerhead';
 import ShadowUI from '../shadow-ui';
 
-function createInput (form) {
+function createInput (form: HTMLFormElement) {
     const hiddenInput = nativeMethods.createElement.call(document, 'input');
 
     hiddenInput.type  = 'hidden';
@@ -19,7 +19,7 @@ function createInput (form) {
     return hiddenInput;
 }
 
-function getInput (form) {
+function getInput (form: HTMLFormElement) {
     const inputSelector = '[name="' + INTERNAL_ATTRS.uploadInfoHiddenInputName + '"]';
 
     return nativeMethods.elementQuerySelector.call(form, inputSelector) || createInput(form);

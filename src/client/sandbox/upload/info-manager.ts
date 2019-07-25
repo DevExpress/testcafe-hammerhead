@@ -9,11 +9,9 @@ import Promise from 'pinkie';
 const FAKE_PATH_STRING = 'C:\\fakepath\\';
 
 export default class UploadInfoManager {
-    shadowUI: any;
     uploadInfo: any;
 
-    constructor (shadowUI) {
-        this.shadowUI   = shadowUI;
+    constructor () {
         this.uploadInfo = [];
     }
 

@@ -39,7 +39,7 @@ export function remove (wnd) {
         storage.splice(index, 1);
 }
 
-export function findByName (name) {
+export function findByName (name: string) {
     const storage = getStorage();
 
     for (let i = 0; i < storage.length; i++) {

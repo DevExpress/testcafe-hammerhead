@@ -71,7 +71,7 @@ export default class Sandbox extends SandboxBase {
         this.fetch               = new FetchSandbox(cookieSandbox);
         this.iframe              = new IframeSandbox(nodeMutation, cookieSandbox);
         this.shadowUI            = new ShadowUI(nodeMutation, messageSandbox, this.iframe, ieDebugSandbox);
-        this.upload              = new UploadSandbox(listeners, eventSimulator, this.shadowUI);
+        this.upload              = new UploadSandbox(listeners, eventSimulator);
         this.event               = new EventSandbox(listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, this.shadowUI, timersSandbox);
         this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI, cookieSandbox);
         this.codeInstrumentation = new CodeInstrumentation(this.event, this.node.win, messageSandbox);
