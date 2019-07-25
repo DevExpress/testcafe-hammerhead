@@ -9,7 +9,7 @@ export default class FileSystemResource extends BaseResource {
         super(path);
     }
 
-    private _getStat () : Promise<{ err: any | null, stats: fs.Stats | null }> {
+    private _getStat () : Promise<{ err: any, stats: fs.Stats | null }> {
         return stat(this._path)
             .then((stats: fs.Stats) => ({ stats, err: null }), (err: any) => ({ stats: null, err }));
     }

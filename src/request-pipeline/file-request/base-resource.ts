@@ -23,7 +23,7 @@ export default abstract class BaseResource {
         }
     }
 
-    get error () : any | null {
+    get error () : any {
         return this._error;
     }
 
