@@ -421,8 +421,8 @@ if (!browserUtils.isFirefox) {
                 var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
 
                 var testedSandboxes = [
-                    iframeHammerhead.shadowUI.iframeSandbox,
-                    iframeHammerhead.shadowUI.nodeMutation,
+                    iframeHammerhead.shadowUI._iframeSandbox,
+                    iframeHammerhead.shadowUI._nodeMutation,
                     iframeHammerhead.sandbox.codeInstrumentation._locationAccessorsInstrumentation
                 ];
 
