@@ -84,7 +84,7 @@ export default class Asar {
     }
 
     getFileInAsarNotFoundMessage (archive: string, fileName: string) : string {
-        return `The target file ("${fileName}") in the "asar" archive ("${archive}") is not found`;
+        return `Cannot find the "${fileName}" file in the "${archive}" archive.`;
     }
 
     getArchivePath (fullPath: string) : string {
