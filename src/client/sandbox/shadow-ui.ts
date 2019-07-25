@@ -11,6 +11,9 @@ import { stopPropagation } from '../utils/event';
 import { getNativeQuerySelectorAll } from '../utils/query-selector';
 import HTMLCollectionWrapper from './node/live-node-list/html-collection-wrapper';
 import { getElementsByNameReturnsHTMLCollection } from '../utils/feature-detection';
+/*eslint-disable no-unused-vars*/
+import { DocumentCleanedEvent } from '../../typings/client';
+/*eslint-enable no-unused-vars*/
 
 const IS_NON_STATIC_POSITION_RE = /fixed|relative|absolute/;
 const CLASSNAME_RE              = /\.((?:\\.|[-\w]|[^\x00-\xa0])+)/g;
@@ -37,13 +40,13 @@ export default class ShadowUI extends SandboxBase {
     uiStyleSheetsHtmlBackup: any;
     wrapperCreators: any;
 
-    runTaskScriptEventCallback: any;
-    beforeDocumentCleanedEventCallback: any;
-    documentCleanedEventCallback: any;
-    documentClosedEventCallback: any;
-    bodyContentChangedEventCallback: any;
-    serviceMsgReceivedEventCallback: any;
-    bodyCreatedEventCallback: any;
+    runTaskScriptEventCallback: Function;
+    beforeDocumentCleanedEventCallback: Function;
+    documentCleanedEventCallback: Function;
+    documentClosedEventCallback: Function;
+    bodyContentChangedEventCallback: Function;
+    serviceMsgReceivedEventCallback: Function;
+    bodyCreatedEventCallback: Function;
 
     constructor (nodeMutation, messageSandbox, iframeSandbox, ieDebugSandbox) {
         super();
@@ -75,8 +78,8 @@ export default class ShadowUI extends SandboxBase {
             this.uiStyleSheetsHtmlBackup = this._getUIStyleSheetsHtml();
         };
 
-        this.documentCleanedEventCallback = (document: Document) => {
-            this._restoreUIStyleSheets(document.head, this.uiStyleSheetsHtmlBackup);
+        this.documentCleanedEventCallback = (e: DocumentCleanedEvent) => {
+            this._restoreUIStyleSheets(e.document.head, this.uiStyleSheetsHtmlBackup);
             this.uiStyleSheetsHtmlBackup = null;
 
             this.markShadowUIContainers(this.document.head, this.document.body);

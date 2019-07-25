@@ -24,3 +24,8 @@ export interface ScrollState {
     top: number;
 }
 
+export interface DocumentCleanedEvent {
+    window: Window;
+    document: Document;
+}
+
