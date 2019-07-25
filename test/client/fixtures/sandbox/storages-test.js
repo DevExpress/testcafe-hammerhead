@@ -46,7 +46,7 @@ test('clear', function () {
     strictEqual(nativeLocalStorage.getItem(localStorage.nativeStorageKey), null);
     strictEqual(nativeSessionStorage.getItem(sessionStorage.nativeStorageKey), null);
 
-    storageSandbox.unloadSandbox.emit(storageSandbox.unloadSandbox.BEFORE_UNLOAD_EVENT);
+    storageSandbox._unloadSandbox.emit(storageSandbox._unloadSandbox.BEFORE_UNLOAD_EVENT);
 
     strictEqual(nativeLocalStorage.getItem(localStorage.nativeStorageKey), '[["key11"],["value1"]]');
     strictEqual(nativeSessionStorage.getItem(sessionStorage.nativeStorageKey), '[["key12"],["value2"]]');
@@ -69,7 +69,7 @@ test('lock', function () {
     strictEqual(nativeSessionStorage.getItem(sessionStorage.nativeStorageKey), null);
 
     storageSandbox.lock();
-    storageSandbox.unloadSandbox.emit(storageSandbox.unloadSandbox.BEFORE_UNLOAD_EVENT);
+    storageSandbox._unloadSandbox.emit(storageSandbox._unloadSandbox.BEFORE_UNLOAD_EVENT);
 
     strictEqual(nativeLocalStorage.getItem(localStorage.nativeStorageKey), null);
     strictEqual(nativeSessionStorage.getItem(sessionStorage.nativeStorageKey), null);
