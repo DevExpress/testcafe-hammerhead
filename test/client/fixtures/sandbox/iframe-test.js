@@ -95,7 +95,7 @@ test('take sequences starting with "$" into account when generating task scripts
             var storedTemplate   = templateSettings.iframeTaskScriptTemplate;
 
             templateSettings.iframeTaskScriptTemplate = iframeTemplate;
-            iframeSandbox.iframeReadyToInitHandler({ iframe: iframe });
+            iframeSandbox.iframeReadyToInitHandler(iframe);
             templateSettings.iframeTaskScriptTemplate = storedTemplate;
         });
 });

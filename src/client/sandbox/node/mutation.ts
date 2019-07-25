@@ -8,27 +8,27 @@ export default class NodeMutation extends EventEmitter {
     BODY_CREATED_EVENT: string = 'hammerhead|event|body-created';
     IFRAME_ADDED_TO_DOM_EVENT: string = 'hammerhead|event|iframe-added-to-dom';
 
-    onIframeAddedToDOM (e) {
-        this.emit(this.IFRAME_ADDED_TO_DOM_EVENT, e);
+    onIframeAddedToDOM (iframe: HTMLIFrameElement) {
+        this.emit(this.IFRAME_ADDED_TO_DOM_EVENT, iframe);
     }
 
-    onBeforeDocumentCleaned (e) {
-        this.emit(this.BEFORE_DOCUMENT_CLEANED_EVENT, e);
+    onBeforeDocumentCleaned (document: Document) {
+        this.emit(this.BEFORE_DOCUMENT_CLEANED_EVENT, document);
     }
 
-    onDocumentCleaned (e) {
-        this.emit(this.DOCUMENT_CLEANED_EVENT, e);
+    onDocumentCleaned (window: Window, document: Document) {
+        this.emit(this.DOCUMENT_CLEANED_EVENT, { window, document });
     }
 
-    onDocumentClosed (e) {
-        this.emit(this.DOCUMENT_CLOSED_EVENT, e);
+    onDocumentClosed (document: Document) {
+        this.emit(this.DOCUMENT_CLOSED_EVENT, document);
     }
 
-    onBodyContentChanged (e) {
-        this.emit(this.BODY_CONTENT_CHANGED_EVENT, e);
+    onBodyContentChanged (body: HTMLBodyElement) {
+        this.emit(this.BODY_CONTENT_CHANGED_EVENT, body);
     }
 
-    onBodyCreated (e) {
-        this.emit(this.BODY_CREATED_EVENT, e);
+    onBodyCreated (body: HTMLBodyElement) {
+        this.emit(this.BODY_CREATED_EVENT, body);
     }
 }

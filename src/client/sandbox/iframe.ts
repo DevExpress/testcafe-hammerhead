@@ -24,7 +24,7 @@ export default class IframeSandbox extends SandboxBase {
         this.cookieSandbox = cookieSandbox;
 
         this.on(this.RUN_TASK_SCRIPT_EVENT, this.iframeReadyToInitHandler);
-        nodeMutation.on(nodeMutation.IFRAME_ADDED_TO_DOM_EVENT, e => this.processIframe(e.iframe));
+        nodeMutation.on(nodeMutation.IFRAME_ADDED_TO_DOM_EVENT, (iframe: HTMLIFrameElement) => this.processIframe(iframe));
 
         this.iframeNativeMethodsBackup = null;
     }
@@ -82,7 +82,7 @@ export default class IframeSandbox extends SandboxBase {
 
         // NOTE: Raise this event to eval the "task" script and to call the Hammerhead initialization method
         // and external script initialization code.
-        this.emit(this.RUN_TASK_SCRIPT_EVENT, { iframe });
+        this.emit(this.RUN_TASK_SCRIPT_EVENT, iframe);
     }
 
     _raiseReadyToInitEvent (iframe) {
@@ -124,7 +124,7 @@ export default class IframeSandbox extends SandboxBase {
         return window[IFRAME_WINDOW_INITED];
     }
 
-    iframeReadyToInitHandler (e) {
+    iframeReadyToInitHandler (iframe) {
         // NOTE: We are using String.replace in order to avoid adding Mustache scripts on the client side.
         // If it is needed elsewhere in a certain place, we should consider using Mustache.
         const taskScriptTemplate       = settings.get().iframeTaskScriptTemplate;
@@ -137,16 +137,16 @@ export default class IframeSandbox extends SandboxBase {
             .replace('{{{referer}}}', escapeStringPatterns(JSON.stringify(referer)))
             .replace('{{{iframeTaskScriptTemplate}}}', escapeStringPatterns(iframeTaskScriptTemplate));
 
-        const contentWindow = nativeMethods.contentWindowGetter.call(e.iframe);
+        const contentWindow = nativeMethods.contentWindowGetter.call(iframe);
 
         contentWindow.eval.call(contentWindow, taskScript);
     }
 
-    onIframeBeganToRun (iframe) {
+    onIframeBeganToRun (iframe: HTMLIFrameElement) {
         this._raiseReadyToInitEvent(iframe);
     }
 
-    processIframe (el) {
+    processIframe (el: HTMLIFrameElement) {
         if (isShadowUIElement(el))
             return;
 

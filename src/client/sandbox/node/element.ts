@@ -25,35 +25,33 @@ import settings from '../../settings';
 import { overrideDescriptor } from '../../utils/property-overriding';
 import InsertPosition from '../../utils/insert-position';
 import { isFirefox } from '../../utils/browser';
+/*eslint-disable no-unused-vars*/
+import UploadSandbox from '../upload';
+import IframeSandbox from '../iframe';
+import EventSandbox from '../event';
+/*eslint-enable no-unused-vars*/
 
 const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
 const RESTRICTED_META_HTTP_EQUIV_VALUES = ['refresh', 'content-security-policy'];
 
 export default class ElementSandbox extends SandboxBase {
-    nodeSandbox: any;
-    shadowUI: any;
-    uploadSandbox: any;
-    iframeSandbox: any;
-    eventSandbox: any;
     overriddenMethods: any;
 
     BEFORE_FORM_SUBMIT_EVENT: string = 'hammerhead|event|before-form-submit';
     SCRIPT_ELEMENT_ADDED_EVENT: string = 'hammerhead|event|script-added';
 
-    constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI, eventSandbox) {
+    constructor (private readonly _nodeSandbox: NodeSandbox, //eslint-disable-line no-unused-vars
+                 private readonly _uploadSandbox: UploadSandbox, //eslint-disable-line no-unused-vars
+                 private readonly _iframeSandbox: IframeSandbox, //eslint-disable-line no-unused-vars
+                 private readonly _shadowUI: ShadowUI, //eslint-disable-line no-unused-vars
+                 private readonly _eventSandbox: EventSandbox) { //eslint-disable-line no-unused-vars
         super();
-
-        this.nodeSandbox   = nodeSandbox;
-        this.shadowUI      = shadowUI;
-        this.uploadSandbox = uploadSandbox;
-        this.iframeSandbox = iframeSandbox;
-        this.eventSandbox  = eventSandbox;
 
         this.overriddenMethods = null;
     }
 
-    static _isKeywordTarget (value) {
+    static _isKeywordTarget (value: string) {
         value = value.toLowerCase();
 
         return KEYWORD_TARGETS.indexOf(value) !== -1;
@@ -251,8 +249,8 @@ export default class ElementSandbox extends SandboxBase {
                 args[valueIndex] += !allowScripts ? ' allow-scripts' : '';
             }
 
-            if (el[this.nodeSandbox.win.SANDBOX_DOM_TOKEN_LIST_UPDATE_FN])
-                el[this.nodeSandbox.win.SANDBOX_DOM_TOKEN_LIST_UPDATE_FN](value);
+            if (el[this._nodeSandbox.win.SANDBOX_DOM_TOKEN_LIST_UPDATE_FN])
+                el[this._nodeSandbox.win.SANDBOX_DOM_TOKEN_LIST_UPDATE_FN](value);
         }
         // TODO: remove after https://github.com/DevExpress/testcafe-hammerhead/issues/244 implementation
         else if (tagName === 'meta' && attr === 'http-equiv') {
@@ -433,7 +431,7 @@ export default class ElementSandbox extends SandboxBase {
         // certain manipulations and then remove it.
         // Therefore, we need to check if the body element is present in DOM
         if (checkBody && domUtils.isBodyElementWithChildren(parentNode) && domUtils.isElementInDocument(parentNode))
-            result = this.shadowUI.insertBeforeRoot(newNode);
+            result = this._shadowUI.insertBeforeRoot(newNode);
         else
             result = nativeFn.apply(parentNode, args);
 
@@ -451,7 +449,7 @@ export default class ElementSandbox extends SandboxBase {
         if (domUtils.isTextNode(node))
             ElementSandbox._processTextNodeContent(node, parentNode);
 
-        this.nodeSandbox.processNodes(node);
+        this._nodeSandbox.processNodes(node);
     }
 
     _createOverridedMethods () {
@@ -465,7 +463,7 @@ export default class ElementSandbox extends SandboxBase {
                     : nativeMethods.insertTBodyRow;
                 const row        = nativeMeth.apply(this, arguments);
 
-                sandbox.nodeSandbox.processNodes(row);
+                sandbox._nodeSandbox.processNodes(row);
 
                 return row;
             },
@@ -473,7 +471,7 @@ export default class ElementSandbox extends SandboxBase {
             insertCell () {
                 const cell = nativeMethods.insertCell.apply(this, arguments);
 
-                sandbox.nodeSandbox.processNodes(cell);
+                sandbox._nodeSandbox.processNodes(cell);
 
                 return cell;
             },
@@ -492,7 +490,7 @@ export default class ElementSandbox extends SandboxBase {
                 }
 
                 nativeMethods.insertAdjacentHTML.apply(el, args);
-                sandbox.nodeSandbox.processNodes(parentEl || el);
+                sandbox._nodeSandbox.processNodes(parentEl || el);
 
                 if (position === InsertPosition.afterBegin || position === InsertPosition.beforeEnd)
                     DOMMutationTracker.onChildrenChanged(el);
@@ -561,7 +559,7 @@ export default class ElementSandbox extends SandboxBase {
             cloneNode () {
                 const clone = nativeMethods.cloneNode.apply(this, arguments);
 
-                sandbox.nodeSandbox.processNodes(clone);
+                sandbox._nodeSandbox.processNodes(clone);
 
                 return clone;
             },
@@ -742,7 +740,7 @@ export default class ElementSandbox extends SandboxBase {
             el.setAttribute('formaction', el.getAttribute('formaction'));
 
         if (domUtils.isBodyElement(el))
-            this.shadowUI.onBodyElementMutation();
+            this._shadowUI.onBodyElementMutation();
 
         this._onAddFileInputInfo(el);
 
@@ -758,7 +756,7 @@ export default class ElementSandbox extends SandboxBase {
 
     _onElementRemoved (el) {
         if (domUtils.isBodyElement(el))
-            this.shadowUI.onBodyElementMutation();
+            this._shadowUI.onBodyElementMutation();
 
         else if (domUtils.isBaseElement(el)) {
             const firstBaseEl    = nativeMethods.querySelector.call(this.document, 'base');
@@ -772,14 +770,14 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     addFileInputInfo (el) {
-        const infoManager = this.uploadSandbox.infoManager;
+        const infoManager = this._uploadSandbox.infoManager;
 
         hiddenInfo.addInputInfo(el, infoManager.getFiles(el), infoManager.getValue(el));
     }
 
     onIframeAddedToDOM (iframe) {
         if (!domUtils.isCrossDomainIframe(iframe, true))
-            this.nodeSandbox.mutation.onIframeAddedToDOM({ iframe });
+            this._nodeSandbox.mutation.onIframeAddedToDOM(iframe);
     }
 
     attach (window) {
@@ -826,7 +824,7 @@ export default class ElementSandbox extends SandboxBase {
         // For example: img.src = '<url that responds with the Set-Cookie header>'
         // If img has the 'load' event handler, we redirect the request through proxy.
         // For details, see https://github.com/DevExpress/testcafe-hammerhead/issues/651
-        this.eventSandbox.listeners.on(this.eventSandbox.listeners.EVENT_LISTENER_ATTACHED_EVENT, e => {
+        this._eventSandbox.listeners.on(this._eventSandbox.listeners.EVENT_LISTENER_ATTACHED_EVENT, e => {
             if (e.eventType === 'load' && domUtils.isImgElement(e.el))
                 ElementSandbox._setProxiedSrc(e.el);
         });
@@ -853,8 +851,8 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     _setValidBrowsingContextOnElementClick (window) {
-        this.eventSandbox.listeners.initElementListening(window, ['click']);
-        this.eventSandbox.listeners.addInternalEventListener(window, ['click'], e => {
+        this._eventSandbox.listeners.initElementListening(window, ['click']);
+        this._eventSandbox.listeners.addInternalEventListener(window, ['click'], e => {
             let el = e.target;
 
             if (domUtils.isInputElement(el) && el.form)
@@ -897,8 +895,8 @@ export default class ElementSandbox extends SandboxBase {
 
         switch (tagName) {
             case 'img':
-                this.eventSandbox.listeners.initElementListening(el, ['load']);
-                this.eventSandbox.listeners.addInternalEventListener(el, ['load'], (_e, _dispatched, preventEvent, _cancelHandlers, stopEventPropagation) => {
+                this._eventSandbox.listeners.initElementListening(el, ['load']);
+                this._eventSandbox.listeners.addInternalEventListener(el, ['load'], (_e, _dispatched, preventEvent, _cancelHandlers, stopEventPropagation) => {
                     if (el[INTERNAL_PROPS.cachedImage])
                         el[INTERNAL_PROPS.cachedImage] = false;
 
@@ -916,7 +914,7 @@ export default class ElementSandbox extends SandboxBase {
                 break;
             case 'iframe':
             case 'frame':
-                this.iframeSandbox.processIframe(el);
+                this._iframeSandbox.processIframe(el);
                 break;
             case 'base': {
                 if (!this._isFirstBaseTagOnPage(el))

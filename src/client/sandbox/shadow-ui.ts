@@ -62,8 +62,8 @@ export default class ShadowUI extends SandboxBase {
     }
 
     _initEventCallbacks () {
-        this.runTaskScriptEventCallback = e => {
-            const contentDocument = nativeMethods.contentDocumentGetter.call(e.iframe);
+        this.runTaskScriptEventCallback = (iframe: HTMLIFrameElement) => {
+            const contentDocument = nativeMethods.contentDocumentGetter.call(iframe);
             const iframeHead      = contentDocument.head;
             const iframeBody      = contentDocument.body;
 
@@ -75,22 +75,23 @@ export default class ShadowUI extends SandboxBase {
             this.uiStyleSheetsHtmlBackup = this._getUIStyleSheetsHtml();
         };
 
-        this.documentCleanedEventCallback = e => {
-            this._restoreUIStyleSheets(e.document.head, this.uiStyleSheetsHtmlBackup);
+        this.documentCleanedEventCallback = (document: Document) => {
+            this._restoreUIStyleSheets(document.head, this.uiStyleSheetsHtmlBackup);
             this.uiStyleSheetsHtmlBackup = null;
 
             this.markShadowUIContainers(this.document.head, this.document.body);
         };
 
-        this.documentClosedEventCallback = e => {
-            this._restoreUIStyleSheets(e.document.head, this.uiStyleSheetsHtmlBackup);
+        this.documentClosedEventCallback = (document: Document) => {
+            this._restoreUIStyleSheets(document.head, this.uiStyleSheetsHtmlBackup);
             this.uiStyleSheetsHtmlBackup = null;
 
-            this.markShadowUIContainers(e.document.head, e.document.body);
+            this.markShadowUIContainers(document.head, document.body);
         };
 
-        this.bodyContentChangedEventCallback = el => {
-            const elContextWindow = el[INTERNAL_PROPS.processedContext];
+        this.bodyContentChangedEventCallback = (body: HTMLBodyElement) => {
+            // @ts-ignore
+            const elContextWindow = body[INTERNAL_PROPS.processedContext];
 
             if (elContextWindow !== window) {
                 this.messageSandbox.sendServiceMsg({
@@ -106,7 +107,7 @@ export default class ShadowUI extends SandboxBase {
                 this.onBodyElementMutation();
         };
 
-        this.bodyCreatedEventCallback = ({ body }) => this.markShadowUIContainers(this.document.head, body);
+        this.bodyCreatedEventCallback = body => this.markShadowUIContainers(this.document.head, body);
     }
 
     static _filterElement (el) {

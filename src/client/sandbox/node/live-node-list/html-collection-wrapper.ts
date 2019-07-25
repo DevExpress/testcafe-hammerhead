@@ -8,7 +8,7 @@ const ELEMENTS_WITH_NAME_ATTRIBUTE     = ['button', 'fieldset', 'form', 'iframe'
 const COLLECTION_PROTO_GETTERS_RESERVE = 10;
 let collectionProtoGettersCount        = 0;
 
-export default function HTMLCollectionWrapper (collection, tagName) {
+export default function HTMLCollectionWrapper (collection, tagName: string) {
     tagName = tagName.toLowerCase();
 
     nativeMethods.objectDefineProperties.call(Object, this, {

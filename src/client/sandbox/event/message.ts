@@ -8,6 +8,10 @@ import { isCrossDomainWindows, getTopSameDomainWindow, isWindow, isMessageEvent 
 import { callEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';
 import { overrideDescriptor } from '../../utils/property-overriding';
+/*eslint-disable no-unused-vars*/
+import Listeners from './listeners';
+import UnloadSandbox from './unload';
+/*eslint-enable no-unused-vars*/
 
 const MESSAGE_TYPE = {
     service: 'hammerhead|service-msg',
@@ -27,15 +31,12 @@ export default class MessageSandbox extends SandboxBase {
     topWindow: Window;
     window: Window;
 
-    listeners: any;
-    unloadSandbox: any;
-
     storedOnMessageHandler: any;
     isWindowUnloaded: boolean;
 
     iframeInternalMsgQueue: Array<any>;
 
-    constructor (listeners, unloadSandbox) {
+    constructor (private readonly _listeners: Listeners, private readonly _unloadSandbox: UnloadSandbox) { //eslint-disable-line no-unused-vars
         super();
 
         this.pingCallback = null;
@@ -44,9 +45,6 @@ export default class MessageSandbox extends SandboxBase {
         // NOTE: The window.top property may be changed after an iframe is removed from DOM in IE, so we save it.
         this.topWindow = null;
         this.window    = null;
-
-        this.listeners     = listeners;
-        this.unloadSandbox = unloadSandbox;
 
         this.storedOnMessageHandler = null;
         this.isWindowUnloaded       = false;
@@ -117,7 +115,7 @@ export default class MessageSandbox extends SandboxBase {
         this.topWindow        = window.top;
         this.isWindowUnloaded = false;
 
-        this.unloadSandbox.on(this.unloadSandbox.UNLOAD_EVENT, () => {
+        this._unloadSandbox.on(this._unloadSandbox.UNLOAD_EVENT, () => {
             this.isWindowUnloaded = true;
 
             while (this.iframeInternalMsgQueue.length) {
@@ -131,8 +129,8 @@ export default class MessageSandbox extends SandboxBase {
         const onMessageHandler       = (...args) => fastApply(this, '_onMessage', args);
         const onWindowMessageHandler = (...args) => fastApply(this, '_onWindowMessage', args);
 
-        this.listeners.addInternalEventListener(window, ['message'], onMessageHandler);
-        this.listeners.setEventListenerWrapper(window, ['message'], onWindowMessageHandler);
+        this._listeners.addInternalEventListener(window, ['message'], onMessageHandler);
+        this._listeners.setEventListenerWrapper(window, ['message'], onWindowMessageHandler);
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.

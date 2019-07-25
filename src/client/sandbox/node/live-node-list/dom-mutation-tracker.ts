@@ -16,12 +16,12 @@ class DOMMutationTracker {
         });
     }
 
-    _updateVersion (tagName) {
+    _updateVersion (tagName: string) {
         if (tagName in this._mutations)
             this._mutations[tagName].increment();
     }
 
-    _processElement (el) {
+    _processElement (el: any) {
         if (!el.tagName || isShadowUIElement(el))
             return;
 
@@ -31,7 +31,7 @@ class DOMMutationTracker {
         this._updateVersion(tagName);
     }
 
-    _processChildren (el) {
+    _processChildren (el: any) {
         if (!el.querySelectorAll)
             return;
 
@@ -42,16 +42,16 @@ class DOMMutationTracker {
             this._processElement(children[i]);
     }
 
-    onElementChanged (el) {
+    onElementChanged (el: any) {
         this._processElement(el);
         this._processChildren(el);
     }
 
-    onChildrenChanged (el) {
+    onChildrenChanged (el: any) {
         this._processChildren(el);
     }
 
-    isOutdated (tagName, version) {
+    isOutdated (tagName: string, version: number) {
         if (!this._isDomContentLoaded)
             return true;
 
@@ -65,7 +65,7 @@ class DOMMutationTracker {
         return version < lastVersion;
     }
 
-    getVersion (tagName) {
+    getVersion (tagName: string) {
         if (tagName in this._mutations)
             return this._mutations[tagName].value; // eslint-disable-line no-restricted-properties
 

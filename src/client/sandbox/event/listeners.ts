@@ -312,7 +312,7 @@ export default class Listeners extends EventEmitter {
             delete elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG];
     }
 
-    setEventListenerWrapper (el: HTMLElement, events: Array<string>, wrapper) {
+    setEventListenerWrapper (el: Window | HTMLElement, events: Array<string>, wrapper) {
         if (!this.listeningCtx.isElementListening(el))
             this.initElementListening(el, events);
 

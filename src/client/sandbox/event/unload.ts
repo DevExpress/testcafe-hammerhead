@@ -3,31 +3,27 @@ import nativeMethods from '../native-methods';
 import createPropertyDesc from '../../utils/create-property-desc.js';
 import { isFirefox, isIOS } from '../../utils/browser';
 import { overrideDescriptor } from '../../utils/property-overriding';
+/*eslint-disable no-unused-vars*/
+import Listeners from './listeners';
+/*eslint-enable no-unused-vars*/
 
 export default class UnloadSandbox extends SandboxBase {
     BEFORE_UNLOAD_EVENT: string = 'hammerhead|event|before-unload';
     BEFORE_BEFORE_UNLOAD_EVENT: string = 'hammerhead|event|before-before-unload';
     UNLOAD_EVENT: string = 'hammerhead|event|unload';
 
-    listeners: any;
-
     storedBeforeUnloadReturnValue: string;
     prevented: boolean;
     storedBeforeUnloadHandler: any;
     beforeUnloadEventName: string;
 
-    constructor (listeners) {
+    constructor (private readonly _listeners: Listeners) { //eslint-disable-line no-unused-vars
         super();
-
-        this.listeners = listeners;
 
         this.storedBeforeUnloadReturnValue = '';
         this.prevented                     = false;
         this.storedBeforeUnloadHandler     = null;
-
-        // NOTE: the ios devices do not support beforeunload event
-        // https://developer.apple.com/library/ios/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html#//apple_ref/doc/uid/TP40006511-SW5
-        this.beforeUnloadEventName = UnloadSandbox._getBeforeUnloadEventName();
+        this.beforeUnloadEventName         = UnloadSandbox._getBeforeUnloadEventName();
     }
 
     static _getBeforeUnloadEventName (): string {
@@ -84,13 +80,13 @@ export default class UnloadSandbox extends SandboxBase {
     attach (window: Window) {
         super.attach(window);
 
-        this.listeners.setEventListenerWrapper(window, [this.beforeUnloadEventName], (e, listener) => this._onBeforeUnloadHandler(e, listener));
-        this.listeners.addInternalEventListener(window, ['unload'], () => this.emit(this.UNLOAD_EVENT));
+        this._listeners.setEventListenerWrapper(window, [this.beforeUnloadEventName], (e, listener) => this._onBeforeUnloadHandler(e, listener));
+        this._listeners.addInternalEventListener(window, ['unload'], () => this.emit(this.UNLOAD_EVENT));
 
         nativeMethods.windowAddEventListener.call(window, this.beforeUnloadEventName, this);
 
-        this.listeners.addInternalEventListener(window, [this.beforeUnloadEventName], () => this.emit(this.BEFORE_BEFORE_UNLOAD_EVENT));
-        this.listeners.on(this.listeners.EVENT_LISTENER_ATTACHED_EVENT, e => {
+        this._listeners.addInternalEventListener(window, [this.beforeUnloadEventName], () => this.emit(this.BEFORE_BEFORE_UNLOAD_EVENT));
+        this._listeners.on(this._listeners.EVENT_LISTENER_ATTACHED_EVENT, e => {
             if (e.el === window && e.eventType === this.beforeUnloadEventName)
                 this._reattachBeforeUnloadListener();
         });
