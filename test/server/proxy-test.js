@@ -1692,21 +1692,23 @@ describe('Proxy', () => {
             request(options);
         });
 
-        it('Should resolve an "asar" archive file (GH-2033)', () => {
+        it('Should resolve an "asar" archive file and set the correct "content-type" header (GH-2033)', () => {
             session.id = 'sessionId';
 
             const fileUrl = getFileProtocolUrl('./data/file-in-asar-archive/directory-looks-like-archive.asar/app.asar/src.txt');
 
             const options = {
-                url:     proxy.openSession(fileUrl, session),
-                headers: {
+                url:                     proxy.openSession(fileUrl, session),
+                resolveWithFullResponse: true,
+                headers:                 {
                     accept: '*/*'
                 }
             };
 
             return request(options)
-                .then(body => {
-                    expect(body).eql('asar archive: src.txt');
+                .then(res => {
+                    expect(res.headers['content-type']).eql('text/plain');
+                    expect(res.body).eql('asar archive: src.txt');
                 });
         });
     });
