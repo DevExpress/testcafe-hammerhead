@@ -29,6 +29,7 @@ const scriptHeader                         = require('../../lib/processing/scrip
 const resourceProcessor                    = require('../../lib/processing/resources/');
 const gzip                                 = require('../../lib/utils/promisified-functions').gzip;
 const urlUtils                             = require('../../lib/utils/url');
+const Asar                                 = require('../../lib/utils/asar');
 
 const EMPTY_PAGE_MARKUP = '<html></html>';
 const TEST_OBJ          = {
@@ -1660,6 +1661,84 @@ describe('Proxy', () => {
             };
 
             request(options);
+        });
+
+        it('Should pass an error to the session if target (a file in an "asar" archive) does not exist (GH-2033)', done => {
+            const url      = getFileProtocolUrl('./data/file-in-asar-archive/directory-looks-like-archive.asar/app.asar/non-exist-file.txt');
+            const archive  = path.resolve(__dirname, './data/file-in-asar-archive/directory-looks-like-archive.asar/app.asar').replace(/\\/g, '/');
+            const fileName = './non-exist-file.txt';
+
+            session.id = 'sessionId';
+
+            session.handlePageError = (ctx, err) => {
+                expect(err).contains([
+                    'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
+                    '',
+                    'Cannot find the "' + fileName + '" file in the "' + archive + '" archive.'
+                ].join('\n'));
+
+                ctx.res.end();
+                done();
+                return true;
+            };
+
+            const options = {
+                url:     proxy.openSession(url, session),
+                headers: {
+                    accept: 'text/html,*/*;q=0.1'
+                }
+            };
+
+            request(options);
+        });
+
+        it('Should resolve an "asar" archive file and set the correct "content-type" header (GH-2033)', () => {
+            session.id = 'sessionId';
+
+            const fileUrl = getFileProtocolUrl('./data/file-in-asar-archive/directory-looks-like-archive.asar/app.asar/src.txt');
+
+            const options = {
+                url:                     proxy.openSession(fileUrl, session),
+                resolveWithFullResponse: true,
+                headers:                 {
+                    accept: '*/*'
+                }
+            };
+
+            return request(options)
+                .then(res => {
+                    expect(res.headers['content-type']).eql('text/plain');
+                    expect(res.body).eql('asar archive: src.txt');
+                });
+        });
+    });
+
+    describe('Asar', () => {
+        it('isAsar (GH-2033)', () => {
+            const asar = new Asar();
+
+            const filePath            = path.resolve(__dirname, './data/file-in-asar-archive/directory-looks-like-archive.asar/app.asar/src.txt').replace(/\\/g, '/');
+            const expectedArchivePath = filePath.replace('/src.txt', '');
+
+            const nonExistPath        = path.resolve(__dirname, './data/file-in-asar-archive/directory-looks-like-archive.asar/non-exist-app.asar/non-exist-file.txt').replace(/\\/g, '/');
+            const nonExistArchivePath = nonExistPath.replace('/non-exist-file.txt', '');
+
+            asar._archivePaths.add(nonExistArchivePath);
+
+            expect(asar._archivePaths.size).eql(1);
+
+            return asar.isAsar(nonExistPath)
+                .then(result => {
+                    expect(result).eql(false);
+                    expect(asar._archivePaths.size).eql(0);
+
+                    return asar.isAsar(filePath);
+                })
+                .then(result => {
+                    expect(result).eql(true);
+                    expect(asar._archivePaths.size).eql(1);
+                    expect(asar._archivePaths.has(expectedArchivePath)).eql(true);
+                });
         });
     });
 
