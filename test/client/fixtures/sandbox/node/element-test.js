@@ -51,6 +51,25 @@ test('check the "scriptElementEvent" event is raised', function () {
     hammerhead.off(hammerhead.EVENTS.scriptElementAdded, handler);
 });
 
+test('prevent form submit', function () {
+    var form            = document.createElement('form');
+    var submitPrevented = false;
+
+    form.setAttribute('action', 'non-existing-url');
+
+    document.body.appendChild(form);
+
+    hammerhead.on(hammerhead.EVENTS.beforeFormSubmit, function (e) {
+        e.preventSubmit = true;
+
+        submitPrevented = true;
+    });
+
+    form.submit();
+
+    strictEqual(submitPrevented, true);
+});
+
 module('regression');
 
 test('a document fragment should correctly process when it is appending to iframe (GH-912)', function () {
