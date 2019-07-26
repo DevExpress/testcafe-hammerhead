@@ -9,8 +9,8 @@
 
         hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/https://example.com');
         hammerhead.start();
-        hammerhead.on(hammerhead.EVENTS.bodyCreated, function (e) {
-            if (e.body === document.body && !window.bodyExecutingStarted)
+        hammerhead.on(hammerhead.EVENTS.bodyCreated, function (body) {
+            if (body === document.body && !window.bodyExecutingStarted)
                 window.testOk = true;
         });
     </script>

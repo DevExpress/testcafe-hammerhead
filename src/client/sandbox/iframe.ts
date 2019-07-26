@@ -6,6 +6,10 @@ import DomProcessor from '../../processing/dom';
 import { isShadowUIElement, isIframeWithoutSrc, getTagName } from '../utils/dom';
 import { isFirefox, isWebKit, isIE } from '../utils/browser';
 import * as JSON from 'json-hammerhead';
+/*eslint-disable no-unused-vars*/
+import NodeMutation from './node/mutation';
+import CookieSandbox from './cookie';
+/*eslint-enable no-unused-vars*/
 
 const IFRAME_WINDOW_INITED = 'hammerhead|iframe-window-inited';
 
@@ -15,21 +19,19 @@ export default class IframeSandbox extends SandboxBase {
     EVAL_EXTERNAL_SCRIPT_EVENT: string = 'hammerhead|event|eval-external-script';
     IFRAME_DOCUMENT_CREATED_EVENT: string = 'hammerhead|event|iframe-document-created';
 
-    cookieSandbox: any;
     iframeNativeMethodsBackup: any;
 
-    constructor (nodeMutation, cookieSandbox) {
+    constructor (private readonly _nodeMutation: NodeMutation, //eslint-disable-line no-unused-vars
+                 private readonly _cookieSandbox: CookieSandbox) { //eslint-disable-line no-unused-vars
         super();
 
-        this.cookieSandbox = cookieSandbox;
-
         this.on(this.RUN_TASK_SCRIPT_EVENT, this.iframeReadyToInitHandler);
-        nodeMutation.on(nodeMutation.IFRAME_ADDED_TO_DOM_EVENT, e => this.processIframe(e.iframe));
+        this._nodeMutation.on(this._nodeMutation.IFRAME_ADDED_TO_DOM_EVENT, (iframe: HTMLIFrameElement) => this.processIframe(iframe));
 
         this.iframeNativeMethodsBackup = null;
     }
 
-    _shouldSaveIframeNativeMethods (iframe) {
+    private _shouldSaveIframeNativeMethods (iframe: HTMLIFrameElement) {
         if (!isWebKit)
             return false;
 
@@ -38,7 +40,7 @@ export default class IframeSandbox extends SandboxBase {
         return DomProcessor.isJsProtocol(iframeSrc);
     }
 
-    _ensureIframeNativeMethodsForChrome (iframe) {
+    private _ensureIframeNativeMethodsForChrome (iframe: HTMLIFrameElement) {
         const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
         const contentDocument = nativeMethods.contentDocumentGetter.call(iframe);
 
@@ -50,7 +52,7 @@ export default class IframeSandbox extends SandboxBase {
             this.iframeNativeMethodsBackup = new this.nativeMethods.constructor(contentDocument, contentWindow);
     }
 
-    _ensureIframeNativeMethodsForIE (iframe) {
+    private _ensureIframeNativeMethodsForIE (iframe: HTMLIFrameElement) {
         const contentWindow       = nativeMethods.contentWindowGetter.call(iframe);
         const contentDocument     = nativeMethods.contentDocumentGetter.call(iframe);
         const iframeNativeMethods = contentWindow[INTERNAL_PROPS.iframeNativeMethods];
@@ -61,7 +63,7 @@ export default class IframeSandbox extends SandboxBase {
         }
     }
 
-    _ensureIframeNativeMethods (iframe) {
+    private _ensureIframeNativeMethods (iframe: HTMLIFrameElement) {
         // NOTE: In Chrome, iframe with javascript protocol src raises the load event twice.
         // As a result, when the second load event is raised, we write the overridden methods to the native methods.
         // So, we need to save the native methods when the first load event is raised.
@@ -73,7 +75,7 @@ export default class IframeSandbox extends SandboxBase {
         this._ensureIframeNativeMethodsForIE(iframe);
     }
 
-    _emitEvents (iframe) {
+    private _emitEvents (iframe: HTMLIFrameElement) {
         // NOTE: Raise this internal event to eval the Hammerhead code script.
         this.emit(this.EVAL_HAMMERHEAD_SCRIPT_EVENT, { iframe });
 
@@ -82,10 +84,10 @@ export default class IframeSandbox extends SandboxBase {
 
         // NOTE: Raise this event to eval the "task" script and to call the Hammerhead initialization method
         // and external script initialization code.
-        this.emit(this.RUN_TASK_SCRIPT_EVENT, { iframe });
+        this.emit(this.RUN_TASK_SCRIPT_EVENT, iframe);
     }
 
-    _raiseReadyToInitEvent (iframe) {
+    private _raiseReadyToInitEvent (iframe: HTMLIFrameElement) {
         if (!isIframeWithoutSrc(iframe))
             return;
 
@@ -111,7 +113,7 @@ export default class IframeSandbox extends SandboxBase {
         }
     }
 
-    static isIframeInitialized (iframe) {
+    static isIframeInitialized (iframe: HTMLIFrameElement) {
         const contentWindow           = nativeMethods.contentWindowGetter.call(iframe);
         const contentDocument         = nativeMethods.contentDocumentGetter.call(iframe);
         const isFFIframeUninitialized = isFirefox && contentWindow.document.readyState === 'uninitialized';
@@ -124,12 +126,12 @@ export default class IframeSandbox extends SandboxBase {
         return window[IFRAME_WINDOW_INITED];
     }
 
-    iframeReadyToInitHandler (e) {
+    iframeReadyToInitHandler (iframe: HTMLIFrameElement) {
         // NOTE: We are using String.replace in order to avoid adding Mustache scripts on the client side.
         // If it is needed elsewhere in a certain place, we should consider using Mustache.
         const taskScriptTemplate       = settings.get().iframeTaskScriptTemplate;
         const escapeStringPatterns     = str => str.replace(/\$/g, '$$$$');
-        const cookie                   = JSON.stringify(this.cookieSandbox.getCookie());
+        const cookie                   = JSON.stringify(this._cookieSandbox.getCookie());
         const referer                  = settings.get().referer || this.window.location.toString();
         const iframeTaskScriptTemplate = JSON.stringify(taskScriptTemplate);
         const taskScript               = taskScriptTemplate
@@ -137,16 +139,16 @@ export default class IframeSandbox extends SandboxBase {
             .replace('{{{referer}}}', escapeStringPatterns(JSON.stringify(referer)))
             .replace('{{{iframeTaskScriptTemplate}}}', escapeStringPatterns(iframeTaskScriptTemplate));
 
-        const contentWindow = nativeMethods.contentWindowGetter.call(e.iframe);
+        const contentWindow = nativeMethods.contentWindowGetter.call(iframe);
 
         contentWindow.eval.call(contentWindow, taskScript);
     }
 
-    onIframeBeganToRun (iframe) {
+    onIframeBeganToRun (iframe: HTMLIFrameElement) {
         this._raiseReadyToInitEvent(iframe);
     }
 
-    processIframe (el) {
+    processIframe (el: HTMLIFrameElement) {
         if (isShadowUIElement(el))
             return;
 

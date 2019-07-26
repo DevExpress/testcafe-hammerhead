@@ -11,20 +11,19 @@ import ShadowUI from './../../shadow-ui';
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import LocationAccessorsInstrumentation from '../../code-instrumentation/location';
 import { overrideDescriptor, createOverriddenDescriptor } from '../../../utils/property-overriding';
+/*eslint-disable no-unused-vars*/
+import NodeSandbox from '../index';
+/*eslint-enable no-unused-vars*/
 
 export default class DocumentSandbox extends SandboxBase {
-    nodeSandbox: any;
     documentWriter: any;
-    shadowUI: any;
-    cookieSandbox: any;
 
-    constructor (nodeSandbox, shadowUI, cookieSandbox) {
+    constructor (private readonly _nodeSandbox: NodeSandbox, //eslint-disable-line no-unused-vars
+                 private readonly _shadowUI: ShadowUI, //eslint-disable-line no-unused-vars
+                 private readonly _cookieSandbox) { //eslint-disable-line no-unused-vars
         super();
 
-        this.nodeSandbox    = nodeSandbox;
         this.documentWriter = null;
-        this.shadowUI       = shadowUI;
-        this.cookieSandbox  = cookieSandbox;
     }
 
     static forceProxySrcForImageIfNecessary (element) {
@@ -32,26 +31,26 @@ export default class DocumentSandbox extends SandboxBase {
             element[INTERNAL_PROPS.forceProxySrcForImage] = true;
     }
 
-    static _isDocumentInDesignMode (doc) {
+    private static _isDocumentInDesignMode (doc) {
         return doc.designMode === 'on';
     }
 
-    _isUninitializedIframeWithoutSrc (win) {
+    private _isUninitializedIframeWithoutSrc (win: Window): boolean {
         const frameElement = getFrameElement(win);
 
         return win !== win.top && frameElement && isIframeWithoutSrc(frameElement) &&
-               !IframeSandbox.isIframeInitialized(frameElement);
+               !IframeSandbox.isIframeInitialized(frameElement as HTMLIFrameElement);
     }
 
-    _beforeDocumentCleaned () {
-        this.nodeSandbox.mutation.onBeforeDocumentCleaned({ document: this.document });
+    private _beforeDocumentCleaned () {
+        this._nodeSandbox.mutation.onBeforeDocumentCleaned(this.document);
     }
 
-    _onDocumentClosed () {
-        this.nodeSandbox.mutation.onDocumentClosed({ document: this.document });
+    private _onDocumentClosed () {
+        this._nodeSandbox.mutation.onDocumentClosed(this.document);
     }
 
-    static _shouldEmitDocumentCleanedEvents (doc) {
+    private static _shouldEmitDocumentCleanedEvents (doc) {
         if (isIE) {
             if (doc.readyState !== 'loading')
                 return true;
@@ -69,7 +68,7 @@ export default class DocumentSandbox extends SandboxBase {
         return doc.readyState !== 'loading' && doc.readyState !== 'uninitialized';
     }
 
-    _performDocumentWrite (args, ln?: boolean) {
+    private _performDocumentWrite (args, ln?: boolean) {
         const shouldEmitEvents = DocumentSandbox._shouldEmitDocumentCleanedEvents(this.document);
 
         if (shouldEmitEvents)
@@ -79,12 +78,12 @@ export default class DocumentSandbox extends SandboxBase {
 
         // NOTE: B234357
         if (!shouldEmitEvents)
-            this.nodeSandbox.processNodes(null, this.document);
+            this._nodeSandbox.processNodes(null, this.document);
 
         return result;
     }
 
-    _needToUpdateDocumentWriter (window, document) {
+    private _needToUpdateDocumentWriter (window, document): boolean {
         try {
             return !this.documentWriter || this.window !== window || this.document !== document;
         }
@@ -93,7 +92,7 @@ export default class DocumentSandbox extends SandboxBase {
         }
     }
 
-    static _definePropertyDescriptor (owner, childOfOwner, prop, overriddenDescriptor) {
+    private static _definePropertyDescriptor (owner, childOfOwner, prop, overriddenDescriptor) {
         // NOTE: The 'URL', 'domain' and 'referrer' properties are non configurable in IE and Edge
         if (!overriddenDescriptor.configurable) {
             // NOTE: property doesn't redefined yet
@@ -109,12 +108,12 @@ export default class DocumentSandbox extends SandboxBase {
         const result = nativeMethods.documentOpen.apply(document, args);
 
         nativeMethods.objectDefineProperty(window, INTERNAL_PROPS.documentWasCleaned, { value: true, configurable: true });
-        this.nodeSandbox.iframeSandbox.onIframeBeganToRun(iframe);
+        this._nodeSandbox.iframeSandbox.onIframeBeganToRun(iframe);
 
         return result;
     }
 
-    static _ensureDocumentMethodOverride (document, overridenMethods, methodName) {
+    private static _ensureDocumentMethodOverride (document, overridenMethods, methodName) {
         if (document[methodName] !== overridenMethods[methodName])
             document[methodName] = overridenMethods[methodName];
     }
@@ -123,7 +122,7 @@ export default class DocumentSandbox extends SandboxBase {
         if (this._needToUpdateDocumentWriter(window, document)) {
             this.documentWriter = new DocumentWriter(window, document);
 
-            this.nodeSandbox.mutation.on(this.nodeSandbox.mutation.BEFORE_DOCUMENT_CLEANED_EVENT, () => {
+            this._nodeSandbox.mutation.on(this._nodeSandbox.mutation.BEFORE_DOCUMENT_CLEANED_EVENT, () => {
                 this.documentWriter = new DocumentWriter(window, document);
             });
         }
@@ -154,7 +153,7 @@ export default class DocumentSandbox extends SandboxBase {
                 objectDefinePropertyFn(window, INTERNAL_PROPS.documentWasCleaned, { value: true, configurable: true });
 
                 if (!isUninitializedIframe)
-                    documentSandbox.nodeSandbox.mutation.onDocumentCleaned({ window, document: this });
+                    documentSandbox._nodeSandbox.mutation.onDocumentCleaned(window, this);
                 else
                 // NOTE: If iframe initialization is in progress, we need to override the document.write and document.open
                 // methods once again, because they were cleaned after the native document.open method call.
@@ -183,7 +182,7 @@ export default class DocumentSandbox extends SandboxBase {
 
                 // NOTE: Firefox misses the Hammerhead instance after the iframe.contentDocument.close function calling (GH-1821)
                 if (iframe)
-                    documentSandbox.nodeSandbox.iframeSandbox.onIframeBeganToRun(iframe);
+                    documentSandbox._nodeSandbox.iframeSandbox.onIframeBeganToRun(iframe as HTMLIFrameElement);
 
                 return result;
             },
@@ -215,7 +214,7 @@ export default class DocumentSandbox extends SandboxBase {
 
             DocumentSandbox.forceProxySrcForImageIfNecessary(el);
             domProcessor.processElement(el, urlUtils.convertToProxyUrl);
-            documentSandbox.nodeSandbox.processNodes(el);
+            documentSandbox._nodeSandbox.processNodes(el);
 
             return el;
         };
@@ -225,7 +224,7 @@ export default class DocumentSandbox extends SandboxBase {
 
             DocumentSandbox.forceProxySrcForImageIfNecessary(el);
             domProcessor.processElement(el, urlUtils.convertToProxyUrl);
-            documentSandbox.nodeSandbox.processNodes(el);
+            documentSandbox._nodeSandbox.processNodes(el);
 
             return el;
         };
@@ -233,7 +232,7 @@ export default class DocumentSandbox extends SandboxBase {
         docPrototype.createDocumentFragment = function (...args) {
             const fragment = nativeMethods.createDocumentFragment.apply(this, args);
 
-            documentSandbox.nodeSandbox.processNodes(fragment);
+            documentSandbox._nodeSandbox.processNodes(fragment);
 
             return fragment;
         };
@@ -292,16 +291,16 @@ export default class DocumentSandbox extends SandboxBase {
             getter: function () {
                 const styleSheets = nativeMethods.documentStyleSheetsGetter.call(this);
 
-                return documentSandbox.shadowUI._filterStyleSheetList(styleSheets, styleSheets.length);
+                return documentSandbox._shadowUI._filterStyleSheetList(styleSheets, styleSheets.length);
             }
         });
 
         const documentCookiePropOwnerPrototype = window[nativeMethods.documentCookiePropOwnerName].prototype;
 
         overrideDescriptor(documentCookiePropOwnerPrototype, 'cookie', {
-            getter: () => documentSandbox.cookieSandbox.getCookie(),
+            getter: () => documentSandbox._cookieSandbox.getCookie(),
             setter: function (value) {
-                documentSandbox.cookieSandbox.setCookie(this, String(value));
+                documentSandbox._cookieSandbox.setCookie(this, String(value));
             }
         });
 
@@ -310,7 +309,7 @@ export default class DocumentSandbox extends SandboxBase {
                 const activeElement = nativeMethods.documentActiveElementGetter.call(this);
 
                 if (activeElement && isShadowUIElement(activeElement))
-                    return documentSandbox.shadowUI.getLastActiveElement() || this.body;
+                    return documentSandbox._shadowUI.getLastActiveElement() || this.body;
 
                 return activeElement;
             }
@@ -323,7 +322,7 @@ export default class DocumentSandbox extends SandboxBase {
                 const scripts = nativeMethods.documentScriptsGetter.call(this);
                 const length  = nativeMethods.htmlCollectionLengthGetter.call(scripts);
 
-                return documentSandbox.shadowUI._filterNodeList(scripts, length);
+                return documentSandbox._shadowUI._filterNodeList(scripts, length);
             }
         });
     }

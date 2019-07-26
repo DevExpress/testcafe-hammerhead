@@ -71,7 +71,7 @@ export default class Sandbox extends SandboxBase {
         this.fetch               = new FetchSandbox(cookieSandbox);
         this.iframe              = new IframeSandbox(nodeMutation, cookieSandbox);
         this.shadowUI            = new ShadowUI(nodeMutation, messageSandbox, this.iframe, ieDebugSandbox);
-        this.upload              = new UploadSandbox(listeners, eventSimulator, this.shadowUI);
+        this.upload              = new UploadSandbox(listeners, eventSimulator);
         this.event               = new EventSandbox(listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, this.shadowUI, timersSandbox);
         this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI, cookieSandbox);
         this.codeInstrumentation = new CodeInstrumentation(this.event, this.node.win, messageSandbox);
@@ -87,7 +87,7 @@ export default class Sandbox extends SandboxBase {
 
     // NOTE: In some cases, IE raises the "Can't execute code from a freed script" exception,
     // so that we cannot use a sandbox created earlier and we have to create a new one.
-    static _canUseSandbox (sandbox: Sandbox): boolean {
+    private static _canUseSandbox (sandbox: Sandbox): boolean {
         try {
             //@ts-ignore
             sandbox.off();
@@ -177,7 +177,7 @@ export default class Sandbox extends SandboxBase {
         this.unload.on(this.unload.UNLOAD_EVENT, () => this.dispose());
     }
 
-    _removeInternalProperties (): void {
+    private _removeInternalProperties (): void {
         const removeListeningElement = this.event.listeners.listeningCtx.removeListeningElement;
 
         removeListeningElement(this.window);

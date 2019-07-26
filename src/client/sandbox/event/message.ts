@@ -8,6 +8,10 @@ import { isCrossDomainWindows, getTopSameDomainWindow, isWindow, isMessageEvent 
 import { callEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';
 import { overrideDescriptor } from '../../utils/property-overriding';
+/*eslint-disable no-unused-vars*/
+import Listeners from './listeners';
+import UnloadSandbox from './unload';
+/*eslint-enable no-unused-vars*/
 
 const MESSAGE_TYPE = {
     service: 'hammerhead|service-msg',
@@ -27,15 +31,13 @@ export default class MessageSandbox extends SandboxBase {
     topWindow: Window;
     window: Window;
 
-    listeners: any;
-    unloadSandbox: any;
-
     storedOnMessageHandler: any;
     isWindowUnloaded: boolean;
 
     iframeInternalMsgQueue: Array<any>;
 
-    constructor (listeners, unloadSandbox) {
+    constructor (private readonly _listeners: Listeners, //eslint-disable-line no-unused-vars
+                 private readonly _unloadSandbox: UnloadSandbox) { //eslint-disable-line no-unused-vars
         super();
 
         this.pingCallback = null;
@@ -45,22 +47,20 @@ export default class MessageSandbox extends SandboxBase {
         this.topWindow = null;
         this.window    = null;
 
-        this.listeners     = listeners;
-        this.unloadSandbox = unloadSandbox;
-
         this.storedOnMessageHandler = null;
         this.isWindowUnloaded       = false;
 
         this.iframeInternalMsgQueue = [];
     }
 
-    static _getMessageData (e) {
+    private static _getMessageData (e) {
         const rawData = isMessageEvent(e) ? nativeMethods.messageEventDataGetter.call(e) : e.data;
 
         return typeof rawData === 'string' ? parseJSON(rawData) : rawData;
     }
 
-    _onMessage (e) {
+    // @ts-ignore
+    private _onMessage (e) {
         const data = MessageSandbox._getMessageData(e);
 
         if (data.type === MESSAGE_TYPE.service && e.source) {
@@ -74,7 +74,7 @@ export default class MessageSandbox extends SandboxBase {
         }
     }
 
-    _onWindowMessage (e, originListener) {
+    private _onWindowMessage (e, originListener) {
         const data = MessageSandbox._getMessageData(e);
 
         if (data.type !== MESSAGE_TYPE.service) {
@@ -87,7 +87,7 @@ export default class MessageSandbox extends SandboxBase {
         return null;
     }
 
-    static _wrapMessage (type, message, targetUrl?: string) {
+    private static _wrapMessage (type, message, targetUrl?: string) {
         const parsedDest = destLocation.getParsed();
         const originUrl  = formatUrl({
             /*eslint-disable no-restricted-properties*/
@@ -99,7 +99,7 @@ export default class MessageSandbox extends SandboxBase {
         return { message, originUrl, targetUrl, type };
     }
 
-    _removeInternalMsgFromQueue (sendFunc) {
+    private _removeInternalMsgFromQueue (sendFunc) {
         for (let index = 0, length = this.iframeInternalMsgQueue.length; index < length; index++) {
             if (this.iframeInternalMsgQueue[index].sendFunc === sendFunc) {
                 this.iframeInternalMsgQueue.splice(index, 1);
@@ -117,7 +117,7 @@ export default class MessageSandbox extends SandboxBase {
         this.topWindow        = window.top;
         this.isWindowUnloaded = false;
 
-        this.unloadSandbox.on(this.unloadSandbox.UNLOAD_EVENT, () => {
+        this._unloadSandbox.on(this._unloadSandbox.UNLOAD_EVENT, () => {
             this.isWindowUnloaded = true;
 
             while (this.iframeInternalMsgQueue.length) {
@@ -131,8 +131,8 @@ export default class MessageSandbox extends SandboxBase {
         const onMessageHandler       = (...args) => fastApply(this, '_onMessage', args);
         const onWindowMessageHandler = (...args) => fastApply(this, '_onWindowMessage', args);
 
-        this.listeners.addInternalEventListener(window, ['message'], onMessageHandler);
-        this.listeners.setEventListenerWrapper(window, ['message'], onWindowMessageHandler);
+        this._listeners.addInternalEventListener(window, ['message'], onMessageHandler);
+        this._listeners.setEventListenerWrapper(window, ['message'], onWindowMessageHandler);
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.

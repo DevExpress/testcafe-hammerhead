@@ -10,21 +10,30 @@ import * as domUtils from '../../utils/dom';
 import { getNativeQuerySelectorAll } from '../../utils/query-selector';
 import nativeMethods from '../native-methods';
 import { URL_ATTRS } from '../../../processing/dom/attributes';
+/*eslint-disable no-unused-vars*/
+import NodeMutation from './mutation';
+import IframeSandbox from '../iframe';
+import EventSandbox from '../event';
+import UploadSandbox from '../upload';
+import ShadowUI from '../shadow-ui';
+import CookieSandbox from '../cookie';
+/*eslint-enable no-unused-vars*/
 
 const ATTRIBUTE_SELECTOR_REG_EX          = /\[([\w-]+)(\^?=.+?)]/g;
 const ATTRIBUTE_OPERATOR_WITH_HASH_VALUE = /^\W+\s*#/;
 
 export default class NodeSandbox extends SandboxBase {
-    raiseBodyCreatedEvent: any;
-    eventSandbox: any;
-    iframeSandbox: any;
-    shadowUI: any;
-    mutation: any;
-    doc: any;
-    win: any;
-    element: any;
+    raiseBodyCreatedEvent: Function;
+    doc: DocumentSandbox;
+    win: WindowSandbox;
+    element: ElementSandbox;
 
-    constructor (nodeMutation, iframeSandbox, eventSandbox, uploadSandbox, shadowUI, cookieSandbox) {
+    constructor (readonly mutation: NodeMutation, //eslint-disable-line no-unused-vars
+                 readonly iframeSandbox: IframeSandbox, //eslint-disable-line no-unused-vars
+                 private readonly _eventSandbox: EventSandbox, //eslint-disable-line no-unused-vars
+                 private readonly _uploadSandbox: UploadSandbox, //eslint-disable-line no-unused-vars
+                 readonly shadowUI: ShadowUI, //eslint-disable-line no-unused-vars
+                 private readonly _cookieSandbox: CookieSandbox) { //eslint-disable-line no-unused-vars
         super();
 
         this.raiseBodyCreatedEvent = this._onBodyCreated;
@@ -35,24 +44,17 @@ export default class NodeSandbox extends SandboxBase {
             writable: true
         });
 
-        this.eventSandbox  = eventSandbox;
-        this.iframeSandbox = iframeSandbox;
-        this.shadowUI      = shadowUI;
-        this.mutation      = nodeMutation;
-
-        this.doc     = new DocumentSandbox(this, shadowUI, cookieSandbox);
-        this.win     = new WindowSandbox(this, eventSandbox, uploadSandbox, nodeMutation);
-        this.element = new ElementSandbox(this, uploadSandbox, iframeSandbox, shadowUI, eventSandbox);
+        this.doc     = new DocumentSandbox(this, this.shadowUI, this._cookieSandbox);
+        this.win     = new WindowSandbox(this, this._eventSandbox, this._uploadSandbox, this.mutation);
+        this.element = new ElementSandbox(this, this._uploadSandbox, this.iframeSandbox, this.shadowUI, this._eventSandbox);
     }
 
-    _onBodyCreated () {
-        this.eventSandbox.listeners.initDocumentBodyListening(this.document);
-        this.mutation.onBodyCreated({
-            body: this.document.body
-        });
+    private _onBodyCreated (): void {
+        this._eventSandbox.listeners.initDocumentBodyListening(this.document);
+        this.mutation.onBodyCreated(this.document.body as HTMLBodyElement);
     }
 
-    _processElement (el) {
+    private _processElement (el) {
         const processedContext = el[INTERNAL_PROPS.processedContext];
 
         if (domUtils.isShadowUIElement(el) || processedContext === this.window)
@@ -155,7 +157,7 @@ export default class NodeSandbox extends SandboxBase {
         this.element.attach(window);
     }
 
-    static _processAttributeSelector (selector) {
+    private static _processAttributeSelector (selector) {
         if (!ATTRIBUTE_SELECTOR_REG_EX.test(selector))
             return selector;
 

@@ -11,6 +11,13 @@ import { stopPropagation } from '../utils/event';
 import { getNativeQuerySelectorAll } from '../utils/query-selector';
 import HTMLCollectionWrapper from './node/live-node-list/html-collection-wrapper';
 import { getElementsByNameReturnsHTMLCollection } from '../utils/feature-detection';
+/*eslint-disable no-unused-vars*/
+import { DocumentCleanedEvent } from '../../typings/client';
+import NodeMutation from './node/mutation';
+import MessageSandbox from './event/message';
+import IframeSandbox from './iframe';
+import IEDebugSandbox from './ie-debug';
+/*eslint-enable no-unused-vars*/
 
 const IS_NON_STATIC_POSITION_RE = /fixed|relative|absolute/;
 const CLASSNAME_RE              = /\.((?:\\.|[-\w]|[^\x00-\xa0])+)/g;
@@ -27,31 +34,24 @@ export default class ShadowUI extends SandboxBase {
     HIDDEN_CLASS: string = 'hidden';
     BLIND_CLASS: string = 'blind';
 
-    nodeMutation: any;
-    messageSandbox: any;
-    iframeSandbox: any;
-    ieDebugSandbox: any;
-
     root: any;
     lastActiveElement: any;
     uiStyleSheetsHtmlBackup: any;
     wrapperCreators: any;
 
-    runTaskScriptEventCallback: any;
-    beforeDocumentCleanedEventCallback: any;
-    documentCleanedEventCallback: any;
-    documentClosedEventCallback: any;
-    bodyContentChangedEventCallback: any;
-    serviceMsgReceivedEventCallback: any;
-    bodyCreatedEventCallback: any;
+    runTaskScriptEventCallback: Function;
+    beforeDocumentCleanedEventCallback: Function;
+    documentCleanedEventCallback: Function;
+    documentClosedEventCallback: Function;
+    bodyContentChangedEventCallback: Function;
+    serviceMsgReceivedEventCallback: Function;
+    bodyCreatedEventCallback: Function;
 
-    constructor (nodeMutation, messageSandbox, iframeSandbox, ieDebugSandbox) {
+    constructor (private readonly _nodeMutation: NodeMutation, //eslint-disable-line no-unused-vars
+                 private readonly _messageSandbox: MessageSandbox, //eslint-disable-line no-unused-vars
+                 private readonly _iframeSandbox: IframeSandbox, //eslint-disable-line no-unused-vars
+                 private readonly _ieDebugSandbox: IEDebugSandbox) { //eslint-disable-line no-unused-vars
         super();
-
-        this.nodeMutation   = nodeMutation;
-        this.messageSandbox = messageSandbox;
-        this.iframeSandbox  = iframeSandbox;
-        this.ieDebugSandbox = ieDebugSandbox;
 
         this.root                    = null;
         this.lastActiveElement       = null;
@@ -62,8 +62,8 @@ export default class ShadowUI extends SandboxBase {
     }
 
     _initEventCallbacks () {
-        this.runTaskScriptEventCallback = e => {
-            const contentDocument = nativeMethods.contentDocumentGetter.call(e.iframe);
+        this.runTaskScriptEventCallback = (iframe: HTMLIFrameElement) => {
+            const contentDocument = nativeMethods.contentDocumentGetter.call(iframe);
             const iframeHead      = contentDocument.head;
             const iframeBody      = contentDocument.body;
 
@@ -75,25 +75,26 @@ export default class ShadowUI extends SandboxBase {
             this.uiStyleSheetsHtmlBackup = this._getUIStyleSheetsHtml();
         };
 
-        this.documentCleanedEventCallback = e => {
+        this.documentCleanedEventCallback = (e: DocumentCleanedEvent) => {
             this._restoreUIStyleSheets(e.document.head, this.uiStyleSheetsHtmlBackup);
             this.uiStyleSheetsHtmlBackup = null;
 
             this.markShadowUIContainers(this.document.head, this.document.body);
         };
 
-        this.documentClosedEventCallback = e => {
-            this._restoreUIStyleSheets(e.document.head, this.uiStyleSheetsHtmlBackup);
+        this.documentClosedEventCallback = (document: Document) => {
+            this._restoreUIStyleSheets(document.head, this.uiStyleSheetsHtmlBackup);
             this.uiStyleSheetsHtmlBackup = null;
 
-            this.markShadowUIContainers(e.document.head, e.document.body);
+            this.markShadowUIContainers(document.head, document.body);
         };
 
-        this.bodyContentChangedEventCallback = el => {
-            const elContextWindow = el[INTERNAL_PROPS.processedContext];
+        this.bodyContentChangedEventCallback = (body: HTMLBodyElement) => {
+            // @ts-ignore
+            const elContextWindow = body[INTERNAL_PROPS.processedContext];
 
             if (elContextWindow !== window) {
-                this.messageSandbox.sendServiceMsg({
+                this._messageSandbox.sendServiceMsg({
                     cmd: this.BODY_CONTENT_CHANGED_COMMAND
                 }, elContextWindow);
             }
@@ -106,14 +107,14 @@ export default class ShadowUI extends SandboxBase {
                 this.onBodyElementMutation();
         };
 
-        this.bodyCreatedEventCallback = ({ body }) => this.markShadowUIContainers(this.document.head, body);
+        this.bodyCreatedEventCallback = body => this.markShadowUIContainers(this.document.head, body);
     }
 
     static _filterElement (el) {
         return el && domUtils.isShadowUIElement(el) ? null : el;
     }
 
-    _filterList (list, listLength, predicate) {
+    _filterList (list, listLength: number, predicate) {
         const filteredList = [];
 
         for (let i = 0; i < listLength; i++) {
@@ -136,11 +137,11 @@ export default class ShadowUI extends SandboxBase {
         return filteredList.length === listLength ? list : filteredList;
     }
 
-    _filterNodeList (nodeList, originLength) {
+    _filterNodeList (nodeList, originLength: number) {
         return this._filterList(nodeList, originLength, item => ShadowUI._filterElement(item));
     }
 
-    _filterStyleSheetList (styleSheetList, originLength) {
+    _filterStyleSheetList (styleSheetList, originLength: number) {
         return this._filterList(styleSheetList, originLength, item => ShadowUI._filterElement(item.ownerNode));
     }
 
@@ -353,7 +354,7 @@ export default class ShadowUI extends SandboxBase {
         return result;
     }
 
-    _restoreUIStyleSheets (head, uiStyleSheetsHtml) {
+    _restoreUIStyleSheets (head, uiStyleSheetsHtml: string) {
         if (!head || !uiStyleSheetsHtml)
             return;
 
@@ -425,13 +426,13 @@ export default class ShadowUI extends SandboxBase {
     }
 
     _initEvents () {
-        this.iframeSandbox.on(this.iframeSandbox.RUN_TASK_SCRIPT_EVENT, this.runTaskScriptEventCallback);
-        this.nodeMutation.on(this.nodeMutation.BEFORE_DOCUMENT_CLEANED_EVENT, this.beforeDocumentCleanedEventCallback);
-        this.nodeMutation.on(this.nodeMutation.DOCUMENT_CLEANED_EVENT, this.documentCleanedEventCallback);
-        this.nodeMutation.on(this.nodeMutation.DOCUMENT_CLOSED_EVENT, this.documentClosedEventCallback);
-        this.nodeMutation.on(this.nodeMutation.BODY_CONTENT_CHANGED_EVENT, this.bodyContentChangedEventCallback);
-        this.messageSandbox.on(this.messageSandbox.SERVICE_MSG_RECEIVED_EVENT, this.serviceMsgReceivedEventCallback);
-        this.nodeMutation.on(this.nodeMutation.BODY_CREATED_EVENT, this.bodyCreatedEventCallback);
+        this._iframeSandbox.on(this._iframeSandbox.RUN_TASK_SCRIPT_EVENT, this.runTaskScriptEventCallback);
+        this._nodeMutation.on(this._nodeMutation.BEFORE_DOCUMENT_CLEANED_EVENT, this.beforeDocumentCleanedEventCallback);
+        this._nodeMutation.on(this._nodeMutation.DOCUMENT_CLEANED_EVENT, this.documentCleanedEventCallback);
+        this._nodeMutation.on(this._nodeMutation.DOCUMENT_CLOSED_EVENT, this.documentClosedEventCallback);
+        this._nodeMutation.on(this._nodeMutation.BODY_CONTENT_CHANGED_EVENT, this.bodyContentChangedEventCallback);
+        this._messageSandbox.on(this._messageSandbox.SERVICE_MSG_RECEIVED_EVENT, this.serviceMsgReceivedEventCallback);
+        this._nodeMutation.on(this._nodeMutation.BODY_CREATED_EVENT, this.bodyCreatedEventCallback);
     }
 
     onBodyElementMutation () {
@@ -612,7 +613,7 @@ export default class ShadowUI extends SandboxBase {
     }
 
     // API
-    getShadowUICollectionLength (collection, length) {
+    getShadowUICollectionLength (collection, length: number) {
         let shadowUIElementCount = 0;
 
         for (let i = 0; i < length; i++) {
@@ -620,7 +621,7 @@ export default class ShadowUI extends SandboxBase {
                 shadowUIElementCount++;
         }
 
-        if (shadowUIElementCount && !this.ieDebugSandbox.isDebuggerInitiator())
+        if (shadowUIElementCount && !this._ieDebugSandbox.isDebuggerInitiator())
             ShadowUI._checkElementsPosition(collection, length);
 
         return length - shadowUIElementCount;
@@ -640,17 +641,17 @@ export default class ShadowUI extends SandboxBase {
         domUtils.removeClass(elem, patchedClass);
     }
 
-    static hasClass (el, value) {
+    static hasClass (el, value: string) {
         const patchedClass = ShadowUI.patchClassNames(value);
 
         return domUtils.hasClass(el, patchedClass);
     }
 
-    static patchId (value) {
+    static patchId (value: string) {
         return value + SHADOW_UI_CLASS_NAME.postfix;
     }
 
-    static patchClassNames (value) {
+    static patchClassNames (value: string) {
         const names = value.split(/\s+/);
 
         for (let i = 0; i < names.length; i++)
@@ -659,7 +660,7 @@ export default class ShadowUI extends SandboxBase {
         return names.join(' ');
     }
 
-    select (selector, context) {
+    select (selector: string, context) {
         const patchedSelector = selector.replace(CLASSNAME_RE,
             className => className + SHADOW_UI_CLASS_NAME.postfix);
 

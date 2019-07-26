@@ -986,7 +986,7 @@ class NativeMethods {
             this.FileList = win.FileList;
     }
 
-    refreshElectronMeths (vmModule) {
+    refreshElectronMeths (vmModule): boolean {
         if (this.createScript && this.createScript.toString() !== vmModule.createScript.toString())
             return false;
 

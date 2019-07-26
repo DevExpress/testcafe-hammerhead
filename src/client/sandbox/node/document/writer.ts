@@ -32,10 +32,7 @@ const ON_WINDOW_RECREATION_SCRIPT_TEMPLATE = createSelfRemovingScript(`
     if (sandbox) {
         Object.defineProperty(window, "${ INTERNAL_PROPS.documentWasCleaned }", { value: true, configurable: true });
         
-        sandbox.node.mutation.onDocumentCleaned({
-            window: window,
-            document: document
-        });
+        sandbox.node.mutation.onDocumentCleaned(window, document);
 
         /* NOTE: B234357 */
         sandbox.node.processNodes(null, document);

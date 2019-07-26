@@ -6,6 +6,9 @@ import AUTHORIZATION from '../../request-pipeline/xhr/authorization';
 import { getOriginHeader } from '../utils/destination-location';
 import { overrideDescriptor } from '../utils/property-overriding';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
+/*eslint-disable no-unused-vars*/
+import CookieSandbox from './cookie';
+/*eslint-enable no-unused-vars*/
 
 const XHR_READY_STATES = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
 
@@ -14,16 +17,8 @@ export default class XhrSandbox extends SandboxBase {
     XHR_ERROR_EVENT: string = 'hammerhead|event|xhr-error';
     BEFORE_XHR_SEND_EVENT: string = 'hammerhead|event|before-xhr-send';
 
-    cookieSandbox: any;
-
-    constructor (cookieSandbox) {
+    constructor (private readonly _cookieSandbox: CookieSandbox) { //eslint-disable-line no-unused-vars
         super();
-
-        this.XHR_COMPLETED_EVENT   = 'hammerhead|event|xhr-completed';
-        this.XHR_ERROR_EVENT       = 'hammerhead|event|xhr-error';
-        this.BEFORE_XHR_SEND_EVENT = 'hammerhead|event|before-xhr-send';
-
-        this.cookieSandbox = cookieSandbox;
     }
 
     static createNativeXHR () {
@@ -66,7 +61,7 @@ export default class XhrSandbox extends SandboxBase {
             if (this.readyState < this.HEADERS_RECEIVED)
                 return;
 
-            xhrSandbox.cookieSandbox.syncCookie();
+            xhrSandbox._cookieSandbox.syncCookie();
 
             nativeMethods.xhrRemoveEventListener.call(this, 'readystatechange', syncCookieWithClientIfNecessary);
         };

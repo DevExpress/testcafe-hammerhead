@@ -138,8 +138,8 @@ test('iframe added to dom event', function () {
     var secondIframe = null;
     var count        = 0;
 
-    nodeMutation.on(nodeMutation.IFRAME_ADDED_TO_DOM_EVENT, function (e) {
-        if (e.iframe === firstIframe || e.iframe === secondIframe)
+    nodeMutation.on(nodeMutation.IFRAME_ADDED_TO_DOM_EVENT, function (iframe) {
+        if (iframe === firstIframe || iframe === secondIframe)
             count++;
     });
 

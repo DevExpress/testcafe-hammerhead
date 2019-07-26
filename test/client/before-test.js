@@ -45,15 +45,15 @@
             .replace('{{{cookie}}}', JSON.stringify(cookie || ''));
     };
 
-    window.initIframeTestHandler = function (e) {
+    window.initIframeTestHandler = function (iframe) {
         var referer          = "http://localhost/sessionId/https://example.com";
         var location         = "http://localhost/sessionId/https://example.com";
         var serviceMsgUrl    = "/service-msg/100";
         var cookie           = cookieSandbox.getCookie();
         var iframeTaskScript = JSON.stringify(window.getIframeTaskScript(referer, serviceMsgUrl, location, cookie));
 
-        if (e.iframe.id.indexOf('test') !== -1) {
-            e.iframe.contentWindow.eval.call(e.iframe.contentWindow, [
+        if (iframe.id.indexOf('test') !== -1) {
+            iframe.contentWindow.eval.call(iframe.contentWindow, [
                 'window["%hammerhead%"].get("./utils/destination-location").forceLocation("' + location + '");',
                 'window["%hammerhead%"].start({',
                 '    referer: ' + JSON.stringify(referer) + ',',

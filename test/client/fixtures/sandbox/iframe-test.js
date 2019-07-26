@@ -95,7 +95,7 @@ test('take sequences starting with "$" into account when generating task scripts
             var storedTemplate   = templateSettings.iframeTaskScriptTemplate;
 
             templateSettings.iframeTaskScriptTemplate = iframeTemplate;
-            iframeSandbox.iframeReadyToInitHandler({ iframe: iframe });
+            iframeSandbox.iframeReadyToInitHandler(iframe);
             templateSettings.iframeTaskScriptTemplate = storedTemplate;
         });
 });
@@ -421,8 +421,8 @@ if (!browserUtils.isFirefox) {
                 var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
 
                 var testedSandboxes = [
-                    iframeHammerhead.shadowUI.iframeSandbox,
-                    iframeHammerhead.shadowUI.nodeMutation,
+                    iframeHammerhead.shadowUI._iframeSandbox,
+                    iframeHammerhead.shadowUI._nodeMutation,
                     iframeHammerhead.sandbox.codeInstrumentation._locationAccessorsInstrumentation
                 ];
 

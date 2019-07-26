@@ -9,7 +9,6 @@ import nativeMethods from '../native-methods';
 /*eslint-disable no-unused-vars*/
 import Listeners from '../event/listeners';
 import EventSimulator from '../event/simulator';
-import ShadowUI from '../shadow-ui';
 /*eslint-enable no-unused-vars*/
 
 export default class UploadSandbox extends SandboxBase {
@@ -19,11 +18,10 @@ export default class UploadSandbox extends SandboxBase {
     infoManager: UploadInfoManager;
 
     constructor (private readonly _listeners: Listeners, //eslint-disable-line no-unused-vars
-                 private readonly _eventSimulator: EventSimulator, //eslint-disable-line no-unused-vars
-                 shadowUI: ShadowUI) {
+                 private readonly _eventSimulator: EventSimulator) { //eslint-disable-line no-unused-vars
         super();
 
-        this.infoManager = new UploadInfoManager(shadowUI);
+        this.infoManager = new UploadInfoManager();
     }
 
     _riseChangeEvent (input: HTMLInputElement) {
