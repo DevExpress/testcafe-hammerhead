@@ -23,25 +23,19 @@ const ATTRIBUTE_SELECTOR_REG_EX          = /\[([\w-]+)(\^?=.+?)]/g;
 const ATTRIBUTE_OPERATOR_WITH_HASH_VALUE = /^\W+\s*#/;
 
 export default class NodeSandbox extends SandboxBase {
-    mutation: NodeMutation;
-    iframeSandbox: IframeSandbox;
-    shadowUI: ShadowUI;
-    raiseBodyCreatedEvent: any;
-    doc: any;
-    win: any;
-    element: any;
+    raiseBodyCreatedEvent: Function;
+    doc: DocumentSandbox;
+    win: WindowSandbox;
+    element: ElementSandbox;
 
-    constructor (nodeMutation: NodeMutation,
-                 iframeSandbox: IframeSandbox,
+    constructor (readonly mutation: NodeMutation, //eslint-disable-line no-unused-vars
+                 readonly iframeSandbox: IframeSandbox, //eslint-disable-line no-unused-vars
                  private readonly _eventSandbox: EventSandbox, //eslint-disable-line no-unused-vars
                  private readonly _uploadSandbox: UploadSandbox, //eslint-disable-line no-unused-vars
-                 shadowUI: ShadowUI,
+                 readonly shadowUI: ShadowUI, //eslint-disable-line no-unused-vars
                  private readonly _cookieSandbox: CookieSandbox) { //eslint-disable-line no-unused-vars
         super();
 
-        this.mutation              = nodeMutation;
-        this.iframeSandbox         = iframeSandbox;
-        this.shadowUI              = shadowUI;
         this.raiseBodyCreatedEvent = this._onBodyCreated;
 
         // NOTE: We need to define the property with the 'writable' descriptor for testing purposes
@@ -55,12 +49,12 @@ export default class NodeSandbox extends SandboxBase {
         this.element = new ElementSandbox(this, this._uploadSandbox, this.iframeSandbox, this.shadowUI, this._eventSandbox);
     }
 
-    _onBodyCreated () {
+    private _onBodyCreated (): void {
         this._eventSandbox.listeners.initDocumentBodyListening(this.document);
         this.mutation.onBodyCreated(this.document.body as HTMLBodyElement);
     }
 
-    _processElement (el) {
+    private _processElement (el) {
         const processedContext = el[INTERNAL_PROPS.processedContext];
 
         if (domUtils.isShadowUIElement(el) || processedContext === this.window)
@@ -163,7 +157,7 @@ export default class NodeSandbox extends SandboxBase {
         this.element.attach(window);
     }
 
-    static _processAttributeSelector (selector) {
+    private static _processAttributeSelector (selector) {
         if (!ATTRIBUTE_SELECTOR_REG_EX.test(selector))
             return selector;
 

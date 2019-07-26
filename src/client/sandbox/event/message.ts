@@ -53,13 +53,14 @@ export default class MessageSandbox extends SandboxBase {
         this.iframeInternalMsgQueue = [];
     }
 
-    static _getMessageData (e) {
+    private static _getMessageData (e) {
         const rawData = isMessageEvent(e) ? nativeMethods.messageEventDataGetter.call(e) : e.data;
 
         return typeof rawData === 'string' ? parseJSON(rawData) : rawData;
     }
 
-    _onMessage (e) {
+    // @ts-ignore
+    private _onMessage (e) {
         const data = MessageSandbox._getMessageData(e);
 
         if (data.type === MESSAGE_TYPE.service && e.source) {
@@ -73,7 +74,7 @@ export default class MessageSandbox extends SandboxBase {
         }
     }
 
-    _onWindowMessage (e, originListener) {
+    private _onWindowMessage (e, originListener) {
         const data = MessageSandbox._getMessageData(e);
 
         if (data.type !== MESSAGE_TYPE.service) {
@@ -86,7 +87,7 @@ export default class MessageSandbox extends SandboxBase {
         return null;
     }
 
-    static _wrapMessage (type, message, targetUrl?: string) {
+    private static _wrapMessage (type, message, targetUrl?: string) {
         const parsedDest = destLocation.getParsed();
         const originUrl  = formatUrl({
             /*eslint-disable no-restricted-properties*/
@@ -98,7 +99,7 @@ export default class MessageSandbox extends SandboxBase {
         return { message, originUrl, targetUrl, type };
     }
 
-    _removeInternalMsgFromQueue (sendFunc) {
+    private _removeInternalMsgFromQueue (sendFunc) {
         for (let index = 0, length = this.iframeInternalMsgQueue.length; index < length; index++) {
             if (this.iframeInternalMsgQueue[index].sendFunc === sendFunc) {
                 this.iframeInternalMsgQueue.splice(index, 1);

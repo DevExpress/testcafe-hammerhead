@@ -87,7 +87,7 @@ export default class Sandbox extends SandboxBase {
 
     // NOTE: In some cases, IE raises the "Can't execute code from a freed script" exception,
     // so that we cannot use a sandbox created earlier and we have to create a new one.
-    static _canUseSandbox (sandbox: Sandbox): boolean {
+    private static _canUseSandbox (sandbox: Sandbox): boolean {
         try {
             //@ts-ignore
             sandbox.off();
@@ -177,7 +177,7 @@ export default class Sandbox extends SandboxBase {
         this.unload.on(this.unload.UNLOAD_EVENT, () => this.dispose());
     }
 
-    _removeInternalProperties (): void {
+    private _removeInternalProperties (): void {
         const removeListeningElement = this.event.listeners.listeningCtx.removeListeningElement;
 
         removeListeningElement(this.window);

@@ -31,26 +31,26 @@ export default class DocumentSandbox extends SandboxBase {
             element[INTERNAL_PROPS.forceProxySrcForImage] = true;
     }
 
-    static _isDocumentInDesignMode (doc) {
+    private static _isDocumentInDesignMode (doc) {
         return doc.designMode === 'on';
     }
 
-    _isUninitializedIframeWithoutSrc (win) {
+    private _isUninitializedIframeWithoutSrc (win: Window): boolean {
         const frameElement = getFrameElement(win);
 
         return win !== win.top && frameElement && isIframeWithoutSrc(frameElement) &&
-               !IframeSandbox.isIframeInitialized(frameElement);
+               !IframeSandbox.isIframeInitialized(frameElement as HTMLIFrameElement);
     }
 
-    _beforeDocumentCleaned () {
+    private _beforeDocumentCleaned () {
         this._nodeSandbox.mutation.onBeforeDocumentCleaned(this.document);
     }
 
-    _onDocumentClosed () {
+    private _onDocumentClosed () {
         this._nodeSandbox.mutation.onDocumentClosed(this.document);
     }
 
-    static _shouldEmitDocumentCleanedEvents (doc) {
+    private static _shouldEmitDocumentCleanedEvents (doc) {
         if (isIE) {
             if (doc.readyState !== 'loading')
                 return true;
@@ -68,7 +68,7 @@ export default class DocumentSandbox extends SandboxBase {
         return doc.readyState !== 'loading' && doc.readyState !== 'uninitialized';
     }
 
-    _performDocumentWrite (args, ln?: boolean) {
+    private _performDocumentWrite (args, ln?: boolean) {
         const shouldEmitEvents = DocumentSandbox._shouldEmitDocumentCleanedEvents(this.document);
 
         if (shouldEmitEvents)
@@ -83,7 +83,7 @@ export default class DocumentSandbox extends SandboxBase {
         return result;
     }
 
-    _needToUpdateDocumentWriter (window, document) {
+    private _needToUpdateDocumentWriter (window, document): boolean {
         try {
             return !this.documentWriter || this.window !== window || this.document !== document;
         }
@@ -92,7 +92,7 @@ export default class DocumentSandbox extends SandboxBase {
         }
     }
 
-    static _definePropertyDescriptor (owner, childOfOwner, prop, overriddenDescriptor) {
+    private static _definePropertyDescriptor (owner, childOfOwner, prop, overriddenDescriptor) {
         // NOTE: The 'URL', 'domain' and 'referrer' properties are non configurable in IE and Edge
         if (!overriddenDescriptor.configurable) {
             // NOTE: property doesn't redefined yet
@@ -113,7 +113,7 @@ export default class DocumentSandbox extends SandboxBase {
         return result;
     }
 
-    static _ensureDocumentMethodOverride (document, overridenMethods, methodName) {
+    private static _ensureDocumentMethodOverride (document, overridenMethods, methodName) {
         if (document[methodName] !== overridenMethods[methodName])
             document[methodName] = overridenMethods[methodName];
     }

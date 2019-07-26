@@ -26,21 +26,21 @@ export default class UnloadSandbox extends SandboxBase {
         this.beforeUnloadEventName         = UnloadSandbox._getBeforeUnloadEventName();
     }
 
-    static _getBeforeUnloadEventName (): string {
+    private static _getBeforeUnloadEventName (): string {
         // NOTE: the ios devices do not support beforeunload event
         // https://developer.apple.com/library/ios/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html#//apple_ref/doc/uid/TP40006511-SW5
         return isIOS ? 'pagehide' : 'beforeunload';
     }
 
     // NOTE: This handler has to be called after others.
-    _emitBeforeUnloadEvent (): void {
+    private _emitBeforeUnloadEvent (): void {
         this.emit(this.BEFORE_UNLOAD_EVENT, {
             returnValue: this.storedBeforeUnloadReturnValue,
             prevented:   this.prevented
         });
     }
 
-    _onBeforeUnloadHandler (e, originListener): void {
+    private _onBeforeUnloadHandler (e, originListener): void {
         // NOTE: Overriding the returnValue property to prevent a native dialog.
         nativeMethods.objectDefineProperty(e, 'returnValue', createPropertyDesc({
             get: () => this.storedBeforeUnloadReturnValue,
@@ -71,7 +71,7 @@ export default class UnloadSandbox extends SandboxBase {
         }
     }
 
-    _reattachBeforeUnloadListener () {
+    private _reattachBeforeUnloadListener () {
         // NOTE: reattach the Listener, it'll be the last in the queue.
         nativeMethods.windowRemoveEventListener.call(this.window, this.beforeUnloadEventName, this);
         nativeMethods.windowAddEventListener.call(this.window, this.beforeUnloadEventName, this);

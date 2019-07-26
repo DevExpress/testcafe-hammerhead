@@ -8,7 +8,7 @@ const ELEMENTS_WITH_NAME_ATTRIBUTE     = ['button', 'fieldset', 'form', 'iframe'
 const COLLECTION_PROTO_GETTERS_RESERVE = 10;
 let collectionProtoGettersCount        = 0;
 
-export default function HTMLCollectionWrapper (collection, tagName: string) {
+export default function HTMLCollectionWrapper (collection: HTMLCollection, tagName: string) {
     tagName = tagName.toLowerCase();
 
     nativeMethods.objectDefineProperties.call(Object, this, {
@@ -24,7 +24,7 @@ export default function HTMLCollectionWrapper (collection, tagName: string) {
 
 HTMLCollectionWrapper.prototype = nativeMethods.objectCreate.call(Object, HTMLCollection.prototype);
 
-HTMLCollectionWrapper.prototype.item = function (index) {
+HTMLCollectionWrapper.prototype.item = function (index: number) {
     this._refreshCollection();
 
     return this._filteredCollection[index];
@@ -69,7 +69,7 @@ nativeMethods.objectDefineProperties.call(Object, HTMLCollectionWrapper.prototyp
 
 addShadowGetters(COLLECTION_PROTO_GETTERS_RESERVE);
 
-function addShadowGetters (count) {
+function addShadowGetters (count: number) {
     for (let i = 0; i < count; i++) {
         const idx = collectionProtoGettersCount++;
 
@@ -81,7 +81,7 @@ function addShadowGetters (count) {
     }
 }
 
-function updateCollectionIndexGetters (wrapper, oldLength, currentLength) {
+function updateCollectionIndexGetters (wrapper, oldLength: number, currentLength: number) {
     if (oldLength === currentLength)
         return;
 
