@@ -646,7 +646,9 @@ describe('Proxy', () => {
             const options = {
                 headers: {
                     referer: proxy.openSession('http://example.com', session),
-                    accept:  PAGE_ACCEPT_HEADER
+                    accept:  PAGE_ACCEPT_HEADER,
+                    etag:    '<value>',
+                    expires: 'date'
                 },
 
                 url:                     proxy.openSession('http://127.0.0.1:2000/page/', session),
@@ -657,6 +659,8 @@ describe('Proxy', () => {
                 .then(res => {
                     expect(res.headers['cache-control']).eql('no-cache, no-store, must-revalidate');
                     expect(res.headers['pragma']).eql('no-cache');
+                    expect('etag' in res.headers).to.be.false;
+                    expect('expires' in res.headers).to.be.false;
 
                     session.disablePageCaching = false;
                 });

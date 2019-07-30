@@ -1,5 +1,6 @@
 /*eslint-disable no-unused-vars*/
 import { IncomingHttpHeaders, OutgoingHttpHeaders } from 'http';
+import RequestPipelineContext from '../context';
 /*eslint-enable no-unused-vars*/
 
 import {
@@ -9,7 +10,9 @@ import {
     forcedResponseTransforms
 } from './transforms';
 
-function transformHeaders (srcHeaders, ctx, transformList, forcedTransforms) {
+import { PREVENT_CACHING_HEADERS } from '../../utils/http';
+
+function transformHeaders (srcHeaders, ctx: RequestPipelineContext, transformList, forcedTransforms) {
     const destHeaders = {};
 
     const applyTransform = function (headerName, headers, transforms) {
@@ -30,15 +33,15 @@ function transformHeaders (srcHeaders, ctx, transformList, forcedTransforms) {
 }
 
 // API
-export function forRequest (ctx): IncomingHttpHeaders {
+export function forRequest (ctx: RequestPipelineContext): IncomingHttpHeaders {
     return transformHeaders(ctx.req.headers, ctx, requestTransforms, forcedRequestTransforms);
 }
 
-export function forResponse (ctx): OutgoingHttpHeaders {
+export function forResponse (ctx: RequestPipelineContext): OutgoingHttpHeaders {
     return transformHeaders(ctx.destRes.headers, ctx, responseTransforms, forcedResponseTransforms);
 }
 
-export function transformHeadersCaseToRaw (headers, rawHeaders) {
+export function transformHeadersCaseToRaw (headers: OutgoingHttpHeaders, rawHeaders) {
     const processedHeaders = {};
     const headersNames     = Object.keys(headers);
 
@@ -59,4 +62,12 @@ export function transformHeadersCaseToRaw (headers, rawHeaders) {
     }
 
     return processedHeaders;
+}
+
+export function setupPreventCachingHeaders (headers: OutgoingHttpHeaders) {
+    headers['cache-control'] = PREVENT_CACHING_HEADERS['cache-control'];
+    headers['pragma']        = PREVENT_CACHING_HEADERS['pragma'];
+
+    delete headers['etag'];
+    delete headers['expires'];
 }

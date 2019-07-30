@@ -22,7 +22,6 @@ import { check as checkSameOriginPolicy } from './xhr/same-origin-policy';
 import * as headerTransforms from './header-transforms';
 import { RequestInfo } from '../session/events/info';
 import SERVICE_ROUTES from '../proxy/service-routes';
-import { preventCaching } from '../utils/http';
 
 interface DestInfo {
     url: string;
@@ -358,7 +357,7 @@ export default class RequestPipelineContext {
         const res: http.ServerResponse = <http.ServerResponse> this.res;
 
         if (this.isHTMLPage && this.session.disablePageCaching)
-            preventCaching(res);
+            headerTransforms.setupPreventCachingHeaders(headers);
 
         res.writeHead(this.destRes.statusCode, headers);
         res.addTrailers(this.destRes.trailers as http.OutgoingHttpHeaders);
