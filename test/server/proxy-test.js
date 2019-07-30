@@ -640,7 +640,7 @@ describe('Proxy', () => {
             return Promise.all(specialPageProxyUrls.map(testSpecialPageRequest));
         });
 
-        it('Should append to response prevent caching headers', () => {
+        it('Should set up the prevent caching headers', () => {
             session.disablePageCaching = true;
 
             const options = {
