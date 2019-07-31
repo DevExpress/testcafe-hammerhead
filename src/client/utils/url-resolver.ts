@@ -1,7 +1,7 @@
 import nativeMethods from '../sandbox/native-methods';
 import * as destLocation from '../utils/destination-location';
 import { ensureTrailingSlash, parseUrl } from '../../utils/url';
-import { isIframeWithoutSrc, getFrameElement } from '../utils/dom';
+import { isIframeWithoutSrc, getFrameElement } from './dom';
 
 const DOCUMENT_URL_RESOLVER = 'hammerhead|document-url-resolver';
 

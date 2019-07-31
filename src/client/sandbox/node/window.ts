@@ -113,7 +113,7 @@ export default class WindowSandbox extends SandboxBase {
         this.isInternalGetter = false;
     }
 
-    static _prepareStack (msg: string, stack: string): string {
+    private static _prepareStack (msg: string, stack: string): string {
         // NOTE: Firefox does not include an error message in a stack trace (unlike other browsers)
         // It is possible to get a stack trace for unhandled Promise rejections only if Promise is rejected with the 'Error' instance value.
         // This is why we should convert the stack to a common format.
@@ -207,7 +207,7 @@ export default class WindowSandbox extends SandboxBase {
 
         if (processedText) {
             if (isScriptElement(el))
-                return processScript(processedText, true);
+                return processScript(processedText, true, false, convertToProxyUrl);
             else if (isStyleElement(el))
                 return styleProcessor.process(processedText, getProxyUrl, true);
         }
@@ -451,7 +451,7 @@ export default class WindowSandbox extends SandboxBase {
                 // an assumption. We cannot solve this problem at the Worker level either, because the operation of
                 // creating a new Blob instance is asynchronous. (GH-231)
                 if (!type || JAVASCRIPT_MIME_TYPES.indexOf(type) !== -1)
-                    array = [processScript(array.join(''), true)];
+                    array = [processScript(array.join(''), true, false, convertToProxyUrl)];
 
                 // NOTE: IE11 throws an error when the second parameter of the Blob function is undefined (GH-44)
                 // If the overridden function is called with one parameter, we need to call the original function
@@ -606,7 +606,7 @@ export default class WindowSandbox extends SandboxBase {
             const functionBodyArgIndex = args.length - 1;
 
             if (typeof args[functionBodyArgIndex] === 'string')
-                args[functionBodyArgIndex] = processScript(args[functionBodyArgIndex], false);
+                args[functionBodyArgIndex] = processScript(args[functionBodyArgIndex], false, false, convertToProxyUrl);
 
             return nativeMethods.Function.apply(this, args);
         };
@@ -1153,7 +1153,7 @@ export default class WindowSandbox extends SandboxBase {
                     if (isStyleEl)
                         processedValue = styleProcessor.process(processedValue, getProxyUrl, true);
                     else if (isScriptEl)
-                        processedValue = processScript(processedValue, true);
+                        processedValue = processScript(processedValue, true, false, convertToProxyUrl);
                     else {
                         processedValue = processHtml(processedValue, {
                             parentTag:        el.tagName,
@@ -1268,7 +1268,7 @@ export default class WindowSandbox extends SandboxBase {
                 return removeProcessingHeader(text);
             },
             setter: function (value) {
-                const processedValue = value ? processScript(String(value), true) : value;
+                const processedValue = value ? processScript(String(value), true, false, convertToProxyUrl) : value;
 
                 nativeMethods.scriptTextSetter.call(this, processedValue);
             }

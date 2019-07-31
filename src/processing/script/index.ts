@@ -4,8 +4,7 @@
 // -------------------------------------------------------------
 /*eslint-disable no-unused-vars*/
 import { Program, Node } from 'estree';
-import transform, { CodeChange } from './transform';
-import { ModifiedProgram } from './transformers/js-protocol-last-expression';
+import transform, { CodeChange, beforeTransform, afterTransform } from './transform';
 /*eslint-enable no-unused-vars*/
 import INSTRUCTION from './instruction';
 import { add as addHeader, remove as removeHeader } from './header';
@@ -76,7 +75,11 @@ function getAst (src: string, isObject: boolean): Program {
     src = isObject ? `(${src})` : src;
 
     try {
-        return parse(src, { allowReturnOutsideFunction: true });
+        return parse(src, {
+            allowReturnOutsideFunction:  true,
+            allowImportExportEverywhere: true,
+            ecmaVersion:                 11
+        });
     }
     catch (err) {
         return null;
@@ -160,7 +163,7 @@ export function isScriptProcessed (code: string): boolean {
     return PROCESSED_SCRIPT_RE.test(code);
 }
 
-export function processScript (src: string, withHeader?: boolean, wrapLastExprWithProcessHtml?: boolean): string {
+export function processScript (src: string, withHeader: boolean = false, wrapLastExprWithProcessHtml: boolean = false, resolver?: Function): string {
     const { bom, preprocessed } = preprocess(src);
     const withoutHtmlComments   = removeHtmlComments(preprocessed);
     const { ast, isObject }     = analyze(withoutHtmlComments);
@@ -170,10 +173,12 @@ export function processScript (src: string, withHeader?: boolean, wrapLastExprWi
 
     withHeader = withHeader && !isObject && !isArrayDataScript(ast);
 
-    // eslint-disable-next-line no-extra-parens
-    (<ModifiedProgram>ast).wrapLastExprWithProcessHtml = wrapLastExprWithProcessHtml;
+    beforeTransform(wrapLastExprWithProcessHtml, resolver);
 
     const changes = transform(ast);
+
+    afterTransform();
+
     let processed = changes.length ? applyChanges(withoutHtmlComments, changes, isObject) : preprocessed;
 
     processed = postprocess(processed, withHeader, bom, isStrictMode(ast));

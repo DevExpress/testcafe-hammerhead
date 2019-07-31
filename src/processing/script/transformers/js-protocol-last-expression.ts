@@ -14,19 +14,15 @@ import { Syntax } from 'esotope-hammerhead';
 // x = 5; "hello" --> x = 5; parent.__proc$Html(window, "hello")
 // someAction(); generateHtmlPage() --> someAction(); parent.__proc$Html(window, generateHtmlPage())
 
-export interface ModifiedProgram extends Program {
-    wrapLastExprWithProcessHtml?: boolean;
-}
-
 const transformer: Transformer = {
     nodeReplacementRequireTransform: true,
 
     nodeTypes: Syntax.ExpressionStatement,
 
-    condition: (node: ExpressionStatement, parent: ModifiedProgram) => parent.wrapLastExprWithProcessHtml && parent.body[parent.body.length - 1] === node,
+    condition: (node: ExpressionStatement, parent: Program) => transformer.wrapLastExpr && parent.body[parent.body.length - 1] === node,
 
-    run: (node: ExpressionStatement, parent: ModifiedProgram) => {
-        parent.wrapLastExprWithProcessHtml = false;
+    run: (node: ExpressionStatement) => {
+        transformer.wrapLastExpr = false;
 
         return createHtmlProcessorWrapper(node);
     }

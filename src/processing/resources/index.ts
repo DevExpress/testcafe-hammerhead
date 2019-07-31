@@ -9,9 +9,10 @@ import { platform } from 'os';
 
 const IS_WIN: boolean = platform() === 'win32';
 const DISK_RE: RegExp = /^[A-Za-z]:/;
+const PROCESSORS      = [pageProcessor, manifestProcessor, scriptProcessor, stylesheetProcessor];
 
 function getResourceUrlReplacer (ctx) {
-    return function (resourceUrl: string, resourceType, charsetAttrValue, baseUrl: string) {
+    return function (resourceUrl: string, resourceType: string, charsetAttrValue, baseUrl: string) {
         if (!urlUtil.isSupportedProtocol(resourceUrl) && !urlUtil.isSpecialPage(resourceUrl))
             return resourceUrl;
 
@@ -40,7 +41,6 @@ function getResourceUrlReplacer (ctx) {
 }
 
 export async function process (ctx) {
-    const processors  = [pageProcessor, manifestProcessor, scriptProcessor, stylesheetProcessor];
     const body        = ctx.destResBody;
     const contentInfo = ctx.contentInfo;
     const encoding    = contentInfo.encoding;
@@ -48,11 +48,11 @@ export async function process (ctx) {
 
     const decoded = await decodeContent(body, encoding, charset);
 
-    for (let i = 0; i < processors.length; i++) {
-        if (processors[i].shouldProcessResource(ctx)) {
+    for (const processor of PROCESSORS) {
+        if (processor.shouldProcessResource(ctx)) {
             const urlReplacer = getResourceUrlReplacer(ctx);
             // @ts-ignore: Cannot invoke an expression whose type lacks a call signature
-            const processed   = processors[i].processResource(decoded, ctx, charset, urlReplacer, false);
+            const processed   = processor.processResource(decoded, ctx, charset, urlReplacer, false);
 
             if (processed === pageProcessor.RESTART_PROCESSING)
                 return await process(ctx);

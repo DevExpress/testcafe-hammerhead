@@ -21,6 +21,8 @@ function process (html, isIframe) {
             url = 'http:' + url;
         else if (url.indexOf('/') === 0)
             url = 'http://example.com' + url;
+        else if (url === './')
+            url = 'http://example.com/';
 
         return urlUtils.getProxyUrl(url, {
             proxyHostname: 'localhost',

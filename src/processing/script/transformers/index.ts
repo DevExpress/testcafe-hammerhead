@@ -26,12 +26,17 @@ import propertyGetTransformer from './property-get';
 import propertySetTransformer from './property-set';
 import methodCallTransformer from './method-call';
 import jsProtocolLastExpression from './js-protocol-last-expression';
+import staticImportTransformer from './static-import';
+import dynamicImportTransformer from './dynamic-import';
 
 export interface Transformer {
     nodeReplacementRequireTransform: boolean;
     nodeTypes: Syntax;
     condition: (node: Node, parent?: Node) => boolean;
     run: (node: Node, parent?: Node, key?: string) => Node;
+    baseUrl?: string;
+    wrapLastExpr?: boolean;
+    resolver?: Function
 }
 
 const TRANSFORMERS: Array<Transformer> = [
@@ -53,7 +58,9 @@ const TRANSFORMERS: Array<Transformer> = [
     propertyGetTransformer,
     propertySetTransformer,
     methodCallTransformer,
-    jsProtocolLastExpression
+    jsProtocolLastExpression,
+    staticImportTransformer,
+    dynamicImportTransformer
 ];
 
 function createTransformerMap (): Map<Syntax, Array<Transformer>> {

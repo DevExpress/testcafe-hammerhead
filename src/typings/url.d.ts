@@ -1,5 +1,5 @@
 export interface ResourceType {
-    isIframe: boolean;
+    isIframe?: boolean;
     isForm?: boolean;
     isScript?: boolean;
     isEventSource?: boolean;

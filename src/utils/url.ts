@@ -125,7 +125,7 @@ export function getURLString (url: string): string {
 }
 
 export function getProxyUrl (url: string, opts: ProxyUrlOptions) {
-    let params: any = [opts.sessionId];
+    const params: Array<string> = [opts.sessionId];
 
     if (opts.resourceType)
         params.push(opts.resourceType);
@@ -136,12 +136,10 @@ export function getProxyUrl (url: string, opts: ProxyUrlOptions) {
     if (opts.reqOrigin)
         params.push(opts.reqOrigin);
 
-    params = params.join(REQUEST_DESCRIPTOR_VALUES_SEPARATOR);
-
+    const descriptor    = params.join(REQUEST_DESCRIPTOR_VALUES_SEPARATOR);
     const proxyProtocol = opts.proxyProtocol || 'http:';
 
-    return proxyProtocol + '//' + opts.proxyHostname + ':' + opts.proxyPort + '/' + params + '/' +
-           convertHostToLowerCase(url);
+    return `${proxyProtocol}//${opts.proxyHostname}:${opts.proxyPort}/${descriptor}/${convertHostToLowerCase(url)}`;
 }
 
 export function getDomain (parsed: ParsedUrl) {
