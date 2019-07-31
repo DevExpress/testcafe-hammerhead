@@ -1,7 +1,7 @@
 language: node_js
 
 addons:
- chrome:  stable
+ chrome:  75
  firefox: latest
  apt:
   packages:
