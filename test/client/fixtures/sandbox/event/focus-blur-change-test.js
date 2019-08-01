@@ -998,8 +998,9 @@ test('label.htmlFor with tabIndex', function () {
         focused = true;
     };
 
-    label.id = 'testLabel';
-    input.id = 'testInput';
+    label.id          = 'testLabel';
+    label.textContent = 'label';
+    input.id          = 'testInput';
 
     label.addEventListener('focus', handler);
 

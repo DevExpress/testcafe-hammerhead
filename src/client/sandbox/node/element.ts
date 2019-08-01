@@ -500,9 +500,18 @@ export default class ElementSandbox extends SandboxBase {
 
             formSubmit () {
                 sandbox._ensureTargetContainsExistingBrowsingContext(this);
-                sandbox.emit(sandbox.BEFORE_FORM_SUBMIT_EVENT, { form: this });
 
-                return nativeMethods.formSubmit.apply(this, arguments);
+                const args = { form: this, preventSubmit: false };
+
+                sandbox.emit(sandbox.BEFORE_FORM_SUBMIT_EVENT, args);
+
+                // HACK: For https://github.com/DevExpress/testcafe/issues/3560
+                // We have to cancel every form submit after a test is done
+                // to prevent requests to a closed session
+                if (!args.preventSubmit)
+                    return nativeMethods.formSubmit.apply(this, arguments);
+
+                return null;
             },
 
             insertBefore (...args) {
