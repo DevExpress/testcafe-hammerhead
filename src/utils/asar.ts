@@ -47,7 +47,7 @@ export default class Asar {
     parse (fullPath: string) : ParsedPath {
         for (const archivePath of this._archivePaths) {
             if (fullPath.startsWith(archivePath))
-                return { archive: archivePath, fileName: fullPath.replace(archivePath, '.') };
+                return { archive: archivePath, fileName: fullPath.replace(archivePath + '/', '') };
         }
 
         return { archive: '', fileName: '' };
@@ -78,7 +78,7 @@ export default class Asar {
     }
 
     extractFileToReadStream (archive: string, fileName: string) : Readable {
-        const extractedFile = asar.extractFile(archive, fileName);
+        const extractedFile = asar.extractFile(archive, path.normalize(fileName));
 
         return toReadableStream(extractedFile);
     }

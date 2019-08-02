@@ -1666,7 +1666,7 @@ describe('Proxy', () => {
         it('Should pass an error to the session if target (a file in an "asar" archive) does not exist (GH-2033)', done => {
             const url      = getFileProtocolUrl('./data/file-in-asar-archive/directory-looks-like-archive.asar/app.asar/non-exist-file.txt');
             const archive  = path.resolve(__dirname, './data/file-in-asar-archive/directory-looks-like-archive.asar/app.asar').replace(/\\/g, '/');
-            const fileName = './non-exist-file.txt';
+            const fileName = 'non-exist-file.txt';
 
             session.id = 'sessionId';
 
@@ -1695,7 +1695,7 @@ describe('Proxy', () => {
         it('Should resolve an "asar" archive file and set the correct "content-type" header (GH-2033)', () => {
             session.id = 'sessionId';
 
-            const fileUrl = getFileProtocolUrl('./data/file-in-asar-archive/directory-looks-like-archive.asar/app.asar/src.txt');
+            const fileUrl = getFileProtocolUrl('./data/file-in-asar-archive/directory-looks-like-archive.asar/app.asar/folder-in-asar-archive/another-folder/src.txt');
 
             const options = {
                 url:                     proxy.openSession(fileUrl, session),
@@ -1708,7 +1708,7 @@ describe('Proxy', () => {
             return request(options)
                 .then(res => {
                     expect(res.headers['content-type']).eql('text/plain');
-                    expect(res.body).eql('asar archive: src.txt');
+                    expect(res.body).eql('asar archive file: src.txt');
                 });
         });
     });
@@ -1717,8 +1717,8 @@ describe('Proxy', () => {
         it('isAsar (GH-2033)', () => {
             const asar = new Asar();
 
-            const filePath            = path.resolve(__dirname, './data/file-in-asar-archive/directory-looks-like-archive.asar/app.asar/src.txt').replace(/\\/g, '/');
-            const expectedArchivePath = filePath.replace('/src.txt', '');
+            const filePath            = path.resolve(__dirname, './data/file-in-asar-archive/directory-looks-like-archive.asar/app.asar/folder-in-asar-archive/another-folder/src.txt').replace(/\\/g, '/');
+            const expectedArchivePath = filePath.replace('/folder-in-asar-archive/another-folder/src.txt', '');
 
             const nonExistPath        = path.resolve(__dirname, './data/file-in-asar-archive/directory-looks-like-archive.asar/non-exist-app.asar/non-exist-file.txt').replace(/\\/g, '/');
             const nonExistArchivePath = nonExistPath.replace('/non-exist-file.txt', '');
