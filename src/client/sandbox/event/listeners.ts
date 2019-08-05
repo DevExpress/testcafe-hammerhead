@@ -144,7 +144,7 @@ export default class Listeners extends EventEmitter {
         };
     }
 
-    private _createElementOverridedMethods (el: HTMLElement) {
+    private _createElementOverridedMethods (el: HTMLElement|Window|Document) {
         const listeners = this;
 
         return {
@@ -251,20 +251,22 @@ export default class Listeners extends EventEmitter {
         };
     }
 
-    initElementListening (el: any, events) {
+    initElementListening (el: HTMLElement|Window|Document, events: Array<string> = LISTENED_EVENTS) {
         const nativeAddEventListener = Listeners._getNativeAddEventListener(el);
 
-        events = events || LISTENED_EVENTS;
+        for (const event of events) {
+            if (!this.listeningCtx.getEventCtx(el, event))
+                nativeAddEventListener.call(el, event, this._createEventHandler(), true);
+        }
 
         this.listeningCtx.addListeningElement(el, events);
 
-        for (const event of events)
-            nativeAddEventListener.call(el, event, this._createEventHandler(), true);
+        if (!el.addEventListener || nativeMethods.isNativeCode(el.addEventListener)) {
+            const overridedMethods = this._createElementOverridedMethods(el);
 
-        const overridedMethods = this._createElementOverridedMethods(el);
-
-        el.addEventListener    = overridedMethods.addEventListener;
-        el.removeEventListener = overridedMethods.removeEventListener;
+            el.addEventListener    = overridedMethods.addEventListener;
+            el.removeEventListener = overridedMethods.removeEventListener;
+        }
     }
 
     initDocumentBodyListening (doc: Document) {

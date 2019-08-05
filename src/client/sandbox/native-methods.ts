@@ -411,8 +411,8 @@ class NativeMethods {
         const documentCookieDescriptor = win.Object.getOwnPropertyDescriptor(win[this.documentCookiePropOwnerName].prototype, 'cookie');
 
         // TODO: remove this condition after the GH-1649 fix
-        if (!NativeMethods.isNativeCode(documentCookieDescriptor.get) ||
-            !NativeMethods.isNativeCode(documentCookieDescriptor.get.toString)) {
+        if (!this.isNativeCode(documentCookieDescriptor.get) ||
+            !this.isNativeCode(documentCookieDescriptor.get.toString)) {
             try {
                 const parentNativeMethods = win.parent['%hammerhead%'].nativeMethods;
 
@@ -476,7 +476,7 @@ class NativeMethods {
         this.closest                       = nativeElement.closest;
 
         // TODO: remove this condition after the GH-1649 fix
-        if (!NativeMethods.isNativeCode(this.elementGetElementsByTagName)) {
+        if (!this.isNativeCode(this.elementGetElementsByTagName)) {
             try {
                 const parentNativeMethods = win.parent['%hammerhead%'].nativeMethods;
 
@@ -1074,7 +1074,7 @@ class NativeMethods {
             this.refreshWindowMeths(win);
     }
 
-    static isNativeCode (fn) {
+    isNativeCode (fn) {
         return NATIVE_CODE_RE.test(fn.toString());
     }
 }
