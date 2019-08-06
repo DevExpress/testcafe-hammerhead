@@ -1664,9 +1664,9 @@ describe('Proxy', () => {
         });
 
         it('Should pass an error to the session if target (a file in an "asar" archive) does not exist (GH-2033)', done => {
-            const url      = getFileProtocolUrl('./data/file-in-asar-archive/directory-looks-like-archive.asar/app.asar/non-exist-file.txt');
+            const url      = getFileProtocolUrl('./data/file-in-asar-archive/directory-looks-like-archive.asar/app.asar/non-existent-dir/non-existent-file.txt');
             const archive  = path.resolve(__dirname, './data/file-in-asar-archive/directory-looks-like-archive.asar/app.asar').replace(/\\/g, '/');
-            const fileName = 'non-exist-file.txt';
+            const fileName = 'non-existent-dir/non-existent-file.txt';
 
             session.id = 'sessionId';
 
