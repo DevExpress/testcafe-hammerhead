@@ -16,7 +16,7 @@ export default class AsarResource extends BaseResource {
             this._contentStream = asar.extractFileToReadStream(this._archive, this._fileName);
         }
         catch (e) {
-            e.message = asar.getFileInAsarNotFoundMessage(this._archive, this._fileName);
+            e.message = asar.getFileInAsarNotFoundErrorMessage(this._archive, this._fileName);
 
             this._error = e;
         }

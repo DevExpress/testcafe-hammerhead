@@ -47,7 +47,7 @@ export default class Asar {
     parse (fullPath: string) : ParsedPath {
         for (const archivePath of this._archivePaths) {
             if (fullPath.startsWith(archivePath))
-                return { archive: archivePath, fileName: fullPath.replace(archivePath + '/', '') };
+                return { archive: archivePath, fileName: fullPath.substr(archivePath.length + 1) };
         }
 
         return { archive: '', fileName: '' };
@@ -78,13 +78,13 @@ export default class Asar {
     }
 
     extractFileToReadStream (archive: string, fileName: string) : Readable {
-        const extractedFile = asar.extractFile(archive, path.normalize(fileName));
+        const extractedFile = asar.extractFile(archive, fileName);
 
         return toReadableStream(extractedFile);
     }
 
-    getFileInAsarNotFoundMessage (archive: string, fileName: string) : string {
-        return `Cannot find the "${fileName}" file in the "${archive}" archive.`;
+    getFileInAsarNotFoundErrorMessage (archive: string, fileName: string) : string {
+        return `Cannot find the "${fileName.replace(/\\/g, '/')}" file in the "${archive.replace(/\\/g, '/')}" archive.`;
     }
 
     getArchivePath (fullPath: string) : string {
