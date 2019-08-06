@@ -73,7 +73,7 @@ export default class EventSimulator {
         return el.dispatchEvent(ev);
     }
 
-    static _dispatchTouchEvent (el, args) {
+    _dispatchTouchEvent (el, args) {
         let ev = nativeMethods.documentCreateEvent.call(document, 'TouchEvent');
 
         // HACK: A test for iOS by using initTouchEvent arguments.
@@ -119,6 +119,9 @@ export default class EventSimulator {
                 view:             args.view
             });
         }
+
+        if (eventUtils.hasPointerEvents)
+            this._dispatchPointerEvent(el, args);
 
         return el.dispatchEvent(ev);
     }
@@ -269,7 +272,8 @@ export default class EventSimulator {
 
         else if (TOUCH_EVENT_NAME_RE.test(event)) {
             args     = this._getTouchEventArgs(event, extend(opts, { target: el }));
-            dispatch = EventSimulator._dispatchTouchEvent;
+            // eslint-disable-next-line no-shadow
+            dispatch = (el, args) => this._dispatchTouchEvent(el, args);
         }
 
         return dispatch(el, args);
@@ -468,7 +472,47 @@ export default class EventSimulator {
         return null;
     }
 
+    _getPointerEventTypeInfo (type: string) : { eventType: string, pointerType: string } {
+        const mouseToPointerEventTypeMap = {
+            mousedown:  'pointerdown',
+            mouseup:    'pointerup',
+            mousemove:  'pointermove',
+            mouseover:  'pointerover',
+            mouseenter: 'pointerenter',
+            mouseout:   'pointerout',
+        };
+
+        const touchToPointerEventTypeMap = {
+            touchstart: 'pointerdown',
+            touchend:   'pointerup',
+            touchmove:  'pointermove'
+        };
+
+        if (mouseToPointerEventTypeMap[type]) {
+            return {
+                eventType:   mouseToPointerEventTypeMap[type],
+                pointerType: 'mouse'
+            };
+        }
+
+        if (browserUtils.isChrome && touchToPointerEventTypeMap[type]) {
+            return {
+                eventType:   touchToPointerEventTypeMap[type],
+                pointerType: 'touch'
+            };
+        }
+
+        return null;
+    }
+
     _dispatchPointerEvent (el, args) {
+        const pointerEventTypeInfo = this._getPointerEventTypeInfo(args.type);
+
+        if (!pointerEventTypeInfo)
+            return;
+
+        const { eventType, pointerType } = pointerEventTypeInfo;
+
         let pointEvent         = null;
         const elPosition       = getOffsetPosition(el);
         const elBorders        = getBordersWidth(el);
@@ -476,8 +520,6 @@ export default class EventSimulator {
             x: elPosition.left + elBorders.left,
             y: elPosition.top + elBorders.top
         });
-        const eventShortType   = args.type.replace('mouse', '');
-        const pointerEventType = 'pointer' + eventShortType;
 
         const pointerArgs = extend({
             width:       1,
@@ -487,16 +529,16 @@ export default class EventSimulator {
             tiltY:       0,
             // NOTE: This parameter must be "1" for “mouse”.
             pointerId:   1,
-            pointerType: 'mouse',
+            pointerType: pointerType,
             timeStamp:   nativeMethods.dateNow(),
             isPrimary:   true
         }, args);
 
-        pointerArgs.type    = pointerEventType;
+        pointerArgs.type    = eventType;
         pointerArgs.offsetX = args.clientX - elClientPosition.x;
         pointerArgs.offsetY = args.clientY - elClientPosition.y;
 
-        if (eventShortType === 'move' || eventShortType === 'over' || eventShortType === 'out')
+        if (args.type === 'mousemove' || args.type === 'mouseover' || args.type === 'mouseout')
             pointerArgs.button = args.buttons === eventUtils.BUTTONS_PARAMETER.noButton ? POINTER_EVENT_BUTTON.noButton : pointerArgs.button;
 
         if (browserUtils.isIE11) {
@@ -531,7 +573,7 @@ export default class EventSimulator {
             pointerArgs.bubbles    = true;
             pointerArgs.cancelable = true;
 
-            pointEvent = new nativeMethods.WindowPointerEvent(pointerEventType, pointerArgs);
+            pointEvent = new nativeMethods.WindowPointerEvent(eventType, pointerArgs);
         }
 
         this._raiseDispatchEvent(el, pointEvent);
@@ -540,8 +582,6 @@ export default class EventSimulator {
     _dispatchMouseRelatedEvents (el, args, userOptions = {}) {
         if (args.type !== 'mouseover' && args.type !== 'mouseenter' && shouldIgnoreMouseEventInsideIframe(el, args.clientX, args.clientY))
             return true;
-
-        const pointerRegExp = /mouse(down|up|move|over|enter|out)/;
 
         // NOTE: In IE, submit doesn't work if a click is simulated for some submit button's children (for example,
         // img, B236676). In addition, if a test is being recorded in IE, the target of a click event is always a
@@ -558,7 +598,7 @@ export default class EventSimulator {
             }
         }
 
-        if (eventUtils.hasPointerEvents && pointerRegExp.test(args.type))
+        if (eventUtils.hasPointerEvents)
             this._dispatchPointerEvent(el, args);
 
         return this._dispatchMouseEvent(el, args, userOptions);
