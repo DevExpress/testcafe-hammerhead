@@ -1,5 +1,6 @@
 import BaseResource from './base-resource';
 import Asar from '../../utils/asar';
+import path from 'path';
 
 const asar = new Asar();
 
@@ -7,8 +8,9 @@ export default class AsarResource extends BaseResource {
     private _archive: string = '';
     private _fileName: string = '';
 
-    constructor (path: string) {
-        super(path);
+    constructor (resourcePath: string) {
+        // NOTE: use a normalized path (GH-2101 PR)
+        super(path.normalize(resourcePath));
     }
 
     protected _createContentStream () : void {
