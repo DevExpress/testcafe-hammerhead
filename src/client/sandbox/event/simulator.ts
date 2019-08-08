@@ -32,6 +32,21 @@ const FOCUS_IN_OUT_EVENT_NAME_RE = /^focus(in|out)$/;
 // NOTE: initTextEvent method required INPUT_METHOD param in IE
 const DOM_INPUT_METHOD_KEYBOARD = 1;
 
+const MOUSE_TO_POINTER_EVENT_TYPE_MAP = {
+    mousedown:  'pointerdown',
+    mouseup:    'pointerup',
+    mousemove:  'pointermove',
+    mouseover:  'pointerover',
+    mouseenter: 'pointerenter',
+    mouseout:   'pointerout',
+};
+
+const TOUCH_TO_POINTER_EVENT_TYPE_MAP = {
+    touchstart: 'pointerdown',
+    touchend:   'pointerup',
+    touchmove:  'pointermove'
+};
+
 export default class EventSimulator {
     DISPATCHED_EVENT_FLAG: string = 'hammerhead|dispatched-event';
 
@@ -473,31 +488,16 @@ export default class EventSimulator {
     }
 
     _getPointerEventTypeInfo (type: string) : { eventType: string, pointerType: string } {
-        const mouseToPointerEventTypeMap = {
-            mousedown:  'pointerdown',
-            mouseup:    'pointerup',
-            mousemove:  'pointermove',
-            mouseover:  'pointerover',
-            mouseenter: 'pointerenter',
-            mouseout:   'pointerout',
-        };
-
-        const touchToPointerEventTypeMap = {
-            touchstart: 'pointerdown',
-            touchend:   'pointerup',
-            touchmove:  'pointermove'
-        };
-
-        if (mouseToPointerEventTypeMap[type]) {
+        if (MOUSE_TO_POINTER_EVENT_TYPE_MAP[type]) {
             return {
-                eventType:   mouseToPointerEventTypeMap[type],
+                eventType:   MOUSE_TO_POINTER_EVENT_TYPE_MAP[type],
                 pointerType: 'mouse'
             };
         }
 
-        if (browserUtils.isChrome && touchToPointerEventTypeMap[type]) {
+        if (browserUtils.isChrome && TOUCH_TO_POINTER_EVENT_TYPE_MAP[type]) {
             return {
-                eventType:   touchToPointerEventTypeMap[type],
+                eventType:   TOUCH_TO_POINTER_EVENT_TYPE_MAP[type],
                 pointerType: 'touch'
             };
         }
@@ -522,16 +522,16 @@ export default class EventSimulator {
         });
 
         const pointerArgs = extend({
-            width:       1,
-            height:      1,
-            pressure:    0,
-            tiltX:       0,
-            tiltY:       0,
+            width:     1,
+            height:    1,
+            pressure:  0,
+            tiltX:     0,
+            tiltY:     0,
             // NOTE: This parameter must be "1" for “mouse”.
-            pointerId:   1,
-            pointerType: pointerType,
-            timeStamp:   nativeMethods.dateNow(),
-            isPrimary:   true
+            pointerId: 1,
+            pointerType,
+            timeStamp: nativeMethods.dateNow(),
+            isPrimary: true
         }, args);
 
         pointerArgs.type    = eventType;
