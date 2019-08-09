@@ -300,6 +300,28 @@ if (featureDetection.hasTouchEvents) {
         eventSimulator.touchstart(domElement);
         notEqual(lastTouchIdentifier, savedIdentifier);
     });
+
+    if (browserUtils.isChrome) {
+        test('touch events raise pointer events', function () {
+            const eventLog = [];
+
+            const handler = function (e) {
+                eventLog.push(e.type);
+
+                strictEqual(e.pointerType, 'touch');
+            };
+
+            domElement.addEventListener('pointerdown', handler);
+            domElement.addEventListener('pointermove', handler);
+            domElement.addEventListener('pointerup', handler);
+
+            eventSimulator.touchstart(domElement);
+            eventSimulator.touchmove(domElement);
+            eventSimulator.touchend(domElement);
+
+            deepEqual(eventLog, ['pointerdown', 'pointermove', 'pointerup']);
+        });
+    }
 }
 
 if (browserUtils.isIE) {
