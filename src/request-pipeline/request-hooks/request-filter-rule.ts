@@ -114,6 +114,12 @@ export default class RequestFilterRule {
         return new RequestFilterRule(MATCH_ANY_REQUEST_REG_EX);
     }
 
+    static isANY (instance: any) {
+        return !!(instance &&
+            instance.options &&
+            instance.options.url === MATCH_ANY_REQUEST_REG_EX);
+    }
+
     toString () {
         const isFunctionOptions = typeof this.options === 'function';
 
