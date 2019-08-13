@@ -38,7 +38,7 @@ enum CharsetPriority {
     META = 1,
     DEFAULT = 0
 }
-/*eslint-disable no-unused-vars*/
+/*eslint-enable no-unused-vars*/
 
 export default class Charset {
     charset: string = DEFAULT_CHARSET;
