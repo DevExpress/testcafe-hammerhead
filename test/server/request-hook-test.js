@@ -224,6 +224,13 @@ describe('RequestFilterRule', () => {
         expect(RequestFilterRule.ANY.match({ url: 'https://example.com/index.html' })).to.be.true;
         expect(RequestFilterRule.ANY.match({ url: 'file://user/bin/data' })).to.be.true;
     });
+
+    it('isANY', () => {
+        expect(RequestFilterRule.isANY()).to.be.false;
+        expect(RequestFilterRule.isANY(true)).to.be.false;
+        expect(RequestFilterRule.isANY(RequestFilterRule.ANY)).to.be.true;
+        expect(RequestFilterRule.isANY(new RequestFilterRule('https://example.com'))).to.be.false;
+    });
 });
 
 it('Default configure options for onResponseEvent', () => {
