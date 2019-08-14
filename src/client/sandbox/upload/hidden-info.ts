@@ -1,5 +1,6 @@
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import nativeMethods from '../native-methods';
+// @ts-ignore
 import * as JSON from 'json-hammerhead';
 import ShadowUI from '../shadow-ui';
 

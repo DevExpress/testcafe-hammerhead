@@ -1,5 +1,6 @@
 import zlib from 'zlib';
 import { gzip, deflate, gunzip, inflate, inflateRaw } from '../../utils/promisified-functions';
+// @ts-ignore
 import charsetEncoder from 'iconv-lite';
 /*eslint-disable no-unused-vars*/
 import Charset from './charset';
