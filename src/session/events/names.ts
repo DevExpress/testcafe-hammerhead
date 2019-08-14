@@ -1,7 +1,9 @@
+/* eslint-disable no-unused-vars */
 enum RequestEventNames {
-    onRequest = 'onRequest', // eslint-disable-line no-unused-vars
-    onConfigureResponse = 'onConfigureResponse', // eslint-disable-line no-unused-vars
-    onResponse = 'onResponse' // eslint-disable-line no-unused-vars
+    onRequest = 'onRequest',
+    onConfigureResponse = 'onConfigureResponse',
+    onResponse = 'onResponse'
 }
+/* eslint-enable no-unused-vars */
 
 export default RequestEventNames;

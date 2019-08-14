@@ -13,10 +13,6 @@ import connectionResetGuard from '../connection-reset-guard';
 import { MESSAGE, getText } from '../../messages';
 import { transformHeadersCaseToRaw } from '../header-transforms';
 
-// HACK: Ignore SSL auth. The rejectUnauthorized option in the https.request method
-// doesn't work (see: https://github.com/mikeal/request/issues/418).
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
 const TUNNELING_SOCKET_ERR_RE: RegExp    = /tunneling socket could not be established/i;
 const TUNNELING_AUTHORIZE_ERR_RE: RegExp = /statusCode=407/i;
 const SOCKET_HANG_UP_ERR_RE: RegExp      = /socket hang up/i;
@@ -41,9 +37,9 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     private hasResponse: boolean = false;
     private credentialsSent: boolean = false;
     private aborted: boolean = false;
-    private opts: RequestOptions;
-    private isHttps: boolean;
-    private protocolInterface: any;
+    private readonly opts: RequestOptions;
+    private readonly isHttps: boolean;
+    private readonly protocolInterface: any;
 
     static TIMEOUT: number = 25 * 1000;
     static XHR_TIMEOUT: number = 2 * 60 * 1000;
@@ -67,7 +63,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         this._send();
     }
 
-    _send (waitForData?: boolean) {
+    _send (waitForData?: boolean): void {
         connectionResetGuard(() => {
             const timeout       = this.opts.isXhr ? DestinationRequest.XHR_TIMEOUT : DestinationRequest.TIMEOUT;
             const storedHeaders = this.opts.headers;
@@ -95,7 +91,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         });
     }
 
-    _shouldResendWithCredentials (res) {
+    _shouldResendWithCredentials (res): boolean {
         if (res.statusCode === 401 && this.opts.credentials) {
             const authInfo = getAuthInfo(res);
 
@@ -109,7 +105,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         return false;
     }
 
-    _onResponse (res: http.IncomingMessage) {
+    _onResponse (res: http.IncomingMessage): void {
         if (this._shouldResendWithCredentials(res))
             this._resendWithCredentials(res);
         else if (!this.isHttps && this.opts.proxy && res.statusCode === 407)
@@ -120,14 +116,14 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         }
     }
 
-    _onUpgrade (res: http.IncomingMessage, socket: net.Socket, head: Buffer) {
+    _onUpgrade (res: http.IncomingMessage, socket: net.Socket, head: Buffer): void {
         if (head && head.length)
             socket.unshift(head);
 
         this._onResponse(res);
     }
 
-    async _resendWithCredentials (res) {
+    async _resendWithCredentials (res): Promise<void> {
         addCredentials(this.opts.credentials, this.opts, res, this.protocolInterface);
         this.credentialsSent = true;
 
@@ -137,7 +133,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         this._send(requiresResBody(res));
     }
 
-    _fatalError (msg: string, url?: string) {
+    _fatalError (msg: string, url?: string): void {
         if (!this.aborted) {
             this.aborted = true;
             this.req.abort();

@@ -4,15 +4,18 @@ import RequestOptions from '../request-options';
 import http from 'http';
 import https from 'https';
 import LRUCache from 'lru-cache';
+// @ts-ignore
 import tunnel from 'tunnel-agent';
 
 const SSL3_HOST_CACHE_SIZE: number = 1000;
 
-const TYPE = {
-    SSL3: 'SSL3',
-    TLS:  'TLS',
-    HTTP: 'HTTP'
-};
+/* eslint-disable no-unused-vars */
+enum TYPE {
+    SSL3 = 'SSL3',
+    TLS = 'TLS',
+    HTTP = 'HTTP'
+}
+/* eslint-enable no-unused-vars */
 
 const ssl3HostCache = new LRUCache({ max: SSL3_HOST_CACHE_SIZE });
 
@@ -36,7 +39,7 @@ const agents = {
 
 
 // Utils
-function getAgent (type) {
+function getAgent (type: string) {
     const agent = agents[type];
 
     if (!agent.instance) {
@@ -50,8 +53,8 @@ function getAgent (type) {
     return agent.instance;
 }
 
-function isSSLProtocolErr (err): boolean {
-    return err.message && err.message.includes('SSL routines');
+function isSSLProtocolErr (err: Error): boolean {
+    return !!err.message && err.message.includes('SSL routines');
 }
 
 
@@ -60,12 +63,15 @@ export function assign (reqOpts: RequestOptions): void {
     const proxy = reqOpts.proxy;
 
     if (proxy && reqOpts.protocol === 'https:') {
-        reqOpts.agent = tunnel.httpsOverHttp({ proxy });
+        reqOpts.agent = tunnel.httpsOverHttp({
+            proxy,
+            rejectUnauthorized: false
+        });
 
         return;
     }
 
-    let type = void 0;
+    let type: string = '';
 
     if (reqOpts.protocol === 'http:')
         type = TYPE.HTTP;
@@ -79,11 +85,11 @@ export function assign (reqOpts: RequestOptions): void {
     reqOpts.agent = getAgent(type);
 }
 
-export function shouldRegressHttps (reqErr, reqOpts): boolean {
+export function shouldRegressHttps (reqErr: Error, reqOpts: RequestOptions): boolean {
     return reqOpts.agent === agents[TYPE.TLS] && isSSLProtocolErr(reqErr);
 }
 
-export function regressHttps (reqOpts): void {
+export function regressHttps (reqOpts: RequestOptions): void {
     ssl3HostCache.set(reqOpts.host, true);
     reqOpts.agent = getAgent(TYPE.SSL3);
 }

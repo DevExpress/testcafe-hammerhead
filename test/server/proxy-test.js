@@ -2775,7 +2775,8 @@ describe('Proxy', () => {
                 url:     proxy.openSession('http://127.0.0.1:2000/page', session),
                 headers: {
                     accept: PAGE_ACCEPT_HEADER
-                }
+                },
+                rejectUnauthorized: false
             };
 
             expect(options.url).eql('https://127.0.0.1:1836/sessionId/http://127.0.0.1:2000/page');
