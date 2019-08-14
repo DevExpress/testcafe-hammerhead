@@ -3,6 +3,7 @@ import FileListWrapper from './file-list-wrapper';
 import transport from '../../transport';
 import * as Browser from '../../utils/browser';
 import * as HiddenInfo from './hidden-info';
+// @ts-ignore
 import Promise from 'pinkie';
 
 // NOTE: https://html.spec.whatwg.org/multipage/forms.html#fakepath-srsly.

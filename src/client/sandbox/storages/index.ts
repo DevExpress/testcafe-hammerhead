@@ -5,6 +5,7 @@ import * as destLocation from '../../utils/destination-location';
 import { getTopSameDomainWindow } from '../../utils/dom';
 import getStorageKey from '../../../utils/get-storage-key';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
+// @ts-ignore
 import * as JSON from 'json-hammerhead';
 import { createOverriddenDescriptor } from '../../utils/property-overriding';
 import hammerhead from '../../index';

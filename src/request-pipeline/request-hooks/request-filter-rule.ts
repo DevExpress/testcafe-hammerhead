@@ -103,24 +103,24 @@ export default class RequestFilterRule {
         return `{ ${msg} }`;
     }
 
-    match (requestInfo: RequestInfo) {
+    match (requestInfo: RequestInfo): boolean {
         if (typeof this.options === 'function')
             return this._matchUsingFunctionOptions(requestInfo);
 
         return this._matchUsingObjectOptions(requestInfo);
     }
 
-    static get ANY () {
+    static get ANY (): RequestFilterRule {
         return new RequestFilterRule(MATCH_ANY_REQUEST_REG_EX);
     }
 
-    static isANY (instance: any) {
+    static isANY (instance: any): boolean {
         return !!(instance &&
             instance.options &&
             instance.options.url === MATCH_ANY_REQUEST_REG_EX);
     }
 
-    toString () {
+    toString (): string {
         const isFunctionOptions = typeof this.options === 'function';
 
         return isFunctionOptions ? STRINGIFIED_FUNCTION_OPTIONS : this._stringifyObjectOptions();

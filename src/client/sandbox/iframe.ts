@@ -5,6 +5,7 @@ import nativeMethods from '../sandbox/native-methods';
 import DomProcessor from '../../processing/dom';
 import { isShadowUIElement, isIframeWithoutSrc, getTagName } from '../utils/dom';
 import { isFirefox, isWebKit, isIE } from '../utils/browser';
+// @ts-ignore
 import * as JSON from 'json-hammerhead';
 /*eslint-disable no-unused-vars*/
 import NodeMutation from './node/mutation';
@@ -130,7 +131,7 @@ export default class IframeSandbox extends SandboxBase {
         // NOTE: We are using String.replace in order to avoid adding Mustache scripts on the client side.
         // If it is needed elsewhere in a certain place, we should consider using Mustache.
         const taskScriptTemplate       = settings.get().iframeTaskScriptTemplate;
-        const escapeStringPatterns     = str => str.replace(/\$/g, '$$$$');
+        const escapeStringPatterns     = (str: string) => str.replace(/\$/g, '$$$$');
         const cookie                   = JSON.stringify(this._cookieSandbox.getCookie());
         const referer                  = settings.get().referer || this.window.location.toString();
         const iframeTaskScriptTemplate = JSON.stringify(taskScriptTemplate);

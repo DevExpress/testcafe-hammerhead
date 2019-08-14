@@ -4,6 +4,7 @@ import http from 'http';
 import { respondStatic } from '../utils/http';
 import { StaticContent, ServerInfo } from '../typings/proxy';
 /*eslint-enable no-unused-vars*/
+// @ts-ignore
 import md5 from 'crypto-md5';
 import { getPathname } from '../utils/url';
 import { isEqual } from 'lodash';

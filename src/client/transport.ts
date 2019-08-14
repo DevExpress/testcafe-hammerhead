@@ -1,10 +1,12 @@
 import nativeMethods from './sandbox/native-methods';
 import settings from './settings';
 import XhrSandbox from './sandbox/xhr';
+// @ts-ignore
 import { stringify as stringifyJSON, parse as parseJSON } from 'json-hammerhead';
 import { isWebKit, isFirefox } from './utils/browser';
 import createUnresolvablePromise from './utils/create-unresolvable-promise';
 import noop from './utils/noop';
+// @ts-ignore
 import Promise from 'pinkie';
 import { isIframeWithoutSrc, getFrameElement } from './utils/dom';
 
