@@ -17,7 +17,7 @@ import XHR_HEADERS from './xhr/headers';
 import Charset from '../processing/encoding/charset';
 import * as urlUtils from '../utils/url';
 import * as contentTypeUtils from '../utils/content-type';
-import genearateUniqueId from '../utils/generate-unique-id';
+import generateUniqueId from '../utils/generate-unique-id';
 import { check as checkSameOriginPolicy } from './xhr/same-origin-policy';
 import * as headerTransforms from './header-transforms';
 import { RequestInfo } from '../session/events/info';
@@ -73,6 +73,7 @@ export default class RequestPipelineContext {
     isXhr: boolean = false;
     isFetch: boolean = false;
     isPage: boolean = false;
+    isHTMLPage: boolean = false;
     isHtmlImport: boolean = false;
     isWebSocket: boolean = false;
     isIframe: boolean = false;
@@ -80,7 +81,7 @@ export default class RequestPipelineContext {
     isWebSocketConnectionReset: boolean = false;
     contentInfo: ContentInfo = null;
     restoringStorages: StoragesSnapshot = null;
-    requestId: string = genearateUniqueId();
+    requestId: string = generateUniqueId();
     requestFilterRules: Array<RequestFilterRule> = [];
     onResponseEventData: Array<OnResponseEventData> = [];
     reqOpts: RequestOptions = null;
@@ -163,6 +164,7 @@ export default class RequestPipelineContext {
         this.isIframe       = this.dest.isIframe;
         this.isSpecialPage  = urlUtils.isSpecialPage(this.dest.url);
         this.isFileProtocol = this.dest.protocol === 'file:';
+        this.isHTMLPage     = this.isPage && !this.isIframe && !this.isHtmlImport;
     }
 
     // API
@@ -353,6 +355,9 @@ export default class RequestPipelineContext {
 
         const headers                  = headerTransforms.forResponse(this);
         const res: http.ServerResponse = <http.ServerResponse> this.res;
+
+        if (this.isHTMLPage && this.session.disablePageCaching)
+            headerTransforms.setupPreventCachingHeaders(headers);
 
         res.writeHead(this.destRes.statusCode, headers);
         res.addTrailers(this.destRes.trailers as http.OutgoingHttpHeaders);

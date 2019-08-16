@@ -10,7 +10,7 @@ import https from 'https';
 import * as urlUtils from '../utils/url';
 // @ts-ignore
 import { readSync as read } from 'read-file-relative';
-import { respond500, respondWithJSON, fetchBody, preventCaching } from '../utils/http';
+import { respond500, respondWithJSON, fetchBody, addPreventCachingHeaders } from '../utils/http';
 import { run as runRequestPipeline } from '../request-pipeline';
 import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
 import { resetKeepAliveConnections } from '../request-pipeline/destination-request/agent';
@@ -114,7 +114,7 @@ export default class Proxy extends Router {
             try {
                 const result = await session.handleServiceMessage(msg, serverInfo);
 
-                respondWithJSON(res, result || '', false);
+                respondWithJSON(res, result, false);
             }
             catch (err) {
                 respond500(res, err.toString());
@@ -131,7 +131,7 @@ export default class Proxy extends Router {
 
         if (session) {
             res.setHeader('content-type', 'application/x-javascript');
-            preventCaching(res);
+            addPreventCachingHeaders(res);
 
             const taskScript = session.getTaskScript({
                 referer,
