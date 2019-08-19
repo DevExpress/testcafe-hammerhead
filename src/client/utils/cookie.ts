@@ -5,7 +5,7 @@ const COOKIE_PAIR_REGEX        = /^((?:=)?([^=;]*)\s*=\s*)?([^\n\r\0]*)/;
 const TRAILING_SEMICOLON_REGEX = /;+$/;
 const FIX_COOKIE_DATE          = /((?:\s|,)[0-9]{1,2})(?:\s|-)([A-Za-z]{3})(?:\s|-)([0-9]{4}\s)/;
 
-export function parse (str) {
+export function parse (str: string) {
     str = trim(str);
 
     const trailingSemicolonCheck = TRAILING_SEMICOLON_REGEX.exec(str);
@@ -38,8 +38,8 @@ export function parse (str) {
     while (attrValStrings.length) {
         const attrValueStr = attrValStrings.shift();
         const separatorIdx = attrValueStr.indexOf('=');
-        let key            = null;
-        let value          = null;
+        let key            = '';
+        let value          = '';
         let date           = null;
 
         if (separatorIdx === -1)
@@ -100,7 +100,7 @@ export function formatClientString (parsedCookie) {
     return cookieStr;
 }
 
-export function setDefaultValues (parsedCookie, { hostname, pathname }) {
+export function setDefaultValues (parsedCookie, { hostname, pathname }: { hostname: string, pathname: string }) {
     if (!parsedCookie.domain)
         parsedCookie.domain = hostname; // eslint-disable-line no-restricted-properties
 
@@ -115,7 +115,7 @@ export function setDefaultValues (parsedCookie, { hostname, pathname }) {
         parsedCookie.expires = 'Infinity';
 }
 
-export function domainMatch (currentDomain, cookieDomain) {
+export function domainMatch (currentDomain: string, cookieDomain: string) {
     if (!cookieDomain)
         return true;
 
@@ -132,7 +132,7 @@ export function domainMatch (currentDomain, cookieDomain) {
            currentDomain.charAt(cookieDomainIdx - 1) === '.';
 }
 
-export function pathMatch (currentPath, cookiePath) {
+export function pathMatch (currentPath: string, cookiePath: string) {
     if (!cookiePath || cookiePath.charAt(0) !== '/' || currentPath === cookiePath)
         return true;
 

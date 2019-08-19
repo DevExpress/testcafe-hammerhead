@@ -105,6 +105,7 @@ export default class IframeSandbox extends SandboxBase {
     }
 
     static isWindowInited (window: Window) {
+        // @ts-ignore
         return window[IFRAME_WINDOW_INITED];
     }
 
