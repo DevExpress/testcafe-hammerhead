@@ -20,7 +20,7 @@ export default class IframeSandbox extends SandboxBase {
     EVAL_EXTERNAL_SCRIPT_EVENT: string = 'hammerhead|event|eval-external-script';
     IFRAME_DOCUMENT_CREATED_EVENT: string = 'hammerhead|event|iframe-document-created';
 
-    needReinitializeIframe: boolean = false;
+    shouldReinitializeIframe: boolean = false;
 
     constructor (private readonly _nodeMutation: NodeMutation, //eslint-disable-line no-unused-vars
                  private readonly _cookieSandbox: CookieSandbox) { //eslint-disable-line no-unused-vars
@@ -65,7 +65,7 @@ export default class IframeSandbox extends SandboxBase {
         if (!isIframeWithJavaScriptProtocol)
             return;
 
-        this.needReinitializeIframe = true;
+        this.shouldReinitializeIframe = true;
     }
 
     private _raiseReadyToInitEvent (iframe: HTMLIFrameElement) {
@@ -82,7 +82,7 @@ export default class IframeSandbox extends SandboxBase {
             if (contentDocument.write.toString() === this.nativeMethods.documentWrite.toString())
                 this.emit(this.IFRAME_DOCUMENT_CREATED_EVENT, { iframe });
         }
-        else if (!contentWindow[IFRAME_WINDOW_INITED] && !contentWindow[INTERNAL_PROPS.hammerhead] || this.needReinitializeIframe) {
+        else if (!contentWindow[IFRAME_WINDOW_INITED] && !contentWindow[INTERNAL_PROPS.hammerhead] || this.shouldReinitializeIframe) {
             this._ensureIframeNativeMethodsForIE(iframe);
             this._calculateNecessaryOfAdditionalInitialization(iframe);
 
