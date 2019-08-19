@@ -3,12 +3,13 @@ import SandboxBase from './base';
 import settings from '../settings';
 import nativeMethods from '../sandbox/native-methods';
 import { isShadowUIElement, isIframeWithoutSrc, getTagName } from '../utils/dom';
-import { isFirefox, isIE } from '../utils/browser';
+import { isFirefox, isIE, isWebKit } from '../utils/browser';
 // @ts-ignore
 import * as JSON from 'json-hammerhead';
 /*eslint-disable no-unused-vars*/
 import NodeMutation from './node/mutation';
 import CookieSandbox from './cookie';
+import DomProcessor from '../../processing/dom';
 /*eslint-enable no-unused-vars*/
 
 const IFRAME_WINDOW_INITED = 'hammerhead|iframe-window-inited';
@@ -18,6 +19,8 @@ export default class IframeSandbox extends SandboxBase {
     EVAL_HAMMERHEAD_SCRIPT_EVENT: string = 'hammerhead|event|eval-hammerhead-script';
     EVAL_EXTERNAL_SCRIPT_EVENT: string = 'hammerhead|event|eval-external-script';
     IFRAME_DOCUMENT_CREATED_EVENT: string = 'hammerhead|event|iframe-document-created';
+
+    needReinitializeIframe: boolean = false;
 
     constructor (private readonly _nodeMutation: NodeMutation, //eslint-disable-line no-unused-vars
                  private readonly _cookieSandbox: CookieSandbox) { //eslint-disable-line no-unused-vars
@@ -52,6 +55,19 @@ export default class IframeSandbox extends SandboxBase {
         this.emit(this.RUN_TASK_SCRIPT_EVENT, iframe);
     }
 
+    private _calculateNecessaryOfAdditionalInitialization (iframe: HTMLIFrameElement): void {
+        if (!isWebKit)
+            return;
+
+        const iframeSrc                      = this.nativeMethods.getAttribute.call(iframe, 'src');
+        const isIframeWithJavaScriptProtocol = DomProcessor.isJsProtocol(iframeSrc);
+
+        if (!isIframeWithJavaScriptProtocol)
+            return;
+
+        this.needReinitializeIframe = true;
+    }
+
     private _raiseReadyToInitEvent (iframe: HTMLIFrameElement) {
         if (!isIframeWithoutSrc(iframe))
             return;
@@ -66,8 +82,9 @@ export default class IframeSandbox extends SandboxBase {
             if (contentDocument.write.toString() === this.nativeMethods.documentWrite.toString())
                 this.emit(this.IFRAME_DOCUMENT_CREATED_EVENT, { iframe });
         }
-        else if (!contentWindow[IFRAME_WINDOW_INITED] && !contentWindow[INTERNAL_PROPS.hammerhead]) {
+        else if (!contentWindow[IFRAME_WINDOW_INITED] && !contentWindow[INTERNAL_PROPS.hammerhead] || this.needReinitializeIframe) {
             this._ensureIframeNativeMethodsForIE(iframe);
+            this._calculateNecessaryOfAdditionalInitialization(iframe);
 
             // NOTE: Ok, the iframe is fully loaded now, but Hammerhead is not injected.
             nativeMethods.objectDefineProperty(contentWindow, IFRAME_WINDOW_INITED, { value: true });
