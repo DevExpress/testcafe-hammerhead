@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { ServiceMessage } from './proxy';
+import { ServerServiceMessage } from './proxy';
 /* eslint-enable no-unused-vars */
 
 export interface FileInfo {
@@ -14,11 +14,11 @@ export interface FileInputInfo {
     value: string;
 }
 
-export interface GetUploadedFilesServiceMessage extends ServiceMessage {
+export interface GetUploadedFilesServiceMessage extends ServerServiceMessage {
     filePaths: Array<string>;
 }
 
-export interface StoreUploadedFilesServiceMessage extends ServiceMessage {
+export interface StoreUploadedFilesServiceMessage extends ServerServiceMessage {
     data: Array<string>;
     fileNames: Array<string>;
 }

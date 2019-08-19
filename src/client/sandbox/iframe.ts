@@ -2,9 +2,8 @@ import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import SandboxBase from './base';
 import settings from '../settings';
 import nativeMethods from '../sandbox/native-methods';
-import DomProcessor from '../../processing/dom';
 import { isShadowUIElement, isIframeWithoutSrc, getTagName } from '../utils/dom';
-import { isFirefox, isWebKit, isIE } from '../utils/browser';
+import { isFirefox, isIE } from '../utils/browser';
 // @ts-ignore
 import * as JSON from 'json-hammerhead';
 /*eslint-disable no-unused-vars*/
@@ -20,40 +19,17 @@ export default class IframeSandbox extends SandboxBase {
     EVAL_EXTERNAL_SCRIPT_EVENT: string = 'hammerhead|event|eval-external-script';
     IFRAME_DOCUMENT_CREATED_EVENT: string = 'hammerhead|event|iframe-document-created';
 
-    iframeNativeMethodsBackup: any;
-
     constructor (private readonly _nodeMutation: NodeMutation, //eslint-disable-line no-unused-vars
                  private readonly _cookieSandbox: CookieSandbox) { //eslint-disable-line no-unused-vars
         super();
 
         this.on(this.RUN_TASK_SCRIPT_EVENT, this.iframeReadyToInitHandler);
         this._nodeMutation.on(this._nodeMutation.IFRAME_ADDED_TO_DOM_EVENT, (iframe: HTMLIFrameElement) => this.processIframe(iframe));
-
-        this.iframeNativeMethodsBackup = null;
-    }
-
-    private _shouldSaveIframeNativeMethods (iframe: HTMLIFrameElement) {
-        if (!isWebKit)
-            return false;
-
-        const iframeSrc = this.nativeMethods.getAttribute.call(iframe, 'src');
-
-        return DomProcessor.isJsProtocol(iframeSrc);
-    }
-
-    private _ensureIframeNativeMethodsForChrome (iframe: HTMLIFrameElement) {
-        const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
-        const contentDocument = nativeMethods.contentDocumentGetter.call(iframe);
-
-        if (this.iframeNativeMethodsBackup) {
-            this.iframeNativeMethodsBackup.restoreDocumentMeths(contentWindow, contentDocument);
-            this.iframeNativeMethodsBackup = null;
-        }
-        else if (this._shouldSaveIframeNativeMethods(iframe))
-            this.iframeNativeMethodsBackup = new this.nativeMethods.constructor(contentDocument, contentWindow);
     }
 
     private _ensureIframeNativeMethodsForIE (iframe: HTMLIFrameElement) {
+        // NOTE: Restore native document methods for the iframe's document if it overridden earlier (IE9, IE10 only)
+        // https://github.com/DevExpress/testcafe-hammerhead/issues/279
         const contentWindow       = nativeMethods.contentWindowGetter.call(iframe);
         const contentDocument     = nativeMethods.contentDocumentGetter.call(iframe);
         const iframeNativeMethods = contentWindow[INTERNAL_PROPS.iframeNativeMethods];
@@ -62,18 +38,6 @@ export default class IframeSandbox extends SandboxBase {
             iframeNativeMethods.restoreDocumentMeths(contentWindow, contentDocument);
             delete contentWindow[INTERNAL_PROPS.iframeNativeMethods];
         }
-    }
-
-    private _ensureIframeNativeMethods (iframe: HTMLIFrameElement) {
-        // NOTE: In Chrome, iframe with javascript protocol src raises the load event twice.
-        // As a result, when the second load event is raised, we write the overridden methods to the native methods.
-        // So, we need to save the native methods when the first load event is raised.
-        // https://code.google.com/p/chromium/issues/detail?id=578812
-        this._ensureIframeNativeMethodsForChrome(iframe);
-
-        // NOTE: Restore native document methods for the iframe's document if it overrided earlier (IE9, IE10 only)
-        // https://github.com/DevExpress/testcafe-hammerhead/issues/279
-        this._ensureIframeNativeMethodsForIE(iframe);
     }
 
     private _emitEvents (iframe: HTMLIFrameElement) {
@@ -103,7 +67,7 @@ export default class IframeSandbox extends SandboxBase {
                 this.emit(this.IFRAME_DOCUMENT_CREATED_EVENT, { iframe });
         }
         else if (!contentWindow[IFRAME_WINDOW_INITED] && !contentWindow[INTERNAL_PROPS.hammerhead]) {
-            this._ensureIframeNativeMethods(iframe);
+            this._ensureIframeNativeMethodsForIE(iframe);
 
             // NOTE: Ok, the iframe is fully loaded now, but Hammerhead is not injected.
             nativeMethods.objectDefineProperty(contentWindow, IFRAME_WINDOW_INITED, { value: true });

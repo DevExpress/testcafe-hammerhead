@@ -119,8 +119,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         const accessors     = this._createPropertyAccessors();
         const windowSandbox = this._windowSandbox;
 
-        // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
-        // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
+        // NOTE: The browser's 'document' and 'window' can be overridden (for instance, after a 'document.write' call).
+        // So, we need to define all internal properties stored in the 'window' or 'document' with the 'configurable' option to be able to redefine them.
         nativeMethods.objectDefineProperty(window, INSTRUCTION.getProperty, {
             value: (owner, propName) => {
                 if (typeUtils.isNullOrUndefined(owner))

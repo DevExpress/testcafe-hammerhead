@@ -3,6 +3,7 @@ import { isCrossDomainWindows } from '../utils/dom';
 import nativeMethods from '../sandbox/native-methods';
 /*eslint-disable no-unused-vars*/
 import MessageSandbox from './event/message';
+import { ConsoleMethodCalledServiceMessage } from '../../typings/proxy';
 /*eslint-enable no-unused-vars*/
 
 export default class ConsoleSandbox extends SandboxBase {
@@ -13,7 +14,7 @@ export default class ConsoleSandbox extends SandboxBase {
     constructor (private readonly _messageSandbox: MessageSandbox) { //eslint-disable-line no-unused-vars
         super();
 
-        this._serviceMsgReceivedEventCallback = ({ message }) => {
+        this._serviceMsgReceivedEventCallback = ({ message } : { message: ConsoleMethodCalledServiceMessage }) => {
             if (message.cmd === this.CONSOLE_METH_CALLED_EVENT)
                 this.emit(this.CONSOLE_METH_CALLED_EVENT, { meth: message.meth, line: message.line });
         };
@@ -47,7 +48,7 @@ export default class ConsoleSandbox extends SandboxBase {
         };
     }
 
-    attach (window: Window) {
+    attach (window: Window): void {
         super.attach(window);
 
         this._proxyConsoleMeth('log');

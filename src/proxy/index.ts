@@ -3,7 +3,7 @@ import net from 'net';
 import Session from '../session';
 import { ExternalProxySettingsRaw } from '../typings/session';
 import Router from './router';
-import { StaticContent, ServiceMessage, ServerInfo } from '../typings/proxy';
+import { StaticContent, ServerServiceMessage, ServerInfo } from '../typings/proxy';
 /*eslint-enable no-unused-vars*/
 import http from 'http';
 import https from 'https';
@@ -18,7 +18,7 @@ import SERVICE_ROUTES from './service-routes';
 
 const SESSION_IS_NOT_OPENED_ERR: string = 'Session is not opened in proxy';
 
-function parseAsJson (msg: Buffer): ServiceMessage | null {
+function parseAsJson (msg: Buffer): ServerServiceMessage | null {
     try {
         return JSON.parse(msg.toString());
     }

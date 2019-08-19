@@ -1,6 +1,6 @@
 /*eslint-disable no-unused-vars*/
 import Proxy from '../proxy';
-import { ServerInfo, ServiceMessage } from '../typings/proxy';
+import { ServerInfo, ServerServiceMessage } from '../typings/proxy';
 import RequestPipelineContext from '../request-pipeline/context';
 import RequestFilterRule from '../request-pipeline/request-hooks/request-filter-rule';
 import ResponseMock from '../request-pipeline/request-hooks/response-mock';
@@ -102,7 +102,7 @@ export default abstract class Session extends EventEmitter {
         this.pendingStateSnapshot = snapshot;
     }
 
-    async handleServiceMessage (msg: ServiceMessage, serverInfo: ServerInfo): Promise<object> {
+    async handleServiceMessage (msg: ServerServiceMessage, serverInfo: ServerInfo): Promise<object> {
         if (this[msg.cmd])
             return await this[msg.cmd](msg, serverInfo);
 

@@ -174,72 +174,8 @@ test('quotes in the cookies are not escaped when a task script for an iframe is 
         });
 });
 
-asyncTest('an error occurs when proxing two nested iframes (a top iframe has src with javascript protocol) (GH-125)', function () {
-    var iframe                         = document.createElement('iframe');
-    var countNestedIframeLoadEvents    = 0;
-    var maxCountNestedIframeLoadEvents = browserUtils.isWebKit && (!browserUtils.isChrome || browserUtils.isAndroid) ? 2 : 1; // GH-1966
-    var countXhrLoadEvents             = 0;
-    var validCountXhrLoadEvents        = browserUtils.isWebKit && (!browserUtils.isChrome || browserUtils.isAndroid) ? 2 : 1; // GH-1966
-
-    // NOTE: NetworkError occurs in IE11 after some Windows 10 update (iframe without src case) (GH-1837)
-    var skipIframeCheck = false;
-
-    iframe.id = 'test_iframe_id_96ljkls';
-    iframe.setAttribute('src', 'javascript:"<html><body><h1>test</h1></body></html>"');
-    iframe.addEventListener('load', function () {
-        var iframeHammerhead       = iframe.contentWindow['%hammerhead%'];
-        var iframeIframeSandbox    = iframeHammerhead.sandbox.iframe;
-        var iframeDocument         = iframe.contentDocument;
-        var nestedIframe           = iframeDocument.createElement('iframe');
-        var checkXhrEventListeners = function () {
-            var xhr = new iframe.contentWindow.XMLHttpRequest();
-
-            xhr.addEventListener('load', function () {
-                countXhrLoadEvents++;
-                ok(this.responseText, 'test');
-            });
-            xhr.addEventListener('error', function () {
-                ok(false, 'error event must not be raised');
-            });
-            xhr.open('post', '/get-script/test', false);
-            try {
-                xhr.send();
-            }
-            catch (e) {
-                if (e.name === 'NetworkError') {
-                    skipIframeCheck = true;
-                    expect(0);
-                }
-            }
-        };
-
-        iframeIframeSandbox.off(iframeIframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeIframeSandbox.iframeReadyToInitHandler);
-        iframeIframeSandbox.on(iframeIframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-
-        checkXhrEventListeners();
-        nestedIframe.id = 'test_nestedIframe_klshgfn111';
-        nestedIframe.setAttribute('src', 'about:blank');
-        window.QUnitGlobals.waitForIframe(nestedIframe)
-            .then(function () {
-                countNestedIframeLoadEvents++;
-
-                if (countNestedIframeLoadEvents === maxCountNestedIframeLoadEvents) {
-                    if (!skipIframeCheck)
-                        strictEqual(countXhrLoadEvents, validCountXhrLoadEvents);
-
-                    iframe.parentNode.removeChild(iframe);
-                    start();
-                }
-            });
-        iframeDocument.body.appendChild(nestedIframe);
-    });
-    document.body.appendChild(iframe);
-});
-
-asyncTest('native methods of the iframe document aren`t overridden for iframe with javascript src (GH-358)', function () {
-    var iframe            = document.createElement('iframe');
-    var loadEventCount    = 0;
-    var maxLoadEventCount = browserUtils.isWebKit && (!browserUtils.isChrome || browserUtils.isAndroid) ? 2 : 1; // GH-1966
+asyncTest('native methods of the iframe document aren`t overridden for iframe with javascript src (GH-358, GH-1966)', function () {
+    var iframe = document.createElement('iframe');
 
     iframe.id = 'test_nmsghf';
     iframe.setAttribute('src', 'javascript:"<html><body>test</body></html>"');
@@ -249,30 +185,11 @@ asyncTest('native methods of the iframe document aren`t overridden for iframe wi
 
         ok(iframeNativeMethods.createElement.toString().indexOf('native code') !== -1);
 
-        loadEventCount++;
-
-        if (loadEventCount >= maxLoadEventCount) {
-            iframe.parentNode.removeChild(iframe);
-            start();
-        }
+        iframe.parentNode.removeChild(iframe);
+        start();
     });
 
     document.body.appendChild(iframe);
-});
-
-test('native methods of the iframe document aren`t overridden for iframe with javascript src (GH-358)', function () {
-    var iframe = document.createElement('iframe');
-
-    ok(!iframeSandbox._shouldSaveIframeNativeMethods(iframe));
-
-    iframe.setAttribute('src', '');
-    ok(!iframeSandbox._shouldSaveIframeNativeMethods(iframe));
-
-    iframe.setAttribute('src', 'javascript:false');
-    strictEqual(iframeSandbox._shouldSaveIframeNativeMethods(iframe), browserUtils.isWebKit);
-
-    iframe.setAttribute('src', 'javascript:"<html><body></body></html>"');
-    strictEqual(iframeSandbox._shouldSaveIframeNativeMethods(iframe), browserUtils.isWebKit);
 });
 
 test("'body.appendChild' method works incorrectly in the particular case (GH-421)", function () {

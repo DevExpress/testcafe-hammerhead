@@ -101,7 +101,7 @@ export default class MessageSandbox extends SandboxBase {
         return { message, originUrl, targetUrl, type };
     }
 
-    private _removeInternalMsgFromQueue (sendFunc) {
+    private _removeInternalMsgFromQueue (sendFunc: Function) {
         for (let index = 0, length = this.iframeInternalMsgQueue.length; index < length; index++) {
             if (this.iframeInternalMsgQueue[index].sendFunc === sendFunc) {
                 this.iframeInternalMsgQueue.splice(index, 1);
@@ -136,8 +136,8 @@ export default class MessageSandbox extends SandboxBase {
         this._listeners.addInternalEventListener(window, ['message'], onMessageHandler);
         this._listeners.setEventListenerWrapper(window, ['message'], onWindowMessageHandler);
 
-        // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
-        // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
+        // NOTE: The browser's 'document' and 'window' can be overridden (for instance, after a 'document.write' call).
+        // So, we need to define all internal properties stored in the 'window' or 'document' with the 'configurable' option to be able to redefine them.
         nativeMethods.objectDefineProperty(window, this.RECEIVE_MSG_FN, {
             value:        onMessageHandler,
             configurable: true
@@ -199,7 +199,7 @@ export default class MessageSandbox extends SandboxBase {
         const canSendDirectly = !isCrossDomainWindows(targetWindow, this.window) && !!targetWindow[this.RECEIVE_MSG_FN];
 
         if (canSendDirectly) {
-            const sendFunc = force => {
+            const sendFunc = (force: boolean) => {
                 // NOTE: In IE, this function is called on the timeout despite the fact that the timer has been cleared
                 // in the unload event handler, so we check whether the function is in the queue
                 if (force || this._removeInternalMsgFromQueue(sendFunc)) {

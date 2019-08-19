@@ -17,6 +17,7 @@ import NodeMutation from './node/mutation';
 import MessageSandbox from './event/message';
 import IframeSandbox from './iframe';
 import IEDebugSandbox from './ie-debug';
+import { BaseServiceMessage } from '../../typings/proxy';
 /*eslint-enable no-unused-vars*/
 
 const IS_NON_STATIC_POSITION_RE = /fixed|relative|absolute/;
@@ -102,47 +103,47 @@ export default class ShadowUI extends SandboxBase {
                 this.onBodyElementMutation();
         };
 
-        this.serviceMsgReceivedEventCallback = e => {
-            if (e.message.cmd === this.BODY_CONTENT_CHANGED_COMMAND)
+        this.serviceMsgReceivedEventCallback = ({ message }: {message: BaseServiceMessage } ) => {
+            if (message.cmd === this.BODY_CONTENT_CHANGED_COMMAND)
                 this.onBodyElementMutation();
         };
 
-        this.bodyCreatedEventCallback = body => this.markShadowUIContainers(this.document.head, body);
+        this.bodyCreatedEventCallback = (body: HTMLElement) => this.markShadowUIContainers(this.document.head, body);
     }
 
-    static _filterElement (el) {
+    static _filterElement (el: HTMLElement) {
         return el && domUtils.isShadowUIElement(el) ? null : el;
     }
 
-    _filterList (list, listLength: number, predicate) {
-        const filteredList = [];
+    _filterList (list: HTMLCollection, listLength: number, predicate: Function) {
+        const filteredList: Array<HTMLElement> = [];
 
         for (let i = 0; i < listLength; i++) {
             const el = predicate(list[i]);
 
             if (el)
-                filteredList.push(list[i]);
+                filteredList.push(list[i] as HTMLElement);
         }
 
         nativeMethods.objectDefineProperty(filteredList, 'item', {
-            value: index => index >= filteredList.length ? null : filteredList[index]
+            value: (index: number) => index >= filteredList.length ? null : filteredList[index]
         });
 
         if (list.namedItem) {
             nativeMethods.objectDefineProperty(filteredList, 'namedItem', {
-                value: name => list.namedItem(name)
+                value: (name: string) => list.namedItem(name)
             });
         }
 
         return filteredList.length === listLength ? list : filteredList;
     }
 
-    _filterNodeList (nodeList, originLength: number) {
-        return this._filterList(nodeList, originLength, item => ShadowUI._filterElement(item));
+    _filterNodeList (nodeList: HTMLCollection, originLength: number) {
+        return this._filterList(nodeList, originLength, (item: HTMLElement) => ShadowUI._filterElement(item));
     }
 
     _filterStyleSheetList (styleSheetList, originLength: number) {
-        return this._filterList(styleSheetList, originLength, item => ShadowUI._filterElement(item.ownerNode));
+        return this._filterList(styleSheetList, originLength, (item: StyleSheet) => ShadowUI._filterElement(item.ownerNode as HTMLElement));
     }
 
     static _getFirstNonShadowElement (nodeList) {
@@ -222,7 +223,7 @@ export default class ShadowUI extends SandboxBase {
         ShadowUI.markAsShadowContainerCollection(containerEl.childNodes);
     }
 
-    markShadowUIContainers (head, body) {
+    markShadowUIContainers (head: HTMLHeadElement | null, body: HTMLElement | null) {
         if (head)
             this._markShadowUIContainerAndCollections(head);
 
@@ -373,7 +374,7 @@ export default class ShadowUI extends SandboxBase {
         }
     }
 
-    _markScriptsAndStylesAsShadowInHead (head) {
+    _markScriptsAndStylesAsShadowInHead (head: HTMLHeadElement | null) {
         // NOTE: document.head equals null after call 'document.open' function
         if (!head)
             return;
@@ -522,7 +523,7 @@ export default class ShadowUI extends SandboxBase {
     }
 
     // Utils
-    static _checkElementsPosition (collection, length) {
+    static _checkElementsPosition (collection, length: number) {
         if (!length)
             return;
 
@@ -635,7 +636,7 @@ export default class ShadowUI extends SandboxBase {
     }
 
     // NOTE: this method cannot be static because it is a part of the public API
-    removeClass (elem, value) {
+    removeClass (elem, value: string) {
         const patchedClass = ShadowUI.patchClassNames(value);
 
         domUtils.removeClass(elem, patchedClass);
@@ -696,7 +697,7 @@ export default class ShadowUI extends SandboxBase {
     }
 
     // GH-2009
-    static markFormAsShadow (form) {
+    static markFormAsShadow (form: HTMLFormElement): void {
         ShadowUI._markAsShadowContainer(form);
         ShadowUI.markAsShadowContainerCollection(form.elements);
         ShadowUI.markAsShadowContainerCollection(form.children);
@@ -717,15 +718,15 @@ export default class ShadowUI extends SandboxBase {
             ShadowUI.markElementAsShadow(childElements[i]);
     }
 
-    static _markAsShadowContainer (container) {
+    static _markAsShadowContainer (container: HTMLFormElement) {
         nativeMethods.objectDefineProperty(container, IS_SHADOW_CONTAINER_FLAG, { value: true });
     }
 
-    static markAsShadowContainerCollection (collection) {
+    static markAsShadowContainerCollection (collection: HTMLCollectionBase | NodeListOf<ChildNode>) {
         nativeMethods.objectDefineProperty(collection, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: true });
     }
 
-    static containsShadowUIClassPostfix (element) {
+    static containsShadowUIClassPostfix (element: Element): boolean {
         return typeof element.className === 'string' &&
                element.className.indexOf(SHADOW_UI_CLASS_NAME.postfix) !== -1;
     }

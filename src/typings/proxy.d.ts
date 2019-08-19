@@ -6,9 +6,17 @@ export interface ServerInfo {
     domain: string
 }
 
-export interface ServiceMessage {
-    sessionId: string;
+export interface BaseServiceMessage {
     cmd: string;
+}
+
+export interface ServerServiceMessage extends BaseServiceMessage {
+    sessionId: string;
+}
+
+export interface ConsoleMethodCalledServiceMessage extends BaseServiceMessage {
+    meth: string;
+    line: string;
 }
 
 export interface StaticContent {
