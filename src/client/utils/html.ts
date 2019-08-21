@@ -261,6 +261,7 @@ export function cleanUpHtml (html) {
             const innerHtml = nativeMethods.elementInnerHTMLGetter.call(el);
 
             if (innerHtml.indexOf(INIT_SCRIPT_FOR_IFRAME_TEMPLATE) !== -1) {
+                debugger;
                 nativeMethods.elementInnerHTMLSetter.call(el, innerHtml.replace(INIT_SCRIPT_FOR_IFRAME_TEMPLATE, ''));
 
                 changed = true;
@@ -319,6 +320,7 @@ export function processHtml (html, options: ProcessHTMLOptions = {}) {
         if (!parentTag) {
             if (htmlElements.length) {
                 for (const htmlElement of htmlElements) {
+                    debugger;
                     const firstScriptOrStyle = nativeMethods.elementQuerySelector.call(htmlElement, SCRIPT_AND_STYLE_SELECTOR);
 
                     if (firstScriptOrStyle)
