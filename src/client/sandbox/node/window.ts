@@ -76,6 +76,9 @@ const SANDBOX_DOM_TOKEN_LIST           = 'hammerhead|sandbox-dom-token-list';
 const SANDBOX_DOM_TOKEN_LIST_OWNER     = 'hammerhead|sandbox-dom-token-list-owner';
 const SANDBOX_DOM_TOKEN_LIST_UPDATE_FN = 'hammerhead|sandbox-dom-token-list-update';
 
+const IS_PROXY_OBJECT        = 'hammerhead|is-proxy-object';
+const IS_PROXY_OBJECT_ANSWER = 'hammerhead|this-is-proxy-object';
+
 const NO_STACK_TRACE_AVAILABLE_MESSAGE = 'No stack trace available';
 
 const TRACKED_EVENTS = ['error', 'unhandledrejection', 'hashchange'];
@@ -95,8 +98,6 @@ export default class WindowSandbox extends SandboxBase {
 
     SANDBOX_DOM_TOKEN_LIST_UPDATE_FN: any;
 
-    isInternalGetter: boolean;
-
     constructor (nodeSandbox: NodeSandbox, eventSandbox: EventSandbox, uploadSandbox: UploadSandbox, nodeMutation: NodeMutation) {
         super();
 
@@ -109,8 +110,6 @@ export default class WindowSandbox extends SandboxBase {
         this.nodeMutation          = nodeMutation;
 
         this.SANDBOX_DOM_TOKEN_LIST_UPDATE_FN = SANDBOX_DOM_TOKEN_LIST_UPDATE_FN;
-
-        this.isInternalGetter = false;
     }
 
     private static _prepareStack (msg: string, stack: string): string {
@@ -297,6 +296,10 @@ export default class WindowSandbox extends SandboxBase {
         return ALLOWED_SERVICE_WORKER_PROTOCOLS.indexOf(parsedUrl.protocol) === -1 &&
                ALLOWED_SERVICE_WORKER_HOST_NAMES.indexOf(parsedUrl.hostname) === -1;
         /*eslint-enable no-restricted-properties*/
+    }
+
+    isProxyObject (obj: any): boolean {
+        return obj[IS_PROXY_OBJECT] === IS_PROXY_OBJECT_ANSWER;
     }
 
     handleEvent (event) {
@@ -512,8 +515,8 @@ export default class WindowSandbox extends SandboxBase {
                     const storedGet = handler.get;
 
                     handler.get = function (getterTarget, name, receiver) {
-                        if (windowSandbox.isInternalGetter)
-                            return getterTarget[name];
+                        if (name === IS_PROXY_OBJECT)
+                            return IS_PROXY_OBJECT_ANSWER;
 
                         return storedGet.call(this, getterTarget, name, receiver);
                     };

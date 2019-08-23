@@ -647,6 +647,7 @@ if (window.Proxy) {
         });
 
         strictEqual(getProperty(obj, 'proxy'), obj.proxy);
+        strictEqual(setProperty(obj.proxy, 'prop1', 1), 1);
         notOk(handledWasCalled);
     });
 }
