@@ -4,7 +4,7 @@ import settings from '../settings';
 import nativeMethods from '../sandbox/native-methods';
 import DomProcessor from '../../processing/dom';
 import { isShadowUIElement, isIframeWithoutSrc, getTagName } from '../utils/dom';
-import { isFirefox, isWebKit, isIE } from '../utils/browser';
+import * as browser from '../utils/browser';
 // @ts-ignore
 import * as JSON from 'json-hammerhead';
 /*eslint-disable no-unused-vars*/
@@ -33,9 +33,12 @@ export default class IframeSandbox extends SandboxBase {
     }
 
     private _shouldSaveIframeNativeMethods (iframe: HTMLIFrameElement) {
-        if (!isWebKit)
+        const chromeLess75Version = browser.isChrome && browser.version < 76;
+
+        if (!browser.isSafari || !chromeLess75Version)
             return false;
 
+        debugger;
         const iframeSrc = this.nativeMethods.getAttribute.call(iframe, 'src');
 
         return DomProcessor.isJsProtocol(iframeSrc);
@@ -117,10 +120,10 @@ export default class IframeSandbox extends SandboxBase {
     static isIframeInitialized (iframe: HTMLIFrameElement) {
         const contentWindow           = nativeMethods.contentWindowGetter.call(iframe);
         const contentDocument         = nativeMethods.contentDocumentGetter.call(iframe);
-        const isFFIframeUninitialized = isFirefox && contentWindow.document.readyState === 'uninitialized';
+        const isFFIframeUninitialized = browser.isFirefox && contentWindow.document.readyState === 'uninitialized';
 
         return !isFFIframeUninitialized && !!contentDocument.documentElement ||
-               isIE && contentWindow[INTERNAL_PROPS.documentWasCleaned];
+               browser.isIE && contentWindow[INTERNAL_PROPS.documentWasCleaned];
     }
 
     static isWindowInited (window: Window) {
