@@ -273,7 +273,7 @@ test('script with the import keyword', function () {
 
     div.innerHTML = '<script type="module">' + scriptText + '<' + '/script>';
 
-    strictEqual(nativeMethods.nodeTextContentGetter.call(div.firstChild), processScript(scriptText, true));
+    strictEqual(nativeMethods.nodeTextContentGetter.call(div.firstChild), processScript(scriptText, true, false, urlUtils.convertToProxyUrl));
 });
 
 module('regression');
