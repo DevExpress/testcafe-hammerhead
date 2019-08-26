@@ -269,10 +269,10 @@ test('native methods of the iframe document aren`t overridden for iframe with ja
     ok(!iframeSandbox._shouldSaveIframeNativeMethods(iframe));
 
     iframe.setAttribute('src', 'javascript:false');
-    strictEqual(iframeSandbox._shouldSaveIframeNativeMethods(iframe), browserUtils.isWebKit);
+    strictEqual(iframeSandbox._shouldSaveIframeNativeMethods(iframe), iframeSandbox.loadEventRaisedTwice);
 
     iframe.setAttribute('src', 'javascript:"<html><body></body></html>"');
-    strictEqual(iframeSandbox._shouldSaveIframeNativeMethods(iframe), browserUtils.isWebKit);
+    strictEqual(iframeSandbox._shouldSaveIframeNativeMethods(iframe), iframeSandbox.loadEventRaisedTwice);
 });
 
 test("'body.appendChild' method works incorrectly in the particular case (GH-421)", function () {
