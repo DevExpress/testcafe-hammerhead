@@ -6,6 +6,8 @@ import { processScript } from '../../../processing/script';
 import INSTRUCTION from '../../../processing/script/instruction';
 import nativeMethods from '../../sandbox/native-methods';
 import { processHtml } from '../../utils/html';
+import { getProxyUrl, stringifyResourceType } from '../../utils/url';
+import urlResolver from '../../utils/url-resolver';
 /*eslint-disable no-unused-vars*/
 import EventSandbox from '../event';
 import WindowSandbox from '../node/window';
@@ -49,6 +51,7 @@ export default class CodeInstrumentation extends SandboxBase {
                     return evalFn(script);
                 };
             },
+
             configurable: true
         });
 
@@ -72,6 +75,7 @@ export default class CodeInstrumentation extends SandboxBase {
 
                 return script;
             },
+
             configurable: true
         });
 
@@ -82,6 +86,26 @@ export default class CodeInstrumentation extends SandboxBase {
 
                 return html;
             },
+
+            configurable: true
+        });
+
+        nativeMethods.objectDefineProperty(window, INSTRUCTION.getProxyUrl, {
+            value: (url: any, baseUrl?: string) => {
+                const storedBaseUrl    = urlResolver.getBaseUrl(this.document);
+                const shouldChangeBase = baseUrl && baseUrl !== storedBaseUrl;
+
+                if (shouldChangeBase)
+                    urlResolver.updateBase(baseUrl, this.document);
+
+                const proxyUrl = getProxyUrl(url, { resourceType: stringifyResourceType({ isScript: true }) });
+
+                if (shouldChangeBase)
+                    urlResolver.updateBase(storedBaseUrl, this.document);
+
+                return proxyUrl;
+            },
+
             configurable: true
         });
     }

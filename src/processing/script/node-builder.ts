@@ -9,6 +9,7 @@ import { Literal, Identifier, ExpressionStatement, BlockStatement, Expression, C
 import { Syntax } from 'esotope-hammerhead';
 import INTERNAL_LITERAL from './internal-literal';
 import INSTRUCTION from './instruction';
+import { getResourceTypeString } from '../../utils/url';
 
 export function createStringLiteral (value: string): Literal {
     return {
@@ -269,8 +270,41 @@ export function createGetEvalMethCall (node: Expression): CallExpression {
     };
 }
 
+export function getProxyUrlLiteral (source: Literal, resolver: Function): Literal {
+    const proxyUrl = resolver(String(source.value), getResourceTypeString({ isScript: true }));
+
+    return {
+        type:  Syntax.Literal,
+        value: proxyUrl,
+        raw:   `"${proxyUrl}"`
+    };
+}
+
+export function createGetProxyUrlMethCall (arg: Expression | SpreadElement, baseUrl?: string): CallExpression {
+    const args = [arg];
+
+    if (baseUrl) {
+        args.push({
+            type:  Syntax.Literal,
+            value: baseUrl,
+            raw:   `"${baseUrl}"`
+        });
+    }
+
+    return {
+        type: Syntax.CallExpression,
+
+        callee: {
+            type: Syntax.Identifier,
+            name: INSTRUCTION.getProxyUrl
+        },
+
+        arguments: args
+    };
+}
+
 export function createGetPostMessageMethCall (node: Expression): CallExpression {
-    const parentObject = node.type === Syntax.MemberExpression ? <Expression>node.object : null;
+    const parentObject = node.type === Syntax.MemberExpression ? node.object as Expression : null;
 
     return {
         type: Syntax.CallExpression,

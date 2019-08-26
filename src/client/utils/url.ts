@@ -30,6 +30,8 @@ const DEFAULT_PROXY_SETTINGS = (function () {
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = sharedUrlUtils.REQUEST_DESCRIPTOR_VALUES_SEPARATOR;
 
 export function getProxyUrl (url, opts?) {
+    url = sharedUrlUtils.getURLString(url);
+
     const resourceType       = opts && opts.resourceType;
     const parsedResourceType = sharedUrlUtils.parseResourceType(resourceType);
 

@@ -89,7 +89,8 @@ function testProcessing (testCases) {
     testCases = Array.isArray(testCases) ? testCases : [testCases];
 
     testCases.forEach(testCase => {
-        const processed = processScript(testCase.src, false);
+        const processed = processScript(testCase.src, false, false, url =>
+            'http://localhost:3000/ksadjo23/http://example.com/' + (url === './' ? '' : url));
         const actual    = normalizeCode(processed);
         const expected  = normalizeCode(testCase.expected);
         let msg         = 'Source: ' + testCase.src + '\n' +
@@ -767,6 +768,26 @@ describe('Script processor', () => {
             {
                 src:      'var t = "<!-- comment1 -->\\n";\na[i];',
                 expected: 'var t = "<!-- comment1 -->\\n";\n__get$(a, i);'
+            }
+        ]);
+    });
+
+    it('Should process `import`', () => {
+        testProcessing([
+            {
+                src:      'import * as name from "module-name"',
+                expected: 'import * as name from "http://localhost:3000/ksadjo23/http://example.com/module-name"' },
+            {
+                src:      'import("/module-name.js").then(module => {})',
+                expected: 'import(__get$ProxyUrl("/module-name.js", "http://example.com/")).then(module => {})'
+            },
+            {
+                src:      'import(moduleName).then(module => {})',
+                expected: 'import(__get$ProxyUrl(moduleName, "http://example.com/")).then(module => {})'
+            },
+            {
+                src:      'import(location + "file-name").then(module => {})',
+                expected: 'import(__get$ProxyUrl(__get$Loc(location) + "file-name", "http://example.com/")).then(module => {})'
             }
         ]);
     });

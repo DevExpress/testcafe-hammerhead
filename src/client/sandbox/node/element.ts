@@ -673,7 +673,7 @@ export default class ElementSandbox extends SandboxBase {
             return;
 
         if (domUtils.isScriptElement(parentNode))
-            node.data = processScript(node.data, true);
+            node.data = processScript(node.data, true, false, urlUtils.convertToProxyUrl);
         else if (domUtils.isStyleElement(parentNode))
             node.data = styleProcessor.process(node.data, urlUtils.getProxyUrl);
     }

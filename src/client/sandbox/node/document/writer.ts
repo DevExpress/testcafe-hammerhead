@@ -4,7 +4,7 @@ import { getTagName, isCommentNode, isStyleElement, isScriptElement } from '../.
 import { isFirefox, isIE } from '../../../utils/browser';
 import { processScript } from '../../../../processing/script';
 import styleProcessor from '../../../../processing/style';
-import { getProxyUrl } from '../../../utils/url';
+import { getProxyUrl, convertToProxyUrl } from '../../../utils/url';
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import createSelfRemovingScript from '../../../../utils/create-self-removing-script';
 
@@ -305,7 +305,7 @@ export default class DocumentWriter {
             let processedContent = this.contentForProcessing;
 
             if (isScriptElement(this.nonClosedEl))
-                processedContent = processScript(this.contentForProcessing, true);
+                processedContent = processScript(this.contentForProcessing, true, false, convertToProxyUrl);
             else if (isStyleElement(this.nonClosedEl))
                 processedContent = styleProcessor.process(this.contentForProcessing, getProxyUrl, true);
 

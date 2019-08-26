@@ -6,8 +6,12 @@
 import { BaseNode, Node } from 'estree';
 /*eslint-enable no-unused-vars*/
 import transformers from './transformers';
+import jsProtocolLastExpression from './transformers/js-protocol-last-expression';
+import staticImportTransformer from './transformers/static-import';
+import dynamicImportTransformer from './transformers/dynamic-import';
 import replaceNode from './transformers/replace-node';
 import { Syntax } from 'esotope-hammerhead';
+import { parseProxyUrl } from '../../utils/url';
 
 export interface CodeChange {
     start: number;
@@ -17,7 +21,7 @@ export interface CodeChange {
     key: string;
 }
 
-export class State {
+class State {
     hasTransformedAncestor: boolean = false;
     newExpressionAncestor: Node;
     newExpressionAncestorParent: Node;
@@ -50,35 +54,36 @@ export interface NodeWithLocation extends BaseNode {
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
-const objectToString: Function       = Object.prototype.toString;
-const objectHasOwnProperty: Function = Object.prototype.hasOwnProperty;
+const objectToString = Object.prototype.toString;
+const objectKeys     = Object.keys;
 
 function getChange (node: Node, parent: Node, key: string): CodeChange {
-    const { originStart: start, originEnd: end } = <NodeWithLocation>node;
+    const { originStart: start, originEnd: end } = node as NodeWithLocation;
     const index = Array.isArray(parent[key]) ? parent[key].indexOf(node) : -1;
 
     return { start, end, index, parent, key };
 }
 
 function transformChildNodes (node, changes: Array<CodeChange>, state: State) {
-    for (const key in node) {
-        if (objectHasOwnProperty.call(node, key)) {
-            const childNode       = node[key];
-            const stringifiedNode = objectToString.call(childNode);
+    const nodeKeys = objectKeys(node);
 
-            if (stringifiedNode === '[object Array]') {
-                for (let j = 0; j < childNode.length; j++)
-                    transform(childNode[j], changes, state, node, key);
-            }
-            else if (stringifiedNode === '[object Object]')
-                transform(childNode, changes, state, node, key);
+    for (const key of nodeKeys) {
+        const childNode       = node[key];
+        const stringifiedNode = objectToString.call(childNode);
+
+        if (stringifiedNode === '[object Array]') {
+            for (const nthNode of childNode)
+                transform(nthNode, changes, state, node, key);
         }
+        else if (stringifiedNode === '[object Object]')
+            transform(childNode, changes, state, node, key);
     }
 }
 
 function isNodeTransformed (node: Node): boolean {
-    // eslint-disable-next-line no-extra-parens
-    return (<NodeWithLocation>node).originStart !== void 0 && (<NodeWithLocation>node).originEnd !== void 0;
+    const nodeWithLoc = node as NodeWithLocation;
+
+    return nodeWithLoc.originStart !== void 0 && nodeWithLoc.originEnd !== void 0;
 }
 
 function addChangeForTransformedNode (state: State, changes: Array<CodeChange>, replacement: Node, parent: Node, key: string) {
@@ -96,6 +101,20 @@ function addChangeForTransformedNode (state: State, changes: Array<CodeChange>, 
         changes.push(getChange(replacement, parent, key));
 }
 
+export function beforeTransform (wrapLastExprWithProcessHtml: boolean = false, resolver?: Function) {
+    jsProtocolLastExpression.wrapLastExpr = wrapLastExprWithProcessHtml;
+    staticImportTransformer.resolver = resolver;
+
+    if (resolver)
+        dynamicImportTransformer.baseUrl = parseProxyUrl(resolver('./')).destUrl;
+}
+
+export function afterTransform () {
+    jsProtocolLastExpression.wrapLastExpr = false;
+    staticImportTransformer.resolver = void 0;
+    dynamicImportTransformer.baseUrl = void 0;
+}
+
 export default function transform (node: Node, changes: Array<CodeChange> = [], state: State = new State(), parent?: Node, key?: string, reTransform?: boolean) {
     if (!node || typeof node !== 'object')
         return null;
@@ -106,34 +125,31 @@ export default function transform (node: Node, changes: Array<CodeChange> = [], 
         addChangeForTransformedNode(state, changes, node, parent, key);
         nodeChanged = true;
     }
-    else {
-        const nodeTransformers = transformers.get(<Syntax>node.type);
+    else if (transformers.has(node.type as Syntax)) {
+        const nodeTransformers = transformers.get(node.type as Syntax);
 
-        if (nodeTransformers) {
-            for (let i = 0; i < nodeTransformers.length; i++) {
-                const transformer = nodeTransformers[i];
+        for (const transformer of nodeTransformers) {
+            if (!transformer.condition(node, parent))
+                continue;
 
-                if (transformer.condition(node, parent)) {
-                    const replacement = transformer.run(node, parent, key);
+            const replacement = transformer.run(node, parent, key);
 
-                    if (replacement) {
-                        replaceNode(node, replacement, parent, key);
-                        nodeChanged = true;
+            if (!replacement)
+                continue;
 
-                        addChangeForTransformedNode(state, changes, replacement, parent, key);
+            replaceNode(node, replacement, parent, key);
+            addChangeForTransformedNode(state, changes, replacement, parent, key);
 
-                        if (transformer.nodeReplacementRequireTransform) {
-                            state = State.create(state, replacement, parent, key, nodeChanged);
+            nodeChanged = true;
 
-                            transform(replacement, changes, state, parent, key, true);
+            if (!transformer.nodeReplacementRequireTransform)
+                break;
 
-                            return changes;
-                        }
+            state = State.create(state, replacement, parent, key, nodeChanged);
 
-                        break;
-                    }
-                }
-            }
+            transform(replacement, changes, state, parent, key, true);
+
+            return changes;
         }
     }
 

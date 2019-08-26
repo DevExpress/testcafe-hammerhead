@@ -19,14 +19,14 @@ class ScriptResourceProcessor extends ResourceProcessorBase {
         });
     }
 
-    processResource (script: string) {
+    processResource (script: string, _ctx, _charset, urlReplacer: Function) {
         if (!script)
             return script;
 
         let processedScript = this.jsCache.get(script);
 
         if (!processedScript) {
-            processedScript = processScript(script, true);
+            processedScript = processScript(script, true, false, urlReplacer);
             this.jsCache.set(script, processedScript);
         }
 

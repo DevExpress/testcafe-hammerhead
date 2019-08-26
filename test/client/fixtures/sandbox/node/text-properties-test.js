@@ -7,6 +7,7 @@ var urlUtils                = hammerhead.get('./utils/url');
 var DomProcessor            = hammerhead.get('../processing/dom');
 
 var nativeMethods = hammerhead.nativeMethods;
+var browserUtils  = hammerhead.utils.browser;
 
 test('clean up outerHTML', function () {
     var htmlText = '<a href="http://domain.com/">link</a>';
@@ -50,9 +51,11 @@ test('stylesheet after innerHTML', function () {
 });
 
 test('script.<innerHTML/innerText/text/textContent>', function () {
-    var script              = document.createElement('script');
-    var scriptText          = 'var test = window.href';
-    var processedScriptText = scriptProcessor.processScript(scriptText, true).replace(/\s/g, '');
+    var script                    = document.createElement('script');
+    var scriptText                = 'var test = window.href';
+    var processedScriptText       = scriptProcessor.processScript(scriptText, true).replace(/\s/g, '');
+    var scriptWithImport          = 'import foo from "foo.js"; import("bar.js").then(() => {});';
+    var processedScriptWithImport = scriptProcessor.processScript(scriptWithImport, true, false, urlUtils.convertToProxyUrl).replace(/\s/g, '');
     var testProperties      = {
         'innerHTML': {
             getter: nativeMethods.elementInnerHTMLGetter,
@@ -106,6 +109,12 @@ test('script.<innerHTML/innerText/text/textContent>', function () {
         script[property] = void 0;
 
         strictEqual(nativeGetter.call(script), expectedValueForUndefined);
+
+        if (!browserUtils.isIE11) {
+            script[property] = scriptWithImport;
+
+            strictEqual(nativeGetter.call(script).replace(/\s/g, ''), processedScriptWithImport);
+        }
     });
 });
 

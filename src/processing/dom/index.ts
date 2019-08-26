@@ -239,17 +239,16 @@ export default class DomProcessor {
     }
 
     // API
-    processElement (el: HTMLElement, urlReplacer: object): void {
+    processElement (el: HTMLElement, urlReplacer: Function): void {
         // @ts-ignore
         if (el[ELEMENT_PROCESSED])
             return;
 
-        for (let i = 0; i < this.elementProcessorPatterns.length; i++) {
-            const pattern = this.elementProcessorPatterns[i];
-
+        for (const pattern of this.elementProcessorPatterns) {
             if (pattern.selector(el) && !this._isShadowElement(el)) {
-                for (let j = 0; j < pattern.elementProcessors.length; j++)
-                    pattern.elementProcessors[j].call(this, el, urlReplacer, pattern);
+                for (const processor of pattern.elementProcessors)
+                    processor.call(this, el, urlReplacer, pattern);
+
                 // @ts-ignore
                 el[ELEMENT_PROCESSED] = true;
             }
@@ -456,7 +455,7 @@ export default class DomProcessor {
         this.adapter.setAttr(el, 'sandbox', attrValue);
     }
 
-    _processScriptElement (script: HTMLElement): void {
+    _processScriptElement (script: HTMLElement, urlReplacer: Function): void {
         const scriptContent = this.adapter.getScriptContent(script);
 
         if (!scriptContent || !this.adapter.needToProcessContent(script))
@@ -496,7 +495,7 @@ export default class DomProcessor {
             if (hasCDATA)
                 result = result.replace(CDATA_REG_EX, '$2');
 
-            result = commentPrefix + processScript(result, true, false) + commentPostfix;
+            result = commentPrefix + processScript(result, true, false, urlReplacer) + commentPostfix;
 
             if (hasCDATA)
                 result = '\n//<![CDATA[\n' + result + '//]]>';
