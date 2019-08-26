@@ -299,7 +299,12 @@ export default class WindowSandbox extends SandboxBase {
     }
 
     isProxyObject (obj: any): boolean {
-        return obj[IS_PROXY_OBJECT] === IS_PROXY_OBJECT_ANSWER;
+        try {
+            return obj[IS_PROXY_OBJECT] === IS_PROXY_OBJECT_ANSWER;
+        }
+        catch (e) {
+            return false;
+        }
     }
 
     handleEvent (event) {
