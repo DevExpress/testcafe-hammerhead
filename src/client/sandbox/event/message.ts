@@ -207,11 +207,13 @@ export default class MessageSandbox extends SandboxBase {
                     // because the iframe could become cross-domain in the meantime. Unfortunately, Chrome hangs when
                     // trying to call the 'isCrossDomainWindows' function, so we have to wrap it in 'try/catch'.
                     try {
-                        targetWindow[this.RECEIVE_MSG_FN]({
+                        const event = {
                             // NOTE: Cloning a message to prevent this modification.
                             data:   parseJSON(stringifyJSON(message)),
                             source: this.window
-                        });
+                        };
+
+                        targetWindow[this.RECEIVE_MSG_FN](event);
                     }
                     // eslint-disable-next-line no-empty
                     catch (e) {
