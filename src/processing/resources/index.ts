@@ -7,9 +7,9 @@ import * as urlUtil from '../../utils/url';
 import { encodeContent, decodeContent } from '../encoding';
 import { platform } from 'os';
 
-const IS_WIN: boolean = platform() === 'win32';
-const DISK_RE: RegExp = /^[A-Za-z]:/;
-const PROCESSORS      = [pageProcessor, manifestProcessor, scriptProcessor, stylesheetProcessor];
+const IS_WIN: boolean     = platform() === 'win32';
+const DISK_RE: RegExp     = /^[A-Za-z]:/;
+const RESOURCE_PROCESSORS = [pageProcessor, manifestProcessor, scriptProcessor, stylesheetProcessor];
 
 function getResourceUrlReplacer (ctx) {
     return function (resourceUrl: string, resourceType: string, charsetAttrValue, baseUrl: string) {
@@ -48,7 +48,7 @@ export async function process (ctx) {
 
     const decoded = await decodeContent(body, encoding, charset);
 
-    for (const processor of PROCESSORS) {
+    for (const processor of RESOURCE_PROCESSORS) {
         if (processor.shouldProcessResource(ctx)) {
             const urlReplacer = getResourceUrlReplacer(ctx);
             // @ts-ignore: Cannot invoke an expression whose type lacks a call signature

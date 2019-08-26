@@ -266,6 +266,16 @@ test('script with the "module" type', function () {
     strictEqual(nativeMethods.nodeTextContentGetter.call(div.firstChild), processScript(scriptText, true));
 });
 
+test('script with the import keyword', function () {
+    var div        = document.createElement('div');
+    var scriptText = 'import foo from "foo.js";' +
+                     'import("bar.js").then(m => {})';
+
+    div.innerHTML = '<script type="module">' + scriptText + '<' + '/script>';
+
+    strictEqual(nativeMethods.nodeTextContentGetter.call(div.firstChild), processScript(scriptText, true));
+});
+
 module('regression');
 
 test('markup with special characters must be cleaned up (T112153)', function () {

@@ -29,7 +29,8 @@ const HEADER: string = `
                 ${INSTRUCTION.getEval} = window.${INSTRUCTION.getEval},
                 ${INSTRUCTION.processScript} = window.${INSTRUCTION.processScript},
                 ${INSTRUCTION.processHtml} = window.${INSTRUCTION.processHtml},
-                ${INSTRUCTION.getPostMessage} = window.${INSTRUCTION.getPostMessage};
+                ${INSTRUCTION.getPostMessage} = window.${INSTRUCTION.getPostMessage},
+                ${INSTRUCTION.getProxyUrl} = window.${INSTRUCTION.getProxyUrl};
         }
     } else {
         var ${INSTRUCTION.getLocation} = function(l){return l},
@@ -40,7 +41,8 @@ const HEADER: string = `
             ${INSTRUCTION.getEval} = function(e){return e},
             ${INSTRUCTION.processScript} = function(s){return s},
             ${INSTRUCTION.processHtml} = function(h){return h},
-            ${INSTRUCTION.getPostMessage} = function(w,p){return arguments.length===1?w.postMessage:p};
+            ${INSTRUCTION.getPostMessage} = function(w,p){return arguments.length===1?w.postMessage:p},
+            ${INSTRUCTION.getProxyUrl} = function(u,d){return u};
     }
     ${SCRIPT_PROCESSING_END_HEADER_COMMENT}
 `.replace(/\n(?!$)\s*/g, '');

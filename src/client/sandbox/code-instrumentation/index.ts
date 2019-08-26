@@ -92,16 +92,16 @@ export default class CodeInstrumentation extends SandboxBase {
 
         nativeMethods.objectDefineProperty(window, INSTRUCTION.getProxyUrl, {
             value: (url: any, baseUrl?: string) => {
-                const storedBaseUrl    = urlResolver.getBaseUrl(document);
+                const storedBaseUrl    = urlResolver.getBaseUrl(this.document);
                 const shouldChangeBase = baseUrl && baseUrl !== storedBaseUrl;
 
                 if (shouldChangeBase)
-                    urlResolver.updateBase(baseUrl, document);
+                    urlResolver.updateBase(baseUrl, this.document);
 
-                const proxyUrl = getProxyUrl(String(url), { resourceType: stringifyResourceType({ isScript: true }) });
+                const proxyUrl = getProxyUrl(url, { resourceType: stringifyResourceType({ isScript: true }) });
 
                 if (shouldChangeBase)
-                    urlResolver.updateBase(storedBaseUrl, document);
+                    urlResolver.updateBase(storedBaseUrl, this.document);
 
                 return proxyUrl;
             },

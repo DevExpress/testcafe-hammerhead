@@ -26,8 +26,14 @@ const PROCESSED_SCRIPT_RE: RegExp   = new RegExp([
     reEscape(INSTRUCTION.callMethod),
     reEscape(INSTRUCTION.processScript),
     reEscape(INSTRUCTION.processHtml),
-    reEscape(INSTRUCTION.getPostMessage)
+    reEscape(INSTRUCTION.getPostMessage),
+    reEscape(INSTRUCTION.getProxyUrl)
 ].join('|'));
+const PARSING_OPTIONS               = {
+    allowReturnOutsideFunction:  true,
+    allowImportExportEverywhere: true,
+    ecmaVersion:                 11
+};
 
 // Code pre/post-processing
 function removeHtmlComments (code: string): string {
@@ -75,11 +81,7 @@ function getAst (src: string, isObject: boolean): Program {
     src = isObject ? `(${src})` : src;
 
     try {
-        return parse(src, {
-            allowReturnOutsideFunction:  true,
-            allowImportExportEverywhere: true,
-            ecmaVersion:                 11
-        });
+        return parse(src, PARSING_OPTIONS);
     }
     catch (err) {
         return null;
