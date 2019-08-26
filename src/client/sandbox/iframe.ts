@@ -21,6 +21,7 @@ export default class IframeSandbox extends SandboxBase {
     IFRAME_DOCUMENT_CREATED_EVENT: string = 'hammerhead|event|iframe-document-created';
 
     iframeNativeMethodsBackup: any;
+    loadEventRaisedTwice: boolean;
 
     constructor (private readonly _nodeMutation: NodeMutation, //eslint-disable-line no-unused-vars
                  private readonly _cookieSandbox: CookieSandbox) { //eslint-disable-line no-unused-vars
@@ -30,15 +31,15 @@ export default class IframeSandbox extends SandboxBase {
         this._nodeMutation.on(this._nodeMutation.IFRAME_ADDED_TO_DOM_EVENT, (iframe: HTMLIFrameElement) => this.processIframe(iframe));
 
         this.iframeNativeMethodsBackup = null;
+
+        // NOTE: add a note
+        this.loadEventRaisedTwice = browser.isSafari || browser.isChrome && browser.version < 76;
     }
 
-    private _shouldSaveIframeNativeMethods (iframe: HTMLIFrameElement) {
-        const chromeLess75Version = browser.isChrome && browser.version < 76;
-
-        if (!browser.isSafari || !chromeLess75Version)
+    private _shouldSaveIframeNativeMethods (iframe: HTMLIFrameElement): boolean {
+        if (!this.loadEventRaisedTwice)
             return false;
 
-        debugger;
         const iframeSrc = this.nativeMethods.getAttribute.call(iframe, 'src');
 
         return DomProcessor.isJsProtocol(iframeSrc);
