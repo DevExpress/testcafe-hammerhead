@@ -627,7 +627,7 @@ export default class WindowSandbox extends SandboxBase {
                     const url = args[2];
 
                     if (args.length > 2 && (url !== null && (isIE || url !== void 0)))
-                        args[2] = getProxyUrl(String(url));
+                        args[2] = getProxyUrl(url);
 
                     return nativeFn.apply(this, args);
                 };
