@@ -12,24 +12,18 @@ import nativeMethods from '../../native-methods';
 import DomProcessor from '../../../../processing/dom';
 import settings from '../../../settings';
 import { isIE } from '../../../utils/browser';
-/*eslint-disable no-unused-vars*/
 import WindowSandbox from '../../node/window';
-/*eslint-enable no-unused-vars*/
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
-    constructor (private readonly _windowSandbox: WindowSandbox) { // eslint-disable-line no-unused-vars
-        super();
-    }
-
     // NOTE: Isolate throw statements into a separate function because the
     // JS engine doesn't optimize such functions.
     static _error (msg: string) {
         throw new Error(msg);
     }
 
-    private _safeIsShadowUIElement (el: any) {
+    private static _safeIsShadowUIElement (el: any) {
         try {
-            return !this._windowSandbox.isProxyObject(el) && domUtils.isShadowUIElement(el);
+            return !WindowSandbox.isProxyObject(el) && domUtils.isShadowUIElement(el);
         }
         catch (e) {
             return false;
@@ -125,7 +119,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 if (typeUtils.isNullOrUndefined(owner))
                     PropertyAccessorsInstrumentation._error(`Cannot read property '${propName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
 
-                if (this._windowSandbox.isProxyObject(owner))
+                if (WindowSandbox.isProxyObject(owner))
                     return owner[propName];
 
                 if (typeof propName === 'string' && shouldInstrumentProperty(propName) &&
@@ -134,7 +128,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 const propertyValue = owner[propName];
 
-                if (propertyValue && this._safeIsShadowUIElement(propertyValue))
+                if (propertyValue && PropertyAccessorsInstrumentation._safeIsShadowUIElement(propertyValue))
                     return void 0;
 
                 return propertyValue;
@@ -148,7 +142,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 if (typeUtils.isNullOrUndefined(owner))
                     PropertyAccessorsInstrumentation._error(`Cannot set property '${propName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
 
-                if (this._windowSandbox.isProxyObject(owner))
+                if (WindowSandbox.isProxyObject(owner))
                     return owner[propName] = value; // eslint-disable-line no-return-assign
 
                 const ownerSetPropertyInstruction = PropertyAccessorsInstrumentation._getSetPropertyInstructionByOwner(owner, window);

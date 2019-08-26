@@ -76,8 +76,8 @@ const SANDBOX_DOM_TOKEN_LIST           = 'hammerhead|sandbox-dom-token-list';
 const SANDBOX_DOM_TOKEN_LIST_OWNER     = 'hammerhead|sandbox-dom-token-list-owner';
 const SANDBOX_DOM_TOKEN_LIST_UPDATE_FN = 'hammerhead|sandbox-dom-token-list-update';
 
-const IS_PROXY_OBJECT        = 'hammerhead|is-proxy-object';
-const IS_PROXY_OBJECT_ANSWER = 'hammerhead|this-is-proxy-object';
+const IS_PROXY_OBJECT_INTERNAL_PROP_NAME  = 'hammerhead|is-proxy-object|internal-prop-name';
+const IS_PROXY_OBJECT_INTERNAL_PROP_VALUE = 'hammerhead|is-proxy-object|internal-prop-value';
 
 const NO_STACK_TRACE_AVAILABLE_MESSAGE = 'No stack trace available';
 
@@ -298,9 +298,9 @@ export default class WindowSandbox extends SandboxBase {
         /*eslint-enable no-restricted-properties*/
     }
 
-    isProxyObject (obj: any): boolean {
+    static isProxyObject (obj: any): boolean {
         try {
-            return obj[IS_PROXY_OBJECT] === IS_PROXY_OBJECT_ANSWER;
+            return obj[IS_PROXY_OBJECT_INTERNAL_PROP_NAME] === IS_PROXY_OBJECT_INTERNAL_PROP_VALUE;
         }
         catch (e) {
             return false;
@@ -520,8 +520,8 @@ export default class WindowSandbox extends SandboxBase {
                     const storedGet = handler.get;
 
                     handler.get = function (getterTarget, name, receiver) {
-                        if (name === IS_PROXY_OBJECT)
-                            return IS_PROXY_OBJECT_ANSWER;
+                        if (name === IS_PROXY_OBJECT_INTERNAL_PROP_NAME)
+                            return IS_PROXY_OBJECT_INTERNAL_PROP_VALUE;
 
                         return storedGet.call(this, getterTarget, name, receiver);
                     };
