@@ -12,9 +12,9 @@ import { Syntax } from 'esotope-hammerhead';
 import replaceNode from './replace-node';
 
 // Transform:
-// import(something).than()
+// import(something).then()
 // -->
-// import(__get$ProxyUrl(something)).than()
+// import(__get$ProxyUrl(something)).then()
 
 const transformer: Transformer = {
     nodeReplacementRequireTransform: true,
