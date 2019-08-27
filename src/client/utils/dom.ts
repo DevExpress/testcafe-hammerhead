@@ -808,3 +808,12 @@ export function isNumberOrEmailInput (el): boolean {
 export function isInputWithoutSelectionProperties (el): boolean {
     return isNumberOrEmailInput(el) && (isWebKit || isFirefox);
 }
+
+export function isSelfRemovingScript (el: any) {
+    const className = el && el.className;
+
+    if (!className)
+        return false;
+
+    return className === SHADOW_UI_CLASSNAME.selfRemovingScript;
+}

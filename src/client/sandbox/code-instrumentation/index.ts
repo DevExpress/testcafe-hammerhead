@@ -5,7 +5,7 @@ import MethodCallInstrumentation from './methods';
 import { processScript } from '../../../processing/script';
 import INSTRUCTION from '../../../processing/script/instruction';
 import nativeMethods from '../../sandbox/native-methods';
-import { processHtml } from '../../utils/html';
+import { processHtml, isPageHtml } from '../../utils/html';
 import { getProxyUrl, stringifyResourceType } from '../../utils/url';
 import urlResolver from '../../utils/url-resolver';
 /*eslint-disable no-unused-vars*/
@@ -25,6 +25,10 @@ export default class CodeInstrumentation extends SandboxBase {
         this._methodCallInstrumentation        = new MethodCallInstrumentation(eventSandbox.message);
         this._locationAccessorsInstrumentation = new LocationAccessorsInstrumentation(messageSandbox);
         this._propertyAccessorsInstrumentation = new PropertyAccessorsInstrumentation();
+    }
+
+    static _ensurePageHTML (html: string): string {
+        return isPageHtml(html) ? html : `<html><body>${html}</body></html>`;
     }
 
     attach (window: Window) {
@@ -80,8 +84,10 @@ export default class CodeInstrumentation extends SandboxBase {
 
         nativeMethods.objectDefineProperty(window, INSTRUCTION.processHtml, {
             value: (win: Window, html: any) => {
-                if (typeof html === 'string')
-                    html = processHtml(`<html><body>${html}</body></html>`, { processedContext: win });
+                if (typeof html === 'string') {
+                    html = CodeInstrumentation._ensurePageHTML(html);
+                    html = processHtml(html, { processedContext: win });
+                }
 
                 return html;
             },

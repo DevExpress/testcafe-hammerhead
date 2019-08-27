@@ -535,14 +535,18 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             removeChild () {
-                const child = arguments[0];
+                const child                = arguments[0];
+                const isSelfRemovingScript = domUtils.isSelfRemovingScript(child);
 
-                sandbox._onRemoveFileInputInfo(child);
-                sandbox._onRemoveIframe(child);
+                if (!isSelfRemovingScript) {
+                    sandbox._onRemoveFileInputInfo(child);
+                    sandbox._onRemoveIframe(child);
+                }
 
                 const result = nativeMethods.removeChild.apply(this, arguments);
 
-                sandbox._onElementRemoved(child);
+                if (!isSelfRemovingScript)
+                    sandbox._onElementRemoved(child);
 
                 return result;
             },
