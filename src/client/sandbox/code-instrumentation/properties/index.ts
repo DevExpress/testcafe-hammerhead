@@ -12,24 +12,18 @@ import nativeMethods from '../../native-methods';
 import DomProcessor from '../../../../processing/dom';
 import settings from '../../../settings';
 import { isIE } from '../../../utils/browser';
-/*eslint-disable no-unused-vars*/
 import WindowSandbox from '../../node/window';
-/*eslint-enable no-unused-vars*/
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
-    constructor (private readonly _windowSandbox: WindowSandbox) { // eslint-disable-line no-unused-vars
-        super();
-    }
-
     // NOTE: Isolate throw statements into a separate function because the
     // JS engine doesn't optimize such functions.
     static _error (msg: string) {
         throw new Error(msg);
     }
 
-    static _safeIsShadowUIElement (el: any) {
+    private static _safeIsShadowUIElement (el: any) {
         try {
-            return domUtils.isShadowUIElement(el);
+            return !WindowSandbox.isProxyObject(el) && domUtils.isShadowUIElement(el);
         }
         catch (e) {
             return false;
@@ -116,8 +110,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
     attach (window: Window) {
         super.attach(window);
 
-        const accessors     = this._createPropertyAccessors();
-        const windowSandbox = this._windowSandbox;
+        const accessors = this._createPropertyAccessors();
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
@@ -126,18 +119,17 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 if (typeUtils.isNullOrUndefined(owner))
                     PropertyAccessorsInstrumentation._error(`Cannot read property '${propName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
 
+                if (WindowSandbox.isProxyObject(owner))
+                    return owner[propName];
+
                 if (typeof propName === 'string' && shouldInstrumentProperty(propName) &&
                     accessors[propName].condition(owner))
                     return accessors[propName].get(owner);
 
                 const propertyValue = owner[propName];
 
-                windowSandbox.isInternalGetter = true;
-
                 if (propertyValue && PropertyAccessorsInstrumentation._safeIsShadowUIElement(propertyValue))
                     return void 0;
-
-                windowSandbox.isInternalGetter = false;
 
                 return propertyValue;
             },
@@ -150,6 +142,9 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 if (typeUtils.isNullOrUndefined(owner))
                     PropertyAccessorsInstrumentation._error(`Cannot set property '${propName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
 
+                if (WindowSandbox.isProxyObject(owner))
+                    return owner[propName] = value; // eslint-disable-line no-return-assign
+
                 const ownerSetPropertyInstruction = PropertyAccessorsInstrumentation._getSetPropertyInstructionByOwner(owner, window);
 
                 if (ownerSetPropertyInstruction)
@@ -159,8 +154,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     accessors[propName].condition(owner))
                     return accessors[propName].set(owner, value);
 
-                // eslint-disable-next-line no-return-assign
-                return owner[propName] = value;
+                return owner[propName] = value; // eslint-disable-line no-return-assign
             },
 
             configurable: true

@@ -10,7 +10,6 @@ import { getProxyUrl, stringifyResourceType } from '../../utils/url';
 import urlResolver from '../../utils/url-resolver';
 /*eslint-disable no-unused-vars*/
 import EventSandbox from '../event';
-import WindowSandbox from '../node/window';
 import MessageSandbox from '../event/message';
 /*eslint-enable no-unused-vars*/
 
@@ -20,12 +19,12 @@ export default class CodeInstrumentation extends SandboxBase {
     _propertyAccessorsInstrumentation: PropertyAccessorsInstrumentation;
     elementPropertyAccessors: any;
 
-    constructor (eventSandbox: EventSandbox, windowSandbox: WindowSandbox, messageSandbox: MessageSandbox) {
+    constructor (eventSandbox: EventSandbox, messageSandbox: MessageSandbox) {
         super();
 
         this._methodCallInstrumentation        = new MethodCallInstrumentation(eventSandbox.message);
         this._locationAccessorsInstrumentation = new LocationAccessorsInstrumentation(messageSandbox);
-        this._propertyAccessorsInstrumentation = new PropertyAccessorsInstrumentation(windowSandbox);
+        this._propertyAccessorsInstrumentation = new PropertyAccessorsInstrumentation();
     }
 
     attach (window: Window) {
