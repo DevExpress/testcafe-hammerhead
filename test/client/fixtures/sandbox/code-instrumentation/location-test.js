@@ -99,7 +99,7 @@ test('"isLocation" (GH-1863)', function () {
 
 test('iframe with empty src', function () {
     function assert (iframe) {
-        new CodeInstrumentation({}, {}, messageSandbox).attach(iframe.contentWindow);
+        new CodeInstrumentation({}, messageSandbox).attach(iframe.contentWindow);
 
         var anchor = iframe.contentDocument.createElement('a');
 
@@ -127,7 +127,7 @@ if (browserUtils.isWebKit) {
     test('iframe with "javascript:" src', function () {
         return createTestIframe({ src: 'javascript:void(0);' })
             .then(function (iframe) {
-                new CodeInstrumentation({}, {}, messageSandbox).attach(iframe.contentWindow);
+                new CodeInstrumentation({}, messageSandbox).attach(iframe.contentWindow);
 
                 var anchor = iframe.contentDocument.createElement('a');
 
