@@ -89,8 +89,10 @@ export default class MethodCallInstrumentation extends SandboxBase {
 
         nativeMethods.objectDefineProperty(window, INSTRUCTION.getPostMessage, {
             value: function (win: Window, postMessageFn: Function) {
-                if (arguments.length === 1 && !isWindow(win))
+                if (arguments.length === 1 && !isWindow(win)) {
+                    // @ts-ignore
                     return win.postMessage;
+                }
 
                 if (arguments.length === 2 && !MethodCallInstrumentation._isPostMessageFn(this, postMessageFn))
                     return postMessageFn;

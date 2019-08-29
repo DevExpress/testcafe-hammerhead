@@ -28,7 +28,6 @@ import {
     isStyleElement,
     findDocument,
     isBodyElement,
-    isHeadOrBodyElement,
     isHtmlElement
 } from '../../utils/dom';
 import { isPrimitiveType } from '../../utils/types';
@@ -690,8 +689,10 @@ export default class WindowSandbox extends SandboxBase {
                 // NOTE: If we append our file wrapper to FormData, we will lose the file name.
                 // This happens because the file wrapper is an instance of Blob
                 // and a browser thinks that Blob does not contain the "name" property.
-                if (arguments.length === 2 && isBlob(value) && 'name' in value)
+                if (arguments.length === 2 && isBlob(value) && 'name' in value) {
+                    // @ts-ignore
                     nativeMethods.formDataAppend.call(this, name, value, value.name);
+                }
                 else
                     nativeMethods.formDataAppend.apply(this, arguments);
             };
@@ -762,14 +763,8 @@ export default class WindowSandbox extends SandboxBase {
             getter: function () {
                 const length = nativeMethods.htmlCollectionLengthGetter.call(this);
 
-                if (ShadowUI.isShadowContainerCollection(this))
+                if (ShadowUI.isShadowContainerCollection(this, length))
                     return windowSandbox.shadowUI.getShadowUICollectionLength(this, length);
-                // IE11 and Edge have a strange behavior: shadow container collection flag may be lost (GH-1763)
-                else if (isIE && length && isHeadOrBodyElement(nativeMethods.nodeParentNodeGetter.call(this[0]))) {
-                    ShadowUI.markAsShadowContainerCollection(this);
-
-                    return windowSandbox.shadowUI.getShadowUICollectionLength(this, length);
-                }
 
                 return length;
             }

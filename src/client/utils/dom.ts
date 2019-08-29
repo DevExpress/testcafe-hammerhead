@@ -7,7 +7,7 @@ import { get as getStyle } from './style';
 import { sameOriginCheck } from './destination-location';
 import { isFirefox, isWebKit, isIE, isMSEdge, isSafari } from './browser';
 import { getNativeQuerySelectorAll } from './query-selector';
-import { instanceAndPrototypeToStringAreEqual } from '../utils/feature-detection';
+import { instanceAndPrototypeToStringAreEqual } from './feature-detection';
 
 let scrollbarSize: number = 0;
 
@@ -159,7 +159,7 @@ export function getMapContainer (el: HTMLElement) {
     return nativeMethods.querySelector.call(findDocument(el), containerSelector);
 }
 
-export function getParentWindowWithSrc (window: Window) {
+export function getParentWindowWithSrc (window: Window): Window {
     const parent           = window.parent;
     let parentFrameElement = null;
 
@@ -353,7 +353,7 @@ export function isHammerheadAttr (attr): boolean {
            attr.indexOf(INTERNAL_ATTRS.storedAttrPostfix) !== -1;
 }
 
-export function isIframeElement (el): boolean {
+export function isIframeElement (el: any): el is HTMLIFrameElement {
     return instanceToString(el) === '[object HTMLIFrameElement]';
 }
 
@@ -388,64 +388,64 @@ export function isIframeWithoutSrc (iframe): boolean {
     return !iframeDocumentLocationHaveSupportedProtocol;
 }
 
-export function isImgElement (el: any): boolean {
+export function isImgElement (el: any): el is HTMLImageElement {
     return instanceToString(el) === '[object HTMLImageElement]';
 }
 
-export function isInputElement (el: any): boolean {
+export function isInputElement (el: any): el is HTMLInputElement {
     return instanceToString(el) === '[object HTMLInputElement]';
 }
 
-export function isButtonElement (el: any): boolean {
+export function isButtonElement (el: any): el is HTMLButtonElement {
     return instanceToString(el) === '[object HTMLButtonElement]';
 }
 
-export function isHtmlElement (el: any): boolean {
+export function isHtmlElement (el: any): el is HTMLHtmlElement {
     return instanceToString(el) === '[object HTMLHtmlElement]';
 }
 
-export function isBodyElement (el: any): boolean {
+export function isBodyElement (el: any): el is HTMLBodyElement {
     return instanceToString(el) === '[object HTMLBodyElement]';
 }
 
-export function isHeadElement (el: any): boolean {
+export function isHeadElement (el: any): el is HTMLHeadElement {
     return instanceToString(el) === '[object HTMLHeadElement]';
 }
 
-export function isHeadOrBodyElement (el: any): boolean {
+export function isHeadOrBodyElement (el: any): el is HTMLHeadElement | HTMLBodyElement {
     const elString = instanceToString(el);
 
     return elString === '[object HTMLHeadElement]' || elString === '[object HTMLBodyElement]';
 }
 
-export function isHeadOrBodyOrHtmlElement (el: any): boolean {
+export function isHeadOrBodyOrHtmlElement (el: any): el is HTMLHeadElement | HTMLBodyElement | HTMLHtmlElement {
     const elString = instanceToString(el);
 
     return elString === '[object HTMLHeadElement]' || elString === '[object HTMLBodyElement]' ||
            elString === '[object HTMLHtmlElement]';
 }
 
-export function isBaseElement (el: any): boolean {
+export function isBaseElement (el: any): el is HTMLBaseElement {
     return instanceToString(el) === '[object HTMLBaseElement]';
 }
 
-export function isScriptElement (el: any): boolean {
+export function isScriptElement (el: any): el is HTMLScriptElement {
     return instanceToString(el) === '[object HTMLScriptElement]';
 }
 
-export function isStyleElement (el: any): boolean {
+export function isStyleElement (el: any): el is HTMLStyleElement {
     return instanceToString(el) === '[object HTMLStyleElement]';
 }
 
-export function isLabelElement (el: any): boolean {
+export function isLabelElement (el: any): el is HTMLLabelElement {
     return instanceToString(el) === '[object HTMLLabelElement]';
 }
 
-export function isTextAreaElement (el: any): boolean {
+export function isTextAreaElement (el: any): el is HTMLTextAreaElement {
     return instanceToString(el) === '[object HTMLTextAreaElement]';
 }
 
-export function isOptionElement (el: any): boolean {
+export function isOptionElement (el: any): el is HTMLOptionElement {
     return instanceToString(el) === '[object HTMLOptionElement]';
 }
 
@@ -461,11 +461,11 @@ export function isCheckboxElement (el: HTMLInputElement): boolean {
     return isInputElement(el) && el.type.toLowerCase() === 'checkbox';
 }
 
-export function isSelectElement (el: any): boolean {
+export function isSelectElement (el: any): el is HTMLSelectElement {
     return instanceToString(el) === '[object HTMLSelectElement]';
 }
 
-export function isFormElement (el: any): boolean {
+export function isFormElement (el: any): el is HTMLFormElement {
     return instanceToString(el) === '[object HTMLFormElement]';
 }
 
@@ -481,7 +481,7 @@ export function isBodyElementWithChildren (el: HTMLElement): boolean {
     return isBodyElement(el) && nativeMethods.htmlCollectionLengthGetter.call(el.children);
 }
 
-export function isMapElement (el: HTMLElement): boolean {
+export function isMapElement (el: HTMLElement): el is HTMLMapElement | HTMLAreaElement {
     return NATIVE_MAP_ELEMENT_STRINGS.indexOf(instanceToString(el)) !== -1;
 }
 
@@ -489,7 +489,7 @@ export function isRenderedNode (node: Node): boolean {
     return !(isProcessingInstructionNode(node) || isCommentNode(node) || SCRIPT_OR_STYLE_RE.test(node.nodeName));
 }
 
-export function getTabIndex (el: HTMLElement) {
+export function getTabIndex (el: HTMLElement): number | null {
     // NOTE: we obtain the tabIndex value from an attribute because the el.tabIndex
     // property returns -1 for some elements (e.g. for body) with no tabIndex assigned
     let tabIndex = nativeMethods.getAttribute.call(el, 'tabIndex');
@@ -533,7 +533,7 @@ export function isShadowUIElement (element: any): boolean {
     return !!element[INTERNAL_PROPS.shadowUIElement];
 }
 
-export function isWindow (instance: any): boolean {
+export function isWindow (instance: any): instance is Window {
     if (instance instanceof nativeMethods.windowClass)
         return true;
 
@@ -558,7 +558,7 @@ export function isWindow (instance: any): boolean {
     }
 }
 
-export function isDocument (instance: any): boolean {
+export function isDocument (instance: any): instance is Document {
     if (instance instanceof nativeMethods.documentClass)
         return true;
 
@@ -572,11 +572,11 @@ export function isDocument (instance: any): boolean {
     }
 }
 
-export function isBlob (instance: any): boolean {
+export function isBlob (instance: any): instance is Blob {
     return instance && instanceToString(instance) === '[object Blob]';
 }
 
-export function isLocation (instance: any): boolean {
+export function isLocation (instance: any): instance is Location {
     if (!instance)
         return false;
 
@@ -598,14 +598,14 @@ export function isSVGElementOrChild (el): boolean {
     return !!closest(el, 'svg');
 }
 
-export function isFetchHeaders (instance): boolean {
+export function isFetchHeaders (instance: any): instance is Headers {
     if (nativeMethods.Headers && instance instanceof nativeMethods.Headers)
         return true;
 
     return instance && instanceToString(instance) === '[object Headers]';
 }
 
-export function isFetchRequest (instance): boolean {
+export function isFetchRequest (instance: any): instance is Request {
     if (nativeMethods.Request && instance instanceof nativeMethods.Request)
         return true;
 
@@ -635,7 +635,7 @@ export function isElementNode (node): boolean {
     return node && node.nodeType === ELEMENT_NODE_TYPE;
 }
 
-export function isTextNode (node): boolean {
+export function isTextNode (node: any): node is Text {
     return instanceToString(node) === '[object Text]';
 }
 
@@ -643,39 +643,39 @@ export function isProcessingInstructionNode (node): boolean {
     return IS_PROCESSING_INSTRUCTION_RE.test(instanceToString(node));
 }
 
-export function isCommentNode (node): boolean {
+export function isCommentNode (node: any): node is Comment {
     return instanceToString(node) === '[object Comment]';
 }
 
-export function isDocumentFragmentNode (node): boolean {
+export function isDocumentFragmentNode (node: any): node is DocumentFragment {
     return instanceToString(node) === '[object DocumentFragment]';
 }
 
-export function isShadowRoot (root): boolean {
+export function isShadowRoot (root: any): root is ShadowRoot {
     return instanceToString(root) === '[object ShadowRoot]';
 }
 
-export function isAnchorElement (el): boolean {
+export function isAnchorElement (el: any): el is HTMLAnchorElement {
     return instanceToString(el) === '[object HTMLAnchorElement]';
 }
 
-export function isTableElement (el): boolean {
+export function isTableElement (el: any): el is HTMLTableElement {
     return instanceToString(el) === '[object HTMLTableElement]';
 }
 
-export function isTableDataCellElement (el): boolean {
+export function isTableDataCellElement (el: any): el is HTMLTableCellElement {
     return instanceToString(el) === NATIVE_TABLE_CELL_STR;
 }
 
-export function isWebSocket (ws): boolean {
+export function isWebSocket (ws: any): ws is WebSocket {
     return instanceToString(ws) === '[object WebSocket]';
 }
 
-export function isMessageEvent (e): boolean {
+export function isMessageEvent (e: any): e is MessageEvent {
     return instanceToString(e) === '[object MessageEvent]';
 }
 
-export function isPerformanceNavigationTiming (entry): boolean {
+export function isPerformanceNavigationTiming (entry: any): entry is PerformanceNavigationTiming {
     return instanceToString(entry) === '[object PerformanceNavigationTiming]';
 }
 

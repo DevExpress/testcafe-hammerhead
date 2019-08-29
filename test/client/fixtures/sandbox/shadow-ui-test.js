@@ -25,25 +25,55 @@ QUnit.testStart(function () {
 });
 
 // IE11 and Edge have a strange behavior: shadow container collection flag may be lost (GH-1763)
-test('shadow container collection flag should not be lost (GH-1763)', function () {
-    var anchor               = document.createElement('a');
-    var childrenOriginLength = nativeMethods.htmlCollectionLengthGetter.call(document.body.children);
+if (browserUtils.isIE) {
+    test('shadow container collection flag should not be lost (GH-1763 and GH-2034)', function () {
+        var IS_SHADOW_CONTAINER_COLLECTION_FLAG = 'hammerhead|shadow-ui|container-collection-flag';
+        var childrenNativeLength                = nativeMethods.htmlCollectionLengthGetter.call(document.body.children);
 
-    function checkFlagAndLength () {
-        document.body.appendChild(anchor);
-        anchor.parentNode.removeChild(anchor);
+        strictEqual(document.body.children.length, childrenNativeLength - 1);
+        strictEqual(document.body.children[IS_SHADOW_CONTAINER_COLLECTION_FLAG], true);
 
-        strictEqual(document.body.children.length, childrenOriginLength - 1);
-    }
+        delete document.body.children[IS_SHADOW_CONTAINER_COLLECTION_FLAG];
 
-    return window.wait(0)
-        .then(function () {
-            checkFlagAndLength();
+        strictEqual(document.body.children[IS_SHADOW_CONTAINER_COLLECTION_FLAG], void 0);
+        strictEqual(document.body.children.length, childrenNativeLength - 1);
+        strictEqual(document.body.children[IS_SHADOW_CONTAINER_COLLECTION_FLAG], true);
 
-            return window.wait(5000);
-        })
-        .then(checkFlagAndLength);
-});
+        document.body.insertAdjacentHTML('beforeend', '<div><form><input type="file"></form></div>');
+
+        var div = document.body.lastElementChild;
+
+        strictEqual(div.children.length, 1);
+        strictEqual(div.children[IS_SHADOW_CONTAINER_COLLECTION_FLAG], false);
+
+        var form  = div.firstElementChild;
+        var input = form.firstElementChild;
+
+        hiddenInfo.setFormInfo(input, {});
+
+        var nativeFormLength = nativeMethods.htmlCollectionLengthGetter.call(form.children);
+
+        strictEqual(form.children.length, nativeFormLength - 1);
+        strictEqual(form.children[IS_SHADOW_CONTAINER_COLLECTION_FLAG], true);
+
+        delete form.children[IS_SHADOW_CONTAINER_COLLECTION_FLAG];
+
+        strictEqual(form.children[IS_SHADOW_CONTAINER_COLLECTION_FLAG], void 0);
+        strictEqual(form.children.length, nativeFormLength - 1);
+        strictEqual(form.children[IS_SHADOW_CONTAINER_COLLECTION_FLAG], true);
+
+        strictEqual(form.elements.length, nativeFormLength - 1);
+        strictEqual(form.elements[IS_SHADOW_CONTAINER_COLLECTION_FLAG], true);
+
+        delete form.elements[IS_SHADOW_CONTAINER_COLLECTION_FLAG];
+
+        strictEqual(form.elements[IS_SHADOW_CONTAINER_COLLECTION_FLAG], void 0);
+        strictEqual(form.elements.length, nativeFormLength - 1);
+        strictEqual(form.elements[IS_SHADOW_CONTAINER_COLLECTION_FLAG], true);
+
+        document.body.removeChild(div);
+    });
+}
 
 test('add UI class and get UI element with selector', function () {
     var uiElem = document.createElement('div');
