@@ -75,7 +75,7 @@
     "gulp-ll-next": "^2.1.0",
     "gulp-mocha-simple": "^1.0.0",
     "gulp-mustache": "^3.0.1",
-    "gulp-qunit-harness": "^1.0.1",
+    "gulp-qunit-harness": "https://github.com/AndreyBelym/gulp-qunit-harness/releases/download/test-qunit-1/gulp-qunit-harness-1.0.2.tgz",
     "gulp-rename": "^1.2.2",
     "gulp-run-command": "0.0.9",
     "gulp-step": "^1.0.1",
