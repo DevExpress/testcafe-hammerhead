@@ -32,7 +32,6 @@
     "nanoid": "^0.2.2",
     "os-family": "^1.0.0",
     "parse5": "2.2.3",
-    "pify": "^2.3.0",
     "pinkie": "1.0.0",
     "read-file-relative": "^1.2.0",
     "semver": "5.5.0",
