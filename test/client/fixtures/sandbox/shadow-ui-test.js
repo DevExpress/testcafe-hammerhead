@@ -758,10 +758,11 @@ test('el.getElementsByTagName("input")', function () {
 
     hiddenInfo.setFormInfo(input, {});
 
-    var nativeCollection  = nativeMethods.elementGetElementsByTagName.call(div, 'input');
-    var wrappedCollection = div.getElementsByTagName('input');
+    var nativeCollection       = nativeMethods.elementGetElementsByTagName.call(div, 'input');
+    var nativeCollectionLength = nativeMethods.htmlCollectionLengthGetter.call(nativeCollection);
+    var wrappedCollection      = div.getElementsByTagName('input');
 
-    strictEqual(nativeCollection.length, 2);
+    strictEqual(nativeCollectionLength, 2);
     strictEqual(wrappedCollection.length, 1);
     strictEqual(wrappedCollection[0], input);
 });

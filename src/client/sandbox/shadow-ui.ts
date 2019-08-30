@@ -552,13 +552,13 @@ export default class ShadowUI extends SandboxBase {
     }
 
     // IE11 and Edge have a strange behavior: shadow container collection flag may be lost (GH-1763 and GH-2034)
-    private static _hasCollectionFlagForIE (obj: any, length: number | void, flag: string): boolean {
+    private static _hasCollectionFlagForIE (obj: any, flag: string): boolean {
         try {
             if (flag in obj)
                 return obj[flag];
 
             const parent = nativeMethods.nodeParentNodeGetter.call(obj[0]);
-            const result = length && (domUtils.isHeadOrBodyElement(parent) || domUtils.isFormElement(parent));
+            const result = domUtils.isHeadOrBodyElement(parent) || domUtils.isFormElement(parent);
 
             nativeMethods.objectDefineProperty(obj, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: result, configurable: true });
 
@@ -575,7 +575,7 @@ export default class ShadowUI extends SandboxBase {
 
     static isShadowContainerCollection (collection, length?: number) {
         return isIE && length
-            ? ShadowUI._hasCollectionFlagForIE(collection, length, IS_SHADOW_CONTAINER_COLLECTION_FLAG)
+            ? ShadowUI._hasCollectionFlagForIE(collection, IS_SHADOW_CONTAINER_COLLECTION_FLAG)
             : ShadowUI._hasFlag(collection, IS_SHADOW_CONTAINER_COLLECTION_FLAG);
     }
 
