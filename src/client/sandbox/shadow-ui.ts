@@ -11,6 +11,7 @@ import { stopPropagation } from '../utils/event';
 import { getNativeQuerySelectorAll } from '../utils/query-selector';
 import HTMLCollectionWrapper from './node/live-node-list/html-collection-wrapper';
 import { getElementsByNameReturnsHTMLCollection } from '../utils/feature-detection';
+import { isIE } from '../utils/browser';
 /*eslint-disable no-unused-vars*/
 import { DocumentCleanedEvent } from '../../typings/client';
 import NodeMutation from './node/mutation';
@@ -541,9 +542,27 @@ export default class ShadowUI extends SandboxBase {
             nativeMethods.appendChild.call(collectionOwner, shadowUIElement);
     }
 
-    static _hasFlag (obj, flag) {
+    private static _hasFlag (obj, flag: string): boolean {
         try {
             return !!obj[flag];
+        }
+        catch (e) {
+            return false;
+        }
+    }
+
+    // IE11 and Edge have a strange behavior: shadow container collection flag may be lost (GH-1763 and GH-2034)
+    private static _hasCollectionFlagForIE (obj: any, flag: string): boolean {
+        try {
+            if (flag in obj)
+                return obj[flag];
+
+            const parent = nativeMethods.nodeParentNodeGetter.call(obj[0]);
+            const result = domUtils.isHeadOrBodyElement(parent) || domUtils.isFormElement(parent);
+
+            nativeMethods.objectDefineProperty(obj, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: result, configurable: true });
+
+            return result;
         }
         catch (e) {
             return false;
@@ -554,8 +573,10 @@ export default class ShadowUI extends SandboxBase {
         return ShadowUI._hasFlag(el, IS_SHADOW_CONTAINER_FLAG);
     }
 
-    static isShadowContainerCollection (collection) {
-        return ShadowUI._hasFlag(collection, IS_SHADOW_CONTAINER_COLLECTION_FLAG);
+    static isShadowContainerCollection (collection, length?: number) {
+        return isIE && length
+            ? ShadowUI._hasCollectionFlagForIE(collection, IS_SHADOW_CONTAINER_COLLECTION_FLAG)
+            : ShadowUI._hasFlag(collection, IS_SHADOW_CONTAINER_COLLECTION_FLAG);
     }
 
     static _isShadowUIChildListMutation (mutation) {
@@ -722,7 +743,7 @@ export default class ShadowUI extends SandboxBase {
     }
 
     static markAsShadowContainerCollection (collection) {
-        nativeMethods.objectDefineProperty(collection, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: true });
+        nativeMethods.objectDefineProperty(collection, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: true, configurable: true });
     }
 
     static containsShadowUIClassPostfix (element) {

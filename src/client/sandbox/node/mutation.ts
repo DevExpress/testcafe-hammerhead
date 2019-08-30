@@ -24,8 +24,8 @@ export default class NodeMutation extends EventEmitter {
         this.emit(this.DOCUMENT_CLOSED_EVENT, document);
     }
 
-    onBodyContentChanged (body: HTMLBodyElement) {
-        this.emit(this.BODY_CONTENT_CHANGED_EVENT, body);
+    onBodyContentChanged (element: HTMLBodyElement | HTMLHtmlElement) {
+        this.emit(this.BODY_CONTENT_CHANGED_EVENT, element);
     }
 
     onBodyCreated (body: HTMLBodyElement) {
