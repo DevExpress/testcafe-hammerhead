@@ -188,5 +188,12 @@ describe('DOM processor', () => {
 
             expect(documentFragmentNode['hammerhead|element-processed']).to.not.to.be.true;
         });
+
+        it('Should not contain the iframe flag on an input with type="image" (GH-2116)', () => {
+            const root  = process('<input type="image" src="http://example.com/123.png">', true);
+            const input = parse5Utils.findElementsByTagNames(root, 'input').input[0];
+
+            expect(domAdapter.getAttr(input, 'src')).eql('http://localhost:80/sessionId!f/http://example.com/123.png');
+        });
     });
 });
