@@ -338,6 +338,7 @@ class NativeMethods {
     runInNewContext: any;
     runInThisContext: any;
     scrollTo: any;
+    URL: any;
 
     constructor (doc?: Document, win?: Window) {
         win = win || window;
@@ -969,6 +970,7 @@ class NativeMethods {
         this.HTMLCollection   = win.HTMLCollection;
         this.NodeList         = win.NodeList;
         this.Node             = win.Node;
+        this.URL              = win.URL;
 
         if (win.Proxy)
             this.Proxy = win.Proxy;

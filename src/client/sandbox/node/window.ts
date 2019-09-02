@@ -57,6 +57,7 @@ import MessageSandbox from '../event/message';
 import Listeners from '../event/listeners';
 import ElementEditingWatcher from '../event/element-editing-watcher';
 /*eslint-enable no-unused-vars*/
+import XhrSandbox from '../xhr';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -122,6 +123,15 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         return stack;
+    }
+
+    private static _isArrayOfStrings (array: Array<any>) : boolean {
+        for (const item of array) {
+            if (typeof item !== 'string')
+                return false;
+        }
+
+        return true;
     }
 
     _raiseUncaughtJsErrorEvent (type: string, event: any, window: Window) {
@@ -457,8 +467,21 @@ export default class WindowSandbox extends SandboxBase {
                 // Unfortunately, we do not have the ability to exactly identify a script. That's why we make such
                 // an assumption. We cannot solve this problem at the Worker level either, because the operation of
                 // creating a new Blob instance is asynchronous. (GH-231)
-                if (!type || JAVASCRIPT_MIME_TYPES.indexOf(type) !== -1)
-                    array = [processScript(array.join(''), true, false, convertToProxyUrl)];
+                if (!type || JAVASCRIPT_MIME_TYPES.indexOf(type) !== -1) {
+                    if (WindowSandbox._isArrayOfStrings(array))
+                        array = [processScript(array.join(''), true, false, convertToProxyUrl)];
+                    else {
+                        const mergedBlob = new nativeMethods.Blob(array, opts);
+                        const url        = nativeMethods.URL.createObjectURL(mergedBlob);
+                        const xhr        = XhrSandbox.createNativeXHR();
+
+                        xhr.open('GET', url, false);
+                        xhr.send();
+                        nativeMethods.URL.revokeObjectURL(url);
+
+                        array = [processScript(xhr.responseText, true, false, convertToProxyUrl)];
+                    }
+                }
 
                 // NOTE: IE11 throws an error when the second parameter of the Blob function is undefined (GH-44)
                 // If the overridden function is called with one parameter, we need to call the original function

@@ -56,6 +56,8 @@ test('refreshed classes "toString" method', function () {
     });
 });
 
+module('Blob');
+
 test('window.Blob([data], { type: "" }) should return correct result for `ArrayBuffer`, `Uint8Array` and `DataView` data types (GH-1599)', function () {
     var bmpExample = {
         signature: [0x42, 0x4D]
@@ -118,6 +120,23 @@ test('window.Blob([data], { type: "" }) should return correct result for `ArrayB
         testConstructor(Uint8Array),
         testConstructor(DataView)
     ]);
+});
+
+asyncTest('Blob form mixed parts should be processed (GH-2115)', function () {
+    var blobPart    = new nativeMethods.Blob(['__set$(t, "blobTest", true); postMessage(t.blobTest); };']);
+    var scriptParts = ['self.onmessage = function() { var t = {};', blobPart];
+    var blob        = new window.Blob(scriptParts, { type: 'texT/javascript' });
+    var url         = window.URL.createObjectURL(blob);
+    var worker      = new window.Worker(url);
+
+    worker.onmessage = function (e) {
+        strictEqual(e.data, true);
+        worker.terminate();
+
+        start();
+    };
+
+    worker.postMessage('');
 });
 
 module('Image');
