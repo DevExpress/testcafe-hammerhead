@@ -7,15 +7,6 @@
 import { Node } from 'estree';
 /*eslint-enable no-unused-vars*/
 
-declare module 'estree' {
-    interface BaseNode {
-        start?: number;
-        end?: number;
-        originStart?: number;
-        originEnd?: number;
-    }
-}
-
 export default function replaceNode<T extends Node> (node: Node | null, newNode: Node, parent: T, key: keyof T) {
     const oldNode = parent[key];
 
