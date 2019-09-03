@@ -122,15 +122,15 @@ test('window.Blob([data], { type: "" }) should return correct result for `ArrayB
     ]);
 });
 
-asyncTest('Blob form mixed parts should be processed (GH-2115)', function () {
-    var blobPart    = new nativeMethods.Blob(['__set$(t, "blobTest", true); postMessage(t.blobTest); };']);
-    var scriptParts = ['self.onmessage = function() { var t = {};', blobPart];
-    var blob        = new window.Blob(scriptParts, { type: 'texT/javascript' });
-    var url         = window.URL.createObjectURL(blob);
-    var worker      = new window.Worker(url);
+asyncTest('should process Blob parts in the case of the "Array<string | number | boolean>" array (GH-2115)', function () {
+    var scriptForProcessing = ['self.onmessage = function() { var t = {};', '__set$(t, "blobTest", ', 1, '+', true, '); postMessage(t.blobTest); };'];
+    var blob                = new window.Blob(scriptForProcessing, { type: 'texT/javascript' });
+
+    var url    = window.URL.createObjectURL(blob);
+    var worker = new window.Worker(url);
 
     worker.onmessage = function (e) {
-        strictEqual(e.data, true);
+        strictEqual(e.data, 2);
         worker.terminate();
 
         start();
