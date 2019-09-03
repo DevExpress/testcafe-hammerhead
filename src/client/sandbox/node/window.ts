@@ -125,12 +125,20 @@ export default class WindowSandbox extends SandboxBase {
     }
 
     private static _isProcessable (blobParts: Array<any>) : boolean {
+        let hasStringItem = false;
+
         for (const item of blobParts) {
+            if (!hasStringItem && typeof item === 'string') {
+                hasStringItem = true;
+
+                continue;
+            }
+
             if (typeof item !== 'string' && typeof item !== 'number' && typeof item !== 'boolean')
                 return false;
         }
 
-        return true;
+        return hasStringItem;
     }
 
     _raiseUncaughtJsErrorEvent (type: string, event: any, window: Window) {
