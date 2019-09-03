@@ -38,7 +38,7 @@ export default abstract class Router {
         this.options = options;
     }
 
-    _registerRoute (route: string, method: string, handler: StaticContent | Function) {
+    _registerRoute (route: string, method: string, handler: StaticContent | Function): void {
         const tokens            = route.split('/');
         const isRouteWithParams = tokens.some(token => PARAM_RE.test(token));
 
@@ -78,13 +78,13 @@ export default abstract class Router {
         };
     }
 
-    _registerRouteWithParams (tokens: Array<string>, method: string, handler: Function) {
+    _registerRouteWithParams (tokens: Array<string>, method: string, handler: Function): void {
         const { paramNames, re } = this._prepareParamInfo(tokens, method);
 
         this.routesWithParams.push({ handler, paramNames, re });
     }
 
-    _unregisterRouteWithParams (tokens: Array<string>, method: string) {
+    _unregisterRouteWithParams (tokens: Array<string>, method: string): void {
         const { paramNames, re } = this._prepareParamInfo(tokens, method);
 
         const routeIndex = this.routesWithParams.findIndex(routeWithParam => {
@@ -135,15 +135,15 @@ export default abstract class Router {
         this._registerRoute(route, 'POST', handler);
     }
 
-    unRegisterRoute (route: string, method: string) {
+    unRegisterRoute (route: string, method: string): void {
         const tokens            = route.split('/');
         const isRouteWithParams = tokens.some(token => PARAM_RE.test(token));
 
         if (isRouteWithParams)
-            return this._unregisterRouteWithParams(tokens, method);
+            this._unregisterRouteWithParams(tokens, method);
 
         const routeName = `${method} ${route}`;
 
-        return this.routes.delete(routeName);
+        this.routes.delete(routeName);
     }
 }

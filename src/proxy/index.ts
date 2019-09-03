@@ -173,7 +173,7 @@ export default class Proxy extends Router {
         resetKeepAliveConnections();
     }
 
-    openSession (url: string, session: Session, externalProxySettings: ExternalProxySettingsRaw) {
+    openSession (url: string, session: Session, externalProxySettings: ExternalProxySettingsRaw): string {
         session.proxy = this;
 
         this.openSessions.set(session.id, session);
@@ -191,7 +191,7 @@ export default class Proxy extends Router {
         });
     }
 
-    closeSession (session) {
+    closeSession (session: Session): void {
         session.proxy = null;
 
         this.openSessions.delete(session.id);
