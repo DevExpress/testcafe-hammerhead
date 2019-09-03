@@ -131,8 +131,6 @@ asyncTest('should process Blob parts in the case of the "Array<string | number |
 
     worker.onmessage = function (e) {
         strictEqual(e.data, 2);
-        worker.terminate();
-
         start();
     };
 
