@@ -81,10 +81,10 @@ export default abstract class Session extends EventEmitter {
     mocks: Map<RequestFilterRule, ResponseMock> = new Map();
     disablePageCaching:boolean = false;
 
-    protected constructor (uploadsRoot: string) {
+    protected constructor (uploadRoots: string[]) {
         super();
 
-        this.uploadStorage = new UploadStorage(uploadsRoot);
+        this.uploadStorage = new UploadStorage(uploadRoots);
     }
 
     // State
