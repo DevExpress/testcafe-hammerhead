@@ -4,7 +4,7 @@
 // -------------------------------------------------------------
 
 /*eslint-disable no-unused-vars*/
-import { Identifier, Node } from 'estree';
+import { Identifier } from 'estree';
 import { Transformer } from './index';
 /*eslint-enable no-unused-vars*/
 import INSTRUCTION from '../instruction';
@@ -16,13 +16,13 @@ import { Syntax } from 'esotope-hammerhead';
 // -->
 // const foo = _get$Eval(eval); foo = _get$Eval(eval); { _eval: _get$Eval(eval) }; return _get$Eval(eval);
 
-const transformer: Transformer = {
+const transformer: Transformer<Identifier> = {
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.Identifier,
 
-    condition: (node: Identifier, parent: Node): boolean => {
-        if (node.name === 'eval') {
+    condition: (node, parent) => {
+        if (node.name === 'eval' && parent) {
             // Skip: eval()
             if (parent.type === Syntax.CallExpression && parent.callee === node)
                 return false;

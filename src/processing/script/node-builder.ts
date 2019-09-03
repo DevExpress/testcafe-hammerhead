@@ -104,8 +104,8 @@ export function createLocationGetWrapper (): CallExpression {
 }
 
 export function createLocationSetWrapper (value: Expression, wrapWithSequence: boolean): Expression {
-    const tempIdentifier     = createTempVarIdentifier();
-    const locationIdentifier = <Identifier>{
+    const tempIdentifier                 = createTempVarIdentifier();
+    const locationIdentifier: Identifier = {
         type: Syntax.Identifier,
         name: 'location'
     };
@@ -340,8 +340,9 @@ export function createExpandedConcatOperation (left: Identifier | MemberExpressi
 }
 
 export function createHtmlProcessorWrapper (node: ExpressionStatement): Statement {
-    const member = <MemberExpression>{
-        type: Syntax.MemberExpression,
+    const member: MemberExpression = {
+        type:     Syntax.MemberExpression,
+        computed: false,
 
         object: {
             type: Syntax.Identifier,

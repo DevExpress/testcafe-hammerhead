@@ -15,12 +15,12 @@ import { shouldInstrumentProperty } from '../instrumented';
 // val1 += val2
 // --> val1 = val1 + val2
 
-const transformer: Transformer = {
+const transformer: Transformer<AssignmentExpression> = {
     nodeReplacementRequireTransform: true,
 
     nodeTypes: Syntax.AssignmentExpression,
 
-    condition: (node: AssignmentExpression): boolean => {
+    condition: node => {
         if (node.operator !== '+=')
             return false;
 
@@ -43,7 +43,7 @@ const transformer: Transformer = {
         return false;
     },
 
-    run: (node: AssignmentExpression): AssignmentExpression => createExpandedConcatOperation(<Identifier | MemberExpression>node.left, node.right)
+    run: node => createExpandedConcatOperation(node.left as Identifier | MemberExpression, node.right)
 };
 
 export default transformer;

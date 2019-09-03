@@ -16,15 +16,15 @@ import replaceNode from './replace-node';
 // -->
 // import(__get$ProxyUrl(something)).then()
 
-const transformer: Transformer = {
+const transformer: Transformer<CallExpression> = {
     nodeReplacementRequireTransform: true,
 
     nodeTypes: Syntax.CallExpression,
 
     // @ts-ignore
-    condition: (node: CallExpression) => node.callee.type === Syntax.Import,
+    condition: node => node.callee.type === Syntax.Import,
 
-    run: (node: CallExpression) => {
+    run: node => {
         const newArgs = createGetProxyUrlMethCall(node.arguments[0], transformer.baseUrl);
 
         replaceNode(node.arguments[0], newArgs, node, 'arguments');

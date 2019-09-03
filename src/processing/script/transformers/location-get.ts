@@ -4,7 +4,7 @@
 // -------------------------------------------------------------
 
 /*eslint-disable no-unused-vars*/
-import { Node, Identifier } from 'estree';
+import { Identifier } from 'estree';
 import { Transformer } from './index';
 /*eslint-enable no-unused-vars*/
 import { createLocationGetWrapper } from '../node-builder';
@@ -15,13 +15,13 @@ import { Syntax } from 'esotope-hammerhead';
 // location -->
 // __get$Loc(location)
 
-const transformer: Transformer = {
+const transformer: Transformer<Identifier> = {
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.Identifier,
 
-    condition: (node: Identifier, parent: Node): boolean => {
-        if (node.name !== 'location')
+    condition: (node, parent) => {
+        if (node.name !== 'location' || !parent)
             return false;
 
         // Skip: const location = value;

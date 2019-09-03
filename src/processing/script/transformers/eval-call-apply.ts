@@ -19,12 +19,12 @@ const INVOCATION_FUNC_NAME_RE = /^(call|apply)$/;
 // eval.call(ctx, __proc$Script(script));
 // eval.apply(ctx, __proc$Script(script, true));
 
-const transformer: Transformer = {
+const transformer: Transformer<CallExpression> = {
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.CallExpression,
 
-    condition: (node: CallExpression): boolean => {
+    condition: node => {
         // eval.<meth>(ctx, script, ...)
         if (node.arguments.length < 2)
             return false;
@@ -47,9 +47,9 @@ const transformer: Transformer = {
         return false;
     },
 
-    run: (node: CallExpression) => {
-        const callee   = <MemberExpression>node.callee;
-        const property = <Identifier>callee.property;
+    run: node => {
+        const callee   = node.callee as MemberExpression;
+        const property = callee.property as Identifier;
         const newArg   = createProcessScriptMethCall(node.arguments[1], property.name === 'apply');
 
         replaceNode(node.arguments[1], newArg, node, 'arguments');

@@ -4,7 +4,7 @@
 // -------------------------------------------------------------
 
 /*eslint-disable no-unused-vars*/
-import { AssignmentExpression, Node, Expression } from 'estree';
+import { AssignmentExpression } from 'estree';
 import { Transformer } from './index';
 /*eslint-enable no-unused-vars*/
 import { createLocationSetWrapper } from '../node-builder';
@@ -14,16 +14,19 @@ import { Syntax } from 'esotope-hammerhead';
 // location = value -->
 // (function(){ return __set$Loc(location, value) || location = value;}.apply(this))
 
-const transformer: Transformer = {
+const transformer: Transformer<AssignmentExpression> = {
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.AssignmentExpression,
 
-    condition: (node: AssignmentExpression) => node.operator === '=' &&
-                                               node.left.type === Syntax.Identifier && node.left.name === 'location',
+    condition: node => node.operator === '=' && node.left.type === Syntax.Identifier && node.left.name === 'location',
 
-    run: (node: AssignmentExpression, parent: Node, key: string): Expression => {
+    run: (node, parent, key) => {
+        if (!parent)
+            return null;
+
         const wrapWithSequence = key !== 'arguments' && key !== 'consequent' && key !== 'alternate' &&
+                                 // @ts-ignore
                                  (parent.type !== Syntax.SequenceExpression || parent.expressions[0] === node);
 
         return createLocationSetWrapper(node.right, wrapWithSequence);

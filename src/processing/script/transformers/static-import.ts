@@ -15,14 +15,14 @@ import { Syntax } from 'esotope-hammerhead';
 // -->
 // import something from 'processed-url';
 
-const transformer: Transformer = {
+const transformer: Transformer<Literal> = {
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.Literal,
 
-    condition: (node: Literal, parent) => parent && parent.type === Syntax.ImportDeclaration && parent.source === node,
+    condition: (node, parent) => !!parent && parent.type === Syntax.ImportDeclaration && parent.source === node,
 
-    run: (node: Literal) => transformer.resolver ? getProxyUrlLiteral(node, transformer.resolver) : null
+    run: node => transformer.resolver ? getProxyUrlLiteral(node, transformer.resolver) : null
 };
 
 export default transformer;

@@ -15,12 +15,12 @@ import replaceNode from './replace-node';
 // foo = eval.bind(...); -->
 // foo = __get$Eval(eval).bind(...);
 
-const transformer: Transformer = {
+const transformer: Transformer<CallExpression> = {
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.CallExpression,
 
-    condition: (node: CallExpression): boolean => {
+    condition: node => {
         if (node.callee.type === Syntax.MemberExpression && node.callee.property.type === Syntax.Identifier &&
             node.callee.property.name === 'bind') {
             const obj = node.callee.object;
@@ -39,11 +39,11 @@ const transformer: Transformer = {
         return false;
     },
 
-    run: (node: CallExpression) => {
-        const callee      = <MemberExpression>node.callee;
-        const getEvalNode = createGetEvalMethCall(<Expression>callee.object);
+    run: node => {
+        const callee      = node.callee as MemberExpression;
+        const getEvalNode = createGetEvalMethCall(callee.object as Expression);
 
-        replaceNode(callee.object, getEvalNode, node.callee, 'object');
+        replaceNode(callee.object, getEvalNode, callee, 'object');
 
         return null;
     }

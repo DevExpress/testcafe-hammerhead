@@ -14,12 +14,12 @@ import { Syntax } from 'esotope-hammerhead';
 // Transform:
 // eval(script); --> eval(__proc$Script(script));
 
-const transformer: Transformer = {
+const transformer: Transformer<CallExpression> = {
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.CallExpression,
 
-    condition: (node: CallExpression): boolean => {
+    condition: node => {
         if (!node.arguments.length)
             return false;
 
@@ -35,7 +35,7 @@ const transformer: Transformer = {
                 callee.property.type === Syntax.Literal && callee.property.value) === 'eval';
     },
 
-    run: (node: CallExpression) => {
+    run: node => {
         const newArgs = createProcessScriptMethCall(node.arguments[0]);
 
         replaceNode(node.arguments[0], newArgs, node, 'arguments');

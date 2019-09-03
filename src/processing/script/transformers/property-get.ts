@@ -4,7 +4,7 @@
 // -------------------------------------------------------------
 
 /*eslint-disable no-unused-vars*/
-import { CallExpression, MemberExpression, Expression, ForInStatement, Identifier } from 'estree';
+import { MemberExpression, Expression, Identifier } from 'estree';
 import { Transformer } from './index';
 /*eslint-enable no-unused-vars*/
 import { createPropertyGetWrapper } from '../node-builder';
@@ -15,13 +15,13 @@ import { shouldInstrumentProperty } from '../instrumented';
 // obj.<wrappable-property> -->
 // __get$(obj, '<wrappable-property>')
 
-const transformer: Transformer = {
+const transformer: Transformer<MemberExpression> = {
     nodeReplacementRequireTransform: true,
 
     nodeTypes: Syntax.MemberExpression,
 
-    condition: (node: MemberExpression, parent: Expression | ForInStatement) => {
-        if (node.computed)
+    condition: (node, parent) => {
+        if (node.computed || !parent)
             return false;
 
         if (node.property.type === Syntax.Identifier && !shouldInstrumentProperty(node.property.name))
@@ -59,7 +59,7 @@ const transformer: Transformer = {
     },
 
     // eslint-disable-next-line
-    run: (node: MemberExpression): CallExpression => createPropertyGetWrapper((<Identifier>node.property).name, <Expression>node.object)
+    run: node => createPropertyGetWrapper((node.property as Identifier).name, node.object as Expression)
 };
 
 export default transformer;

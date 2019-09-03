@@ -3,7 +3,7 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 /*eslint-disable no-unused-vars*/
-import { BaseNode, Node } from 'estree';
+import { Node } from 'estree';
 /*eslint-enable no-unused-vars*/
 import transformers from './transformers';
 import jsProtocolLastExpression from './transformers/js-protocol-last-expression';
@@ -18,20 +18,20 @@ export interface CodeChange {
     end: number;
     index: number;
     parent: Node;
-    key: string;
+    key: keyof this['parent'];
 }
 
 class State {
     hasTransformedAncestor: boolean = false;
-    newExpressionAncestor: Node;
-    newExpressionAncestorParent: Node;
-    newExpressionAncestorKey: string;
+    newExpressionAncestor?: Node;
+    newExpressionAncestorParent?: Node;
+    newExpressionAncestorKey?: keyof this['newExpressionAncestorParent'];
 
     // NOTE: There is an issue with processing `new` expressions. `new a.src.b()` will be transformed
     // to `new __get$(a, 'src').b()`, which is wrong. The correct result is `new (__get$(a, 'src')).b()`.
     // To solve this problem, we add a 'state' entity. This entity stores the "new" expression, so that
     // we can add it to the changes when the transformation is found.
-    static create (currState: State, node: Node, parent: Node, key: string, hasTransformedAncestor: boolean): State {
+    static create<T extends Node> (currState: State, node: Node, parent?: T, key?: keyof T, hasTransformedAncestor: boolean = false): State {
         const isNewExpression         = node.type === Syntax.NewExpression;
         const isNewExpressionAncestor = isNewExpression && !currState.newExpressionAncestor;
         const newState                = new State();
@@ -39,17 +39,11 @@ class State {
         newState.hasTransformedAncestor      = currState.hasTransformedAncestor || hasTransformedAncestor;
         newState.newExpressionAncestor       = isNewExpressionAncestor ? node : currState.newExpressionAncestor;
         newState.newExpressionAncestorParent = isNewExpressionAncestor ? parent : currState.newExpressionAncestorParent;
+        // @ts-ignore
         newState.newExpressionAncestorKey    = isNewExpressionAncestor ? key : currState.newExpressionAncestorKey;
 
         return newState;
     }
-}
-
-export interface NodeWithLocation extends BaseNode {
-    start: number;
-    end: number;
-    originStart: number;
-    originEnd: number;
 }
 
 // NOTE: We should avoid using native object prototype methods,
@@ -57,36 +51,43 @@ export interface NodeWithLocation extends BaseNode {
 const objectToString = Object.prototype.toString;
 const objectKeys     = Object.keys;
 
-function getChange (node: Node, parent: Node, key: string): CodeChange {
-    const { originStart: start, originEnd: end } = node as NodeWithLocation;
-    const index = Array.isArray(parent[key]) ? parent[key].indexOf(node) : -1;
+function getChange<T extends Node> (node: Node, parent: T, key: keyof T): CodeChange {
+    const start = node.originStart!;
+    const end   = node.originEnd!;
+    const nodes = parent[key];
+    const index = nodes instanceof Array ? nodes.indexOf(node) : -1;
 
+    // @ts-ignore
     return { start, end, index, parent, key };
 }
 
-function transformChildNodes (node, changes: Array<CodeChange>, state: State) {
-    const nodeKeys = objectKeys(node);
+function transformChildNodes (node: Node, changes: Array<CodeChange>, state: State) {
+    // @ts-ignore
+    const nodeKeys: Array<keyof Node> = objectKeys(node);
 
     for (const key of nodeKeys) {
         const childNode       = node[key];
         const stringifiedNode = objectToString.call(childNode);
 
         if (stringifiedNode === '[object Array]') {
-            for (const nthNode of childNode)
+            // @ts-ignore
+            const childNodes = childNode as Array<Node>;
+
+            for (const nthNode of childNodes)
                 transform(nthNode, changes, state, node, key);
         }
-        else if (stringifiedNode === '[object Object]')
-            transform(childNode, changes, state, node, key);
+        else if (stringifiedNode === '[object Object]') {
+            // @ts-ignore
+            transform(childNode!, changes, state, node, key);
+        }
     }
 }
 
 function isNodeTransformed (node: Node): boolean {
-    const nodeWithLoc = node as NodeWithLocation;
-
-    return nodeWithLoc.originStart !== void 0 && nodeWithLoc.originEnd !== void 0;
+    return node.originStart !== void 0 && node.originEnd !== void 0;
 }
 
-function addChangeForTransformedNode (state: State, changes: Array<CodeChange>, replacement: Node, parent: Node, key: string) {
+function addChangeForTransformedNode<T extends Node> (state: State, changes: Array<CodeChange>, replacement: Node, parent: T, key: keyof T) {
     const hasTransformedAncestor = state.hasTransformedAncestor ||
                                    state.newExpressionAncestor && isNodeTransformed(state.newExpressionAncestor);
 
@@ -94,8 +95,8 @@ function addChangeForTransformedNode (state: State, changes: Array<CodeChange>, 
         return;
 
     if (state.newExpressionAncestor) {
-        replaceNode(state.newExpressionAncestor, state.newExpressionAncestor, state.newExpressionAncestorParent, state.newExpressionAncestorKey);
-        changes.push(getChange(state.newExpressionAncestor, state.newExpressionAncestorParent, state.newExpressionAncestorKey));
+        replaceNode(state.newExpressionAncestor, state.newExpressionAncestor, state.newExpressionAncestorParent!, state.newExpressionAncestorKey!);
+        changes.push(getChange(state.newExpressionAncestor, state.newExpressionAncestorParent!, state.newExpressionAncestorKey!));
     }
     else
         changes.push(getChange(replacement, parent, key));
@@ -106,7 +107,7 @@ export function beforeTransform (wrapLastExprWithProcessHtml: boolean = false, r
     staticImportTransformer.resolver = resolver;
 
     if (resolver)
-        dynamicImportTransformer.baseUrl = parseProxyUrl(resolver('./')).destUrl;
+        dynamicImportTransformer.baseUrl = parseProxyUrl(resolver('./'))!.destUrl;
 }
 
 export function afterTransform () {
@@ -115,18 +116,27 @@ export function afterTransform () {
     dynamicImportTransformer.baseUrl = void 0;
 }
 
-export default function transform (node: Node, changes: Array<CodeChange> = [], state: State = new State(), parent?: Node, key?: string, reTransform?: boolean) {
+/* eslint-disable indent */
+export default function transform<T extends Node> (node: Node,
+                                                   changes: Array<CodeChange> = [],
+                                                   state: State = new State(),
+                                                   parent?: T,
+                                                   key?: keyof T,
+                                                   reTransform?: boolean): Array<CodeChange> {
+    /* eslint-enable indent */
+
     if (!node || typeof node !== 'object')
-        return null;
+        return changes;
 
     let nodeChanged = false;
 
     if (isNodeTransformed(node) && !reTransform) {
-        addChangeForTransformedNode(state, changes, node, parent, key);
+        addChangeForTransformedNode(state, changes, node, parent!, key!);
         nodeChanged = true;
     }
-    else if (transformers.has(node.type as Syntax)) {
-        const nodeTransformers = transformers.get(node.type as Syntax);
+
+    else if (transformers.has(node.type)) {
+        const nodeTransformers = transformers.get(node.type)!;
 
         for (const transformer of nodeTransformers) {
             if (!transformer.condition(node, parent))
@@ -137,15 +147,15 @@ export default function transform (node: Node, changes: Array<CodeChange> = [], 
             if (!replacement)
                 continue;
 
-            replaceNode(node, replacement, parent, key);
-            addChangeForTransformedNode(state, changes, replacement, parent, key);
+            replaceNode(node, replacement, parent!, key!);
+            addChangeForTransformedNode(state, changes, replacement, parent!, key!);
 
             nodeChanged = true;
 
             if (!transformer.nodeReplacementRequireTransform)
                 break;
 
-            state = State.create(state, replacement, parent, key, nodeChanged);
+            state = State.create(state, replacement, parent!, key!, nodeChanged);
 
             transform(replacement, changes, state, parent, key, true);
 
