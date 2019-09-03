@@ -310,7 +310,8 @@ export default class DomProcessor {
         const rel        = this._getRelAttribute(el);
 
         if (target !== '_top') {
-            const mustProcessTag = DomProcessor.isIframeFlagTag(tagName) ||
+            const isImageInput   = tagName === 'input' && this.adapter.getAttr(el, 'type') === 'image';
+            const mustProcessTag = !isImageInput && DomProcessor.isIframeFlagTag(tagName) ||
                                    DomProcessor._isHtmlImportLink(tagName, rel);
             const isNameTarget   = target ? target[0] !== '_' : false;
 
