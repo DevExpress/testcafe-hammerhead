@@ -11,11 +11,11 @@ import {
     isOutdatedSyncCookie
 } from '../../utils/cookie';
 
-function skip () {
+function skip (): undefined {
     return void 0;
 }
 
-function skipIfStateSnapshotIsApplied (src: string, ctx: RequestPipelineContext) {
+function skipIfStateSnapshotIsApplied (src: string, ctx: RequestPipelineContext): string | undefined {
     return ctx.restoringStorages ? void 0 : src;
 }
 
@@ -23,14 +23,14 @@ function isCrossDomainXhrWithoutCredentials (ctx: RequestPipelineContext): boole
     return ctx.isXhr && !ctx.req.headers[XHR_HEADERS.withCredentials] && ctx.dest.reqOrigin !== ctx.dest.domain;
 }
 
-function transformAuthorizationHeader (src: string, ctx: RequestPipelineContext) {
+function transformAuthorizationHeader (src: string, ctx: RequestPipelineContext): string | undefined {
     if (src.includes(AUTHORIZATION.valuePrefix))
         return src.replace(AUTHORIZATION.valuePrefix, '');
 
     return isCrossDomainXhrWithoutCredentials(ctx) ? void 0 : src;
 }
 
-function transformCookieForFetch (src: string, ctx: RequestPipelineContext) {
+function transformCookieForFetch (src: string, ctx: RequestPipelineContext): string | undefined {
     const requestCredentials = ctx.req.headers[XHR_HEADERS.fetchRequestCredentials];
 
     switch (requestCredentials) {
@@ -87,7 +87,7 @@ function generateSyncCookie (ctx: RequestPipelineContext, parsedServerCookies) {
     return syncWithClientCookies;
 }
 
-function resolveAndGetProxyUrl (url: string, ctx: RequestPipelineContext) {
+function resolveAndGetProxyUrl (url: string, ctx: RequestPipelineContext): string {
     url = urlUtils.prepareUrl(url);
 
     const { host }    = parseUrl(url);
@@ -112,10 +112,10 @@ function transformRefreshHeader (src: string, ctx: RequestPipelineContext) {
 
 // Request headers
 export const requestTransforms = Object.assign({
-    'host':                                (_src, ctx) => ctx.dest.host,
-    'referer':                             (_src, ctx) => ctx.dest.referer || void 0,
-    'origin':                              (src, ctx) => ctx.dest.reqOrigin || src,
-    'content-length':                      (_src, ctx) => ctx.reqBody.length,
+    'host':                                (_src: string, ctx: RequestPipelineContext) => ctx.dest.host,
+    'referer':                             (_src: string, ctx: RequestPipelineContext) => ctx.dest.referer || void 0,
+    'origin':                              (src: string, ctx: RequestPipelineContext) => ctx.dest.reqOrigin || src,
+    'content-length':                      (_src: string, ctx: RequestPipelineContext) => ctx.reqBody.length,
     'cookie':                              skip,
     'if-modified-since':                   skipIfStateSnapshotIsApplied,
     'if-none-match':                       skipIfStateSnapshotIsApplied,
@@ -123,7 +123,7 @@ export const requestTransforms = Object.assign({
     [XHR_HEADERS.withCredentials]:         skip,
     [XHR_HEADERS.origin]:                  skip,
     [XHR_HEADERS.fetchRequestCredentials]: skip
-}, AUTHORIZATION.headers.reduce((obj, header) => {
+}, AUTHORIZATION.headers.reduce((obj, header: string) => {
     obj[header] = transformAuthorizationHeader;
 
     return obj;

@@ -95,11 +95,13 @@
     "ws": "^5.2.0"
   },
   "main": "lib/index",
+  "types": "ts-defs/index.d.ts",
   "engines": {
     "node": ">= 8.0.0"
   },
   "files": [
-    "lib"
+    "lib",
+    "ts-defs"
   ],
   "scripts": {
     "test": "gulp travis",
