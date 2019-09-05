@@ -137,59 +137,62 @@ asyncTest('should process Blob parts in the case of the "Array<string | number |
     worker.postMessage('');
 });
 
-test('should not process unprocessable Blob parts (GH-2115)', function () {
-    var processableBlobParts   = ['const val1 =', true, '; const var2 =', 1];
-    var unprocessableBlobParts = [true, false, 1, 0];
+// IE11 cannot create Blob from [true, false, 1, 0]
+if (!browserUtils.isIE11) {
+    test('should not process unprocessable Blob parts (GH-2115)', function () {
+        var unprocessableBlobParts = [true, false, 1, 0];
+        var processableBlobParts   = ['const val1 =', true, '; const var2 =', 1];
 
-    var testCases = [
-        {
-            blobParts: unprocessableBlobParts,
-            options:   { type: '' }
-        },
-        {
-            blobParts: unprocessableBlobParts,
-            options:   { type: 'text/javascript' }
-        },
-        {
-            blobParts: processableBlobParts.concat([new nativeMethods.Blob(['unprocessable part'])]),
-            options:   { type: '' }
-        },
-        {
-            blobParts: processableBlobParts.concat([new nativeMethods.Blob(['unprocessable part'])]),
-            options:   { type: 'text/javascript' }
-        }
-    ];
+        var testCases = [
+            {
+                blobParts: unprocessableBlobParts,
+                options:   { type: '' }
+            },
+            {
+                blobParts: unprocessableBlobParts,
+                options:   { type: 'text/javascript' }
+            },
+            {
+                blobParts: processableBlobParts.concat([new nativeMethods.Blob(['unprocessable part'])]),
+                options:   { type: '' }
+            },
+            {
+                blobParts: processableBlobParts.concat([new nativeMethods.Blob(['unprocessable part'])]),
+                options:   { type: 'text/javascript' }
+            }
+        ];
 
-    var readBlobContent = function (blob) {
-        return new hammerhead.Promise(function (resolve) {
-            var reader = new FileReader();
+        var readBlobContent = function (blob) {
+            return new hammerhead.Promise(function (resolve) {
+                var reader = new FileReader();
 
-            reader.addEventListener('loadend', function () {
-                var arr = new Uint8Array(this.result);
+                reader.addEventListener('loadend', function () {
+                    var arr = new Uint8Array(this.result);
 
-                resolve(arr);
+                    resolve(arr);
+                });
+                reader.readAsArrayBuffer(blob);
             });
-            reader.readAsArrayBuffer(blob);
-        });
-    };
+        };
 
 
-    return Promise.all(testCases.map(function (testCase) {
-        var overridenBlob  = new Blob(testCase.blobParts, testCase.options);
-        var nativeBlob     = new nativeMethods.Blob(testCase.blobParts, testCase.options);
-        var redBlobContent = null;
+        return Promise.all(testCases.map(function (testCase) {
+            var overridenBlob  = new Blob(testCase.blobParts, testCase.options);
+            var nativeBlob     = new nativeMethods.Blob(testCase.blobParts, testCase.options);
+            var redBlobContent = null;
 
-        return readBlobContent(overridenBlob)
-            .then(function (blobContent) {
-                redBlobContent = blobContent;
+            return readBlobContent(overridenBlob)
+                .then(function (blobContent) {
+                    redBlobContent = blobContent;
 
-                return readBlobContent(nativeBlob);
-            })
-            .then(function (nativeBlobContent) {
-                deepEqual(redBlobContent, nativeBlobContent);
-            });
-    }));
-});
+                    return readBlobContent(nativeBlob);
+                })
+                .then(function (nativeBlobContent) {
+                    deepEqual(redBlobContent, nativeBlobContent);
+                });
+        }));
+    });
+}
 
 module('Image');
 
