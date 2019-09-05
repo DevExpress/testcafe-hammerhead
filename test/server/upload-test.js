@@ -237,8 +237,14 @@ describe('Upload', () => {
         }
 
         function assertCorrectErr (errMsg, filePath) {
-            expect(errMsg.err.indexOf('ENOENT')).not.eql(-1);
-            expect(errMsg.resolvedPath || errMsg.path).eql(filePath);
+            if (Array.isArray(filePath)) {
+                expect(errMsg.err).include('Cannot find the');
+                expect(errMsg.resolvedPaths).eql(filePath);
+            }
+            else {
+                expect(errMsg.err).include('ENOENT');
+                expect(errMsg.resolvedPath || errMsg.path).eql(filePath);
+            }
         }
 
         function assetCorrectFileInfo (fileInfo, fileName, filePath) {
@@ -285,7 +291,7 @@ describe('Upload', () => {
                 })
                 .then(result => {
                     expect(result.length).eql(1);
-                    assertCorrectErr(result[0], getStoredFilePath('file-to-upload.txt'));
+                    assertCorrectErr(result[0], [getStoredFilePath('file-to-upload.txt')]);
                 });
         });
 
@@ -315,7 +321,7 @@ describe('Upload', () => {
                     expect(result.length).eql(3);
                     assetCorrectFileInfo(result[0], 'expected.formdata', file1StoragePath);
                     assetCorrectFileInfo(result[1], 'src.formdata', file2StoragePath);
-                    assertCorrectErr(result[2], fakeFilePath);
+                    assertCorrectErr(result[2], [fakeFilePath]);
 
                     fs.unlinkSync(file1StoragePath);
                     fs.unlinkSync(file2StoragePath);

@@ -12,7 +12,7 @@ const PROXY_PORT_2 = 1402;
 const SERVER_PORT  = 1400;
 
 function createSession () {
-    const session = new Session('test/playground/upload-storage');
+    const session = new Session(['test/playground/upload-storage']);
 
     session._getIframePayloadScript = () => '';
     session._getPayloadScript       = () => '';
