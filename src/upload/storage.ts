@@ -1,4 +1,5 @@
 // @ts-ignore
+import { castArray } from 'lodash';
 import mime from 'mime';
 import path from 'path';
 import { format } from 'util';
@@ -18,9 +19,7 @@ export default class UploadStorage {
     uploadRoots: string[];
 
     constructor (uploadRoots: string[]) {
-        this.uploadRoots = Array.isArray(uploadRoots)
-            ? uploadRoots.slice()
-            : [uploadRoots];
+        this.uploadRoots = castArray(uploadRoots);
     }
 
     static async _getFilesToCopy (files: Array<CopiedFileInfo>): Promise<{ filesToCopy: Array<CopiedFileInfo>, errs: Array<CopyingError> }> {
@@ -90,34 +89,43 @@ export default class UploadStorage {
         return storedFiles;
     }
 
+    async _resolvePath (filePath, errors) {
+        let resolvedPath = null;
+
+        if (path.isAbsolute(filePath))
+            resolvedPath = filePath;
+        else {
+            const nonExistingPaths = [];
+
+            for (const uploadRoot of this.uploadRoots) {
+                resolvedPath = path.resolve(uploadRoot, filePath);
+                if (await fsObjectExists(resolvedPath))
+                    break;
+
+                nonExistingPaths.push(resolvedPath);
+                resolvedPath = null;
+            }
+
+            if (resolvedPath === null) {
+                errors.push({
+                    err:           `Cannot find the ${filePath}. None path of these exists: ${nonExistingPaths.join(', ')}.`,
+                    path:          filePath,
+                    resolvedPaths: nonExistingPaths
+                });
+            }
+        }
+
+        return resolvedPath;
+    }
+
     async get (filePathList: Array<string>) {
         const result = [];
 
         for (const filePath of filePathList) {
-            let resolvedPath = null;
+            const resolvedPath = await this._resolvePath(filePath, result);
 
-            if (path.isAbsolute(filePath))
-                resolvedPath = filePath;
-            else {
-                const nonExistingPaths = [];
-
-                for (const uploadRoot of this.uploadRoots) {
-                    resolvedPath = path.resolve(uploadRoot, filePath);
-                    if (await fsObjectExists(resolvedPath))
-                        break;
-                    nonExistingPaths.push(resolvedPath);
-                    resolvedPath = null;
-                }
-
-                if (resolvedPath === null) {
-                    result.push({
-                        err:           `Cannot find the ${filePath}. None path of these exists: ${nonExistingPaths.join(', ')}.`,
-                        path:          filePath,
-                        resolvedPaths: nonExistingPaths
-                    });
-                    continue;
-                }
-            }
+            if (resolvedPath === null)
+                continue;
 
             try {
                 const fileContent = await readFile(resolvedPath);
