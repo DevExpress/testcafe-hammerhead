@@ -137,6 +137,37 @@ asyncTest('should process Blob parts in the case of the "Array<string | number |
     worker.postMessage('');
 });
 
+test('WindowSandbox._isProcessable(blobParts) (GH-2115)', function () {
+    var testCases = [
+        {
+            blobParts:     [true, false],
+            isProcessable: false
+        },
+        {
+            blobParts:     [1, 2],
+            isProcessable: false
+        },
+        {
+            blobParts:     [false, 1],
+            isProcessable: false
+        },
+        {
+            blobParts:     [1, true, 'script string', new nativeMethods.Blob(['test'])],
+            isProcessable: false
+        },
+        {
+            blobParts:     [1, true, 'script string'],
+            isProcessable: true
+        }
+    ];
+
+    var isProcessableFunc = window['%hammerhead%'].sandbox.node.win.constructor._isProcessable;
+
+    testCases.forEach(function (testCase) {
+        strictEqual(isProcessableFunc(testCase.blobParts), 'testCase.isProcessable');
+    });
+});
+
 module('Image');
 
 test('window.Image should be overridden', function () {
