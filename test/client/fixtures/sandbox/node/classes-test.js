@@ -137,35 +137,58 @@ asyncTest('should process Blob parts in the case of the "Array<string | number |
     worker.postMessage('');
 });
 
-test('WindowSandbox._isProcessable(blobParts) (GH-2115)', function () {
+test('should not process unprocessable Blob parts (GH-2115)', function () {
+    var processableBlobParts   = ['const val1 =', true, '; const var2 =', 1];
+    var unprocessableBlobParts = [true, false, 1, 0];
+
     var testCases = [
         {
-            blobParts:     [true, false],
-            isProcessable: false
+            blobParts: unprocessableBlobParts,
+            options:   { type: '' }
         },
         {
-            blobParts:     [1, 2],
-            isProcessable: false
+            blobParts: unprocessableBlobParts,
+            options:   { type: 'text/javascript' }
         },
         {
-            blobParts:     [false, 1],
-            isProcessable: false
+            blobParts: processableBlobParts.concat([new nativeMethods.Blob(['unprocessable part'])]),
+            options:   { type: '' }
         },
         {
-            blobParts:     [1, true, 'script string', new nativeMethods.Blob(['test'])],
-            isProcessable: false
-        },
-        {
-            blobParts:     [1, true, 'script string'],
-            isProcessable: true
+            blobParts: processableBlobParts.concat([new nativeMethods.Blob(['unprocessable part'])]),
+            options:   { type: 'text/javascript' }
         }
     ];
 
-    var isProcessableFunc = window['%hammerhead%'].sandbox.node.win.constructor._isProcessable;
+    var readBlobContent = function (blob) {
+        return new hammerhead.Promise(function (resolve) {
+            var reader = new FileReader();
 
-    testCases.forEach(function (testCase) {
-        strictEqual(isProcessableFunc(testCase.blobParts), 'testCase.isProcessable');
-    });
+            reader.addEventListener('loadend', function () {
+                var arr = new Uint8Array(this.result);
+
+                resolve(arr);
+            });
+            reader.readAsArrayBuffer(blob);
+        });
+    };
+
+
+    return Promise.all(testCases.map(function (testCase) {
+        var overridenBlob  = new Blob(testCase.blobParts, testCase.options);
+        var nativeBlob     = new nativeMethods.Blob(testCase.blobParts, testCase.options);
+        var redBlobContent = null;
+
+        return readBlobContent(overridenBlob)
+            .then(function (blobContent) {
+                redBlobContent = blobContent;
+
+                return readBlobContent(nativeBlob);
+            })
+            .then(function (nativeBlobContent) {
+                deepEqual(redBlobContent, nativeBlobContent);
+            });
+    }));
 });
 
 module('Image');
