@@ -4,6 +4,7 @@ var urlUtils        = hammerhead.get('./utils/url');
 var FileListWrapper = hammerhead.get('./sandbox/upload/file-list-wrapper');
 var INTERNAL_ATTRS  = hammerhead.get('../processing/dom/internal-attributes');
 var Promise         = hammerhead.Promise;
+var processScript   = hammerhead.get('../processing/script').processScript;
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -123,22 +124,34 @@ test('window.Blob([data], { type: "" }) should return correct result for `ArrayB
 });
 
 asyncTest('should process Blob parts in the case of the "Array<string | number | boolean>" array (GH-2115)', function () {
-    var scriptForProcessing = ['self.onmessage = function() { var t = {};', '__set$(t, "blobTest", ', 1, '+', true, '); postMessage(t.blobTest); };'];
-    var blob                = new window.Blob(scriptForProcessing, { type: 'texT/javascript' });
+    var parts = ['var test = ', 1, '+', true, ';'];
 
-    var url    = window.URL.createObjectURL(blob);
-    var worker = new window.Worker(url);
+    var expectedScript = processScript(parts.join(''), true).replace(/\s/g, '');
 
-    worker.onmessage = function (e) {
-        strictEqual(e.data, 2);
+    var blob   = new window.Blob(parts, { type: 'texT/javascript' });
+    var reader = new FileReader();
+
+    reader.addEventListener('loadend', function (e) {
+        strictEqual(e.target.result.replace(/\s/g, ''), expectedScript);
         start();
-    };
+    });
 
-    worker.postMessage('');
+    reader.readAsText(blob);
 });
 
-// IE11 cannot create Blob from [true, false, 1, 0]
-if (!browserUtils.isIE11) {
+// IE11 cannot create a Blob object from a boolean/number array
+var canCreateBlobFromNumberBooleanArray = (function () {
+    var array = [true, false, 1, 0];
+
+    try {
+        return !!new nativeMethods.Blob(array);
+    }
+    catch (err) {
+        return false;
+    }
+})();
+
+if (canCreateBlobFromNumberBooleanArray) {
     test('should not process unprocessable Blob parts (GH-2115)', function () {
         var unprocessableBlobParts = [true, false, 1, 0];
         var processableBlobParts   = ['const val1 =', true, '; const var2 =', 1];

@@ -124,10 +124,10 @@ export default class WindowSandbox extends SandboxBase {
         return stack;
     }
 
-    private static _isProcessable (blobParts: Array<any>) : boolean {
+    private static _isProcessableBlob (parts: Array<any>) : boolean {
         let hasStringItem = false;
 
-        for (const item of blobParts) {
+        for (const item of parts) {
             if (!hasStringItem && typeof item === 'string') {
                 hasStringItem = true;
 
@@ -475,7 +475,7 @@ export default class WindowSandbox extends SandboxBase {
                 // Unfortunately, we do not have the ability to exactly identify a script. That's why we make such
                 // an assumption. We cannot solve this problem at the Worker level either, because the operation of
                 // creating a new Blob instance is asynchronous. (GH-231)
-                if ((!type || JAVASCRIPT_MIME_TYPES.indexOf(type) !== -1) && WindowSandbox._isProcessable(array))
+                if ((!type || JAVASCRIPT_MIME_TYPES.indexOf(type) !== -1) && WindowSandbox._isProcessableBlob(array))
                     array = [processScript(array.join(''), true, false, convertToProxyUrl)];
 
                 // NOTE: IE11 throws an error when the second parameter of the Blob function is undefined (GH-44)
