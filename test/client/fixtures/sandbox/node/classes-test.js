@@ -4,6 +4,7 @@ var urlUtils        = hammerhead.get('./utils/url');
 var FileListWrapper = hammerhead.get('./sandbox/upload/file-list-wrapper');
 var INTERNAL_ATTRS  = hammerhead.get('../processing/dom/internal-attributes');
 var Promise         = hammerhead.Promise;
+var processScript   = hammerhead.get('../processing/script').processScript;
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -55,6 +56,8 @@ test('refreshed classes "toString" method', function () {
             strictEqual(testCase.refreshedClass.toString(), testCase.storedClass.toString());
     });
 });
+
+module('Blob');
 
 test('window.Blob([data], { type: "" }) should return correct result for `ArrayBuffer`, `Uint8Array` and `DataView` data types (GH-1599)', function () {
     var bmpExample = {
@@ -119,6 +122,90 @@ test('window.Blob([data], { type: "" }) should return correct result for `ArrayB
         testConstructor(DataView)
     ]);
 });
+
+asyncTest('should process Blob parts in the case of the "Array<string | number | boolean>" array (GH-2115)', function () {
+    var parts = ['var test = ', 1, '+', true, ';'];
+
+    var expectedScript = processScript(parts.join(''), true).replace(/\s/g, '');
+
+    var blob   = new window.Blob(parts, { type: 'texT/javascript' });
+    var reader = new FileReader();
+
+    reader.addEventListener('loadend', function (e) {
+        strictEqual(e.target.result.replace(/\s/g, ''), expectedScript);
+        start();
+    });
+
+    reader.readAsText(blob);
+});
+
+// IE11 cannot create a Blob object from a boolean/number array
+var canCreateBlobFromNumberBooleanArray = (function () {
+    var array = [true, false, 1, 0];
+
+    try {
+        return !!new nativeMethods.Blob(array);
+    }
+    catch (err) {
+        return false;
+    }
+})();
+
+if (canCreateBlobFromNumberBooleanArray) {
+    test('should not process unprocessable Blob parts (GH-2115)', function () {
+        var unprocessableBlobParts = [true, false, 1, 0];
+        var processableBlobParts   = ['const val1 =', true, '; const var2 =', 1];
+
+        var testCases = [
+            {
+                blobParts: unprocessableBlobParts,
+                options:   { type: '' }
+            },
+            {
+                blobParts: unprocessableBlobParts,
+                options:   { type: 'text/javascript' }
+            },
+            {
+                blobParts: processableBlobParts.concat([new nativeMethods.Blob(['unprocessable part'])]),
+                options:   { type: '' }
+            },
+            {
+                blobParts: processableBlobParts.concat([new nativeMethods.Blob(['unprocessable part'])]),
+                options:   { type: 'text/javascript' }
+            }
+        ];
+
+        var readBlobContent = function (blob) {
+            return new hammerhead.Promise(function (resolve) {
+                var reader = new FileReader();
+
+                reader.addEventListener('loadend', function () {
+                    var arr = new Uint8Array(this.result);
+
+                    resolve(arr);
+                });
+                reader.readAsArrayBuffer(blob);
+            });
+        };
+
+
+        return Promise.all(testCases.map(function (testCase) {
+            var overridenBlob  = new Blob(testCase.blobParts, testCase.options);
+            var nativeBlob     = new nativeMethods.Blob(testCase.blobParts, testCase.options);
+            var redBlobContent = null;
+
+            return readBlobContent(overridenBlob)
+                .then(function (blobContent) {
+                    redBlobContent = blobContent;
+
+                    return readBlobContent(nativeBlob);
+                })
+                .then(function (nativeBlobContent) {
+                    deepEqual(redBlobContent, nativeBlobContent);
+                });
+        }));
+    });
+}
 
 module('Image');
 

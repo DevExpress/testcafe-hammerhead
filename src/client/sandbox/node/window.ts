@@ -124,6 +124,23 @@ export default class WindowSandbox extends SandboxBase {
         return stack;
     }
 
+    private static _isProcessableBlob (parts: Array<any>) : boolean {
+        let hasStringItem = false;
+
+        for (const item of parts) {
+            if (!hasStringItem && typeof item === 'string') {
+                hasStringItem = true;
+
+                continue;
+            }
+
+            if (typeof item !== 'string' && typeof item !== 'number' && typeof item !== 'boolean')
+                return false;
+        }
+
+        return hasStringItem;
+    }
+
     _raiseUncaughtJsErrorEvent (type: string, event: any, window: Window) {
         if (isCrossDomainWindows(window, window.top))
             return;
@@ -453,11 +470,12 @@ export default class WindowSandbox extends SandboxBase {
 
                 const type = opts && opts.type && opts.type.toString().toLowerCase() || getMimeType(array);
 
-                // NOTE: If we cannot identify the content type of data, we're trying to process it as a script.
+                // NOTE: If we cannot identify the content type of data, we're trying to process it as a script
+                // (in the case of the "Array<string | number | boolean>" blob parts array: GH-2115).
                 // Unfortunately, we do not have the ability to exactly identify a script. That's why we make such
                 // an assumption. We cannot solve this problem at the Worker level either, because the operation of
                 // creating a new Blob instance is asynchronous. (GH-231)
-                if (!type || JAVASCRIPT_MIME_TYPES.indexOf(type) !== -1)
+                if ((!type || JAVASCRIPT_MIME_TYPES.indexOf(type) !== -1) && WindowSandbox._isProcessableBlob(array))
                     array = [processScript(array.join(''), true, false, convertToProxyUrl)];
 
                 // NOTE: IE11 throws an error when the second parameter of the Blob function is undefined (GH-44)

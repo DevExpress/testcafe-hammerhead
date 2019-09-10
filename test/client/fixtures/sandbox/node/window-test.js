@@ -564,6 +564,7 @@ test('the constructor field of a function should return a wrapped Function objec
     Function.prototype.toString = nativeToString;
 });
 
+// IE11 cannot create a Blob object from a number array
 var canCreateBlobFromNumberArray = (function () {
     var array = [1, 2, 3, 4, 5];
 
