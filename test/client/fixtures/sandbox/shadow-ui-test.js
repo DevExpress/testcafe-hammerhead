@@ -552,6 +552,32 @@ module('childNodes', function () {
                 ok(false, 'ShadowUI root was found');
         }
     });
+
+    test('the getProperty function should not return undefined from collection (GH-2099)', function () {
+        document.body.insertAdjacentHTML('beforeend', '<div><form><input type="file"></form><p></p></div>');
+
+        var div   = document.body.lastElementChild;
+        var form  = div.firstElementChild;
+        var input = form.firstElementChild;
+
+        hiddenInfo.setFormInfo(input, {});
+
+        var formAllEls = form.getElementsByTagName('*');
+
+        strictEqual(formAllEls.length, 1);
+
+        for (var i = 0; i < formAllEls.length; i++)
+            notEqual(getProperty(formAllEls, i), void 0);
+
+        var divAllEls = div.getElementsByTagName('*');
+
+        strictEqual(divAllEls.length, 4);
+
+        for (var j = 0; j < divAllEls.length; j++)
+            notEqual(getProperty(divAllEls, j), void 0);
+
+        document.body.removeChild(div);
+    });
 });
 
 module('element properties');

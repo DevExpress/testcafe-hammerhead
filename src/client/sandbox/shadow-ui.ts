@@ -175,7 +175,7 @@ export default class ShadowUI extends SandboxBase {
                     const nativeCollection = nativeMethods[nativeGetElementsByTagNameFnName].apply(this, args);
                     const tagName          = args[0];
 
-                    if (typeof tagName !== 'string' || !domUtils.isHeadOrBodyOrHtmlElement(this) &&
+                    if (typeof tagName !== 'string' || !domUtils.isHeadOrBodyOrHtmlElement(this) && !domUtils.isFormElement(this) &&
                         tagName.toLowerCase() !== 'input' && nativeGetElementsByTagNameFnName !== 'getElementsByTagName')
                         return nativeCollection;
 

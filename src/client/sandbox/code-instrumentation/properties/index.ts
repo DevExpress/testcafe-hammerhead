@@ -13,15 +13,21 @@ import DomProcessor from '../../../../processing/dom';
 import settings from '../../../settings';
 import { isIE } from '../../../utils/browser';
 import WindowSandbox from '../../node/window';
+import ShadowUISandbox from '../../shadow-ui';
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
     // NOTE: Isolate throw statements into a separate function because the
     // JS engine doesn't optimize such functions.
-    static _error (msg: string) {
+    private static _error (msg: string) {
         throw new Error(msg);
     }
 
-    private static _safeIsShadowUIElement (el: any) {
+    private static _safeIsShadowUIElement<T extends any> (owner: T, propName: keyof T): boolean {
+        const el = owner[propName];
+
+        if (!el || !ShadowUISandbox.isShadowContainerCollection(owner))
+            return false;
+
         try {
             return !WindowSandbox.isProxyObject(el) && domUtils.isShadowUIElement(el);
         }
@@ -30,7 +36,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         }
     }
 
-    static _setCrossDomainLocation (location: Location, value: any) {
+    private static _setCrossDomainLocation (location: Location, value: any) {
         let proxyUrl = '';
 
         if (typeof value !== 'string')
@@ -126,12 +132,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     accessors[propName].condition(owner))
                     return accessors[propName].get(owner);
 
-                const propertyValue = owner[propName];
-
-                if (propertyValue && PropertyAccessorsInstrumentation._safeIsShadowUIElement(propertyValue))
+                if (PropertyAccessorsInstrumentation._safeIsShadowUIElement(owner, propName))
                     return void 0;
 
-                return propertyValue;
+                return owner[propName];
             },
 
             configurable: true
