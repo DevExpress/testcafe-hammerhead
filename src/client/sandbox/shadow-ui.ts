@@ -401,7 +401,7 @@ export default class ShadowUI extends SandboxBase {
                 nativeMethods.appendChild.call(this.document.body, this.root);
 
                 for (const event of DomProcessor.EVENTS)
-                    this.root.addEventListener(event, stopPropagation);
+                    nativeMethods.addEventListener.call(this.root, event, stopPropagation);
 
                 this._bringRootToWindowTopLeft();
                 nativeMethods.documentAddEventListener.call(this.document, 'DOMContentLoaded', () => {
