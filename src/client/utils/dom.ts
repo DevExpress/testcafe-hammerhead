@@ -63,7 +63,7 @@ function isLocationByProto (instance: any): boolean {
 
     return instanceCtor &&
         (nativeMethods.objectToString.call(instanceCtor) === '[object LocationPrototype]' ||
-         nativeMethods.objectToString.call(instanceCtor) === '[object Location]'); // "iPhone" Chrome device emulation case (GH-2080)
+         nativeMethods.objectToString.call(instanceCtor) === '[object Location]'); // NOTE: "iPhone" Chrome device emulation case (GH-2080)
 }
 
 function closestFallback (el: Node, selector: string) {

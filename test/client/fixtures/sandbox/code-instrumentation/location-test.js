@@ -101,7 +101,7 @@ if (browserUtils.isChrome) {
     test('"isLocation" in the case of the "iPhone" Chrome emulation mode (GH-2080)', function () {
         var storedIsSafariValue = browserUtils.isSafari;
 
-        browserUtils.isSafari = true; // We set it to "true" to test the "iPhone" Chrome emulation mode (GH-2080)
+        browserUtils.isSafari = true; // NOTE: we set it to "true" to test the "iPhone" Chrome emulation mode (GH-2080)
 
         var locationCopy = extend({}, window.location);
 
