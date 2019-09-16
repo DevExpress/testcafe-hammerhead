@@ -102,13 +102,52 @@ export default class Transport {
         if (window !== window.top)
             return;
 
+        // @ts-ignore
+        let pre = window.errorLog;
+
+        if (!pre) {
+            // @ts-ignore
+            window.errorLog = pre = nativeMethods.createElement.call(document, 'pre');
+
+            pre.id = 'error-log';
+            pre.style.position = 'fixed';
+            pre.style.backgroundColor = 'red';
+            pre.style.color = 'white';
+            pre.style.width = '600px';
+            pre.style.right = '0';
+            pre.style.top = '0';
+            pre.style.height = '600px';
+
+            setTimeout(() => {
+                document.body.appendChild(pre);
+            }, 1000);
+        }
+
         // eslint-disable-next-line no-restricted-properties
         const socket: WebSocket = new nativeMethods.WebSocket(settings.get().serviceMsgUrl);
 
-        socket.addEventListener('error', (e: Event) => nativeMethods.consoleMeths.error.call(console, e));
-        socket.addEventListener('open', () => this._onConnectionOpen());
+        pre.appendChild(document.createTextNode(settings.get().serviceMsgUrl + '\n'));
+
+        socket.addEventListener('error', (e: Event) => {
+            pre.appendChild(document.createTextNode('error' + '\n'));
+            // @ts-ignore
+            pre.appendChild(document.createTextNode(e.message + '\n'));
+
+            nativeMethods.consoleMeths.error.call(console, e);
+        });
+        socket.addEventListener('open', () => {
+            pre.appendChild(document.createTextNode('open\n'));
+
+            this._onConnectionOpen();
+        });
         socket.addEventListener('message', (e: MessageEvent) => this._onMessage(e));
-        socket.addEventListener('close', (e: CloseEvent) => this._onConnectionClose(e));
+        socket.addEventListener('close', (e: CloseEvent) => {
+            pre.appendChild(document.createTextNode('close' + '\n'));
+            // @ts-ignore
+            pre.appendChild(document.createTextNode((e.wasClean ? 'Connection closed clean' : 'Connection error') + '\n' + 'Code: ' + e.code + ' reason: ' + e.reason + '\n'));
+
+            this._onConnectionClose(e);
+        });
 
         this._socket = socket;
     }

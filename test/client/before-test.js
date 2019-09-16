@@ -48,7 +48,7 @@
     window.initIframeTestHandler = function (iframe) {
         var referer          = "http://localhost/sessionId/https://example.com";
         var location         = "http://localhost/sessionId/https://example.com";
-        var serviceMsgUrl    = "/service-msg/100";
+        var serviceMsgUrl    = location.protocol.replace('http', 'ws') + '//' + location.host + '/service-msg';
         var cookie           = cookieSandbox.getCookie();
         var iframeTaskScript = JSON.stringify(window.getIframeTaskScript(referer, serviceMsgUrl, location, cookie));
 
