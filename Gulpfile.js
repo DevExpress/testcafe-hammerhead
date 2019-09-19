@@ -227,7 +227,7 @@ gulp.step('mocha', () => {
         }));
 });
 
-gulp.task('test-server', gulp.series('build', 'mocha'));
+gulp.task('test-server', gulp.series(/*'build',*/ 'mocha'));
 
 gulp.step('qunit', () => {
     gulp.watch('./src/**/*.ts', gulp.series('build'));

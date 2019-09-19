@@ -1,6 +1,10 @@
 import ResourceProcessorBase from './resource-processor-base';
 import Lru from 'lru-cache';
 import { processScript } from '../script';
+/*eslint-disable no-unused-vars*/
+import RequestPipelineContext from '../../request-pipeline/context';
+import Charset from '../encoding/charset';
+/*eslint-enable no-unused-vars*/
 
 class ScriptResourceProcessor extends ResourceProcessorBase {
     jsCache: any;
@@ -19,7 +23,7 @@ class ScriptResourceProcessor extends ResourceProcessorBase {
         });
     }
 
-    processResource (script: string, _ctx, _charset, urlReplacer: Function) {
+    processResource (script: string, _ctx: RequestPipelineContext, _charset: Charset, urlReplacer: Function): string {
         if (!script)
             return script;
 
@@ -33,7 +37,7 @@ class ScriptResourceProcessor extends ResourceProcessorBase {
         return processedScript;
     }
 
-    shouldProcessResource (ctx) {
+    shouldProcessResource (ctx: RequestPipelineContext): boolean {
         return ctx.contentInfo.isScript;
     }
 }

@@ -57,7 +57,7 @@ describe('Content charset', () => {
             }
         };
 
-        pageProcessor.processResource(html, requestPipelineContextMock, charset, noop, {});
+        pageProcessor.processResource(html, requestPipelineContextMock, charset, noop);
 
         expect(charset.get()).eql(expectedCharsetStr);
     }
@@ -316,7 +316,7 @@ describe('Content charset', () => {
         ]);
     });
 
-    it('Should correctly determine the charset from meta', () => {
+    it.only('Should correctly determine the charset from meta', () => {
         testMeta('<meta http-equiv="Content-Type" content="text/html;charset=utf-8">', 'utf-8');
         testMeta('<meta charset="windows-874">', 'windows-874');
         testMeta('<meta http-equiv="Content-Type" content="text/html;charset=windows-1252"><meta charset="utf-8">', 'utf-8');

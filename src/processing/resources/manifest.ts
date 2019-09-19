@@ -1,7 +1,11 @@
 import ResourceProcessorBase from './resource-processor-base';
+/*eslint-disable no-unused-vars*/
+import RequestPipelineContext from '../../request-pipeline/context';
+import Charset from '../encoding/charset';
+/*eslint-enable no-unused-vars*/
 
 class ManifestProcessor extends ResourceProcessorBase {
-    processResource (manifest, _ctx, _charset, urlReplacer) {
+    processResource (manifest: string, _ctx: RequestPipelineContext, _charset: Charset, urlReplacer: Function): string {
         const lines = manifest.split('\n');
 
         for (let i = 0; i < lines.length; i++) {
@@ -25,7 +29,7 @@ class ManifestProcessor extends ResourceProcessorBase {
         return lines.join('\n');
     }
 
-    shouldProcessResource (ctx) {
+    shouldProcessResource (ctx: RequestPipelineContext): boolean {
         return ctx.contentInfo.isManifest;
     }
 }

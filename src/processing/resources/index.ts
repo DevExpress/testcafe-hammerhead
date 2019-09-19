@@ -52,12 +52,12 @@ export async function process (ctx) {
         if (processor.shouldProcessResource(ctx)) {
             const urlReplacer = getResourceUrlReplacer(ctx);
             // @ts-ignore: Cannot invoke an expression whose type lacks a call signature
-            const processed   = processor.processResource(decoded, ctx, charset, urlReplacer, false);
+            const processed   = processor.processResource(decoded, ctx, charset, urlReplacer);
 
             if (processed === pageProcessor.RESTART_PROCESSING)
                 return await process(ctx);
 
-            return await encodeContent(processed, encoding, charset);
+            return await encodeContent(processed as string, encoding, charset);
         }
     }
 
