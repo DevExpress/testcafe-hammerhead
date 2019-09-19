@@ -5,6 +5,9 @@ import * as urlUtils from '../../utils/url';
 import * as parse5Utils from '../../utils/parse5';
 import { SVG_NAMESPACE } from './namespaces';
 import DomProcessor from './index';
+/*eslint-disable no-unused-vars*/
+import { ASTNode } from 'parse5';
+/*eslint-enable no-unused-vars*/
 
 export default class Parse5DomAdapter extends BaseDomAdapter {
     isIframe: boolean;
@@ -17,27 +20,27 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
         this.crossDomainPort = crossDomainPort;
     }
 
-    removeAttr (el, attr: string) {
+    removeAttr (el: ASTNode, attr: string): void {
         parse5Utils.removeAttr(el, attr);
     }
 
-    getAttr (el, attr: string) {
+    getAttr (el: ASTNode, attr: string): string {
         return parse5Utils.getAttr(el, attr);
     }
 
-    getClassName (el) {
+    getClassName (el: ASTNode): string {
         return this.getAttr(el, 'class') || '';
     }
 
-    hasAttr (el, attr: string) {
+    hasAttr (el: ASTNode, attr: string): boolean {
         return this.getAttr(el, attr) !== null;
     }
 
-    isSVGElement (el) {
+    isSVGElement (el: ASTNode): boolean {
         return el.namespaceURI === SVG_NAMESPACE;
     }
 
-    hasEventHandler (el) {
+    hasEventHandler (el: ASTNode): boolean {
         for (let i = 0; i < el.attrs.length; i++) {
             if (this.EVENTS.includes(el.attrs[i].name))
                 return true;
@@ -46,42 +49,42 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
         return false;
     }
 
-    getTagName (el) {
+    getTagName (el: ASTNode): string {
         return (el.tagName || '').toLowerCase();
     }
 
-    setAttr (el, attr: string, value: string) {
+    setAttr (el: ASTNode, attr: string, value: string) {
         return parse5Utils.setAttr(el, attr, value);
     }
 
-    setScriptContent (script, content: string) {
+    setScriptContent (script: ASTNode, content: string): void {
         script.childNodes = [parse5Utils.createTextNode(content, script)];
     }
 
-    getScriptContent (script) {
+    getScriptContent (script: ASTNode): string {
         return script.childNodes.length ? script.childNodes[0].value : '';
     }
 
-    getStyleContent (style) {
+    getStyleContent (style: ASTNode): string {
         return style.childNodes.length ? style.childNodes[0].value : '';
     }
 
-    setStyleContent (style, content: string) {
+    setStyleContent (style: ASTNode, content: string): void {
         style.childNodes = [parse5Utils.createTextNode(content, style)];
     }
 
-    needToProcessContent () {
+    needToProcessContent (): boolean {
         return true;
     }
 
-    needToProcessUrl (tagName, target) {
+    needToProcessUrl (tagName: string, target: string): boolean {
         if (DomProcessor.isIframeFlagTag(tagName) && target === '_parent')
             return false;
 
         return true;
     }
 
-    attachEventEmitter (domProcessor) {
+    attachEventEmitter (domProcessor): void {
         const eventEmitter = new events.EventEmitter();
 
         domProcessor.on   = eventEmitter.on.bind(eventEmitter);
@@ -89,27 +92,27 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
         domProcessor.emit = eventEmitter.emit.bind(eventEmitter);
     }
 
-    hasIframeParent () {
+    hasIframeParent (): boolean {
         return this.isIframe;
     }
 
-    getCrossDomainPort () {
+    getCrossDomainPort (): string {
         return this.crossDomainPort;
     }
 
-    getProxyUrl () {
+    getProxyUrl (): string {
         return urlUtils.getProxyUrl.apply(urlUtils, arguments);
     }
 
-    isTopParentIframe () {
+    isTopParentIframe (): boolean {
         return false;
     }
 
-    sameOriginCheck (location: string, checkedUrl: string) {
+    sameOriginCheck (location: string, checkedUrl: string): boolean {
         return urlUtils.sameOriginCheck(location, checkedUrl);
     }
 
-    isExistingTarget () {
+    isExistingTarget (): boolean {
         return false;
     }
 }
