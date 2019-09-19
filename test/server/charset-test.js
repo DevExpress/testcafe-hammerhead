@@ -54,7 +54,12 @@ describe('Content charset', () => {
             dest:    {},
             session: {
                 hasRequestEventListeners: () => false
-            }
+            },
+            serverInfo: {
+                crossDomainPort: 1338
+            },
+            getInjectableStyles:  () => [],
+            getInjectableScripts: () => []
         };
 
         pageProcessor.processResource(html, requestPipelineContextMock, charset, noop);
@@ -165,23 +170,22 @@ describe('Content charset', () => {
                 fromMeta: noop
             };
 
-            const proxyResources = {
-                scripts: [
-                    'http://127.0.0.1:1836/hammerhead.js',
-                    'http://127.0.0.1:1836/task.js'
-                ],
-
-                styleUrl: null
-            };
-
             const requestPipelineContextMock = {
                 dest:    {},
                 session: {
                     hasRequestEventListeners: () => false
-                }
+                },
+                serverInfo: {
+                    crossDomainPort: 1338
+                },
+                getInjectableStyles:  () => [],
+                getInjectableScripts: () => [
+                    'http://127.0.0.1:1836/hammerhead.js',
+                    'http://127.0.0.1:1836/task.js'
+                ]
             };
 
-            const processedResource = pageProcessor.processResource(src, requestPipelineContextMock, charset, noop, proxyResources);
+            const processedResource = pageProcessor.processResource(src, requestPipelineContextMock, charset, noop);
 
             return iconv.encode(processedResource, charsetStr, { addBOM: addBOM }).toString();
         }
@@ -316,7 +320,7 @@ describe('Content charset', () => {
         ]);
     });
 
-    it.only('Should correctly determine the charset from meta', () => {
+    it('Should correctly determine the charset from meta', () => {
         testMeta('<meta http-equiv="Content-Type" content="text/html;charset=utf-8">', 'utf-8');
         testMeta('<meta charset="windows-874">', 'windows-874');
         testMeta('<meta http-equiv="Content-Type" content="text/html;charset=windows-1252"><meta charset="utf-8">', 'utf-8');
