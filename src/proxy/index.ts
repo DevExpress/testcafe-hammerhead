@@ -13,12 +13,61 @@ import { run as runRequestPipeline } from '../request-pipeline';
 import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
 import { resetKeepAliveConnections } from '../request-pipeline/destination-request/agent';
 import SERVICE_ROUTES from './service-routes';
+import FormData from '../upload/form-data';
+import { INTERNAL_REQUEST_PARAMETERS } from '../request-pipeline/internal-request-parameters';
 
 const SESSION_IS_NOT_OPENED_ERR: string = 'Session is not opened in proxy';
 
 function parseAsJson (msg: Buffer): ServiceMessage | null {
     try {
         return JSON.parse(msg.toString());
+    }
+    catch (err) {
+        return null;
+    }
+}
+
+function restructureMsgProperties (tmpObj): ServiceMessage {
+    const resultObj = Object.create(null);
+
+    resultObj.cmd       = tmpObj[INTERNAL_REQUEST_PARAMETERS.cmd];
+    resultObj.sessionId = tmpObj[INTERNAL_REQUEST_PARAMETERS.sessionId];
+
+    delete tmpObj[INTERNAL_REQUEST_PARAMETERS.cmd];
+    delete tmpObj[INTERNAL_REQUEST_PARAMETERS.sessionId];
+
+    if (tmpObj[INTERNAL_REQUEST_PARAMETERS.referer])
+        resultObj.referer = tmpObj[INTERNAL_REQUEST_PARAMETERS.referer];
+
+    resultObj.form = {
+        parameters: {
+            method:  tmpObj[INTERNAL_REQUEST_PARAMETERS.formMethod],
+            enctype: tmpObj[INTERNAL_REQUEST_PARAMETERS.formEnctype]
+        },
+        fields: {}
+    };
+
+    Object.entries(tmpObj).forEach(([key, value]) => {
+        resultObj.form.fields[key] = value;
+    });
+
+    return resultObj;
+}
+
+function parseAsFormData (msg: Buffer, contentTypeHeader: string): ServiceMessage | null {
+    try {
+        const parser = new FormData();
+
+        parser.parseContentTypeHeader(contentTypeHeader);
+        parser.parseBody(msg);
+
+        const tmpObj = Object.create(null);
+
+        parser._entries.forEach(entry => {
+            tmpObj[entry.name] = entry.body.toString();
+        });
+
+        return restructureMsgProperties(tmpObj);
     }
     catch (err) {
         return null;
@@ -105,7 +154,7 @@ export default class Proxy extends Router {
 
     async _onServiceMessage (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) {
         const body    = await fetchBody(req);
-        const msg     = parseAsJson(body);
+        const msg     = parseAsJson(body) || parseAsFormData(body, req.headers['content-type']);
         const session = msg && this.openSessions.get(msg.sessionId);
 
         if (session) {

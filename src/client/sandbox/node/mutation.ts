@@ -8,7 +8,7 @@ export default class NodeMutation extends EventEmitter {
     BODY_CREATED_EVENT: string = 'hammerhead|event|body-created';
     IFRAME_ADDED_TO_DOM_EVENT: string = 'hammerhead|event|iframe-added-to-dom';
 
-    onIframeAddedToDOM (iframe: HTMLIFrameElement) {
+    onIframeAddedToDOM (iframe: HTMLIFrameElement | HTMLFrameElement) {
         this.emit(this.IFRAME_ADDED_TO_DOM_EVENT, iframe);
     }
 

@@ -116,6 +116,7 @@ gulp.step('client-scripts-transpile', () => {
     const sharedScripts = [
         './src/processing/**/*.ts',
         './src/request-pipeline/xhr/*.ts',
+        './src/request-pipeline/internal-request-parameters.ts',
         './src/shadow-ui/*.ts',
         './src/typings/*.ts',
         './src/upload/*.ts',
@@ -259,6 +260,14 @@ gulp.step('http-playground-server', () => {
 
     return hang();
 });
+
+gulp.step('set-multi-browser-mode', done => {
+    process.env.allowMultipleWindows = true;
+
+    done();
+});
+
+gulp.task('multi-window-http-playground', gulp.series('build', 'set-multi-browser-mode', 'http-playground-server'));
 
 gulp.task('http-playground', gulp.series('build', 'http-playground-server'));
 

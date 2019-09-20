@@ -23,6 +23,8 @@ function createSession () {
         console.log(err);
     };
 
+    session.allowMultipleWindows = !!global.process.env.allowMultipleWindows;
+
     return session;
 }
 

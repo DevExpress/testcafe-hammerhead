@@ -18,7 +18,7 @@ export default class FormData {
     boundary: Buffer | null = null;
     private _boundaryEnd: Buffer | null = null;
     private _epilogue: Array<Buffer> = [];
-    private _entries: Array<FormDataEntry> = [];
+    _entries: Array<FormDataEntry> = [];
     private _preamble: Array<Buffer> = [];
 
     private _removeEntry (name: string) {

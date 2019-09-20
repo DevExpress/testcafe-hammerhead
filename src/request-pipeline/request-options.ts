@@ -42,7 +42,7 @@ export default class RequestOptions {
         this.port        = ctx.dest.port;
         this.path        = ctx.dest.partAfterHost;
         this.auth        = ctx.dest.auth;
-        this.method      = ctx.req.method;
+        this.method      = this._getMethodFromPendingRequest(ctx) || ctx.req.method;
         this.credentials = ctx.session.getAuthCredentials();
         this.body        = ctx.reqBody;
         this.isXhr       = ctx.isXhr;
@@ -62,5 +62,12 @@ export default class RequestOptions {
                     headers['proxy-authorization'] = proxy.authHeader;
             }
         }
+    }
+
+    private _getMethodFromPendingRequest (ctx: RequestPipelineContext): string | null {
+        if (!ctx.pendingRequest)
+            return null;
+
+        return ctx.pendingRequest.form.parameters.method.toUpperCase();
     }
 }

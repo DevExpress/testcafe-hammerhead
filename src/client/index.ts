@@ -224,6 +224,7 @@ class Hammerhead {
                 Hammerhead._cleanLocalStorageServiceData(initSettings.sessionId, this.win);
 
             domProcessor.forceProxySrcForImage = initSettings.forceProxySrcForImage;
+            domProcessor.allowMultipleWindows  = initSettings.allowMultipleWindows;
         }
 
         this.sandbox.attach(this.win);

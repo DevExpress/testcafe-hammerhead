@@ -9,6 +9,7 @@ import RequestEvent from './events/request-event';
 import ResponseEvent from './events/response-event';
 import ConfigureResponseEvent from './events/configure-response-event';
 import {
+    AddPendingRequestServiceMessage,
     Credentials,
     ExternalProxySettings,
     ExternalProxySettingsRaw,
@@ -24,6 +25,8 @@ import Cookies from './cookies';
 import UploadStorage from '../upload/storage';
 import COMMAND from './command';
 import generateUniqueId from '../utils/generate-unique-id';
+import PendingRequestStorage from './pending-request-storage';
+import SERVICE_ROUTES from '../proxy/service-routes';
 
 const TASK_TEMPLATE: string = read('../client/task.js.mustache');
 
@@ -56,6 +59,7 @@ interface TaskScriptTemplateOpts {
     cookie: string | null;
     iframeTaskScriptTemplate: string;
     payloadScript: string;
+    allowMultipleWindows: boolean;
 }
 
 interface TaskScriptOpts {
@@ -68,6 +72,7 @@ interface TaskScriptOpts {
 
 export default abstract class Session extends EventEmitter {
     uploadStorage: UploadStorage;
+    pendingRequestStorage: PendingRequestStorage;
     id: string = generateUniqueId();
     cookies: Cookies = new Cookies();
     proxy: Proxy | null = null;
@@ -78,11 +83,13 @@ export default abstract class Session extends EventEmitter {
     requestEventListeners: Map<RequestFilterRule, RequestEventListenersData> = new Map();
     mocks: Map<RequestFilterRule, ResponseMock> = new Map();
     disablePageCaching: boolean = false;
+    allowMultipleWindows: boolean = false;
 
     protected constructor (uploadRoots: string[]) {
         super();
 
-        this.uploadStorage = new UploadStorage(uploadRoots);
+        this.uploadStorage         = new UploadStorage(uploadRoots);
+        this.pendingRequestStorage = new PendingRequestStorage();
     }
 
     // State
@@ -107,7 +114,7 @@ export default abstract class Session extends EventEmitter {
         throw new Error('Malformed service message or message handler is not implemented');
     }
 
-    _fillTaskScriptTemplate ({ serverInfo, isFirstPageLoad, referer, cookie, iframeTaskScriptTemplate, payloadScript }: TaskScriptTemplateOpts): string {
+    _fillTaskScriptTemplate ({ serverInfo, isFirstPageLoad, referer, cookie, iframeTaskScriptTemplate, payloadScript, allowMultipleWindows }: TaskScriptTemplateOpts): string {
         referer                  = referer && JSON.stringify(referer) || '{{{referer}}}';
         cookie                   = cookie || '{{{cookie}}}';
         iframeTaskScriptTemplate = iframeTaskScriptTemplate || '{{{iframeTaskScriptTemplate}}}';
@@ -116,14 +123,15 @@ export default abstract class Session extends EventEmitter {
 
         return mustache.render(TASK_TEMPLATE, {
             sessionId:             this.id,
-            serviceMsgUrl:         domain + '/messaging',
+            serviceMsgUrl:         domain + SERVICE_ROUTES.messaging,
             forceProxySrcForImage: this.hasRequestEventListeners(),
             crossDomainPort,
             isFirstPageLoad,
             referer,
             cookie,
             iframeTaskScriptTemplate,
-            payloadScript
+            payloadScript,
+            allowMultipleWindows
         });
     }
 
@@ -134,7 +142,8 @@ export default abstract class Session extends EventEmitter {
             referer:                  null,
             cookie:                   null,
             iframeTaskScriptTemplate: null,
-            payloadScript:            this._getIframePayloadScript(true)
+            payloadScript:            this._getIframePayloadScript(true),
+            allowMultipleWindows:     this.allowMultipleWindows
         });
 
         return JSON.stringify(taskScriptTemplate);
@@ -153,7 +162,8 @@ export default abstract class Session extends EventEmitter {
             referer,
             cookie:                   cookies,
             iframeTaskScriptTemplate: this.getIframeTaskScriptTemplate(serverInfo),
-            payloadScript
+            payloadScript,
+            allowMultipleWindows:     this.allowMultipleWindows
         });
 
         this.pageLoadCount++;
@@ -263,7 +273,7 @@ export default abstract class Session extends EventEmitter {
         this.mocks.set(requestFilterRule, mock);
     }
 
-    getMock (requestFilterRule: RequestFilterRule): ResponseMock {
+    getMock (requestFilterRule: RequestFilterRule): ResponseMock | undefined {
         return this.mocks.get(requestFilterRule);
     }
 
@@ -281,5 +291,8 @@ export default abstract class Session extends EventEmitter {
     async [COMMAND.getUploadedFiles] (msg: GetUploadedFilesServiceMessage): Promise<object> {
         return await this.uploadStorage.get(msg.filePaths);
     }
-}
 
+    async [COMMAND.addPendingRequest] (msg: AddPendingRequestServiceMessage): Promise<string> {
+        return this.pendingRequestStorage.add(msg);
+    }
+}

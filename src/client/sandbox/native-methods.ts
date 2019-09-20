@@ -127,7 +127,8 @@ class NativeMethods {
     WindowTextEvent: any;
     WindowMouseEvent: any;
     canvasContextDrawImage: any;
-    formDataAppend: any;
+    formData: Function;
+    formDataAppend: Function;
     date: any;
     dateNow: any;
     math: any;
@@ -313,6 +314,7 @@ class NativeMethods {
     Worker: any;
     ArrayBuffer: any;
     Uint8Array: any;
+    Uint32Array: Function;
     DataView: any;
     Blob: any;
     XMLHttpRequest: any;
@@ -338,6 +340,8 @@ class NativeMethods {
     runInNewContext: any;
     runInThisContext: any;
     scrollTo: any;
+    crypto: Crypto;
+    cryptoGetRandomValues: Function;
 
     constructor (doc?: Document, win?: Window) {
         win = win || window;
@@ -599,8 +603,10 @@ class NativeMethods {
         this.WindowTextEvent           = win.TextEvent || winProto.TextEvent;
         this.WindowMouseEvent          = win.MouseEvent || winProto.MouseEvent;
 
-
         this.canvasContextDrawImage = win.CanvasRenderingContext2D.prototype.drawImage;
+
+        // FormData
+        this.formData               = win.FormData;
         this.formDataAppend         = win.FormData.prototype.append;
 
         // DateTime
@@ -942,6 +948,9 @@ class NativeMethods {
 
         this.scrollTo = win.scrollTo;
 
+        this.crypto                = win.crypto || win.msCrypto;
+        this.cryptoGetRandomValues = this.crypto.getRandomValues;
+
         this.refreshClasses(win);
     }
 
@@ -954,6 +963,7 @@ class NativeMethods {
         this.Worker           = win.Worker;
         this.ArrayBuffer      = win.ArrayBuffer;
         this.Uint8Array       = win.Uint8Array;
+        this.Uint32Array      = win.Uint32Array;
         this.DataView         = win.DataView;
         this.Blob             = win.Blob;
         this.XMLHttpRequest   = win.XMLHttpRequest;
@@ -1047,7 +1057,7 @@ class NativeMethods {
 
         const needToRefreshDocumentMethods = tryToExecuteCode(
             () => !doc.createElement ||
-                  this.createElement.toString() === document.createElement.toString()
+                this.createElement.toString() === document.createElement.toString()
         );
 
         const needToRefreshElementMethods = tryToExecuteCode(() => {

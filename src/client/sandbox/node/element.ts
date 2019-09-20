@@ -1,3 +1,5 @@
+
+
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import SandboxBase from '../base';
 import NodeSandbox from '../node/index';
@@ -14,7 +16,7 @@ import { sameOriginCheck, get as getDestLocation } from '../../utils/destination
 import { isValidEventListener, stopPropagation } from '../../utils/event';
 import { processHtml, isInternalHtmlParserElement } from '../../utils/html';
 import { getNativeQuerySelector, getNativeQuerySelectorAll } from '../../utils/query-selector';
-import { HASH_RE } from '../../../utils/url';
+import { addParameter, HASH_RE } from '../../../utils/url';
 import trim from '../../../utils/string-trim';
 import * as windowsStorage from '../windows-storage';
 import { refreshAttributesWrapper } from './attributes';
@@ -25,6 +27,11 @@ import settings from '../../settings';
 import { overrideDescriptor } from '../../utils/property-overriding';
 import InsertPosition from '../../utils/insert-position';
 import { isFirefox } from '../../utils/browser';
+import { INTERNAL_REQUEST_PARAMETERS } from '../../../request-pipeline/internal-request-parameters';
+import COMMANDS from '../../../session/command';
+import transport from '../../transport';
+import getRandomInt32Value from '../../utils/get-random-int-32-value';
+import FormEnctype from '../../../processing/dom/form-enctype';
 import UploadSandbox from '../upload';
 import IframeSandbox from '../iframe';
 import EventSandbox from '../event';
@@ -198,7 +205,7 @@ export default class ElementSandbox extends SandboxBase {
 
                     if (ElementSandbox._isHrefAttrForBaseElement(el, attr) &&
                         domUtils.isElementInDocument(el, currentDocument))
-                        // @ts-ignore
+                    // @ts-ignore
                         urlResolver.updateBase(value, currentDocument);
 
                     args[valueIndex] = isIframe && isCrossDomainUrl
@@ -220,7 +227,7 @@ export default class ElementSandbox extends SandboxBase {
             args[valueIndex] = 'off';
         }
         else if (loweredAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName) ||
-                 loweredAttr === 'formtarget' && DomProcessor.isTagWithFormTargetAttr(tagName)) {
+            loweredAttr === 'formtarget' && DomProcessor.isTagWithFormTargetAttr(tagName)) {
             const currentTarget = nativeMethods.getAttribute.call(el, loweredAttr);
             const newTarget     = this.getCorrectedTarget(value);
 
@@ -258,8 +265,8 @@ export default class ElementSandbox extends SandboxBase {
                 return null;
         }
         else if (loweredAttr === 'xlink:href' &&
-                 domProcessor.SVG_XLINK_HREF_TAGS.indexOf(tagName) !== -1 &&
-                 domUtils.isSVGElement(el)) {
+            domProcessor.SVG_XLINK_HREF_TAGS.indexOf(tagName) !== -1 &&
+            domUtils.isSVGElement(el)) {
             const storedXLinkHrefAttr = DomProcessor.getStoredAttrName(attr);
 
             setAttrMeth.apply(el, isNs ? [ns, storedXLinkHrefAttr, value] : [storedXLinkHrefAttr, value]);
@@ -339,7 +346,7 @@ export default class ElementSandbox extends SandboxBase {
         // the correct SHA for the changed script.
         // _hasAttributeCore returns true for 'integrity' attribute if the stored attribute is exists. (GH-235)
         else if (!isNs && args[0] === 'integrity' &&
-                 DomProcessor.isTagWithIntegrityAttr(tagName))
+            DomProcessor.isTagWithIntegrityAttr(tagName))
             args[0] = DomProcessor.getStoredAttrName('integrity');
         // NOTE: We simply remove the 'rel' attribute if rel='prefetch' and use stored 'rel' attribute, because the prefetch
         // resource type is unknown.
@@ -400,7 +407,7 @@ export default class ElementSandbox extends SandboxBase {
         }
 
         if (ElementSandbox._isHrefAttrForBaseElement(el, formatedAttr))
-            // @ts-ignore
+        // @ts-ignore
             urlResolver.updateBase(getDestLocation(), this.document);
 
         if (formatedAttr !== 'autocomplete')
@@ -756,7 +763,7 @@ export default class ElementSandbox extends SandboxBase {
             const storedHrefAttrValue = el.getAttribute(storedHrefAttrName);
 
             if (storedHrefAttrValue !== null)
-                // @ts-ignore
+            // @ts-ignore
                 urlResolver.updateBase(storedHrefAttrValue, this.document);
         }
     }
@@ -782,7 +789,7 @@ export default class ElementSandbox extends SandboxBase {
         hiddenInfo.addInputInfo(el, infoManager.getFiles(el), infoManager.getValue(el));
     }
 
-    onIframeAddedToDOM (iframe: HTMLIFrameElement): void {
+    onIframeAddedToDOM (iframe: HTMLIFrameElement | HTMLFrameElement): void {
         if (!domUtils.isCrossDomainIframe(iframe, true))
             this._nodeSandbox.mutation.onIframeAddedToDOM(iframe);
     }
@@ -826,6 +833,7 @@ export default class ElementSandbox extends SandboxBase {
             window.HTMLElement.prototype.insertAdjacentHTML = this.overriddenMethods.insertAdjacentHTML;
 
         this._setValidBrowsingContextOnElementClick(window);
+        this._handleFormSubmitting(window);
 
         // NOTE: Cookie can be set up for the page by using the request initiated by img.
         // For example: img.src = '<url that responds with the Set-Cookie header>'
@@ -848,6 +856,9 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     private _ensureTargetContainsExistingBrowsingContext (el: HTMLElement): void {
+        if (settings.get().allowMultipleWindows)
+            return;
+
         if (!nativeMethods.hasAttribute.call(el, 'target'))
             return;
 
@@ -887,12 +898,76 @@ export default class ElementSandbox extends SandboxBase {
         }, false);
     }
 
+    private _shouldOpenInNewWindow (target: string): boolean {
+        target = target.toLowerCase();
+
+        return target === '_blank' || !windowsStorage.findByName(target);
+    }
+
     getCorrectedTarget (target = ''): string {
+        if (settings.get().allowMultipleWindows)
+            return target;
+
         if (target && !ElementSandbox._isKeywordTarget(target) && !windowsStorage.findByName(target) ||
             /_blank/i.test(target))
             return '_top';
 
         return target;
+    }
+
+    private _handleOpeningPageInNewWindow (el: HTMLLinkElement | HTMLAreaElement): void {
+        if (!settings.get().allowMultipleWindows)
+            return;
+
+        this._eventSandbox.listeners.initElementListening(el, ['click']);
+        this._eventSandbox.listeners.addInternalEventListener(el, ['click'], (_e, _dispatched, preventEvent, _cancelHandlers, stopEventPropagation) => {
+            if (!this._shouldOpenInNewWindow(el.target))
+                return;
+
+            // TODO: need to check that specified 'area' are clickable (initiated new page opening)
+            const url = nativeMethods.anchorHrefGetter.call(el);
+
+            this._openUrlInNewWindow(url);
+
+            preventEvent();
+            stopEventPropagation();
+        });
+    }
+
+    private _openUrlInNewWindow (url: string): void {
+        // NOTE: Temporary implementation of the window size
+        const windowParams = 'width=500px, height=500px';
+        const windowName   = getRandomInt32Value();
+
+        nativeMethods.windowOpen.call(this.window, url, windowName, windowParams);
+    }
+
+    private _executePendingRequestInNewWindow (requestId: string, form: HTMLFormElement): void {
+        let resultUrl = '';
+
+        // TODO: Support all form encoding types
+        if (form.enctype === FormEnctype.xWWWFormUrlencoded) {
+            // TODO: handle files
+            const namedInputs = domUtils.getNamedInputs(form);
+            let formActionUrl = nativeMethods.formActionGetter.call(form);
+
+            for (const namedInput of namedInputs) {
+                formActionUrl = addParameter(formActionUrl, {
+                    name:  namedInput.name,
+                    value: namedInput.value // eslint-disable-line no-restricted-properties
+                });
+            }
+
+            // TODO: hide the internal 'pendingRequestId' from Location properties
+            formActionUrl = addParameter(formActionUrl, {
+                name:  INTERNAL_REQUEST_PARAMETERS.pendingRequestId,
+                value: requestId
+            });
+
+            resultUrl = formActionUrl;
+        }
+
+        this._openUrlInNewWindow(resultUrl);
     }
 
     private _handleImageLoadEventRaising (el: HTMLImageElement): void {
@@ -911,7 +986,50 @@ export default class ElementSandbox extends SandboxBase {
         });
 
         if (!el[INTERNAL_PROPS.forceProxySrcForImage] && !settings.get().forceProxySrcForImage)
-            this._setProxiedSrcUrlOnError(el);
+            this._setProxiedSrcUrlOnError(el as HTMLImageElement);
+    }
+
+    private _constructFormData (form: HTMLFormElement): FormData {
+        // @ts-ignore
+        const formData = new nativeMethods.formData(form); /*eslint-disable-line new-cap */
+
+        formData.append(INTERNAL_REQUEST_PARAMETERS.formMethod, form.method);
+        // TODO: Support all form enctypes
+        formData.append(INTERNAL_REQUEST_PARAMETERS.formEnctype, form.enctype);
+
+        return formData;
+    }
+
+    private _handleFormSubmitting (window: Window): void {
+        if (!settings.get().allowMultipleWindows)
+            return;
+
+        this._eventSandbox.listeners.initElementListening(window, ['submit']);
+        this._eventSandbox.listeners.addInternalEventListener(window, ['submit'], (e, _dispatched, preventEvent, _cancelHandlers, stopEventPropagation) => {
+            if (!domUtils.isFormElement(e.target))
+                return;
+
+            const form = e.target;
+
+            if (!this._shouldOpenInNewWindow(form.target))
+                return;
+
+            e.preventDefault();
+
+            const formData = this._constructFormData(form);
+
+            transport
+                .asyncServiceMsg({
+                    cmd:  COMMANDS.addPendingRequest,
+                    data: formData
+                })
+                .then(requestId => {
+                    this._executePendingRequestInNewWindow(requestId, form);
+                });
+
+            preventEvent();
+            stopEventPropagation();
+        });
     }
 
     private _processBaseTag (el: HTMLBaseElement): void {
@@ -936,6 +1054,9 @@ export default class ElementSandbox extends SandboxBase {
         const tagName = domUtils.getTagName(el);
 
         switch (tagName) {
+            case 'a':
+                this._handleOpeningPageInNewWindow(el as HTMLLinkElement);
+                break;
             case 'img':
                 this._handleImageLoadEventRaising(el as HTMLImageElement);
                 break;
@@ -945,6 +1066,9 @@ export default class ElementSandbox extends SandboxBase {
                 break;
             case 'base':
                 this._processBaseTag(el as HTMLBaseElement);
+                break;
+            case 'area':
+                this._handleOpeningPageInNewWindow(el as HTMLAreaElement);
                 break;
         }
 
