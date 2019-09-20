@@ -11,6 +11,7 @@ import createSelfRemovingScript from '../../utils/create-self-removing-script';
 /*eslint-disable no-unused-vars*/
 import RequestPipelineContext from '../../request-pipeline/context';
 import Charset from '../encoding/charset';
+import BaseDomAdapter from '../dom/base-dom-adapter';
 /*eslint-enable no-unused-vars*/
 
 const BODY_CREATED_EVENT_SCRIPT: string = createSelfRemovingScript(`
@@ -20,7 +21,7 @@ const BODY_CREATED_EVENT_SCRIPT: string = createSelfRemovingScript(`
 
 class PageProcessor extends ResourceProcessorBase {
     RESTART_PROCESSING: Symbol;
-    PARSED_BODY_CREATED_EVENT_SCRIPT: any;
+    PARSED_BODY_CREATED_EVENT_SCRIPT: parse5.ASTNode;
 
     constructor () {
         super();
@@ -31,7 +32,7 @@ class PageProcessor extends ResourceProcessorBase {
         this.PARSED_BODY_CREATED_EVENT_SCRIPT = parsedDocumentFragment.childNodes[0];
     }
 
-    _createRestoreStoragesScript (storageKey, storages) {
+    private _createRestoreStoragesScript (storageKey, storages) {
         const scriptStr              = createSelfRemovingScript(`
             window.localStorage.setItem("${ storageKey }", ${ JSON.stringify(storages.localStorage) });
             window.sessionStorage.setItem("${ storageKey }", ${ JSON.stringify(storages.sessionStorage) });
@@ -41,7 +42,7 @@ class PageProcessor extends ResourceProcessorBase {
         return parsedDocumentFragment.childNodes[0];
     }
 
-    static _getPageProcessingOptions (ctx, urlReplacer) {
+    private static _getPageProcessingOptions (ctx: RequestPipelineContext, urlReplacer: Function) {
         return {
             crossDomainProxyPort: ctx.serverInfo.crossDomainPort,
             isIframe:             ctx.isIframe,
@@ -52,7 +53,7 @@ class PageProcessor extends ResourceProcessorBase {
         };
     }
 
-    static _getPageMetas (metaEls, domAdapter) {
+    private static _getPageMetas (metaEls, domAdapter: BaseDomAdapter) {
         const metas = [];
 
         for (let i = 0; i < metaEls.length; i++) {
@@ -66,7 +67,7 @@ class PageProcessor extends ResourceProcessorBase {
         return metas;
     }
 
-    static _addPageResources (head: any, processingOptions: any) {
+    private static _addPageResources (head: any, processingOptions: any) {
         const result = [];
 
         if (processingOptions.stylesheets) {
@@ -96,14 +97,14 @@ class PageProcessor extends ResourceProcessorBase {
             parse5Utils.insertBeforeFirstScript(result[i], head);
     }
 
-    static _addCharsetInfo (head: any, charset: any) {
+    private static _addCharsetInfo (head: any, charset: string) {
         parse5Utils.unshiftElement(parse5Utils.createElement('meta', [
             { name: 'class', value: SHADOW_UI_CLASSNAME.charset },
             { name: 'charset', value: charset }
         ]), head);
     }
 
-    static _changeMetas (metas, domAdapter) {
+    private static _changeMetas (metas, domAdapter: BaseDomAdapter) {
         if (metas) {
             metas.forEach(meta => {
                 // TODO: Figure out how to emulate the tag behavior.
@@ -113,21 +114,21 @@ class PageProcessor extends ResourceProcessorBase {
         }
     }
 
-    static _prepareHtml (html, processingOpts) {
+    private static _prepareHtml (html: string, processingOpts): string {
         if (processingOpts && processingOpts.iframeImageSrc)
             return `<html><body><img src="${processingOpts.iframeImageSrc}" /></body></html>`;
 
         return html;
     }
 
-    _addRestoreStoragesScript (ctx, head) {
+    private _addRestoreStoragesScript (ctx: RequestPipelineContext, head: parse5.ASTNode) {
         const storageKey            = getStorageKey(ctx.session.id, ctx.dest.host);
         const restoreStoragesScript = this._createRestoreStoragesScript(storageKey, ctx.restoringStorages);
 
         parse5Utils.insertBeforeFirstScript(restoreStoragesScript, head);
     }
 
-    _addBodyCreatedEventScript (body: any) {
+    private _addBodyCreatedEventScript (body: parse5.ASTNode) {
         parse5Utils.unshiftElement(this.PARSED_BODY_CREATED_EVENT_SCRIPT, body);
     }
 

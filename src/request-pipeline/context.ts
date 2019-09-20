@@ -61,7 +61,7 @@ const REDIRECT_STATUS_CODES: Array<number>   = [301, 302, 303, 307, 308];
 const CANNOT_BE_USED_WITH_WEB_SOCKET_ERR_MSG = 'The function cannot be used with a WebSocket request.';
 
 export default class RequestPipelineContext {
-    private readonly serverInfo: ServerInfo;
+    readonly serverInfo: ServerInfo;
     readonly req: http.IncomingMessage;
     readonly res: http.ServerResponse | net.Socket;
     session: Session = null;
@@ -145,7 +145,7 @@ export default class RequestPipelineContext {
     private _isFileDownload (): boolean {
         const contentDisposition = this.destRes.headers['content-disposition'];
 
-        return contentDisposition &&
+        return !!contentDisposition &&
                contentDisposition.includes('attachment') &&
                contentDisposition.includes('filename');
     }
