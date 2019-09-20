@@ -54,10 +54,15 @@ describe('Content charset', () => {
             dest:    {},
             session: {
                 hasRequestEventListeners: () => false
-            }
+            },
+            serverInfo: {
+                crossDomainPort: 1338
+            },
+            getInjectableStyles:  () => [],
+            getInjectableScripts: () => []
         };
 
-        pageProcessor.processResource(html, requestPipelineContextMock, charset, noop, {});
+        pageProcessor.processResource(html, requestPipelineContextMock, charset, noop);
 
         expect(charset.get()).eql(expectedCharsetStr);
     }
@@ -165,23 +170,22 @@ describe('Content charset', () => {
                 fromMeta: noop
             };
 
-            const proxyResources = {
-                scripts: [
-                    'http://127.0.0.1:1836/hammerhead.js',
-                    'http://127.0.0.1:1836/task.js'
-                ],
-
-                styleUrl: null
-            };
-
             const requestPipelineContextMock = {
                 dest:    {},
                 session: {
                     hasRequestEventListeners: () => false
-                }
+                },
+                serverInfo: {
+                    crossDomainPort: 1338
+                },
+                getInjectableStyles:  () => [],
+                getInjectableScripts: () => [
+                    'http://127.0.0.1:1836/hammerhead.js',
+                    'http://127.0.0.1:1836/task.js'
+                ]
             };
 
-            const processedResource = pageProcessor.processResource(src, requestPipelineContextMock, charset, noop, proxyResources);
+            const processedResource = pageProcessor.processResource(src, requestPipelineContextMock, charset, noop);
 
             return iconv.encode(processedResource, charsetStr, { addBOM: addBOM }).toString();
         }

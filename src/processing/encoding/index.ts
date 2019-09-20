@@ -46,7 +46,7 @@ export async function decodeContent (content: Buffer, encoding: string, charset:
     return charsetEncoder.decode(content, charset.get());
 }
 
-export async function encodeContent (content: Buffer, encoding: string, charset: Charset) {
+export async function encodeContent (content: string, encoding: string, charset: Charset) {
     content = charsetEncoder.encode(content, charset.get(), { addBOM: charset.isFromBOM() });
 
     if (encoding === GZIP_CONTENT_ENCODING)

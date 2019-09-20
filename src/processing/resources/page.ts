@@ -8,6 +8,10 @@ import getBOM from '../../utils/get-bom';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import getStorageKey from '../../utils/get-storage-key';
 import createSelfRemovingScript from '../../utils/create-self-removing-script';
+/*eslint-disable no-unused-vars*/
+import RequestPipelineContext from '../../request-pipeline/context';
+import Charset from '../encoding/charset';
+/*eslint-enable no-unused-vars*/
 
 const BODY_CREATED_EVENT_SCRIPT: string = createSelfRemovingScript(`
     if (window["${ INTERNAL_PROPS.hammerhead }"])
@@ -127,17 +131,16 @@ class PageProcessor extends ResourceProcessorBase {
         parse5Utils.unshiftElement(this.PARSED_BODY_CREATED_EVENT_SCRIPT, body);
     }
 
-    shouldProcessResource (ctx) {
+    shouldProcessResource (ctx: RequestPipelineContext): boolean {
         // NOTE: In some cases, Firefox sends the default accept header for the script.
         // We should not try to process it as a page in this case.
         return (ctx.isPage || ctx.contentInfo.isIframeWithImageSrc) && !ctx.contentInfo.isScript &&
                !ctx.contentInfo.isFileDownload;
     }
 
-    processResource (html, _ctx, _charset, urlReplacer, processingOpts) {
-        processingOpts = processingOpts || PageProcessor._getPageProcessingOptions(_ctx, urlReplacer);
-
-        const bom = getBOM(html);
+    processResource (html: string, _ctx: RequestPipelineContext, _charset: Charset, urlReplacer: Function): string | Symbol {
+        const processingOpts = PageProcessor._getPageProcessingOptions(_ctx, urlReplacer);
+        const bom            = getBOM(html);
 
         html = bom ? html.replace(bom, '') : html;
 
