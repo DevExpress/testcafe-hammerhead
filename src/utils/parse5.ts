@@ -1,8 +1,11 @@
 import { NAMESPACE_PREFIX_MAP } from '../processing/dom/namespaces';
+/*eslint-disable no-unused-vars*/
+import { ASTAttribute, ASTNode } from 'parse5';
+/*eslint-enable no-unused-vars*/
 
 const ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR: string = ':';
 
-function getAttrName (attr) {
+function getAttrName (attr: ASTAttribute) {
     return attr.prefix ? attr.prefix + ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR + attr.name : attr.name;
 }
 
@@ -21,7 +24,7 @@ function parseAttrName (attr): any {
     };
 }
 
-function findAttr (el, name: string) {
+function findAttr (el: ASTNode, name: string): ASTAttribute | null {
     for (let i = 0; i < el.attrs.length; i++) {
         if (getAttrName(el.attrs[i]) === name)
             return el.attrs[i];
@@ -83,15 +86,15 @@ export function walkElements (el, processor) {
         el.childNodes.forEach(child => walkElements(child, processor));
 }
 
-export function createTextNode (content, parent) {
+export function createTextNode (content: string, parent: ASTNode): ASTNode {
     return {
         nodeName:   '#text',
         value:      content,
         parentNode: parent
-    };
+    } as ASTNode;
 }
 
-export function removeAttr (el, name: string) {
+export function removeAttr (el: ASTNode, name: string) {
     for (let i = 0; i < el.attrs.length; i++) {
         if (getAttrName(el.attrs[i]) === name) {
             el.attrs.splice(i, 1);
@@ -107,7 +110,7 @@ export function getAttr (el, name: string) {
     return attr ? attr.value : null;
 }
 
-export function setAttr (el, name: string, value) {
+export function setAttr (el: ASTNode, name: string, value: string) {
     const attr = findAttr(el, name);
 
     if (attr) {
