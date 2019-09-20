@@ -77,7 +77,7 @@ export default class ElementSandbox extends SandboxBase {
             const url = el.getAttribute(storedUrlAttr);
 
             if (urlUtils.isSupportedProtocol(url))
-                el.setAttribute(urlAttr, url);
+                el.setAttribute(urlAttr, url as string);
         }
     }
 
@@ -415,7 +415,7 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
-    private _addNodeCore ({ parentNode, args, nativeFn, checkBody }) {
+    private _addNodeCore ({ parentNode, args, nativeFn, checkBody }): void {
         const newNode = args[0];
 
         this._prepareNodeForInsertion(newNode, parentNode);
@@ -445,7 +445,7 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
-    private _prepareNodeForInsertion (node, parentNode) {
+    private _prepareNodeForInsertion (node, parentNode): void {
         if (domUtils.isTextNode(node))
             ElementSandbox._processTextNodeContent(node, parentNode);
 
@@ -668,7 +668,7 @@ export default class ElementSandbox extends SandboxBase {
         };
     }
 
-    private static _processTextNodeContent (node, parentNode) {
+    private static _processTextNodeContent (node, parentNode): void {
         if (!parentNode.tagName)
             return;
 
@@ -678,27 +678,27 @@ export default class ElementSandbox extends SandboxBase {
             node.data = styleProcessor.process(node.data, urlUtils.getProxyUrl);
     }
 
-    private static _isHrefAttrForBaseElement (el, attr) {
+    private static _isHrefAttrForBaseElement (el: HTMLElement, attr: string): boolean {
         return domUtils.isBaseElement(el) && attr === 'href';
     }
 
-    private static _removeFileInputInfo (el: HTMLInputElement) {
+    private static _removeFileInputInfo (el: HTMLInputElement): void {
         hiddenInfo.removeInputInfo(el);
     }
 
-    private static _hasShadowUIParentOrContainsShadowUIClassPostfix (el: HTMLElement) {
+    private static _hasShadowUIParentOrContainsShadowUIClassPostfix (el: HTMLElement): boolean {
         const parent = nativeMethods.nodeParentNodeGetter.call(el);
 
         return parent && domUtils.isShadowUIElement(parent) || ShadowUI.containsShadowUIClassPostfix(el);
     }
 
-    _isFirstBaseTagOnPage (el: HTMLBaseElement) {
+    private _isFirstBaseTagOnPage (el: HTMLBaseElement): boolean {
         const doc = el.ownerDocument || this.document;
 
         return nativeMethods.querySelector.call(doc, 'base') === el;
     }
 
-    private _onAddFileInputInfo (el: HTMLElement) {
+    private _onAddFileInputInfo (el: HTMLElement): void {
         if (!domUtils.isDomElement(el))
             return;
 
@@ -708,7 +708,7 @@ export default class ElementSandbox extends SandboxBase {
             this.addFileInputInfo(fileInput);
     }
 
-    private _onRemoveFileInputInfo (el: HTMLInputElement) {
+    private _onRemoveFileInputInfo (el: HTMLInputElement): void {
         if (!domUtils.isDomElement(el))
             return;
 
@@ -718,12 +718,12 @@ export default class ElementSandbox extends SandboxBase {
             domUtils.find(el, 'input[type=file]', ElementSandbox._removeFileInputInfo);
     }
 
-    private _onRemoveIframe (el: HTMLIFrameElement) {
+    private _onRemoveIframe (el: HTMLIFrameElement): void {
         if (domUtils.isDomElement(el) && domUtils.isIframeElement(el))
             windowsStorage.remove(nativeMethods.contentWindowGetter.call(el));
     }
 
-    private _onElementAdded (el: HTMLElement) {
+    private _onElementAdded (el: HTMLElement): void {
         if (ElementSandbox._hasShadowUIParentOrContainsShadowUIClassPostfix(el))
             ShadowUI.markElementAndChildrenAsShadow(el);
 
@@ -763,7 +763,7 @@ export default class ElementSandbox extends SandboxBase {
         }
     }
 
-    private _onElementRemoved (el: HTMLElement) {
+    private _onElementRemoved (el: HTMLElement): void {
         if (domUtils.isBodyElement(el))
             this._shadowUI.onBodyElementMutation();
 
@@ -778,13 +778,13 @@ export default class ElementSandbox extends SandboxBase {
         DOMMutationTracker.onElementChanged(el);
     }
 
-    addFileInputInfo (el: HTMLElement) {
+    addFileInputInfo (el: HTMLElement): void {
         const infoManager = this._uploadSandbox.infoManager;
 
         hiddenInfo.addInputInfo(el, infoManager.getFiles(el), infoManager.getValue(el));
     }
 
-    onIframeAddedToDOM (iframe: HTMLIFrameElement) {
+    onIframeAddedToDOM (iframe: HTMLIFrameElement): void {
         if (!domUtils.isCrossDomainIframe(iframe, true))
             this._nodeSandbox.mutation.onIframeAddedToDOM(iframe);
     }
@@ -849,7 +849,7 @@ export default class ElementSandbox extends SandboxBase {
         });
     }
 
-    private _ensureTargetContainsExistingBrowsingContext (el: HTMLElement) {
+    private _ensureTargetContainsExistingBrowsingContext (el: HTMLElement): void {
         if (!nativeMethods.hasAttribute.call(el, 'target'))
             return;
 
@@ -859,7 +859,7 @@ export default class ElementSandbox extends SandboxBase {
         el.setAttribute('target', storedAttr || attr);
     }
 
-    private _setValidBrowsingContextOnElementClick (window) {
+    private _setValidBrowsingContextOnElementClick (window): void {
         this._eventSandbox.listeners.initElementListening(window, ['click']);
         this._eventSandbox.listeners.addInternalEventListener(window, ['click'], e => {
             let el = e.target;
@@ -876,7 +876,7 @@ export default class ElementSandbox extends SandboxBase {
         });
     }
 
-    private _setProxiedSrcUrlOnError (img) {
+    private _setProxiedSrcUrlOnError (img: HTMLImageElement): void {
         img.addEventListener('error', e => {
             const storedAttr = nativeMethods.getAttribute.call(img, DomProcessor.getStoredAttrName('src'));
             const imgSrc     = nativeMethods.imageSrcGetter.call(img);
@@ -889,7 +889,7 @@ export default class ElementSandbox extends SandboxBase {
         }, false);
     }
 
-    getCorrectedTarget (target = '') {
+    getCorrectedTarget (target = ''): string {
         if (target && !ElementSandbox._isKeywordTarget(target) && !windowsStorage.findByName(target) ||
             /_blank/i.test(target))
             return '_top';
@@ -897,7 +897,7 @@ export default class ElementSandbox extends SandboxBase {
         return target;
     }
 
-    private _handleImageLoadEventRaising (el: HTMLImageElement) {
+    private _handleImageLoadEventRaising (el: HTMLImageElement): void {
         this._eventSandbox.listeners.initElementListening(el, ['load']);
         this._eventSandbox.listeners.addInternalEventListener(el, ['load'], (_e, _dispatched, preventEvent, _cancelHandlers, stopEventPropagation) => {
             if (el[INTERNAL_PROPS.cachedImage])
@@ -916,7 +916,25 @@ export default class ElementSandbox extends SandboxBase {
             this._setProxiedSrcUrlOnError(el);
     }
 
-    processElement (el) {
+    private _processBaseTag (el: HTMLBaseElement): void {
+        if (!this._isFirstBaseTagOnPage(el))
+            return;
+
+        const storedUrlAttr = nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('href'));
+
+        if (storedUrlAttr !== null)
+        // @ts-ignore
+            urlResolver.updateBase(storedUrlAttr, el.ownerDocument || this.document);
+    }
+
+    private _reProcessElementWithTargetAttr (el: HTMLElement, tagName: string): void {
+        const targetAttr = domProcessor.getTargetAttr(el);
+
+        if (DomProcessor.isIframeFlagTag(tagName) && nativeMethods.getAttribute.call(el, targetAttr) === '_parent')
+            domProcessor.processElement(el, urlUtils.convertToProxyUrl);
+    }
+
+    processElement (el: HTMLElement): void {
         const tagName = domUtils.getTagName(el);
 
         switch (tagName) {
@@ -925,27 +943,15 @@ export default class ElementSandbox extends SandboxBase {
                 break;
             case 'iframe':
             case 'frame':
-                this._iframeSandbox.processIframe(el);
+                this._iframeSandbox.processIframe(el as HTMLIFrameElement);
                 break;
-            case 'base': {
-                if (!this._isFirstBaseTagOnPage(el))
-                    break;
-
-                const storedUrlAttr = nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('href'));
-
-                if (storedUrlAttr !== null)
-                    // @ts-ignore
-                    urlResolver.updateBase(storedUrlAttr, el.ownerDocument || this.document);
-
+            case 'base':
+                this._processBaseTag(el as HTMLBaseElement);
                 break;
-            }
         }
 
         // NOTE: we need to reprocess a tag client-side if it wasn't processed on the server.
         // See the usage of Parse5DomAdapter.needToProcessUrl
-        const targetAttr = domProcessor.getTargetAttr(el);
-
-        if (DomProcessor.isIframeFlagTag(tagName) && nativeMethods.getAttribute.call(el, targetAttr) === '_parent')
-            domProcessor.processElement(el, urlUtils.convertToProxyUrl);
+        this._reProcessElementWithTargetAttr(el, tagName);
     }
 }

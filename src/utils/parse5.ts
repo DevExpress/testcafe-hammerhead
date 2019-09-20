@@ -9,7 +9,7 @@ function getAttrName (attr: ASTAttribute) {
     return attr.prefix ? attr.prefix + ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR + attr.name : attr.name;
 }
 
-function parseAttrName (attr): any {
+function parseAttrName (attr: string): any {
     const parts = attr.split(ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR);
 
     if (parts.length === 2) {
@@ -32,22 +32,22 @@ function findAttr (el: ASTNode, name: string): ASTAttribute | null {
     return null;
 }
 
-export function createElement (tagName: string, attrs) {
+export function createElement (tagName: string, attrs: ASTAttribute[]): ASTNode {
     return {
         nodeName:   tagName,
         tagName:    tagName,
         attrs:      attrs,
         childNodes: []
-    };
+    } as ASTNode;
 }
 
-export function unshiftElement (el, parent) {
+export function unshiftElement (el: ASTNode, parent: ASTNode): void {
     el.namespaceURI = parent.namespaceURI;
     el.parentNode   = parent;
     parent.childNodes.unshift(el);
 }
 
-export function insertBeforeFirstScript (el, parent) {
+export function insertBeforeFirstScript (el: ASTNode, parent: ASTNode): void {
     el.namespaceURI = parent.namespaceURI;
     el.parentNode   = parent;
 
@@ -57,14 +57,14 @@ export function insertBeforeFirstScript (el, parent) {
     parent.childNodes.splice(elIndex, 0, el);
 }
 
-export function removeNode (node) {
+export function removeNode (node: ASTNode): void {
     const parent  = node.parentNode;
     const elIndex = parent.childNodes.indexOf(node);
 
     parent.childNodes.splice(elIndex, 1);
 }
 
-export function findElementsByTagNames (root, tagNames: Array<string>): any {
+export function findElementsByTagNames (root: ASTNode, tagNames: string[]): any {
     const elements = {};
 
     walkElements(root, el => {
@@ -77,7 +77,7 @@ export function findElementsByTagNames (root, tagNames: Array<string>): any {
     return elements;
 }
 
-export function walkElements (el, processor) {
+export function walkElements (el: ASTNode, processor: Function): void {
     if (el.nodeName !== '#document' && el.nodeName !== '#text' &&
         el.nodeName !== '#documentType' && el.nodeName !== '#comment')
         processor(el);
@@ -94,7 +94,7 @@ export function createTextNode (content: string, parent: ASTNode): ASTNode {
     } as ASTNode;
 }
 
-export function removeAttr (el: ASTNode, name: string) {
+export function removeAttr (el: ASTNode, name: string): void {
     for (let i = 0; i < el.attrs.length; i++) {
         if (getAttrName(el.attrs[i]) === name) {
             el.attrs.splice(i, 1);
