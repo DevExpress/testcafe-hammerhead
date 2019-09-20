@@ -526,16 +526,17 @@ export default class DomProcessor {
         const storedTargetAttr = DomProcessor.getStoredAttrName(pattern.targetAttr);
         const processed        = this.adapter.hasAttr(el, storedTargetAttr);
 
-        if (!processed) {
-            let attrValue = this.adapter.getAttr(el, pattern.targetAttr);
+        if (processed)
+            return;
 
-            // NOTE: Value may have whitespace.
-            attrValue = attrValue && attrValue.replace(/\s/g, '');
+        let attrValue = this.adapter.getAttr(el, pattern.targetAttr);
 
-            if (attrValue === '_blank' || attrValue === 'blank') {
-                this.adapter.setAttr(el, pattern.targetAttr, '_top');
-                this.adapter.setAttr(el, storedTargetAttr, attrValue);
-            }
+        // NOTE: Value may have whitespace.
+        attrValue = attrValue && attrValue.replace(/\s/g, '');
+
+        if (attrValue === '_blank') {
+            this.adapter.setAttr(el, pattern.targetAttr, '_top');
+            this.adapter.setAttr(el, storedTargetAttr, attrValue);
         }
     }
 

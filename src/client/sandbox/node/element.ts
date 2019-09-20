@@ -51,20 +51,20 @@ export default class ElementSandbox extends SandboxBase {
         this.overriddenMethods = null;
     }
 
-    static _isKeywordTarget (value: string) {
+    private static _isKeywordTarget (value: string): boolean {
         value = value.toLowerCase();
 
         return KEYWORD_TARGETS.indexOf(value) !== -1;
     }
 
-    static _onTargetChanged (el) {
+    private static _onTargetChanged (el: HTMLElement): void {
         const tagName    = domUtils.getTagName(el);
         const targetAttr = domProcessor.getTargetAttr(el);
 
         if (!DomProcessor.isIframeFlagTag(tagName))
             return;
 
-        let urlAttr;
+        let urlAttr = '';
 
         if (targetAttr === 'target')
             urlAttr = tagName === 'form' ? 'action' : 'href';
@@ -81,7 +81,7 @@ export default class ElementSandbox extends SandboxBase {
         }
     }
 
-    static _setProxiedSrc (img) {
+    private static _setProxiedSrc (img: HTMLImageElement): void {
         if (img[INTERNAL_PROPS.forceProxySrcForImage])
             return;
 
@@ -96,7 +96,7 @@ export default class ElementSandbox extends SandboxBase {
         img[INTERNAL_PROPS.skipNextLoadEventForImage] = skipNextLoadEvent;
     }
 
-    getAttributeCore (el, args, isNs?: boolean) {
+    getAttributeCore (el: HTMLElement, args, isNs?: boolean) {
         const attr        = String(args[isNs ? 1 : 0]);
         const loweredAttr = attr.toLowerCase();
         const ns          = isNs ? args[0] : null;
@@ -145,7 +145,7 @@ export default class ElementSandbox extends SandboxBase {
         return getAttrMeth.apply(el, args);
     }
 
-    setAttributeCore (el, args, isNs?: boolean) {
+    setAttributeCore (el: HTMLElement, args, isNs?: boolean) {
         const ns          = isNs ? args[0] : null;
         const attr        = String(args[isNs ? 1 : 0]);
         const loweredAttr = attr.toLowerCase();
@@ -184,14 +184,14 @@ export default class ElementSandbox extends SandboxBase {
                     const isScript         = tagName === 'script';
                     const isCrossDomainUrl = isSupportedProtocol && !sameOriginCheck(location.toString(), value);
                     let resourceType       = domProcessor.getElementResourceType(el);
-                    const elCharset        = isScript && el.charset;
+                    const elCharset        = isScript && (el as HTMLScriptElement).charset; // eslint-disable-line no-extra-parens
                     const currentDocument  = el.ownerDocument || this.document;
 
                     if (loweredAttr === 'formaction' && !nativeMethods.hasAttribute.call(el, 'formtarget')) {
                         resourceType = 'f';
 
-                        if (el.form && nativeMethods.hasAttribute.call(el.form, 'action')) {
-                            const parsedFormAction = urlUtils.parseProxyUrl(nativeMethods.formActionGetter.call(el.form));
+                        if ((el as HTMLFormElement).form && nativeMethods.hasAttribute.call((el as HTMLFormElement).form, 'action')) { // eslint-disable-line no-extra-parens
+                            const parsedFormAction = urlUtils.parseProxyUrl(nativeMethods.formActionGetter.call((el as HTMLFormElement).form)); // eslint-disable-line no-extra-parens
 
                             if (parsedFormAction)
                                 resourceType = parsedFormAction.resourceType;
@@ -224,7 +224,7 @@ export default class ElementSandbox extends SandboxBase {
         else if (loweredAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName) ||
                  loweredAttr === 'formtarget' && DomProcessor.isTagWithFormTargetAttr(tagName)) {
             const currentTarget = nativeMethods.getAttribute.call(el, loweredAttr);
-            const newTarget     = this.getTarget(el, value);
+            const newTarget     = this.getCorrectedTarget(value);
 
             if (newTarget !== currentTarget) {
                 const storedTargetAttr = DomProcessor.getStoredAttrName(attr);
@@ -317,7 +317,7 @@ export default class ElementSandbox extends SandboxBase {
 
         const result = setAttrMeth.apply(el, args);
 
-        if (tagName === 'img' && !el[INTERNAL_PROPS.forceProxySrcForImage] && el.complete && !isFirefox)
+        if (tagName === 'img' && !el[INTERNAL_PROPS.forceProxySrcForImage] && (el as HTMLImageElement).complete && !isFirefox) // eslint-disable-line no-extra-parens
             el[INTERNAL_PROPS.cachedImage] = true;
 
         if (needToCallTargetChanged)
@@ -326,7 +326,7 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
-    _hasAttributeCore (el, args, isNs) {
+    private _hasAttributeCore (el: HTMLElement, args, isNs: boolean) {
         const attributeNameArgIndex       = isNs ? 1 : 0;
         const hasAttrMeth                 = isNs ? nativeMethods.hasAttributeNS : nativeMethods.hasAttribute;
         const storedAutocompleteAttrName  = DomProcessor.getStoredAttrName('autocomplete');
@@ -361,7 +361,7 @@ export default class ElementSandbox extends SandboxBase {
         return hasAttrMeth.apply(el, args);
     }
 
-    _removeAttributeCore (el, args, isNs?: boolean) {
+    removeAttributeCore (el: HTMLElement, args, isNs?: boolean) {
         const attr           = String(args[isNs ? 1 : 0]);
         const formatedAttr   = attr.toLowerCase();
         const removeAttrFunc = isNs ? nativeMethods.removeAttributeNS : nativeMethods.removeAttribute;
@@ -415,7 +415,7 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
-    _addNodeCore ({ parentNode, args, nativeFn, checkBody }) {
+    private _addNodeCore ({ parentNode, args, nativeFn, checkBody }) {
         const newNode = args[0];
 
         this._prepareNodeForInsertion(newNode, parentNode);
@@ -445,14 +445,14 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
-    _prepareNodeForInsertion (node, parentNode) {
+    private _prepareNodeForInsertion (node, parentNode) {
         if (domUtils.isTextNode(node))
             ElementSandbox._processTextNodeContent(node, parentNode);
 
         this._nodeSandbox.processNodes(node);
     }
 
-    _createOverridedMethods () {
+    private _createOverridedMethods () {
         // NOTE: We need the closure because a context of overridden methods is an html element
         const sandbox = this;
 
@@ -598,7 +598,7 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             removeAttribute () {
-                const result = sandbox._removeAttributeCore(this, arguments);
+                const result = sandbox.removeAttributeCore(this, arguments);
 
                 refreshAttributesWrapper(this);
 
@@ -606,7 +606,7 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             removeAttributeNS () {
-                const result = sandbox._removeAttributeCore(this, arguments, true);
+                const result = sandbox.removeAttributeCore(this, arguments, true);
 
                 refreshAttributesWrapper(this);
 
@@ -668,7 +668,7 @@ export default class ElementSandbox extends SandboxBase {
         };
     }
 
-    static _processTextNodeContent (node, parentNode) {
+    private static _processTextNodeContent (node, parentNode) {
         if (!parentNode.tagName)
             return;
 
@@ -678,27 +678,27 @@ export default class ElementSandbox extends SandboxBase {
             node.data = styleProcessor.process(node.data, urlUtils.getProxyUrl);
     }
 
-    static _isHrefAttrForBaseElement (el, attr) {
+    private static _isHrefAttrForBaseElement (el, attr) {
         return domUtils.isBaseElement(el) && attr === 'href';
     }
 
-    static _removeFileInputInfo (el) {
+    private static _removeFileInputInfo (el: HTMLInputElement) {
         hiddenInfo.removeInputInfo(el);
     }
 
-    static _hasShadowUIParentOrContainsShadowUIClassPostfix (el) {
+    private static _hasShadowUIParentOrContainsShadowUIClassPostfix (el: HTMLElement) {
         const parent = nativeMethods.nodeParentNodeGetter.call(el);
 
         return parent && domUtils.isShadowUIElement(parent) || ShadowUI.containsShadowUIClassPostfix(el);
     }
 
-    _isFirstBaseTagOnPage (el) {
+    _isFirstBaseTagOnPage (el: HTMLBaseElement) {
         const doc = el.ownerDocument || this.document;
 
         return nativeMethods.querySelector.call(doc, 'base') === el;
     }
 
-    _onAddFileInputInfo (el) {
+    private _onAddFileInputInfo (el: HTMLElement) {
         if (!domUtils.isDomElement(el))
             return;
 
@@ -708,7 +708,7 @@ export default class ElementSandbox extends SandboxBase {
             this.addFileInputInfo(fileInput);
     }
 
-    _onRemoveFileInputInfo (el) {
+    private _onRemoveFileInputInfo (el: HTMLInputElement) {
         if (!domUtils.isDomElement(el))
             return;
 
@@ -718,12 +718,12 @@ export default class ElementSandbox extends SandboxBase {
             domUtils.find(el, 'input[type=file]', ElementSandbox._removeFileInputInfo);
     }
 
-    _onRemoveIframe (el) {
+    private _onRemoveIframe (el: HTMLIFrameElement) {
         if (domUtils.isDomElement(el) && domUtils.isIframeElement(el))
             windowsStorage.remove(nativeMethods.contentWindowGetter.call(el));
     }
 
-    _onElementAdded (el) {
+    private _onElementAdded (el: HTMLElement) {
         if (ElementSandbox._hasShadowUIParentOrContainsShadowUIClassPostfix(el))
             ShadowUI.markElementAndChildrenAsShadow(el);
 
@@ -763,7 +763,7 @@ export default class ElementSandbox extends SandboxBase {
         }
     }
 
-    _onElementRemoved (el) {
+    private _onElementRemoved (el: HTMLElement) {
         if (domUtils.isBodyElement(el))
             this._shadowUI.onBodyElementMutation();
 
@@ -778,13 +778,13 @@ export default class ElementSandbox extends SandboxBase {
         DOMMutationTracker.onElementChanged(el);
     }
 
-    addFileInputInfo (el) {
+    addFileInputInfo (el: HTMLElement) {
         const infoManager = this._uploadSandbox.infoManager;
 
         hiddenInfo.addInputInfo(el, infoManager.getFiles(el), infoManager.getValue(el));
     }
 
-    onIframeAddedToDOM (iframe) {
+    onIframeAddedToDOM (iframe: HTMLIFrameElement) {
         if (!domUtils.isCrossDomainIframe(iframe, true))
             this._nodeSandbox.mutation.onIframeAddedToDOM(iframe);
     }
@@ -849,7 +849,7 @@ export default class ElementSandbox extends SandboxBase {
         });
     }
 
-    _ensureTargetContainsExistingBrowsingContext (el) {
+    private _ensureTargetContainsExistingBrowsingContext (el: HTMLElement) {
         if (!nativeMethods.hasAttribute.call(el, 'target'))
             return;
 
@@ -859,7 +859,7 @@ export default class ElementSandbox extends SandboxBase {
         el.setAttribute('target', storedAttr || attr);
     }
 
-    _setValidBrowsingContextOnElementClick (window) {
+    private _setValidBrowsingContextOnElementClick (window) {
         this._eventSandbox.listeners.initElementListening(window, ['click']);
         this._eventSandbox.listeners.addInternalEventListener(window, ['click'], e => {
             let el = e.target;
@@ -876,7 +876,7 @@ export default class ElementSandbox extends SandboxBase {
         });
     }
 
-    _setProxiedSrcUrlOnError (img) {
+    private _setProxiedSrcUrlOnError (img) {
         img.addEventListener('error', e => {
             const storedAttr = nativeMethods.getAttribute.call(img, DomProcessor.getStoredAttrName('src'));
             const imgSrc     = nativeMethods.imageSrcGetter.call(img);
@@ -889,9 +889,7 @@ export default class ElementSandbox extends SandboxBase {
         }, false);
     }
 
-    getTarget (_el, newTarget) {
-        const target = newTarget || '';
-
+    getCorrectedTarget (target = '') {
         if (target && !ElementSandbox._isKeywordTarget(target) && !windowsStorage.findByName(target) ||
             /_blank/i.test(target))
             return '_top';
@@ -899,27 +897,31 @@ export default class ElementSandbox extends SandboxBase {
         return target;
     }
 
+    private _handleImageLoadEventRaising (el: HTMLImageElement) {
+        this._eventSandbox.listeners.initElementListening(el, ['load']);
+        this._eventSandbox.listeners.addInternalEventListener(el, ['load'], (_e, _dispatched, preventEvent, _cancelHandlers, stopEventPropagation) => {
+            if (el[INTERNAL_PROPS.cachedImage])
+                el[INTERNAL_PROPS.cachedImage] = false;
+
+            if (!el[INTERNAL_PROPS.skipNextLoadEventForImage])
+                return;
+
+            el[INTERNAL_PROPS.skipNextLoadEventForImage] = false;
+
+            preventEvent();
+            stopEventPropagation();
+        });
+
+        if (!el[INTERNAL_PROPS.forceProxySrcForImage] && !settings.get().forceProxySrcForImage)
+            this._setProxiedSrcUrlOnError(el);
+    }
+
     processElement (el) {
         const tagName = domUtils.getTagName(el);
 
         switch (tagName) {
             case 'img':
-                this._eventSandbox.listeners.initElementListening(el, ['load']);
-                this._eventSandbox.listeners.addInternalEventListener(el, ['load'], (_e, _dispatched, preventEvent, _cancelHandlers, stopEventPropagation) => {
-                    if (el[INTERNAL_PROPS.cachedImage])
-                        el[INTERNAL_PROPS.cachedImage] = false;
-
-                    if (!el[INTERNAL_PROPS.skipNextLoadEventForImage])
-                        return;
-
-                    el[INTERNAL_PROPS.skipNextLoadEventForImage] = false;
-
-                    preventEvent();
-                    stopEventPropagation();
-                });
-
-                if (!el[INTERNAL_PROPS.forceProxySrcForImage] && !settings.get().forceProxySrcForImage)
-                    this._setProxiedSrcUrlOnError(el);
+                this._handleImageLoadEventRaising(el as HTMLImageElement);
                 break;
             case 'iframe':
             case 'frame':
