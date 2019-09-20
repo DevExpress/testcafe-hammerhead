@@ -216,7 +216,7 @@ class Hammerhead {
         }
     }
 
-    start (initSettings: IHammerheadInitSettings | null, win: Window) {
+    start (initSettings: IHammerheadInitSettings | null, win: Window): void {
         this.win = win || window;
 
         if (initSettings) {
@@ -225,7 +225,7 @@ class Hammerhead {
             if (initSettings.isFirstPageLoad)
                 Hammerhead._cleanLocalStorageServiceData(initSettings.sessionId, this.win);
 
-            domProcessor.forceProxySrcForImage = !!initSettings.forceProxySrcForImage;
+            domProcessor.forceProxySrcForImage = initSettings.forceProxySrcForImage;
         }
 
         this.sandbox.attach(this.win);

@@ -426,7 +426,7 @@ export default class WindowSandbox extends SandboxBase {
 
         window.open = function (...args) {
             args[0] = getProxyUrl(args[0]);
-            args[1] = args[1] ? nodeSandbox.element.getTarget(null, String(args[1])) : '_self';
+            args[1] = args[1] ? nodeSandbox.element.getCorrectedTarget(String(args[1])) : '_self';
 
             return nativeMethods.windowOpen.apply(window, args);
         };
@@ -869,7 +869,7 @@ export default class WindowSandbox extends SandboxBase {
                 else if (value)
                     windowSandbox.nodeSandbox.element.setAttributeCore(this, ['required', '']);
                 else
-                    windowSandbox.nodeSandbox.element._removeAttributeCore(this, ['required']);
+                    windowSandbox.nodeSandbox.element.removeAttributeCore(this, ['required']);
             }
         });
 
