@@ -120,6 +120,7 @@ export default abstract class Session extends EventEmitter {
         return mustache.render(TASK_TEMPLATE, {
             sessionId:             this.id,
             serviceMsgUrl:         domain + SERVICE_ROUTES.messaging,
+            transportWorkerUrl:    domain + SERVICE_ROUTES.transportWorker,
             forceProxySrcForImage: this.hasRequestEventListeners(),
             crossDomainPort,
             isFirstPageLoad,

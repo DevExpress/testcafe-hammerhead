@@ -6,6 +6,7 @@ const eslint         = require('gulp-eslint');
 const fs             = require('fs');
 const gulp           = require('gulp');
 const gulpStep       = require('gulp-step');
+const gulpIf         = require('gulp-if');
 const qunitHarness   = require('gulp-qunit-harness');
 const mocha          = require('gulp-mocha-simple');
 const mustache       = require('gulp-mustache');
@@ -129,27 +130,32 @@ gulp.step('client-scripts-transpile', () => {
 });
 
 gulp.step('client-scripts-bundle', () => {
-    return gulp.src('./src/client/index.js')
-        .pipe(webmake({
+    const transform = (filename, code) => {
+        const transformed = babel.transform(code, {
             sourceMap: false,
-            transform: (filename, code) => {
-                const transformed = babel.transform(code, {
-                    sourceMap: false,
-                    filename:  filename,
-                    ast:       false,
-                    // NOTE: force usage of client .babelrc for all
-                    // files, regardless of their location
-                    babelrc:   false,
-                    extends:   path.join(__dirname, './src/client/.babelrc')
-                });
+            filename:  filename,
+            ast:       false,
+            // NOTE: force usage of client .babelrc for all
+            // files, regardless of their location
+            babelrc:   false,
+            extends:   path.join(__dirname, './src/client/.babelrc')
+        });
 
-                // HACK: babel-plugin-transform-es2015-modules-commonjs forces
-                // 'use strict' insertion. We need to remove it manually because
-                // of https://github.com/DevExpress/testcafe/issues/258
-                return { code: transformed.code.replace(/^('|")use strict('|");?/, '') };
-            }
-        }))
-        .pipe(rename('hammerhead.js'))
+        // HACK: babel-plugin-transform-es2015-modules-commonjs forces
+        // 'use strict' insertion. We need to remove it manually because
+        // of https://github.com/DevExpress/testcafe/issues/258
+        return { code: transformed.code.replace(/^('|")use strict('|");?/, '') };
+    };
+
+    const hammerhead = gulp.src('./src/client/index.js')
+        .pipe(webmake({ sourceMap: false, transform }))
+        .pipe(rename('hammerhead.js'));
+
+    const transportWorker = gulp.src('./src/client/transport-worker.js')
+        .pipe(webmake({ sourceMap: false, transform }))
+        .pipe(gulpIf(!util.env.dev, uglify()));
+
+    return mergeStreams(hammerhead, transportWorker)
         .pipe(gulp.dest('./lib/client'));
 });
 

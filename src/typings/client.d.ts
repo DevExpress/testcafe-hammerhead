@@ -11,6 +11,7 @@ export interface HammerheadInitSettings {
     crossDomainProxyPort: string;
     referer: string;
     serviceMsgUrl: string;
+    transportWorkerUrl: string;
     iframeTaskScriptTemplate: string;
     cookie: string;
     allowMultipleWindows: boolean;

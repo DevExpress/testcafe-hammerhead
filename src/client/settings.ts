@@ -11,6 +11,7 @@ class Settings {
             crossDomainProxyPort:     '',
             referer:                  '',
             serviceMsgUrl:            '',
+            transportWorkerUrl:       '',
             iframeTaskScriptTemplate: '',
             cookie:                   '',
             allowMultipleWindows:     false

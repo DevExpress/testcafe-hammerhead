@@ -16,11 +16,18 @@ class Transport {
     msgQueue: any;
     activeServiceMessagesCounter: number;
     shouldAddRefferer: boolean;
+    // @ts-ignore
+    private _transportWorker: Worker;
 
     constructor () {
         this.msgQueue                     = {};
         this.activeServiceMessagesCounter = 0;
         this.shouldAddRefferer = Transport._shouldAddReferrer();
+
+        setTimeout(() => {
+            this._transportWorker = new nativeMethods.Worker(settings.get().transportWorkerUrl);
+            this._transportWorker.postMessage({ msg: 'hello worker' });
+        }, 2000);
     }
 
     static _shouldAddReferrer (): boolean {
