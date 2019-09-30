@@ -28,6 +28,14 @@ export const SPECIAL_PAGES: Array<string>                = [SPECIAL_BLANK_PAGE, 
 export const HTTP_DEFAULT_PORT: string  = '80';
 export const HTTPS_DEFAULT_PORT: string = '443';
 
+const SPECIAL_PAGE_DEST_RESOURCE_INFO = {
+    protocol:      'about:',
+    host:          '',
+    hostname:      '',
+    port:          '',
+    partAfterHost: ''
+};
+
 export function parseResourceType (resourceType: string): ResourceType {
     if (!resourceType) {
         return {
@@ -192,7 +200,7 @@ export function parseProxyUrl (proxyUrl: string): ParsedProxyUrl | null {
     if (!parsedDesc)
         return null;
 
-    const destUrl = match[2];
+    let destUrl = match[2];
 
     // Browser can redirect to a special page with hash (GH-1671)
     const destUrlWithoutHash = destUrl.replace(/#[\S\s]*$/, '');
@@ -200,13 +208,14 @@ export function parseProxyUrl (proxyUrl: string): ParsedProxyUrl | null {
     if (!isSpecialPage(destUrlWithoutHash) && !SUPPORTED_PROTOCOL_RE.test(destUrl))
         return null;
 
-    const destResourceInfo = !isSpecialPage(destUrlWithoutHash) ? parseUrl(omitDefaultPort(destUrl)) : {
-        protocol:      'about:',
-        host:          '',
-        hostname:      '',
-        port:          '',
-        partAfterHost: ''
-    };
+    let destResourceInfo = null;
+
+    if (isSpecialPage(destUrlWithoutHash))
+        destResourceInfo = SPECIAL_PAGE_DEST_RESOURCE_INFO;
+    else {
+        destUrl          = omitDefaultPort(destUrl);
+        destResourceInfo = parseUrl(destUrl);
+    }
 
     return {
         destUrl,
