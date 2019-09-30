@@ -133,15 +133,6 @@ export default class RequestPipelineContext {
         return { dest, sessionId: parsed.sessionId };
     }
 
-    private _getDestFromReferer (parsedReferer: { dest: DestInfo, sessionId: string }): { dest: DestInfo, sessionId: string } {
-        const dest = parsedReferer.dest;
-
-        dest.partAfterHost = this.req.url;
-        dest.url           = urlUtils.formatUrl(dest);
-
-        return { dest, sessionId: parsedReferer.sessionId };
-    }
-
     private _isFileDownload (): boolean {
         const contentDisposition = this.destRes.headers['content-disposition'];
 
@@ -174,12 +165,8 @@ export default class RequestPipelineContext {
         const parsedReferer = referer && urlUtils.parseProxyUrl(referer);
 
         // TODO: Remove it after parseProxyURL is rewritten.
-        let flattenParsedReqUrl    = RequestPipelineContext._flattenParsedProxyUrl(parsedReqUrl);
+        const flattenParsedReqUrl  = RequestPipelineContext._flattenParsedProxyUrl(parsedReqUrl);
         const flattenParsedReferer = RequestPipelineContext._flattenParsedProxyUrl(parsedReferer);
-
-        // NOTE: Try to extract the destination from the 'referer' header.
-        if (!flattenParsedReqUrl && flattenParsedReferer)
-            flattenParsedReqUrl = this._getDestFromReferer(flattenParsedReferer);
 
         if (!flattenParsedReqUrl)
             return false;
@@ -189,14 +176,9 @@ export default class RequestPipelineContext {
         if (!this.session)
             return false;
 
-        this.dest = flattenParsedReqUrl.dest;
-
-        // Browsers add a leading slash to the pathname part of url (GH-608)
-        // For example: url http://www.example.com?gd=GID12082014 will be converted
-        // to http://www.example.com/?gd=GID12082014
-        this.dest.partAfterHost = (this.dest.partAfterHost[0] === '/' ? '' : '/') + this.dest.partAfterHost;
-
-        this.dest.domain = urlUtils.getDomain(this.dest);
+        this.dest               = flattenParsedReqUrl.dest;
+        this.dest.partAfterHost = this._preparePartAfterHost(this.dest.partAfterHost);
+        this.dest.domain        = urlUtils.getDomain(this.dest);
 
         if (flattenParsedReferer) {
             this.dest.referer   = flattenParsedReferer.dest.url;
@@ -208,15 +190,26 @@ export default class RequestPipelineContext {
             this.dest.reqOrigin = <string> this.req.headers[XHR_HEADERS.origin];
 
         this._initRequestNatureInfo();
-
-        if (this.parsedClientSyncCookie) {
-            const clientCookie = this.parsedClientSyncCookie.actual.filter(
-                syncCookie => syncCookie.isClientSync && syncCookie.sid === this.session.id);
-
-            this.session.cookies.setByClient(clientCookie);
-        }
+        this._applyClientSyncCookie();
 
         return true;
+    }
+
+    private _applyClientSyncCookie (): void {
+        if (!this.parsedClientSyncCookie)
+            return;
+
+        const clientCookie = this.parsedClientSyncCookie.actual.filter(
+            syncCookie => syncCookie.isClientSync && syncCookie.sid === this.session.id);
+
+        this.session.cookies.setByClient(clientCookie);
+    }
+
+    private _preparePartAfterHost (str: string): string {
+        // Browsers add a leading slash to the pathname part of url (GH-608)
+        // For example: url http://www.example.com?gd=GID12082014 will be converted
+        // to http://www.example.com/?gd=GID12082014
+        return (str[0] === '/' ? '' : '/') + str;
     }
 
     buildContentInfo () {

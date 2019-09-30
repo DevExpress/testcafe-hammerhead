@@ -3185,48 +3185,32 @@ describe('Proxy', () => {
         it('Should omit default ports from destination request and `referrer` header urls (GH-738)', () => {
             const testCases              = [
                 {
-                    url:          'http://example.com:80',
-                    expectedHost: 'example.com',
-                    expectedPort: ''
+                    url:             'http://example.com:80',
+                    expectedHost:    'example.com',
+                    expectedPort:    '',
+                    referer:         'http://1.example.com:80',
+                    expectedReferer: 'http://1.example.com',
                 },
                 {
-                    url:          'http://example.com:8080',
-                    expectedHost: 'example.com:8080',
-                    expectedPort: '8080'
+                    url:             'http://example.com:8080',
+                    expectedHost:    'example.com:8080',
+                    expectedPort:    '8080',
+                    referer:         'http://1.example.com:8080',
+                    expectedReferer: 'http://1.example.com:8080',
                 },
                 {
-                    url:          'https://example.com:443',
-                    expectedHost: 'example.com',
-                    expectedPort: ''
+                    url:             'https://example.com:443',
+                    expectedHost:    'example.com',
+                    expectedPort:    '',
+                    referer:         'https://1.example.com:443',
+                    expectedReferer: 'https://1.example.com',
                 },
                 {
-                    url:          'https://example.com:443443',
-                    expectedHost: 'example.com:443443',
-                    expectedPort: '443443'
-                },
-                {
-                    url:          '<value>',
-                    referer:      'http://example.com:80',
-                    expectedHost: 'example.com',
-                    expectedPort: ''
-                },
-                {
-                    url:          '<value>',
-                    referer:      'http://example.com:8080',
-                    expectedHost: 'example.com:8080',
-                    expectedPort: '8080'
-                },
-                {
-                    url:          '<value>',
-                    referer:      'https://example.com:443',
-                    expectedHost: 'example.com',
-                    expectedPort: ''
-                },
-                {
-                    url:          '<value>',
-                    referer:      'https://example.com:443443',
-                    expectedHost: 'example.com:443443',
-                    expectedPort: '443443'
+                    url:             'https://example.com:44344',
+                    expectedHost:    'example.com:44344',
+                    expectedPort:    '44344',
+                    referer:         'https://1.example.com:44344',
+                    expectedReferer: 'https://1.example.com:44344',
                 }
             ];
             const req = {
@@ -3257,6 +3241,7 @@ describe('Proxy', () => {
 
                 expect(ctx.dest.host).eql(testCase.expectedHost);
                 expect(ctx.dest.port).eql(testCase.expectedPort);
+                expect(ctx.dest.referer).eql(testCase.expectedReferer);
             }
         });
 
