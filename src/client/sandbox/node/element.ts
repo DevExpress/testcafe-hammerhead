@@ -761,7 +761,7 @@ export default class ElementSandbox extends SandboxBase {
             const storedHrefAttrValue = el.getAttribute(storedHrefAttrName);
 
             if (storedHrefAttrValue !== null)
-            // @ts-ignore
+                // @ts-ignore
                 urlResolver.updateBase(storedHrefAttrValue, this.document);
         }
     }
