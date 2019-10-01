@@ -606,8 +606,8 @@ class NativeMethods {
         this.canvasContextDrawImage = win.CanvasRenderingContext2D.prototype.drawImage;
 
         // FormData
-        this.formData               = win.FormData;
-        this.formDataAppend         = win.FormData.prototype.append;
+        this.formData       = win.FormData;
+        this.formDataAppend = win.FormData.prototype.append;
 
         // DateTime
         this.date    = win.Date;
@@ -1057,7 +1057,7 @@ class NativeMethods {
 
         const needToRefreshDocumentMethods = tryToExecuteCode(
             () => !doc.createElement ||
-                this.createElement.toString() === document.createElement.toString()
+                       this.createElement.toString() === document.createElement.toString()
         );
 
         const needToRefreshElementMethods = tryToExecuteCode(() => {

@@ -1,5 +1,3 @@
-
-
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import SandboxBase from '../base';
 import NodeSandbox from '../node/index';
@@ -205,7 +203,7 @@ export default class ElementSandbox extends SandboxBase {
 
                     if (ElementSandbox._isHrefAttrForBaseElement(el, attr) &&
                         domUtils.isElementInDocument(el, currentDocument))
-                    // @ts-ignore
+                        // @ts-ignore
                         urlResolver.updateBase(value, currentDocument);
 
                     args[valueIndex] = isIframe && isCrossDomainUrl
@@ -227,7 +225,7 @@ export default class ElementSandbox extends SandboxBase {
             args[valueIndex] = 'off';
         }
         else if (loweredAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName) ||
-            loweredAttr === 'formtarget' && DomProcessor.isTagWithFormTargetAttr(tagName)) {
+                 loweredAttr === 'formtarget' && DomProcessor.isTagWithFormTargetAttr(tagName)) {
             const currentTarget = nativeMethods.getAttribute.call(el, loweredAttr);
             const newTarget     = this.getCorrectedTarget(value);
 
@@ -265,8 +263,8 @@ export default class ElementSandbox extends SandboxBase {
                 return null;
         }
         else if (loweredAttr === 'xlink:href' &&
-            domProcessor.SVG_XLINK_HREF_TAGS.indexOf(tagName) !== -1 &&
-            domUtils.isSVGElement(el)) {
+                 domProcessor.SVG_XLINK_HREF_TAGS.indexOf(tagName) !== -1 &&
+                 domUtils.isSVGElement(el)) {
             const storedXLinkHrefAttr = DomProcessor.getStoredAttrName(attr);
 
             setAttrMeth.apply(el, isNs ? [ns, storedXLinkHrefAttr, value] : [storedXLinkHrefAttr, value]);
@@ -346,7 +344,7 @@ export default class ElementSandbox extends SandboxBase {
         // the correct SHA for the changed script.
         // _hasAttributeCore returns true for 'integrity' attribute if the stored attribute is exists. (GH-235)
         else if (!isNs && args[0] === 'integrity' &&
-            DomProcessor.isTagWithIntegrityAttr(tagName))
+                 DomProcessor.isTagWithIntegrityAttr(tagName))
             args[0] = DomProcessor.getStoredAttrName('integrity');
         // NOTE: We simply remove the 'rel' attribute if rel='prefetch' and use stored 'rel' attribute, because the prefetch
         // resource type is unknown.
@@ -407,7 +405,7 @@ export default class ElementSandbox extends SandboxBase {
         }
 
         if (ElementSandbox._isHrefAttrForBaseElement(el, formatedAttr))
-        // @ts-ignore
+            // @ts-ignore
             urlResolver.updateBase(getDestLocation(), this.document);
 
         if (formatedAttr !== 'autocomplete')
