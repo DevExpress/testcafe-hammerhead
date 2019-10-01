@@ -1057,7 +1057,7 @@ class NativeMethods {
 
         const needToRefreshDocumentMethods = tryToExecuteCode(
             () => !doc.createElement ||
-                       this.createElement.toString() === document.createElement.toString()
+                  this.createElement.toString() === document.createElement.toString()
         );
 
         const needToRefreshElementMethods = tryToExecuteCode(() => {
