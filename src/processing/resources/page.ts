@@ -137,8 +137,8 @@ class PageProcessor extends ResourceProcessorBase {
                !ctx.contentInfo.isFileDownload;
     }
 
-    processResource (html: string, _ctx: RequestPipelineContext, _charset: Charset, urlReplacer: Function): string | symbol {
-        const processingOpts = PageProcessor._getPageProcessingOptions(_ctx, urlReplacer);
+    processResource (html: string, ctx: RequestPipelineContext, charset: Charset, urlReplacer: Function): string | symbol {
+        const processingOpts = PageProcessor._getPageProcessingOptions(ctx, urlReplacer);
         const bom            = getBOM(html);
 
         html = bom ? html.replace(bom, '') : html;
@@ -154,26 +154,26 @@ class PageProcessor extends ResourceProcessorBase {
         const head       = elements.head[0];
         const body       = elements.body ? elements.body[0] : elements.frameset[0];
 
-        if (metas && _charset.fromMeta(PageProcessor._getPageMetas(metas, domAdapter)))
+        if (metas && charset.fromMeta(PageProcessor._getPageMetas(metas, domAdapter)))
             return this.RESTART_PROCESSING;
 
         const domProcessor = new DomProcessor(domAdapter);
         const replacer     = (resourceUrl, resourceType, charsetAttrValue) => urlReplacer(resourceUrl, resourceType, charsetAttrValue, baseUrl);
 
-        domProcessor.forceProxySrcForImage = _ctx.session.hasRequestEventListeners();
-        domProcessor.allowMultipleWindows  = _ctx.session.allowMultipleWindows;
+        domProcessor.forceProxySrcForImage = ctx.session.hasRequestEventListeners();
+        domProcessor.allowMultipleWindows  = ctx.session.allowMultipleWindows;
         parse5Utils.walkElements(root, el => domProcessor.processElement(el, replacer));
 
-        if (!_ctx.isHtmlImport) {
+        if (!ctx.isHtmlImport) {
             PageProcessor._addPageResources(head, processingOpts);
             this._addBodyCreatedEventScript(body);
 
-            if (_ctx.restoringStorages && !processingOpts.isIframe)
-                this._addRestoreStoragesScript(_ctx, head);
+            if (ctx.restoringStorages && !processingOpts.isIframe)
+                this._addRestoreStoragesScript(ctx, head);
         }
 
         PageProcessor._changeMetas(metas, domAdapter);
-        PageProcessor._addCharsetInfo(head, _charset.get());
+        PageProcessor._addCharsetInfo(head, charset.get());
 
         return (bom || '') + parse5.serialize(root);
     }

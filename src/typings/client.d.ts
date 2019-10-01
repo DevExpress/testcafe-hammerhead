@@ -29,5 +29,3 @@ export interface DocumentCleanedEvent {
     window: Window;
     document: Document;
 }
-
-

@@ -3,9 +3,9 @@ const NATIVE_CODE_RE = /\[native code]/;
 
 class NativeMethods {
     isStoragePropsLocatedInProto: boolean;
-    createDocumentFragment: any;
-    createElement: any;
-    createElementNS: any;
+    createDocumentFragment: () => DocumentFragment;
+    createElement: (tagName: string) => HTMLElement;
+    createElementNS: (namespaceURI: string, qualifiedName: string) => HTMLElement;
     documentOpenPropOwnerName: string;
     documentClosePropOwnerName: string;
     documentWritePropOwnerName: string;
