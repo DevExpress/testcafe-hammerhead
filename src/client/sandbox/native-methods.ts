@@ -127,7 +127,7 @@ class NativeMethods {
     WindowTextEvent: any;
     WindowMouseEvent: any;
     canvasContextDrawImage: any;
-    formDataAppend: Function;
+    formDataAppend: (name: string, value: string | Blob, fileName?: string) => void;
     date: any;
     dateNow: any;
     math: any;
