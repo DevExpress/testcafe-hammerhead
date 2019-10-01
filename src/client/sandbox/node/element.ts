@@ -14,7 +14,7 @@ import { sameOriginCheck, get as getDestLocation } from '../../utils/destination
 import { isValidEventListener, stopPropagation } from '../../utils/event';
 import { processHtml, isInternalHtmlParserElement } from '../../utils/html';
 import { getNativeQuerySelector, getNativeQuerySelectorAll } from '../../utils/query-selector';
-import { addParameter, HASH_RE } from '../../../utils/url';
+import { HASH_RE, SPECIAL_BLANK_PAGE } from '../../../utils/url';
 import trim from '../../../utils/string-trim';
 import * as windowsStorage from '../windows-storage';
 import { refreshAttributesWrapper } from './attributes';
@@ -25,11 +25,7 @@ import settings from '../../settings';
 import { overrideDescriptor } from '../../utils/property-overriding';
 import InsertPosition from '../../utils/insert-position';
 import { isFirefox } from '../../utils/browser';
-import { INTERNAL_REQUEST_PARAMETERS } from '../../../request-pipeline/internal-request-parameters';
-import COMMANDS from '../../../session/command';
-import transport from '../../transport';
 import getRandomInt32Value from '../../utils/get-random-int-32-value';
-import FormEnctype from '../../../processing/dom/form-enctype';
 import UploadSandbox from '../upload';
 import IframeSandbox from '../iframe';
 import EventSandbox from '../event';
@@ -932,40 +928,14 @@ export default class ElementSandbox extends SandboxBase {
         });
     }
 
-    private _openUrlInNewWindow (url: string): void {
+    private _openUrlInNewWindow (url: string): string {
         // NOTE: Temporary implementation of the window size
         const windowParams = 'width=500px, height=500px';
-        const windowName   = getRandomInt32Value();
+        const windowName   = getRandomInt32Value().toString();
 
         nativeMethods.windowOpen.call(this.window, url, windowName, windowParams);
-    }
 
-    private _executePendingRequestInNewWindow (requestId: string, form: HTMLFormElement): void {
-        let resultUrl = '';
-
-        // TODO: Support all form encoding types
-        if (form.enctype === FormEnctype.xWWWFormUrlencoded) {
-            // TODO: handle files
-            const namedInputs = domUtils.getNamedInputs(form);
-            let formActionUrl = nativeMethods.formActionGetter.call(form);
-
-            for (const namedInput of namedInputs) {
-                formActionUrl = addParameter(formActionUrl, {
-                    name:  namedInput.name,
-                    value: namedInput.value // eslint-disable-line no-restricted-properties
-                });
-            }
-
-            // TODO: hide the internal 'pendingRequestId' from Location properties
-            formActionUrl = addParameter(formActionUrl, {
-                name:  INTERNAL_REQUEST_PARAMETERS.pendingRequestId,
-                value: requestId
-            });
-
-            resultUrl = formActionUrl;
-        }
-
-        this._openUrlInNewWindow(resultUrl);
+        return windowName;
     }
 
     private _handleImageLoadEventRaising (el: HTMLImageElement): void {
@@ -987,23 +957,12 @@ export default class ElementSandbox extends SandboxBase {
             this._setProxiedSrcUrlOnError(el as HTMLImageElement);
     }
 
-    private _constructFormData (form: HTMLFormElement): FormData {
-        // @ts-ignore
-        const formData = new nativeMethods.formData(form); /*eslint-disable-line new-cap */
-
-        formData.append(INTERNAL_REQUEST_PARAMETERS.formMethod, form.method);
-        // TODO: Support all form enctypes
-        formData.append(INTERNAL_REQUEST_PARAMETERS.formEnctype, form.enctype);
-
-        return formData;
-    }
-
     private _handleFormSubmitting (window: Window): void {
         if (!settings.get().allowMultipleWindows)
             return;
 
         this._eventSandbox.listeners.initElementListening(window, ['submit']);
-        this._eventSandbox.listeners.addInternalEventListener(window, ['submit'], (e, _dispatched, preventEvent, _cancelHandlers, stopEventPropagation) => {
+        this._eventSandbox.listeners.addInternalEventListener(window, ['submit'], e => {
             if (!domUtils.isFormElement(e.target))
                 return;
 
@@ -1012,21 +971,10 @@ export default class ElementSandbox extends SandboxBase {
             if (!this._shouldOpenInNewWindow(form.target))
                 return;
 
-            e.preventDefault();
+            const aboutBlankUrl = urlUtils.getProxyUrl(SPECIAL_BLANK_PAGE);
+            const windowName    = this._openUrlInNewWindow(aboutBlankUrl);
 
-            const formData = this._constructFormData(form);
-
-            transport
-                .asyncServiceMsg({
-                    cmd:  COMMANDS.addPendingRequest,
-                    data: formData
-                })
-                .then(requestId => {
-                    this._executePendingRequestInNewWindow(requestId, form);
-                });
-
-            preventEvent();
-            stopEventPropagation();
+            form.target = windowName;
         });
     }
 

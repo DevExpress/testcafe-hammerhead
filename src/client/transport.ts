@@ -8,8 +8,7 @@ import createUnresolvablePromise from './utils/create-unresolvable-promise';
 import noop from './utils/noop';
 // @ts-ignore
 import Promise from 'pinkie';
-import { isIframeWithoutSrc, getFrameElement, isFormData } from './utils/dom';
-import { INTERNAL_REQUEST_PARAMETERS } from '../request-pipeline/internal-request-parameters';
+import { isIframeWithoutSrc, getFrameElement } from './utils/dom';
 
 const SERVICE_MESSAGES_WAITING_INTERVAL: number = 50;
 
@@ -127,20 +126,7 @@ class Transport {
                 request.addEventListener('timeout', errorHandler);
             }
 
-            // TODO: Can we always send the service message content as form data?
-            const msgData = msg.data;
-
-            if (isFormData(msgData)) {
-                msgData.append(INTERNAL_REQUEST_PARAMETERS.cmd, msg.cmd);
-                msgData.append(INTERNAL_REQUEST_PARAMETERS.sessionId, msg.sessionId);
-
-                if (msg.referer)
-                    msgData.append(INTERNAL_REQUEST_PARAMETERS.referer, msg.referer);
-
-                request.send(msgData);
-            }
-            else
-                request.send(stringifyJSON(msg));
+            request.send(stringifyJSON(msg));
         };
 
         Transport._removeMessageFromStore(msg.cmd);

@@ -20,8 +20,6 @@ import { check as checkSameOriginPolicy } from './xhr/same-origin-policy';
 import * as headerTransforms from './header-transforms';
 import { RequestInfo } from '../session/events/info';
 import SERVICE_ROUTES from '../proxy/service-routes';
-import { URL } from 'url';
-import { INTERNAL_REQUEST_PARAMETERS } from './internal-request-parameters';
 
 interface DestInfo {
     url: string;
@@ -91,7 +89,6 @@ export default class RequestPipelineContext {
     goToNextStage: boolean = true;
     mock: ResponseMock;
     isSameOriginPolicyFailed: boolean = false;
-    pendingRequest: any;
 
     constructor (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo) {
         this.serverInfo = serverInfo;
@@ -105,22 +102,6 @@ export default class RequestPipelineContext {
         this.isPage  = !this.isXhr && !this.isFetch && !!acceptHeader && contentTypeUtils.isPage(acceptHeader);
 
         this.parsedClientSyncCookie = req.headers.cookie && parseClientSyncCookieStr(req.headers.cookie);
-    }
-
-    _applyPendingRequestIfNecessary (): void {
-        const parsedUrl = new URL(this.dest.url);
-
-        const pendingRequestId = parsedUrl.searchParams.get(INTERNAL_REQUEST_PARAMETERS.pendingRequestId);
-
-        if (!pendingRequestId)
-            return;
-
-        this.pendingRequest = this.session.pendingRequestStorage.get(pendingRequestId);
-
-        parsedUrl.searchParams.delete(INTERNAL_REQUEST_PARAMETERS.pendingRequestId);
-
-        // TODO: For which purposes we need the 'partAfterHost'?
-        this.dest.url = parsedUrl.toString();
     }
 
     // TODO: Rewrite parseProxyUrl instead.
@@ -154,8 +135,8 @@ export default class RequestPipelineContext {
         const contentDisposition = this.destRes.headers['content-disposition'];
 
         return !!contentDisposition &&
-            contentDisposition.includes('attachment') &&
-            contentDisposition.includes('filename');
+               contentDisposition.includes('attachment') &&
+               contentDisposition.includes('filename');
     }
 
     private _resolveInjectableUrls (injectableUrls: Array<string>): Array<string> {
@@ -168,7 +149,7 @@ export default class RequestPipelineContext {
         this.isWebSocket    = this.dest.isWebSocket;
         this.isHtmlImport   = this.dest.isHtmlImport;
         this.isPage         = !this.isXhr && !this.isFetch && !this.isWebSocket && acceptHeader &&
-            contentTypeUtils.isPage(acceptHeader) || this.isHtmlImport;
+                              contentTypeUtils.isPage(acceptHeader) || this.isHtmlImport;
         this.isIframe       = this.dest.isIframe;
         this.isSpecialPage  = urlUtils.isSpecialPage(this.dest.url);
         this.isFileProtocol = this.dest.protocol === 'file:';
@@ -244,12 +225,12 @@ export default class RequestPipelineContext {
         const isFormWithEmptyResponse = isForm && this.destRes.statusCode === 204;
 
         const isRedirect              = this.destRes.headers['location'] &&
-            REDIRECT_STATUS_CODES.includes(this.destRes.statusCode);
+                                        REDIRECT_STATUS_CODES.includes(this.destRes.statusCode);
         const requireAssetsProcessing = (isCSS || isScript || isManifest) && this.destRes.statusCode !== 204;
         const isNotModified           = this.req.method === 'GET' && this.destRes.statusCode === 304 &&
-            !!(this.req.headers['if-modified-since'] || this.req.headers['if-none-match']);
+                                        !!(this.req.headers['if-modified-since'] || this.req.headers['if-none-match']);
         const requireProcessing       = !this.isXhr && !this.isFetch && !isFormWithEmptyResponse && !isRedirect &&
-            !isNotModified && (this.isPage || this.isIframe || requireAssetsProcessing);
+                                        !isNotModified && (this.isPage || this.isIframe || requireAssetsProcessing);
         const isFileDownload          = this._isFileDownload() && !this.dest.isScript;
         const isIframeWithImageSrc    = this.isIframe && !this.isPage && /^\s*image\//.test(contentType);
 

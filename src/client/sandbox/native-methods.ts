@@ -127,7 +127,6 @@ class NativeMethods {
     WindowTextEvent: any;
     WindowMouseEvent: any;
     canvasContextDrawImage: any;
-    formData: Function;
     formDataAppend: Function;
     date: any;
     dateNow: any;
@@ -606,7 +605,6 @@ class NativeMethods {
         this.canvasContextDrawImage = win.CanvasRenderingContext2D.prototype.drawImage;
 
         // FormData
-        this.formData       = win.FormData;
         this.formDataAppend = win.FormData.prototype.append;
 
         // DateTime

@@ -9,7 +9,6 @@ import RequestEvent from './events/request-event';
 import ResponseEvent from './events/response-event';
 import ConfigureResponseEvent from './events/configure-response-event';
 import {
-    AddPendingRequestServiceMessage,
     Credentials,
     ExternalProxySettings,
     ExternalProxySettingsRaw,
@@ -25,7 +24,6 @@ import Cookies from './cookies';
 import UploadStorage from '../upload/storage';
 import COMMAND from './command';
 import generateUniqueId from '../utils/generate-unique-id';
-import PendingRequestStorage from './pending-request-storage';
 import SERVICE_ROUTES from '../proxy/service-routes';
 
 const TASK_TEMPLATE: string = read('../client/task.js.mustache');
@@ -72,7 +70,6 @@ interface TaskScriptOpts {
 
 export default abstract class Session extends EventEmitter {
     uploadStorage: UploadStorage;
-    pendingRequestStorage: PendingRequestStorage;
     id: string = generateUniqueId();
     cookies: Cookies = new Cookies();
     proxy: Proxy | null = null;
@@ -88,8 +85,7 @@ export default abstract class Session extends EventEmitter {
     protected constructor (uploadRoots: string[]) {
         super();
 
-        this.uploadStorage         = new UploadStorage(uploadRoots);
-        this.pendingRequestStorage = new PendingRequestStorage();
+        this.uploadStorage = new UploadStorage(uploadRoots);
     }
 
     // State
@@ -290,9 +286,5 @@ export default abstract class Session extends EventEmitter {
 
     async [COMMAND.getUploadedFiles] (msg: GetUploadedFilesServiceMessage): Promise<object> {
         return await this.uploadStorage.get(msg.filePaths);
-    }
-
-    async [COMMAND.addPendingRequest] (msg: AddPendingRequestServiceMessage): Promise<string> {
-        return this.pendingRequestStorage.add(msg);
     }
 }

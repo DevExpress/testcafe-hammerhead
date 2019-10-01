@@ -443,11 +443,3 @@ export function prepareUrl (url: string): string {
 
     return url;
 }
-
-export function addParameter (url: string, parameter: UrlParameter) {
-    // NOTE: Temporary implementation
-    const hasQuestionMark = url.indexOf('?') > -1;
-    const paramStr        = parameter.name + '=' + parameter.value;
-
-    return hasQuestionMark ? url + '&' + paramStr : url + '?' + paramStr;
-}

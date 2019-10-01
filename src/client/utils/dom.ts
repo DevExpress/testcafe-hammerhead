@@ -593,14 +593,6 @@ export function isLocation (instance: any): instance is Location {
         nativeMethods.objectToString.call(instance) === '[object Location]';
 }
 
-export function isFormData (instance: any): instance is FormData {
-    if (!instance)
-        return false;
-
-    return instance instanceof nativeMethods.formData ||
-        nativeMethods.objectToString.call(instance) === '[object FormData]';
-}
-
 export function isSVGElement (instance: any): boolean {
     if (instance instanceof nativeMethods.svgElementClass)
         return true;
@@ -805,10 +797,6 @@ export function nodeListToArray (nodeList) {
 
 export function getFileInputs (el) {
     return isFileInput(el) ? [el] : nodeListToArray(getNativeQuerySelectorAll(el).call(el, 'input[type=file]'));
-}
-
-export function getNamedInputs (el: HTMLElement): HTMLInputElement[] {
-    return nodeListToArray(getNativeQuerySelectorAll(el).call(el, 'input[name]')) as HTMLInputElement[];
 }
 
 export function getIframes (el) {

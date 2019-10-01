@@ -43,8 +43,3 @@ export interface RequestEventListenerError {
     methodName: string;
 }
 
-export interface AddPendingRequestServiceMessage extends ServiceMessage {
-    form: HTMLFormElement;
-    method: string;
-    enctype: string;
-}

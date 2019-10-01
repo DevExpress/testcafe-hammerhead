@@ -30,8 +30,4 @@ export interface DocumentCleanedEvent {
     document: Document;
 }
 
-export interface UrlParameter {
-    name: string;
-    value: string;
-}
 
