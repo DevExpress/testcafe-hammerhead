@@ -3,9 +3,9 @@ const NATIVE_CODE_RE = /\[native code]/;
 
 class NativeMethods {
     isStoragePropsLocatedInProto: boolean;
-    createDocumentFragment: () => DocumentFragment;
-    createElement: (tagName: string) => HTMLElement;
-    createElementNS: (namespaceURI: string, qualifiedName: string) => HTMLElement;
+    createDocumentFragment: Document['createDocumentFragment'];
+    createElement: Document['createElement'];
+    createElementNS: Document['createElementNS'];
     documentOpenPropOwnerName: string;
     documentClosePropOwnerName: string;
     documentWritePropOwnerName: string;
@@ -127,7 +127,7 @@ class NativeMethods {
     WindowTextEvent: any;
     WindowMouseEvent: any;
     canvasContextDrawImage: any;
-    formDataAppend: (name: string, value: string | Blob, fileName?: string) => void;
+    formDataAppend: FormData['append'];
     date: any;
     dateNow: any;
     math: any;
@@ -313,7 +313,7 @@ class NativeMethods {
     Worker: any;
     ArrayBuffer: any;
     Uint8Array: any;
-    Uint32Array: Function;
+    Uint32Array: Uint32Array['constructor'];
     DataView: any;
     Blob: any;
     XMLHttpRequest: any;

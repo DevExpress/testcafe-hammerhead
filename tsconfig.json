@@ -6,6 +6,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
+    "strictFunctionTypes": true,
     "strict": false,
     "newLine": "lf"
   },
