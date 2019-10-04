@@ -1,7 +1,5 @@
-/*eslint-disable no-unused-vars*/
 import { Readable } from 'stream';
 import { ServerResponse, IncomingMessage } from 'http';
-/*eslint-enable no-unused-vars*/
 import { defaultsDeep as defaultOptions } from 'lodash';
 import promisifyStream from '../utils/promisify-stream';
 

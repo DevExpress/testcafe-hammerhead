@@ -4,9 +4,7 @@ import asar from 'asar';
 import { toReadableStream } from './buffer';
 import path from 'path';
 import { stat } from './promisified-functions';
-/*eslint-disable no-unused-vars*/
 import { Readable } from 'stream';
-/*eslint-enable no-unused-vars*/
 
 interface ParsedPath {
     archive: string;

@@ -5,9 +5,7 @@ import * as urlUtils from '../../utils/url';
 import * as parse5Utils from '../../utils/parse5';
 import { SVG_NAMESPACE } from './namespaces';
 import DomProcessor from './index';
-/*eslint-disable no-unused-vars*/
 import { ASTNode } from 'parse5';
-/*eslint-enable no-unused-vars*/
 
 export default class Parse5DomAdapter extends BaseDomAdapter {
     isIframe: boolean;

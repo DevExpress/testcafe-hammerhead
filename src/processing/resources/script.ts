@@ -1,10 +1,8 @@
 import ResourceProcessorBase from './resource-processor-base';
 import Lru from 'lru-cache';
 import { processScript } from '../script';
-/*eslint-disable no-unused-vars*/
 import RequestPipelineContext from '../../request-pipeline/context';
 import Charset from '../encoding/charset';
-/*eslint-enable no-unused-vars*/
 
 class ScriptResourceProcessor extends ResourceProcessorBase {
     jsCache: any;

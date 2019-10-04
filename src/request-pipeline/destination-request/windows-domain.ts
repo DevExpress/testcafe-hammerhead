@@ -1,7 +1,5 @@
 import { exec } from '../../utils/promisified-functions';
-/*eslint-disable no-unused-vars*/
 import { WindowCredentials } from '../../typings/session';
-/*eslint-enable no-unused-vars*/
 
 let cached: WindowCredentials | null = null;
 

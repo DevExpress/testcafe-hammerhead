@@ -1,7 +1,5 @@
-/*eslint-disable no-unused-vars*/
 import { ReadStream } from 'fs';
 import { IncomingHttpHeaders } from 'http';
-/*eslint-enable no-unused-vars*/
 
 export interface WindowCredentials {
     domain?: string;

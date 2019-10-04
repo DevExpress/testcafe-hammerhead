@@ -1,6 +1,4 @@
-/*eslint-disable no-unused-vars*/
 import RequestPipelineContext from '../context';
-/*eslint-enable no-unused-vars*/
 import XHR_HEADERS from './headers';
 import { castArray } from 'lodash';
 

@@ -1,6 +1,4 @@
-/*eslint-disable no-unused-vars*/
 import { FileInputInfo } from '../typings/upload';
-/*eslint-enable no-unused-vars*/
 import * as bufferUtils from '../utils/buffer';
 
 const INPUT_NAME_RE: RegExp = /;\s*name="([^"]*)"/i;

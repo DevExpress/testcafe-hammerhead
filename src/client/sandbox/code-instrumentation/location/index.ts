@@ -4,9 +4,7 @@ import { isLocation, isCrossDomainWindows } from '../../../utils/dom';
 import INSTRUCTION from '../../../../processing/script/instruction';
 import nativeMethods from '../../native-methods';
 import { isIE } from '../../../utils/browser';
-/*eslint-disable no-unused-vars*/
 import MessageSandbox from '../../event/message';
-/*eslint-enable no-unused-vars*/
 
 const LOCATION_WRAPPER = 'hammerhead|location-wrapper';
 

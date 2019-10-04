@@ -1,6 +1,4 @@
-/*eslint-disable no-unused-vars*/
 import BaseResource from './base-resource';
-/*eslint-enable no-unused-vars*/
 import FileSystemResource from './filesystem-resource';
 import AsarResource from './asar-resource';
 

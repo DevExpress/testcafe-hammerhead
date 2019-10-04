@@ -3,9 +3,7 @@ import nativeMethods from '../native-methods';
 import createPropertyDesc from '../../utils/create-property-desc.js';
 import { isFirefox, isIOS } from '../../utils/browser';
 import { overrideDescriptor } from '../../utils/property-overriding';
-/*eslint-disable no-unused-vars*/
 import Listeners from './listeners';
-/*eslint-enable no-unused-vars*/
 
 export default class UnloadSandbox extends SandboxBase {
     BEFORE_UNLOAD_EVENT: string = 'hammerhead|event|before-unload';

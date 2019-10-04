@@ -1,6 +1,6 @@
 {
   "plugins": [
-    "hammerhead"
+    "eslint-plugin-hammerhead"
   ],
   "extends": "plugin:hammerhead/recommended",
   "rules": {

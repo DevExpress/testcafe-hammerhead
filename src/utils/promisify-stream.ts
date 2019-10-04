@@ -1,6 +1,4 @@
-/*eslint-disable no-unused-vars*/
 import stream from 'stream';
-/*eslint-enable no-unused-vars*/
 
 export default function (s: stream.Readable): Promise<Buffer> {
     return new Promise((resolve, reject) => {

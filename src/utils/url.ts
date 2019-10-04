@@ -4,9 +4,7 @@
 // -------------------------------------------------------------
 
 import trim from './string-trim';
-/*eslint-disable no-unused-vars*/
 import { ParsedUrl, ResourceType, RequestDescriptor, ParsedProxyUrl, ProxyUrlOptions } from '../typings/url';
-/*eslint-enable no-unused-vars*/
 
 const PROTOCOL_RE: RegExp        = /^([\w-]+?:)(\/\/|[^\\/]|$)/;
 const LEADING_SLASHES_RE: RegExp = /^(\/\/)/;

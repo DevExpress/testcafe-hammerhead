@@ -2,10 +2,20 @@
 // WARNING: this file is used by both the client and the server.
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
-/*eslint-disable no-unused-vars*/
-import { Literal, Identifier, ExpressionStatement, BlockStatement, Expression, CallExpression,
-    AssignmentExpression, MemberExpression, SpreadElement, VariableDeclaration, Statement } from 'estree';
-/*eslint-enable no-unused-vars*/
+import {
+    Literal,
+    Identifier,
+    ExpressionStatement,
+    BlockStatement,
+    Expression,
+    CallExpression,
+    AssignmentExpression,
+    MemberExpression,
+    SpreadElement,
+    VariableDeclaration,
+    Statement
+} from 'estree';
+
 import { Syntax } from 'esotope-hammerhead';
 import INTERNAL_LITERAL from './internal-literal';
 import INSTRUCTION from './instruction';

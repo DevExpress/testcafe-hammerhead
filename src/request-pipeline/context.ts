@@ -1,4 +1,3 @@
-/*eslint-disable no-unused-vars*/
 import net from 'net';
 import http from 'http';
 import Session from '../session';
@@ -12,7 +11,6 @@ import IncomingMessageMock from './incoming-message-mock';
 import RequestOptions from './request-options';
 import { ParsedProxyUrl } from '../typings/url';
 import { OnResponseEventData } from '../typings/context';
-/*eslint-enable no-unused-vars*/
 import XHR_HEADERS from './xhr/headers';
 import Charset from '../processing/encoding/charset';
 import * as urlUtils from '../utils/url';

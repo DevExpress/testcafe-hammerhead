@@ -1,9 +1,7 @@
-/*eslint-disable no-unused-vars*/
 import RequestFilterRule from '../../request-pipeline/request-hooks/request-filter-rule';
 import RequestPipelineContext from '../../request-pipeline/context';
 import ResponseMock from '../../request-pipeline/request-hooks/response-mock';
 import { RequestInfo } from './info';
-/*eslint-enable no-unused-vars*/
 
 export default class RequestEvent {
     private readonly _requestContext: RequestPipelineContext;

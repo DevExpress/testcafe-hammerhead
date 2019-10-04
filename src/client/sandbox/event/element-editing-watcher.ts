@@ -6,9 +6,7 @@ import {
     isTextAreaElement
 } from '../../utils/dom';
 
-/*eslint-disable no-unused-vars*/
 import EventSimulator from './simulator';
-/*eslint-enable no-unused-vars*/
 
 const ELEMENT_EDITING_OBSERVED_FLAG = 'hammerhead|element-editing-observed';
 const OLD_VALUE_PROPERTY            = 'hammerhead|old-value';

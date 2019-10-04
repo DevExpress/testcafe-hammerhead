@@ -1,7 +1,5 @@
-/*eslint-disable no-unused-vars*/
 import MessageSandbox from '../event/message';
 import UnloadSandbox from '../event/unload';
-/*eslint-enable no-unused-vars*/
 import SandboxBase from '../base';
 import settings from '../../settings';
 import WindowSync from './window-sync';

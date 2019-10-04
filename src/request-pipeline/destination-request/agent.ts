@@ -1,6 +1,4 @@
-/*eslint-disable no-unused-vars*/
 import RequestOptions from '../request-options';
-/*eslint-enable no-unused-vars*/
 import http from 'http';
 import https from 'https';
 import LRUCache from 'lru-cache';

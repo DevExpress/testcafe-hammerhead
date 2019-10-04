@@ -1,9 +1,7 @@
-/*eslint-disable no-unused-vars*/
 import net from 'net';
 import http from 'http';
 import Session from '../session';
 import { ServerInfo } from '../typings/proxy';
-/*eslint-enable no-unused-vars*/
 import RequestPipelineContext from './context';
 import { process as processResource } from '../processing/resources';
 import { MESSAGE, getText } from '../messages';

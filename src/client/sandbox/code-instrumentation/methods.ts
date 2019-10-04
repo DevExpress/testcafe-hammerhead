@@ -6,9 +6,7 @@ import fastApply from '../../utils/fast-apply';
 import * as typeUtils from '../../utils/types';
 import { getProxyUrl, stringifyResourceType } from '../../utils/url';
 import nativeMethods from '../native-methods';
-/*eslint-disable no-unused-vars*/
 import MessageSandbox from '../event/message';
-/*eslint-enable no-unused-vars*/
 
 export default class MethodCallInstrumentation extends SandboxBase {
     methodWrappers: any;

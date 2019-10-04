@@ -1,6 +1,4 @@
-/*eslint-disable no-unused-vars*/
 import { HammerheadInitSettings } from '../typings/client';
-/*eslint-enable no-unused-vars*/
 
 class Settings {
     _settings: HammerheadInitSettings;

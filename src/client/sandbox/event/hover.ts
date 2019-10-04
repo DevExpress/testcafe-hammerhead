@@ -4,9 +4,7 @@ import nativeMethods from '../native-methods';
 import * as domUtils from '../../utils/dom';
 import * as positionUtils from '../../utils/position';
 import * as browserUtils from '../../utils/browser';
-/*eslint-disable no-unused-vars*/
 import Listeners from './listeners';
-/*eslint-enable no-unused-vars*/
 
 export default class HoverSandbox extends SandboxBase {
     private _hoverElementFixed: boolean = false;

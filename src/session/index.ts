@@ -1,4 +1,3 @@
-/*eslint-disable no-unused-vars*/
 import Proxy from '../proxy';
 import { ServerInfo, ServiceMessage } from '../typings/proxy';
 import RequestPipelineContext from '../request-pipeline/context';
@@ -17,7 +16,6 @@ import {
 } from '../typings/session';
 import { GetUploadedFilesServiceMessage, StoreUploadedFilesServiceMessage } from '../typings/upload';
 import StateSnapshot from './state-snapshot';
-/*eslint-enable no-unused-vars*/
 import mustache from 'mustache';
 import { readSync as read } from 'read-file-relative';
 import { EventEmitter } from 'events';

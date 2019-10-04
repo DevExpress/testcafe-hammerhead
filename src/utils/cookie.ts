@@ -4,9 +4,7 @@
 // -------------------------------------------------------------
 
 import trim from './string-trim';
-/*eslint-disable no-unused-vars*/
 import { CookieRecord, ParsedClientSyncCookie } from '../typings/cookie';
-/*eslint-enable no-unused-vars*/
 
 const TIME_RADIX: number                            = 36;
 const CLEAR_COOKIE_VALUE_STR: string                = '=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT';

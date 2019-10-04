@@ -1,7 +1,5 @@
 import SandboxBase from '../base';
-/*eslint-disable no-unused-vars*/
 import MessageSandbox from './message';
-/*eslint-enable no-unused-vars*/
 
 const WINDOW_ACTIVATED_EVENT   = 'hammerhead|event|window-activated';
 const WINDOW_DEACTIVATED_EVENT = 'hammerhead|event|window-deactivated';
