@@ -30,42 +30,42 @@ import generateUniqueId from '../utils/generate-unique-id';
 const TASK_TEMPLATE: string = read('../client/task.js.mustache');
 
 interface UserScript {
-    url: string,
+    url: string;
     page: RequestFilterRule;
 }
 
 interface InjectableResources {
-    scripts: Array<string>,
-    styles: Array<string>,
-    userScripts: Array<UserScript>
+    scripts: Array<string>;
+    styles: Array<string>;
+    userScripts: Array<UserScript>;
 }
 
 interface RequestEventListeners {
-    [RequestEventNames.onRequest]: Function,
-    [RequestEventNames.onConfigureResponse]: Function,
-    [RequestEventNames.onResponse]: Function
+    [RequestEventNames.onRequest]: Function;
+    [RequestEventNames.onConfigureResponse]: Function;
+    [RequestEventNames.onResponse]: Function;
 }
 
 interface RequestEventListenersData {
-    listeners: RequestEventListeners,
-    errorHandler: (event: RequestEventListenerError) => void
+    listeners: RequestEventListeners;
+    errorHandler: (event: RequestEventListenerError) => void;
 }
 
 interface TaskScriptTemplateOpts {
-    serverInfo: ServerInfo,
-    isFirstPageLoad: boolean,
-    referer: string | null,
-    cookie: string | null,
-    iframeTaskScriptTemplate: string,
-    payloadScript: string
+    serverInfo: ServerInfo;
+    isFirstPageLoad: boolean;
+    referer: string | null;
+    cookie: string | null;
+    iframeTaskScriptTemplate: string;
+    payloadScript: string;
 }
 
 interface TaskScriptOpts {
-    serverInfo: ServerInfo,
-    referer: string | null,
-    cookieUrl: string,
-    isIframe: boolean,
-    withPayload: boolean
+    serverInfo: ServerInfo;
+    referer: string | null;
+    cookieUrl: string;
+    isIframe: boolean;
+    withPayload: boolean;
 }
 
 export default abstract class Session extends EventEmitter {
@@ -79,7 +79,7 @@ export default abstract class Session extends EventEmitter {
     injectable: InjectableResources = { scripts: ['/hammerhead.js'], styles: [], userScripts: [] };
     requestEventListeners: Map<RequestFilterRule, RequestEventListenersData> = new Map();
     mocks: Map<RequestFilterRule, ResponseMock> = new Map();
-    disablePageCaching:boolean = false;
+    disablePageCaching: boolean = false;
 
     protected constructor (uploadRoots: string[]) {
         super();
@@ -228,7 +228,7 @@ export default abstract class Session extends EventEmitter {
     }
 
     getRequestFilterRules (requestInfo: RequestInfo): Array<RequestFilterRule> {
-        const rulesArray:Array<RequestFilterRule> = Array.from(this.requestEventListeners.keys());
+        const rulesArray: Array<RequestFilterRule> = Array.from(this.requestEventListeners.keys());
 
         return rulesArray.filter(rule => rule.match(requestInfo));
     }

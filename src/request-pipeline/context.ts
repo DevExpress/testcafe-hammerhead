@@ -107,7 +107,7 @@ export default class RequestPipelineContext {
     }
 
     // TODO: Rewrite parseProxyUrl instead.
-    private static _flattenParsedProxyUrl (parsed: ParsedProxyUrl): { dest: DestInfo, sessionId: string } {
+    private static _flattenParsedProxyUrl (parsed: ParsedProxyUrl): { dest: DestInfo; sessionId: string } {
         if (!parsed)
             return null;
 
@@ -303,7 +303,7 @@ export default class RequestPipelineContext {
         this.nonProcessedDestResBody = value;
     }
 
-    closeWithError (statusCode: number, resBody: String | Buffer = '') {
+    closeWithError (statusCode: number, resBody: string | Buffer = '') {
         if ('setHeader' in this.res && !this.res.headersSent) {
             this.res.statusCode = statusCode;
             this.res.setHeader('content-type', 'text/html');

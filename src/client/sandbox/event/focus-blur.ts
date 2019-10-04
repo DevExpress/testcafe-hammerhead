@@ -6,14 +6,12 @@ import nativeMethods from '../native-methods';
 import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
 import * as styleUtils from '../../utils/style';
-/*eslint-disable no-unused-vars*/
 import Listeners from './listeners';
 import EventSimulator from './simulator';
 import MessageSandbox from './message';
 import TimersSandbox from '../timers';
 import ElementEditingWatcher from './element-editing-watcher';
 import { ScrollState } from '../../../typings/client';
-/*eslint-enable no-unused-vars*/
 
 const INTERNAL_FOCUS_BLUR_FLAG_PREFIX = 'hammerhead|event|internal-';
 
@@ -38,11 +36,11 @@ export default class FocusBlurSandbox extends SandboxBase {
     private _activeWindowTracker: ActiveWindowTracker;
     private _elementEditingWatcher: ElementEditingWatcher;
 
-    constructor (private readonly _listeners: Listeners, //eslint-disable-line no-unused-vars
-                 private readonly _eventSimulator: EventSimulator, //eslint-disable-line no-unused-vars
-                 messageSandbox: MessageSandbox,
-                 private readonly _timersSandbox: TimersSandbox, //eslint-disable-line no-unused-vars
-                 elementEditingWatcher: ElementEditingWatcher) {
+    constructor (private readonly _listeners: Listeners,
+        private readonly _eventSimulator: EventSimulator,
+        messageSandbox: MessageSandbox,
+        private readonly _timersSandbox: TimersSandbox,
+        elementEditingWatcher: ElementEditingWatcher) {
         super();
 
         this._activeWindowTracker   = new ActiveWindowTracker(messageSandbox);
@@ -129,7 +127,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             this._restoreElementNonScrollableParentsScrollState(this._scrollState.elementNonScrollableParentsScrollState);
     }
 
-    _raiseEvent (el: any, type: string, callback: Function, { withoutHandlers, isAsync, forMouseEvent, preventScrolling, relatedTarget, focusedOnChange }: { withoutHandlers?: boolean, isAsync?: boolean, forMouseEvent?: boolean, preventScrolling?: boolean, relatedTarget?: string, focusedOnChange?: boolean } ) {
+    _raiseEvent (el: any, type: string, callback: Function, { withoutHandlers, isAsync, forMouseEvent, preventScrolling, relatedTarget, focusedOnChange }: { withoutHandlers?: boolean; isAsync?: boolean; forMouseEvent?: boolean; preventScrolling?: boolean; relatedTarget?: string; focusedOnChange?: boolean } ) {
         // NOTE: We cannot use Promise because 'resolve' will be called async, but we need to resolve
         // immediately in IE9 and IE10.
 

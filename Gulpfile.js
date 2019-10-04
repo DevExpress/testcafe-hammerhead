@@ -198,7 +198,7 @@ gulp.step('lint-js', () => {
 
 gulp.step('lint-ts', () => {
     return gulp.src('./src/**/*.ts')
-        .pipe(eslint('.eslintrc-ts'))
+        .pipe(eslint())
         .pipe(eslint.format())
         .pipe(eslint.failAfterError());
 });

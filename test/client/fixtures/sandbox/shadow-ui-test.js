@@ -1301,7 +1301,7 @@ test('the isBodyElementWithChildren method should use native length getter', fun
     var storedLengthDescriptor = Object.getOwnPropertyDescriptor(HTMLCollection.prototype, 'length');
 
     Object.defineProperty(HTMLCollection.prototype, 'length', {
-        get: function () {
+        get: function () { /* eslint-disable-line getter-return */
             ok(false);
         },
 

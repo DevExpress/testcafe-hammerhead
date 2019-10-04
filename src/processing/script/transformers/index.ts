@@ -3,9 +3,7 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-/*eslint-disable no-unused-vars*/
 import { Node } from 'estree';
-/*eslint-enable no-unused-vars*/
 import computedPropertyGetTransformer from './computed-property-get';
 import computedPropertySetTransformer from './computed-property-set';
 import concatOperatorTransformer from './concat-operator';
@@ -35,7 +33,7 @@ export interface Transformer<C extends Node> {
     run: <P extends Node>(node: C, parent?: P, key?: keyof P) => Node|null;
     baseUrl?: string;
     wrapLastExpr?: boolean;
-    resolver?: Function
+    resolver?: Function;
 }
 
 const TRANSFORMERS: Array<Transformer<any>> = [

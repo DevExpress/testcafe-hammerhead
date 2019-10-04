@@ -2,9 +2,7 @@
 // WARNING: this file is used by both the client and the server.
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
-/*eslint-disable no-unused-vars*/
 import { Node } from 'estree';
-/*eslint-enable no-unused-vars*/
 import transformers from './transformers';
 import jsProtocolLastExpression from './transformers/js-protocol-last-expression';
 import staticImportTransformer from './transformers/static-import';
@@ -52,10 +50,12 @@ const objectToString = Object.prototype.toString;
 const objectKeys     = Object.keys;
 
 function getChange<T extends Node> (node: Node, parent: T, key: keyof T): CodeChange {
+    /*eslint-disable @typescript-eslint/no-non-null-assertion*/
     const start = node.originStart!;
     const end   = node.originEnd!;
     const nodes = parent[key];
     const index = nodes instanceof Array ? nodes.indexOf(node) : -1;
+    /*eslint-disable @typescript-eslint/no-non-null-assertion*/
 
     // @ts-ignore
     return { start, end, index, parent, key };
@@ -116,14 +116,14 @@ export function afterTransform () {
     dynamicImportTransformer.baseUrl = void 0;
 }
 
-/* eslint-disable indent */
+/* eslint-disable @typescript-eslint/indent */
 export default function transform<T extends Node> (node: Node,
                                                    changes: Array<CodeChange> = [],
                                                    state: State = new State(),
                                                    parent?: T,
                                                    key?: keyof T,
                                                    reTransform?: boolean): Array<CodeChange> {
-    /* eslint-enable indent */
+    /* eslint-enable @typescript-eslint/indent */
 
     if (!node || typeof node !== 'object')
         return changes;

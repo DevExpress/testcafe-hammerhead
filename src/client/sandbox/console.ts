@@ -1,16 +1,14 @@
 import SandboxBase from './base';
 import { isCrossDomainWindows } from '../utils/dom';
 import nativeMethods from '../sandbox/native-methods';
-/*eslint-disable no-unused-vars*/
 import MessageSandbox from './event/message';
-/*eslint-enable no-unused-vars*/
 
 export default class ConsoleSandbox extends SandboxBase {
     CONSOLE_METH_CALLED_EVENT: string = 'hammerhead|event|console-meth-called';
 
     private _serviceMsgReceivedEventCallback: Function;
 
-    constructor (private readonly _messageSandbox: MessageSandbox) { //eslint-disable-line no-unused-vars
+    constructor (private readonly _messageSandbox: MessageSandbox) {
         super();
 
         this._serviceMsgReceivedEventCallback = ({ message }) => {
@@ -19,7 +17,7 @@ export default class ConsoleSandbox extends SandboxBase {
         };
     }
 
-    private _toString (obj:any): string {
+    private _toString (obj: any): string {
         try {
             return String(obj);
         }

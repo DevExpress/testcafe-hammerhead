@@ -7,10 +7,8 @@ import { isShadowUIElement, isIframeWithoutSrc, getTagName } from '../utils/dom'
 import { isFirefox, isWebKit, isIE } from '../utils/browser';
 // @ts-ignore
 import * as JSON from 'json-hammerhead';
-/*eslint-disable no-unused-vars*/
 import NodeMutation from './node/mutation';
 import CookieSandbox from './cookie';
-/*eslint-enable no-unused-vars*/
 
 const IFRAME_WINDOW_INITED = 'hammerhead|iframe-window-inited';
 
@@ -22,8 +20,9 @@ export default class IframeSandbox extends SandboxBase {
 
     iframeNativeMethodsBackup: any;
 
-    constructor (private readonly _nodeMutation: NodeMutation, //eslint-disable-line no-unused-vars
-                 private readonly _cookieSandbox: CookieSandbox) { //eslint-disable-line no-unused-vars
+    constructor (private readonly _nodeMutation: NodeMutation,
+        private readonly _cookieSandbox: CookieSandbox) {
+
         super();
 
         this.on(this.RUN_TASK_SCRIPT_EVENT, this.iframeReadyToInitHandler);

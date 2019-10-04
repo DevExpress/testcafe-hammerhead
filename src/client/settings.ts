@@ -1,9 +1,9 @@
 /*eslint-disable no-unused-vars*/
-import { IHammerheadInitSettings } from '../typings/client';
+import { HammerheadInitSettings } from '../typings/client';
 /*eslint-enable no-unused-vars*/
 
 class Settings {
-    _settings: IHammerheadInitSettings;
+    _settings: HammerheadInitSettings;
 
     constructor () {
         this._settings = {
@@ -18,7 +18,7 @@ class Settings {
         };
     }
 
-    set (value: IHammerheadInitSettings) {
+    set (value: HammerheadInitSettings) {
         this._settings = value;
     }
 

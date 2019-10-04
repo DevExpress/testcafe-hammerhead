@@ -37,7 +37,7 @@ test('stylesheet after innerHTML', function () {
 
     check(nativeMethods.elementInnerHTMLGetter.call(div.firstChild));
 
-    div.innerHTML = div.innerHTML;
+    div.innerHTML = div.innerHTML; /* eslint-disable-line no-self-assign */
 
     check(nativeMethods.elementInnerHTMLGetter.call(div.firstChild));
 
@@ -45,7 +45,7 @@ test('stylesheet after innerHTML', function () {
 
     check(nativeMethods.elementInnerHTMLGetter.call(style));
 
-    style.innerHTML = style.innerHTML;
+    style.innerHTML = style.innerHTML; /* eslint-disable-line no-self-assign */
 
     check(nativeMethods.elementInnerHTMLGetter.call(style));
 });

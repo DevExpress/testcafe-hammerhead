@@ -1,10 +1,10 @@
-export interface ICheckByConditionOptions {
+export interface CheckByConditionOptions {
     win?: Window;
     checkConditionEveryMs?: number;
     abortAfterMs?: number;
 }
 
-export interface IHammerheadInitSettings {
+export interface HammerheadInitSettings {
     isFirstPageLoad: boolean;
     sessionId: string;
     forceProxySrcForImage: boolean;

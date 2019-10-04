@@ -13,7 +13,7 @@ export default class AsarResource extends BaseResource {
         super(path.normalize(resourcePath));
     }
 
-    protected _createContentStream () : void {
+    protected _createContentStream (): void {
         try {
             this._contentStream = asar.extractFileToReadStream(this._archive, this._fileName);
         }
@@ -24,11 +24,11 @@ export default class AsarResource extends BaseResource {
         }
     }
 
-    get isArchiveFound () : boolean {
+    get isArchiveFound (): boolean {
         return !!this._archive;
     }
 
-    async init () : Promise<void> {
+    async init (): Promise<void> {
         if (!await asar.isAsar(this._path))
             return;
 

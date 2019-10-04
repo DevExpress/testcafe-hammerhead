@@ -12,14 +12,14 @@ import { isEqual } from 'lodash';
 const PARAM_RE: RegExp = /^{(\S+)}$/;
 
 interface Route {
-    handler: StaticContent | Function,
-    isStatic: boolean
+    handler: StaticContent | Function;
+    isStatic: boolean;
 }
 
 interface RouteWithParams {
-    handler: Function,
-    paramNames: Array<string>,
-    re: RegExp
+    handler: Function;
+    paramNames: Array<string>;
+    re: RegExp;
 }
 
 function buildRouteParamsMap (routeMatch, paramNames) {
@@ -124,7 +124,7 @@ export default abstract class Router {
         return false;
     }
 
-    abstract _processStaticContent (handler: StaticContent) : void;
+    abstract _processStaticContent (handler: StaticContent): void;
 
     // API
     GET (route: string, handler: StaticContent | Function) {

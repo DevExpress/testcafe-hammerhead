@@ -9,7 +9,7 @@ const META_CHARSET_RE: RegExp = /charset ?= ?['"]?([^ ;"']*)['"]?/i;
 const DEFAULT_CHARSET: string = 'iso-8859-1';
 
 interface CharsetBOM {
-    charset: string,
+    charset: string;
     bom: Buffer;
 }
 

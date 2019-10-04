@@ -450,14 +450,14 @@ test('hammerhead should not use overridden contentWindow, contentDocument getter
         .then(function (iframe) {
             Object.defineProperties(iframe, {
                 contentWindow: {
-                    get: function () {
+                    get: function () { /* eslint-disable-line getter-return */
                         ok('false', 'contentWindow');
                     },
                     enumerable:   true,
                     configurable: true
                 },
                 contentDocument: {
-                    get: function () {
+                    get: function () { /* eslint-disable-line getter-return */
                         ok('false', 'contentDocument');
                     },
                     enumerable:   true,

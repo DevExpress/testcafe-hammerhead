@@ -4,15 +4,15 @@ import { IncomingHttpHeaders } from 'http';
 /*eslint-enable no-unused-vars*/
 
 export interface WindowCredentials {
-    domain?: string,
-    workstation?: string
+    domain?: string;
+    workstation?: string;
 }
 
 export interface Credentials {
-    username: string,
-    password: string,
-    domain?: string,
-    workstation?: string
+    username: string;
+    password: string;
+    domain?: string;
+    workstation?: string;
 }
 
 export interface StoragesSnapshot {
@@ -21,17 +21,17 @@ export interface StoragesSnapshot {
 }
 
 export interface ExternalProxySettingsRaw {
-    url: string,
-    bypassRules?: Array<string>
+    url: string;
+    bypassRules?: Array<string>;
 }
 
 export interface ExternalProxySettings {
-    host: string,
-    hostname: string,
-    bypassRules?: Array<string>,
-    port?: string,
-    proxyAuth?: string,
-    authHeader?: string
+    host: string;
+    hostname: string;
+    bypassRules?: Array<string>;
+    port?: string;
+    proxyAuth?: string;
+    authHeader?: string;
 }
 
 export interface FileStream extends ReadStream {

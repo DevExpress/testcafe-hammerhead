@@ -58,7 +58,7 @@ class StyleProcessor {
         return css.replace(
             CSS_URL_PROPERTY_VALUE_PATTERN,
             (match, prefix1, openQuote1, url1, closeQuote1, openQuote2, url2, closeQuote2, url3, postfix,
-             prefix2, openQuote3, url4, closeQuote3, openQuote4, url5, closeQuote4) => {
+                prefix2, openQuote3, url4, closeQuote3, openQuote4, url5, closeQuote4) => {
                 const prefix     = prefix1 || prefix2;
                 const openQuote  = openQuote1 || openQuote2 || openQuote3 || openQuote4 || '';
                 const url        = url1 || url2 || url3 || url4 || url5;

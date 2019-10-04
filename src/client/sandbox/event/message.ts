@@ -10,10 +10,8 @@ import { isCrossDomainWindows, getTopSameDomainWindow, isWindow, isMessageEvent 
 import { callEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';
 import { overrideDescriptor } from '../../utils/property-overriding';
-/*eslint-disable no-unused-vars*/
 import Listeners from './listeners';
 import UnloadSandbox from './unload';
-/*eslint-enable no-unused-vars*/
 
 const MESSAGE_TYPE = {
     service: 'hammerhead|service-msg',
@@ -38,8 +36,8 @@ export default class MessageSandbox extends SandboxBase {
 
     iframeInternalMsgQueue: Array<any>;
 
-    constructor (private readonly _listeners: Listeners, //eslint-disable-line no-unused-vars
-                 private readonly _unloadSandbox: UnloadSandbox) { //eslint-disable-line no-unused-vars
+    constructor (private readonly _listeners: Listeners,
+        private readonly _unloadSandbox: UnloadSandbox) {
         super();
 
         this.pingCallback = null;

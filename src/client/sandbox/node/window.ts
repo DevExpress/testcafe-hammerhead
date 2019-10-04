@@ -1,4 +1,4 @@
-/*global history, navigator*/
+/*global navigator*/
 import SandboxBase from '../base';
 import ShadowUI from '../shadow-ui';
 import nativeMethods from '../native-methods';
@@ -49,14 +49,12 @@ import { remove as removeProcessingHeader } from '../../../processing/script/hea
 import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
 import { getAttributes } from './attributes';
 import replaceProxiedUrlsInStack from '../../utils/replace-proxied-urls-in-stack';
-/*eslint-disable no-unused-vars*/
 import NodeSandbox from './index';
 import EventSandbox from '../event';
 import NodeMutation from './mutation';
 import MessageSandbox from '../event/message';
 import Listeners from '../event/listeners';
 import ElementEditingWatcher from '../event/element-editing-watcher';
-/*eslint-enable no-unused-vars*/
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -124,7 +122,7 @@ export default class WindowSandbox extends SandboxBase {
         return stack;
     }
 
-    private static _isProcessableBlob (parts: Array<any>) : boolean {
+    private static _isProcessableBlob (parts: Array<any>): boolean {
         let hasStringItem = false;
 
         for (const item of parts) {

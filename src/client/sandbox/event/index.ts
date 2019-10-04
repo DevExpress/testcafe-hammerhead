@@ -9,14 +9,12 @@ import { isIE, isFirefox } from '../../utils/browser';
 import { DOM_EVENTS, preventDefault } from '../../utils/event';
 import DataTransfer from './drag-and-drop/data-transfer';
 import DragDataStore from './drag-and-drop/drag-data-store';
-/*eslint-disable no-unused-vars*/
 import EventSimulator from './simulator';
 import ElementEditingWatcher from './element-editing-watcher';
 import UnloadSandbox from './unload';
 import MessageSandbox from './message';
 import ShadowUI from '../shadow-ui';
 import TimersSandbox from '../timers';
-/*eslint-enable no-unused-vars*/
 
 export default class EventSandbox extends SandboxBase {
     EVENT_PREVENTED_EVENT: string = 'hammerhead|event|event-prevented';
@@ -41,12 +39,12 @@ export default class EventSandbox extends SandboxBase {
     _cancelInternalEvents: Function | null;
 
     constructor (listeners: Listeners,
-                 eventSimulator: EventSimulator,
-                 elementEditingWatcher: ElementEditingWatcher,
-                 unloadSandbox: UnloadSandbox,
-                 messageSandbox: MessageSandbox,
-                 private readonly _shadowUI: ShadowUI,
-                 timerSandbox: TimersSandbox) {
+        eventSimulator: EventSimulator,
+        elementEditingWatcher: ElementEditingWatcher,
+        unloadSandbox: UnloadSandbox,
+        messageSandbox: MessageSandbox,
+        private readonly _shadowUI: ShadowUI,
+        timerSandbox: TimersSandbox) {
         super();
 
         this.listeners             = listeners;

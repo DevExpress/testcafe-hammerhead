@@ -6,10 +6,8 @@ import { isIE, isFirefox, isChrome, isMacPlatform, isSafari, version as browserV
 import { stopPropagation, preventDefault } from '../../utils/event';
 import { get as getSandboxBackup } from '../backup';
 import nativeMethods from '../native-methods';
-/*eslint-disable no-unused-vars*/
 import Listeners from '../event/listeners';
 import EventSimulator from '../event/simulator';
-/*eslint-enable no-unused-vars*/
 
 export default class UploadSandbox extends SandboxBase {
     START_FILE_UPLOADING_EVENT: string = 'hammerhead|event|start-file-uploading';
@@ -17,8 +15,8 @@ export default class UploadSandbox extends SandboxBase {
 
     infoManager: UploadInfoManager;
 
-    constructor (private readonly _listeners: Listeners, //eslint-disable-line no-unused-vars
-                 private readonly _eventSimulator: EventSimulator) { //eslint-disable-line no-unused-vars
+    constructor (private readonly _listeners: Listeners,
+        private readonly _eventSimulator: EventSimulator) {
         super();
 
         this.infoManager = new UploadInfoManager();
@@ -103,7 +101,7 @@ export default class UploadSandbox extends SandboxBase {
     }
 
     // GH-1844, GH-2007
-    static _shouldRaiseChangeEvent (filesToUpload, currentUploadInfo) : boolean {
+    static _shouldRaiseChangeEvent (filesToUpload, currentUploadInfo): boolean {
         if (!currentUploadInfo)
             return true;
 

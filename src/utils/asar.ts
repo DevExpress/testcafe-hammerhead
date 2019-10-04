@@ -13,12 +13,12 @@ interface ParsedPath {
     fileName: string;
 }
 
-const ASAR_EXTNAME: string = '.asar';
+const ASAR_EXTNAME = '.asar';
 
 export default class Asar {
     private _archivePaths: Set<string> = new Set<string>();
 
-    private static async _isAsarArchive (archivePath: string) : Promise<boolean> {
+    private static async _isAsarArchive (archivePath: string): Promise<boolean> {
         try {
             const stats = await stat(archivePath);
 
@@ -29,7 +29,7 @@ export default class Asar {
         }
     }
 
-    private async _findArchivePath (fullPath: string) : Promise<string> {
+    private async _findArchivePath (fullPath: string): Promise<string> {
         let currentPath = fullPath;
         let currentDir  = path.dirname(currentPath);
 
@@ -44,7 +44,7 @@ export default class Asar {
         return '';
     }
 
-    parse (fullPath: string) : ParsedPath {
+    parse (fullPath: string): ParsedPath {
         for (const archivePath of this._archivePaths) {
             if (fullPath.startsWith(archivePath))
                 return { archive: archivePath, fileName: fullPath.substr(archivePath.length + 1) };
@@ -53,7 +53,7 @@ export default class Asar {
         return { archive: '', fileName: '' };
     }
 
-    async isAsar (fullPath: string) : Promise<boolean> {
+    async isAsar (fullPath: string): Promise<boolean> {
         for (const archivePath of this._archivePaths) {
             if (fullPath.startsWith(archivePath)) {
                 if (!await Asar._isAsarArchive(archivePath)) {
@@ -77,17 +77,17 @@ export default class Asar {
         return false;
     }
 
-    extractFileToReadStream (archive: string, fileName: string) : Readable {
+    extractFileToReadStream (archive: string, fileName: string): Readable {
         const extractedFile = asar.extractFile(archive, fileName);
 
         return toReadableStream(extractedFile);
     }
 
-    getFileInAsarNotFoundErrorMessage (archive: string, fileName: string) : string {
+    getFileInAsarNotFoundErrorMessage (archive: string, fileName: string): string {
         return `Cannot find the "${fileName.replace(/\\/g, '/')}" file in the "${archive.replace(/\\/g, '/')}" archive.`;
     }
 
-    getArchivePath (fullPath: string) : string {
+    getArchivePath (fullPath: string): string {
         return this.parse(fullPath).archive;
     }
 }
