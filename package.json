@@ -66,7 +66,6 @@
     "endpoint-utils": "^1.0.1",
     "eslint": "4.18.2",
     "eslint-plugin-hammerhead": "0.3.0",
-    "eslint-plugin-typescript": "^0.14.0",
     "express": "4.16.3",
     "express-ntlm": "2.1.5",
     "gulp": "^4.0.0",
@@ -92,7 +91,6 @@
     "request-promise-native": "^1.0.5",
     "tmp": "0.0.26",
     "typescript": "3.3.3",
-    "typescript-eslint-parser": "^21.0.2",
     "webmake": "0.3.42",
     "ws": "^5.2.0"
   },
