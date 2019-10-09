@@ -19,11 +19,11 @@ const MESSAGE_TYPE = {
 };
 
 export default class MessageSandbox extends SandboxBase {
-    PING_DELAY = 200;
-    PING_IFRAME_TIMEOUT = 7000;
-    PING_IFRAME_MIN_TIMEOUT = 100;
-    SERVICE_MSG_RECEIVED_EVENT: string = 'hammerhead|event|service-msg-received';
-    RECEIVE_MSG_FN: string = 'hammerhead|receive-msg-function';
+    readonly PING_DELAY = 200;
+    readonly PING_IFRAME_TIMEOUT = 7000;
+    readonly PING_IFRAME_MIN_TIMEOUT = 100;
+    readonly SERVICE_MSG_RECEIVED_EVENT = 'hammerhead|event|service-msg-received';
+    readonly RECEIVE_MSG_FN = 'hammerhead|receive-msg-function';
 
     pingCallback: any;
     pingCmd: any;
@@ -70,7 +70,7 @@ export default class MessageSandbox extends SandboxBase {
                 this.pingCmd      = null;
             }
             else
-                this.emit(this.SERVICE_MSG_RECEIVED_EVENT, { message: data.message, source: e.source });
+                this.emit(this.SERVICE_MSG_RECEIVED_EVENT, { message: data.message, source: e.source, ports: e.ports });
         }
     }
 
@@ -192,7 +192,7 @@ export default class MessageSandbox extends SandboxBase {
         return fastApply(contentWindow, 'postMessage', args);
     }
 
-    sendServiceMsg (msg, targetWindow: Window) {
+    sendServiceMsg (msg, targetWindow: Window, ports?: Transferable[]) {
         const message         = MessageSandbox._wrapMessage(MESSAGE_TYPE.service, msg);
         const canSendDirectly = !isCrossDomainWindows(targetWindow, this.window) && !!targetWindow[this.RECEIVE_MSG_FN];
 
@@ -208,7 +208,8 @@ export default class MessageSandbox extends SandboxBase {
                         targetWindow[this.RECEIVE_MSG_FN]({
                             // NOTE: Cloning a message to prevent this modification.
                             data:   parseJSON(stringifyJSON(message)),
-                            source: this.window
+                            source: this.window,
+                            ports
                         });
                     }
                     // eslint-disable-next-line no-empty
@@ -232,7 +233,7 @@ export default class MessageSandbox extends SandboxBase {
             return null;
         }
 
-        return targetWindow.postMessage(message, '*');
+        return targetWindow.postMessage(message, '*', ports);
     }
 
     pingIframe (targetIframe, pingMessageCommand, shortWaiting: boolean) {

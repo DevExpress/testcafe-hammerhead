@@ -444,6 +444,7 @@ export default class WindowSandbox extends SandboxBase {
                 const isCalledWithoutNewKeyword = constructorIsCalledWithoutNewKeyword(this, WorkerWrapper);
 
                 if (arguments.length === 0)
+                    // @ts-ignore
                     return isCalledWithoutNewKeyword ? nativeMethods.Worker() : new nativeMethods.Worker();
 
                 if (typeof scriptURL === 'string')
@@ -452,6 +453,7 @@ export default class WindowSandbox extends SandboxBase {
                 if (isCalledWithoutNewKeyword)
                     return nativeMethods.Worker.apply(this, arguments);
 
+                // @ts-ignore
                 return arguments.length === 1 ? new nativeMethods.Worker(scriptURL) : new nativeMethods.Worker(scriptURL, options);
             };
 

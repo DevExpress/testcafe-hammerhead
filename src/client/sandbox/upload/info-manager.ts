@@ -1,10 +1,12 @@
 import COMMAND from '../../../session/command';
 import FileListWrapper from './file-list-wrapper';
-import transport from '../../transport';
 import * as Browser from '../../utils/browser';
 import * as HiddenInfo from './hidden-info';
 // @ts-ignore
 import Promise from 'pinkie';
+import hammerhead from '../../index';
+// eslint-disable-next-line no-unused-vars
+import { GetUploadedFilesServiceMessage, StoreUploadedFilesServiceMessage } from '../../../typings/upload';
 
 // NOTE: https://html.spec.whatwg.org/multipage/forms.html#fakepath-srsly.
 const FAKE_PATH_STRING = 'C:\\fakepath\\';
@@ -54,10 +56,10 @@ export default class UploadInfoManager {
     }
 
     static loadFilesInfoFromServer (filePaths: string | string[]) {
-        return transport.asyncServiceMsg({
+        return hammerhead.transport.asyncServiceMsg({
             cmd:       COMMAND.getUploadedFiles,
             filePaths: typeof filePaths === 'string' ? [filePaths] : filePaths
-        });
+        } as GetUploadedFilesServiceMessage);
     }
 
     static prepareFileListWrapper (filesInfo) {
@@ -78,11 +80,11 @@ export default class UploadInfoManager {
     }
 
     static sendFilesInfoToServer (fileList, fileNames) {
-        return transport.asyncServiceMsg({
+        return hammerhead.transport.asyncServiceMsg({
             cmd:       COMMAND.uploadFiles,
             data:      UploadInfoManager._getFileListData(fileList),
             fileNames: fileNames
-        });
+        } as StoreUploadedFilesServiceMessage);
     }
 
     clearUploadInfo (input) {

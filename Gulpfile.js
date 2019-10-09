@@ -151,9 +151,10 @@ gulp.step('client-scripts-bundle', () => {
         .pipe(webmake({ sourceMap: false, transform }))
         .pipe(rename('hammerhead.js'));
 
-    const transportWorker = gulp.src('./src/client/transport-worker.js')
+    const transportWorker = gulp.src('./src/client/transport-worker/index.js')
         .pipe(webmake({ sourceMap: false, transform }))
-        .pipe(gulpIf(!util.env.dev, uglify()));
+        .pipe(gulpIf(!util.env.dev, uglify()))
+        .pipe(rename('transport-worker.js'));
 
     return mergeStreams(hammerhead, transportWorker)
         .pipe(gulp.dest('./lib/client'));
