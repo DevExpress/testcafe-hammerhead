@@ -18,7 +18,7 @@ const GET_MESSAGE_PORT = 'hammerhead|command|get-message-port';
 const SET_MESSAGE_PORT = 'hammerhead|command|set-message-port';
 
 export default class Transport extends TransportLegacy {
-    private _transportWorker: Worker | MessagePort | null;
+    private _transportWorker: Worker | MessagePort | null = null;
     private readonly _idGenerator = new IntegerIdGenerator();
     private readonly _messageCallbacks: Map<number, (err: string, data: any) => void> = new Map();
     private readonly _queue: ServiceMessageWrapper[] = [];

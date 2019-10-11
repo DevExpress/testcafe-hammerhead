@@ -20,14 +20,14 @@
 
     window.addEventListener('load', function () {
         setTimeout(function () {
-            messageSandbox.sendServiceMsg('', topWindow);
+            messageSandbox.sendServiceMsg({ cmd: 'qunit-test-gh-64' }, topWindow);
 
             iframe.parentNode.removeChild(iframe);
         }, 50);
     });
 
     window.addEventListener('unload', function() {
-        messageSandbox.sendServiceMsg('', topWindow);
+        messageSandbox.sendServiceMsg({ cmd: 'qunit-test-gh-64' }, topWindow);
     });
 </script>
 <div></div>

@@ -13,8 +13,8 @@
         hammerhead.start({ crossDomainProxyPort: 2000 });
 
         var iframeSandbox         = hammerhead.sandbox.iframe;
-        var initIframeTestHandler = function (e) {
-            e.iframe.contentWindow[INTERNAL_PROPS.processDomMethodName] = function () { }
+        var initIframeTestHandler = function (iframe) {
+            iframe.contentWindow[INTERNAL_PROPS.processDomMethodName] = function () { }
         };
 
         iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);

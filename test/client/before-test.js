@@ -31,7 +31,7 @@
         '    referer : {{{referer}}},',
         '    cookie: {{{cookie}}},',
         '    serviceMsgUrl : "{{{serviceMsgUrl}}}",',
-        '    transportWorkerUrl: "{{{transportWorkerUrl}}}"',
+        '    transportWorkerUrl: "{{{transportWorkerUrl}}}",',
         '    sessionId : "sessionId",',
         '    forceProxySrcForImage: ' + 'false,',
         '    iframeTaskScriptTemplate: {{{iframeTaskScriptTemplate}}}',
@@ -51,7 +51,7 @@
         var referer            = 'http://localhost/sessionId/https://example.com';
         var location           = 'http://localhost/sessionId/https://example.com';
         var serviceMsgUrl      = '/service-msg/100';
-        var transportWorkerUrl = '/transport-worker';
+        var transportWorkerUrl = '/transport-worker.js';
         var cookie             = cookieSandbox.getCookie();
         var iframeTaskScript   = JSON.stringify(window.getIframeTaskScript(referer, serviceMsgUrl, location, cookie, transportWorkerUrl));
 
@@ -75,7 +75,9 @@
         sessionId:             'sessionId',
         cookie:                '',
         crossDomainProxyPort:  2001,
-        forceProxySrcForImage: false
+        forceProxySrcForImage: false,
+        transportWorkerUrl:    '/transport-worker.js',
+        serviceMsgUrl:         '/service-msg'
     });
 
     window.processDomMeth = window[INTERNAL_PROPS.processDomMethodName];
