@@ -10,14 +10,12 @@ import * as domUtils from '../../utils/dom';
 import { getNativeQuerySelectorAll } from '../../utils/query-selector';
 import nativeMethods from '../native-methods';
 import { URL_ATTRS } from '../../../processing/dom/attributes';
-/*eslint-disable no-unused-vars*/
 import NodeMutation from './mutation';
 import IframeSandbox from '../iframe';
 import EventSandbox from '../event';
 import UploadSandbox from '../upload';
 import ShadowUI from '../shadow-ui';
 import CookieSandbox from '../cookie';
-/*eslint-enable no-unused-vars*/
 
 const ATTRIBUTE_SELECTOR_REG_EX          = /\[([\w-]+)(\^?=.+?)]/g;
 const ATTRIBUTE_OPERATOR_WITH_HASH_VALUE = /^\W+\s*#/;
@@ -28,12 +26,13 @@ export default class NodeSandbox extends SandboxBase {
     win: WindowSandbox;
     element: ElementSandbox;
 
-    constructor (readonly mutation: NodeMutation, //eslint-disable-line no-unused-vars
-                 readonly iframeSandbox: IframeSandbox, //eslint-disable-line no-unused-vars
-                 private readonly _eventSandbox: EventSandbox, //eslint-disable-line no-unused-vars
-                 private readonly _uploadSandbox: UploadSandbox, //eslint-disable-line no-unused-vars
-                 readonly shadowUI: ShadowUI, //eslint-disable-line no-unused-vars
-                 private readonly _cookieSandbox: CookieSandbox) { //eslint-disable-line no-unused-vars
+    constructor (readonly mutation: NodeMutation,
+        readonly iframeSandbox: IframeSandbox,
+        private readonly _eventSandbox: EventSandbox,
+        private readonly _uploadSandbox: UploadSandbox,
+        readonly shadowUI: ShadowUI,
+        private readonly _cookieSandbox: CookieSandbox) {
+
         super();
 
         this.raiseBodyCreatedEvent = this._onBodyCreated;

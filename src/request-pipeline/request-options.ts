@@ -1,8 +1,6 @@
-/*eslint-disable no-unused-vars*/
 import RequestPipelineContext from './context';
 import { Credentials, ExternalProxySettings } from '../typings/session';
 import { IncomingHttpHeaders } from 'http';
-/*eslint-enable no-unused-vars*/
 import * as headerTransforms from './header-transforms';
 import { inject as injectUpload } from '../upload';
 import matchUrl from 'match-url-wildcard';

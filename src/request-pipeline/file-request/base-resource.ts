@@ -12,9 +12,9 @@ export default abstract class BaseResource {
 
     abstract async init (): Promise<void>
 
-    protected abstract _createContentStream () : void;
+    protected abstract _createContentStream (): void;
 
-    protected async _checkAccess (path: string) : Promise<void> {
+    protected async _checkAccess (path: string): Promise<void> {
         try {
             await access(path, fs.constants.R_OK);
         }
@@ -23,7 +23,7 @@ export default abstract class BaseResource {
         }
     }
 
-    get error () : any {
+    get error (): any {
         return this._error;
     }
 

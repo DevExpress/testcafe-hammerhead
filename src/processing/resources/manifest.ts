@@ -1,8 +1,6 @@
 import ResourceProcessorBase from './resource-processor-base';
-/*eslint-disable no-unused-vars*/
 import RequestPipelineContext from '../../request-pipeline/context';
 import Charset from '../encoding/charset';
-/*eslint-enable no-unused-vars*/
 
 class ManifestProcessor extends ResourceProcessorBase {
     processResource (manifest: string, _ctx: RequestPipelineContext, _charset: Charset, urlReplacer: Function): string {

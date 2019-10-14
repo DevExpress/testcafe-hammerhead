@@ -1,8 +1,6 @@
-/*eslint-disable no-unused-vars*/
 import RequestPipelineContext from '../../request-pipeline/context';
 import RequestFilterRule from '../../request-pipeline/request-hooks/request-filter-rule';
 import ConfigureResponseEventOptions from './configure-response-event-options';
-/*eslint-enable no-unused-vars*/
 
 export default class ConfigureResponseEvent {
     private readonly _requestContext: RequestPipelineContext;

@@ -2,9 +2,7 @@
 // WARNING: this file is used by both the client and the server.
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
-/*eslint-disable no-unused-vars*/
 import { ASTNode } from 'parse5';
-/*eslint-enable no-unused-vars*/
 
 export default abstract class BaseDomAdapter {
     EVENTS: string[] = ['onblur', 'onchange', 'onclick', 'oncontextmenu', 'oncopy', 'oncut',
@@ -19,12 +17,12 @@ export default abstract class BaseDomAdapter {
     ];
 
     abstract removeAttr (el: HTMLElement | ASTNode, attr: string): void;
-    abstract getAttr (el:HTMLElement | ASTNode, attr:string) : string;
-    abstract hasAttr (el:HTMLElement | ASTNode, attr: string) : boolean;
-    abstract isSVGElement (el:HTMLElement | ASTNode): boolean;
+    abstract getAttr (el: HTMLElement | ASTNode, attr: string): string;
+    abstract hasAttr (el: HTMLElement | ASTNode, attr: string): boolean;
+    abstract isSVGElement (el: HTMLElement | ASTNode): boolean;
     abstract hasEventHandler (el: HTMLElement | ASTNode): boolean;
-    abstract getTagName (el:HTMLElement | ASTNode): string;
-    abstract setAttr (el: HTMLElement | ASTNode, attr: string, value: string) : void;
+    abstract getTagName (el: HTMLElement | ASTNode): string;
+    abstract setAttr (el: HTMLElement | ASTNode, attr: string, value: string): void;
     abstract setScriptContent (el: HTMLElement | ASTNode, content: string): void;
     abstract getScriptContent (el: HTMLElement | ASTNode): string;
     abstract getStyleContent (el: HTMLElement | ASTNode): string;
@@ -32,7 +30,7 @@ export default abstract class BaseDomAdapter {
     abstract needToProcessContent (el: HTMLElement | ASTNode): boolean;
     abstract needToProcessUrl (tagName: string, target: string): boolean;
     abstract attachEventEmitter (domProcessor: any): void;
-    abstract hasIframeParent (el: HTMLElement | ASTNode) : boolean;
+    abstract hasIframeParent (el: HTMLElement | ASTNode): boolean;
     abstract getCrossDomainPort (): string;
     abstract getProxyUrl (resourceUrl: string, opts: object): string;
     abstract isTopParentIframe (el: HTMLElement | ASTNode): boolean;

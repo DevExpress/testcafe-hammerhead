@@ -1056,7 +1056,7 @@ test('hammerhead should use the native classList getter in addClass, removeClass
     var storedСlassListDescriptor     = Object.getOwnPropertyDescriptor(window[elementClassListPropOwnerName].prototype, 'classList');
 
     Object.defineProperty(window[elementClassListPropOwnerName].prototype, 'classList', {
-        get: function () {
+        get: function () { /* eslint-disable-line getter-return */
             ok(false);
         },
 

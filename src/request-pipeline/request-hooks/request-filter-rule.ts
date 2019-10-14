@@ -1,8 +1,6 @@
 import { isRegExp, isString } from 'lodash';
 import { ensureOriginTrailingSlash } from '../../utils/url';
-/*eslint-disable no-unused-vars*/
 import { RequestInfo } from '../../session/events/info';
-/*eslint-enable no-unused-vars*/
 
 const DEFAULT_OPTIONS = {
     url:    void 0,

@@ -8,10 +8,8 @@ import nativeMethods from '../../sandbox/native-methods';
 import { processHtml } from '../../utils/html';
 import { getProxyUrl, stringifyResourceType } from '../../utils/url';
 import urlResolver from '../../utils/url-resolver';
-/*eslint-disable no-unused-vars*/
 import EventSandbox from '../event';
 import MessageSandbox from '../event/message';
-/*eslint-enable no-unused-vars*/
 
 export default class CodeInstrumentation extends SandboxBase {
     _methodCallInstrumentation: MethodCallInstrumentation;

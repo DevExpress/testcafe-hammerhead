@@ -1,5 +1,5 @@
 {
-  "parser": "typescript-eslint-parser",
+  "extends": "eslint:recommended",
   "rules": {
     "no-alert": 2,
     "no-array-constructor": 2,
@@ -68,6 +68,12 @@
     "dot-notation": 0,
     "no-else-return": 2,
     "one-var": [2, "never"],
+    "no-multi-spaces": [2, {
+      "exceptions": {
+        "VariableDeclarator": true,
+        "AssignmentExpression": true
+      }
+    }],
     "radix": 2,
     "no-extra-parens": 2,
     "new-cap": [2, { "capIsNew": false }],

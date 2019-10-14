@@ -25,11 +25,9 @@ import settings from '../../settings';
 import { overrideDescriptor } from '../../utils/property-overriding';
 import InsertPosition from '../../utils/insert-position';
 import { isFirefox } from '../../utils/browser';
-/*eslint-disable no-unused-vars*/
 import UploadSandbox from '../upload';
 import IframeSandbox from '../iframe';
 import EventSandbox from '../event';
-/*eslint-enable no-unused-vars*/
 
 const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
@@ -41,11 +39,11 @@ export default class ElementSandbox extends SandboxBase {
     BEFORE_FORM_SUBMIT_EVENT: string = 'hammerhead|event|before-form-submit';
     SCRIPT_ELEMENT_ADDED_EVENT: string = 'hammerhead|event|script-added';
 
-    constructor (private readonly _nodeSandbox: NodeSandbox, //eslint-disable-line no-unused-vars
-                 private readonly _uploadSandbox: UploadSandbox, //eslint-disable-line no-unused-vars
-                 private readonly _iframeSandbox: IframeSandbox, //eslint-disable-line no-unused-vars
-                 private readonly _shadowUI: ShadowUI, //eslint-disable-line no-unused-vars
-                 private readonly _eventSandbox: EventSandbox) { //eslint-disable-line no-unused-vars
+    constructor (private readonly _nodeSandbox: NodeSandbox,
+        private readonly _uploadSandbox: UploadSandbox,
+        private readonly _iframeSandbox: IframeSandbox,
+        private readonly _shadowUI: ShadowUI,
+        private readonly _eventSandbox: EventSandbox) {
         super();
 
         this.overriddenMethods = null;

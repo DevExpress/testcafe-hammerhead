@@ -6,13 +6,13 @@ import { format } from 'util';
 import { readFile, stat, readDir, makeDir, writeFile, fsObjectExists } from '../utils/promisified-functions';
 
 interface CopiedFileInfo {
-    path: string,
-    name: string
+    path: string;
+    name: string;
 }
 
 interface CopyingError {
-    err: Error,
-    path: string
+    err: Error;
+    path: string;
 }
 
 export default class UploadStorage {
@@ -22,7 +22,7 @@ export default class UploadStorage {
         this.uploadRoots = castArray(uploadRoots);
     }
 
-    static async _getFilesToCopy (files: Array<CopiedFileInfo>): Promise<{ filesToCopy: Array<CopiedFileInfo>, errs: Array<CopyingError> }> {
+    static async _getFilesToCopy (files: Array<CopiedFileInfo>): Promise<{ filesToCopy: Array<CopiedFileInfo>; errs: Array<CopyingError> }> {
         const filesToCopy: Array<CopiedFileInfo> = [];
         const errs: Array<CopyingError>          = [];
 
@@ -148,7 +148,7 @@ export default class UploadStorage {
         return result;
     }
 
-    static async copy (uploadsRoot: string, files: Array<CopiedFileInfo>): Promise<{ copiedFiles: Array<string>, errs: Array<CopyingError> }> {
+    static async copy (uploadsRoot: string, files: Array<CopiedFileInfo>): Promise<{ copiedFiles: Array<string>; errs: Array<CopyingError> }> {
         const { filesToCopy, errs }      = await UploadStorage._getFilesToCopy(files);
         const copiedFiles: Array<string> = [];
 

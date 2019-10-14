@@ -1,8 +1,6 @@
 import { getTopSameDomainWindow, getFrameElement } from '../utils/dom';
 import nativeMethods from './native-methods';
-/*eslint-disable no-unused-vars*/
 import Sandbox from './index';
-/*eslint-enable no-unused-vars*/
 
 const SANDBOX_BACKUP = 'hammerhead|sandbox-backup';
 

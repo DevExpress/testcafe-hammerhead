@@ -9,11 +9,9 @@ import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import * as JSON from 'json-hammerhead';
 import { createOverriddenDescriptor } from '../../utils/property-overriding';
 import hammerhead from '../../index';
-/*eslint-disable no-unused-vars*/
 import Listeners from '../event/listeners';
 import UnloadSandbox from '../event/unload';
 import EventSimulator from '../event/simulator';
-/*eslint-enable no-unused-vars*/
 
 export default class StorageSandbox extends SandboxBase {
     localStorageWrapper: StorageWrapper;
@@ -23,9 +21,9 @@ export default class StorageSandbox extends SandboxBase {
     onLocalStorageChangeListener: any;
     onSessionStorageListener: any;
 
-    constructor (private readonly _listeners: Listeners, //eslint-disable-line no-unused-vars
-                 private readonly _unloadSandbox: UnloadSandbox, //eslint-disable-line no-unused-vars
-                 private readonly _eventSimulator: EventSimulator) { //eslint-disable-line no-unused-vars
+    constructor (private readonly _listeners: Listeners,
+        private readonly _unloadSandbox: UnloadSandbox,
+        private readonly _eventSimulator: EventSimulator) {
         super();
 
         this.localStorageWrapper   = null;

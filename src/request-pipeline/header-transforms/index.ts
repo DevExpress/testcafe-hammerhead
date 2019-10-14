@@ -1,8 +1,5 @@
-/*eslint-disable no-unused-vars*/
 import { IncomingHttpHeaders, OutgoingHttpHeaders } from 'http';
 import RequestPipelineContext from '../context';
-/*eslint-enable no-unused-vars*/
-
 import {
     requestTransforms,
     forcedRequestTransforms,

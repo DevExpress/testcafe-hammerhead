@@ -1,4 +1,3 @@
-/*eslint-disable no-unused-vars*/
 import net from 'net';
 import http from 'http';
 import Session from '../session';
@@ -12,7 +11,6 @@ import IncomingMessageMock from './incoming-message-mock';
 import RequestOptions from './request-options';
 import { ParsedProxyUrl } from '../typings/url';
 import { OnResponseEventData } from '../typings/context';
-/*eslint-enable no-unused-vars*/
 import XHR_HEADERS from './xhr/headers';
 import Charset from '../processing/encoding/charset';
 import * as urlUtils from '../utils/url';
@@ -107,7 +105,7 @@ export default class RequestPipelineContext {
     }
 
     // TODO: Rewrite parseProxyUrl instead.
-    private static _flattenParsedProxyUrl (parsed: ParsedProxyUrl): { dest: DestInfo, sessionId: string } {
+    private static _flattenParsedProxyUrl (parsed: ParsedProxyUrl): { dest: DestInfo; sessionId: string } {
         if (!parsed)
             return null;
 
@@ -303,7 +301,7 @@ export default class RequestPipelineContext {
         this.nonProcessedDestResBody = value;
     }
 
-    closeWithError (statusCode: number, resBody: String | Buffer = '') {
+    closeWithError (statusCode: number, resBody: string | Buffer = '') {
         if ('setHeader' in this.res && !this.res.headersSent) {
             this.res.statusCode = statusCode;
             this.res.setHeader('content-type', 'text/html');

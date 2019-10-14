@@ -2,10 +2,8 @@
 // WARNING: this file is used by both the client and the server.
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
-/*eslint-disable no-unused-vars*/
 import { Program, Node } from 'estree';
 import transform, { CodeChange, beforeTransform, afterTransform } from './transform';
-/*eslint-enable no-unused-vars*/
 import INSTRUCTION from './instruction';
 import { add as addHeader, remove as removeHeader } from './header';
 import { parse } from 'acorn-hammerhead';
@@ -45,7 +43,7 @@ function removeHtmlComments (code: string): string {
     return code;
 }
 
-function preprocess (code: string): { bom: string | null, preprocessed: string } {
+function preprocess (code: string): { bom: string | null; preprocessed: string } {
     const bom        = getBOM(code);
     let preprocessed = bom ? code.substring(bom.length) : code;
 
@@ -102,7 +100,7 @@ function getCode (ast: Node, src: string): string {
 
 
 // Analyze code
-function analyze (code: string): { ast: Program | null, isObject: boolean } {
+function analyze (code: string): { ast: Program | null; isObject: boolean } {
     let isObject = OBJECT_RE.test(code);
     let ast      = getAst(code, isObject);
 

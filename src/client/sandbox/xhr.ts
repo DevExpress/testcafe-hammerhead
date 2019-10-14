@@ -6,9 +6,7 @@ import AUTHORIZATION from '../../request-pipeline/xhr/authorization';
 import { getOriginHeader } from '../utils/destination-location';
 import { overrideDescriptor } from '../utils/property-overriding';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
-/*eslint-disable no-unused-vars*/
 import CookieSandbox from './cookie';
-/*eslint-enable no-unused-vars*/
 
 const XHR_READY_STATES = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
 

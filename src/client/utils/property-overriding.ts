@@ -10,7 +10,7 @@ function replaceNativeAccessor (descriptor, accessorName: string, newAccessor) {
     descriptor[accessorName] = newAccessor;
 }
 
-export function createOverriddenDescriptor (obj: any, prop: string, { getter, setter, value }: { getter?: any, setter?: any, value?: any }) {
+export function createOverriddenDescriptor (obj: any, prop: string, { getter, setter, value }: { getter?: any; setter?: any; value?: any }) {
     const descriptor = nativeMethods.objectGetOwnPropertyDescriptor(obj, prop);
 
     if ((getter || setter) && value)

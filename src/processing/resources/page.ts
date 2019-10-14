@@ -8,11 +8,9 @@ import getBOM from '../../utils/get-bom';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import getStorageKey from '../../utils/get-storage-key';
 import createSelfRemovingScript from '../../utils/create-self-removing-script';
-/*eslint-disable no-unused-vars*/
 import RequestPipelineContext from '../../request-pipeline/context';
 import Charset from '../encoding/charset';
 import BaseDomAdapter from '../dom/base-dom-adapter';
-/*eslint-enable no-unused-vars*/
 
 const BODY_CREATED_EVENT_SCRIPT: string = createSelfRemovingScript(`
     if (window["${ INTERNAL_PROPS.hammerhead }"])
@@ -20,7 +18,7 @@ const BODY_CREATED_EVENT_SCRIPT: string = createSelfRemovingScript(`
 `);
 
 class PageProcessor extends ResourceProcessorBase {
-    RESTART_PROCESSING: Symbol;
+    RESTART_PROCESSING: symbol;
     PARSED_BODY_CREATED_EVENT_SCRIPT: parse5.ASTNode;
 
     constructor () {
@@ -139,7 +137,7 @@ class PageProcessor extends ResourceProcessorBase {
                !ctx.contentInfo.isFileDownload;
     }
 
-    processResource (html: string, _ctx: RequestPipelineContext, _charset: Charset, urlReplacer: Function): string | Symbol {
+    processResource (html: string, _ctx: RequestPipelineContext, _charset: Charset, urlReplacer: Function): string | symbol {
         const processingOpts = PageProcessor._getPageProcessingOptions(_ctx, urlReplacer);
         const bom            = getBOM(html);
 

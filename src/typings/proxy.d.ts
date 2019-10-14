@@ -1,9 +1,9 @@
 export interface ServerInfo {
-    hostname: string,
-    port: string,
-    crossDomainPort: string,
-    protocol: string,
-    domain: string
+    hostname: string;
+    port: string;
+    crossDomainPort: string;
+    protocol: string;
+    domain: string;
 }
 
 export interface ServiceMessage {
@@ -12,8 +12,8 @@ export interface ServiceMessage {
 }
 
 export interface StaticContent {
-    content: string | Buffer,
-    contentType: string,
-    etag?: string,
-    isShadowUIStylesheet?: boolean
+    content: string | Buffer;
+    contentType: string;
+    etag?: string;
+    isShadowUIStylesheet?: boolean;
 }

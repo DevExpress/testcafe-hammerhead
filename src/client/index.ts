@@ -29,9 +29,7 @@ import extend from './utils/extend';
 import INTERNAL_PROPS from '../processing/dom/internal-properties';
 import PageNavigationWatch from './page-navigation-watch';
 import domProcessor from './dom-processor';
-/*eslint-disable no-unused-vars*/
-import { IHammerheadInitSettings } from '../typings/client';
-/*eslint-enable no-unused-vars*/
+import { HammerheadInitSettings } from '../typings/client';
 
 class Hammerhead {
     win: Window;
@@ -216,7 +214,7 @@ class Hammerhead {
         }
     }
 
-    start (initSettings: IHammerheadInitSettings | null, win: Window): void {
+    start (initSettings: HammerheadInitSettings | null, win: Window): void {
         this.win = win || window;
 
         if (initSettings) {

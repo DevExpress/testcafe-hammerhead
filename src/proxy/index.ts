@@ -1,10 +1,8 @@
-/*eslint-disable no-unused-vars*/
 import net from 'net';
 import Session from '../session';
 import { ExternalProxySettingsRaw } from '../typings/session';
 import Router from './router';
 import { StaticContent, ServiceMessage, ServerInfo } from '../typings/proxy';
-/*eslint-enable no-unused-vars*/
 import http from 'http';
 import https from 'https';
 import * as urlUtils from '../utils/url';

@@ -1,9 +1,7 @@
-/*eslint-disable no-unused-vars*/
 import net from 'net';
 import http from 'http';
 import { respondStatic } from '../utils/http';
 import { StaticContent, ServerInfo } from '../typings/proxy';
-/*eslint-enable no-unused-vars*/
 // @ts-ignore
 import md5 from 'crypto-md5';
 import { getPathname } from '../utils/url';
@@ -12,14 +10,14 @@ import { isEqual } from 'lodash';
 const PARAM_RE: RegExp = /^{(\S+)}$/;
 
 interface Route {
-    handler: StaticContent | Function,
-    isStatic: boolean
+    handler: StaticContent | Function;
+    isStatic: boolean;
 }
 
 interface RouteWithParams {
-    handler: Function,
-    paramNames: Array<string>,
-    re: RegExp
+    handler: Function;
+    paramNames: Array<string>;
+    re: RegExp;
 }
 
 function buildRouteParamsMap (routeMatch, paramNames) {
@@ -124,7 +122,7 @@ export default abstract class Router {
         return false;
     }
 
-    abstract _processStaticContent (handler: StaticContent) : void;
+    abstract _processStaticContent (handler: StaticContent): void;
 
     // API
     GET (route: string, handler: StaticContent | Function) {

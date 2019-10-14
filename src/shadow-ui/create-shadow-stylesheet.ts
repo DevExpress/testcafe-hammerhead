@@ -1,6 +1,4 @@
-/*eslint-disable no-unused-vars*/
 import { default as css, Rule, Comment, AtRule, Document, Host, Media, Supports } from 'css';
-/*eslint-enable no-unused-vars*/
 import SHADOW_UI_CLASS_NAME from './class-name';
 
 const ID_OR_CLASS_RE: RegExp          = /#[a-zA-Z0-9_-]+|\.-?[a-zA-Z0-9_][a-zA-Z0-9_-]*/g;

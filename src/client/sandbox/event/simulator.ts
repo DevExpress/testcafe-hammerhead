@@ -487,7 +487,7 @@ export default class EventSimulator {
         return null;
     }
 
-    _getPointerEventTypeInfo (type: string) : { eventType: string, pointerType: string } {
+    _getPointerEventTypeInfo (type: string): { eventType: string; pointerType: string } {
         if (MOUSE_TO_POINTER_EVENT_TYPE_MAP[type]) {
             return {
                 eventType:   MOUSE_TO_POINTER_EVENT_TYPE_MAP[type],
@@ -604,7 +604,7 @@ export default class EventSimulator {
         return this._dispatchMouseEvent(el, args, userOptions);
     }
 
-    _dispatchMouseEvent (el, args, { dataTransfer, timeStamp }:any) {
+    _dispatchMouseEvent (el, args, { dataTransfer, timeStamp }: any) {
         const disabledParent = domUtils.findParent(el, true, node => node.disabled);
 
         if (disabledParent)

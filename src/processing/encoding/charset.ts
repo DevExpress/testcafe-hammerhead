@@ -9,7 +9,7 @@ const META_CHARSET_RE: RegExp = /charset ?= ?['"]?([^ ;"']*)['"]?/i;
 const DEFAULT_CHARSET: string = 'iso-8859-1';
 
 interface CharsetBOM {
-    charset: string,
+    charset: string;
     bom: Buffer;
 }
 
@@ -30,7 +30,6 @@ const CHARSET_BOM_LIST: Array<CharsetBOM> = [
     }
 ];
 
-/*eslint-disable no-unused-vars*/
 enum CharsetPriority {
     BOM = 3,
     CONTENT_TYPE = 2,
@@ -38,7 +37,6 @@ enum CharsetPriority {
     META = 1,
     DEFAULT = 0
 }
-/*eslint-enable no-unused-vars*/
 
 export default class Charset {
     charset: string = DEFAULT_CHARSET;

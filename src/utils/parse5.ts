@@ -1,7 +1,5 @@
 import { NAMESPACE_PREFIX_MAP } from '../processing/dom/namespaces';
-/*eslint-disable no-unused-vars*/
 import { ASTAttribute, ASTNode } from 'parse5';
-/*eslint-enable no-unused-vars*/
 
 const ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR: string = ':';
 

@@ -1,6 +1,4 @@
-/*eslint-disable no-unused-vars*/
 import { IncomingHttpHeaders } from 'http';
-/*eslint-enable no-unused-vars*/
 import { Readable } from 'stream';
 
 type InitOptions = {

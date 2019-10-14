@@ -1,11 +1,9 @@
-/*eslint-disable no-unused-vars*/
 import http from 'http';
 import { FileStream } from '../typings/session';
 import RequestPipelineContext from './context';
 import RequestFilterRule from './request-hooks/request-filter-rule';
 import { RequestInfo, ResponseInfo, PreparedResponseInfo } from '../session/events/info';
 import { OnResponseEventData } from '../typings/context';
-/*eslint-enable no-unused-vars*/
 import FileRequest from './file-request';
 import DestinationRequest from './destination-request';
 import promisifyStream from '../utils/promisify-stream';

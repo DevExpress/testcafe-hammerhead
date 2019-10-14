@@ -1,6 +1,4 @@
-/* eslint-disable no-unused-vars */
 import { ServiceMessage } from './proxy';
-/* eslint-enable no-unused-vars */
 
 export interface FileInfo {
     name: string;

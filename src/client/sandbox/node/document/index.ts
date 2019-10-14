@@ -11,16 +11,15 @@ import ShadowUI from './../../shadow-ui';
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import LocationAccessorsInstrumentation from '../../code-instrumentation/location';
 import { overrideDescriptor, createOverriddenDescriptor } from '../../../utils/property-overriding';
-/*eslint-disable no-unused-vars*/
 import NodeSandbox from '../index';
-/*eslint-enable no-unused-vars*/
 
 export default class DocumentSandbox extends SandboxBase {
     documentWriter: any;
 
-    constructor (private readonly _nodeSandbox: NodeSandbox, //eslint-disable-line no-unused-vars
-                 private readonly _shadowUI: ShadowUI, //eslint-disable-line no-unused-vars
-                 private readonly _cookieSandbox) { //eslint-disable-line no-unused-vars
+    constructor (private readonly _nodeSandbox: NodeSandbox,
+        private readonly _shadowUI: ShadowUI,
+        private readonly _cookieSandbox) {
+
         super();
 
         this.documentWriter = null;

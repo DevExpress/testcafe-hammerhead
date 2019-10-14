@@ -1,6 +1,4 @@
-/*eslint-disable no-unused-vars*/
 import { FileInputInfo } from '../typings/upload';
-/*eslint-enable no-unused-vars*/
 import INTERNAL_ATTRS from '../processing/dom/internal-attributes';
 import FormDataEntry from './form-data-entry';
 import * as bufferUtils from '../utils/buffer';

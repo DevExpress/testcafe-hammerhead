@@ -1,8 +1,6 @@
-/*eslint-disable no-unused-vars*/
 import net from 'net';
 import RequestPipelineContext from './context';
 import { OutgoingHttpHeaders, IncomingMessage } from 'http';
-/*eslint-enable no-unused-vars*/
 import * as headerTransforms from './header-transforms';
 
 function writeWebSocketHead (socket: net.Socket, destRes: IncomingMessage, headers: OutgoingHttpHeaders) {

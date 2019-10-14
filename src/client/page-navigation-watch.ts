@@ -7,12 +7,10 @@ import DomProcessor from '../processing/dom';
 import nextTick from './utils/next-tick';
 import nativeMethods from './sandbox/native-methods';
 import INTERNAL_PROPS from '../processing/dom/internal-properties';
-/*eslint-disable no-unused-vars*/
 import EventSandbox from './sandbox/event';
 import CodeInstrumentation from './sandbox/code-instrumentation';
 import ElementSandbox from './sandbox/node/element';
 import { ElementSandboxBeforeFormSubmitEvent } from '../typings/client';
-/*eslint-enable no-unused-vars*/
 
 export default class PageNavigationWatch extends EventEmiter {
     PAGE_NAVIGATION_TRIGGERED_EVENT: string = 'hammerhead|event|page-navigation-triggered';

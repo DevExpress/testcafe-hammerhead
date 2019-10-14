@@ -1,6 +1,4 @@
-/*eslint-disable no-unused-vars*/
 import MessageSandbox from '../event/message';
-/*eslint-enable no-unused-vars*/
 import CookieSandbox from './index';
 import Promise from 'pinkie';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
@@ -28,8 +26,8 @@ export default class WindowSync {
     private _messageIdGenerator: IntegerIdGenerator;
     private _resolversMap: Map<number, () => void>;
 
-    constructor (private readonly _cookieSandbox: CookieSandbox,   // eslint-disable-line
-                 private readonly _messageSandbox: MessageSandbox) { // eslint-disable-line
+    constructor (private readonly _cookieSandbox: CookieSandbox,
+        private readonly _messageSandbox: MessageSandbox) {
     }
 
     private static _getCookieSandbox (win: Window): CookieSandbox {
@@ -44,7 +42,7 @@ export default class WindowSync {
         }
     }
 
-    private _onMsgReceived ({ message, source }: { message: SyncCookieMsg, source: Window }) {
+    private _onMsgReceived ({ message, source }: { message: SyncCookieMsg; source: Window }) {
         if (message.cmd === SYNC_COOKIE_START_CMD) {
             this._cookieSandbox.syncWindowCookie(message.cookies);
 

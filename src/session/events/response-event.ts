@@ -1,7 +1,5 @@
-/*eslint-disable no-unused-vars*/
 import RequestFilterRule from '../../request-pipeline/request-hooks/request-filter-rule';
 import { PreparedResponseInfo } from './info';
-/*eslint-enable no-unused-vars*/
 
 export default class ResponseEvent {
     readonly _requestFilterRule: RequestFilterRule;

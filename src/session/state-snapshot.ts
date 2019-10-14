@@ -1,6 +1,4 @@
-/*eslint-disable no-unused-vars*/
 import { StoragesSnapshot } from '../typings/session';
-/*eslint-enable*/
 
 export default class StateSnapshot {
     cookies: string | null;

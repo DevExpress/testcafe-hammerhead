@@ -21,9 +21,7 @@ import DomProcessor from '../../../../processing/dom/index';
 import DOMStringListWrapper from './ancestor-origins-wrapper';
 import IntegerIdGenerator from '../../../utils/integer-id-generator';
 import { createOverriddenDescriptor } from '../../../utils/property-overriding';
-/*eslint-disable no-unused-vars*/
 import MessageSandbox from '../../event/message';
-/*eslint-enable no-unused-vars*/
 
 const GET_ORIGIN_CMD      = 'hammerhead|command|get-origin';
 const ORIGIN_RECEIVED_CMD = 'hammerhead|command|origin-received';

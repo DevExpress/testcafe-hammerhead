@@ -1,9 +1,6 @@
-/* eslint-disable no-unused-vars*/
 import TimersSandbox from '../timers';
 import EventSimulator from './simulator';
 import EventSandbox from './index';
-/* eslint-enable no-unused-vars*/
-
 import FocusBlurSandbox from './focus-blur';
 import Listeners from './listeners';
 import nativeMethods from '../native-methods';

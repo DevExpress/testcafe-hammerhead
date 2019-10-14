@@ -9,9 +9,7 @@ import * as domUtils from '../utils/dom';
 import fastApply from '../utils/fast-apply';
 import DocumentWriter from '../sandbox/node/document/writer';
 import { findByName } from '../sandbox/windows-storage';
-/*eslint-disable no-unused-vars*/
 import DomProcessor from '../../processing/dom';
-/*eslint-enable no-unused-vars*/
 
 export default class ClientDomAdapter extends BaseDomAdapter {
     removeAttr (el: HTMLElement, attr: string) {

@@ -12,13 +12,11 @@ import { getNativeQuerySelectorAll } from '../utils/query-selector';
 import HTMLCollectionWrapper from './node/live-node-list/html-collection-wrapper';
 import { getElementsByNameReturnsHTMLCollection } from '../utils/feature-detection';
 import { isIE } from '../utils/browser';
-/*eslint-disable no-unused-vars*/
 import { DocumentCleanedEvent } from '../../typings/client';
 import NodeMutation from './node/mutation';
 import MessageSandbox from './event/message';
 import IframeSandbox from './iframe';
 import IEDebugSandbox from './ie-debug';
-/*eslint-enable no-unused-vars*/
 
 const IS_NON_STATIC_POSITION_RE = /fixed|relative|absolute/;
 const CLASSNAME_RE              = /\.((?:\\.|[-\w]|[^\x00-\xa0])+)/g;
@@ -48,10 +46,10 @@ export default class ShadowUI extends SandboxBase {
     serviceMsgReceivedEventCallback: Function;
     bodyCreatedEventCallback: Function;
 
-    constructor (private readonly _nodeMutation: NodeMutation, //eslint-disable-line no-unused-vars
-                 private readonly _messageSandbox: MessageSandbox, //eslint-disable-line no-unused-vars
-                 private readonly _iframeSandbox: IframeSandbox, //eslint-disable-line no-unused-vars
-                 private readonly _ieDebugSandbox: IEDebugSandbox) { //eslint-disable-line no-unused-vars
+    constructor (private readonly _nodeMutation: NodeMutation,
+        private readonly _messageSandbox: MessageSandbox,
+        private readonly _iframeSandbox: IframeSandbox,
+        private readonly _ieDebugSandbox: IEDebugSandbox) {
         super();
 
         this.root                    = null;
