@@ -49,18 +49,23 @@ export default class RequestOptions {
         this.rawHeaders  = ctx.req.rawHeaders;
         this.headers     = headers;
 
-        if (proxy && !matchUrl(ctx.dest.url, proxy.bypassRules)) {
-            this.proxy = proxy;
+        this._applyExternalProxySettings(proxy, ctx, headers);
+    }
 
-            if (ctx.dest.protocol === 'http:') {
-                this.path     = this.protocol + '//' + this.host + this.path;
-                this.host     = proxy.host;
-                this.hostname = proxy.hostname;
-                this.port     = proxy.port;
+    _applyExternalProxySettings (proxy, ctx: RequestPipelineContext, headers: IncomingHttpHeaders): void {
+        if (!proxy || matchUrl(ctx.dest.url, proxy.bypassRules))
+            return;
 
-                if (proxy.authHeader)
-                    headers['proxy-authorization'] = proxy.authHeader;
-            }
+        this.proxy = proxy;
+
+        if (ctx.dest.protocol === 'http:') {
+            this.path     = this.protocol + '//' + this.host + this.path;
+            this.host     = proxy.host;
+            this.hostname = proxy.hostname;
+            this.port     = proxy.port;
+
+            if (proxy.authHeader)
+                headers['proxy-authorization'] = proxy.authHeader;
         }
     }
 }

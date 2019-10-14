@@ -12,7 +12,8 @@ class Settings {
             referer:                  '',
             serviceMsgUrl:            '',
             iframeTaskScriptTemplate: '',
-            cookie:                   ''
+            cookie:                   '',
+            allowMultipleWindows:     false
         };
     }
 

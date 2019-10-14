@@ -13,6 +13,7 @@ export interface HammerheadInitSettings {
     serviceMsgUrl: string;
     iframeTaskScriptTemplate: string;
     cookie: string;
+    allowMultipleWindows: boolean;
 }
 
 export interface ElementSandboxBeforeFormSubmitEvent {
@@ -28,4 +29,3 @@ export interface DocumentCleanedEvent {
     window: Window;
     document: Document;
 }
-

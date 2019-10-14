@@ -47,6 +47,7 @@ export default class DomProcessor {
     AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER: string = AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
     private readonly elementProcessorPatterns: Array<ElementProcessingPattern>;
     forceProxySrcForImage: boolean = false;
+    allowMultipleWindows: boolean = false;
     // Refactor this, see BaseDomAdapter;
     EVENTS: string[];
 
@@ -523,6 +524,9 @@ export default class DomProcessor {
     }
 
     _processTargetBlank (el: HTMLElement, _urlReplacer, pattern: ElementProcessingPattern): void {
+        if (this.allowMultipleWindows)
+            return;
+
         const storedTargetAttr = DomProcessor.getStoredAttrName(pattern.targetAttr);
         const processed        = this.adapter.hasAttr(el, storedTargetAttr);
 

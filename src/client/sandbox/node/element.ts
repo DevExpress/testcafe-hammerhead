@@ -14,7 +14,7 @@ import { sameOriginCheck, get as getDestLocation } from '../../utils/destination
 import { isValidEventListener, stopPropagation } from '../../utils/event';
 import { processHtml, isInternalHtmlParserElement } from '../../utils/html';
 import { getNativeQuerySelector, getNativeQuerySelectorAll } from '../../utils/query-selector';
-import { HASH_RE } from '../../../utils/url';
+import { HASH_RE, SPECIAL_BLANK_PAGE } from '../../../utils/url';
 import trim from '../../../utils/string-trim';
 import * as windowsStorage from '../windows-storage';
 import { refreshAttributesWrapper } from './attributes';
@@ -25,6 +25,7 @@ import settings from '../../settings';
 import { overrideDescriptor } from '../../utils/property-overriding';
 import InsertPosition from '../../utils/insert-position';
 import { isFirefox } from '../../utils/browser';
+import getRandomInt32Value from '../../utils/get-random-int-32-value';
 import UploadSandbox from '../upload';
 import IframeSandbox from '../iframe';
 import EventSandbox from '../event';
@@ -782,7 +783,7 @@ export default class ElementSandbox extends SandboxBase {
         hiddenInfo.addInputInfo(el, infoManager.getFiles(el), infoManager.getValue(el));
     }
 
-    onIframeAddedToDOM (iframe: HTMLIFrameElement): void {
+    onIframeAddedToDOM (iframe: HTMLIFrameElement | HTMLFrameElement): void {
         if (!domUtils.isCrossDomainIframe(iframe, true))
             this._nodeSandbox.mutation.onIframeAddedToDOM(iframe);
     }
@@ -826,6 +827,7 @@ export default class ElementSandbox extends SandboxBase {
             window.HTMLElement.prototype.insertAdjacentHTML = this.overriddenMethods.insertAdjacentHTML;
 
         this._setValidBrowsingContextOnElementClick(window);
+        this._handleFormSubmitting(window);
 
         // NOTE: Cookie can be set up for the page by using the request initiated by img.
         // For example: img.src = '<url that responds with the Set-Cookie header>'
@@ -848,6 +850,9 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     private _ensureTargetContainsExistingBrowsingContext (el: HTMLElement): void {
+        if (settings.get().allowMultipleWindows)
+            return;
+
         if (!nativeMethods.hasAttribute.call(el, 'target'))
             return;
 
@@ -887,12 +892,50 @@ export default class ElementSandbox extends SandboxBase {
         }, false);
     }
 
+    private _shouldOpenInNewWindow (target: string): boolean {
+        target = target.toLowerCase();
+
+        return target === '_blank' || !windowsStorage.findByName(target);
+    }
+
     getCorrectedTarget (target = ''): string {
+        if (settings.get().allowMultipleWindows)
+            return target;
+
         if (target && !ElementSandbox._isKeywordTarget(target) && !windowsStorage.findByName(target) ||
             /_blank/i.test(target))
             return '_top';
 
         return target;
+    }
+
+    private _handleOpeningPageInNewWindow (el: HTMLLinkElement | HTMLAreaElement): void {
+        if (!settings.get().allowMultipleWindows)
+            return;
+
+        this._eventSandbox.listeners.initElementListening(el, ['click']);
+        this._eventSandbox.listeners.addInternalEventListener(el, ['click'], (_e, _dispatched, preventEvent, _cancelHandlers, stopEventPropagation) => {
+            if (!this._shouldOpenInNewWindow(el.target))
+                return;
+
+            // TODO: need to check that specified 'area' are clickable (initiated new page opening)
+            const url = nativeMethods.anchorHrefGetter.call(el);
+
+            this._openUrlInNewWindow(url);
+
+            preventEvent();
+            stopEventPropagation();
+        });
+    }
+
+    private _openUrlInNewWindow (url: string): string {
+        // NOTE: Temporary implementation of the window size
+        const windowParams = 'width=500px, height=500px';
+        const windowName   = getRandomInt32Value().toString();
+
+        nativeMethods.windowOpen.call(this.window, url, windowName, windowParams);
+
+        return windowName;
     }
 
     private _handleImageLoadEventRaising (el: HTMLImageElement): void {
@@ -911,7 +954,28 @@ export default class ElementSandbox extends SandboxBase {
         });
 
         if (!el[INTERNAL_PROPS.forceProxySrcForImage] && !settings.get().forceProxySrcForImage)
-            this._setProxiedSrcUrlOnError(el);
+            this._setProxiedSrcUrlOnError(el as HTMLImageElement);
+    }
+
+    private _handleFormSubmitting (window: Window): void {
+        if (!settings.get().allowMultipleWindows)
+            return;
+
+        this._eventSandbox.listeners.initElementListening(window, ['submit']);
+        this._eventSandbox.listeners.addInternalEventListener(window, ['submit'], e => {
+            if (!domUtils.isFormElement(e.target))
+                return;
+
+            const form = e.target;
+
+            if (!this._shouldOpenInNewWindow(form.target))
+                return;
+
+            const aboutBlankUrl = urlUtils.getProxyUrl(SPECIAL_BLANK_PAGE);
+            const windowName    = this._openUrlInNewWindow(aboutBlankUrl);
+
+            form.target = windowName;
+        });
     }
 
     private _processBaseTag (el: HTMLBaseElement): void {
@@ -936,6 +1000,9 @@ export default class ElementSandbox extends SandboxBase {
         const tagName = domUtils.getTagName(el);
 
         switch (tagName) {
+            case 'a':
+                this._handleOpeningPageInNewWindow(el as HTMLLinkElement);
+                break;
             case 'img':
                 this._handleImageLoadEventRaising(el as HTMLImageElement);
                 break;
@@ -945,6 +1012,9 @@ export default class ElementSandbox extends SandboxBase {
                 break;
             case 'base':
                 this._processBaseTag(el as HTMLBaseElement);
+                break;
+            case 'area':
+                this._handleOpeningPageInNewWindow(el as HTMLAreaElement);
                 break;
         }
 

@@ -350,7 +350,7 @@ export default class RequestPipelineContext {
         if (this.isHTMLPage && this.session.disablePageCaching)
             headerTransforms.setupPreventCachingHeaders(headers);
 
-        res.writeHead(this.destRes.statusCode, headers);
+        res.writeHead(this.destRes.statusCode as number, headers);
         res.addTrailers(this.destRes.trailers as http.OutgoingHttpHeaders);
     }
 

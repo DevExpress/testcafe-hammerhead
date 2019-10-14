@@ -260,6 +260,14 @@ gulp.step('http-playground-server', () => {
     return hang();
 });
 
+gulp.step('set-multi-browser-mode', done => {
+    process.env.allowMultipleWindows = true;
+
+    done();
+});
+
+gulp.task('multi-window-http-playground', gulp.series('build', 'set-multi-browser-mode', 'http-playground-server'));
+
 gulp.task('http-playground', gulp.series('build', 'http-playground-server'));
 
 gulp.step('https-playground-server', () => {

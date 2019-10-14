@@ -3,9 +3,9 @@ const NATIVE_CODE_RE = /\[native code]/;
 
 class NativeMethods {
     isStoragePropsLocatedInProto: boolean;
-    createDocumentFragment: any;
-    createElement: any;
-    createElementNS: any;
+    createDocumentFragment: Document['createDocumentFragment'];
+    createElement: Document['createElement'];
+    createElementNS: Document['createElementNS'];
     documentOpenPropOwnerName: string;
     documentClosePropOwnerName: string;
     documentWritePropOwnerName: string;
@@ -127,7 +127,7 @@ class NativeMethods {
     WindowTextEvent: any;
     WindowMouseEvent: any;
     canvasContextDrawImage: any;
-    formDataAppend: any;
+    formDataAppend: FormData['append'];
     date: any;
     dateNow: any;
     math: any;
@@ -313,6 +313,7 @@ class NativeMethods {
     Worker: any;
     ArrayBuffer: any;
     Uint8Array: any;
+    Uint32Array: Uint32Array['constructor'];
     DataView: any;
     Blob: any;
     XMLHttpRequest: any;
@@ -338,6 +339,8 @@ class NativeMethods {
     runInNewContext: any;
     runInThisContext: any;
     scrollTo: any;
+    crypto: Crypto;
+    cryptoGetRandomValues: Function;
 
     constructor (doc?: Document, win?: Window) {
         win = win || window;
@@ -599,9 +602,10 @@ class NativeMethods {
         this.WindowTextEvent           = win.TextEvent || winProto.TextEvent;
         this.WindowMouseEvent          = win.MouseEvent || winProto.MouseEvent;
 
-
         this.canvasContextDrawImage = win.CanvasRenderingContext2D.prototype.drawImage;
-        this.formDataAppend         = win.FormData.prototype.append;
+
+        // FormData
+        this.formDataAppend = win.FormData.prototype.append;
 
         // DateTime
         this.date    = win.Date;
@@ -942,6 +946,9 @@ class NativeMethods {
 
         this.scrollTo = win.scrollTo;
 
+        this.crypto                = win.crypto || win.msCrypto;
+        this.cryptoGetRandomValues = this.crypto.getRandomValues;
+
         this.refreshClasses(win);
     }
 
@@ -954,6 +961,7 @@ class NativeMethods {
         this.Worker           = win.Worker;
         this.ArrayBuffer      = win.ArrayBuffer;
         this.Uint8Array       = win.Uint8Array;
+        this.Uint32Array      = win.Uint32Array;
         this.DataView         = win.DataView;
         this.Blob             = win.Blob;
         this.XMLHttpRequest   = win.XMLHttpRequest;
