@@ -156,6 +156,15 @@ export default class RequestPipelineContext {
         this.isHTMLPage     = this.isPage && !this.isIframe && !this.isHtmlImport;
     }
 
+    private _getDestFromReferer (parsedReferer: { dest: DestInfo; sessionId: string }): { dest: DestInfo; sessionId: string } {
+        const dest = parsedReferer.dest;
+
+        dest.partAfterHost = this.req.url;
+        dest.url           = urlUtils.formatUrl(dest);
+
+        return { dest, sessionId: parsedReferer.sessionId };
+    }
+
     // API
     dispatch (openSessions: Map<string, Session>): boolean {
         const parsedReqUrl  = urlUtils.parseProxyUrl(this.req.url);
@@ -163,11 +172,12 @@ export default class RequestPipelineContext {
         const parsedReferer = referer && urlUtils.parseProxyUrl(referer);
 
         // TODO: Remove it after parseProxyURL is rewritten.
-        const flattenParsedReqUrl  = RequestPipelineContext._flattenParsedProxyUrl(parsedReqUrl);
+        let flattenParsedReqUrl    = RequestPipelineContext._flattenParsedProxyUrl(parsedReqUrl);
         const flattenParsedReferer = RequestPipelineContext._flattenParsedProxyUrl(parsedReferer);
 
-        if (!flattenParsedReqUrl)
-            return false;
+        // NOTE: Remove that after implementing the https://github.com/DevExpress/testcafe-hammerhead/issues/2155
+        if (!flattenParsedReqUrl && flattenParsedReferer)
+            flattenParsedReqUrl = this._getDestFromReferer(flattenParsedReferer);
 
         this.session = openSessions.get(flattenParsedReqUrl.sessionId);
 
