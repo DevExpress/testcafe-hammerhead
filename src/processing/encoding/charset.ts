@@ -13,7 +13,7 @@ interface CharsetBOM {
     bom: Buffer;
 }
 
-const CHARSET_BOM_LIST: Array<CharsetBOM> = [
+const CHARSET_BOM_LIST: CharsetBOM[] = [
     {
         charset: 'utf-8',
         bom:     Buffer.from([0xEF, 0xBB, 0xBF])

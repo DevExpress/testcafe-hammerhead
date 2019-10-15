@@ -122,7 +122,7 @@ export default class WindowSandbox extends SandboxBase {
         return stack;
     }
 
-    private static _isProcessableBlob (parts: Array<any>): boolean {
+    private static _isProcessableBlob (parts: any[]): boolean {
         let hasStringItem = false;
 
         for (const item of parts) {

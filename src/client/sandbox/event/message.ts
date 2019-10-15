@@ -34,7 +34,7 @@ export default class MessageSandbox extends SandboxBase {
     storedOnMessageHandler: any;
     isWindowUnloaded: boolean;
 
-    iframeInternalMsgQueue: Array<any>;
+    iframeInternalMsgQueue: any[];
 
     constructor (private readonly _listeners: Listeners,
         private readonly _unloadSandbox: UnloadSandbox) {

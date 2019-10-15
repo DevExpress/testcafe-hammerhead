@@ -2,7 +2,7 @@ import { IncomingHttpHeaders } from 'http';
 import { Readable } from 'stream';
 
 type InitOptions = {
-    headers: { [name: string]: string|Array<string> };
+    headers: { [name: string]: string|string[] };
     trailers: { [key: string]: string | undefined };
     statusCode: number;
     _body: object|string|Buffer|null;

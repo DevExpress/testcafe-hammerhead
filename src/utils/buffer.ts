@@ -25,7 +25,7 @@ export function createLineIterator (buffer: Buffer) {
     };
 }
 
-export function appendLine (lines: Array<any>, line: any) {
+export function appendLine (lines: any[], line: any) {
     if (lines.length)
         lines.push(CRLF);
 

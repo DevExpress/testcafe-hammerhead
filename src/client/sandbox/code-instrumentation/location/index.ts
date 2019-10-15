@@ -13,7 +13,7 @@ export default class LocationAccessorsInstrumentation extends SandboxBase {
 
     _locationChangedEventCallback: any;
 
-    constructor (private readonly _messageSandbox: MessageSandbox) { // eslint-disable-line
+    constructor (private readonly _messageSandbox: MessageSandbox) {
         super();
 
         this._locationChangedEventCallback = (e: string) => this.emit(this.LOCATION_CHANGED_EVENT, e);

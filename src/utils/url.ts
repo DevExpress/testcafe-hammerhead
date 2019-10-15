@@ -21,7 +21,7 @@ export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR: string = '!';
 export const TRAILING_SLASH_RE: RegExp                   = /\/$/;
 export const SPECIAL_BLANK_PAGE                          = 'about:blank';
 export const SPECIAL_ERROR_PAGE                          = 'about:error';
-export const SPECIAL_PAGES: Array<string>                = [SPECIAL_BLANK_PAGE, SPECIAL_ERROR_PAGE];
+export const SPECIAL_PAGES                               = [SPECIAL_BLANK_PAGE, SPECIAL_ERROR_PAGE];
 
 export const HTTP_DEFAULT_PORT: string  = '80';
 export const HTTPS_DEFAULT_PORT: string = '443';
@@ -131,7 +131,7 @@ export function getURLString (url: string): string {
 }
 
 export function getProxyUrl (url: string, opts: ProxyUrlOptions) {
-    const params: Array<string> = [opts.sessionId];
+    const params = [opts.sessionId];
 
     if (opts.resourceType)
         params.push(opts.resourceType);

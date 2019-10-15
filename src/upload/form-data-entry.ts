@@ -7,7 +7,7 @@ const HEADER_RE: RegExp     = /^(.+?):\s*(.*)$/;
 
 export default class FormDataEntry {
     private _headers: { [name: string]: string } = {};
-    body: Array<Buffer> = [];
+    body: Buffer[] = [];
     name: string = '';
     fileName: string = '';
 
@@ -48,7 +48,7 @@ export default class FormDataEntry {
     }
 
     toBuffer (): Buffer {
-        const chunks: Array<Buffer> = [];
+        const chunks: Buffer[] = [];
 
         for (const name of Object.keys(this._headers)) {
             const value = this._headers[name];

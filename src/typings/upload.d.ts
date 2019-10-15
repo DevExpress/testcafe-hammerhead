@@ -8,15 +8,15 @@ export interface FileInfo {
 
 export interface FileInputInfo {
     name: string;
-    files: Array<FileInfo>;
+    files: FileInfo[];
     value: string;
 }
 
 export interface GetUploadedFilesServiceMessage extends ServiceMessage {
-    filePaths: Array<string>;
+    filePaths: string[];
 }
 
 export interface StoreUploadedFilesServiceMessage extends ServiceMessage {
-    data: Array<string>;
-    fileNames: Array<string>;
+    data: string[];
+    fileNames: string[];
 }

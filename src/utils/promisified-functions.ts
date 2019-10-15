@@ -8,7 +8,7 @@ export const deflate: (buf: zlib.InputType, options?: zlib.ZlibOptions) => Promi
 export const gunzip: (buf: zlib.InputType, options?: zlib.ZlibOptions) => Promise<Buffer>     = promisify(zlib.gunzip);
 export const inflate: (buf: zlib.InputType, options?: zlib.ZlibOptions) => Promise<Buffer>    = promisify(zlib.inflate);
 export const inflateRaw: (buf: zlib.InputType, options?: zlib.ZlibOptions) => Promise<Buffer> = promisify(zlib.inflateRaw);
-export const readDir: (path: string) => Promise<Array<string>>                                = promisify(fs.readdir);
+export const readDir: (path: string) => Promise<string[]>                                     = promisify(fs.readdir);
 
 export const readFile       = promisify(fs.readFile);
 export const stat           = promisify(fs.stat);

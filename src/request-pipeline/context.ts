@@ -55,7 +55,7 @@ interface ContentInfo {
     isRedirect: boolean;
 }
 
-const REDIRECT_STATUS_CODES: Array<number>   = [301, 302, 303, 307, 308];
+const REDIRECT_STATUS_CODES                  = [301, 302, 303, 307, 308];
 const CANNOT_BE_USED_WITH_WEB_SOCKET_ERR_MSG = 'The function cannot be used with a WebSocket request.';
 
 export default class RequestPipelineContext {
@@ -80,8 +80,8 @@ export default class RequestPipelineContext {
     contentInfo: ContentInfo = null;
     restoringStorages: StoragesSnapshot = null;
     requestId: string = generateUniqueId();
-    requestFilterRules: Array<RequestFilterRule> = [];
-    onResponseEventData: Array<OnResponseEventData> = [];
+    requestFilterRules: RequestFilterRule[] = [];
+    onResponseEventData: OnResponseEventData[] = [];
     reqOpts: RequestOptions = null;
     parsedClientSyncCookie: ParsedClientSyncCookie;
     isFileProtocol: boolean;
@@ -139,7 +139,7 @@ export default class RequestPipelineContext {
                contentDisposition.includes('filename');
     }
 
-    private _resolveInjectableUrls (injectableUrls: Array<string>): Array<string> {
+    private _resolveInjectableUrls (injectableUrls: string[]): string[] {
         return injectableUrls.map(url => this.serverInfo.domain + url);
     }
 
@@ -285,14 +285,14 @@ export default class RequestPipelineContext {
             .map(userScript => userScript.url);
     }
 
-    getInjectableScripts (): Array<string> {
+    getInjectableScripts (): string[] {
         const taskScript = this.isIframe ? SERVICE_ROUTES.iframeTask : SERVICE_ROUTES.task;
         const scripts    = this.session.injectable.scripts.concat(taskScript, this._getInjectableUserScripts());
 
         return this._resolveInjectableUrls(scripts);
     }
 
-    getInjectableStyles (): Array<string> {
+    getInjectableStyles (): string[] {
         return this._resolveInjectableUrls(this.session.injectable.styles);
     }
 
@@ -380,7 +380,7 @@ export default class RequestPipelineContext {
         return !this.destResBody || this.destResBody.length.toString() !== this.destRes.headers['content-length'];
     }
 
-    getOnResponseEventData ({ includeBody }: { includeBody: boolean }): Array<OnResponseEventData> {
+    getOnResponseEventData ({ includeBody }: { includeBody: boolean }): OnResponseEventData[] {
         return this.onResponseEventData.filter(eventData => eventData.opts.includeBody === includeBody);
     }
 }

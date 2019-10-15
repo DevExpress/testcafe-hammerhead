@@ -13,6 +13,6 @@ export interface CookieRecord {
 }
 
 export interface ParsedClientSyncCookie {
-    outdated: Array<CookieRecord>;
-    actual: Array<CookieRecord>;
+    outdated: CookieRecord[];
+    actual: CookieRecord[];
 }

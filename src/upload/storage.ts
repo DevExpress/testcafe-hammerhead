@@ -22,9 +22,9 @@ export default class UploadStorage {
         this.uploadRoots = castArray(uploadRoots);
     }
 
-    static async _getFilesToCopy (files: Array<CopiedFileInfo>): Promise<{ filesToCopy: Array<CopiedFileInfo>; errs: Array<CopyingError> }> {
-        const filesToCopy: Array<CopiedFileInfo> = [];
-        const errs: Array<CopyingError>          = [];
+    static async _getFilesToCopy (files: CopiedFileInfo[]): Promise<{ filesToCopy: CopiedFileInfo[]; errs: CopyingError[] }> {
+        const filesToCopy: CopiedFileInfo[] = [];
+        const errs: CopyingError[]          = [];
 
         for (const file of files) {
             try {
@@ -41,7 +41,7 @@ export default class UploadStorage {
         return { filesToCopy, errs };
     }
 
-    static _generateName (existingNames: Array<string>, fileName: string) {
+    static _generateName (existingNames: string[], fileName: string) {
         const extName  = path.extname(fileName);
         const template = path.basename(fileName, extName) + ' %s' + extName;
         let index      = 0;
@@ -52,7 +52,7 @@ export default class UploadStorage {
         return fileName;
     }
 
-    static async _getExistingFiles (uploadsRoot: string): Promise<Array<string>> {
+    static async _getExistingFiles (uploadsRoot: string): Promise<string[]> {
         try {
             return await readDir(uploadsRoot);
         }
@@ -61,7 +61,7 @@ export default class UploadStorage {
         }
     }
 
-    async store (fileNames: Array<string>, data: Array<string>) {
+    async store (fileNames: string[], data: string[]) {
         const storedFiles    = [];
         const mainUploadRoot = this.uploadRoots[0];
         const err            = await UploadStorage.ensureUploadsRoot(mainUploadRoot);
@@ -118,7 +118,7 @@ export default class UploadStorage {
         return resolvedPath;
     }
 
-    async get (filePathList: Array<string>) {
+    async get (filePathList: string[]) {
         const result = [];
 
         for (const filePath of filePathList) {
@@ -148,9 +148,9 @@ export default class UploadStorage {
         return result;
     }
 
-    static async copy (uploadsRoot: string, files: Array<CopiedFileInfo>): Promise<{ copiedFiles: Array<string>; errs: Array<CopyingError> }> {
+    static async copy (uploadsRoot: string, files: CopiedFileInfo[]): Promise<{ copiedFiles: string[]; errs: CopyingError[] }> {
         const { filesToCopy, errs }      = await UploadStorage._getFilesToCopy(files);
-        const copiedFiles: Array<string> = [];
+        const copiedFiles: string[] = [];
 
         if (!filesToCopy.length)
             return { copiedFiles, errs };

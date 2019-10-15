@@ -17,9 +17,9 @@ export default class PageNavigationWatch extends EventEmiter {
 
     _lastLocationValue: string;
 
-    constructor (private readonly _eventSandbox: EventSandbox,               // eslint-disable-line
-                 private readonly _codeInstrumentation: CodeInstrumentation, // eslint-disable-line
-                 private readonly _elementSandbox: ElementSandbox) {         // eslint-disable-line
+    constructor (private readonly _eventSandbox: EventSandbox,
+        private readonly _codeInstrumentation: CodeInstrumentation,
+        private readonly _elementSandbox: ElementSandbox) {
         super();
 
         this._lastLocationValue = window.location.toString();

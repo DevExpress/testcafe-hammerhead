@@ -43,7 +43,7 @@ export default class DocumentWriter {
     window: any;
     document: any;
     pending: string;
-    parentTagChain: Array<any>;
+    parentTagChain: any[];
     isBeginMarkerInDOM: boolean;
     isEndMarkerInDOM: boolean;
     isClosingContentEl: boolean;

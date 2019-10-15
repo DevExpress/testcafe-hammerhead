@@ -17,9 +17,9 @@ enum ParserState {
 export default class FormData {
     boundary: Buffer | null = null;
     private _boundaryEnd: Buffer | null = null;
-    private _epilogue: Array<Buffer> = [];
-    private _entries: Array<FormDataEntry> = [];
-    private _preamble: Array<Buffer> = [];
+    private _epilogue: Buffer[] = [];
+    private _entries: FormDataEntry[] = [];
+    private _preamble: Buffer[] = [];
 
     private _removeEntry (name: string) {
         this._entries = this._entries.filter(entry => entry.name !== name);
@@ -49,8 +49,8 @@ export default class FormData {
         return (<Buffer> this._boundaryEnd).equals(line); // eslint-disable-line no-extra-parens
     }
 
-    private _getEntriesByName (name: string): Array<FormDataEntry> {
-        return this._entries.reduce((found: Array<FormDataEntry>, entry: FormDataEntry) => {
+    private _getEntriesByName (name: string): FormDataEntry[] {
+        return this._entries.reduce((found: FormDataEntry[], entry: FormDataEntry) => {
             if (entry.name === name)
                 found.push(entry);
 
@@ -63,7 +63,7 @@ export default class FormData {
 
         if (uploadsEntry) {
             const body  = Buffer.concat(uploadsEntry.body).toString();
-            const files = <Array<FileInputInfo>>JSON.parse(body);
+            const files = <FileInputInfo[]>JSON.parse(body);
 
             this._removeEntry(INTERNAL_ATTRS.uploadInfoHiddenInputName);
             files.forEach(fileInfo => this._injectFileInfo(fileInfo));

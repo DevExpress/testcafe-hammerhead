@@ -3,7 +3,7 @@ const CSS_MIME      = 'text/css';
 
 export const JSON_MIME: string = 'application/json';
 
-const PAGE_MIMES: Array<string> = [
+const PAGE_MIMES = [
     'text/html',
     'text/xml',
     'application/xhtml+xml',
@@ -11,7 +11,7 @@ const PAGE_MIMES: Array<string> = [
     'application/x-ms-application'
 ];
 
-const SCRIPT_MIMES: Array<string> = [
+const SCRIPT_MIMES = [
     'application/ecmascript',
     'application/javascript',
     'application/x-ecmascript',

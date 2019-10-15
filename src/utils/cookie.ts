@@ -26,7 +26,7 @@ function isSameCookies (cookie1: CookieRecord, cookie2: CookieRecord) {
            cookie1.path === cookie2.path;
 }
 
-function sortByOutdatedAndActual (parsedCookies: Array<CookieRecord>): ParsedClientSyncCookie {
+function sortByOutdatedAndActual (parsedCookies: CookieRecord[]): ParsedClientSyncCookie {
     const outdated = [];
     const actual   = [];
 

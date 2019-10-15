@@ -29,7 +29,7 @@ export class ResponseInfo {
     readonly requestId: string;
     readonly statusCode: number;
     readonly sessionId: string;
-    readonly headers: { [name: string]: string|Array<string> };
+    readonly headers: { [name: string]: string|string[] };
     readonly body: Buffer;
 
     constructor (ctx: RequestPipelineContext) {
@@ -45,7 +45,7 @@ export class PreparedResponseInfo {
     readonly requestId: string;
     readonly statusCode: number;
     readonly sessionId: string;
-    readonly headers?: { [name: string]: string|Array<string> };
+    readonly headers?: { [name: string]: string|string[] };
     readonly body?: Buffer;
 
     constructor (responseInfo: ResponseInfo, opts: ConfigureResponseEventOptions) {

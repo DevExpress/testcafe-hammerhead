@@ -31,7 +31,7 @@ export default class IframeSandbox extends SandboxBase {
         this.iframeNativeMethodsBackup = null;
     }
 
-    private _shouldSaveIframeNativeMethods (iframe: HTMLIFrameElement) {
+    private _shouldSaveIframeNativeMethods (iframe: HTMLIFrameElement | HTMLFrameElement) {
         if (!isWebKit)
             return false;
 
@@ -40,7 +40,7 @@ export default class IframeSandbox extends SandboxBase {
         return DomProcessor.isJsProtocol(iframeSrc);
     }
 
-    private _ensureIframeNativeMethodsForChrome (iframe: HTMLIFrameElement) {
+    private _ensureIframeNativeMethodsForChrome (iframe: HTMLIFrameElement | HTMLFrameElement): void {
         const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
         const contentDocument = nativeMethods.contentDocumentGetter.call(iframe);
 
@@ -52,7 +52,7 @@ export default class IframeSandbox extends SandboxBase {
             this.iframeNativeMethodsBackup = new this.nativeMethods.constructor(contentDocument, contentWindow);
     }
 
-    private _ensureIframeNativeMethodsForIE (iframe: HTMLIFrameElement) {
+    private _ensureIframeNativeMethodsForIE (iframe: HTMLIFrameElement | HTMLFrameElement): void {
         const contentWindow       = nativeMethods.contentWindowGetter.call(iframe);
         const contentDocument     = nativeMethods.contentDocumentGetter.call(iframe);
         const iframeNativeMethods = contentWindow[INTERNAL_PROPS.iframeNativeMethods];
@@ -63,7 +63,7 @@ export default class IframeSandbox extends SandboxBase {
         }
     }
 
-    private _ensureIframeNativeMethods (iframe: HTMLIFrameElement) {
+    private _ensureIframeNativeMethods (iframe: HTMLIFrameElement | HTMLFrameElement): void {
         // NOTE: In Chrome, iframe with javascript protocol src raises the load event twice.
         // As a result, when the second load event is raised, we write the overridden methods to the native methods.
         // So, we need to save the native methods when the first load event is raised.
@@ -75,7 +75,7 @@ export default class IframeSandbox extends SandboxBase {
         this._ensureIframeNativeMethodsForIE(iframe);
     }
 
-    private _emitEvents (iframe: HTMLIFrameElement) {
+    private _emitEvents (iframe: HTMLIFrameElement | HTMLFrameElement): void {
         // NOTE: Raise this internal event to eval the Hammerhead code script.
         this.emit(this.EVAL_HAMMERHEAD_SCRIPT_EVENT, { iframe });
 
@@ -87,7 +87,7 @@ export default class IframeSandbox extends SandboxBase {
         this.emit(this.RUN_TASK_SCRIPT_EVENT, iframe);
     }
 
-    private _raiseReadyToInitEvent (iframe: HTMLIFrameElement) {
+    private _raiseReadyToInitEvent (iframe: HTMLIFrameElement | HTMLFrameElement): void {
         if (!isIframeWithoutSrc(iframe))
             return;
 
@@ -113,7 +113,7 @@ export default class IframeSandbox extends SandboxBase {
         }
     }
 
-    static isIframeInitialized (iframe: HTMLIFrameElement) {
+    static isIframeInitialized (iframe: HTMLIFrameElement | HTMLFrameElement): boolean {
         const contentWindow           = nativeMethods.contentWindowGetter.call(iframe);
         const contentDocument         = nativeMethods.contentDocumentGetter.call(iframe);
         const isFFIframeUninitialized = isFirefox && contentWindow.document.readyState === 'uninitialized';
@@ -122,11 +122,11 @@ export default class IframeSandbox extends SandboxBase {
                isIE && contentWindow[INTERNAL_PROPS.documentWasCleaned];
     }
 
-    static isWindowInited (window: Window) {
+    static isWindowInited (window: Window): boolean {
         return window[IFRAME_WINDOW_INITED];
     }
 
-    iframeReadyToInitHandler (iframe: HTMLIFrameElement) {
+    iframeReadyToInitHandler (iframe: HTMLIFrameElement | HTMLFrameElement): void {
         // NOTE: We are using String.replace in order to avoid adding Mustache scripts on the client side.
         // If it is needed elsewhere in a certain place, we should consider using Mustache.
         const taskScriptTemplate       = settings.get().iframeTaskScriptTemplate;
@@ -144,7 +144,7 @@ export default class IframeSandbox extends SandboxBase {
         contentWindow.eval.call(contentWindow, taskScript);
     }
 
-    onIframeBeganToRun (iframe: HTMLIFrameElement) {
+    onIframeBeganToRun (iframe: HTMLIFrameElement | HTMLFrameElement): void {
         this._raiseReadyToInitEvent(iframe);
     }
 

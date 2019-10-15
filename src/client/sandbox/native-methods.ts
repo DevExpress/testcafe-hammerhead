@@ -128,8 +128,8 @@ class NativeMethods {
     WindowMouseEvent: any;
     canvasContextDrawImage: any;
     formDataAppend: FormData['append'];
-    date: any;
-    dateNow: any;
+    date: DateConstructor;
+    dateNow: DateConstructor['now'];
     math: any;
     mathRandom: any;
     objectToString: any;

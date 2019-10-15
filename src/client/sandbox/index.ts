@@ -99,7 +99,7 @@ export default class Sandbox extends SandboxBase {
         return true;
     }
 
-    onIframeDocumentRecreated (iframe): void {
+    onIframeDocumentRecreated (iframe: HTMLFrameElement | HTMLIFrameElement): void {
         if (iframe) {
             const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
             const contentDocument = nativeMethods.contentDocumentGetter.call(iframe);

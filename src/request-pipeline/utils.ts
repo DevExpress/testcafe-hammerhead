@@ -94,7 +94,7 @@ export async function callOnConfigureResponseEventForNonProcessedRequest (ctx: R
     });
 }
 
-export async function callOnResponseEventCallbackWithBodyForNonProcessedRequest (ctx: RequestPipelineContext, onResponseEventDataWithBody: Array<OnResponseEventData>) {
+export async function callOnResponseEventCallbackWithBodyForNonProcessedRequest (ctx: RequestPipelineContext, onResponseEventDataWithBody: OnResponseEventData[]) {
     const destResBodyCollectorStream = new PassThrough();
 
     ctx.destRes.pipe(destResBodyCollectorStream);
@@ -115,7 +115,7 @@ export async function callOnResponseEventCallbackWithBodyForNonProcessedRequest 
     });
 }
 
-export async function callOnResponseEventCallbackWithoutBodyForNonProcessedResource (ctx: RequestPipelineContext, onResponseEventDataWithoutBody: Array<OnResponseEventData>) {
+export async function callOnResponseEventCallbackWithoutBodyForNonProcessedResource (ctx: RequestPipelineContext, onResponseEventDataWithoutBody: OnResponseEventData[]) {
     const responseInfo = new ResponseInfo(ctx);
 
     await Promise.all(onResponseEventDataWithoutBody.map(async item => {

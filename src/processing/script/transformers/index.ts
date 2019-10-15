@@ -36,7 +36,7 @@ export interface Transformer<C extends Node> {
     resolver?: Function;
 }
 
-const TRANSFORMERS: Array<Transformer<any>> = [
+const TRANSFORMERS: Transformer<any>[] = [
     computedPropertyGetTransformer,
     computedPropertySetTransformer,
     concatOperatorTransformer,
@@ -60,8 +60,8 @@ const TRANSFORMERS: Array<Transformer<any>> = [
     dynamicImportTransformer
 ];
 
-function createTransformerMap (): Map<Transformer<Node>['nodeTypes'], Array<Transformer<Node>>> {
-    const transformerMap: Map<Transformer<Node>['nodeTypes'], Array<Transformer<Node>>> = new Map();
+function createTransformerMap (): Map<Transformer<Node>['nodeTypes'], Transformer<Node>[]> {
+    const transformerMap: Map<Transformer<Node>['nodeTypes'], Transformer<Node>[]> = new Map();
 
     for (const transformer of TRANSFORMERS) {
         const nodeType   = transformer.nodeTypes;

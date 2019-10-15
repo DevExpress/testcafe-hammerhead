@@ -132,7 +132,7 @@ function isStrictMode (ast: Program): boolean {
     return false;
 }
 
-function applyChanges (script: string, changes: Array<CodeChange>, isObject: boolean): string {
+function applyChanges (script: string, changes: CodeChange[], isObject: boolean): string {
     const indexOffset = isObject ? -1 : 0;
     const chunks      = [];
     let index         = 0;

@@ -4,13 +4,13 @@
 // -------------------------------------------------------------
 
 // NOTE: constants are exported for the testing purposes
-export const METHODS: Array<string> = [
+export const METHODS = [
     'postMessage',
     'replace',
     'assign'
 ];
 
-export const PROPERTIES: Array<string> = [
+export const PROPERTIES = [
     'href',
     'location'
 ];

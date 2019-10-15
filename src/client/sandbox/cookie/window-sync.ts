@@ -18,7 +18,7 @@ const SYNC_MESSAGE_ATTEMPT_COUNT = 5;
 interface SyncCookieMsg {
     id?: number;
     cmd: string;
-    cookies: Array<any>;
+    cookies: any[];
 }
 
 export default class WindowSync {
@@ -59,7 +59,7 @@ export default class WindowSync {
         }
     }
 
-    private _getWindowsForSync (initiator: Window, currentWindow: Window = this._win.top, windows: Array<Window> = []): Array<Window> {
+    private _getWindowsForSync (initiator: Window, currentWindow: Window = this._win.top, windows: Window[] = []): Window[] {
         if (currentWindow !== initiator && currentWindow !== this._win.top)
             windows.push(currentWindow);
 

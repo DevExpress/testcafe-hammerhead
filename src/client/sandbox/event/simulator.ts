@@ -51,7 +51,7 @@ export default class EventSimulator {
     DISPATCHED_EVENT_FLAG: string = 'hammerhead|dispatched-event';
 
     touchIdentifier: any;
-    savedWindowEvents: Array<any>;
+    savedWindowEvents: any[];
     savedNativeClickCount: number;
     browserWithNewEventsStyle: boolean;
 

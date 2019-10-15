@@ -7,8 +7,8 @@ import { isIE, version as browserVersion } from '../utils/browser';
 // asynchronously, but before executing functions that are called by using the window.setTimeout function. So,
 // we need to raise the handlers with a timeout, but do it before calling other asynchronous functions.
 export default class TimersSandbox extends SandboxBase {
-    timeouts: Array<any>;
-    deferredFunctions: Array<any>;
+    timeouts: any[];
+    deferredFunctions: any[];
     setTimeout: any;
 
     constructor () {

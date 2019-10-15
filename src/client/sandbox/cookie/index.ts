@@ -16,19 +16,19 @@ import {
     prepareSyncCookieProperties
 } from '../../../utils/cookie';
 
-const MIN_DATE_VALUE = new nativeMethods.date(0).toUTCString(); // eslint-disable-line new-cap
+const MIN_DATE_VALUE = new nativeMethods.date(0).toUTCString();
 
 export default class CookieSandbox extends SandboxBase {
     private readonly _windowSync: WindowSync;
 
     constructor (messageSandbox: MessageSandbox,
-                 private readonly _unloadSandbox: UnloadSandbox) { // eslint-disable-line
+        private readonly _unloadSandbox: UnloadSandbox) {
         super();
 
         this._windowSync = new WindowSync(this, messageSandbox);
     }
 
-    private static _removeAllSyncCookie () {
+    private static _removeAllSyncCookie (): void {
         const cookies       = nativeMethods.documentCookieGetter.call(document);
         const parsedCookies = parseClientSyncCookieStr(cookies);
         const sessionId     = settings.get().sessionId;
@@ -182,7 +182,7 @@ export default class CookieSandbox extends SandboxBase {
         parsedCookie.isClientSync = true;
         parsedCookie.isWindowSync = true;
         parsedCookie.sid          = settings.get().sessionId;
-        parsedCookie.lastAccessed = new nativeMethods.date(); // eslint-disable-line new-cap
+        parsedCookie.lastAccessed = new nativeMethods.date();
 
         prepareSyncCookieProperties(parsedCookie);
 
