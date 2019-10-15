@@ -8,7 +8,7 @@ import { encodeContent, decodeContent } from '../encoding';
 import { platform } from 'os';
 
 const IS_WIN: boolean     = platform() === 'win32';
-const DISK_RE: RegExp     = /^[A-Za-z]:/;
+const DISK_RE     = /^[A-Za-z]:/;
 const RESOURCE_PROCESSORS = [pageProcessor, manifestProcessor, scriptProcessor, stylesheetProcessor];
 
 function getResourceUrlReplacer (ctx) {

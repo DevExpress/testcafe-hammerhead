@@ -10,7 +10,7 @@ import noop from './utils/noop';
 import Promise from 'pinkie';
 import { isIframeWithoutSrc, getFrameElement } from './utils/dom';
 
-const SERVICE_MESSAGES_WAITING_INTERVAL: number = 50;
+const SERVICE_MESSAGES_WAITING_INTERVAL = 50;
 
 class Transport {
     msgQueue: any;

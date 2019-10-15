@@ -11,7 +11,7 @@ import * as browserUtils from '../utils/browser';
 const DEFAULT_REQUEST_CREDENTIALS = nativeMethods.Request ? new nativeMethods.Request(window.location.toString()).credentials : void 0;
 
 export default class FetchSandbox extends SandboxBase {
-    FETCH_REQUEST_SENT_EVENT: string = 'hammerhead|event|fetch-request-sent-event';
+    FETCH_REQUEST_SENT_EVENT = 'hammerhead|event|fetch-request-sent-event';
 
     cookieSandbox: any;
 

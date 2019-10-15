@@ -3,7 +3,7 @@ import INTERNAL_ATTRS from '../processing/dom/internal-attributes';
 import FormDataEntry from './form-data-entry';
 import * as bufferUtils from '../utils/buffer';
 
-const BOUNDARY_RE: RegExp = /;\s*boundary=([^;]*)/i;
+const BOUNDARY_RE = /;\s*boundary=([^;]*)/i;
 
 /*eslint-disable no-unused-vars*/
 enum ParserState {

@@ -1,7 +1,7 @@
 import SandboxBase from './base';
 import { isIE } from '../utils/browser';
 
-const BROWSERTOOLS_CONSOLE_SAFEFUNC: string = '__BROWSERTOOLS_CONSOLE_SAFEFUNC';
+const BROWSERTOOLS_CONSOLE_SAFEFUNC = '__BROWSERTOOLS_CONSOLE_SAFEFUNC';
 
 export default class IEDebugSandbox extends SandboxBase {
     _isDebuggerInitiator: boolean;

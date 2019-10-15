@@ -1,12 +1,12 @@
 import IncomingMessageMock from '../incoming-message-mock';
 import { JSON_MIME } from '../../utils/content-type';
 
-const PAGE_CONTENT_TYPE: string = 'text/html; charset=utf-8';
-const EMPTY_PAGE_HTML: string   = '<html><body></body></html>';
+const PAGE_CONTENT_TYPE = 'text/html; charset=utf-8';
+const EMPTY_PAGE_HTML   = '<html><body></body></html>';
 
 const INVALID_BODY_PARAMETER_TYPES = ['number', 'boolean'];
 
-const INVALID_STATUS_CODE_MESSAGE: string = 'Invalid status code. It should be a number that is greater than 100 and less than 999.';
+const INVALID_STATUS_CODE_MESSAGE = 'Invalid status code. It should be a number that is greater than 100 and less than 999.';
 
 export default class ResponseMock {
     private readonly body: any;

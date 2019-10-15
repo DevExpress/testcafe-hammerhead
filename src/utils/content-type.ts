@@ -1,7 +1,7 @@
 const MANIFEST_MIME = 'text/cache-manifest';
 const CSS_MIME      = 'text/css';
 
-export const JSON_MIME: string = 'application/json';
+export const JSON_MIME = 'application/json';
 
 const PAGE_MIMES = [
     'text/html',

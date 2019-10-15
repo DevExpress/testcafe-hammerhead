@@ -13,7 +13,7 @@ import ElementSandbox from './sandbox/node/element';
 import { ElementSandboxBeforeFormSubmitEvent } from '../typings/client';
 
 export default class PageNavigationWatch extends EventEmiter {
-    PAGE_NAVIGATION_TRIGGERED_EVENT: string = 'hammerhead|event|page-navigation-triggered';
+    PAGE_NAVIGATION_TRIGGERED_EVENT = 'hammerhead|event|page-navigation-triggered';
 
     _lastLocationValue: string;
 

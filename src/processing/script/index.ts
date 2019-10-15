@@ -11,12 +11,12 @@ import { generate, Syntax } from 'esotope-hammerhead';
 import reEscape from '../../utils/regexp-escape';
 import getBOM from '../../utils/get-bom';
 
-const HTML_COMMENT_RE: RegExp       = /(^|\n)\s*<!--[^\n]*(\n|$)/g;
-const OBJECT_RE: RegExp             = /^\s*\{.*\}\s*$/;
-const TRAILING_SEMICOLON_RE: RegExp = /;\s*$/;
-const OBJECT_WRAPPER_RE: RegExp     = /^\s*\((.*)\);\s*$/;
-const SOURCEMAP_RE: RegExp          = /(?:\/\/[@#][ \t]+sourceMappingURL=([^\s'"]+?)[ \t]*$)/gm;
-const PROCESSED_SCRIPT_RE: RegExp   = new RegExp([
+const HTML_COMMENT_RE       = /(^|\n)\s*<!--[^\n]*(\n|$)/g;
+const OBJECT_RE             = /^\s*\{.*\}\s*$/;
+const TRAILING_SEMICOLON_RE = /;\s*$/;
+const OBJECT_WRAPPER_RE     = /^\s*\((.*)\);\s*$/;
+const SOURCEMAP_RE          = /(?:\/\/[@#][ \t]+sourceMappingURL=([^\s'"]+?)[ \t]*$)/gm;
+const PROCESSED_SCRIPT_RE   = new RegExp([
     reEscape(INSTRUCTION.getLocation),
     reEscape(INSTRUCTION.setLocation),
     reEscape(INSTRUCTION.getProperty),

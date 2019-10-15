@@ -4,6 +4,6 @@
 // -------------------------------------------------------------
 /* eslint hammerhead/proto-methods: 2 */
 
-const SAME_ORIGIN_CHECK_FAILED_STATUS_CODE: number = 222;
+const SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = 222;
 
 export default SAME_ORIGIN_CHECK_FAILED_STATUS_CODE;

@@ -12,11 +12,11 @@ import connectionResetGuard from '../connection-reset-guard';
 import { MESSAGE, getText } from '../../messages';
 import { transformHeadersCaseToRaw } from '../header-transforms';
 
-const TUNNELING_SOCKET_ERR_RE: RegExp    = /tunneling socket could not be established/i;
-const TUNNELING_AUTHORIZE_ERR_RE: RegExp = /statusCode=407/i;
-const SOCKET_HANG_UP_ERR_RE: RegExp      = /socket hang up/i;
-const IS_DNS_ERR_MSG_RE: RegExp          = /ECONNREFUSED|ENOTFOUND|EPROTO/;
-const IS_DNS_ERR_CODE_RE: RegExp         = /ECONNRESET/;
+const TUNNELING_SOCKET_ERR_RE    = /tunneling socket could not be established/i;
+const TUNNELING_AUTHORIZE_ERR_RE = /statusCode=407/i;
+const SOCKET_HANG_UP_ERR_RE      = /socket hang up/i;
+const IS_DNS_ERR_MSG_RE          = /ECONNREFUSED|ENOTFOUND|EPROTO/;
+const IS_DNS_ERR_CODE_RE         = /ECONNRESET/;
 
 // NOTE: Starting from 8.6 version, Node.js changes behavior related with sending requests
 // to sites using SSL2 and SSL3 protocol versions. It affects the https core module
@@ -40,8 +40,8 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     private readonly isHttps: boolean;
     private readonly protocolInterface: any;
 
-    static TIMEOUT: number = 25 * 1000;
-    static XHR_TIMEOUT: number = 2 * 60 * 1000;
+    static TIMEOUT = 25 * 1000;
+    static XHR_TIMEOUT = 2 * 60 * 1000;
 
     constructor (opts: RequestOptions) {
         super();

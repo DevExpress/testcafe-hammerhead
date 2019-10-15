@@ -1,7 +1,7 @@
 import { default as css, Rule, Comment, AtRule, Document, Host, Media, Supports } from 'css';
 import SHADOW_UI_CLASS_NAME from './class-name';
 
-const ID_OR_CLASS_RE: RegExp  = /#[a-zA-Z0-9_-]+|\.-?[a-zA-Z0-9_][a-zA-Z0-9_-]*/g;
+const ID_OR_CLASS_RE  = /#[a-zA-Z0-9_-]+|\.-?[a-zA-Z0-9_][a-zA-Z0-9_-]*/g;
 const ADD_POSTFIX_REPLACEMENT = '$&' + SHADOW_UI_CLASS_NAME.postfix;
 
 function transformSelector (selector: string): string {

@@ -1,9 +1,9 @@
 import { FileInputInfo } from '../typings/upload';
 import * as bufferUtils from '../utils/buffer';
 
-const INPUT_NAME_RE: RegExp = /;\s*name="([^"]*)"/i;
-const FILE_NAME_RE: RegExp  = /;\s*filename="([^"]*)"/i;
-const HEADER_RE: RegExp     = /^(.+?):\s*(.*)$/;
+const INPUT_NAME_RE = /;\s*name="([^"]*)"/i;
+const FILE_NAME_RE  = /;\s*filename="([^"]*)"/i;
+const HEADER_RE     = /^(.+?):\s*(.*)$/;
 
 export default class FormDataEntry {
     private _headers: { [name: string]: string } = {};

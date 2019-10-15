@@ -14,7 +14,7 @@ const LISTENED_EVENTS = [
     'change', 'focus', 'blur', 'focusin', 'focusout'
 ];
 
-const EVENT_SANDBOX_DISPATCH_EVENT_FLAG: string = 'hammerhead|event-sandbox-dispatch-event-flag';
+const EVENT_SANDBOX_DISPATCH_EVENT_FLAG = 'hammerhead|event-sandbox-dispatch-event-flag';
 
 export default class Listeners extends EventEmitter {
     EVENT_LISTENER_ATTACHED_EVENT: string = 'hammerhead|event|event-listener-attached';

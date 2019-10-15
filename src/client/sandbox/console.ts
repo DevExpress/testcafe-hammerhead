@@ -4,7 +4,7 @@ import nativeMethods from '../sandbox/native-methods';
 import MessageSandbox from './event/message';
 
 export default class ConsoleSandbox extends SandboxBase {
-    CONSOLE_METH_CALLED_EVENT: string = 'hammerhead|event|console-meth-called';
+    CONSOLE_METH_CALLED_EVENT = 'hammerhead|event|console-meth-called';
 
     private _serviceMsgReceivedEventCallback: Function;
 

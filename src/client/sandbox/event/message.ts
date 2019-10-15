@@ -19,9 +19,9 @@ const MESSAGE_TYPE = {
 };
 
 export default class MessageSandbox extends SandboxBase {
-    PING_DELAY: number = 200;
-    PING_IFRAME_TIMEOUT: number = 7000;
-    PING_IFRAME_MIN_TIMEOUT: number = 100;
+    PING_DELAY = 200;
+    PING_IFRAME_TIMEOUT = 7000;
+    PING_IFRAME_MIN_TIMEOUT = 100;
     SERVICE_MSG_RECEIVED_EVENT: string = 'hammerhead|event|service-msg-received';
     RECEIVE_MSG_FN: string = 'hammerhead|receive-msg-function';
 

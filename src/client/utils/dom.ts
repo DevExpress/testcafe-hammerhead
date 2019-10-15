@@ -9,7 +9,7 @@ import { isFirefox, isWebKit, isIE, isMSEdge, isSafari } from './browser';
 import { getNativeQuerySelectorAll } from './query-selector';
 import { instanceAndPrototypeToStringAreEqual } from './feature-detection';
 
-let scrollbarSize: number = 0;
+let scrollbarSize = 0;
 
 const NATIVE_MAP_ELEMENT_STRINGS = [
     '[object HTMLMapElement]',

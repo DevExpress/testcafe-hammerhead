@@ -5,7 +5,7 @@ import { parse } from 'url';
 import { MESSAGE, getText } from '../../messages';
 import createResource from './create-resource';
 
-const DISK_RE: RegExp = /^\/[A-Za-z]:/;
+const DISK_RE = /^\/[A-Za-z]:/;
 
 export default class FileRequest extends EventEmitter {
     private _url: string;

@@ -7,7 +7,7 @@ import md5 from 'crypto-md5';
 import { getPathname } from '../utils/url';
 import { isEqual } from 'lodash';
 
-const PARAM_RE: RegExp = /^{(\S+)}$/;
+const PARAM_RE = /^{(\S+)}$/;
 
 interface Route {
     handler: StaticContent | Function;

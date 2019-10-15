@@ -14,7 +14,7 @@ import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
 import { resetKeepAliveConnections } from '../request-pipeline/destination-request/agent';
 import SERVICE_ROUTES from './service-routes';
 
-const SESSION_IS_NOT_OPENED_ERR: string = 'Session is not opened in proxy';
+const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
 
 function parseAsJson (msg: Buffer): ServiceMessage | null {
     try {

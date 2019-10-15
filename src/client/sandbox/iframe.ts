@@ -13,10 +13,10 @@ import CookieSandbox from './cookie';
 const IFRAME_WINDOW_INITED = 'hammerhead|iframe-window-inited';
 
 export default class IframeSandbox extends SandboxBase {
-    RUN_TASK_SCRIPT_EVENT: string = 'hammerhead|event|run-task-script';
-    EVAL_HAMMERHEAD_SCRIPT_EVENT: string = 'hammerhead|event|eval-hammerhead-script';
-    EVAL_EXTERNAL_SCRIPT_EVENT: string = 'hammerhead|event|eval-external-script';
-    IFRAME_DOCUMENT_CREATED_EVENT: string = 'hammerhead|event|iframe-document-created';
+    RUN_TASK_SCRIPT_EVENT = 'hammerhead|event|run-task-script';
+    EVAL_HAMMERHEAD_SCRIPT_EVENT = 'hammerhead|event|eval-hammerhead-script';
+    EVAL_EXTERNAL_SCRIPT_EVENT = 'hammerhead|event|eval-external-script';
+    IFRAME_DOCUMENT_CREATED_EVENT = 'hammerhead|event|iframe-document-created';
 
     iframeNativeMethodsBackup: any;
 
