@@ -148,9 +148,9 @@ export function getIframeLocation (iframe) {
     };
 }
 
-export function getFrameElement (win: Window): Element | null {
+export function getFrameElement (win: Window): (HTMLFrameElement | HTMLIFrameElement) | null {
     try {
-        return win.frameElement;
+        return win.frameElement as (HTMLFrameElement | HTMLIFrameElement);
     }
     catch (e) {
         return null;
@@ -363,7 +363,7 @@ export function isIframeElement (el: any): el is HTMLIFrameElement {
     return instanceToString(el) === '[object HTMLIFrameElement]';
 }
 
-export function isIframeWithoutSrc (iframe): boolean {
+export function isIframeWithoutSrc (iframe: HTMLIFrameElement | HTMLFrameElement): boolean {
     const iframeLocation         = getIframeLocation(iframe);
     const iframeSrcLocation      = iframeLocation.srcLocation;
     const iframeDocumentLocation = iframeLocation.documentLocation;
