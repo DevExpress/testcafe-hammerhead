@@ -5,14 +5,12 @@ import * as bufferUtils from '../utils/buffer';
 
 const BOUNDARY_RE = /;\s*boundary=([^;]*)/i;
 
-/*eslint-disable no-unused-vars*/
 enum ParserState {
     inPreamble,
     inHeaders,
     inBody,
     inEpilogue
 }
-/*eslint-enable no-unused-vars*/
 
 export default class FormData {
     boundary: Buffer | null = null;
@@ -21,11 +19,11 @@ export default class FormData {
     private _entries: FormDataEntry[] = [];
     private _preamble: Buffer[] = [];
 
-    private _removeEntry (name: string) {
+    private _removeEntry (name: string): void {
         this._entries = this._entries.filter(entry => entry.name !== name);
     }
 
-    private _injectFileInfo (fileInfo: FileInputInfo) {
+    private _injectFileInfo (fileInfo: FileInputInfo): void {
         const entries = this._getEntriesByName(fileInfo.name);
 
         for (let idx = 0; idx < fileInfo.files.length; idx++) {
@@ -42,11 +40,11 @@ export default class FormData {
     }
 
     private _isBoundary (line: Buffer): boolean {
-        return (<Buffer> this.boundary).equals(line); // eslint-disable-line no-extra-parens
+        return (this.boundary as Buffer).equals(line);
     }
 
     private _isBoundaryEnd (line: Buffer): boolean {
-        return (<Buffer> this._boundaryEnd).equals(line); // eslint-disable-line no-extra-parens
+        return (this._boundaryEnd as Buffer).equals(line);
     }
 
     private _getEntriesByName (name: string): FormDataEntry[] {
@@ -63,14 +61,14 @@ export default class FormData {
 
         if (uploadsEntry) {
             const body  = Buffer.concat(uploadsEntry.body).toString();
-            const files = <FileInputInfo[]>JSON.parse(body);
+            const files = JSON.parse(body) as FileInputInfo[];
 
             this._removeEntry(INTERNAL_ATTRS.uploadInfoHiddenInputName);
             files.forEach(fileInfo => this._injectFileInfo(fileInfo));
         }
     }
 
-    parseContentTypeHeader (header: string|void) {
+    parseContentTypeHeader (header: string|void): void {
         header = String(header);
 
         if (header.includes('multipart/form-data')) {
@@ -110,7 +108,7 @@ export default class FormData {
 
             else if (state === ParserState.inHeaders) {
                 if (line.length)
-                    (<FormDataEntry>currentEntry).setHeader(line.toString()); // eslint-disable-line no-extra-parens
+                    (currentEntry as FormDataEntry).setHeader(line.toString());
                 else
                     state = ParserState.inBody;
             }
@@ -119,7 +117,7 @@ export default class FormData {
                 bufferUtils.appendLine(this._epilogue, line);
 
             else if (state === ParserState.inBody)
-                bufferUtils.appendLine((<FormDataEntry>currentEntry).body, line); // eslint-disable-line no-extra-parens
+                bufferUtils.appendLine((currentEntry as FormDataEntry).body, line);
         }
     }
 

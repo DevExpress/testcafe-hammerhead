@@ -195,7 +195,7 @@ export default class RequestPipelineContext {
                 : urlUtils.getDomain(flattenParsedReferer.dest);
         }
         else if (this.req.headers[XHR_HEADERS.origin])
-            this.dest.reqOrigin = <string> this.req.headers[XHR_HEADERS.origin];
+            this.dest.reqOrigin = this.req.headers[XHR_HEADERS.origin] as string;
 
         this._initRequestNatureInfo();
         this._applyClientSyncCookie();
@@ -296,22 +296,22 @@ export default class RequestPipelineContext {
         return this._resolveInjectableUrls(this.session.injectable.styles);
     }
 
-    redirect (url: string) {
+    redirect (url: string): void {
         if (this.isWebSocket)
             throw new Error(CANNOT_BE_USED_WITH_WEB_SOCKET_ERR_MSG);
 
-        const res: http.ServerResponse = <http.ServerResponse> this.res;
+        const res: http.ServerResponse = this.res as http.ServerResponse;
 
         res.statusCode = 302;
         res.setHeader('location', url);
         res.end();
     }
 
-    saveNonProcessedDestResBody (value: Buffer) {
+    saveNonProcessedDestResBody (value: Buffer): void {
         this.nonProcessedDestResBody = value;
     }
 
-    closeWithError (statusCode: number, resBody: string | Buffer = '') {
+    closeWithError (statusCode: number, resBody: string | Buffer = ''): void {
         if ('setHeader' in this.res && !this.res.headersSent) {
             this.res.statusCode = statusCode;
             this.res.setHeader('content-type', 'text/html');
@@ -350,12 +350,12 @@ export default class RequestPipelineContext {
         await Promise.all(this.requestFilterRules.map(fn));
     }
 
-    sendResponseHeaders () {
+    sendResponseHeaders (): void {
         if (this.isWebSocket)
             throw new Error(CANNOT_BE_USED_WITH_WEB_SOCKET_ERR_MSG);
 
-        const headers                  = headerTransforms.forResponse(this);
-        const res: http.ServerResponse = <http.ServerResponse> this.res;
+        const headers = headerTransforms.forResponse(this);
+        const res     = this.res as http.ServerResponse;
 
         if (this.isHTMLPage && this.session.disablePageCaching)
             headerTransforms.setupPreventCachingHeaders(headers);
@@ -364,12 +364,12 @@ export default class RequestPipelineContext {
         res.addTrailers(this.destRes.trailers as http.OutgoingHttpHeaders);
     }
 
-    mockResponse () {
+    mockResponse (): void {
         this.mock.setRequestOptions(this.reqOpts);
         this.destRes = this.mock.getResponse();
     }
 
-    setupMockIfNecessary (rule: RequestFilterRule) {
+    setupMockIfNecessary (rule: RequestFilterRule): void {
         const mock = this.session.getMock(rule);
 
         if (mock && !this.mock)

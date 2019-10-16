@@ -91,7 +91,7 @@ export default class Proxy extends Router {
 
     _registerServiceRoutes (developmentMode: boolean) {
         const hammerheadFileName      = developmentMode ? 'hammerhead.js' : 'hammerhead.min.js';
-        const hammerheadScriptContent = <Buffer>read(`../client/${hammerheadFileName}`);
+        const hammerheadScriptContent = read(`../client/${hammerheadFileName}`) as Buffer;
 
         this.GET(SERVICE_ROUTES.hammerhead, {
             contentType: 'application/x-javascript',
@@ -160,7 +160,7 @@ export default class Proxy extends Router {
 
     _processStaticContent (handler: StaticContent) {
         if (handler.isShadowUIStylesheet)
-            handler.content = prepareShadowUIStylesheet(<string>handler.content);
+            handler.content = prepareShadowUIStylesheet(handler.content as string);
     }
 
     // API

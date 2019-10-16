@@ -3,7 +3,7 @@ import RequestPipelineContext from './context';
 import { OutgoingHttpHeaders, IncomingMessage } from 'http';
 import * as headerTransforms from './header-transforms';
 
-function writeWebSocketHead (socket: net.Socket, destRes: IncomingMessage, headers: OutgoingHttpHeaders) {
+function writeWebSocketHead (socket: net.Socket, destRes: IncomingMessage, headers: OutgoingHttpHeaders): void {
     const { httpVersion, statusCode, statusMessage } = destRes;
 
     const resRaw       = [`HTTP/${httpVersion} ${statusCode} ${statusMessage}`];
@@ -25,11 +25,11 @@ function writeWebSocketHead (socket: net.Socket, destRes: IncomingMessage, heade
     socket.write(resRaw.join('\r\n'));
 }
 
-export function respondOnWebSocket (ctx: RequestPipelineContext) {
+export function respondOnWebSocket (ctx: RequestPipelineContext): void {
     const headers = headerTransforms.forResponse(ctx);
-    const destRes = <IncomingMessage>ctx.destRes;
+    const destRes = ctx.destRes as IncomingMessage;
 
-    writeWebSocketHead(<net.Socket>ctx.res, destRes, headers);
+    writeWebSocketHead(ctx.res as net.Socket, destRes, headers);
 
     destRes.socket.pipe(ctx.res);
     ctx.res.pipe(destRes.socket);

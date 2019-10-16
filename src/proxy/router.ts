@@ -101,7 +101,7 @@ export default abstract class Router {
             if (route.isStatic)
                 respondStatic(req, res, route.handler, this.options.staticContentCaching);
             else
-                (<Function>route.handler)(req, res, serverInfo); // eslint-disable-line no-extra-parens
+                (route.handler as Function)(req, res, serverInfo);
 
             return true;
         }

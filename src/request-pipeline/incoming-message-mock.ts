@@ -1,7 +1,7 @@
 import { IncomingHttpHeaders } from 'http';
 import { Readable } from 'stream';
 
-type InitOptions = {
+interface InitOptions {
     headers: { [name: string]: string|string[] };
     trailers: { [key: string]: string | undefined };
     statusCode: number;
@@ -23,7 +23,7 @@ export default class IncomingMessageMock extends Readable {
         this._body      = this._getBody(init._body);
     }
 
-    _read () {
+    _read (): void {
         this.push(this._body);
         this._body = null;
     }
