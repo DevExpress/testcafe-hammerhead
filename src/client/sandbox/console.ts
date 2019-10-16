@@ -4,7 +4,7 @@ import nativeMethods from '../sandbox/native-methods';
 import MessageSandbox from './event/message';
 
 export default class ConsoleSandbox extends SandboxBase {
-    CONSOLE_METH_CALLED_EVENT: string = 'hammerhead|event|console-meth-called';
+    CONSOLE_METH_CALLED_EVENT = 'hammerhead|event|console-meth-called';
 
     private _serviceMsgReceivedEventCallback: Function;
 
@@ -28,7 +28,7 @@ export default class ConsoleSandbox extends SandboxBase {
 
     private _proxyConsoleMeth (meth: string): void {
         //@ts-ignore
-        this.window.console[meth] = (...args: Array<any>) => {
+        this.window.console[meth] = (...args: any[]) => {
             if (!isCrossDomainWindows(window, window.top)) {
                 const sendToTopWindow = window !== window.top;
                 const line            = nativeMethods.arrayMap.call(args, this._toString).join(' ');

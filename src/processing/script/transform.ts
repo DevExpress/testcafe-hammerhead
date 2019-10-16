@@ -61,9 +61,9 @@ function getChange<T extends Node> (node: Node, parent: T, key: keyof T): CodeCh
     return { start, end, index, parent, key };
 }
 
-function transformChildNodes (node: Node, changes: Array<CodeChange>, state: State) {
+function transformChildNodes (node: Node, changes: CodeChange[], state: State) {
     // @ts-ignore
-    const nodeKeys: Array<keyof Node> = objectKeys(node);
+    const nodeKeys: (keyof Node)[] = objectKeys(node);
 
     for (const key of nodeKeys) {
         const childNode       = node[key];
@@ -71,7 +71,7 @@ function transformChildNodes (node: Node, changes: Array<CodeChange>, state: Sta
 
         if (stringifiedNode === '[object Array]') {
             // @ts-ignore
-            const childNodes = childNode as Array<Node>;
+            const childNodes = childNode as Node[];
 
             for (const nthNode of childNodes)
                 transform(nthNode, changes, state, node, key);
@@ -87,7 +87,7 @@ function isNodeTransformed (node: Node): boolean {
     return node.originStart !== void 0 && node.originEnd !== void 0;
 }
 
-function addChangeForTransformedNode<T extends Node> (state: State, changes: Array<CodeChange>, replacement: Node, parent: T, key: keyof T) {
+function addChangeForTransformedNode<T extends Node> (state: State, changes: CodeChange[], replacement: Node, parent: T, key: keyof T) {
     const hasTransformedAncestor = state.hasTransformedAncestor ||
                                    state.newExpressionAncestor && isNodeTransformed(state.newExpressionAncestor);
 
@@ -118,11 +118,11 @@ export function afterTransform () {
 
 /* eslint-disable @typescript-eslint/indent */
 export default function transform<T extends Node> (node: Node,
-                                                   changes: Array<CodeChange> = [],
+                                                   changes: CodeChange[] = [],
                                                    state: State = new State(),
                                                    parent?: T,
                                                    key?: keyof T,
-                                                   reTransform?: boolean): Array<CodeChange> {
+                                                   reTransform?: boolean): CodeChange[] {
     /* eslint-enable @typescript-eslint/indent */
 
     if (!node || typeof node !== 'object')

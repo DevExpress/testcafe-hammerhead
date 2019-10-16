@@ -14,7 +14,7 @@ import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
 import { resetKeepAliveConnections } from '../request-pipeline/destination-request/agent';
 import SERVICE_ROUTES from './service-routes';
 
-const SESSION_IS_NOT_OPENED_ERR: string = 'Session is not opened in proxy';
+const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
 
 function parseAsJson (msg: Buffer): ServiceMessage | null {
     try {
@@ -91,7 +91,7 @@ export default class Proxy extends Router {
 
     _registerServiceRoutes (developmentMode: boolean) {
         const hammerheadFileName      = developmentMode ? 'hammerhead.js' : 'hammerhead.min.js';
-        const hammerheadScriptContent = <Buffer>read(`../client/${hammerheadFileName}`);
+        const hammerheadScriptContent = read(`../client/${hammerheadFileName}`) as Buffer;
 
         this.GET(SERVICE_ROUTES.hammerhead, {
             contentType: 'application/x-javascript',
@@ -160,7 +160,7 @@ export default class Proxy extends Router {
 
     _processStaticContent (handler: StaticContent) {
         if (handler.isShadowUIStylesheet)
-            handler.content = prepareShadowUIStylesheet(<string>handler.content);
+            handler.content = prepareShadowUIStylesheet(handler.content as string);
     }
 
     // API

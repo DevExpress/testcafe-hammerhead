@@ -20,13 +20,13 @@ export interface StoragesSnapshot {
 
 export interface ExternalProxySettingsRaw {
     url: string;
-    bypassRules?: Array<string>;
+    bypassRules?: string[];
 }
 
 export interface ExternalProxySettings {
     host: string;
     hostname: string;
-    bypassRules?: Array<string>;
+    bypassRules?: string[];
     port?: string;
     proxyAuth?: string;
     authHeader?: string;

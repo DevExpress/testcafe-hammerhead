@@ -9,7 +9,7 @@ interface SandboxBackupEntry {
     sandbox: Sandbox;
 }
 
-function findRecord (storage: Array<SandboxBackupEntry>, iframe: Element | null) {
+function findRecord (storage: SandboxBackupEntry[], iframe: Element | null) {
     for (let i = storage.length - 1; i >= 0; i--) {
         try {
             if (storage[i].iframe === iframe)

@@ -7,7 +7,7 @@ interface StaticContent {
 
 interface ExternalProxySettingsRaw {
     url: string,
-    bypassRules?: Array<string>
+    bypassRules?: string[]
 }
 
 interface Session {

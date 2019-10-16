@@ -5,7 +5,7 @@ import * as listeningCtx from './listening-context';
 import { preventDefault, stopPropagation, DOM_EVENTS, isValidEventListener, callEventListener } from '../../utils/event';
 import { isWindow } from '../../utils/dom';
 
-const LISTENED_EVENTS: Array<string> = [
+const LISTENED_EVENTS = [
     'click', 'mousedown', 'mouseup', 'dblclick', 'contextmenu', 'mousemove', 'mouseover', 'mouseout',
     'pointerdown', 'pointermove', 'pointerover', 'pointerout', 'pointerup',
     'MSPointerDown', 'MSPointerMove', 'MSPointerOver', 'MSPointerOut', 'MSPointerUp',
@@ -14,7 +14,7 @@ const LISTENED_EVENTS: Array<string> = [
     'change', 'focus', 'blur', 'focusin', 'focusout'
 ];
 
-const EVENT_SANDBOX_DISPATCH_EVENT_FLAG: string = 'hammerhead|event-sandbox-dispatch-event-flag';
+const EVENT_SANDBOX_DISPATCH_EVENT_FLAG = 'hammerhead|event-sandbox-dispatch-event-flag';
 
 export default class Listeners extends EventEmitter {
     EVENT_LISTENER_ATTACHED_EVENT: string = 'hammerhead|event|event-listener-attached';
@@ -148,7 +148,7 @@ export default class Listeners extends EventEmitter {
         const listeners = this;
 
         return {
-            addEventListener: function (...args: Array<any>) {
+            addEventListener: function (...args: any[]) {
                 const type                   = args[0];
                 const listener               = args[1];
                 const useCapture             = Listeners._getUseCaptureParam(args[2]);
@@ -178,7 +178,7 @@ export default class Listeners extends EventEmitter {
                 return res;
             },
 
-            removeEventListener: function (...args: Array<any>) {
+            removeEventListener: function (...args: any[]) {
                 const type                      = args[0];
                 const listener                  = args[1];
                 const useCapture                = Listeners._getUseCaptureParam(args[2]);
@@ -205,7 +205,7 @@ export default class Listeners extends EventEmitter {
         const nativeRemoveEventListener = (() => doc.body.removeEventListener)();
 
         return {
-            addEventListener: function (...args: Array<any>) {
+            addEventListener: function (...args: any[]) {
                 const type                  = args[0];
                 const listener              = args[1];
                 const useCapture            = Listeners._getUseCaptureParam(args[2]);
@@ -236,7 +236,7 @@ export default class Listeners extends EventEmitter {
                 return res;
             },
 
-            removeEventListener: function (...args: Array<any>) {
+            removeEventListener: function (...args: any[]) {
                 const type       = args[0];
                 const listener   = args[1];
                 const useCapture = Listeners._getUseCaptureParam(args[2]);
@@ -251,7 +251,7 @@ export default class Listeners extends EventEmitter {
         };
     }
 
-    initElementListening (el: HTMLElement|Window|Document, events: Array<string> = LISTENED_EVENTS) {
+    initElementListening (el: HTMLElement|Window|Document, events: string[] = LISTENED_EVENTS) {
         const nativeAddEventListener = Listeners._getNativeAddEventListener(el);
 
         for (const event of events) {
@@ -314,7 +314,7 @@ export default class Listeners extends EventEmitter {
             delete elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG];
     }
 
-    setEventListenerWrapper (el: Window | HTMLElement, events: Array<string>, wrapper) {
+    setEventListenerWrapper (el: Window | HTMLElement, events: string[], wrapper) {
         if (!this.listeningCtx.isElementListening(el))
             this.initElementListening(el, events);
 

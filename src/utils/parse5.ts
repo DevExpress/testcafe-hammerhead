@@ -1,7 +1,7 @@
 import { NAMESPACE_PREFIX_MAP } from '../processing/dom/namespaces';
 import { ASTAttribute, ASTNode } from 'parse5';
 
-const ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR: string = ':';
+const ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR = ':';
 
 function getAttrName (attr: ASTAttribute) {
     return attr.prefix ? attr.prefix + ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR + attr.name : attr.name;

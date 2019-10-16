@@ -29,8 +29,8 @@ export default class StorageWrapper {
     nativeStorageKey: any;
     lastState: any;
     window: Window;
-    initialProperties: Array<any>;
-    wrapperMethods: Array<any>;
+    initialProperties: any[];
+    wrapperMethods: any[];
     context: Window;
     intervalId: any;
     getCurrentState: any;

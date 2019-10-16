@@ -17,14 +17,14 @@ export default class MethodCallInstrumentation extends SandboxBase {
         this.methodWrappers = {
             postMessage: {
                 condition: isWindow,
-                method:    (contentWindow: Window, args: Array<any>) => _messageSandbox.postMessage(contentWindow, args)
+                method:    (contentWindow: Window, args: any[]) => _messageSandbox.postMessage(contentWindow, args)
             },
 
             // NOTE: We cannot get the location wrapper for a cross-domain window. Therefore, we need to
             // intercept calls to the native 'replace' method.
             replace: {
                 condition: isLocation,
-                method:    (location: Location, args: Array<any>) => location.replace(getProxyUrl(args[0], {
+                method:    (location: Location, args: any[]) => location.replace(getProxyUrl(args[0], {
                     resourceType: MethodCallInstrumentation._getLocationResourceType(location)
                 }))
             },
@@ -33,7 +33,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
             // intercept calls to the native 'assign' method.
             assign: {
                 condition: isLocation,
-                method:    (location: Location, args: Array<any>) => location.assign(getProxyUrl(args[0], {
+                method:    (location: Location, args: any[]) => location.assign(getProxyUrl(args[0], {
                     resourceType: MethodCallInstrumentation._getLocationResourceType(location)
                 }))
             }
@@ -63,7 +63,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
         nativeMethods.objectDefineProperty(window, INSTRUCTION.callMethod, {
-            value: (owner: any, methName: any, args: Array<any>) => {
+            value: (owner: any, methName: any, args: any[]) => {
                 if (typeUtils.isNullOrUndefined(owner))
                     MethodCallInstrumentation._error(`Cannot call method '${methName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
 
@@ -95,7 +95,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
                 if (arguments.length === 2 && !MethodCallInstrumentation._isPostMessageFn(this, postMessageFn))
                     return postMessageFn;
 
-                return function (...args: Array<any>) {
+                return function (...args: any[]) {
                     //@ts-ignore
                     return methodCallInstrumentation._messageSandbox.postMessage(this, args);
                 };

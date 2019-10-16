@@ -6,10 +6,10 @@
 import trim from './string-trim';
 import { CookieRecord, ParsedClientSyncCookie } from '../typings/cookie';
 
-const TIME_RADIX: number                            = 36;
-const CLEAR_COOKIE_VALUE_STR: string                = '=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT';
-const CLIENT_COOKIE_SYNC_KEY_FRAGMENT_COUNT: number = 7;
-const KEY_VALUE_REGEX: RegExp                       = /(?:^([^=]+)=([\s\S]*))?/;
+const TIME_RADIX                            = 36;
+const CLEAR_COOKIE_VALUE_STR                = '=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT';
+const CLIENT_COOKIE_SYNC_KEY_FRAGMENT_COUNT = 7;
+const KEY_VALUE_REGEX                       = /(?:^([^=]+)=([\s\S]*))?/;
 
 export const SYNCHRONIZATION_TYPE = {
     server: 's',
@@ -26,7 +26,7 @@ function isSameCookies (cookie1: CookieRecord, cookie2: CookieRecord) {
            cookie1.path === cookie2.path;
 }
 
-function sortByOutdatedAndActual (parsedCookies: Array<CookieRecord>): ParsedClientSyncCookie {
+function sortByOutdatedAndActual (parsedCookies: CookieRecord[]): ParsedClientSyncCookie {
     const outdated = [];
     const actual   = [];
 

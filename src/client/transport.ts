@@ -10,7 +10,7 @@ import noop from './utils/noop';
 import Promise from 'pinkie';
 import { isIframeWithoutSrc, getFrameElement } from './utils/dom';
 
-const SERVICE_MESSAGES_WAITING_INTERVAL: number = 50;
+const SERVICE_MESSAGES_WAITING_INTERVAL = 50;
 
 class Transport {
     msgQueue: any;
@@ -37,7 +37,7 @@ class Transport {
         nativeMethods.winLocalStorageGetter.call(window).setItem(settings.get().sessionId, stringifyJSON(storedMessages));
     }
 
-    static _getStoredMessages (): Array<any> {
+    static _getStoredMessages (): any[] {
         const storedMessagesStr = nativeMethods.winLocalStorageGetter.call(window).getItem(settings.get().sessionId);
 
         return storedMessagesStr ? parseJSON(storedMessagesStr) : [];

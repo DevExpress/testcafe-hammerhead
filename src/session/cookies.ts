@@ -3,8 +3,8 @@ import BYTES_PER_COOKIE_LIMIT from './cookie-limit';
 import { castArray } from 'lodash';
 import { parseUrl } from '../utils/url';
 
-const LOCALHOST_DOMAIN: string = 'localhost';
-const LOCALHOST_IP: string     = '127.0.0.1';
+const LOCALHOST_DOMAIN = 'localhost';
+const LOCALHOST_IP     = '127.0.0.1';
 
 export default class Cookies {
     private _cookieJar: any;

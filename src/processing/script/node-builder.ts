@@ -49,7 +49,7 @@ export function createAssignmentExprStmt (left: MemberExpression, right: Identif
     };
 }
 
-export function createBlockExprStmt (children: Array<Statement>): BlockStatement {
+export function createBlockExprStmt (children: Statement[]): BlockStatement {
     return {
         type: Syntax.BlockStatement,
         body: children
@@ -73,7 +73,7 @@ export function createVarDeclaration (identifier: Identifier, init?: Expression)
 }
 
 export function createProcessScriptMethCall (arg: Expression | SpreadElement, isApply?: boolean): CallExpression {
-    const args: Array<Expression | SpreadElement> = [arg];
+    const args: (Expression | SpreadElement)[] = [arg];
 
     if (isApply) {
         args.push({
@@ -212,7 +212,7 @@ export function createPropertySetWrapper (propertyName: string, obj: Expression,
     };
 }
 
-export function createMethCallWrapper (owner: Expression, meth: Literal, args: Array<Expression | SpreadElement>): CallExpression {
+export function createMethCallWrapper (owner: Expression, meth: Literal, args: (Expression | SpreadElement)[]): CallExpression {
     return {
         type: Syntax.CallExpression,
 

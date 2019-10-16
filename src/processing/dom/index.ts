@@ -12,26 +12,26 @@ import trim from '../../utils/string-trim';
 import { XML_NAMESPACE } from './namespaces';
 import { URL_ATTR_TAGS, URL_ATTRS, TARGET_ATTR_TAGS, TARGET_ATTRS } from './attributes';
 
-const CDATA_REG_EX: RegExp                       = /^(\s)*\/\/<!\[CDATA\[([\s\S]*)\/\/\]\]>(\s)*$/;
-const HTML_COMMENT_POSTFIX_REG_EX: RegExp        = /(\/\/[^\n]*|\n\s*)-->[^\n]*([\n\s]*)?$/;
-const HTML_COMMENT_PREFIX_REG_EX: RegExp         = /^(\s)*<!--[^\n]*\n/;
-const HTML_COMMENT_SIMPLE_POSTFIX_REG_EX: RegExp = /-->\s*$/;
-const JAVASCRIPT_PROTOCOL_REG_EX: RegExp         = /^\s*javascript\s*:/i;
-const EXECUTABLE_SCRIPT_TYPES_REG_EX: RegExp     = /^\s*(application\/(x-)?(ecma|java)script|text\/(javascript(1\.[0-5])?|((x-)?ecma|x-java|js|live)script)|module)\s*$/i;
+const CDATA_REG_EX                       = /^(\s)*\/\/<!\[CDATA\[([\s\S]*)\/\/\]\]>(\s)*$/;
+const HTML_COMMENT_POSTFIX_REG_EX        = /(\/\/[^\n]*|\n\s*)-->[^\n]*([\n\s]*)?$/;
+const HTML_COMMENT_PREFIX_REG_EX         = /^(\s)*<!--[^\n]*\n/;
+const HTML_COMMENT_SIMPLE_POSTFIX_REG_EX = /-->\s*$/;
+const JAVASCRIPT_PROTOCOL_REG_EX         = /^\s*javascript\s*:/i;
+const EXECUTABLE_SCRIPT_TYPES_REG_EX     = /^\s*(application\/(x-)?(ecma|java)script|text\/(javascript(1\.[0-5])?|((x-)?ecma|x-java|js|live)script)|module)\s*$/i;
 
-const SVG_XLINK_HREF_TAGS: Array<string> = [
+const SVG_XLINK_HREF_TAGS = [
     'animate', 'animateColor', 'animateMotion', 'animateTransform', 'mpath', 'set', //animation elements
     'linearGradient', 'radialGradient', 'stop', //gradient elements
     'a', 'altglyph', 'color-profile', 'cursor', 'feimage', 'filter', 'font-face-uri', 'glyphref', 'image',
     'mpath', 'pattern', 'script', 'textpath', 'use', 'tref'
 ];
 
-const INTEGRITY_ATTR_TAGS: Array<string> = ['script', 'link'];
-const IFRAME_FLAG_TAGS: Array<string>    = ['a', 'form', 'area', 'input', 'button'];
+const INTEGRITY_ATTR_TAGS = ['script', 'link'];
+const IFRAME_FLAG_TAGS    = ['a', 'form', 'area', 'input', 'button'];
 
-const ELEMENT_PROCESSED: string = 'hammerhead|element-processed';
+const ELEMENT_PROCESSED = 'hammerhead|element-processed';
 
-const AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER: string = 'hammerhead|autocomplete-attribute-absence-marker';
+const AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER = 'hammerhead|autocomplete-attribute-absence-marker';
 
 interface ElementProcessingPattern {
     selector: any;
@@ -45,7 +45,7 @@ export default class DomProcessor {
     adapter: any;
     SVG_XLINK_HREF_TAGS: string[] = SVG_XLINK_HREF_TAGS;
     AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER: string = AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
-    private readonly elementProcessorPatterns: Array<ElementProcessingPattern>;
+    private readonly elementProcessorPatterns: ElementProcessingPattern[];
     forceProxySrcForImage: boolean = false;
     allowMultipleWindows: boolean = false;
     // Refactor this, see BaseDomAdapter;
@@ -108,7 +108,7 @@ export default class DomProcessor {
         return String(this.adapter.getAttr(el, 'rel')).toLocaleLowerCase();
     }
 
-    _createProcessorPatterns (adapter: any): Array<ElementProcessingPattern> {
+    _createProcessorPatterns (adapter: any): ElementProcessingPattern[] {
         const selectors = {
             HAS_HREF_ATTR: (el: HTMLElement) => this.isUrlAttr(el, 'href'),
 

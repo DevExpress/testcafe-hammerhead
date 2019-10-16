@@ -7,7 +7,7 @@ import md5 from 'crypto-md5';
 import { getPathname } from '../utils/url';
 import { isEqual } from 'lodash';
 
-const PARAM_RE: RegExp = /^{(\S+)}$/;
+const PARAM_RE = /^{(\S+)}$/;
 
 interface Route {
     handler: StaticContent | Function;
@@ -16,7 +16,7 @@ interface Route {
 
 interface RouteWithParams {
     handler: Function;
-    paramNames: Array<string>;
+    paramNames: string[];
     re: RegExp;
 }
 
@@ -30,7 +30,7 @@ function buildRouteParamsMap (routeMatch, paramNames) {
 export default abstract class Router {
     private readonly options: any;
     private readonly routes: Map<string, Route> = new Map();
-    private readonly routesWithParams: Array<RouteWithParams> = [];
+    private readonly routesWithParams: RouteWithParams[] = [];
 
     protected constructor (options = {}) {
         this.options = options;
@@ -57,7 +57,7 @@ export default abstract class Router {
         }
     }
 
-    _prepareParamInfo (tokens: Array<string>, method: string) {
+    _prepareParamInfo (tokens: string[], method: string) {
         const paramNames = [];
         const reParts    = tokens.map(token => {
             const paramMatch = token.match(PARAM_RE);
@@ -76,13 +76,13 @@ export default abstract class Router {
         };
     }
 
-    _registerRouteWithParams (tokens: Array<string>, method: string, handler: Function): void {
+    _registerRouteWithParams (tokens: string[], method: string, handler: Function): void {
         const { paramNames, re } = this._prepareParamInfo(tokens, method);
 
         this.routesWithParams.push({ handler, paramNames, re });
     }
 
-    _unregisterRouteWithParams (tokens: Array<string>, method: string): void {
+    _unregisterRouteWithParams (tokens: string[], method: string): void {
         const { paramNames, re } = this._prepareParamInfo(tokens, method);
 
         const routeIndex = this.routesWithParams.findIndex(routeWithParam => {
@@ -101,7 +101,7 @@ export default abstract class Router {
             if (route.isStatic)
                 respondStatic(req, res, route.handler, this.options.staticContentCaching);
             else
-                (<Function>route.handler)(req, res, serverInfo); // eslint-disable-line no-extra-parens
+                (route.handler as Function)(req, res, serverInfo);
 
             return true;
         }

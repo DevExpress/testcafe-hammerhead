@@ -1,11 +1,9 @@
-//@ts-ignore
 import Promise from 'pinkie';
 import Sandbox from './sandbox';
 import EventEmitter from './utils/event-emitter';
 import XhrSandbox from './sandbox/xhr';
 import settings from './settings';
 import transport from './transport';
-//@ts-ignore
 import * as JSON from 'json-hammerhead';
 import * as browserUtils from './utils/browser';
 import * as domUtils from './utils/dom';
@@ -90,7 +88,7 @@ class Hammerhead {
         this.EventEmitter = EventEmitter;
 
         // Methods
-        this.doUpload        = (input: HTMLInputElement, filePaths: string | Array<string>) => this.sandbox.upload.doUpload(input, filePaths);
+        this.doUpload        = (input: HTMLInputElement, filePaths: string | string[]) => this.sandbox.upload.doUpload(input, filePaths);
         this.createNativeXHR = XhrSandbox.createNativeXHR;
 
         this.processScript = processScript;

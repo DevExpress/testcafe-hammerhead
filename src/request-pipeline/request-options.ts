@@ -16,7 +16,7 @@ export default class RequestOptions {
     credentials: Credentials;
     body: Buffer;
     isXhr: boolean;
-    rawHeaders: Array<string>;
+    rawHeaders: string[];
     headers: IncomingHttpHeaders;
     auth: string | void;
     proxy?: ExternalProxySettings;

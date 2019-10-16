@@ -4,9 +4,9 @@ import { gzip, deflate, gunzip, inflate, inflateRaw } from '../../utils/promisif
 import charsetEncoder from 'iconv-lite';
 import Charset from './charset';
 
-const GZIP_CONTENT_ENCODING: string    = 'gzip';
-const DEFLATE_CONTENT_ENCODING: string = 'deflate';
-const BROTLI_CONTENT_ENCODING: string  = 'br';
+const GZIP_CONTENT_ENCODING    = 'gzip';
+const DEFLATE_CONTENT_ENCODING = 'deflate';
+const BROTLI_CONTENT_ENCODING  = 'br';
 
 // NOTE: IIS has a bug when it sends 'raw deflate' compressed data for the 'Deflate' Accept-Encoding header.
 // (see: http://zoompf.com/2012/02/lose-the-wait-http-compression)

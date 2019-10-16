@@ -5,7 +5,7 @@ import LRUCache from 'lru-cache';
 // @ts-ignore
 import tunnel from 'tunnel-agent';
 
-const SSL3_HOST_CACHE_SIZE: number = 1000;
+const SSL3_HOST_CACHE_SIZE = 1000;
 
 /* eslint-disable no-unused-vars */
 enum TYPE {
@@ -69,7 +69,7 @@ export function assign (reqOpts: RequestOptions): void {
         return;
     }
 
-    let type: string = '';
+    let type = '';
 
     if (reqOpts.protocol === 'http:')
         type = TYPE.HTTP;

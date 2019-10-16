@@ -1,13 +1,13 @@
 import { FileInputInfo } from '../typings/upload';
 import * as bufferUtils from '../utils/buffer';
 
-const INPUT_NAME_RE: RegExp = /;\s*name="([^"]*)"/i;
-const FILE_NAME_RE: RegExp  = /;\s*filename="([^"]*)"/i;
-const HEADER_RE: RegExp     = /^(.+?):\s*(.*)$/;
+const INPUT_NAME_RE = /;\s*name="([^"]*)"/i;
+const FILE_NAME_RE  = /;\s*filename="([^"]*)"/i;
+const HEADER_RE     = /^(.+?):\s*(.*)$/;
 
 export default class FormDataEntry {
     private _headers: { [name: string]: string } = {};
-    body: Array<Buffer> = [];
+    body: Buffer[] = [];
     name: string = '';
     fileName: string = '';
 
@@ -48,7 +48,7 @@ export default class FormDataEntry {
     }
 
     toBuffer (): Buffer {
-        const chunks: Array<Buffer> = [];
+        const chunks: Buffer[] = [];
 
         for (const name of Object.keys(this._headers)) {
             const value = this._headers[name];

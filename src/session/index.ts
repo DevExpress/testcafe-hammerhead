@@ -34,9 +34,9 @@ interface UserScript {
 }
 
 interface InjectableResources {
-    scripts: Array<string>;
-    styles: Array<string>;
-    userScripts: Array<UserScript>;
+    scripts: string[];
+    styles: string[];
+    userScripts: UserScript[];
 }
 
 interface RequestEventListeners {
@@ -231,8 +231,8 @@ export default abstract class Session extends EventEmitter {
         this.requestEventListeners.clear();
     }
 
-    getRequestFilterRules (requestInfo: RequestInfo): Array<RequestFilterRule> {
-        const rulesArray: Array<RequestFilterRule> = Array.from(this.requestEventListeners.keys());
+    getRequestFilterRules (requestInfo: RequestInfo): RequestFilterRule[] {
+        const rulesArray: RequestFilterRule[] = Array.from(this.requestEventListeners.keys());
 
         return rulesArray.filter(rule => rule.match(requestInfo));
     }

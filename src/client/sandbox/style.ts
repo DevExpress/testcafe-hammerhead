@@ -8,8 +8,8 @@ const CSS_STYLE_PROXY_OBJECT = 'hammerhead|style|proxy-object';
 const CSS_STYLE_PROXY_TARGET = 'hammerhead|style|proxy-target';
 
 export default class StyleSandbox extends SandboxBase {
-    URL_PROPS: Array<string>;
-    DASHED_URL_PROPS: Array<string>;
+    URL_PROPS: string[];
+    DASHED_URL_PROPS: string[];
     FEATURES: any;
 
     constructor () {

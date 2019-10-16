@@ -122,7 +122,7 @@ export default class WindowSandbox extends SandboxBase {
         return stack;
     }
 
-    private static _isProcessableBlob (parts: Array<any>): boolean {
+    private static _isProcessableBlob (parts: any[]): boolean {
         let hasStringItem = false;
 
         for (const item of parts) {
@@ -676,7 +676,7 @@ export default class WindowSandbox extends SandboxBase {
                 if (typeof args[urlIndex] === 'string') {
                     // eslint-disable-next-line no-restricted-properties
                     const destHostname = destLocation.getParsed().hostname;
-                    let isDestUrl: boolean = false;
+                    let isDestUrl      = false;
 
                     if (isFirefox) {
                         const parsedUrl = parseUrl(args[urlIndex]);

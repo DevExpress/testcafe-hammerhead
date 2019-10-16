@@ -6,25 +6,25 @@
 import trim from './string-trim';
 import { ParsedUrl, ResourceType, RequestDescriptor, ParsedProxyUrl, ProxyUrlOptions } from '../typings/url';
 
-const PROTOCOL_RE: RegExp        = /^([\w-]+?:)(\/\/|[^\\/]|$)/;
-const LEADING_SLASHES_RE: RegExp = /^(\/\/)/;
-const HOST_RE: RegExp            = /^(.*?)(\/|%|\?|;|#|$)/;
-const PORT_RE: RegExp            = /:([0-9]*)$/;
-const QUERY_AND_HASH_RE: RegExp  = /(\?.+|#[^#]*)$/;
-const PATH_AFTER_HOST_RE: RegExp = /^\/([^/]+?)\/([\S\s]+)$/;
-const HTTP_RE: RegExp            = /^(?:https?):/;
-const FILE_RE: RegExp            = /^file:/i;
+const PROTOCOL_RE        = /^([\w-]+?:)(\/\/|[^\\/]|$)/;
+const LEADING_SLASHES_RE = /^(\/\/)/;
+const HOST_RE            = /^(.*?)(\/|%|\?|;|#|$)/;
+const PORT_RE            = /:([0-9]*)$/;
+const QUERY_AND_HASH_RE  = /(\?.+|#[^#]*)$/;
+const PATH_AFTER_HOST_RE = /^\/([^/]+?)\/([\S\s]+)$/;
+const HTTP_RE            = /^(?:https?):/;
+const FILE_RE            = /^file:/i;
 
-export const SUPPORTED_PROTOCOL_RE: RegExp               = /^(?:https?|file):/i;
-export const HASH_RE: RegExp                             = /^#/;
-export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR: string = '!';
-export const TRAILING_SLASH_RE: RegExp                   = /\/$/;
+export const SUPPORTED_PROTOCOL_RE               = /^(?:https?|file):/i;
+export const HASH_RE                             = /^#/;
+export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = '!';
+export const TRAILING_SLASH_RE                   = /\/$/;
 export const SPECIAL_BLANK_PAGE                          = 'about:blank';
 export const SPECIAL_ERROR_PAGE                          = 'about:error';
-export const SPECIAL_PAGES: Array<string>                = [SPECIAL_BLANK_PAGE, SPECIAL_ERROR_PAGE];
+export const SPECIAL_PAGES                               = [SPECIAL_BLANK_PAGE, SPECIAL_ERROR_PAGE];
 
-export const HTTP_DEFAULT_PORT: string  = '80';
-export const HTTPS_DEFAULT_PORT: string = '443';
+export const HTTP_DEFAULT_PORT  = '80';
+export const HTTPS_DEFAULT_PORT = '443';
 
 const SPECIAL_PAGE_DEST_RESOURCE_INFO = {
     protocol:      'about:',
@@ -131,7 +131,7 @@ export function getURLString (url: string): string {
 }
 
 export function getProxyUrl (url: string, opts: ProxyUrlOptions) {
-    const params: Array<string> = [opts.sessionId];
+    const params = [opts.sessionId];
 
     if (opts.resourceType)
         params.push(opts.resourceType);

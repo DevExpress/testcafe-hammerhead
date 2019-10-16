@@ -6,7 +6,7 @@ export default class ResponseEvent {
     readonly requestId: string;
     readonly statusCode: number;
     readonly sessionId: string;
-    readonly headers?: { [name: string]: string|Array<string> };
+    readonly headers?: { [name: string]: string|string[] };
     readonly body?: Buffer;
 
     constructor (requestFilterRule: RequestFilterRule, preparedResponseInfo: PreparedResponseInfo) {

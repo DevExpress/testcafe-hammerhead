@@ -185,7 +185,7 @@ const stages = [
                 await callResponseEventCallbackForProcessedRequest(ctx, configureResponseEvent);
             }));
 
-            const res: http.ServerResponse = <http.ServerResponse>ctx.res;
+            const res = ctx.res as http.ServerResponse;
 
             res.write(ctx.destResBody);
             ctx.res.end();
