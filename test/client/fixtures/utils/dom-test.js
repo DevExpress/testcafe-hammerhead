@@ -969,6 +969,38 @@ test('isInputWithNativeDialog', function () {
         expect(0);
 });
 
+test('should return active element inside shadow DOM', function () {
+    var template = document.createElement('template');
+
+    template.innerHTML = '<div class=\'slot-parent\'><slot name=\'slot-name\'></slot></div>';
+
+    customElements.define('custom-test-element', class extends HTMLElement {
+        constructor () {
+            super();
+
+            var templateContent = template.content;
+
+            this.attachShadow({ mode: 'open' }).appendChild(templateContent.cloneNode(true));
+        }
+    });
+
+    var custom = document.createElement('custom-test-element');
+    var button = document.createElement('button');
+
+    custom.innerHTML = '<div class="div-slot" slot="slot-name"></div>';
+    button.innerHTML = 'Click me';
+
+    var slotParent   = custom.shadowRoot.querySelector('div.slot-parent');
+    var slotContent  = custom.querySelector('div.div-slot');
+
+    slotContent.appendChild(button);
+    document.body.appendChild(custom);
+
+    deepEqual(domUtils.getParents(button), [slotContent, slotParent, custom, document.body, document.documentElement]);
+
+    document.body.removeChild(custom);
+});
+
 if (browserUtils.isChrome) {
     test('should return active element inside shadow DOM', function () {
         var host  = document.createElement('div');
