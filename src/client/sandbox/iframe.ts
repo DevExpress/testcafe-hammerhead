@@ -148,7 +148,7 @@ export default class IframeSandbox extends SandboxBase {
         this._raiseReadyToInitEvent(iframe);
     }
 
-    processIframe (el: HTMLIFrameElement) {
+    processIframe (el: HTMLIFrameElement | HTMLFrameElement): void {
         if (isShadowUIElement(el))
             return;
 

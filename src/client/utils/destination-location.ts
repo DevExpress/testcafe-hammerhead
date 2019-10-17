@@ -7,7 +7,7 @@ import nativeMethods from '../sandbox/native-methods';
 let forcedLocation = null;
 
 // NOTE: exposed only for tests
-export function getLocation () {
+export function getLocation (): string {
     // NOTE: Used for testing. Unfortunately, we cannot override the 'getLocation' method in a test.
     if (forcedLocation)
         return forcedLocation;
@@ -23,18 +23,18 @@ export function getLocation () {
 
 // NOTE: We need to be able to force the page location. During the test, Hammerhead should think that it is on the
 // proxied page, not in the test environment. Unfortunately, we cannot do it in any other way.
-export function forceLocation (url) {
+export function forceLocation (url: string): void {
     forcedLocation = url;
 }
 
-export function sameOriginCheck (location, checkedUrl) {
+export function sameOriginCheck (location: string, checkedUrl: string): boolean {
     if (checkedUrl)
         checkedUrl = resolveUrl(checkedUrl);
 
     return sharedUrlUtils.sameOriginCheck(location, checkedUrl);
 }
 
-export function resolveUrl (url, doc?: Document) {
+export function resolveUrl (url: string, doc?: Document): string {
     url = sharedUrlUtils.getURLString(url);
 
     if (url && url.indexOf('//') === 0) {
@@ -50,14 +50,14 @@ export function resolveUrl (url, doc?: Document) {
     return urlResolver.resolve(url, doc || document);
 }
 
-export function get () {
+export function get (): string {
     const location       = getLocation();
     const parsedProxyUrl = sharedUrlUtils.parseProxyUrl(location);
 
     return parsedProxyUrl ? parsedProxyUrl.destUrl : location;
 }
 
-export function withHash (hash) {
+export function withHash (hash: string): string {
     let location = get();
 
     // NOTE: Remove the previous hash if there is any.
@@ -98,7 +98,7 @@ export function getParsed () {
     };
 }
 
-export function getOriginHeader () {
+export function getOriginHeader (): string {
     const parsedDest = getParsed();
 
     // eslint-disable-next-line no-restricted-properties
