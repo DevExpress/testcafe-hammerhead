@@ -1034,15 +1034,16 @@ if (window.HTMLElement.prototype.createShadowRoot) {
 
         template.innerHTML = '<div class=\'slot-parent\'><slot name=\'slot-name\'></slot></div>';
 
-        customElements.define('custom-test-element', class extends HTMLElement {
-            constructor () {
-                super();
-
-                var templateContent = template.content;
-
-                this.attachShadow({ mode: 'open' }).appendChild(templateContent.cloneNode(true));
-            }
-        });
+        // NOTE: bypass IE syntax validation
+        customElements.define('custom-test-element', eval(
+            '(class El extends HTMLElement { ' +
+            'constructor () { ' +
+            '   super(); ' +
+            '   var templateContent = template.content; ' +
+            '   this.attachShadow({ mode: \'open\' }).appendChild(templateContent.cloneNode(true)); ' +
+            '} ' +
+        '})'
+        ));
 
         var custom = document.createElement('custom-test-element');
         var button = document.createElement('button');
