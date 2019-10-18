@@ -754,21 +754,25 @@ export function parseDocumentCharset () {
 }
 
 export function getParents (el, selector?) {
-    // eslint-disable-next-line no-restricted-properties
-    let parent = nativeMethods.nodeParentNodeGetter.call(el) || el.host;
-
     const parents = [];
 
+    let parent = getParent(el);
+
     while (parent) {
-        if (!selector && isElementNode(parent) ||
-            selector && matches(parent, selector))
+        if (!selector && isElementNode(parent) || selector && matches(parent, selector))
             parents.push(parent);
 
-        // eslint-disable-next-line no-restricted-properties
-        parent = nativeMethods.nodeParentNodeGetter.call(parent) || parent.host;
+        parent = getParent(parent);
     }
 
     return parents;
+}
+
+function getParent (el) {
+    el = el.assignedSlot || el;
+
+    // eslint-disable-next-line no-restricted-properties
+    return nativeMethods.nodeParentNodeGetter.call(el) || el.host;
 }
 
 export function findParent (node, includeSelf = false, predicate) {

@@ -1028,6 +1028,39 @@ if (window.HTMLElement.prototype.createShadowRoot) {
         deepEqual(parents, [div, host, document.body, document.documentElement]);
         document.body.removeChild(host);
     });
+
+    test('"getParents" should work property for elements with slots/templates', function () {
+        var template = document.createElement('template');
+
+        template.innerHTML = '<div class=\'slot-parent\'><slot name=\'slot-name\'></slot></div>';
+
+        // NOTE: bypass IE syntax validation
+        customElements.define('custom-test-element', eval(
+            '(class El extends HTMLElement { ' +
+            'constructor () { ' +
+            '   super(); ' +
+            '   var templateContent = template.content; ' +
+            '   this.attachShadow({ mode: \'open\' }).appendChild(templateContent.cloneNode(true)); ' +
+            '} ' +
+        '})'
+        ));
+
+        var custom = document.createElement('custom-test-element');
+        var button = document.createElement('button');
+
+        custom.innerHTML = '<div class="div-slot" slot="slot-name"></div>';
+        button.innerHTML = 'Click me';
+
+        var slotParent  = custom.shadowRoot.querySelector('div.slot-parent');
+        var slotContent = custom.querySelector('div.div-slot');
+
+        slotContent.appendChild(button);
+        document.body.appendChild(custom);
+
+        deepEqual(domUtils.getParents(button), [slotContent, slotParent, custom, document.body, document.documentElement]);
+
+        document.body.removeChild(custom);
+    });
 }
 
 if (window.HTMLElement.prototype.matches && window.HTMLElement.prototype.closest) {
