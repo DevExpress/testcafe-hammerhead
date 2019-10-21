@@ -143,7 +143,7 @@ export default class RequestPipelineContext {
         return injectableUrls.map(url => this.serverInfo.domain + url);
     }
 
-    private _initRequestNatureInfo () {
+    private _initRequestNatureInfo (): void {
         const acceptHeader = this.req.headers['accept'];
 
         this.isWebSocket    = this.dest.isWebSocket;
@@ -178,6 +178,9 @@ export default class RequestPipelineContext {
         // NOTE: Remove that after implementing the https://github.com/DevExpress/testcafe-hammerhead/issues/2155
         if (!flattenParsedReqUrl && flattenParsedReferer)
             flattenParsedReqUrl = this._getDestFromReferer(flattenParsedReferer);
+
+        if (!flattenParsedReqUrl)
+            return false;
 
         this.session = openSessions.get(flattenParsedReqUrl.sessionId);
 

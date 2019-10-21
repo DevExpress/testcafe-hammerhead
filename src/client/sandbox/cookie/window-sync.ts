@@ -22,9 +22,9 @@ interface SyncCookieMsg {
 }
 
 export default class WindowSync {
-    private _win: Window;
-    private _messageIdGenerator: IntegerIdGenerator;
-    private _resolversMap: Map<number, () => void>;
+    private _win: Window | null = null;
+    private _messageIdGenerator: IntegerIdGenerator | null = null;
+    private _resolversMap: Map<number, () => void> = new Map<number, () => void>();
 
     constructor (private readonly _cookieSandbox: CookieSandbox,
         private readonly _messageSandbox: MessageSandbox) {
@@ -70,15 +70,15 @@ export default class WindowSync {
         return windows;
     }
 
-    private _sendSyncMessage (win: Window, cmd: string, cookies) {
+    private _sendSyncMessage (win: Window, cmd: string, cookies): Promise<void> {
         const id     = this._messageIdGenerator.increment();
         let attempts = 0;
 
-        return new Promise(resolve => {
-            let timeoutId = null;
+        return new Promise((resolve: Function) => {
+            let timeoutId: number | null = null;
 
             const resolveWrapper = () => {
-                nativeMethods.clearTimeout.call(this._win, timeoutId);
+                nativeMethods.clearTimeout.call(this._win, timeoutId as number);
                 this._resolversMap.delete(id);
                 resolve();
             };
@@ -98,7 +98,7 @@ export default class WindowSync {
         });
     }
 
-    private _delegateSyncBetweenWindowsToTop (cookies) {
+    private _delegateSyncBetweenWindowsToTop (cookies): void {
         const cookieSandboxTop = WindowSync._getCookieSandbox(this._win.top);
 
         if (cookieSandboxTop) {
@@ -109,7 +109,7 @@ export default class WindowSync {
             this._messageSandbox.sendServiceMsg({ cmd: SYNC_COOKIE_START_CMD, cookies }, this._win.top);
     }
 
-    private _removeSyncCookie (cookies) {
+    private _removeSyncCookie (cookies): void {
         const doc             = this._win.document;
         const clientCookieStr = cookies[0].isClientSync && nativeMethods.documentCookieGetter.call(doc);
 
@@ -148,7 +148,7 @@ export default class WindowSync {
             this._removeSyncCookie(cookies);
     }
 
-    attach (win: Window) {
+    attach (win: Window): void {
         this._win = win;
 
         this._messageSandbox.on(this._messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => this._onMsgReceived(e));

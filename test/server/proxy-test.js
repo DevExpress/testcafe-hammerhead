@@ -6,13 +6,13 @@ const urlLib                               = require('url');
 const request                              = require('request-promise-native');
 const path                                 = require('path');
 const net                                  = require('net');
-const expect                               = require('chai').expect;
+const { expect }                           = require('chai');
 const express                              = require('express');
 const read                                 = require('read-file-relative').readSync;
 const selfSignedCertificate                = require('openssl-self-signed-certificate');
-const getFreePort                          = require('endpoint-utils').getFreePort;
+const { getFreePort }                      = require('endpoint-utils');
 const WebSocket                            = require('ws');
-const noop                                 = require('lodash').noop;
+const { noop }                             = require('lodash');
 const isWindows                            = require('os-family').win;
 const promisifyEvent                       = require('promisify-event');
 const XHR_HEADERS                          = require('../../lib/request-pipeline/xhr/headers');
@@ -27,7 +27,7 @@ const DestinationRequest                   = require('../../lib/request-pipeline
 const RequestPipelineContext               = require('../../lib/request-pipeline/context');
 const scriptHeader                         = require('../../lib/processing/script/header');
 const resourceProcessor                    = require('../../lib/processing/resources/');
-const gzip                                 = require('../../lib/utils/promisified-functions').gzip;
+const { gzip }                             = require('../../lib/utils/promisified-functions');
 const urlUtils                             = require('../../lib/utils/url');
 const Asar                                 = require('../../lib/utils/asar');
 
@@ -73,6 +73,8 @@ const ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
 ];
 
 const PAGE_ACCEPT_HEADER = 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8';
+
+const PROXY_HOSTNAME = '127.0.0.1';
 
 function trim (str) {
     return str.replace(/^\s+|\s+$/g, '');
@@ -462,7 +464,7 @@ describe('Proxy', () => {
         session.getAuthCredentials = () => null;
         session.handleFileDownload = () => void 0;
 
-        proxy = new Proxy('127.0.0.1', 1836, 1837, { ssl: sslOptions });
+        proxy = new Proxy(PROXY_HOSTNAME, 1836, 1837, { ssl: sslOptions });
     });
 
     afterEach(() => {
@@ -473,7 +475,7 @@ describe('Proxy', () => {
         it('Should ensure a trailing slash on openSession() (GH-1426)', () => {
             function getExpectedProxyUrl (testCase) {
                 const proxiedUrl = urlUtils.getProxyUrl(testCase.url, {
-                    proxyHostname: '127.0.0.1',
+                    proxyHostname: PROXY_HOSTNAME,
                     proxyPort:     1836,
                     sessionId:     session.id,
                 });
@@ -499,7 +501,7 @@ describe('Proxy', () => {
                 url = shouldOmitPort ? url.replace(PORT_RE, '') : url;
 
                 return urlUtils.getProxyUrl(url, {
-                    proxyHostname: '127.0.0.1',
+                    proxyHostname: PROXY_HOSTNAME,
                     proxyPort:     1836,
                     sessionId:     session.id,
                 });
@@ -732,7 +734,7 @@ describe('Proxy', () => {
                 const cookie  = encodeURIComponent('aaa=111;path=/path');
                 const options = {
                     url: urlUtils.getProxyUrl('http://127.0.0.1:2000/cookie-server-sync/' + cookie, {
-                        proxyHostname: '127.0.0.1',
+                        proxyHostname: PROXY_HOSTNAME,
                         proxyPort:     1836,
                         sessionId:     session.id,
                         resourceType:  urlUtils.getResourceTypeString({ isIframe: true })
@@ -872,7 +874,7 @@ describe('Proxy', () => {
             it('Should ensure a trailing slash on location header (GH-1426)', () => {
                 function getExpectedProxyUrl (testCase) {
                     const proxiedUrl = urlUtils.getProxyUrl(testCase.url, {
-                        proxyHostname: '127.0.0.1',
+                        proxyHostname: PROXY_HOSTNAME,
                         proxyPort:     1836,
                         sessionId:     session.id
                     });
@@ -907,7 +909,7 @@ describe('Proxy', () => {
                     url = shouldOmitPort ? url.replace(PORT_RE, '') : url;
 
                     return urlUtils.getProxyUrl(url, {
-                        proxyHostname: '127.0.0.1',
+                        proxyHostname: PROXY_HOSTNAME,
                         proxyPort:     1836,
                         sessionId:     session.id,
                     });
@@ -1264,7 +1266,7 @@ describe('Proxy', () => {
 
             const options = {
                 url: urlUtils.getProxyUrl('http://127.0.0.1:2000/html-import-page', {
-                    proxyHostname: '127.0.0.1',
+                    proxyHostname: PROXY_HOSTNAME,
                     proxyPort:     1836,
                     sessionId:     session.id,
                     resourceType:  urlUtils.getResourceTypeString({ isHtmlImport: true })
@@ -1290,7 +1292,7 @@ describe('Proxy', () => {
 
             const options = {
                 url: urlUtils.getProxyUrl('http://127.0.0.1:2000/html-import-page-in-iframe', {
-                    proxyHostname: '127.0.0.1',
+                    proxyHostname: PROXY_HOSTNAME,
                     proxyPort:     1836,
                     sessionId:     session.id,
                     resourceType:  urlUtils.getResourceTypeString({ isHtmlImport: true, isIframe: true })
@@ -1774,7 +1776,7 @@ describe('Proxy', () => {
 
             const options = {
                 url: urlUtils.getProxyUrl(url, {
-                    proxyHostname: '127.0.0.1',
+                    proxyHostname: PROXY_HOSTNAME,
                     proxyPort:     1836,
                     sessionId:     session.id,
                     resourceType:  opts.resourceType
@@ -1987,7 +1989,7 @@ describe('Proxy', () => {
 
         it('Should proxy WebSocket', () => {
             const url = urlUtils.getProxyUrl('http://127.0.0.1:2000/web-socket', {
-                proxyHostname: '127.0.0.1',
+                proxyHostname: PROXY_HOSTNAME,
                 proxyPort:     1836,
                 sessionId:     session.id,
                 resourceType:  urlUtils.getResourceTypeString({ isWebSocket: true }),
@@ -2028,7 +2030,7 @@ describe('Proxy', () => {
 
         it('Should proxy secure WebSocket', () => {
             const url = urlUtils.getProxyUrl('https://127.0.0.1:2001/secire-web-socket', {
-                proxyHostname: '127.0.0.1',
+                proxyHostname: PROXY_HOSTNAME,
                 proxyPort:     1836,
                 sessionId:     session.id,
                 resourceType:  urlUtils.getResourceTypeString({ isWebSocket: true }),
@@ -2058,7 +2060,7 @@ describe('Proxy', () => {
 
         it('Should not throws an proxy error when server is not available', done => {
             const url = urlUtils.getProxyUrl('http://127.0.0.1:2003/ws', {
-                proxyHostname: '127.0.0.1',
+                proxyHostname: PROXY_HOSTNAME,
                 proxyPort:     1836,
                 sessionId:     session.id,
                 resourceType:  urlUtils.getResourceTypeString({ isWebSocket: true }),
@@ -2082,7 +2084,7 @@ describe('Proxy', () => {
             getFreePort()
                 .then(port => {
                     const url = urlUtils.getProxyUrl('http://127.0.0.1:' + port, {
-                        proxyHostname: '127.0.0.1',
+                        proxyHostname: PROXY_HOSTNAME,
                         proxyPort:     1836,
                         sessionId:     session.id,
                         resourceType:  urlUtils.getResourceTypeString({ isWebSocket: true })
@@ -2107,7 +2109,7 @@ describe('Proxy', () => {
             getFreePort()
                 .then(port => {
                     const url = urlUtils.getProxyUrl('http://localhost:' + port, {
-                        proxyHostname: '127.0.0.1',
+                        proxyHostname: PROXY_HOSTNAME,
                         proxyPort:     1836,
                         sessionId:     session.id,
                         resourceType:  urlUtils.getResourceTypeString({ isWebSocket: true })
@@ -2130,7 +2132,7 @@ describe('Proxy', () => {
 
         it('Should not call the "handlePageError" method even if a request has the "text/html" accept', done => {
             const url = urlUtils.getProxyUrl('http://127.0.0.1:2003/ws', {
-                proxyHostname: '127.0.0.1',
+                proxyHostname: PROXY_HOSTNAME,
                 proxyPort:     1836,
                 sessionId:     session.id,
                 resourceType:  urlUtils.getResourceTypeString({ isWebSocket: true }),
@@ -3224,14 +3226,14 @@ describe('Proxy', () => {
 
             for (const testCase of testCases) {
                 ctx.req.url = urlUtils.getProxyUrl(testCase.url, {
-                    proxyHostname: '127.0.0.1',
+                    proxyHostname: PROXY_HOSTNAME,
                     proxyPort:     1836,
                     sessionId:     session.id,
                 });
 
                 if (testCase.referer) {
                     ctx.req.headers.referer = urlUtils.getProxyUrl(testCase.referer, {
-                        proxyHostname: '127.0.0.1',
+                        proxyHostname: PROXY_HOSTNAME,
                         proxyPort:     1836,
                         sessionId:     session.id,
                     });
@@ -3281,6 +3283,17 @@ describe('Proxy', () => {
                 });
         });
 
+        it('Should not raise the error on dispatching a service url', () => {
+            const req = {
+                url:     `http://${PROXY_HOSTNAME}/browser/connect`,
+                headers: { accept: PAGE_ACCEPT_HEADER }
+            };
+
+            const ctx = new RequestPipelineContext(req, {}, {});
+
+            expect(ctx.dispatch(proxy.openSessions)).eql(false);
+        });
+
         describe('Should not change a response body if it is empty (GH-762)', () => {
             it('script', () => {
                 const options = {
@@ -3320,7 +3333,7 @@ describe('Proxy', () => {
             const destReq = new DestinationRequest({
                 url:        'http://127.0.0.1:2000/wait/150',
                 protocol:   'http:',
-                hostname:   '127.0.0.1',
+                hostname:   PROXY_HOSTNAME,
                 host:       '127.0.0.1:2000',
                 port:       2000,
                 path:       '/wait/150',
@@ -3427,7 +3440,7 @@ describe('Proxy', () => {
         it('Should procees "x-frame-options" header (GH-1017)', () => {
             const getIframeProxyUrl            = url => {
                 return urlUtils.getProxyUrl(url, {
-                    proxyHostname: '127.0.0.1',
+                    proxyHostname: PROXY_HOSTNAME,
                     proxyPort:     1836,
                     sessionId:     session.id,
                     resourceType:  urlUtils.getResourceTypeString({ isIframe: true })
@@ -3435,7 +3448,7 @@ describe('Proxy', () => {
             };
             const getCrossDomainIframeProxyUrl = url => {
                 return urlUtils.getProxyUrl(url, {
-                    proxyHostname: '127.0.0.1',
+                    proxyHostname: PROXY_HOSTNAME,
                     proxyPort:     1837,
                     sessionId:     session.id,
                     resourceType:  urlUtils.getResourceTypeString({ isIframe: true })
@@ -3491,7 +3504,7 @@ describe('Proxy', () => {
         it('Should not raise file download if resource is fetched by setting script src (GH-1062)', () => {
             const getScriptProxyUrl        = function (url) {
                 return urlUtils.getProxyUrl(url, {
-                    proxyHostname: '127.0.0.1',
+                    proxyHostname: PROXY_HOSTNAME,
                     proxyPort:     1836,
                     sessionId:     session.id,
                     resourceType:  urlUtils.getResourceTypeString({ isScript: true })
@@ -3536,7 +3549,7 @@ describe('Proxy', () => {
 
             const url      = 'http://127.0.0.1:2222/';
             const proxyUrl = urlUtils.getProxyUrl(url, {
-                proxyHostname: '127.0.0.1',
+                proxyHostname: PROXY_HOSTNAME,
                 proxyPort:     1836,
                 sessionId:     session.id,
                 resourceType:  urlUtils.getResourceTypeString({ isEventSource: true })
@@ -3574,7 +3587,7 @@ describe('Proxy', () => {
                 const encodedUrl = encodeURIComponent(opts.redirectLocation);
                 const options    = {
                     url: urlUtils.getProxyUrl('http://127.0.0.1:2000/redirect/' + encodedUrl, {
-                        proxyHostname: '127.0.0.1',
+                        proxyHostname: PROXY_HOSTNAME,
                         proxyPort:     1836,
                         sessionId:     session.id,
                         resourceType:  urlUtils.getResourceTypeString({ isIframe: true })
@@ -3585,7 +3598,7 @@ describe('Proxy', () => {
                     simple:                  false,
                     headers:                 {
                         referer: urlUtils.getProxyUrl(opts.referer, {
-                            proxyHostname: '127.0.0.1',
+                            proxyHostname: PROXY_HOSTNAME,
                             proxyPort:     1836,
                             sessionId:     session.id
                         })
