@@ -10,11 +10,11 @@ class NativeMethods {
     documentClosePropOwnerName: string;
     documentWritePropOwnerName: string;
     documentWriteLnPropOwnerName: string;
-    documentOpen: any;
-    documentClose: any;
-    documentWrite: any;
-    documentWriteLn: any;
-    elementFromPoint: any;
+    documentOpen: Document['open'];
+    documentClose: Document['close'];
+    documentWrite: Document['write'];
+    documentWriteLn: Document['writeln'];
+    elementFromPoint: Document['elementFromPoint'];
     caretRangeFromPoint: any;
     caretPositionFromPoint: any;
     getElementById: any;
@@ -92,7 +92,7 @@ class NativeMethods {
     windowOpen: any;
     setTimeout: any;
     setInterval: any;
-    clearTimeout: any;
+    clearTimeout: Window['clearTimeout'];
     clearInterval: any;
     registerProtocolHandler: any;
     sendBeacon: any;

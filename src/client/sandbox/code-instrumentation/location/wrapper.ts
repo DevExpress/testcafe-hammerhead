@@ -37,7 +37,7 @@ function getLocationUrl (window: Window): string | undefined {
 
 export default class LocationWrapper {
     constructor (window: Window, messageSandbox?: MessageSandbox, onChanged?: Function) {
-        const parsedLocation         = parseProxyUrl(getLocationUrl(window));
+        const parsedLocation         = parseProxyUrl(getLocationUrl(window) as string);
         const locationResourceType   = parsedLocation ? parsedLocation.resourceType : '';
         const parsedResourceType     = parseResourceType(locationResourceType);
         // @ts-ignore
@@ -80,7 +80,7 @@ export default class LocationWrapper {
             let proxyPort = null;
 
             if (window !== window.parent) {
-                const parentLocationUrl       = getLocationUrl(window.parent);
+                const parentLocationUrl       = getLocationUrl(window.parent) as string;
                 const parsedParentLocationUrl = parseProxyUrl(parentLocationUrl);
 
                 if (parsedParentLocationUrl && parsedParentLocationUrl.proxy) {
