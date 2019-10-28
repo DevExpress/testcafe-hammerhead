@@ -1,8 +1,6 @@
 import request from './request';
-// eslint-disable-next-line no-unused-vars
 import { ServiceMessage } from '../../typings/proxy';
 import { HANDLE_PORT_CMD, SET_INITIAL_WORKER_SETTINGS_CMD } from '../transport/consts';
-// eslint-disable-next-line no-unused-vars
 import { InitialWorkerSettings, ServiceMessageWrapper, WorkerMessage, MessageResponse } from '../../typings/transport';
 
 type AsyncMessageCallback = (e: MessageResponse) => void;

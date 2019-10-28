@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-vars
 import { ServiceMessage } from '../../typings/proxy';
 // @ts-ignore
 import Promise from 'pinkie';

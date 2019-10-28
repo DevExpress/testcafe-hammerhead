@@ -5,13 +5,10 @@ import { isWebKit, isFirefox } from '../utils/browser';
 import Promise from 'pinkie';
 import { isIframeWithoutSrc, getFrameElement } from '../utils/dom';
 import IntegerIdGenerator from '../utils/integer-id-generator';
-// eslint-disable-next-line no-unused-vars
 import { ServiceMessage } from '../../typings/proxy';
-// eslint-disable-next-line no-unused-vars
 import MessageSandbox from '../sandbox/event/message';
 import TransportLegacy from './transport-legacy';
 import { HANDLE_PORT_CMD, SET_INITIAL_WORKER_SETTINGS_CMD } from './consts';
-// eslint-disable-next-line no-unused-vars
 import { InitialWorkerSettings, ServiceMessageWrapper, WorkerMessage } from '../../typings/transport';
 
 const GET_MESSAGE_PORT = 'hammerhead|command|get-message-port';

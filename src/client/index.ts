@@ -53,8 +53,8 @@ class Hammerhead {
     constructor () {
         //@ts-ignore
         this.win                 = null;
-        this.sandbox             = new Sandbox();
         this.transport           = new Transport();
+        this.sandbox             = new Sandbox(this.transport);
         this.pageNavigationWatch = new PageNavigationWatch(this.sandbox.event, this.sandbox.codeInstrumentation,
             this.sandbox.node.element);
 

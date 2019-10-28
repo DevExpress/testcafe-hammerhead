@@ -6,7 +6,6 @@ const eslint         = require('gulp-eslint');
 const fs             = require('fs');
 const gulp           = require('gulp');
 const gulpStep       = require('gulp-step');
-const gulpIf         = require('gulp-if');
 const qunitHarness   = require('gulp-qunit-harness');
 const mocha          = require('gulp-mocha-simple');
 const mustache       = require('gulp-mustache');
@@ -153,7 +152,6 @@ gulp.step('client-scripts-bundle', () => {
 
     const transportWorker = gulp.src('./src/client/transport-worker/index.js')
         .pipe(webmake({ sourceMap: false, transform }))
-        .pipe(gulpIf(!util.env.transportDev && !util.env.dev, uglify()))
         .pipe(rename('transport-worker.js'));
 
     return mergeStreams(hammerhead, transportWorker)
@@ -169,7 +167,11 @@ gulp.step('client-scripts-processing', () => {
         .pipe(uglify())
         .pipe(rename('hammerhead.min.js'));
 
-    return mergeStreams(script, bundledScript)
+    const uglifiedTransportWorker = gulp.src('./lib/client/transport-worker.js')
+        .pipe(uglify())
+        .pipe(rename('transport-worker.min.js'));
+
+    return mergeStreams(script, bundledScript, uglifiedTransportWorker)
         .pipe(gulp.dest('./lib/client'));
 });
 
@@ -236,11 +238,6 @@ gulp.step('mocha', () => {
 
 gulp.task('test-server', gulp.series('build', 'mocha'));
 
-gulp.step('set-transport-dev-mode', done => {
-    util.env.transportDev = true;
-    done();
-});
-
 gulp.step('qunit', () => {
     gulp.watch('./src/**/*.ts', gulp.series('build'));
 
@@ -249,7 +246,7 @@ gulp.step('qunit', () => {
         .pipe(qunitHarness(getClientTestSettings()));
 });
 
-gulp.task('test-client', gulp.series('set-transport-dev-mode', 'build', 'qunit'));
+gulp.task('test-client', gulp.series('build', 'qunit'));
 
 gulp.step('set-dev-mode', done => {
     util.env.dev = true;
@@ -264,7 +261,7 @@ gulp.step('travis-saucelabs-qunit', () => {
         .pipe(qunitHarness(getClientTestSettings(), SAUCELABS_SETTINGS));
 });
 
-gulp.task('test-client-travis', gulp.series('set-transport-dev-mode', 'build', 'travis-saucelabs-qunit'));
+gulp.task('test-client-travis', gulp.series('build', 'travis-saucelabs-qunit'));
 
 gulp.step('http-playground-server', () => {
     require('./test/playground/server.js').start();

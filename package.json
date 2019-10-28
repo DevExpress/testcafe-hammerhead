@@ -72,7 +72,6 @@
     "gulp-babel": "8.0.0",
     "gulp-clone": "^2.0.1",
     "gulp-eslint": "^5.0.0",
-    "gulp-if": "^3.0.0",
     "gulp-ll-next": "^2.1.0",
     "gulp-mocha-simple": "^1.0.0",
     "gulp-mustache": "^3.0.1",
