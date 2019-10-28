@@ -6,12 +6,12 @@ import nativeMethods from '../sandbox/native-methods';
 import settings from '../settings';
 import { stringify as stringifyJSON, parse as parseJSON } from 'json-hammerhead';
 
-const SERVICE_MESSAGES_WAITING_INTERVAL: number = 50;
+const SERVICE_MESSAGES_WAITING_INTERVAL = 50;
 
 export default abstract class TransportLegacy {
     protected _activeServiceMsgCount = 0;
 
-    private static _getStoredMessages (): Array<ServiceMessage> {
+    private static _getStoredMessages (): ServiceMessage[] {
         const storedMessagesStr = nativeMethods.winLocalStorageGetter.call(window).getItem(settings.get().sessionId);
 
         return storedMessagesStr ? parseJSON(storedMessagesStr) : [];

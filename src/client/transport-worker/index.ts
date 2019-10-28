@@ -7,12 +7,12 @@ import { InitialWorkerSettings, ServiceMessageWrapper, WorkerMessage, MessageRes
 
 type AsyncMessageCallback = (e: MessageResponse) => void;
 
-type QueuedMessage = {
+interface QueuedMessage {
     msg: ServiceMessage;
-    callback: AsyncMessageCallback
-};
+    callback: AsyncMessageCallback;
+}
 
-type MessageQueue = { [key: string]: QueuedMessage[] };
+interface MessageQueue { [key: string]: QueuedMessage[] }
 
 let serviceMsgUrl            = '';
 let sessionId                = '';

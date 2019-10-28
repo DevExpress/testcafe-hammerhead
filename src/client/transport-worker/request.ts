@@ -1,12 +1,12 @@
 // eslint-disable-next-line no-unused-vars
 import { ServiceMessage } from '../../typings/proxy';
 
-type RequestContext = {
+interface RequestContext {
     url: string;
-    msg: ServiceMessage,
-    callback: (err?: string, response?: any) => void,
-    handleEvent: (e: Event) => void
-};
+    msg: ServiceMessage;
+    callback: (err?: string, response?: any) => void;
+    handleEvent: (e: ProgressEvent) => void;
+}
 
 function handleResolve (ctx: RequestContext, e: ProgressEvent) {
     const xhr = e.target as XMLHttpRequest;

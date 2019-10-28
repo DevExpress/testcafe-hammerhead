@@ -1,24 +1,24 @@
 // eslint-disable-next-line no-unused-vars
 import { ServiceMessage } from './proxy';
 
-export type InitialWorkerSettings = {
+export interface InitialWorkerSettings {
     cmd: string;
     sessionId: string;
     serviceMsgUrl: string;
-};
+}
 
-export type ServiceMessageWrapper = {
+export interface ServiceMessageWrapper {
     id: number;
     queued: boolean;
     msg: ServiceMessage;
-};
+}
 
-export type MessageResponse = {
-    data: any,
+export interface MessageResponse {
+    data: any;
     err: string;
-};
+}
 
-export type WorkerMessage = {
+export interface WorkerMessage {
     id: number;
-    result: MessageResponse
-};
+    result: MessageResponse;
+}
