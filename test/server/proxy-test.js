@@ -15,6 +15,7 @@ const WebSocket                            = require('ws');
 const { noop }                             = require('lodash');
 const isWindows                            = require('os-family').win;
 const promisifyEvent                       = require('promisify-event');
+const semver                               = require('semver');
 const XHR_HEADERS                          = require('../../lib/request-pipeline/xhr/headers');
 const AUTHORIZATION                        = require('../../lib/request-pipeline/xhr/authorization');
 const SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = require('../../lib/request-pipeline/xhr/same-origin-check-failed-status-code');
@@ -3833,45 +3834,47 @@ describe('Proxy', () => {
             ]);
         });
 
-        it('Should not pipe the request with the 304 status code (Not Modified) (GH-1602)', () => {
-            const server = net.createServer(socket => {
-                socket.on('data', () => {
-                    socket.write([
-                        'HTTP/1.1 304 Not Modified',
-                        'Content-Length: 5',
-                        '',
-                        ''
-                    ].join('\r\n'));
+        if (semver.lt(process.version, '13.0.0')) {
+            it('Should not pipe the request with the 304 status code (Not Modified) (GH-1602)', () => {
+                const server = net.createServer(socket => {
+                    socket.on('data', () => {
+                        socket.write([
+                            'HTTP/1.1 304 Not Modified',
+                            'Content-Length: 5',
+                            '',
+                            ''
+                        ].join('\r\n'));
+                    });
                 });
+
+                return getFreePort()
+                    .then(port => new Promise(resolve => server.listen(port, () => resolve(port))))
+                    .then(port => new Promise((resolve, reject) => {
+                        const proxyUrl   = proxy.openSession(`http://127.0.0.1:${port}/`, session);
+                        const reqOptions = Object.assign(urlLib.parse(proxyUrl), {
+                            method:  'GET',
+                            headers: { 'if-none-match': 'NQQ6Iyi1ttEATRNQs+U9yQ==' }
+                        });
+
+                        const req = http.request(reqOptions, res => {
+                            const chunks = [];
+
+                            res.on('data', chunk => chunks.push(chunk));
+                            res.on('end', () => resolve({ res, body: Buffer.concat(chunks).toString() }));
+                        });
+
+                        req.on('error', reject);
+                        req.setTimeout(1500, () => reject('timeout'));
+                        req.end();
+                    }))
+                    .then(({ res, body }) => {
+                        expect(res.statusCode).eql(304);
+                        expect(res.headers['content-length']).eql('5');
+                        expect(body).eql('');
+                        server.close();
+                    });
             });
-
-            return getFreePort()
-                .then(port => new Promise(resolve => server.listen(port, () => resolve(port))))
-                .then(port => new Promise((resolve, reject) => {
-                    const proxyUrl   = proxy.openSession(`http://127.0.0.1:${port}/`, session);
-                    const reqOptions = Object.assign(urlLib.parse(proxyUrl), {
-                        method:  'GET',
-                        headers: { 'if-none-match': 'NQQ6Iyi1ttEATRNQs+U9yQ==' }
-                    });
-
-                    const req = http.request(reqOptions, res => {
-                        const chunks = [];
-
-                        res.on('data', chunk => chunks.push(chunk));
-                        res.on('end', () => resolve({ res, body: Buffer.concat(chunks).toString() }));
-                    });
-
-                    req.on('error', reject);
-                    req.setTimeout(1500, () => reject('timeout'));
-                    req.end();
-                }))
-                .then(({ res, body }) => {
-                    expect(res.statusCode).eql(304);
-                    expect(res.headers['content-length']).eql('5');
-                    expect(body).eql('');
-                    server.close();
-                });
-        });
+        }
 
         it('Should not change request headers to lowercase (GH-1380)', () => {
             const options = {

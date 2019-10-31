@@ -167,11 +167,11 @@ gulp.step('client-scripts-processing', () => {
         .pipe(uglify())
         .pipe(rename('hammerhead.min.js'));
 
-    const uglifiedTransportWorker = gulp.src('./lib/client/transport-worker.js')
+    const bundledTransportWorker = gulp.src('./lib/client/transport-worker.js')
         .pipe(uglify())
         .pipe(rename('transport-worker.min.js'));
 
-    return mergeStreams(script, bundledScript, uglifiedTransportWorker)
+    return mergeStreams(script, bundledScript, bundledTransportWorker)
         .pipe(gulp.dest('./lib/client'));
 });
 

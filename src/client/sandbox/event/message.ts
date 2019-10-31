@@ -59,7 +59,9 @@ export default class MessageSandbox extends SandboxBase {
         return typeof rawData === 'string' ? parseJSON(rawData) : rawData;
     }
 
-    private static  _isWindowAvaible (window: Window) {
+    // NOTE: some window may be unavailable for the sending message, for example, if it was removed.
+    // In some browsers, window.postMessage is equal null, but other throw exception by property access.
+    private static  _isWindowAvailable (window: Window) {
         try {
             return !!window.postMessage;
         } catch (e) {
@@ -205,7 +207,7 @@ export default class MessageSandbox extends SandboxBase {
         const canSendDirectly = !isCrossDomainWindows(targetWindow, this.window) && !!targetWindow[this.RECEIVE_MSG_FN];
 
         if (!canSendDirectly)
-            return MessageSandbox._isWindowAvaible(targetWindow) && targetWindow.postMessage(message, '*', ports);
+            return MessageSandbox._isWindowAvailable(targetWindow) && targetWindow.postMessage(message, '*', ports);
 
         const sendFunc = force => {
             // NOTE: In IE, this function is called on the timeout despite the fact that the timer has been cleared
