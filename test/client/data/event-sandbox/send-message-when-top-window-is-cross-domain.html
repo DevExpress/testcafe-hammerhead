@@ -21,7 +21,7 @@
         iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 
         var messageSandbox = hammerhead.sandbox.event.message;
-        var postMessage    = hammerhead.sandbox.event.message.postMessage;
+        var hhPostMessage  = hammerhead.sandbox.event.message.postMessage;
 
         var iframe = document.createElement('iframe');
 
@@ -41,7 +41,7 @@
                 errorIsRaised = true;
             }
 
-            postMessage(window.top, [{ errorIsRaised: errorIsRaised }, '*']);
+            hhPostMessage(window.top, [{ errorIsRaised: errorIsRaised }, '*']);
         });
         document.body.appendChild(iframe);
     </script>

@@ -59,6 +59,14 @@ export default class MessageSandbox extends SandboxBase {
         return typeof rawData === 'string' ? parseJSON(rawData) : rawData;
     }
 
+    private static  _isWindowAvaible (window: Window) {
+        try {
+            return !!window.postMessage;
+        } catch (e) {
+            return false;
+        }
+    }
+
     // @ts-ignore
     private _onMessage (e) {
         const data = MessageSandbox._getMessageData(e);
@@ -196,44 +204,43 @@ export default class MessageSandbox extends SandboxBase {
         const message         = MessageSandbox._wrapMessage(MESSAGE_TYPE.service, msg);
         const canSendDirectly = !isCrossDomainWindows(targetWindow, this.window) && !!targetWindow[this.RECEIVE_MSG_FN];
 
-        if (canSendDirectly) {
-            const sendFunc = force => {
-                // NOTE: In IE, this function is called on the timeout despite the fact that the timer has been cleared
-                // in the unload event handler, so we check whether the function is in the queue
-                if (force || this._removeInternalMsgFromQueue(sendFunc)) {
-                    // NOTE: The 'sendFunc' function may be called on timeout, so we must call 'canSendDirectly' again,
-                    // because the iframe could become cross-domain in the meantime. Unfortunately, Chrome hangs when
-                    // trying to call the 'isCrossDomainWindows' function, so we have to wrap it in 'try/catch'.
-                    try {
-                        targetWindow[this.RECEIVE_MSG_FN]({
-                            // NOTE: Cloning a message to prevent this modification.
-                            data:   parseJSON(stringifyJSON(message)),
-                            source: this.window,
-                            ports
-                        });
-                    }
-                    // eslint-disable-next-line no-empty
-                    catch (e) {
-                    }
+        if (!canSendDirectly)
+            return MessageSandbox._isWindowAvaible(targetWindow) && targetWindow.postMessage(message, '*', ports);
+
+        const sendFunc = force => {
+            // NOTE: In IE, this function is called on the timeout despite the fact that the timer has been cleared
+            // in the unload event handler, so we check whether the function is in the queue
+            if (force || this._removeInternalMsgFromQueue(sendFunc)) {
+                // NOTE: The 'sendFunc' function may be called on timeout, so we must call 'canSendDirectly' again,
+                // because the iframe could become cross-domain in the meantime. Unfortunately, Chrome hangs when
+                // trying to call the 'isCrossDomainWindows' function, so we have to wrap it in 'try/catch'.
+                try {
+                    targetWindow[this.RECEIVE_MSG_FN]({
+                        // NOTE: Cloning a message to prevent this modification.
+                        data:   parseJSON(stringifyJSON(message)),
+                        source: this.window,
+                        ports
+                    });
                 }
-            };
-
-            if (!this.isWindowUnloaded) {
-                // NOTE: Imitation of a delay for the postMessage method.
-                // We use the same-domain top window
-                // so that the function called by setTimeout is executed after removing the iframe
-                const topSameDomainWindow = getTopSameDomainWindow(this.window);
-                const timeoutId           = nativeMethods.setTimeout.call(topSameDomainWindow, sendFunc, 10);
-
-                this.iframeInternalMsgQueue.push({ timeoutId, sendFunc });
+                // eslint-disable-next-line no-empty
+                catch (e) {
+                }
             }
-            else
-                sendFunc(true);
+        };
 
-            return null;
+        if (!this.isWindowUnloaded) {
+            // NOTE: Imitation of a delay for the postMessage method.
+            // We use the same-domain top window
+            // so that the function called by setTimeout is executed after removing the iframe
+            const topSameDomainWindow = getTopSameDomainWindow(this.window);
+            const timeoutId           = nativeMethods.setTimeout.call(topSameDomainWindow, sendFunc, 10);
+
+            this.iframeInternalMsgQueue.push({ timeoutId, sendFunc });
         }
+        else
+            sendFunc(true);
 
-        return targetWindow.postMessage(message, '*', ports);
+        return null;
     }
 
     pingIframe (targetIframe, pingMessageCommand, shortWaiting: boolean) {
