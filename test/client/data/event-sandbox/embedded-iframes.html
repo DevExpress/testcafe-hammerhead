@@ -15,8 +15,8 @@
     var iframeSandbox = hammerhead.sandbox.iframe;
     var messageSandbox = hammerhead.sandbox.event.message;
 
-    var initIframeTestHandler = function (e) {
-        e.iframe.contentWindow[INTERNAL_PROPS.processDomMethodName] = function () {
+    var initIframeTestHandler = function (iframe) {
+        iframe.contentWindow[INTERNAL_PROPS.processDomMethodName] = function () {
         }
     };
 

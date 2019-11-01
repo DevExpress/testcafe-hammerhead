@@ -90,12 +90,20 @@ export default class Proxy extends Router {
     }
 
     _registerServiceRoutes (developmentMode: boolean) {
-        const hammerheadFileName      = developmentMode ? 'hammerhead.js' : 'hammerhead.min.js';
+        const developmentModeSuffix   = developmentMode ? '.min' : '';
+        const hammerheadFileName      = `hammerhead${developmentModeSuffix}.js`;
         const hammerheadScriptContent = read(`../client/${hammerheadFileName}`) as Buffer;
+        const transportWorkerFileName = `transport-worker${developmentModeSuffix}.js`;
+        const transportWorkerContent  = read(`../client/${transportWorkerFileName}`) as Buffer;
 
         this.GET(SERVICE_ROUTES.hammerhead, {
             contentType: 'application/x-javascript',
             content:     hammerheadScriptContent
+        });
+
+        this.GET(SERVICE_ROUTES.transportWorker, {
+            contentType: 'application/x-javascript',
+            content:     transportWorkerContent
         });
 
         this.POST(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onServiceMessage(req, res, serverInfo));

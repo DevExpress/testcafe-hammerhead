@@ -1,10 +1,11 @@
 import COMMAND from '../../../session/command';
 import FileListWrapper from './file-list-wrapper';
-import transport from '../../transport';
 import * as Browser from '../../utils/browser';
 import * as HiddenInfo from './hidden-info';
 // @ts-ignore
 import Promise from 'pinkie';
+import { GetUploadedFilesServiceMessage, StoreUploadedFilesServiceMessage } from '../../../typings/upload';
+import Transport from '../../transport';
 
 // NOTE: https://html.spec.whatwg.org/multipage/forms.html#fakepath-srsly.
 const FAKE_PATH_STRING = 'C:\\fakepath\\';
@@ -12,7 +13,7 @@ const FAKE_PATH_STRING = 'C:\\fakepath\\';
 export default class UploadInfoManager {
     uploadInfo: any;
 
-    constructor () {
+    constructor (private readonly _transport: Transport) {
         this.uploadInfo = [];
     }
 
@@ -53,11 +54,11 @@ export default class UploadInfoManager {
         return result;
     }
 
-    static loadFilesInfoFromServer (filePaths: string | string[]) {
-        return transport.asyncServiceMsg({
+    loadFilesInfoFromServer (filePaths: string | string[]) {
+        return this._transport.asyncServiceMsg({
             cmd:       COMMAND.getUploadedFiles,
             filePaths: typeof filePaths === 'string' ? [filePaths] : filePaths
-        });
+        } as GetUploadedFilesServiceMessage);
     }
 
     static prepareFileListWrapper (filesInfo) {
@@ -77,12 +78,12 @@ export default class UploadInfoManager {
         };
     }
 
-    static sendFilesInfoToServer (fileList, fileNames) {
-        return transport.asyncServiceMsg({
+    sendFilesInfoToServer (fileList, fileNames) {
+        return this._transport.asyncServiceMsg({
             cmd:       COMMAND.uploadFiles,
             data:      UploadInfoManager._getFileListData(fileList),
             fileNames: fileNames
-        });
+        } as StoreUploadedFilesServiceMessage);
     }
 
     clearUploadInfo (input) {

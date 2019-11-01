@@ -25,32 +25,35 @@
         });
     };
 
-    var iframeTaskScriptTempate = [
+    var iframeTaskScriptTemplate = [
         'window["%hammerhead%"].get("./utils/destination-location").forceLocation("{{{location}}}");',
         'window["%hammerhead%"].start({',
         '    referer : {{{referer}}},',
         '    cookie: {{{cookie}}},',
         '    serviceMsgUrl : "{{{serviceMsgUrl}}}",',
+        '    transportWorkerUrl: "{{{transportWorkerUrl}}}",',
         '    sessionId : "sessionId",',
         '    forceProxySrcForImage: ' + 'false,',
         '    iframeTaskScriptTemplate: {{{iframeTaskScriptTemplate}}}',
         '});'
     ].join('');
 
-    window.getIframeTaskScript = function (referer, serviceMsgUrl, location, cookie) {
-        return iframeTaskScriptTempate
+    window.getIframeTaskScript = function (referer, serviceMsgUrl, location, cookie, transportWorkerUrl) {
+        return iframeTaskScriptTemplate
             .replace('{{{referer}}}', JSON.stringify(referer || ''))
             .replace('{{{serviceMsgUrl}}}', serviceMsgUrl || '')
             .replace('{{{location}}}', location || '')
-            .replace('{{{cookie}}}', JSON.stringify(cookie || ''));
+            .replace('{{{cookie}}}', JSON.stringify(cookie || ''))
+            .replace('{{{transportWorkerUrl}}}', transportWorkerUrl || '');
     };
 
     window.initIframeTestHandler = function (iframe) {
-        var referer          = "http://localhost/sessionId/https://example.com";
-        var location         = "http://localhost/sessionId/https://example.com";
-        var serviceMsgUrl    = "/service-msg/100";
-        var cookie           = cookieSandbox.getCookie();
-        var iframeTaskScript = JSON.stringify(window.getIframeTaskScript(referer, serviceMsgUrl, location, cookie));
+        var referer            = 'http://localhost/sessionId/https://example.com';
+        var location           = 'http://localhost/sessionId/https://example.com';
+        var serviceMsgUrl      = '/service-msg/100';
+        var transportWorkerUrl = '/transport-worker.js';
+        var cookie             = cookieSandbox.getCookie();
+        var iframeTaskScript   = JSON.stringify(window.getIframeTaskScript(referer, serviceMsgUrl, location, cookie, transportWorkerUrl));
 
         if (iframe.id.indexOf('test') !== -1) {
             iframe.contentWindow.eval.call(iframe.contentWindow, [
@@ -58,6 +61,7 @@
                 'window["%hammerhead%"].start({',
                 '    referer: ' + JSON.stringify(referer) + ',',
                 '    serviceMsgUrl: "' + serviceMsgUrl + '",',
+                '    transportWorkerUrl: "' + transportWorkerUrl + '",',
                 '    sessionId: "sessionId",',
                 '    cookie: ' + JSON.stringify(cookie) + ',',
                 '    forceProxySrcForImage: ' + 'false,',
@@ -71,7 +75,9 @@
         sessionId:             'sessionId',
         cookie:                '',
         crossDomainProxyPort:  2001,
-        forceProxySrcForImage: false
+        forceProxySrcForImage: false,
+        transportWorkerUrl:    '/transport-worker.js',
+        serviceMsgUrl:         '/service-msg'
     });
 
     window.processDomMeth = window[INTERNAL_PROPS.processDomMethodName];

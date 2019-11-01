@@ -16,19 +16,19 @@
 <script>
     var INSTRUCTION = hammerhead.get('../processing/script/instruction');
     var mutation = hammerhead.sandbox.node.mutation;
-    var postMessage = hammerhead.sandbox.event.message.postMessage;
+    var hhPostMessage = hammerhead.sandbox.event.message.postMessage;
 
     var isDocumentCleanedCalled = false;
 
     mutation.on(mutation.DOCUMENT_CLEANED_EVENT, function () {
         isDocumentCleanedCalled = true;
 
-        postMessage(window.top, ['fail', '*']);
+        hhPostMessage(window.top, ['fail', '*']);
     });
 
     window.addEventListener('load', function () {
         if (!isDocumentCleanedCalled)
-            postMessage(window.top, ['success', '*']);
+            hhPostMessage(window.top, ['success', '*']);
     });
 
     eval(window[INSTRUCTION.processScript]('document.write(\'<div id="test-div">Hello!</div>\');'));

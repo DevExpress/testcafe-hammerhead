@@ -28,6 +28,7 @@ import urlResolver from '../utils/url-resolver';
 import * as windowStorage from './windows-storage';
 import nativeMethods from '../sandbox/native-methods';
 import IEDebugSandbox from './ie-debug';
+import Transport from '../transport';
 
 export default class Sandbox extends SandboxBase {
     ieDebug: IEDebugSandbox;
@@ -47,7 +48,7 @@ export default class Sandbox extends SandboxBase {
     electron: ElectronSandbox;
     windowStorage: any;
 
-    constructor () {
+    constructor (transport: Transport) {
         super();
 
         createSandboxBackup(window, this);
@@ -71,7 +72,7 @@ export default class Sandbox extends SandboxBase {
         this.fetch               = new FetchSandbox(cookieSandbox);
         this.iframe              = new IframeSandbox(nodeMutation, cookieSandbox);
         this.shadowUI            = new ShadowUI(nodeMutation, messageSandbox, this.iframe, ieDebugSandbox);
-        this.upload              = new UploadSandbox(listeners, eventSimulator);
+        this.upload              = new UploadSandbox(listeners, eventSimulator, transport);
         this.event               = new EventSandbox(listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, this.shadowUI, timersSandbox);
         this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI, cookieSandbox);
         this.codeInstrumentation = new CodeInstrumentation(this.event, messageSandbox);

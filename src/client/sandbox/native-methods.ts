@@ -310,7 +310,8 @@ class NativeMethods {
     locationClass: any;
     elementClass: any;
     svgElementClass: any;
-    Worker: any;
+    Worker: typeof Worker;
+    MessageChannel: typeof MessageChannel;
     ArrayBuffer: any;
     Uint8Array: any;
     Uint32Array: Uint32Array['constructor'];
@@ -959,6 +960,7 @@ class NativeMethods {
         this.elementClass     = win.Element;
         this.svgElementClass  = win.SVGElement;
         this.Worker           = win.Worker;
+        this.MessageChannel   = win.MessageChannel;
         this.ArrayBuffer      = win.ArrayBuffer;
         this.Uint8Array       = win.Uint8Array;
         this.Uint32Array      = win.Uint32Array;

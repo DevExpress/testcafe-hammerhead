@@ -3,7 +3,8 @@ import Sandbox from './sandbox';
 import EventEmitter from './utils/event-emitter';
 import XhrSandbox from './sandbox/xhr';
 import settings from './settings';
-import transport from './transport';
+import Transport from './transport';
+//@ts-ignore
 import * as JSON from 'json-hammerhead';
 import * as browserUtils from './utils/browser';
 import * as domUtils from './utils/dom';
@@ -42,7 +43,7 @@ class Hammerhead {
     get: Function;
     Promise: any;
     json: any;
-    transport: any;
+    transport: Transport;
     nativeMethods: any;
     shadowUI: any;
     storages: any;
@@ -52,7 +53,8 @@ class Hammerhead {
     constructor () {
         //@ts-ignore
         this.win                 = null;
-        this.sandbox             = new Sandbox();
+        this.transport           = new Transport();
+        this.sandbox             = new Sandbox(this.transport);
         this.pageNavigationWatch = new PageNavigationWatch(this.sandbox.event, this.sandbox.codeInstrumentation,
             this.sandbox.node.element);
 
@@ -101,7 +103,6 @@ class Hammerhead {
         // Modules
         this.Promise       = Promise;
         this.json          = JSON;
-        this.transport     = transport;
         this.nativeMethods = this.sandbox.nativeMethods;
         this.shadowUI      = this.sandbox.shadowUI;
         this.storages      = this.sandbox.storageSandbox;
@@ -225,6 +226,7 @@ class Hammerhead {
             domProcessor.allowMultipleWindows  = initSettings.allowMultipleWindows;
         }
 
+        this.transport.start(this.eventSandbox.message);
         this.sandbox.attach(this.win);
         this.pageNavigationWatch.start();
     }

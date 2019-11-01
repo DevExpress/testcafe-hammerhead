@@ -29,6 +29,15 @@ function urlRewriteProxyRequest (req, res, next) {
     next();
 }
 
+function fetchContent (req) {
+    return new Promise(resolve => {
+        const chunks = [];
+
+        req.on('data', chunk => chunks.push(chunk));
+        req.on('end', () => resolve(Buffer.concat(chunks).toString()));
+    });
+}
+
 module.exports = function (app) {
     app.use(urlRewriteProxyRequest);
 
@@ -58,18 +67,38 @@ module.exports = function (app) {
         res.send(script);
     });
 
-    app.post('/service-msg/:delay', function (req, res) {
-        var delay = req.params.delay || 0;
+    app.get('/transport-worker.js', function (req, res) {
+        const patchRegExp  = /(\s*)xhr\.send\(JSON\.stringify\(msg\)\);/;
+        const patchPattern = [
+            '\n',
+            '// QUnit patch start',
+            'msg.retriesCount = (msg.retriesCount || 0) + 1;',
+            '// QUnit patch end',
+            '$&\n',
+            '// QUnit patch start',
+            'if (msg.rejectForTest || msg.rejectForTestOnce && msg.retriesCount === 1)',
+            '    xhr.abort();',
+            '// QUnit patch end'
+        ].join('$1');
 
-        setTimeout(function () {
-            res.send(delay);
-        }, delay);
+        res
+            .set('content-type', 'application/javascript')
+            .send(fs.readFileSync('./lib/client/transport-worker.js').toString().replace(patchRegExp, patchPattern));
     });
 
-    app.post('/service-msg-with-error', function (req, res) {
-        res
-            .status(500)
-            .send('An error occurred!!!');
+    app.post('/service-msg', function (req, res) {
+        fetchContent(req)
+            .then(body => {
+                var msg = JSON.parse(body);
+
+                if (msg.rejectForTest500) {
+                    return res
+                        .status(500)
+                        .send('An error occurred!!!');
+                }
+
+                setTimeout(() => res.send(JSON.stringify(msg)), msg.delay || 0);
+            });
     });
 
     app.get('/xhr-test/:delay', function (req, res) {
@@ -112,14 +141,10 @@ module.exports = function (app) {
     });
 
     app.post('/form-data', function (req, res) {
-        var chunks = [];
-
-        req.on('data', function (data) {
-            chunks.push(data);
-        });
-        req.on('end', function () {
-            res.end(chunks.join(''));
-        });
+        fetchContent(req)
+            .then(body => {
+                res.end(body);
+            });
     });
 
     app.post('/echo-request-body', function (req, res) {
@@ -131,28 +156,23 @@ module.exports = function (app) {
     });
 
     app.post('/set-cookie-msg/', function (req, res) {
-        var chunks = [];
+        fetchContent(req)
+            .then(body => {
+                var msg       = JSON.parse(body);
+                var userAgent = req.headers['user-agent'];
 
-        req.on('data', function (chunk) {
-            chunks.push(chunk);
-        });
+                if (!cookies[userAgent])
+                    cookies[userAgent] = new CookieJar();
 
-        req.on('end', function () {
-            var msg       = JSON.parse(Buffer.concat(chunks).toString());
-            var userAgent = req.headers['user-agent'];
+                for (var i = 0; i < msg.queue.length; i++) {
+                    cookies[userAgent].setCookieSync(msg.queue[i].cookie, 'https://example.com/', {
+                        http:        false,
+                        ignoreError: true
+                    });
+                }
 
-            if (!cookies[userAgent])
-                cookies[userAgent] = new CookieJar();
-
-            for (var i = 0; i < msg.queue.length; i++) {
-                cookies[userAgent].setCookieSync(msg.queue[i].cookie, 'https://example.com/', {
-                    http:        false,
-                    ignoreError: true
-                });
-            }
-
-            res.status(204).send();
-        });
+                res.status(204).send();
+            });
     });
 
     app.get('/get-cookies/', function (req, res) {

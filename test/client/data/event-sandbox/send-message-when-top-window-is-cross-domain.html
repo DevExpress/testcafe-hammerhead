@@ -13,15 +13,15 @@
         hammerhead.start({ crossDomainProxyPort: 2000 });
 
         var iframeSandbox         = hammerhead.sandbox.iframe;
-        var initIframeTestHandler = function (e) {
-            e.iframe.contentWindow[INTERNAL_PROPS.processDomMethodName] = function () { }
+        var initIframeTestHandler = function (iframe) {
+            iframe.contentWindow[INTERNAL_PROPS.processDomMethodName] = function () { }
         };
 
         iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
         iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 
         var messageSandbox = hammerhead.sandbox.event.message;
-        var postMessage    = hammerhead.sandbox.event.message.postMessage;
+        var hhPostMessage  = hammerhead.sandbox.event.message.postMessage;
 
         var iframe = document.createElement('iframe');
 
@@ -41,7 +41,7 @@
                 errorIsRaised = true;
             }
 
-            postMessage(window.top, [{ errorIsRaised: errorIsRaised }, '*']);
+            hhPostMessage(window.top, [{ errorIsRaised: errorIsRaised }, '*']);
         });
         document.body.appendChild(iframe);
     </script>

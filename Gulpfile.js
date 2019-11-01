@@ -129,27 +129,32 @@ gulp.step('client-scripts-transpile', () => {
 });
 
 gulp.step('client-scripts-bundle', () => {
-    return gulp.src('./src/client/index.js')
-        .pipe(webmake({
+    const transform = (filename, code) => {
+        const transformed = babel.transform(code, {
             sourceMap: false,
-            transform: (filename, code) => {
-                const transformed = babel.transform(code, {
-                    sourceMap: false,
-                    filename:  filename,
-                    ast:       false,
-                    // NOTE: force usage of client .babelrc for all
-                    // files, regardless of their location
-                    babelrc:   false,
-                    extends:   path.join(__dirname, './src/client/.babelrc')
-                });
+            filename:  filename,
+            ast:       false,
+            // NOTE: force usage of client .babelrc for all
+            // files, regardless of their location
+            babelrc:   false,
+            extends:   path.join(__dirname, './src/client/.babelrc')
+        });
 
-                // HACK: babel-plugin-transform-es2015-modules-commonjs forces
-                // 'use strict' insertion. We need to remove it manually because
-                // of https://github.com/DevExpress/testcafe/issues/258
-                return { code: transformed.code.replace(/^('|")use strict('|");?/, '') };
-            }
-        }))
-        .pipe(rename('hammerhead.js'))
+        // HACK: babel-plugin-transform-es2015-modules-commonjs forces
+        // 'use strict' insertion. We need to remove it manually because
+        // of https://github.com/DevExpress/testcafe/issues/258
+        return { code: transformed.code.replace(/^('|")use strict('|");?/, '') };
+    };
+
+    const hammerhead = gulp.src('./src/client/index.js')
+        .pipe(webmake({ sourceMap: false, transform }))
+        .pipe(rename('hammerhead.js'));
+
+    const transportWorker = gulp.src('./src/client/transport-worker/index.js')
+        .pipe(webmake({ sourceMap: false, transform }))
+        .pipe(rename('transport-worker.js'));
+
+    return mergeStreams(hammerhead, transportWorker)
         .pipe(gulp.dest('./lib/client'));
 });
 
@@ -162,7 +167,11 @@ gulp.step('client-scripts-processing', () => {
         .pipe(uglify())
         .pipe(rename('hammerhead.min.js'));
 
-    return mergeStreams(script, bundledScript)
+    const bundledTransportWorker = gulp.src('./lib/client/transport-worker.js')
+        .pipe(uglify())
+        .pipe(rename('transport-worker.min.js'));
+
+    return mergeStreams(script, bundledScript, bundledTransportWorker)
         .pipe(gulp.dest('./lib/client'));
 });
 

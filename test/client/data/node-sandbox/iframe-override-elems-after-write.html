@@ -20,13 +20,13 @@
 <script>
     var iframeSandbox = window['%hammerhead%'].sandbox.iframe;
     var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
-    var postMessage = hammerhead.sandbox.event.message.postMessage;
+    var hhPostMessage = hammerhead.sandbox.event.message.postMessage;
 
     iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, window.top.initIframeTestHandler);
 
     document.write('<a>Link</a><iframe id="test"></iframe>');
 
-    postMessage(window.top, [[
+    hhPostMessage(window.top, [[
         {
             success:     document.querySelector('a')[INTERNAL_PROPS.processedContext] === window,
             description: 'element "a" is overridden'

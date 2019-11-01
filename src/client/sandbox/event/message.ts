@@ -19,11 +19,11 @@ const MESSAGE_TYPE = {
 };
 
 export default class MessageSandbox extends SandboxBase {
-    PING_DELAY = 200;
-    PING_IFRAME_TIMEOUT = 7000;
-    PING_IFRAME_MIN_TIMEOUT = 100;
-    SERVICE_MSG_RECEIVED_EVENT: string = 'hammerhead|event|service-msg-received';
-    RECEIVE_MSG_FN: string = 'hammerhead|receive-msg-function';
+    readonly PING_DELAY = 200;
+    readonly PING_IFRAME_TIMEOUT = 7000;
+    readonly PING_IFRAME_MIN_TIMEOUT = 100;
+    readonly SERVICE_MSG_RECEIVED_EVENT = 'hammerhead|event|service-msg-received';
+    readonly RECEIVE_MSG_FN = 'hammerhead|receive-msg-function';
 
     pingCallback: any;
     pingCmd: any;
@@ -59,6 +59,16 @@ export default class MessageSandbox extends SandboxBase {
         return typeof rawData === 'string' ? parseJSON(rawData) : rawData;
     }
 
+    // NOTE: some window may be unavailable for the sending message, for example, if it was removed.
+    // In some browsers, window.postMessage is equal null, but other throw exception by property access.
+    private static  _isWindowAvailable (window: Window) {
+        try {
+            return !!window.postMessage;
+        } catch (e) {
+            return false;
+        }
+    }
+
     // @ts-ignore
     private _onMessage (e) {
         const data = MessageSandbox._getMessageData(e);
@@ -70,7 +80,7 @@ export default class MessageSandbox extends SandboxBase {
                 this.pingCmd      = null;
             }
             else
-                this.emit(this.SERVICE_MSG_RECEIVED_EVENT, { message: data.message, source: e.source });
+                this.emit(this.SERVICE_MSG_RECEIVED_EVENT, { message: data.message, source: e.source, ports: e.ports });
         }
     }
 
@@ -192,47 +202,47 @@ export default class MessageSandbox extends SandboxBase {
         return fastApply(contentWindow, 'postMessage', args);
     }
 
-    sendServiceMsg (msg, targetWindow: Window) {
+    sendServiceMsg (msg, targetWindow: Window, ports?: Transferable[]) {
         const message         = MessageSandbox._wrapMessage(MESSAGE_TYPE.service, msg);
         const canSendDirectly = !isCrossDomainWindows(targetWindow, this.window) && !!targetWindow[this.RECEIVE_MSG_FN];
 
-        if (canSendDirectly) {
-            const sendFunc = force => {
-                // NOTE: In IE, this function is called on the timeout despite the fact that the timer has been cleared
-                // in the unload event handler, so we check whether the function is in the queue
-                if (force || this._removeInternalMsgFromQueue(sendFunc)) {
-                    // NOTE: The 'sendFunc' function may be called on timeout, so we must call 'canSendDirectly' again,
-                    // because the iframe could become cross-domain in the meantime. Unfortunately, Chrome hangs when
-                    // trying to call the 'isCrossDomainWindows' function, so we have to wrap it in 'try/catch'.
-                    try {
-                        targetWindow[this.RECEIVE_MSG_FN]({
-                            // NOTE: Cloning a message to prevent this modification.
-                            data:   parseJSON(stringifyJSON(message)),
-                            source: this.window
-                        });
-                    }
-                    // eslint-disable-next-line no-empty
-                    catch (e) {
-                    }
+        if (!canSendDirectly)
+            return MessageSandbox._isWindowAvailable(targetWindow) && targetWindow.postMessage(message, '*', ports);
+
+        const sendFunc = force => {
+            // NOTE: In IE, this function is called on the timeout despite the fact that the timer has been cleared
+            // in the unload event handler, so we check whether the function is in the queue
+            if (force || this._removeInternalMsgFromQueue(sendFunc)) {
+                // NOTE: The 'sendFunc' function may be called on timeout, so we must call 'canSendDirectly' again,
+                // because the iframe could become cross-domain in the meantime. Unfortunately, Chrome hangs when
+                // trying to call the 'isCrossDomainWindows' function, so we have to wrap it in 'try/catch'.
+                try {
+                    targetWindow[this.RECEIVE_MSG_FN]({
+                        // NOTE: Cloning a message to prevent this modification.
+                        data:   parseJSON(stringifyJSON(message)),
+                        source: this.window,
+                        ports
+                    });
                 }
-            };
-
-            if (!this.isWindowUnloaded) {
-                // NOTE: Imitation of a delay for the postMessage method.
-                // We use the same-domain top window
-                // so that the function called by setTimeout is executed after removing the iframe
-                const topSameDomainWindow = getTopSameDomainWindow(this.window);
-                const timeoutId           = nativeMethods.setTimeout.call(topSameDomainWindow, sendFunc, 10);
-
-                this.iframeInternalMsgQueue.push({ timeoutId, sendFunc });
+                // eslint-disable-next-line no-empty
+                catch (e) {
+                }
             }
-            else
-                sendFunc(true);
+        };
 
-            return null;
+        if (!this.isWindowUnloaded) {
+            // NOTE: Imitation of a delay for the postMessage method.
+            // We use the same-domain top window
+            // so that the function called by setTimeout is executed after removing the iframe
+            const topSameDomainWindow = getTopSameDomainWindow(this.window);
+            const timeoutId           = nativeMethods.setTimeout.call(topSameDomainWindow, sendFunc, 10);
+
+            this.iframeInternalMsgQueue.push({ timeoutId, sendFunc });
         }
+        else
+            sendFunc(true);
 
-        return targetWindow.postMessage(message, '*');
+        return null;
     }
 
     pingIframe (targetIframe, pingMessageCommand, shortWaiting: boolean) {

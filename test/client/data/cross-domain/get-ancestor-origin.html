@@ -13,7 +13,7 @@
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
     var INSTRUCTION = hammerhead.get('../processing/script/instruction');
-    var postMessage = hammerhead.sandbox.event.message.postMessage;
+    var hhPostMessage = hammerhead.sandbox.event.message.postMessage;
 
     var getLocation     = window[INSTRUCTION.getLocation];
     var locationWrapper = getLocation(window.location);
@@ -26,7 +26,7 @@
                 msg: JSON.stringify({ ancestorOrigins: ancestorOrigins, ancestorOriginsLength: ancestorOrigins.length })
             };
 
-            postMessage(window.parent, [data, '*']);
+            hhPostMessage(window.parent, [data, '*']);
         }
     };
 </script>

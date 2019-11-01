@@ -134,9 +134,13 @@ module('service messages');
 asyncTest('cloning arguments', function () {
     createTestIframe()
         .then(function (iframe) {
-            var sourceObj = { testObject: true };
+            var sourceObj = { testObject: true, cmd: 'qunit-test' };
+            var iframeMessageSandbox = iframe.contentWindow['%hammerhead%'].sandbox.event.message;
 
-            iframe.contentWindow['%hammerhead%'].sandbox.event.message.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
+            iframeMessageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
+                if (e.message.cmd !== sourceObj.cmd)
+                    return;
+
                 ok(e.message.testObject);
                 e.message.modified = true;
                 ok(!sourceObj.modified);
@@ -339,17 +343,17 @@ asyncTest('send service message to the recreated iframe (GH-814)', function () {
 
 test('service message from removed iframe (GH-64)', function () {
     var receivedMessages  = 0;
-    var isMessageReceived = function () {
-        return receivedMessages === 2;
-    };
 
-    messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function () {
-        ++receivedMessages;
+    messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
+        if (e.message.cmd === 'qunit-test-gh-64')
+            ++receivedMessages;
     });
 
     return createTestIframe({ src: getSameDomainPageUrl('../../../data/same-domain/service-message-from-removed-iframe.html') })
         .then(function () {
-            return window.QUnitGlobals.wait(isMessageReceived);
+            return window.QUnitGlobals.wait(function () {
+                return receivedMessages === 2;
+            });
         })
         .then(function () {
             strictEqual(receivedMessages, 2);

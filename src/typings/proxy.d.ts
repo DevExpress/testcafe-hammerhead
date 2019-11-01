@@ -9,6 +9,9 @@ export interface ServerInfo {
 export interface ServiceMessage {
     sessionId: string;
     cmd: string;
+    disableResending?: boolean;
+    allowRejecting?: boolean;
+    referer?: string;
 }
 
 export interface StaticContent {

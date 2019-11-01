@@ -8,6 +8,7 @@ import { get as getSandboxBackup } from '../backup';
 import nativeMethods from '../native-methods';
 import Listeners from '../event/listeners';
 import EventSimulator from '../event/simulator';
+import Transport from '../../transport';
 
 export default class UploadSandbox extends SandboxBase {
     START_FILE_UPLOADING_EVENT: string = 'hammerhead|event|start-file-uploading';
@@ -16,10 +17,11 @@ export default class UploadSandbox extends SandboxBase {
     infoManager: UploadInfoManager;
 
     constructor (private readonly _listeners: Listeners,
-        private readonly _eventSimulator: EventSimulator) {
+        private readonly _eventSimulator: EventSimulator,
+        transport: Transport) {
         super();
 
-        this.infoManager = new UploadInfoManager();
+        this.infoManager = new UploadInfoManager(transport);
     }
 
     _riseChangeEvent (input: HTMLInputElement) {
@@ -57,7 +59,7 @@ export default class UploadSandbox extends SandboxBase {
                         .then(fileList => {
                             currentInfoManager.setUploadInfo(input, fileList, value);
 
-                            return UploadInfoManager.sendFilesInfoToServer(fileList, fileNames);
+                            return this.infoManager.sendFilesInfoToServer(fileList, fileNames);
                         })
                         .then(uploadInfo => {
                             this._riseChangeEvent(input);
@@ -134,7 +136,7 @@ export default class UploadSandbox extends SandboxBase {
 
         filePaths = filePaths || [];
 
-        return UploadInfoManager.loadFilesInfoFromServer(filePaths)
+        return this.infoManager.loadFilesInfoFromServer(filePaths)
             .then(filesInfo => UploadInfoManager.prepareFileListWrapper(filesInfo))
             .then(data => {
                 if (!data.errs.length) {
