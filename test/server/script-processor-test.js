@@ -788,6 +788,14 @@ describe('Script processor', () => {
             {
                 src:      'import(location + "file-name").then(module => {})',
                 expected: 'import(__get$ProxyUrl(__get$Loc(location) + "file-name", "http://example.com/")).then(module => {})'
+            },
+            {
+                src:      'export * from "module-name"',
+                expected: 'export * from "http://localhost:3000/ksadjo23/http://example.com/module-name"'
+            },
+            {
+                src:      'export { x as y } from "module-name"',
+                expected: 'export { x as y } from "http://localhost:3000/ksadjo23/http://example.com/module-name"'
             }
         ]);
     });
