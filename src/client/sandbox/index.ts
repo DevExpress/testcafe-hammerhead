@@ -29,6 +29,8 @@ import * as windowStorage from './windows-storage';
 import nativeMethods from '../sandbox/native-methods';
 import IEDebugSandbox from './ie-debug';
 import Transport from '../transport';
+import getRandomInt32Value from '../utils/get-random-int-32-value';
+import { WindowIdentifier } from '../../typings/client';
 
 export default class Sandbox extends SandboxBase {
     ieDebug: IEDebugSandbox;
@@ -47,6 +49,7 @@ export default class Sandbox extends SandboxBase {
     unload: UnloadSandbox;
     electron: ElectronSandbox;
     windowStorage: any;
+    windowIdentifier: WindowIdentifier | null;
 
     constructor (transport: Transport) {
         super();
@@ -83,7 +86,18 @@ export default class Sandbox extends SandboxBase {
         if (isElectron)
             this.electron = new ElectronSandbox();
 
-        this.windowStorage = windowStorage;
+        this.windowStorage    = windowStorage;
+        this.windowIdentifier = Sandbox._calculateWindowIdentifier();
+    }
+
+    private static _calculateWindowIdentifier (): WindowIdentifier | null {
+        if (window === window.top)
+            return {
+                id:           getRandomInt32Value(),
+                creationDate: nativeMethods.dateNow()
+            };
+
+        return null;
     }
 
     // NOTE: In some cases, IE raises the "Can't execute code from a freed script" exception,
