@@ -31,7 +31,7 @@ export interface DocumentCleanedEvent {
     document: Document;
 }
 
-export interface WindowIndentifier {
+export interface WindowIdentifier {
     id: number;
     creationDate: number;
 }

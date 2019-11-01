@@ -30,7 +30,7 @@ import nativeMethods from '../sandbox/native-methods';
 import IEDebugSandbox from './ie-debug';
 import Transport from '../transport';
 import getRandomInt32Value from '../utils/get-random-int-32-value';
-import { WindowIndentifier } from '../../typings/client';
+import { WindowIdentifier } from '../../typings/client';
 
 export default class Sandbox extends SandboxBase {
     ieDebug: IEDebugSandbox;
@@ -49,7 +49,7 @@ export default class Sandbox extends SandboxBase {
     unload: UnloadSandbox;
     electron: ElectronSandbox;
     windowStorage: any;
-    windowIdentifier: WindowIndentifier | null;
+    windowIdentifier: WindowIdentifier | null;
 
     constructor (transport: Transport) {
         super();
@@ -90,10 +90,10 @@ export default class Sandbox extends SandboxBase {
         this.windowIdentifier = Sandbox._calculateWindowIdentifier();
     }
 
-    private static _calculateWindowIdentifier (): WindowIndentifier | null {
+    private static _calculateWindowIdentifier (): WindowIdentifier | null {
         if (window === window.top)
             return {
-                id: getRandomInt32Value(),
+                id:           getRandomInt32Value(),
                 creationDate: nativeMethods.dateNow()
             };
 
