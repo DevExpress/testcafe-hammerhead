@@ -11,16 +11,18 @@ import { getProxyUrlLiteral } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
 
 // Transform:
-// import something from 'url';
-// -->
-// import something from 'processed-url';
+// import something from 'url';   -->   import something from 'processed-url';
+// export * from 'url';   -->   export * from 'processed-url';
+// export { x as y } from 'url';   -->   export { x as y } from 'processed-url';
 
 const transformer: Transformer<Literal> = {
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.Literal,
 
-    condition: (node, parent) => !!parent && parent.type === Syntax.ImportDeclaration && parent.source === node,
+    condition: (node, parent) => !!parent && (parent.type === Syntax.ImportDeclaration ||
+                                              parent.type === Syntax.ExportAllDeclaration ||
+                                              parent.type === Syntax.ExportNamedDeclaration) && parent.source === node,
 
     run: node => transformer.resolver ? getProxyUrlLiteral(node, transformer.resolver) : null
 };
