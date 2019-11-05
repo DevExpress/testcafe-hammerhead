@@ -90,7 +90,7 @@ export default class Proxy extends Router {
     }
 
     _registerServiceRoutes (developmentMode: boolean) {
-        const developmentModeSuffix   = developmentMode ? '.min' : '';
+        const developmentModeSuffix   = developmentMode ? '' : '.min';
         const hammerheadFileName      = `hammerhead${developmentModeSuffix}.js`;
         const hammerheadScriptContent = read(`../client/${hammerheadFileName}`) as Buffer;
         const transportWorkerFileName = `transport-worker${developmentModeSuffix}.js`;

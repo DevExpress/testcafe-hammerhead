@@ -10,6 +10,7 @@ import dynamicImportTransformer from './transformers/dynamic-import';
 import replaceNode from './transformers/replace-node';
 import { Syntax } from 'esotope-hammerhead';
 import { parseProxyUrl } from '../../utils/url';
+import { getFirstDestUrl } from '../../utils/stack-processing';
 
 export interface CodeChange {
     start: number;
@@ -106,7 +107,15 @@ export function beforeTransform (wrapLastExprWithProcessHtml: boolean = false, r
     jsProtocolLastExpression.wrapLastExpr = wrapLastExprWithProcessHtml;
     staticImportTransformer.resolver = resolver;
 
-    if (resolver)
+    if (this) {
+        try {
+            throw new Error();
+        }
+        catch (e) {
+            dynamicImportTransformer.baseUrl = getFirstDestUrl(e.stack) || parseProxyUrl(resolver('./'))!.destUrl;
+        }
+    }
+    else if (resolver)
         dynamicImportTransformer.baseUrl = parseProxyUrl(resolver('./'))!.destUrl;
 }
 

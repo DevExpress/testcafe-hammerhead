@@ -222,5 +222,17 @@ module.exports = function (app) {
 
     app.get('/destroy-connection', function (req, res) {
         res.destroy();
-    })
+    });
+
+    app.get('/sub-dir/eval-dynamic-import.js', (req, res) => {
+        res
+            .set('content-type', 'application/javascript')
+            .send(fs.readFileSync('./test/client/data/import-script/sub-dir/eval-dynamic-import.js'));
+    });
+
+    app.get('/sub-dir/gh2122.js', (req, res) => {
+        res
+            .set('content-type', 'application/javascript')
+            .send(fs.readFileSync('./test/client/data/import-script/sub-dir/gh2122.js'));
+    });
 };
