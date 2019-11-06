@@ -29,6 +29,7 @@ import getRandomInt32Value from '../../utils/get-random-int-32-value';
 import UploadSandbox from '../upload';
 import IframeSandbox from '../iframe';
 import EventSandbox from '../event';
+import { stringifyResourceType } from '../../utils/url';
 
 const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
@@ -971,7 +972,8 @@ export default class ElementSandbox extends SandboxBase {
             if (!this._shouldOpenInNewWindow(form.target))
                 return;
 
-            const aboutBlankUrl = urlUtils.getProxyUrl(SPECIAL_BLANK_PAGE);
+            const opts          = { resourceType: stringifyResourceType({ isChildWindow: true })};
+            const aboutBlankUrl = urlUtils.getProxyUrl(SPECIAL_BLANK_PAGE, opts);
             const windowName    = this._openUrlInNewWindow(aboutBlankUrl);
 
             form.target = windowName;

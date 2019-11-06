@@ -55,6 +55,7 @@ import NodeMutation from './mutation';
 import MessageSandbox from '../event/message';
 import Listeners from '../event/listeners';
 import ElementEditingWatcher from '../event/element-editing-watcher';
+import settings from '../../settings';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -139,7 +140,7 @@ export default class WindowSandbox extends SandboxBase {
         return hasStringItem;
     }
 
-    _raiseUncaughtJsErrorEvent (type: string, event: any, window: Window) {
+    private _raiseUncaughtJsErrorEvent (type: string, event: any, window: Window): void {
         if (isCrossDomainWindows(window, window.top))
             return;
 
@@ -168,12 +169,12 @@ export default class WindowSandbox extends SandboxBase {
             this.emit(type, { msg, pageUrl, stack });
     }
 
-    _reattachHandler (window: Window, eventName: string) {
+    private _reattachHandler (window: Window, eventName: string): void {
         nativeMethods.windowRemoveEventListener.call(window, eventName, this);
         nativeMethods.windowAddEventListener.call(window, eventName, this);
     }
 
-    static _formatUnhandledRejectionReason (reason: any) {
+    private static _formatUnhandledRejectionReason (reason: any): string {
         if (!isPrimitiveType(reason)) {
             const reasonStr = nativeMethods.objectToString.call(reason);
 
@@ -186,7 +187,7 @@ export default class WindowSandbox extends SandboxBase {
         return String(reason);
     }
 
-    static _getUrlAttr (el: HTMLElement, attr: string) {
+    private static _getUrlAttr (el: HTMLElement, attr: string) {
         const attrValue       = nativeMethods.getAttribute.call(el, attr);
         const currentDocument = el.ownerDocument || document;
 
@@ -205,7 +206,7 @@ export default class WindowSandbox extends SandboxBase {
         return resolveUrlAsDest(attrValue);
     }
 
-    static _removeProcessingInstructions (text: string): string {
+    private static _removeProcessingInstructions (text: string): string {
         if (text) {
             text = removeProcessingHeader(text);
 
@@ -215,7 +216,7 @@ export default class WindowSandbox extends SandboxBase {
         return text;
     }
 
-    static _processTextPropValue (el: HTMLElement, text: string): string {
+    private static _processTextPropValue (el: HTMLElement, text: string): string {
         const processedText = text !== null && text !== void 0 ? String(text) : text;
 
         if (processedText) {
@@ -228,7 +229,13 @@ export default class WindowSandbox extends SandboxBase {
         return processedText;
     }
 
-    _overrideUrlAttrDescriptors (attr, elementConstructors) {
+    private static _createGetProxyUrlOpts (): object | unknown {
+        return settings.get().allowMultipleWindows ?
+            { resourceType: stringifyResourceType({ isChildWindow: true }) } :
+            void 0;
+    }
+
+    private _overrideUrlAttrDescriptors (attr, elementConstructors) {
         const windowSandbox = this;
 
         for (const constructor of elementConstructors) {
@@ -243,7 +250,7 @@ export default class WindowSandbox extends SandboxBase {
         }
     }
 
-    _overrideAttrDescriptors (attr, elementConstructors) {
+    private _overrideAttrDescriptors (attr, elementConstructors) {
         const windowSandbox = this;
 
         for (const constructor of elementConstructors) {
@@ -258,7 +265,7 @@ export default class WindowSandbox extends SandboxBase {
         }
     }
 
-    _overrideUrlPropDescriptor (prop, nativePropGetter, nativePropSetter) {
+    private _overrideUrlPropDescriptor (prop, nativePropGetter, nativePropSetter) {
         // @ts-ignore
         overrideDescriptor(window.HTMLAnchorElement.prototype, prop, {
             getter: function () {
@@ -270,7 +277,7 @@ export default class WindowSandbox extends SandboxBase {
         });
     }
 
-    _overrideEventPropDescriptor (window, eventName, nativePropSetter) {
+    private _overrideEventPropDescriptor (window, eventName, nativePropSetter) {
         const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;
 
         overrideDescriptor(eventPropsOwner, 'on' + eventName, {
@@ -287,7 +294,7 @@ export default class WindowSandbox extends SandboxBase {
         });
     }
 
-    _createOverriddenDOMTokenListMethod (nativeMethod) {
+    private _createOverriddenDOMTokenListMethod (nativeMethod) {
         const windowSandbox = this;
 
         return function () {
@@ -302,7 +309,7 @@ export default class WindowSandbox extends SandboxBase {
         };
     }
 
-    static _isSecureOrigin (url: string): boolean {
+    private static _isSecureOrigin (url: string): boolean {
         // NOTE: https://www.chromium.org/Home/chromium-security/prefer-secure-origins-for-powerful-new-features
         const parsedUrl = parseUrl(resolveUrlAsDest(url));
 
@@ -321,7 +328,7 @@ export default class WindowSandbox extends SandboxBase {
         }
     }
 
-    handleEvent (event) {
+    handleEvent (event): void {
         if (event.defaultPrevented)
             return;
 
@@ -337,7 +344,7 @@ export default class WindowSandbox extends SandboxBase {
             this.emit(this.HASH_CHANGE_EVENT);
     }
 
-    attach (window) {
+    attach (window): void {
         super.attach(window);
 
         const messageSandbox = this.messageSandbox;
@@ -423,7 +430,9 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         window.open = function (...args) {
-            args[0] = getProxyUrl(args[0]);
+            const opts = WindowSandbox._createGetProxyUrlOpts();
+
+            args[0] = getProxyUrl(args[0], opts);
             args[1] = args[1] ? nodeSandbox.element.getCorrectedTarget(String(args[1])) : '_self';
 
             return nativeMethods.windowOpen.apply(window, args);

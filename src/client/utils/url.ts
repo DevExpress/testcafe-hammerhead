@@ -3,6 +3,7 @@ import * as sharedUrlUtils from '../../utils/url';
 import * as destLocation from './destination-location';
 import * as urlResolver from './url-resolver';
 import settings from '../settings';
+import { ResourceType } from '../../typings/url';
 
 const HASH_RE                          = /#[\S\s]*$/;
 const SUPPORTED_WEB_SOCKET_PROTOCOL_RE = /^wss?:/i;
@@ -236,7 +237,7 @@ export function parseResourceType (resourceType) {
     return sharedUrlUtils.parseResourceType(resourceType);
 }
 
-export function stringifyResourceType (resourceType) {
+export function stringifyResourceType (resourceType: ResourceType): string | null {
     return sharedUrlUtils.getResourceTypeString(resourceType);
 }
 

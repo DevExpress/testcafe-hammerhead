@@ -74,11 +74,11 @@ export default class Proxy extends Router {
         this._registerServiceRoutes(developmentMode);
     }
 
-    _closeSockets () {
+    private _closeSockets () {
         this.sockets.forEach(socket => socket.destroy());
     }
 
-    _startSocketsCollecting () {
+    private _startSocketsCollecting () {
         const handler = (socket: net.Socket) => {
             this.sockets.add(socket);
 
@@ -89,7 +89,7 @@ export default class Proxy extends Router {
         this.server2.on('connection', handler);
     }
 
-    _registerServiceRoutes (developmentMode: boolean) {
+    private _registerServiceRoutes (developmentMode: boolean): void {
         const developmentModeSuffix   = developmentMode ? '' : '.min';
         const hammerheadFileName      = `hammerhead${developmentModeSuffix}.js`;
         const hammerheadScriptContent = read(`../client/${hammerheadFileName}`) as Buffer;
@@ -111,7 +111,7 @@ export default class Proxy extends Router {
         this.GET(SERVICE_ROUTES.iframeTask, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onTaskScriptRequest(req, res, serverInfo, true));
     }
 
-    async _onServiceMessage (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) {
+    private async _onServiceMessage (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) {
         const body    = await fetchBody(req);
         const msg     = parseAsJson(body);
         const session = msg && this.openSessions.get(msg.sessionId);
@@ -130,7 +130,7 @@ export default class Proxy extends Router {
             respond500(res, SESSION_IS_NOT_OPENED_ERR);
     }
 
-    _onTaskScriptRequest (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo, isIframe: boolean) {
+    private _onTaskScriptRequest (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo, isIframe: boolean) {
         const referer     = req.headers['referer'];
         const refererDest = referer && urlUtils.parseProxyUrl(referer);
         const session     = refererDest && this.openSessions.get(refererDest.sessionId);
@@ -153,20 +153,20 @@ export default class Proxy extends Router {
             respond500(res, SESSION_IS_NOT_OPENED_ERR);
     }
 
-    _onRequest (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo) {
+    private _onRequest (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo) {
         // NOTE: Not a service request, execute the proxy pipeline.
         if (!this._route(req, res, serverInfo))
             runRequestPipeline(req, res, serverInfo, this.openSessions);
     }
 
-    _onUpgradeRequest (req: http.IncomingMessage, socket: net.Socket, head: Buffer, serverInfo: ServerInfo) {
+    private _onUpgradeRequest (req: http.IncomingMessage, socket: net.Socket, head: Buffer, serverInfo: ServerInfo) {
         if (head && head.length)
             socket.unshift(head);
 
         this._onRequest(req, socket, serverInfo);
     }
 
-    _processStaticContent (handler: StaticContent) {
+    private _processStaticContent (handler: StaticContent) {
         if (handler.isShadowUIStylesheet)
             handler.content = prepareShadowUIStylesheet(handler.content as string);
     }
