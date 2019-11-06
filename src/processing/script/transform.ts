@@ -112,7 +112,10 @@ export function beforeTransform (wrapLastExprWithProcessHtml: boolean = false, r
             throw new Error();
         }
         catch (e) {
-            dynamicImportTransformer.baseUrl = getFirstDestUrl(e.stack) || parseProxyUrl(resolver('./'))!.destUrl;
+            dynamicImportTransformer.baseUrl = getFirstDestUrl(e.stack);
+
+            if (!dynamicImportTransformer.baseUrl && resolver)
+                parseProxyUrl(resolver('./'))!.destUrl;
         }
     }
     else if (resolver)
