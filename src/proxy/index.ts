@@ -166,7 +166,7 @@ export default class Proxy extends Router {
         this._onRequest(req, socket, serverInfo);
     }
 
-    private _processStaticContent (handler: StaticContent) {
+    _processStaticContent (handler: StaticContent) {
         if (handler.isShadowUIStylesheet)
             handler.content = prepareShadowUIStylesheet(handler.content as string);
     }
