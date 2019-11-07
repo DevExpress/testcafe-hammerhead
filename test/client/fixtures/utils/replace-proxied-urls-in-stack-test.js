@@ -73,3 +73,4 @@ test('replace proxied urls in stack trace', function () {
         checkProcessedStack(processedStack);
     }
 });
+
