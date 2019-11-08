@@ -106,8 +106,13 @@ function hang () {
 }
 
 // Build
-gulp.task('clean', () => {
+gulp.task('clean-lib', () => {
     return del(['./lib']);
+});
+
+gulp.task('clean-outdated-js', () => {
+    // NOTE: It's necessary to prevent problems related to changing file structure in the 'src' folder
+    return del(['./src/**/*.js']);
 });
 
 gulp.step('client-scripts-transpile', () => {
@@ -216,7 +221,8 @@ gulp.task('lint', gulp.parallel('lint-js', 'lint-ts'));
 
 gulp.task('build',
     gulp.series(
-        'clean',
+        'clean-lib',
+        'clean-outdated-js',
         'server-scripts',
         gulp.parallel(
             'client-scripts',
