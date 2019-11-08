@@ -48,7 +48,7 @@ import urlResolver from '../../utils/url-resolver';
 import { remove as removeProcessingHeader } from '../../../processing/script/header';
 import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
 import { getAttributes } from './attributes';
-import replaceProxiedUrlsInStack from '../../utils/replace-proxied-urls-in-stack';
+import { replaceProxiedUrlsInStack } from '../../../utils/stack-processing';
 import NodeSandbox from './index';
 import EventSandbox from '../event';
 import NodeMutation from './mutation';

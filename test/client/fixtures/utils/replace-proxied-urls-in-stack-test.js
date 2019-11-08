@@ -1,5 +1,5 @@
-var replaceProxiedUrlsInStack = hammerhead.get('./utils/replace-proxied-urls-in-stack');
-var urlUtils                  = hammerhead.get('./utils/url');
+var stackProcessing = hammerhead.get('../utils/stack-processing');
+var urlUtils        = hammerhead.get('./utils/url');
 
 var urls = [
     '/fixtures/utils/replace-proxied-urls-in-stack-test.js',
@@ -68,7 +68,7 @@ test('replace proxied urls in stack trace', function () {
 
         stack = prepareStackUrls(stack);
 
-        var processedStack = replaceProxiedUrlsInStack(stack);
+        var processedStack = stackProcessing.replaceProxiedUrlsInStack(stack);
 
         checkProcessedStack(processedStack);
     }
