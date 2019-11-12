@@ -16,6 +16,7 @@ export interface HammerheadInitSettings {
     cookie: string;
     allowMultipleWindows: boolean;
     isRecordMode: boolean;
+    pageId: string;
 }
 
 export interface ElementSandboxBeforeFormSubmitEvent {
@@ -32,7 +33,8 @@ export interface DocumentCleanedEvent {
     document: Document;
 }
 
-export interface WindowIdentifier {
-    id: number;
-    creationDate: number;
+export interface OpenedWindowInfo {
+    pageId: string;
+    wnd: Window;
 }
+

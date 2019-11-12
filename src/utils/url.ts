@@ -15,13 +15,14 @@ const PATH_AFTER_HOST_RE = /^\/([^/]+?)\/([\S\s]+)$/;
 const HTTP_RE            = /^(?:https?):/;
 const FILE_RE            = /^file:/i;
 
-export const SUPPORTED_PROTOCOL_RE               = /^(?:https?|file):/i;
-export const HASH_RE                             = /^#/;
-export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = '!';
-export const TRAILING_SLASH_RE                   = /\/$/;
-export const SPECIAL_BLANK_PAGE                          = 'about:blank';
-export const SPECIAL_ERROR_PAGE                          = 'about:error';
-export const SPECIAL_PAGES                               = [SPECIAL_BLANK_PAGE, SPECIAL_ERROR_PAGE];
+export const SUPPORTED_PROTOCOL_RE                            = /^(?:https?|file):/i;
+export const HASH_RE                                          = /^#/;
+export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR              = '!';
+export const REQUEST_DESCRIPTOR_SESSION_INFO_VALUES_SEPARATOR = '*';
+export const TRAILING_SLASH_RE                                = /\/$/;
+export const SPECIAL_BLANK_PAGE                               = 'about:blank';
+export const SPECIAL_ERROR_PAGE                               = 'about:error';
+export const SPECIAL_PAGES                                    = [SPECIAL_BLANK_PAGE, SPECIAL_ERROR_PAGE];
 
 export const HTTP_DEFAULT_PORT  = '80';
 export const HTTPS_DEFAULT_PORT = '443';
@@ -60,8 +61,12 @@ export function getResourceTypeString (resourceType: ResourceType): string | nul
     if (!resourceType)
         return null;
 
-    if (!resourceType.isIframe && !resourceType.isForm && !resourceType.isScript && !resourceType.isEventSource &&
-        !resourceType.isHtmlImport && !resourceType.isWebSocket)
+    if (!resourceType.isIframe &&
+        !resourceType.isForm &&
+        !resourceType.isScript &&
+        !resourceType.isEventSource &&
+        !resourceType.isHtmlImport &&
+        !resourceType.isWebSocket)
         return null;
 
     return [
@@ -131,7 +136,12 @@ export function getURLString (url: string): string {
 }
 
 export function getProxyUrl (url: string, opts: ProxyUrlOptions) {
-    const params = [opts.sessionId];
+    const sessionInfo = [opts.sessionId];
+
+    if (opts.pageId)
+        sessionInfo.push(opts.pageId);
+
+    const params = [sessionInfo.join(REQUEST_DESCRIPTOR_SESSION_INFO_VALUES_SEPARATOR)];
 
     if (opts.resourceType)
         params.push(opts.resourceType);
@@ -163,10 +173,14 @@ function parseRequestDescriptor (desc: string): RequestDescriptor | null {
     if (!params.length)
         return null;
 
-    const sessionId                     = params[0];
+    const sessionInfo                   = params[0].split(REQUEST_DESCRIPTOR_SESSION_INFO_VALUES_SEPARATOR);
+    const sessionId                     = sessionInfo[0];
     const resourceType                  = params[1] || null;
     const resourceData                  = params[2] || null;
     const parsedDesc: RequestDescriptor = { sessionId, resourceType };
+
+    if (sessionInfo[1])
+        parsedDesc.pageId = sessionInfo[1];
 
     if (resourceType && resourceData) {
         const parsedResourceType = parseResourceType(resourceType);
@@ -229,7 +243,8 @@ export function parseProxyUrl (proxyUrl: string): ParsedProxyUrl | null {
         sessionId:    parsedDesc.sessionId,
         resourceType: parsedDesc.resourceType,
         charset:      parsedDesc.charset,
-        reqOrigin:    parsedDesc.reqOrigin
+        reqOrigin:    parsedDesc.reqOrigin,
+        pageId:       parsedDesc.pageId
     };
 }
 

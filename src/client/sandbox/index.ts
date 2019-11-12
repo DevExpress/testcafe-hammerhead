@@ -29,8 +29,7 @@ import * as windowStorage from './windows-storage';
 import nativeMethods from '../sandbox/native-methods';
 import IEDebugSandbox from './ie-debug';
 import Transport from '../transport';
-import getRandomInt32Value from '../utils/get-random-int-32-value';
-import { WindowIdentifier } from '../../typings/client';
+import ChildWindowSandbox from './child-window';
 
 export default class Sandbox extends SandboxBase {
     ieDebug: IEDebugSandbox;
@@ -48,8 +47,8 @@ export default class Sandbox extends SandboxBase {
     style: StyleSandbox;
     unload: UnloadSandbox;
     electron: ElectronSandbox;
+    childWindow: ChildWindowSandbox;
     windowStorage: any;
-    windowIdentifier: WindowIdentifier | null;
 
     constructor (transport: Transport) {
         super();
@@ -77,7 +76,8 @@ export default class Sandbox extends SandboxBase {
         this.shadowUI            = new ShadowUI(nodeMutation, messageSandbox, this.iframe, ieDebugSandbox);
         this.upload              = new UploadSandbox(listeners, eventSimulator, transport);
         this.event               = new EventSandbox(listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, this.shadowUI, timersSandbox);
-        this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI, cookieSandbox);
+        this.childWindow         = new ChildWindowSandbox(messageSandbox, this.event);
+        this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI, cookieSandbox, this.childWindow);
         this.codeInstrumentation = new CodeInstrumentation(this.event, messageSandbox);
         this.console             = new ConsoleSandbox(messageSandbox);
         this.style               = new StyleSandbox();
@@ -86,18 +86,7 @@ export default class Sandbox extends SandboxBase {
         if (isElectron)
             this.electron = new ElectronSandbox();
 
-        this.windowStorage    = windowStorage;
-        this.windowIdentifier = Sandbox._calculateWindowIdentifier();
-    }
-
-    private static _calculateWindowIdentifier (): WindowIdentifier | null {
-        if (window === window.top)
-            return {
-                id:           getRandomInt32Value(),
-                creationDate: nativeMethods.dateNow()
-            };
-
-        return null;
+        this.windowStorage = windowStorage;
     }
 
     // NOTE: In some cases, IE raises the "Can't execute code from a freed script" exception,
@@ -156,6 +145,7 @@ export default class Sandbox extends SandboxBase {
         this.codeInstrumentation.attach(window);
         this.node.doc.attach(window, document);
         this.console.attach(window);
+        this.childWindow.attach(window);
     }
 
     attach (window: Window): void {
@@ -185,6 +175,7 @@ export default class Sandbox extends SandboxBase {
         this.cookie.attach(window); // eslint-disable-line no-restricted-properties
         this.console.attach(window);
         this.style.attach(window);
+        this.childWindow.attach(window);
 
         if (this.electron)
             this.electron.attach(window);

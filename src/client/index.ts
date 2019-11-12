@@ -76,7 +76,9 @@ class Hammerhead {
             fetchSent:               this.sandbox.fetch.FETCH_REQUEST_SENT_EVENT,
             pageNavigationTriggered: this.pageNavigationWatch.PAGE_NAVIGATION_TRIGGERED_EVENT,
             scriptElementAdded:      this.sandbox.node.element.SCRIPT_ELEMENT_ADDED_EVENT,
-            consoleMethCalled:       this.sandbox.console.CONSOLE_METH_CALLED_EVENT
+            consoleMethCalled:       this.sandbox.console.CONSOLE_METH_CALLED_EVENT,
+            windowOpened:            this.sandbox.childWindow.WINDOW_OPENED_EVENT,
+            windowClosed:            this.sandbox.childWindow.WINDOW_CLOSED_EVENT
         };
 
         this.PROCESSING_COMMENTS = {
@@ -174,6 +176,10 @@ class Hammerhead {
 
             case this.EVENTS.consoleMethCalled:
                 return this.sandbox.console;
+
+            case this.EVENTS.windowOpened:
+            case this.EVENTS.windowClosed:
+                return this.sandbox.childWindow;
 
             default:
                 return null;

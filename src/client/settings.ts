@@ -15,7 +15,8 @@ class Settings {
             iframeTaskScriptTemplate: '',
             cookie:                   '',
             allowMultipleWindows:     false,
-            isRecordMode:             false
+            isRecordMode:             false,
+            pageId:                   ''
         };
     }
 

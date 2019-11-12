@@ -21,6 +21,7 @@ export interface RequestDescriptor {
     resourceType: string | null;
     charset?: string;
     reqOrigin?: string;
+    pageId?: string;
 }
 
 export interface ParsedProxyUrl {
@@ -31,6 +32,7 @@ export interface ParsedProxyUrl {
     resourceType: string;
     charset?: string;
     reqOrigin?: string;
+    pageId?: string;
     proxy: {
         hostname: string;
         port: string;
@@ -45,4 +47,5 @@ export interface ProxyUrlOptions {
     proxyProtocol: string;
     proxyHostname: string;
     proxyPort: string;
+    pageId?: string;
 }

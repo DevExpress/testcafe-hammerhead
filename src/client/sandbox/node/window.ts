@@ -55,6 +55,7 @@ import NodeMutation from './mutation';
 import MessageSandbox from '../event/message';
 import Listeners from '../event/listeners';
 import ElementEditingWatcher from '../event/element-editing-watcher';
+import ChildWindowSandbox from "../child-window";
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -95,7 +96,11 @@ export default class WindowSandbox extends SandboxBase {
 
     SANDBOX_DOM_TOKEN_LIST_UPDATE_FN: any;
 
-    constructor (nodeSandbox: NodeSandbox, eventSandbox: EventSandbox, uploadSandbox: UploadSandbox, nodeMutation: NodeMutation) {
+    constructor (nodeSandbox: NodeSandbox,
+        eventSandbox: EventSandbox,
+        uploadSandbox: UploadSandbox,
+        nodeMutation: NodeMutation,
+        private readonly _childWindowSandbox: ChildWindowSandbox) {
         super();
 
         this.nodeSandbox           = nodeSandbox;
@@ -430,7 +435,11 @@ export default class WindowSandbox extends SandboxBase {
             args[0] = getProxyUrl(args[0]);
             args[1] = args[1] ? nodeSandbox.element.getCorrectedTarget(String(args[1])) : '_self';
 
-            return nativeMethods.windowOpen.apply(window, args);
+            return windowSandbox._childWindowSandbox.handleWindowOpen(window, args);
+        };
+
+        window.close = function () {
+            windowSandbox._childWindowSandbox.handleWindowClose(window);
         };
 
         if (window.FontFace) {

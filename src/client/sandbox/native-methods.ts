@@ -89,7 +89,8 @@ class NativeMethods {
     historyReplaceState: any;
     windowDispatchEvent: any;
     postMessage: any;
-    windowOpen: any;
+    windowOpen: Window['open'];
+    windowClose: Window['close'];
     setTimeout: any;
     setInterval: any;
     clearTimeout: Window['clearTimeout'];
@@ -316,8 +317,9 @@ class NativeMethods {
     Worker: typeof Worker;
     MessageChannel: typeof MessageChannel;
     ArrayBuffer: any;
-    Uint8Array: any;
-    Uint32Array: Uint32Array['constructor'];
+    Uint8Array: typeof Uint8Array;
+    Uint16Array: typeof Uint16Array;
+    Uint32Array: typeof Uint32Array;
     DataView: any;
     Blob: any;
     XMLHttpRequest: any;
@@ -544,6 +546,7 @@ class NativeMethods {
         this.windowDispatchEvent = win.dispatchEvent;
         this.postMessage         = win.postMessage || winProto.postMessage;
         this.windowOpen          = win.open || winProto.open;
+        this.windowClose         = win.close || winProto.close;
         this.setTimeout          = win.setTimeout || winProto.setTimeout;
         this.setInterval         = win.setInterval || winProto.setInterval;
         this.clearTimeout        = win.clearTimeout || winProto.clearTimeout;
@@ -972,6 +975,7 @@ class NativeMethods {
         this.MessageChannel   = win.MessageChannel;
         this.ArrayBuffer      = win.ArrayBuffer;
         this.Uint8Array       = win.Uint8Array;
+        this.Uint16Array      = win.Uint16Array;
         this.Uint32Array      = win.Uint32Array;
         this.DataView         = win.DataView;
         this.Blob             = win.Blob;
