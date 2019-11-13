@@ -58,6 +58,7 @@ interface TaskScriptTemplateOpts {
     iframeTaskScriptTemplate: string;
     payloadScript: string;
     allowMultipleWindows: boolean;
+    isRecordMode: boolean;
 }
 
 interface TaskScriptOpts {
@@ -81,6 +82,7 @@ export default abstract class Session extends EventEmitter {
     mocks: Map<RequestFilterRule, ResponseMock> = new Map();
     disablePageCaching: boolean = false;
     allowMultipleWindows: boolean = false;
+    private _recordMode = false;
 
     protected constructor (uploadRoots: string[]) {
         super();
@@ -110,7 +112,7 @@ export default abstract class Session extends EventEmitter {
         throw new Error('Malformed service message or message handler is not implemented');
     }
 
-    _fillTaskScriptTemplate ({ serverInfo, isFirstPageLoad, referer, cookie, iframeTaskScriptTemplate, payloadScript, allowMultipleWindows }: TaskScriptTemplateOpts): string {
+    _fillTaskScriptTemplate ({ serverInfo, isFirstPageLoad, referer, cookie, iframeTaskScriptTemplate, payloadScript, allowMultipleWindows, isRecordMode }: TaskScriptTemplateOpts): string {
         referer                  = referer && JSON.stringify(referer) || '{{{referer}}}';
         cookie                   = cookie || '{{{cookie}}}';
         iframeTaskScriptTemplate = iframeTaskScriptTemplate || '{{{iframeTaskScriptTemplate}}}';
@@ -128,7 +130,8 @@ export default abstract class Session extends EventEmitter {
             cookie,
             iframeTaskScriptTemplate,
             payloadScript,
-            allowMultipleWindows
+            allowMultipleWindows,
+            isRecordMode
         });
     }
 
@@ -140,7 +143,8 @@ export default abstract class Session extends EventEmitter {
             cookie:                   null,
             iframeTaskScriptTemplate: null,
             payloadScript:            this._getIframePayloadScript(true),
-            allowMultipleWindows:     this.allowMultipleWindows
+            allowMultipleWindows:     this.allowMultipleWindows,
+            isRecordMode:             this._recordMode
         });
 
         return JSON.stringify(taskScriptTemplate);
@@ -160,7 +164,8 @@ export default abstract class Session extends EventEmitter {
             cookie:                   cookies,
             iframeTaskScriptTemplate: this.getIframeTaskScriptTemplate(serverInfo),
             payloadScript,
-            allowMultipleWindows:     this.allowMultipleWindows
+            allowMultipleWindows:     this.allowMultipleWindows,
+            isRecordMode:             this._recordMode
         });
 
         this.pageLoadCount++;
@@ -272,6 +277,10 @@ export default abstract class Session extends EventEmitter {
 
     getMock (requestFilterRule: RequestFilterRule): ResponseMock | undefined {
         return this.mocks.get(requestFilterRule);
+    }
+
+    setRecordMode() {
+        this._recordMode = true;
     }
 
     abstract _getIframePayloadScript (iframeWithoutSrc: boolean): string;

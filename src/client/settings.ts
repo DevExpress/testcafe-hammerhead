@@ -14,7 +14,8 @@ class Settings {
             transportWorkerUrl:       '',
             iframeTaskScriptTemplate: '',
             cookie:                   '',
-            allowMultipleWindows:     false
+            allowMultipleWindows:     false,
+            isRecordMode:             false
         };
     }
 
