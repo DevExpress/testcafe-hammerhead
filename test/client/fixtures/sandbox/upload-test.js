@@ -1,8 +1,10 @@
 var COMMAND           = hammerhead.get('../session/command');
 var UploadInfoManager = hammerhead.get('./sandbox/upload/info-manager');
 var hiddenInfo        = hammerhead.get('./sandbox/upload/hidden-info');
+var UploadSandbox     = hammerhead.get('./sandbox/upload');
 var listeningContext  = hammerhead.get('./sandbox/event/listening-context');
 var INTERNAL_PROPS    = hammerhead.get('../processing/dom/internal-properties');
+var settings          = hammerhead.get('./settings');
 
 var Promise        = hammerhead.Promise;
 var transport      = hammerhead.transport;
@@ -902,3 +904,17 @@ if (window.FileList) {
 
     });
 }
+
+test('Should not prevent native upload dialog in the record mode (GH-2168)', function () {
+    var uploadSand = new UploadSandbox({
+        addInternalEventListener (el, events) {
+            strictEqual(events.indexOf('click'), -1);
+        }
+    });
+
+    settings.get().isRecordMode = true;
+
+    uploadSand.attach(window);
+
+    settings.get().isRecordMode = false;
+});
