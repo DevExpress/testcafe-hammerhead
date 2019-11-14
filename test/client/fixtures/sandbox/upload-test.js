@@ -907,7 +907,7 @@ if (window.FileList) {
 
 test('Should not prevent native upload dialog in the record mode (GH-2168)', function () {
     var uploadSand = new UploadSandbox({
-        addInternalEventListener (el, events) {
+        addInternalEventListener: function (el, events) {
             strictEqual(events.indexOf('click'), -1);
         }
     });
