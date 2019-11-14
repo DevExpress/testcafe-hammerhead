@@ -15,6 +15,7 @@ export interface HammerheadInitSettings {
     iframeTaskScriptTemplate: string;
     cookie: string;
     allowMultipleWindows: boolean;
+    isRecordMode: boolean;
 }
 
 export interface ElementSandboxBeforeFormSubmitEvent {

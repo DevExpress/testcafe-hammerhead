@@ -9,6 +9,7 @@ import nativeMethods from '../native-methods';
 import Listeners from '../event/listeners';
 import EventSimulator from '../event/simulator';
 import Transport from '../../transport';
+import settings from '../../settings';
 
 export default class UploadSandbox extends SandboxBase {
     START_FILE_UPLOADING_EVENT: string = 'hammerhead|event|start-file-uploading';
@@ -69,7 +70,7 @@ export default class UploadSandbox extends SandboxBase {
             }
         });
 
-        if (isIE || isFirefox) {
+        if (!settings.get().isRecordMode && (isIE || isFirefox)) {
             // NOTE: Google Chrome and Safari don't open the native browser dialog when TestCafe clicks on the input.
             // 'Click' is a complex emulated action that uses 'dispatchEvent' method internally.
             // Another browsers open the native browser dialog in this case.
