@@ -1,4 +1,5 @@
-var urlUtils = hammerhead.get('./utils/url');
+var urlUtils     = hammerhead.get('./utils/url');
+var destLocation = hammerhead.get('./utils/destination-location');
 
 var windowSandox  = hammerhead.sandbox.node.win;
 var nativeMethods = hammerhead.nativeMethods;
@@ -423,6 +424,32 @@ if (nativeMethods.winOnUnhandledRejectionSetter) {
         return Promise.all(testCases.map(function (item) {
             return testStack(item);
         }));
+    });
+}
+
+if (nativeMethods.windowOriginGetter) {
+    test('should override window.origin', function () {
+        strictEqual(window.origin, 'https://example.com');
+
+        var storedWindowOriginGetter = nativeMethods.windowOriginGetter;
+
+        nativeMethods.windowOriginGetter = function () {
+            return null;
+        };
+
+        strictEqual(window.origin, null);
+
+        nativeMethods.windowOriginGetter = storedWindowOriginGetter;
+
+        strictEqual(window.origin, 'https://example.com');
+
+        var storedForcedLocation = destLocation.getLocation();
+
+        destLocation.forceLocation(urlUtils.getProxyUrl('file:///home/testcafe/site'));
+
+        strictEqual(window.origin, null);
+
+        destLocation.forceLocation(storedForcedLocation);
     });
 }
 

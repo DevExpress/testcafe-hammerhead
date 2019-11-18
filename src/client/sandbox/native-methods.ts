@@ -126,6 +126,7 @@ class NativeMethods {
     WindowFocusEvent: any;
     WindowTextEvent: any;
     WindowMouseEvent: any;
+    windowOriginGetter: () => string;
     canvasContextDrawImage: any;
     formDataAppend: FormData['append'];
     date: DateConstructor;
@@ -687,6 +688,10 @@ class NativeMethods {
         const scriptTextDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLScriptElement.prototype, 'text');
         const anchorTextDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'text');
         const iframeSandboxDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'sandbox');
+        const windowOriginDescriptor         = win.Object.getOwnPropertyDescriptor(win, 'origin');
+
+        if (windowOriginDescriptor)
+            this.windowOriginGetter = windowOriginDescriptor.get;
 
         // NOTE: Html properties is located in HTMLElement prototype in IE11 only
         this.elementHTMLPropOwnerName = win.Element.prototype.hasOwnProperty('innerHTML') ? 'Element' : 'HTMLElement';
