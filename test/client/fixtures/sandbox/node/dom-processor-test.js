@@ -8,6 +8,7 @@ var settings       = hammerhead.get('./settings');
 var urlUtils       = hammerhead.get('./utils/url');
 var sharedUrlUtils = hammerhead.get('../utils/url');
 var destLocation   = hammerhead.get('./utils/destination-location');
+var eventSimulator = hammerhead.sandbox.event.eventSimulator;
 
 var nativeMethods = hammerhead.nativeMethods;
 
@@ -754,4 +755,20 @@ test('the `formaction` attribute should not be overridden if it is missed (GH-10
 
     strictEqual(nativeMethods.getAttribute.call(input, 'formaction'), null);
     strictEqual(nativeMethods.getAttribute.call(input, DomProcessor.getStoredAttrName('formaction')), null);
+});
+
+test('`querySelectorAll` should work with :hover pseudoclass:', function () {
+    var div = document.createElement('div');
+
+    nativeMethods.appendChild.call(document.body, div);
+
+    eventSimulator.mouseover(div);
+
+    strictEqual(document.querySelectorAll(':hover').length, 3);
+    strictEqual(document.querySelectorAll('html :hover').length, 2);
+    strictEqual(document.querySelectorAll('body :hover').length, 1);
+    strictEqual(document.querySelectorAll('div:hover').length, 1);
+    strictEqual(document.querySelectorAll('div :hover').length, 0);
+
+    div.parentNode.removeChild(div);
 });

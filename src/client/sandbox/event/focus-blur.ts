@@ -430,18 +430,6 @@ export default class FocusBlurSandbox extends SandboxBase {
         }, raiseEventParameters);
     }
 
-    static _processFocusPseudoClassSelector (selector: string) {
-        // NOTE: When a selector that contains the ':focus' pseudo-class is used in the querySelector and
-        // querySelectorAll functions, these functions return an empty result if the browser is not focused.
-        // This replaces ':focus' with a custom CSS class to return the current active element in that case.
-        // IE returns a valid element, so there is no need to replace the selector for it.
-
-        if (!browserUtils.isIE)
-            return selector.replace(/\s*:focus\b/gi, '[' + INTERNAL_ATTRS.focusPseudoClass + ']');
-
-        return selector;
-    }
-
     dispose () {
         this._lastFocusedElement = null;
     }

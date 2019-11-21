@@ -3,22 +3,25 @@ import SandboxBase from '../base';
 import WindowSandbox from './window';
 import DocumentSandbox from './document';
 import ElementSandbox from './element';
-import FocusBlurSandbox from '../event/focus-blur';
 import DomProcessor from '../../../processing/dom';
 import domProcessor from '../../dom-processor';
 import * as domUtils from '../../utils/dom';
 import { getNativeQuerySelectorAll } from '../../utils/query-selector';
 import nativeMethods from '../native-methods';
 import { URL_ATTRS } from '../../../processing/dom/attributes';
+import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import NodeMutation from './mutation';
 import IframeSandbox from '../iframe';
 import EventSandbox from '../event';
 import UploadSandbox from '../upload';
 import ShadowUI from '../shadow-ui';
 import CookieSandbox from '../cookie';
+import * as browserUtils from '../../utils/browser';
 
 const ATTRIBUTE_SELECTOR_REG_EX          = /\[([\w-]+)(\^?=.+?)]/g;
 const ATTRIBUTE_OPERATOR_WITH_HASH_VALUE = /^\W+\s*#/;
+const PSEUDO_CLASS_FOCUS_REG_EX          = /\s*:focus\b/gi;
+const PSEUDO_CLASS_HOVER_REG_EX          = /:hover\b/gi;
 
 export default class NodeSandbox extends SandboxBase {
     raiseBodyCreatedEvent: Function;
@@ -172,9 +175,23 @@ export default class NodeSandbox extends SandboxBase {
         });
     }
 
+    static _processPseudoClassSelectors (selector: string) {
+        // NOTE: When a selector that contains the ':focus' pseudo-class is used in the querySelector and
+        // querySelectorAll functions, these functions return an empty result if the browser is not focused.
+        // This replaces ':focus' with a custom CSS class to return the current active element in that case.
+        // IE returns a valid element, so there is no need to replace the selector for it.
+
+        if (!browserUtils.isIE)
+            selector = selector.replace(PSEUDO_CLASS_FOCUS_REG_EX, '[' + INTERNAL_ATTRS.focusPseudoClass + ']');
+
+        selector = selector.replace(PSEUDO_CLASS_HOVER_REG_EX, '[' + INTERNAL_ATTRS.hoverPseudoClass + ']');
+
+        return selector;
+    }
+
     static processSelector (selector) {
         if (selector) {
-            selector = FocusBlurSandbox._processFocusPseudoClassSelector(selector);
+            selector = NodeSandbox._processPseudoClassSelectors(selector);
             selector = NodeSandbox._processAttributeSelector(selector);
         }
 
