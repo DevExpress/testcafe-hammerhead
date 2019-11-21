@@ -497,6 +497,24 @@ if (!browserUtils.isFirefox) {
     });
 }
 
+// NOTE: The `beforeinput` event works only in Chrome/Safari
+if (!browserUtils.isFirefox && !browserUtils.isIE) {
+    test('before input', function () {
+        var handler = function (e) {
+            if (e instanceof Event && e instanceof InputEvent && e.data === 'Hello')
+                raised = true;
+        };
+
+        var eventName = 'beforeinput';
+
+        document.addEventListener(eventName, handler);
+        eventSimulator.beforeInput(domElement, 'Hello');
+        document.removeEventListener(eventName, handler);
+
+        ok(raised);
+    });
+}
+
 test('mouse event buttons properties', function () {
     var actualLog = {};
 

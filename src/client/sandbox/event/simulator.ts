@@ -717,6 +717,24 @@ export default class EventSimulator {
         return null;
     }
 
+    _dispatchInputEvent (el, type, text) {
+        if (nativeMethods.WindowInputEvent) {
+            const args = {
+                bubbles:    true,
+                cancelable: true,
+                view:       window,
+                inputType:  'insertText',
+                data:       text
+            };
+
+            const event = new nativeMethods.WindowInputEvent(type, args);
+
+            return this._raiseDispatchEvent(el, event);
+        }
+
+        return null;
+    }
+
     _dispatchEvent (el, name, shouldBubble, flag?: string) {
         let ev = null;
 
@@ -899,6 +917,10 @@ export default class EventSimulator {
 
     textInput (el, text) {
         return this._dispatchTextEvent(el, text);
+    }
+
+    beforeInput (el, text) {
+        return this._dispatchInputEvent(el, 'beforeinput', text);
     }
 
     input (el) {

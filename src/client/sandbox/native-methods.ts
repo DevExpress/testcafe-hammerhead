@@ -125,6 +125,7 @@ class NativeMethods {
     WindowKeyboardEvent: any;
     WindowFocusEvent: any;
     WindowTextEvent: any;
+    WindowInputEvent: any;
     WindowMouseEvent: any;
     windowOriginGetter: () => string;
     canvasContextDrawImage: any;
@@ -602,6 +603,7 @@ class NativeMethods {
         this.WindowKeyboardEvent       = win.KeyboardEvent || winProto.KeyboardEvent;
         this.WindowFocusEvent          = win.FocusEvent || winProto.FocusEvent;
         this.WindowTextEvent           = win.TextEvent || winProto.TextEvent;
+        this.WindowInputEvent          = win.InputEvent || winProto.InputEvent;
         this.WindowMouseEvent          = win.MouseEvent || winProto.MouseEvent;
 
         this.canvasContextDrawImage = win.CanvasRenderingContext2D.prototype.drawImage;
