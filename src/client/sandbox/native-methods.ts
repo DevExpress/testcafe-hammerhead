@@ -146,7 +146,7 @@ class NativeMethods {
     objectHasOwnProperty: any;
     objectGetOwnPropertyNames: any;
     objectGetPrototypeOf: any;
-    objectGetOwnPropertySymbols: any;
+    objectGetOwnPropertySymbols: ObjectConstructor['getOwnPropertySymbols'];
     arraySlice: any;
     arrayConcat: any;
     arrayFilter: any;
