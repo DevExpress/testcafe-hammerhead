@@ -397,33 +397,61 @@ if (window.DOMParser) {
 if (Object.assign) {
     module('Object.assign', function () {
         test('cloning an object', function () {
-            var obj  = { a: 1 };
+            var symbol = Symbol('b');
+            var obj    = { a: 1 };
+
+            obj[symbol] = 2;
+
             var copy = Object.assign({}, obj);
 
             notEqual(copy, obj);
             strictEqual(copy.a, 1);
+            strictEqual(copy[symbol], 2);
         });
 
         test('merging an objects', function () {
-            var o1  = { a: 1 };
-            var o2  = { b: 2 };
-            var o3  = { c: 3 };
-            var obj = Object.assign(o1, o2, o3);
+            var symbol = Symbol('d');
+
+            var o1 = { a: 1 };
+            var o2 = { b: 2 };
+            var o3 = { c: 3 };
+            var o4 = {};
+
+            o4[symbol] = 4;
+
+            var obj = Object.assign(o1, o2, o3, o4);
 
             strictEqual(obj, o1);
             strictEqual(obj.b, 2);
             strictEqual(obj.c, 3);
+            strictEqual(obj[symbol], 4);
         });
 
         test('merging objects with same properties', function () {
-            var o1  = { a: 1, b: 1, c: 1 };
-            var o2  = { b: 2, c: 2 };
-            var o3  = { c: 3 };
-            var obj = Object.assign({}, o1, o2, o3);
+            var symbol = Symbol('d');
+
+            var o1 = { a: 1, b: 1, c: 1 };
+
+            o1[symbol] = 1;
+
+            var o2 = { b: 2, c: 2 };
+
+            o2[symbol] = 2;
+
+            var o3 = { c: 3 };
+
+            o3[symbol] = 3;
+
+            var o4 = {};
+
+            o4[symbol] = 4;
+
+            var obj = Object.assign({}, o1, o2, o3, o4);
 
             strictEqual(obj.a, 1);
             strictEqual(obj.b, 2);
             strictEqual(obj.c, 3);
+            strictEqual(obj[symbol], 4);
         });
 
         test('properties on the prototype chain and non-enumerable properties cannot be copied', function () {
