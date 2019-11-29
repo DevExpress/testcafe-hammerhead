@@ -106,8 +106,15 @@ export default class ChildWindowSandbox extends SandboxBase {
 
             const aboutBlankUrl = urlUtils.getProxyUrl(SPECIAL_BLANK_PAGE);
             const openedInfo    = this._openUrlInNewWindow(aboutBlankUrl);
+            const formAction    = nativeMethods.formActionGetter.call(form);
 
-            form.target = openedInfo.pageId;
+            nativeMethods.formActionSetter.call(form, urlUtils.modifyRequestDescriptor(formAction, descriptor => {
+                const parsedResourceType = urlUtils.parseResourceType(descriptor.resourceType);
+
+                descriptor.resourceType = urlUtils.stringifyResourceType(parsedResourceType);
+                descriptor.pageId       = openedInfo.pageId;
+            }));
+            nativeMethods.formTargetSetter.call(form, openedInfo.pageId);
 
             // TODO: On hammerhead start we need to clean up the window.name
             // It's necessary for form submit.
