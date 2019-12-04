@@ -317,6 +317,24 @@ test('pageId', function () {
     strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId' + '*123456789/' + destUrl);
 });
 
+test('getPageProxyUrl', function () {
+    var sameDomainUrl        = 'https://example.com/';
+    var crossDomainUrl       = 'https://devexpress.com/';
+    var proxySameDomainHost  = location.host;
+    var proxyCrossDomainHost = location.hostname + ':' + settings.get().crossDomainProxyPort;
+
+    strictEqual(urlUtils.getPageProxyUrl(sameDomainUrl, 'pageId'),
+        'http://' + proxySameDomainHost + '/sessionId*pageId/' + sameDomainUrl);
+    strictEqual(urlUtils.getPageProxyUrl(crossDomainUrl, 'pageId'),
+        'http://' + proxyCrossDomainHost + '/sessionId*pageId/' + crossDomainUrl);
+    strictEqual(urlUtils.getPageProxyUrl('http://' + proxySameDomainHost + '/sessionId*pa/' + sameDomainUrl, 'pageId'),
+        'http://' + proxySameDomainHost + '/sessionId*pageId/' + sameDomainUrl);
+    strictEqual(urlUtils.getPageProxyUrl('http://' + proxySameDomainHost + '/sessionId*pa!if/' + sameDomainUrl, 'pageId'),
+        'http://' + proxySameDomainHost + '/sessionId*pageId!f/' + sameDomainUrl);
+    strictEqual(urlUtils.getPageProxyUrl('http://' + proxyCrossDomainHost + '/sessionId*pa!i/' + sameDomainUrl, 'pageId'),
+        'http://' + proxySameDomainHost + '/sessionId*pageId/' + sameDomainUrl);
+});
+
 module('https proxy protocol');
 
 test('destination with host only', function () {

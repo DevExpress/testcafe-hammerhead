@@ -20,8 +20,6 @@ export default class ChildWindowSandbox extends SandboxBase {
     constructor (private readonly _messageSandbox: MessageSandbox,
         private readonly _eventSandbox: EventSandbox) {
         super();
-
-        //TODO: Support cross-domain windows
     }
 
     private static _shouldOpenInNewWindow (target: string): boolean {
@@ -36,15 +34,9 @@ export default class ChildWindowSandbox extends SandboxBase {
         windowParams = windowParams || DEFAULT_WINDOW_PARAMETERS;
         windowName   = windowName || pageId;
 
-        url = urlUtils.modifyRequestDescriptor(url, descriptor => {
-            const parsedResourceType = urlUtils.parseResourceType(descriptor.resourceType);
-
-            descriptor.resourceType = urlUtils.stringifyResourceType(parsedResourceType);
-            descriptor.pageId       = pageId;
-        });
-
+        const newPageUrl = urlUtils.getPageProxyUrl(url, pageId);
         const targetWindow = window || this.window;
-        const openedWindow = nativeMethods.windowOpen.call(targetWindow, url, windowName, windowParams);
+        const openedWindow = nativeMethods.windowOpen.call(targetWindow, newPageUrl, windowName, windowParams);
 
         this.emit(this.WINDOW_OPENED_EVENT, { pageId, window: openedWindow });
 
@@ -71,9 +63,7 @@ export default class ChildWindowSandbox extends SandboxBase {
     }
 
     handleWindowOpen (window: Window, args: any[]): Window {
-        const url        = args[0];
-        const target     = args[1];
-        const parameters = args[2];
+        const [url, target, parameters] = args;
 
         if (settings.get().allowMultipleWindows && ChildWindowSandbox._shouldOpenInNewWindow(target)) {
             const openedWindowInfo = this._openUrlInNewWindow(url, target, parameters, window);
@@ -107,13 +97,9 @@ export default class ChildWindowSandbox extends SandboxBase {
             const aboutBlankUrl = urlUtils.getProxyUrl(SPECIAL_BLANK_PAGE);
             const openedInfo    = this._openUrlInNewWindow(aboutBlankUrl);
             const formAction    = nativeMethods.formActionGetter.call(form);
+            const newPageUrl    = urlUtils.getPageProxyUrl(formAction, openedInfo.pageId);
 
-            nativeMethods.formActionSetter.call(form, urlUtils.modifyRequestDescriptor(formAction, descriptor => {
-                const parsedResourceType = urlUtils.parseResourceType(descriptor.resourceType);
-
-                descriptor.resourceType = urlUtils.stringifyResourceType(parsedResourceType);
-                descriptor.pageId       = openedInfo.pageId;
-            }));
+            nativeMethods.formActionSetter.call(form, newPageUrl);
             nativeMethods.formTargetSetter.call(form, openedInfo.pageId);
 
             // TODO: On hammerhead start we need to clean up the window.name

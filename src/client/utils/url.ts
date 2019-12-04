@@ -3,7 +3,7 @@ import * as sharedUrlUtils from '../../utils/url';
 import * as destLocation from './destination-location';
 import * as urlResolver from './url-resolver';
 import settings from '../settings';
-import { RequestDescriptor, ResourceType } from '../../typings/url';
+import { ResourceType } from '../../typings/url';
 
 const HASH_RE                          = /#[\S\s]*$/;
 const SUPPORTED_WEB_SOCKET_PROTOCOL_RE = /^wss?:/i;
@@ -162,6 +162,28 @@ export function getCrossDomainIframeProxyUrl (url: string) {
     });
 }
 
+export function getPageProxyUrl (url: string, pageId: string) {
+    const parsedProxyUrl = parseProxyUrl(url);
+    let resourceType = null;
+
+    if (parsedProxyUrl) {
+        url = parsedProxyUrl.destUrl;
+        resourceType = parsedProxyUrl.resourceType;
+    }
+
+    if (resourceType) {
+        const parsedResourceType = parseResourceType(resourceType);
+
+        parsedResourceType.isIframe = false;
+        resourceType = stringifyResourceType(parsedResourceType);
+    }
+
+    const isCrossDomainUrl = !destLocation.sameOriginCheck(destLocation.getLocation(), url);
+    const proxyPort        = isCrossDomainUrl ? settings.get().crossDomainProxyPort : location.port.toString(); // eslint-disable-line no-restricted-properties
+
+    return getProxyUrl(url, { pageId, proxyPort, resourceType });
+}
+
 export function getCrossDomainProxyPort (proxyPort: string) {
     return settings.get().crossDomainProxyPort === proxyPort
         // eslint-disable-next-line no-restricted-properties
@@ -247,35 +269,4 @@ export function isChangedOnlyHash (currentUrl: string, newUrl: string): boolean 
     // NOTE: we compare proxied urls because urls passed into the function may be proxied, non-proxied
     // or relative. The getProxyUrl function solves all the corresponding problems.
     return getProxyUrl(currentUrl).replace(HASH_RE, '') === getProxyUrl(newUrl).replace(HASH_RE, '');
-}
-
-export function modifyRequestDescriptor (proxyUrl: string, modifyFn: (descriptor: RequestDescriptor) => void): string {
-    const parsed = sharedUrlUtils.parseProxyUrl(proxyUrl);
-
-    if (parsed) {
-        const descriptor = {
-            sessionId: parsed.sessionId,
-            resourceType: parsed.resourceType,
-            charset: parsed.charset,
-            reqOrigin: parsed.reqOrigin,
-            pageId: parsed.pageId
-        };
-
-        modifyFn(descriptor);
-
-        return getProxyUrl(parsed.destUrl, {
-            /*eslint-disable no-restricted-properties*/
-            proxyHostname: parsed.proxy.hostname,
-            proxyPort:     parsed.proxy.port,
-            /*eslint-enable no-restricted-properties*/
-
-            sessionId: descriptor.sessionId,
-            resourceType: descriptor.resourceType,
-            charset: descriptor.charset,
-            reqOrigin: descriptor.reqOrigin,
-            pageId: descriptor.pageId
-        });
-    }
-
-    return proxyUrl;
 }
