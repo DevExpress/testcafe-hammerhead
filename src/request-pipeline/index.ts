@@ -125,8 +125,12 @@ const stages = [
                         await callOnResponseEventCallbackWithBodyForNonProcessedRequest(ctx, onResponseEventDataWithBody);
                     else if (onResponseEventDataWithoutBody.length)
                         await callOnResponseEventCallbackWithoutBodyForNonProcessedResource(ctx, onResponseEventDataWithoutBody);
-                    else
+                    else if (ctx.req.socket.destroyed && !ctx.isDestResReadableEnded)
+                        ctx.destRes.destroy();
+                    else {
+                        ctx.res.once('close', () => !ctx.isDestResReadableEnded && ctx.destRes.destroy());
                         ctx.destRes.pipe(ctx.res);
+                    }
                 }
 
                 // NOTE: sets 60 minutes timeout for the "event source" requests instead of 2 minutes by default

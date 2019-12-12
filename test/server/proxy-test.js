@@ -77,6 +77,8 @@ const PAGE_ACCEPT_HEADER = 'text/html,application/xhtml+xml,application/xml;q=0.
 
 const PROXY_HOSTNAME = '127.0.0.1';
 
+let longResponseSocket = null;
+
 function trim (str) {
     return str.replace(/^\s+|\s+$/g, '');
 }
@@ -422,6 +424,23 @@ describe('Proxy', () => {
                         .set('content-encoding', 'gzip')
                         .end(data.slice(0, data.length - 8));
                 });
+        });
+
+        app.get('/long-response', (req, res) => {
+            let bodyPartCount = 5;
+            const writeBody = () => {
+                res.write('this is body part');
+
+                if (--bodyPartCount)
+                    setTimeout(writeBody, 1000);
+                else
+                    res.end();
+            };
+
+            longResponseSocket = res.socket;
+
+            res.status(200);
+            writeBody();
         });
 
         destServer = app.listen(2000);
@@ -3947,6 +3966,22 @@ describe('Proxy', () => {
                 .then(body => {
                     expect(body).contains('<h1>Compressible response content.</h1>');
                 });
+        });
+
+        it('Should destroy unnecessary sockets to a destination server (GH-2149)', (done) => {
+            const proxyUrl = proxy.openSession('http://127.0.0.1:2000/long-response', session);
+
+            http.get(proxyUrl, (res) => {
+                res.on('data', d => {
+                    expect(d.toString()).eql('this is body part');
+                    res.destroy();
+
+                    setTimeout(() => {
+                        expect(longResponseSocket.destroyed).eql(true);
+                        done();
+                    }, 3000);
+                });
+            });
         });
     });
 });
