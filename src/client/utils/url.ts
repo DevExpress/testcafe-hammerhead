@@ -3,6 +3,7 @@ import * as sharedUrlUtils from '../../utils/url';
 import * as destLocation from './destination-location';
 import * as urlResolver from './url-resolver';
 import settings from '../settings';
+import { ResourceType } from '../../typings/url';
 
 const HASH_RE                          = /#[\S\s]*$/;
 const SUPPORTED_WEB_SOCKET_PROTOCOL_RE = /^wss?:/i;
@@ -29,7 +30,7 @@ const DEFAULT_PROXY_SETTINGS = (function () {
 
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = sharedUrlUtils.REQUEST_DESCRIPTOR_VALUES_SEPARATOR;
 
-export function getProxyUrl (url, opts?) {
+export function getProxyUrl (url: string, opts?) {
     url = sharedUrlUtils.getURLString(url);
 
     const resourceType       = opts && opts.resourceType;
@@ -55,6 +56,7 @@ export function getProxyUrl (url, opts?) {
         : proxyServerProtocol;
 
     const sessionId = opts && opts.sessionId || settings.get().sessionId;
+    const pageId    = opts && opts.pageId || settings.get().pageId;
     let charset     = opts && opts.charset;
     let reqOrigin   = opts && opts.reqOrigin;
 
@@ -123,11 +125,12 @@ export function getProxyUrl (url, opts?) {
         sessionId,
         resourceType,
         charset,
-        reqOrigin
+        reqOrigin,
+        pageId
     });
 }
 
-export function getNavigationUrl (url, win) {
+export function getNavigationUrl (url: string, win) {
     // NOTE: For the 'about:blank' page, we perform url proxing only for the top window, 'location' object and links.
     // For images and iframes, we keep urls as they were.
     // See details in https://github.com/DevExpress/testcafe-hammerhead/issues/339
@@ -152,14 +155,36 @@ export function getNavigationUrl (url, win) {
     return getProxyUrl(url);
 }
 
-export function getCrossDomainIframeProxyUrl (url) {
+export function getCrossDomainIframeProxyUrl (url: string) {
     return getProxyUrl(url, {
         proxyPort:    settings.get().crossDomainProxyPort,
         resourceType: sharedUrlUtils.getResourceTypeString({ isIframe: true })
     });
 }
 
-export function getCrossDomainProxyPort (proxyPort) {
+export function getPageProxyUrl (url: string, pageId: string) {
+    const parsedProxyUrl = parseProxyUrl(url);
+    let resourceType = null;
+
+    if (parsedProxyUrl) {
+        url = parsedProxyUrl.destUrl;
+        resourceType = parsedProxyUrl.resourceType;
+    }
+
+    if (resourceType) {
+        const parsedResourceType = parseResourceType(resourceType);
+
+        parsedResourceType.isIframe = false;
+        resourceType = stringifyResourceType(parsedResourceType);
+    }
+
+    const isCrossDomainUrl = !destLocation.sameOriginCheck(destLocation.getLocation(), url);
+    const proxyPort        = isCrossDomainUrl ? settings.get().crossDomainProxyPort : location.port.toString(); // eslint-disable-line no-restricted-properties
+
+    return getProxyUrl(url, { pageId, proxyPort, resourceType });
+}
+
+export function getCrossDomainProxyPort (proxyPort: string) {
     return settings.get().crossDomainProxyPort === proxyPort
         // eslint-disable-next-line no-restricted-properties
         ? location.port.toString()
@@ -171,7 +196,7 @@ export function getCrossDomainProxyUrl () {
     return location.protocol + '//' + location.hostname + ':' + settings.get().crossDomainProxyPort + '/';
 }
 
-export function resolveUrlAsDest (url) {
+export function resolveUrlAsDest (url: string) {
     return sharedUrlUtils.resolveUrlAsDest(url, getProxyUrl);
 }
 
@@ -220,23 +245,23 @@ export function isValidWebSocketUrl (url) {
     return SUPPORTED_WEB_SOCKET_PROTOCOL_RE.test(resolvedUrl);
 }
 
-export function isSubDomain (domain, subDomain) {
+export function isSubDomain (domain, subDomain): boolean {
     return sharedUrlUtils.isSubDomain(domain, subDomain);
 }
 
-export function isSupportedProtocol (url) {
+export function isSupportedProtocol (url: string): boolean {
     return sharedUrlUtils.isSupportedProtocol(url);
 }
 
-export function isSpecialPage (url) {
+export function isSpecialPage (url: string): boolean {
     return sharedUrlUtils.isSpecialPage(url);
 }
 
-export function parseResourceType (resourceType) {
+export function parseResourceType (resourceType: string): ResourceType {
     return sharedUrlUtils.parseResourceType(resourceType);
 }
 
-export function stringifyResourceType (resourceType) {
+export function stringifyResourceType (resourceType: ResourceType): string {
     return sharedUrlUtils.getResourceTypeString(resourceType);
 }
 

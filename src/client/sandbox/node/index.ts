@@ -17,6 +17,7 @@ import UploadSandbox from '../upload';
 import ShadowUI from '../shadow-ui';
 import CookieSandbox from '../cookie';
 import * as browserUtils from '../../utils/browser';
+import ChildWindowSandbox from '../child-window';
 
 const ATTRIBUTE_SELECTOR_REG_EX          = /\[([\w-]+)(\^?=.+?)]/g;
 const ATTRIBUTE_OPERATOR_WITH_HASH_VALUE = /^\W+\s*#/;
@@ -34,7 +35,8 @@ export default class NodeSandbox extends SandboxBase {
         private readonly _eventSandbox: EventSandbox,
         private readonly _uploadSandbox: UploadSandbox,
         readonly shadowUI: ShadowUI,
-        private readonly _cookieSandbox: CookieSandbox) {
+        private readonly _cookieSandbox: CookieSandbox,
+        private readonly _childWindowSandbox: ChildWindowSandbox) {
 
         super();
 
@@ -47,8 +49,8 @@ export default class NodeSandbox extends SandboxBase {
         });
 
         this.doc     = new DocumentSandbox(this, this.shadowUI, this._cookieSandbox);
-        this.win     = new WindowSandbox(this, this._eventSandbox, this._uploadSandbox, this.mutation);
-        this.element = new ElementSandbox(this, this._uploadSandbox, this.iframeSandbox, this.shadowUI, this._eventSandbox);
+        this.win     = new WindowSandbox(this, this._eventSandbox, this._uploadSandbox, this.mutation, this._childWindowSandbox);
+        this.element = new ElementSandbox(this, this._uploadSandbox, this.iframeSandbox, this.shadowUI, this._eventSandbox, this._childWindowSandbox);
     }
 
     private _onBodyCreated (): void {

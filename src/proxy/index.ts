@@ -134,6 +134,7 @@ export default class Proxy extends Router {
         const referer     = req.headers['referer'];
         const refererDest = referer && urlUtils.parseProxyUrl(referer);
         const session     = refererDest && this.openSessions.get(refererDest.sessionId);
+        const pageId      = refererDest && refererDest.pageId;
 
         if (session) {
             res.setHeader('content-type', 'application/x-javascript');
@@ -144,7 +145,8 @@ export default class Proxy extends Router {
                 cookieUrl:   refererDest.destUrl,
                 serverInfo,
                 isIframe,
-                withPayload: true
+                withPayload: true,
+                pageId
             });
 
             res.end(taskScript);
@@ -193,7 +195,8 @@ export default class Proxy extends Router {
             proxyHostname: this.server1Info.hostname,
             proxyPort:     this.server1Info.port,
             proxyProtocol: this.server1Info.protocol,
-            sessionId:     session.id
+            sessionId:     session.id,
+            pageId:        session.pageId
         });
     }
 

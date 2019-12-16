@@ -12,13 +12,14 @@ var PROXY_PORT     = 1337;
 var PROXY_HOSTNAME = '127.0.0.1';
 var PROXY_HOST     = PROXY_HOSTNAME + ':' + PROXY_PORT;
 
-function getProxyUrl (url, resourceType, protocol) {
+function getProxyUrl (url, resourceType, protocol, pageId) {
     return urlUtils.getProxyUrl(url, {
         proxyHostname: PROXY_HOSTNAME,
         proxyPort:     PROXY_PORT,
         sessionId:     'sessionId',
         resourceType:  resourceType,
-        proxyProtocol: protocol || 'http:'
+        proxyProtocol: protocol || 'http:',
+        pageId:        pageId
     });
 }
 
@@ -259,7 +260,6 @@ test('remove unnecessary slashes form the begin of the url', function () {
     strictEqual(proxy, 'http://localhost:5555/sessionId!resourceType/https://example.com');
 });
 
-
 test('should ensure triple starting slashes in a scheme-less file URLs', function () {
     var storedLocation = destLocation.getLocation();
 
@@ -308,6 +308,31 @@ test('convert a charset to lower case (GH-752)', function () {
     };
 
     strictEqual(sharedUrlUtils.getProxyUrl(url, opts), 'http://localhost:5555/sessionId!utf-8/' + url);
+});
+
+test('pageId', function () {
+    var destUrl  = 'http://example.com';
+    var proxyUrl = getProxyUrl(destUrl, null, null, '123456789');
+
+    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId' + '*123456789/' + destUrl);
+});
+
+test('getPageProxyUrl', function () {
+    var sameDomainUrl        = 'https://example.com/';
+    var crossDomainUrl       = 'https://devexpress.com/';
+    var proxySameDomainHost  = location.host;
+    var proxyCrossDomainHost = location.hostname + ':' + settings.get().crossDomainProxyPort;
+
+    strictEqual(urlUtils.getPageProxyUrl(sameDomainUrl, 'pageId'),
+        'http://' + proxySameDomainHost + '/sessionId*pageId/' + sameDomainUrl);
+    strictEqual(urlUtils.getPageProxyUrl(crossDomainUrl, 'pageId'),
+        'http://' + proxyCrossDomainHost + '/sessionId*pageId/' + crossDomainUrl);
+    strictEqual(urlUtils.getPageProxyUrl('http://' + proxySameDomainHost + '/sessionId*pa/' + sameDomainUrl, 'pageId'),
+        'http://' + proxySameDomainHost + '/sessionId*pageId/' + sameDomainUrl);
+    strictEqual(urlUtils.getPageProxyUrl('http://' + proxySameDomainHost + '/sessionId*pa!if/' + sameDomainUrl, 'pageId'),
+        'http://' + proxySameDomainHost + '/sessionId*pageId!f/' + sameDomainUrl);
+    strictEqual(urlUtils.getPageProxyUrl('http://' + proxyCrossDomainHost + '/sessionId*pa!i/' + sameDomainUrl, 'pageId'),
+        'http://' + proxySameDomainHost + '/sessionId*pageId/' + sameDomainUrl);
 });
 
 module('https proxy protocol');
@@ -442,6 +467,16 @@ test('hash with whitespace (GH-971)', function () {
     strictEqual(parsingResult.sessionId, 'sessionId');
     strictEqual(parsingResult.destUrl, 'http://some.domain.com/path/#word word');
     strictEqual(parsingResult.destResourceInfo.partAfterHost, '/path/#word word');
+});
+
+test('pageId', function () {
+    var proxyUrl       = 'http://' + PROXY_HOST + '/sessionId*123456789/http://example.com';
+    var parsedProxyUrl = urlUtils.parseProxyUrl(proxyUrl);
+
+    strictEqual(parsedProxyUrl.destUrl, 'http://example.com');
+    strictEqual(parsedProxyUrl.sessionId, 'sessionId');
+    strictEqual(parsedProxyUrl.resourceType, null);
+    strictEqual(parsedProxyUrl.pageId, '123456789');
 });
 
 module('change proxy url');

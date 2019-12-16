@@ -55,6 +55,12 @@ interface ContentInfo {
     isRedirect: boolean;
 }
 
+interface FlattenParsedProxyUrl {
+    dest: DestInfo;
+    sessionId: string;
+    pageId?: string;
+}
+
 const REDIRECT_STATUS_CODES                  = [301, 302, 303, 307, 308];
 const CANNOT_BE_USED_WITH_WEB_SOCKET_ERR_MSG = 'The function cannot be used with a WebSocket request.';
 
@@ -89,6 +95,7 @@ export default class RequestPipelineContext {
     goToNextStage: boolean = true;
     mock: ResponseMock;
     isSameOriginPolicyFailed: boolean = false;
+    pageId?: string;
 
     constructor (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo) {
         this.serverInfo = serverInfo;
@@ -105,7 +112,7 @@ export default class RequestPipelineContext {
     }
 
     // TODO: Rewrite parseProxyUrl instead.
-    private static _flattenParsedProxyUrl (parsed: ParsedProxyUrl): { dest: DestInfo; sessionId: string } {
+    private static _flattenParsedProxyUrl (parsed: ParsedProxyUrl): FlattenParsedProxyUrl {
         if (!parsed)
             return null;
 
@@ -128,7 +135,7 @@ export default class RequestPipelineContext {
             reqOrigin:     parsed.reqOrigin
         };
 
-        return { dest, sessionId: parsed.sessionId };
+        return { dest, sessionId: parsed.sessionId, pageId: parsed.pageId };
     }
 
     private _isFileDownload (): boolean {
@@ -156,13 +163,13 @@ export default class RequestPipelineContext {
         this.isHTMLPage     = this.isPage && !this.isIframe && !this.isHtmlImport;
     }
 
-    private _getDestFromReferer (parsedReferer: { dest: DestInfo; sessionId: string }): { dest: DestInfo; sessionId: string } {
+    private _getDestFromReferer (parsedReferer: FlattenParsedProxyUrl): FlattenParsedProxyUrl {
         const dest = parsedReferer.dest;
 
         dest.partAfterHost = this.req.url;
         dest.url           = urlUtils.formatUrl(dest);
 
-        return { dest, sessionId: parsedReferer.sessionId };
+        return { dest, sessionId: parsedReferer.sessionId, pageId: parsedReferer.pageId };
     }
 
     // API
@@ -188,6 +195,7 @@ export default class RequestPipelineContext {
             return false;
 
         this.dest               = flattenParsedReqUrl.dest;
+        this.pageId             = flattenParsedReqUrl.pageId;
         this.dest.partAfterHost = this._preparePartAfterHost(this.dest.partAfterHost);
         this.dest.domain        = urlUtils.getDomain(this.dest);
 
@@ -331,6 +339,7 @@ export default class RequestPipelineContext {
         const proxyProtocol = this.serverInfo.protocol;
         const proxyPort     = isCrossDomain ? this.serverInfo.crossDomainPort : this.serverInfo.port;
         const sessionId     = this.session.id;
+        const pageId        = this.pageId;
 
         return urlUtils.getProxyUrl(url, {
             proxyHostname,
@@ -338,7 +347,8 @@ export default class RequestPipelineContext {
             proxyPort,
             sessionId,
             resourceType,
-            charset
+            charset,
+            pageId
         });
     }
 

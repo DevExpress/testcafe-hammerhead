@@ -462,6 +462,8 @@ describe('Proxy', () => {
     beforeEach(() => {
         session = new Session();
 
+        session.pageId = '12345';
+
         session.getAuthCredentials = () => null;
         session.handleFileDownload = () => void 0;
 
@@ -479,6 +481,7 @@ describe('Proxy', () => {
                     proxyHostname: PROXY_HOSTNAME,
                     proxyPort:     1836,
                     sessionId:     session.id,
+                    pageId:        session.pageId
                 });
 
                 return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
@@ -505,6 +508,7 @@ describe('Proxy', () => {
                     proxyHostname: PROXY_HOSTNAME,
                     proxyPort:     1836,
                     sessionId:     session.id,
+                    pageId:        session.pageId
                 });
             }
 
@@ -588,33 +592,53 @@ describe('Proxy', () => {
                 });
         });
 
-        it('Should render task script', () => {
-            function testTaskScriptRequest (url, scriptBody) {
+        describe('Task script', () => {
+            it('Regular', () => {
+                function testTaskScriptRequest (url, scriptBody) {
+                    const options = {
+                        headers: {
+                            referer: proxy.openSession('http://example.com', session)
+                        },
+
+                        url:                     url,
+                        resolveWithFullResponse: true
+                    };
+
+                    return request(options)
+                        .then(res => {
+                            expect(res.body).contains(scriptBody);
+                            expect(res.headers['content-type']).eql('application/x-javascript');
+                            expect(res.headers['cache-control']).eql('no-cache, no-store, must-revalidate');
+                            expect(res.headers['pragma']).eql('no-cache');
+                        });
+                }
+
+                session._getPayloadScript       = () => 'PayloadScript';
+                session._getIframePayloadScript = () => 'IframePayloadScript';
+
+                return Promise.all([
+                    testTaskScriptRequest('http://localhost:1836/task.js', 'PayloadScript'),
+                    testTaskScriptRequest('http://localhost:1836/iframe-task.js', 'IframePayloadScript')
+                ]);
+            });
+
+            it('Error', () => {
                 const options = {
                     headers: {
-                        referer: proxy.openSession('http://example.com', session)
+                        referer: proxy.openSession('http://example.com', {})
                     },
 
-                    url:                     url,
-                    resolveWithFullResponse: true
+                    url: 'http://localhost:1836/task.js',
                 };
 
                 return request(options)
-                    .then(res => {
-                        expect(res.body).contains(scriptBody);
-                        expect(res.headers['content-type']).eql('application/x-javascript');
-                        expect(res.headers['cache-control']).eql('no-cache, no-store, must-revalidate');
-                        expect(res.headers['pragma']).eql('no-cache');
+                    .then(() => {
+                        throw new Error('Should throw an error.');
+                    })
+                    .catch(err => {
+                        expect(err.message).eql('500 - "Session is not opened in proxy"');
                     });
-            }
-
-            session._getPayloadScript       = () => 'PayloadScript';
-            session._getIframePayloadScript = () => 'IframePayloadScript';
-
-            return Promise.all([
-                testTaskScriptRequest('http://localhost:1836/task.js', 'PayloadScript'),
-                testTaskScriptRequest('http://localhost:1836/iframe-task.js', 'IframePayloadScript')
-            ]);
+            });
         });
 
         it('Should convert origin host and protocol to lower case', () => {
@@ -877,7 +901,8 @@ describe('Proxy', () => {
                     const proxiedUrl = urlUtils.getProxyUrl(testCase.url, {
                         proxyHostname: PROXY_HOSTNAME,
                         proxyPort:     1836,
-                        sessionId:     session.id
+                        sessionId:     session.id,
+                        pageId:        session.pageId
                     });
 
                     return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
@@ -913,6 +938,7 @@ describe('Proxy', () => {
                         proxyHostname: PROXY_HOSTNAME,
                         proxyPort:     1836,
                         sessionId:     session.id,
+                        pageId:        session.pageId
                     });
                 }
 
@@ -2808,7 +2834,7 @@ describe('Proxy', () => {
                 rejectUnauthorized: false
             };
 
-            expect(options.url).eql('https://127.0.0.1:1836/sessionId/http://127.0.0.1:2000/page');
+            expect(options.url).eql('https://127.0.0.1:1836/sessionId*12345/http://127.0.0.1:2000/page');
 
             return request(options)
                 .then(body => {

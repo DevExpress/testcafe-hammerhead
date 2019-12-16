@@ -1,31 +1,28 @@
-const express    = require('express');
-const http       = require('http');
-const path       = require('path');
-const process    = require('child_process');
-const bodyParser = require('body-parser');
-
-const Proxy   = require('../../lib/proxy');
-const Session = require('../../lib/session');
+const express       = require('express');
+const http          = require('http');
+const path          = require('path');
+const process       = require('child_process');
+const bodyParser    = require('body-parser');
+const Proxy         = require('../../lib/proxy');
+const createSession = require('./create-session');
 
 const PROXY_PORT_1 = 1401;
 const PROXY_PORT_2 = 1402;
 const SERVER_PORT  = 1400;
 
-function createSession () {
-    const session = new Session(['test/playground/upload-storage']);
+function prepareUrl (url) {
+    if (!/^(?:file|https?):\/\//.test(url)) {
+        const matches = url.match(/^([A-Za-z]:)?(\/|\\)/);
 
-    session._getIframePayloadScript = () => '';
-    session._getPayloadScript       = () => '';
-    session.getAuthCredentials      = () => ({});
-    session.handleFileDownload      = () => void 0;
-    session.handlePageError         = (ctx, err) => {
-        console.log(ctx.req.url);
-        console.log(err);
-    };
+        if (matches && matches[0].length === 1)
+            url = 'file://' + url;
+        else if (matches && matches[0].length > 1)
+            url = 'file:///' + url;
+        else
+            url = 'http://' + url;
+    }
 
-    session.allowMultipleWindows = !!global.process.env.allowMultipleWindows;
-
-    return session;
+    return url;
 }
 
 exports.start = sslOptions => {
@@ -51,16 +48,7 @@ exports.start = sslOptions => {
                 .sendFile(path.resolve(__dirname, 'views/403.html'));
         }
         else {
-            if (!/^(?:file|https?):\/\//.test(url)) {
-                const matches = url.match(/^([A-Za-z]:)?(\/|\\)/);
-
-                if (matches && matches[0].length === 1)
-                    url = 'file://' + url;
-                else if (matches && matches[0].length > 1)
-                    url = 'file:///' + url;
-                else
-                    url = 'http://' + url;
-            }
+            url = prepareUrl(url);
 
             res
                 .status(301)
