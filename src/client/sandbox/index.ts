@@ -111,9 +111,14 @@ export default class Sandbox extends SandboxBase {
             // NOTE: Try to find an existing iframe sandbox.
             const sandbox = getSandboxBackup(contentWindow);
 
-            if (sandbox && Sandbox._canUseSandbox(sandbox))
-            // NOTE: Inform the sandbox so that it restores communication with the recreated document.
-                sandbox.reattach(contentWindow, contentDocument);
+            if (sandbox && Sandbox._canUseSandbox(sandbox)) {
+                if (!contentWindow[INTERNAL_PROPS.sandboxIsReattached] || sandbox.document !== contentDocument) {
+                    // NOTE: Inform the sandbox so that it restores communication with the recreated document.
+                    sandbox.reattach(contentWindow, contentDocument);
+
+                    nativeMethods.objectDefineProperty(contentWindow, INTERNAL_PROPS.sandboxIsReattached, { value: true, configurable: false });
+                }
+            }
             else {
                 // NOTE: Remove saved native methods for iframe
                 if (contentWindow[INTERNAL_PROPS.iframeNativeMethods])
@@ -139,7 +144,7 @@ export default class Sandbox extends SandboxBase {
 
         urlResolver.init(document);
 
-        this.event.initDocumentListening(document);
+        this.event.reattach(window);
         this.shadowUI.attach(window);
         // NOTE: T182337
         this.codeInstrumentation.attach(window);
@@ -150,6 +155,8 @@ export default class Sandbox extends SandboxBase {
 
     attach (window: Window): void {
         super.attach(window);
+
+        nativeMethods.objectDefineProperty(window, INTERNAL_PROPS.sandboxIsReattached, { value: true, configurable: false });
 
         urlResolver.init(this.document);
 

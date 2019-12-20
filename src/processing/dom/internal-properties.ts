@@ -14,5 +14,6 @@ export default {
     shadowUIElement:           'hammerhead|shadow-ui-element',
     forceProxySrcForImage:     'hammerhead|image|force-proxy-src-flag',
     skipNextLoadEventForImage: 'hammerhead|image|skip-next-load-event-flag',
-    cachedImage:               'hammerhead|image|cached-image'
+    cachedImage:               'hammerhead|image|cached-image',
+    sandboxIsReattached:       'hammerhead|sandbox-is-reattached'
 };
