@@ -115,8 +115,6 @@ export default class Sandbox extends SandboxBase {
                 if (!contentWindow[INTERNAL_PROPS.sandboxIsReattached] || sandbox.document !== contentDocument) {
                     // NOTE: Inform the sandbox so that it restores communication with the recreated document.
                     sandbox.reattach(contentWindow, contentDocument);
-
-                    nativeMethods.objectDefineProperty(contentWindow, INTERNAL_PROPS.sandboxIsReattached, { value: true, configurable: false });
                 }
             }
             else {
@@ -138,6 +136,8 @@ export default class Sandbox extends SandboxBase {
     }
 
     reattach (window: Window, document: Document): void {
+        nativeMethods.objectDefineProperty(window, INTERNAL_PROPS.sandboxIsReattached, { value: true, configurable: false });
+
         // NOTE: Assign the existing sandbox to the cleared document.
         if (isIE)
             this.nativeMethods.refreshIfNecessary(document, window);
