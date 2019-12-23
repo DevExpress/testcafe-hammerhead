@@ -203,7 +203,7 @@ export default class EventSandbox extends SandboxBase {
             window.TextRange.prototype.select = this._overriddenMethods.select;
         }
 
-        this.initDocumentListening(window.document);
+        this.listeners.initElementListening(document, DOM_EVENTS);
         this.listeners.initElementListening(window, DOM_EVENTS.concat(['load', 'beforeunload', 'pagehide', 'unload', 'message']));
         this.listeners.addInternalEventListener(window, ['focus'], this._onFocus);
         this.listeners.addInternalEventListener(window, ['focus', 'blur', 'change', 'focusin', 'focusout'], this._cancelInternalEvents);
@@ -217,8 +217,9 @@ export default class EventSandbox extends SandboxBase {
         this.hover.attach(window);
     }
 
-    initDocumentListening (document: Document): void {
-        this.listeners.initElementListening(document, DOM_EVENTS);
+    reattach (window) {
+        this.listeners.restartElementListening(window.document);
+        this.listeners.restartElementListening(window);
     }
 }
 

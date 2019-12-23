@@ -504,3 +504,50 @@ asyncTest('events should not be called twice (GH-2062)', function () {
         start();
     }, 1000);
 });
+
+test('events should be restored after iframe rewriting (GH-1881)', function () {
+    var internalClickEventCounter = 0;
+    var contentWindow;
+    var contentDocument;
+
+    return createTestIframe()
+        .then(function (iframe) {
+            contentWindow = iframe.contentWindow;
+            contentDocument = iframe.contentDocument;
+
+            contentDocument.open();
+            contentDocument.write('<!doctype html><html><head></head><body>hello</body></html>');
+            contentDocument.close();
+
+            contentWindow['%hammerhead%'].eventSandbox.listeners.addInternalEventListener(contentWindow, ['click'], function () {
+                ++internalClickEventCounter;
+            });
+
+            eventSimulator.click(contentDocument.body);
+
+            return window.wait(500);
+        })
+        .then(function () {
+            strictEqual(internalClickEventCounter, 1);
+
+            internalClickEventCounter = 0;
+
+            // TODO: remove the next string and fix tests in IE and Edge
+            contentDocument.open();
+            contentDocument.write('<!doctype html><html><head></head><body>world</body></html>');
+            contentDocument.close();
+
+            if (browserUtils.isIE) {
+                contentWindow['%hammerhead%'].eventSandbox.listeners.addInternalEventListener(contentWindow, ['click'], function () {
+                    ++internalClickEventCounter;
+                });
+            }
+
+            eventSimulator.click(contentDocument.body);
+
+            return window.wait(500);
+        })
+        .then(function () {
+            strictEqual(internalClickEventCounter, 1);
+        });
+});
