@@ -328,12 +328,21 @@ test("'body.appendChild' method works incorrectly in the particular case (GH-421
 
 if (browserUtils.isWebKit) {
     test('event listeners added twice in an iframe after document.write (GH-839)', function () {
+        var internalClickEventCounter = 0;
+
         return createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/window-event-listeners.html') })
             .then(function (iframe) {
-                iframe.contentWindow.eventListenersCount = {};
                 iframe.contentWindow.performWrite();
+                iframe.contentWindow['%hammerhead%'].eventSandbox.listeners.addInternalEventListener(iframe.contentWindow, ['click'], function () {
+                    ++internalClickEventCounter;
+                });
 
-                deepEqual(iframe.contentWindow.eventListenersCount, {});
+                iframe.contentDocument.body.click();
+
+                return window.wait(500);
+            })
+            .then(function () {
+                strictEqual(internalClickEventCounter, 1);
             });
     });
 }

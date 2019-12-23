@@ -4,21 +4,6 @@
     <title></title>
     <meta charset="utf-8">
     <script type="text/javascript">
-        window.eventListenersCount = {};
-
-        var originWindowAddEventListener = window.constructor.prototype.addEventListener;
-
-        window.constructor.prototype.addEventListener = function () {
-            var eventName = arguments[0];
-
-            if (!eventListenersCount[eventName])
-                eventListenersCount[eventName] = 0;
-
-            eventListenersCount[eventName]++;
-
-            originWindowAddEventListener.apply(this, arguments);
-        };
-
         window.performWrite = function () {
             document.write([
                 '<head></head>',
