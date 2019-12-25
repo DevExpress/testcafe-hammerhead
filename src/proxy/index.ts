@@ -134,7 +134,7 @@ export default class Proxy extends Router {
         const referer     = req.headers['referer'];
         const refererDest = referer && urlUtils.parseProxyUrl(referer);
         const session     = refererDest && this.openSessions.get(refererDest.sessionId);
-        const windowId      = refererDest && refererDest.windowId;
+        const windowId    = refererDest && refererDest.windowId;
 
         if (session) {
             res.setHeader('content-type', 'application/x-javascript');
