@@ -1,7 +1,7 @@
 const crypto  = require('crypto');
 const Session = require('../../lib/session');
 
-function createPageId() {
+function createWindowId() {
     const buf = crypto.randomBytes(2);
     let res   = '';
 
@@ -26,7 +26,7 @@ function createSession () {
     session.allowMultipleWindows = !!global.process.env.allowMultipleWindows;
 
     if (session.allowMultipleWindows)
-        session.pageId = createPageId();
+        session.windowId = createWindowId();
 
     return session;
 }

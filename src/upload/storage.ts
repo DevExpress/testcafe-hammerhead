@@ -89,7 +89,7 @@ export default class UploadStorage {
         return storedFiles;
     }
 
-    async _resolvePath (filePath, errors) {
+    async _resolvePath (filePath: string, errors): Promise<string> {
         let resolvedPath = null;
 
         if (path.isAbsolute(filePath))

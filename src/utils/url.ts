@@ -135,11 +135,11 @@ export function getURLString (url: string): string {
     return String(url).replace(/\n|\t/g, '');
 }
 
-export function getProxyUrl (url: string, opts: ProxyUrlOptions) {
+export function getProxyUrl (url: string, opts: ProxyUrlOptions): string {
     const sessionInfo = [opts.sessionId];
 
-    if (opts.pageId)
-        sessionInfo.push(opts.pageId);
+    if (opts.windowId)
+        sessionInfo.push(opts.windowId);
 
     const params = [sessionInfo.join(REQUEST_DESCRIPTOR_SESSION_INFO_VALUES_SEPARATOR)];
 
@@ -158,7 +158,7 @@ export function getProxyUrl (url: string, opts: ProxyUrlOptions) {
     return `${proxyProtocol}//${opts.proxyHostname}:${opts.proxyPort}/${descriptor}/${convertHostToLowerCase(url)}`;
 }
 
-export function getDomain (parsed: ParsedUrl) {
+export function getDomain (parsed: ParsedUrl): string {
     return formatUrl({
         protocol: parsed.protocol,
         host:     parsed.host,
@@ -180,7 +180,7 @@ function parseRequestDescriptor (desc: string): RequestDescriptor | null {
     const parsedDesc: RequestDescriptor = { sessionId, resourceType };
 
     if (sessionInfo[1])
-        parsedDesc.pageId = sessionInfo[1];
+        parsedDesc.windowId = sessionInfo[1];
 
     if (resourceType && resourceData) {
         const parsedResourceType = parseResourceType(resourceType);
@@ -244,11 +244,11 @@ export function parseProxyUrl (proxyUrl: string): ParsedProxyUrl | null {
         resourceType: parsedDesc.resourceType,
         charset:      parsedDesc.charset,
         reqOrigin:    parsedDesc.reqOrigin,
-        pageId:       parsedDesc.pageId
+        windowId:     parsedDesc.windowId
     };
 }
 
-export function getPathname (path: string) {
+export function getPathname (path: string): string {
     return path.replace(QUERY_AND_HASH_RE, '');
 }
 
@@ -321,7 +321,7 @@ export function isSupportedProtocol (url: string): boolean {
     return SUPPORTED_PROTOCOL_RE.test(protocol[0]);
 }
 
-export function resolveUrlAsDest (url: string, getProxyUrlMeth: Function) {
+export function resolveUrlAsDest (url: string, getProxyUrlMeth: Function): string {
     getProxyUrlMeth = getProxyUrlMeth || getProxyUrl;
 
     if (isSupportedProtocol(url)) {
@@ -401,7 +401,7 @@ export function ensureTrailingSlash (srcUrl: string, processedUrl: string): stri
     return processedUrl;
 }
 
-export function isSpecialPage (url: string) {
+export function isSpecialPage (url: string): boolean {
     return SPECIAL_PAGES.indexOf(url) !== -1;
 }
 

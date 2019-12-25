@@ -30,7 +30,7 @@ const DEFAULT_PROXY_SETTINGS = (function () {
 
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = sharedUrlUtils.REQUEST_DESCRIPTOR_VALUES_SEPARATOR;
 
-export function getProxyUrl (url: string, opts?) {
+export function getProxyUrl (url: string, opts?): string {
     url = sharedUrlUtils.getURLString(url);
 
     const resourceType       = opts && opts.resourceType;
@@ -56,7 +56,7 @@ export function getProxyUrl (url: string, opts?) {
         : proxyServerProtocol;
 
     const sessionId = opts && opts.sessionId || settings.get().sessionId;
-    const pageId    = opts && opts.pageId || settings.get().pageId;
+    const windowId  = opts && opts.windowId || settings.get().windowId;
     let charset     = opts && opts.charset;
     let reqOrigin   = opts && opts.reqOrigin;
 
@@ -126,7 +126,7 @@ export function getProxyUrl (url: string, opts?) {
         resourceType,
         charset,
         reqOrigin,
-        pageId
+        windowId
     });
 }
 
@@ -162,7 +162,7 @@ export function getCrossDomainIframeProxyUrl (url: string) {
     });
 }
 
-export function getPageProxyUrl (url: string, pageId: string) {
+export function getPageProxyUrl (url: string, windowId: string): string {
     const parsedProxyUrl = parseProxyUrl(url);
     let resourceType = null;
 
@@ -181,7 +181,7 @@ export function getPageProxyUrl (url: string, pageId: string) {
     const isCrossDomainUrl = !destLocation.sameOriginCheck(destLocation.getLocation(), url);
     const proxyPort        = isCrossDomainUrl ? settings.get().crossDomainProxyPort : location.port.toString(); // eslint-disable-line no-restricted-properties
 
-    return getProxyUrl(url, { pageId, proxyPort, resourceType });
+    return getProxyUrl(url, { windowId, proxyPort, resourceType });
 }
 
 export function getCrossDomainProxyPort (proxyPort: string) {

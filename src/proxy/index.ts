@@ -130,11 +130,11 @@ export default class Proxy extends Router {
             respond500(res, SESSION_IS_NOT_OPENED_ERR);
     }
 
-    _onTaskScriptRequest (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo, isIframe: boolean) {
+    _onTaskScriptRequest (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo, isIframe: boolean): void {
         const referer     = req.headers['referer'];
         const refererDest = referer && urlUtils.parseProxyUrl(referer);
         const session     = refererDest && this.openSessions.get(refererDest.sessionId);
-        const pageId      = refererDest && refererDest.pageId;
+        const windowId      = refererDest && refererDest.windowId;
 
         if (session) {
             res.setHeader('content-type', 'application/x-javascript');
@@ -146,7 +146,7 @@ export default class Proxy extends Router {
                 serverInfo,
                 isIframe,
                 withPayload: true,
-                pageId
+                windowId
             });
 
             res.end(taskScript);
@@ -196,7 +196,7 @@ export default class Proxy extends Router {
             proxyPort:     this.server1Info.port,
             proxyProtocol: this.server1Info.protocol,
             sessionId:     session.id,
-            pageId:        session.pageId
+            windowId:      session.windowId
         });
     }
 

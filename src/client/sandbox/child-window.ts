@@ -29,18 +29,18 @@ export default class ChildWindowSandbox extends SandboxBase {
     }
 
     private _openUrlInNewWindow (url: string, windowName?: string, windowParams?: string, window?: Window): OpenedWindowInfo {
-        const pageId = getRandomInt16Value().toString();
+        const windowId = getRandomInt16Value().toString();
 
         windowParams = windowParams || DEFAULT_WINDOW_PARAMETERS;
-        windowName   = windowName || pageId;
+        windowName   = windowName || windowId;
 
-        const newPageUrl = urlUtils.getPageProxyUrl(url, pageId);
+        const newPageUrl = urlUtils.getPageProxyUrl(url, windowId);
         const targetWindow = window || this.window;
         const openedWindow = nativeMethods.windowOpen.call(targetWindow, newPageUrl, windowName, windowParams);
 
-        this.emit(this.WINDOW_OPENED_EVENT, { pageId, window: openedWindow });
+        this.emit(this.WINDOW_OPENED_EVENT, { windowId, window: openedWindow });
 
-        return { pageId, wnd: openedWindow };
+        return { windowId, wnd: openedWindow };
     }
 
     handleClickOnLinkOrArea(el: HTMLLinkElement | HTMLAreaElement): void {
@@ -97,10 +97,10 @@ export default class ChildWindowSandbox extends SandboxBase {
             const aboutBlankUrl = urlUtils.getProxyUrl(SPECIAL_BLANK_PAGE);
             const openedInfo    = this._openUrlInNewWindow(aboutBlankUrl);
             const formAction    = nativeMethods.formActionGetter.call(form);
-            const newPageUrl    = urlUtils.getPageProxyUrl(formAction, openedInfo.pageId);
+            const newWindowUrl  = urlUtils.getPageProxyUrl(formAction, openedInfo.windowId);
 
-            nativeMethods.formActionSetter.call(form, newPageUrl);
-            nativeMethods.formTargetSetter.call(form, openedInfo.pageId);
+            nativeMethods.formActionSetter.call(form, newWindowUrl);
+            nativeMethods.formTargetSetter.call(form, openedInfo.windowId);
 
             // TODO: On hammerhead start we need to clean up the window.name
             // It's necessary for form submit.
