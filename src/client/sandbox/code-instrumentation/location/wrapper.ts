@@ -121,6 +121,7 @@ export default class LocationWrapper {
             setter: search => {
                 const newLocation = changeDestUrlPart(window.location.toString(), nativeMethods.anchorSearchSetter, search, resourceType);
 
+                // @ts-ignore
                 window.location = newLocation;
                 onChanged(newLocation);
 
@@ -181,6 +182,7 @@ export default class LocationWrapper {
                 setter: value => {
                     const newLocation = changeDestUrlPart(window.location.toString(), nativePropSetter, value, resourceType);
 
+                    // @ts-ignore
                     window.location = newLocation;
                     onChanged(newLocation);
 

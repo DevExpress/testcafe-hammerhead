@@ -210,6 +210,7 @@ class Hammerhead {
         if (!navigationUrl)
             return;
 
+        // @ts-ignore
         this.win.location = navigationUrl;
 
         if (forceReload) {

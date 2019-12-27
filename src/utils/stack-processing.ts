@@ -15,7 +15,7 @@ function getDestSource (source: string): string | null {
     return parsedProxiedUrl && parsedProxiedUrl.destUrl;
 }
 
-function replaceUrlWithProxied (str: string, source: string) {
+function replaceUrlWithProxied (str: string, source: string): string {
     source = source.replace(ROW_COLUMN_NUMBER_REG_EX, '');
 
     const destUrl = getDestSource(source);
@@ -23,7 +23,7 @@ function replaceUrlWithProxied (str: string, source: string) {
     return destUrl ? str.replace(source, destUrl) : str;
 }
 
-export function replaceProxiedUrlsInStack (stack) {
+export function replaceProxiedUrlsInStack (stack: string): string {
     if (!stack)
         return stack;
 

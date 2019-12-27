@@ -6,7 +6,7 @@
 import SHADOW_UI_CLASSNAME from '../shadow-ui/class-name';
 import INTERNAL_PROPS from '../processing/dom/internal-properties';
 
-export default function (script: string) {
+export default function (script: string): string {
     return `
         <script class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }">
             (function () {
@@ -26,7 +26,7 @@ export default function (script: string) {
                     catch (e) {
                         hammerhead = window["${ INTERNAL_PROPS.hammerhead }"];
                     }
-                    
+
                     if (hammerhead) {
                         try {
                             scripts       = hammerhead.nativeMethods.documentScriptsGetter.call(document);

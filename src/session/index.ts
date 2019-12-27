@@ -59,7 +59,7 @@ interface TaskScriptTemplateOpts {
     payloadScript: string;
     allowMultipleWindows: boolean;
     isRecordMode: boolean;
-    pageId?: string;
+    windowId?: string;
 }
 
 interface TaskScriptOpts {
@@ -68,7 +68,7 @@ interface TaskScriptOpts {
     cookieUrl: string;
     isIframe: boolean;
     withPayload: boolean;
-    pageId?: string;
+    windowId?: string;
 }
 
 export default abstract class Session extends EventEmitter {
@@ -85,7 +85,7 @@ export default abstract class Session extends EventEmitter {
     disablePageCaching: boolean = false;
     allowMultipleWindows: boolean = false;
     private _recordMode = false;
-    pageId: string = '';
+    windowId: string = '';
 
     protected constructor (uploadRoots: string[]) {
         super();
@@ -115,7 +115,7 @@ export default abstract class Session extends EventEmitter {
         throw new Error('Malformed service message or message handler is not implemented');
     }
 
-    _fillTaskScriptTemplate ({ serverInfo, isFirstPageLoad, referer, cookie, iframeTaskScriptTemplate, payloadScript, allowMultipleWindows, isRecordMode, pageId }: TaskScriptTemplateOpts): string {
+    _fillTaskScriptTemplate ({ serverInfo, isFirstPageLoad, referer, cookie, iframeTaskScriptTemplate, payloadScript, allowMultipleWindows, isRecordMode, windowId }: TaskScriptTemplateOpts): string {
         referer                  = referer && JSON.stringify(referer) || '{{{referer}}}';
         cookie                   = cookie || '{{{cookie}}}';
         iframeTaskScriptTemplate = iframeTaskScriptTemplate || '{{{iframeTaskScriptTemplate}}}';
@@ -135,7 +135,7 @@ export default abstract class Session extends EventEmitter {
             payloadScript,
             allowMultipleWindows,
             isRecordMode,
-            pageId: pageId || ''
+            windowId: windowId || ''
         });
     }
 
@@ -154,7 +154,7 @@ export default abstract class Session extends EventEmitter {
         return JSON.stringify(taskScriptTemplate);
     }
 
-    getTaskScript ({ referer, cookieUrl, serverInfo, isIframe, withPayload, pageId }: TaskScriptOpts): string {
+    getTaskScript ({ referer, cookieUrl, serverInfo, isIframe, withPayload, windowId }: TaskScriptOpts): string {
         const cookies     = JSON.stringify(this.cookies.getClientString(cookieUrl));
         let payloadScript = '';
 
@@ -170,7 +170,7 @@ export default abstract class Session extends EventEmitter {
             payloadScript,
             allowMultipleWindows:     this.allowMultipleWindows,
             isRecordMode:             this._recordMode,
-            pageId
+            windowId
         });
 
         this.pageLoadCount++;

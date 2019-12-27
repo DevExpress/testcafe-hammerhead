@@ -25,14 +25,14 @@ export function createLineIterator (buffer: Buffer) {
     };
 }
 
-export function appendLine (lines: any[], line: any) {
+export function appendLine (lines: any[], line: any): void {
     if (lines.length)
         lines.push(CRLF);
 
     lines.push(line);
 }
 
-export function startsWith (buffer: Buffer, searchBuffer: Buffer) {
+export function startsWith (buffer: Buffer, searchBuffer: Buffer): boolean {
     if (buffer.length < searchBuffer.length)
         return false;
 
@@ -44,7 +44,7 @@ export function startsWith (buffer: Buffer, searchBuffer: Buffer) {
     return true;
 }
 
-export function toReadableStream (buffer: Buffer) {
+export function toReadableStream (buffer: Buffer): Readable {
     const stream = new Readable();
 
     stream.push(buffer);

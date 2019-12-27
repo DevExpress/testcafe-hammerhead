@@ -58,7 +58,7 @@ interface ContentInfo {
 interface FlattenParsedProxyUrl {
     dest: DestInfo;
     sessionId: string;
-    pageId?: string;
+    windowId?: string;
 }
 
 const REDIRECT_STATUS_CODES                  = [301, 302, 303, 307, 308];
@@ -95,7 +95,7 @@ export default class RequestPipelineContext {
     goToNextStage: boolean = true;
     mock: ResponseMock;
     isSameOriginPolicyFailed: boolean = false;
-    pageId?: string;
+    windowId?: string;
 
     constructor (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo) {
         this.serverInfo = serverInfo;
@@ -135,7 +135,7 @@ export default class RequestPipelineContext {
             reqOrigin:     parsed.reqOrigin
         };
 
-        return { dest, sessionId: parsed.sessionId, pageId: parsed.pageId };
+        return { dest, sessionId: parsed.sessionId, windowId: parsed.windowId };
     }
 
     private _isFileDownload (): boolean {
@@ -169,7 +169,7 @@ export default class RequestPipelineContext {
         dest.partAfterHost = this.req.url;
         dest.url           = urlUtils.formatUrl(dest);
 
-        return { dest, sessionId: parsedReferer.sessionId, pageId: parsedReferer.pageId };
+        return { dest, sessionId: parsedReferer.sessionId, windowId: parsedReferer.windowId };
     }
 
     // API
@@ -195,7 +195,7 @@ export default class RequestPipelineContext {
             return false;
 
         this.dest               = flattenParsedReqUrl.dest;
-        this.pageId             = flattenParsedReqUrl.pageId;
+        this.windowId           = flattenParsedReqUrl.windowId;
         this.dest.partAfterHost = this._preparePartAfterHost(this.dest.partAfterHost);
         this.dest.domain        = urlUtils.getDomain(this.dest);
 
@@ -339,7 +339,7 @@ export default class RequestPipelineContext {
         const proxyProtocol = this.serverInfo.protocol;
         const proxyPort     = isCrossDomain ? this.serverInfo.crossDomainPort : this.serverInfo.port;
         const sessionId     = this.session.id;
-        const pageId        = this.pageId;
+        const windowId      = this.windowId;
 
         return urlUtils.getProxyUrl(url, {
             proxyHostname,
@@ -348,7 +348,7 @@ export default class RequestPipelineContext {
             sessionId,
             resourceType,
             charset,
-            pageId
+            windowId
         });
     }
 

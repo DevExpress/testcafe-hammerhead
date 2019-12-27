@@ -462,7 +462,7 @@ describe('Proxy', () => {
     beforeEach(() => {
         session = new Session();
 
-        session.pageId = '12345';
+        session.windowId = '12345';
 
         session.getAuthCredentials = () => null;
         session.handleFileDownload = () => void 0;
@@ -481,7 +481,7 @@ describe('Proxy', () => {
                     proxyHostname: PROXY_HOSTNAME,
                     proxyPort:     1836,
                     sessionId:     session.id,
-                    pageId:        session.pageId
+                    windowId:      session.windowId
                 });
 
                 return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
@@ -508,7 +508,7 @@ describe('Proxy', () => {
                     proxyHostname: PROXY_HOSTNAME,
                     proxyPort:     1836,
                     sessionId:     session.id,
-                    pageId:        session.pageId
+                    windowId:      session.windowId
                 });
             }
 
@@ -902,7 +902,7 @@ describe('Proxy', () => {
                         proxyHostname: PROXY_HOSTNAME,
                         proxyPort:     1836,
                         sessionId:     session.id,
-                        pageId:        session.pageId
+                        windowId:      session.windowId
                     });
 
                     return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
@@ -938,7 +938,7 @@ describe('Proxy', () => {
                         proxyHostname: PROXY_HOSTNAME,
                         proxyPort:     1836,
                         sessionId:     session.id,
-                        pageId:        session.pageId
+                        windowId:      session.windowId
                     });
                 }
 
