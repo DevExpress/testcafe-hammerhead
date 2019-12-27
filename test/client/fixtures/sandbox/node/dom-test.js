@@ -4,6 +4,7 @@ var nativeMethods  = hammerhead.nativeMethods;
 var nodeMutation   = hammerhead.sandbox.node.mutation;
 var eventSimulator = hammerhead.sandbox.event.eventSimulator;
 var listeners      = hammerhead.sandbox.event.listeners;
+var browserUtils   = hammerhead.utils.browser;
 
 asyncTest('prevent "error" event during image reloading', function () {
     var storedGetProxyUrl      = urlUtils.getProxyUrl;
@@ -195,8 +196,8 @@ test('parameters passed to the native dom element function in its original form'
 
     listeners.initElementListening(el, ['click']);
 
-    checkNativeFunctionArgs('addEventListener', 'addEventListener', el);
-    checkNativeFunctionArgs('removeEventListener', 'removeEventListener', el);
+    checkNativeFunctionArgs('addEventListener', browserUtils.isIE11 ? 'addEventListener' : 'eventTargetAddEventListener', el);
+    checkNativeFunctionArgs('removeEventListener', browserUtils.isIE11 ? 'removeEventListener' : 'eventTargetRemoveEventListener', el);
 });
 
 module('resgression');

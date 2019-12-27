@@ -30,7 +30,11 @@ function createWriteTestIframes () {
     return new hammerhead.Promise(function (resolve) {
         nativeIframeForWrite = nativeMethods.createElement.call(document, 'iframe');
 
-        nativeMethods.addEventListener.call(nativeIframeForWrite, 'load', resolve);
+        var nativeAddEventListener = browserUtils.isIE11
+            ? nativeMethods.addEventListener
+            : nativeMethods.eventTargetAddEventListener;
+
+        nativeAddEventListener.call(nativeIframeForWrite, 'load', resolve);
         nativeMethods.appendChild.call(document.body, nativeIframeForWrite);
     })
         .then(createTestIframe)

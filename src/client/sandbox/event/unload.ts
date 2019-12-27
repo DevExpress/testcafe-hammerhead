@@ -1,7 +1,7 @@
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import createPropertyDesc from '../../utils/create-property-desc.js';
-import { isFirefox, isIOS } from '../../utils/browser';
+import { isFirefox, isIE11, isIOS } from '../../utils/browser';
 import { overrideDescriptor } from '../../utils/property-overriding';
 import Listeners from './listeners';
 
@@ -70,9 +70,14 @@ export default class UnloadSandbox extends SandboxBase {
     }
 
     private _reattachBeforeUnloadListener () {
+        const nativeAddEventListener    = isIE11 ? nativeMethods.windowAddEventListener
+            : nativeMethods.eventTargetAddEventListener;
+        const nativeRemoveEventListener = isIE11 ? nativeMethods.windowRemoveEventListener
+            : nativeMethods.eventTargetRemoveEventListener;
+
         // NOTE: reattach the Listener, it'll be the last in the queue.
-        nativeMethods.windowRemoveEventListener.call(this.window, this.beforeUnloadEventName, this);
-        nativeMethods.windowAddEventListener.call(this.window, this.beforeUnloadEventName, this);
+        nativeRemoveEventListener.call(this.window, this.beforeUnloadEventName, this);
+        nativeAddEventListener.call(this.window, this.beforeUnloadEventName, this);
     }
 
     attach (window: Window) {
@@ -81,7 +86,11 @@ export default class UnloadSandbox extends SandboxBase {
         this._listeners.setEventListenerWrapper(window, [this.beforeUnloadEventName], (e, listener) => this._onBeforeUnloadHandler(e, listener));
         this._listeners.addInternalEventListener(window, ['unload'], () => this.emit(this.UNLOAD_EVENT));
 
-        nativeMethods.windowAddEventListener.call(window, this.beforeUnloadEventName, this);
+        const nativeAddEventListener = isIE11
+            ? nativeMethods.windowAddEventListener
+            : nativeMethods.eventTargetAddEventListener;
+
+        nativeAddEventListener.call(window, this.beforeUnloadEventName, this);
 
         this._listeners.addInternalEventListener(window, [this.beforeUnloadEventName], () => this.emit(this.BEFORE_BEFORE_UNLOAD_EVENT));
         this._listeners.on(this._listeners.EVENT_LISTENER_ATTACHED_EVENT, e => {

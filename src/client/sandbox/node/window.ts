@@ -14,7 +14,7 @@ import {
     stringifyResourceType,
     resolveUrlAsDest
 } from '../../utils/url';
-import { isFirefox, isIE, isAndroid, isMSEdge, version as browserVersion } from '../../utils/browser';
+import { isFirefox, isIE, isIE11, isAndroid, isMSEdge, version as browserVersion } from '../../utils/browser';
 import {
     isCrossDomainWindows,
     isImgElement,
@@ -176,8 +176,15 @@ export default class WindowSandbox extends SandboxBase {
     }
 
     _reattachHandler (window: Window, eventName: string): void {
-        nativeMethods.windowRemoveEventListener.call(window, eventName, this);
-        nativeMethods.windowAddEventListener.call(window, eventName, this);
+        const nativeAddEventListener    = isIE11
+            ? nativeMethods.windowAddEventListener
+            : nativeMethods.eventTargetAddEventListener;
+        const nativeRemoveEventListener = isIE11
+            ? nativeMethods.windowRemoveEventListener
+            : nativeMethods.eventTargetRemoveEventListener;
+
+        nativeRemoveEventListener.call(window, eventName, this);
+        nativeAddEventListener.call(window, eventName, this);
     }
 
     static _formatUnhandledRejectionReason (reason: any): string {
@@ -391,7 +398,11 @@ export default class WindowSandbox extends SandboxBase {
                     args[0] = image;
 
                     if (!image.complete) {
-                        nativeMethods.addEventListener.call(image, 'load',
+                        const nativeAddEventListener = isIE11
+                            ? nativeMethods.addEventListener
+                            : nativeMethods.eventTargetAddEventListener;
+
+                        nativeAddEventListener.call(image, 'load',
                             () => nativeMethods.canvasContextDrawImage.apply(this, args));
                     }
                 }
@@ -620,6 +631,13 @@ export default class WindowSandbox extends SandboxBase {
 
                 return fragment;
             };
+        }
+
+        if (window.EventTarget) {
+            const overriddenMethods = this.listenersSandbox.createEventTargetOverriddenMethods();
+
+            window.EventTarget.prototype.addEventListener    = overriddenMethods.addEventListener;
+            window.EventTarget.prototype.removeEventListener = overriddenMethods.removeEventListener;
         }
 
         window.Image           = function () {

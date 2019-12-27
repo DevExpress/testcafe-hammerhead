@@ -4,6 +4,7 @@ import EventEmitter from '../../utils/event-emitter';
 import * as listeningCtx from './listening-context';
 import { preventDefault, stopPropagation, DOM_EVENTS, isValidEventListener, callEventListener } from '../../utils/event';
 import { isWindow } from '../../utils/dom';
+import { isIE11 } from '../../utils/browser';
 
 const LISTENED_EVENTS = [
     'click', 'mousedown', 'mouseup', 'dblclick', 'contextmenu', 'mousemove', 'mouseover', 'mouseout',
@@ -46,17 +47,26 @@ export default class Listeners extends EventEmitter {
     }
 
     private static _getNativeAddEventListener (el: any) {
-        if (isWindow(el))
-            return nativeMethods.windowAddEventListener;
+        if (isIE11) {
+            if (isWindow(el))
+                return nativeMethods.windowAddEventListener;
 
-        return el.body !== void 0 ? nativeMethods.documentAddEventListener : nativeMethods.addEventListener;
+            return el.body !== void 0 ? nativeMethods.documentAddEventListener : nativeMethods.addEventListener;
+        }
+        else
+            return nativeMethods.eventTargetAddEventListener;
     }
 
     private static _getNativeRemoveEventListener (el) {
-        if (isWindow(el))
-            return nativeMethods.windowRemoveEventListener;
+        if (isIE11) {
+            if (isWindow(el))
+                return nativeMethods.windowRemoveEventListener;
 
-        return el.body !== void 0 ? nativeMethods.documentRemoveEventListener : nativeMethods.removeEventListener;
+            return el.body !== void 0 ? nativeMethods.documentRemoveEventListener : nativeMethods.removeEventListener;
+        }
+        else
+            return nativeMethods.eventTargetRemoveEventListener;
+
     }
 
     private static _getEventListenerWrapper (eventCtx, listener) {
@@ -251,6 +261,65 @@ export default class Listeners extends EventEmitter {
         };
     }
 
+    createEventTargetOverriddenMethods () {
+        const listeners = this;
+
+        return {
+            addEventListener: function (...args: any[]) {
+                const type                   = args[0];
+                const listener               = args[1];
+                const useCapture             = Listeners._getUseCaptureParam(args[2]);
+                const eventListeningInfo     = listeningCtx.getEventCtx(this, type);
+                const nativeAddEventListener = nativeMethods.eventTargetAddEventListener;
+
+                if (!eventListeningInfo || !isValidEventListener(listener))
+                    return nativeAddEventListener.apply(this, args);
+
+                // NOTE: T233158
+                const isDifferentHandler = Listeners._isDifferentHandler(eventListeningInfo.outerHandlers, listener, useCapture);
+
+                if (!isDifferentHandler)
+                    return null;
+
+                const wrapper = Listeners._getEventListenerWrapper(eventListeningInfo, listener);
+
+                args[1] = wrapper;
+
+                listeningCtx.wrapEventListener(eventListeningInfo, listener, wrapper, useCapture);
+
+                const res = nativeAddEventListener.apply(this, args);
+
+                listeners.emit(listeners.EVENT_LISTENER_ATTACHED_EVENT, {
+                    el:        this,
+                    eventType: type,
+                    listener:  listener
+                });
+
+                return res;
+            },
+            removeEventListener: function (...args: any[]) {
+                const type                      = args[0];
+                const listener                  = args[1];
+                const useCapture                = Listeners._getUseCaptureParam(args[2]);
+                const nativeRemoveEventListener = nativeMethods.eventTargetRemoveEventListener;
+                const eventListeningInfo        = listeningCtx.getEventCtx(this, type);
+
+                if (!eventListeningInfo || !isValidEventListener(listener))
+                    return nativeRemoveEventListener.apply(this, args);
+
+                const wrapper = listeningCtx.getWrapper(eventListeningInfo, listener, useCapture);
+
+                args[1] = wrapper;
+
+                const res = nativeRemoveEventListener.apply(this, args);
+
+                listeners.emit(listeners.EVENT_LISTENER_DETACHED_EVENT, { el: this, listener, eventType: type });
+
+                return res;
+            }
+        };
+    }
+
     initElementListening (el: HTMLElement|Window|Document, events: string[] = LISTENED_EVENTS) {
         const nativeAddEventListener = Listeners._getNativeAddEventListener(el);
 
@@ -261,21 +330,25 @@ export default class Listeners extends EventEmitter {
 
         this.listeningCtx.addListeningElement(el, events);
 
-        if (!el.addEventListener || nativeMethods.isNativeCode(el.addEventListener)) {
-            const overridedMethods = this._createElementOverridedMethods(el);
+        if (isIE11) {
+            if (!el.addEventListener || nativeMethods.isNativeCode(el.addEventListener)) {
+                const overridedMethods = this._createElementOverridedMethods(el);
 
-            el.addEventListener    = overridedMethods.addEventListener;
-            el.removeEventListener = overridedMethods.removeEventListener;
+                el.addEventListener    = overridedMethods.addEventListener;
+                el.removeEventListener = overridedMethods.removeEventListener;
+            }
         }
     }
 
     initDocumentBodyListening (doc: Document) {
         listeningCtx.addListeningElement(doc.body, DOM_EVENTS);
 
-        const overridedMethods = this._createDocumentBodyOverridedMethods(doc);
+        if (isIE11) {
+            const overridedMethods = this._createDocumentBodyOverridedMethods(doc);
 
-        doc.body.addEventListener    = overridedMethods.addEventListener;
-        doc.body.removeEventListener = overridedMethods.removeEventListener;
+            doc.body.addEventListener    = overridedMethods.addEventListener;
+            doc.body.removeEventListener = overridedMethods.removeEventListener;
+        }
     }
 
     restartElementListening (el: HTMLElement) {

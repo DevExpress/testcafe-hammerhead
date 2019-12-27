@@ -217,8 +217,8 @@ test('parameters passed to the native function in its original form', function (
         checkNativeFunctionArgs('register', 'registerServiceWorker', window.navigator.serviceWorker);
 
     // Event
-    checkNativeFunctionArgs('addEventListener', 'windowAddEventListener', window);
-    checkNativeFunctionArgs('removeEventListener', 'windowRemoveEventListener', window);
+    checkNativeFunctionArgs('addEventListener', browserUtils.isIE11 ? 'windowAddEventListener' : 'eventTargetAddEventListener', window);
+    checkNativeFunctionArgs('removeEventListener', browserUtils.isIE11 ? 'windowRemoveEventListener' : 'eventTargetRemoveEventListener', window);
 
     // Canvas
     var canvas = document.createElement('canvas');
@@ -734,3 +734,51 @@ asyncTest('window.onhashchange should be instrumented', function () {
 
     window.location += '#test';
 });
+
+if (!browserUtils.isIE11) {
+    test('patching EventTarget methods on the client side: addEventListener, removeEventListener (GH-1902)', function () {
+        var eventTargetMethods = [
+            'addEventListener',
+            'removeEventListener'
+        ];
+        var savedMethods       = eventTargetMethods.map(function (methodName) {
+            return window.EventTarget.prototype[methodName];
+        });
+        const div              = document.createElement('div');
+        var contextElements    = [
+            window,
+            document,
+            document.body,
+            div
+        ];
+
+        expect(eventTargetMethods.length * contextElements.length);
+
+        document.body.appendChild(div);
+
+        function callMethod (contextEl, methodName) {
+            contextEl[methodName]('click', function () { });
+        }
+
+        function checkMethod (methodName) {
+            contextElements.forEach(function (el) {
+                callMethod(el, methodName);
+            });
+        }
+
+
+        eventTargetMethods.forEach(function (methodName) {
+            window.EventTarget.prototype[methodName] = function () {
+                ok(true, `${this}: ${methodName}`);
+            };
+        });
+
+        eventTargetMethods.forEach(function (methodName) {
+            checkMethod(methodName);
+        });
+
+        eventTargetMethods.forEach(function (methodName, index) {
+            window.EventTarget.prototype[methodName] = savedMethods[index];
+        });
+    });
+}

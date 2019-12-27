@@ -1131,7 +1131,12 @@ test('focus() must not raise the event if the element is invisible (GH-442)', fu
             input2.style[styleProp] = style[styleProp];
 
             input1.addEventListener('focus', onInputFocus);
-            nativeMethods.addEventListener.call(input2, 'focus', onInputFocus);
+
+            var nativeAddEventListener = browserUtils.isIE11
+                ? nativeMethods.addEventListener
+                : nativeMethods.eventTargetAddEventListener;
+
+            nativeAddEventListener.call(input2, 'focus', onInputFocus);
 
             input1.focus();
             nativeMethods.focus.call(input2);

@@ -1,6 +1,14 @@
 var nativeMethods = hammerhead.nativeMethods;
+var browserUtils  = hammerhead.utils.browser;
 
 asyncTest('cross domain messaging between windows', function () {
+    var nativeAddEventListener    = browserUtils.isIE11
+        ? nativeMethods.windowAddEventListener
+        : nativeMethods.eventTargetAddEventListener;
+    var nativeRemoveEventListener = browserUtils.isIE11
+        ? nativeMethods.windowRemoveEventListener
+        : nativeMethods.eventTargetRemoveEventListener;
+
     var iframe = document.createElement('iframe');
 
     iframe.src = getCrossDomainPageUrl('../data/cross-domain/target-url.html');
@@ -16,12 +24,12 @@ asyncTest('cross domain messaging between windows', function () {
 
     var nativeMessageCounter = 0;
 
-    nativeMethods.windowAddEventListener.call(window, 'message', function nativeHandler (e) {
+    nativeAddEventListener.call(window, 'message', function nativeHandler (e) {
         if (e.data.type === 'messaging test')
             ++nativeMessageCounter;
 
         if (nativeMessageCounter === 5) {
-            nativeMethods.windowRemoveEventListener.call(window, 'message', nativeHandler);
+            nativeRemoveEventListener.call(window, 'message', nativeHandler);
             iframe.parentNode.removeChild(iframe);
             window.onmessage = null;
             deepEqual(results.sort(), ['*', 'same origin']);

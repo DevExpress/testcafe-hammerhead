@@ -485,8 +485,11 @@ test('should not process an iframe with a same url twice (GH-1419)', function ()
             });
         })
         .then(function () {
-            var nestedIframeHammerhead      = nestedIframe.contentWindow['%hammerhead%'];
-            var stringifiedAddEventListener = nestedIframeHammerhead.nativeMethods.windowAddEventListener.toString();
+            var nestedIframeHammerhead             = nestedIframe.contentWindow['%hammerhead%'];
+            var nestedIframeNativeAddEventListener = browserUtils.isIE11
+                ? nestedIframeHammerhead.nativeMethods.windowAddEventListener
+                : nestedIframeHammerhead.nativeMethods.eventTargetAddEventListener;
+            var stringifiedAddEventListener        = nestedIframeNativeAddEventListener.toString();
 
             ok(/\s*function\s+[^\s(]*\s*\([^)]*\)\s*{\s*\[native code]\s*}\s*/.test(stringifiedAddEventListener));
             ok(!domUtils.isIframeWithoutSrc(nestedIframe));

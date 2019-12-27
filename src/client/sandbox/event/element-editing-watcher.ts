@@ -7,6 +7,7 @@ import {
 } from '../../utils/dom';
 
 import EventSimulator from './simulator';
+import { isIE11 } from '../../utils/browser';
 
 const ELEMENT_EDITING_OBSERVED_FLAG = 'hammerhead|element-editing-observed';
 const OLD_VALUE_PROPERTY            = 'hammerhead|old-value';
@@ -36,8 +37,12 @@ export default class ElementEditingWatcher {
 
     stopWatching (el): void {
         if (el) {
-            nativeMethods.removeEventListener.call(el, 'blur', e => this._onBlur(e));
-            nativeMethods.removeEventListener.call(el, 'change', e => this._onChange(e));
+            const nativeRemoveEventListener = isIE11
+                ? nativeMethods.removeEventListener
+                : nativeMethods.eventTargetRemoveEventListener;
+
+            nativeRemoveEventListener.call(el, 'blur', e => this._onBlur(e));
+            nativeRemoveEventListener.call(el, 'change', e => this._onChange(e));
 
             if (el[ELEMENT_EDITING_OBSERVED_FLAG])
                 delete el[ELEMENT_EDITING_OBSERVED_FLAG];
@@ -54,9 +59,12 @@ export default class ElementEditingWatcher {
             el[ELEMENT_EDITING_OBSERVED_FLAG] = true;
             el[OLD_VALUE_PROPERTY]            = ElementEditingWatcher._getValue(el);
 
+            const nativeAddEventListener = isIE11
+                ? nativeMethods.addEventListener
+                : nativeMethods.eventTargetAddEventListener;
 
-            nativeMethods.addEventListener.call(el, 'blur', e => this._onBlur(e));
-            nativeMethods.addEventListener.call(el, 'change', e => this._onChange(e));
+            nativeAddEventListener.call(el, 'blur', e => this._onBlur(e));
+            nativeAddEventListener.call(el, 'change', e => this._onChange(e));
         }
     }
 
