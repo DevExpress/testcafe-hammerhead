@@ -244,48 +244,4 @@ export default class MessageSandbox extends SandboxBase {
 
         return null;
     }
-
-    pingIframe (targetIframe, pingMessageCommand, shortWaiting: boolean) {
-        return new Promise((resolve, reject) => {
-            let pingInterval = null;
-            let pingTimeout  = null;
-            let targetWindow = null;
-
-            const sendPingRequest = () => {
-                targetWindow = nativeMethods.contentWindowGetter.call(targetIframe);
-
-                if (targetWindow) {
-                    this.sendServiceMsg({
-                        cmd:           this.pingCmd,
-                        isPingRequest: true
-                    }, targetWindow);
-                }
-            };
-
-            const cleanTimeouts = () => {
-                nativeMethods.clearInterval.call(this.window, pingInterval);
-                nativeMethods.clearTimeout.call(this.window, pingTimeout);
-
-                this.pingCallback = null;
-                this.pingCmd      = null;
-                pingInterval      = null;
-                pingTimeout       = null;
-            };
-
-            pingTimeout = nativeMethods.setTimeout.call(this.window, () => {
-                cleanTimeouts();
-                reject();
-            }, shortWaiting ? this.PING_IFRAME_MIN_TIMEOUT : this.PING_IFRAME_TIMEOUT);
-
-            this.pingCallback = () => {
-                cleanTimeouts();
-                resolve();
-            };
-
-            this.pingCmd = pingMessageCommand;
-
-            sendPingRequest();
-            pingInterval = nativeMethods.setInterval.call(this.window, sendPingRequest, this.PING_DELAY);
-        });
-    }
 }
