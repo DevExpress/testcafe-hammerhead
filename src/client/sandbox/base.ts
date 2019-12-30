@@ -4,7 +4,7 @@ import { findDocument, isElementInDocument, getFrameElement } from '../utils/dom
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 
 export default class SandboxBase extends EventEmitter {
-    window: Window;
+    window: Window | null;
     nativeMethods: any;
     document: Document;
 
@@ -27,7 +27,7 @@ export default class SandboxBase extends EventEmitter {
 
             //@ts-ignore
             if (this.window[INTERNAL_PROPS.hammerhead]) {
-                const frameElement = getFrameElement(this.window);
+                const frameElement = getFrameElement(this.window as Window);
 
                 return !!(frameElement && !isElementInDocument(frameElement, findDocument(frameElement)));
             }
@@ -39,7 +39,7 @@ export default class SandboxBase extends EventEmitter {
         return true;
     }
 
-    attach (window: Window, document?: Document) {
+    attach (window: Window, document?: Document): void {
         this.window   = window;
         this.document = document || window.document;
     }

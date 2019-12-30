@@ -1,5 +1,3 @@
-// @ts-ignore
-import Promise from 'pinkie';
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import * as destLocation from '../../utils/destination-location';
@@ -13,23 +11,17 @@ import { overrideDescriptor } from '../../utils/property-overriding';
 import Listeners from './listeners';
 import UnloadSandbox from './unload';
 
-const MESSAGE_TYPE = {
-    service: 'hammerhead|service-msg',
-    user:    'hammerhead|user-msg'
+enum MessageType {
+    Service = 'hammerhead|service-msg',
+    User    = 'hammerhead|user-msg'
 };
 
 export default class MessageSandbox extends SandboxBase {
-    readonly PING_DELAY = 200;
-    readonly PING_IFRAME_TIMEOUT = 7000;
-    readonly PING_IFRAME_MIN_TIMEOUT = 100;
     readonly SERVICE_MSG_RECEIVED_EVENT = 'hammerhead|event|service-msg-received';
     readonly RECEIVE_MSG_FN = 'hammerhead|receive-msg-function';
 
-    pingCallback: any;
-    pingCmd: any;
-
-    topWindow: Window;
-    window: Window;
+    topWindow: Window | null;
+    window: Window | null;
 
     storedOnMessageHandler: any;
     isWindowUnloaded: boolean;
@@ -39,9 +31,6 @@ export default class MessageSandbox extends SandboxBase {
     constructor (private readonly _listeners: Listeners,
         private readonly _unloadSandbox: UnloadSandbox) {
         super();
-
-        this.pingCallback = null;
-        this.pingCmd      = null;
 
         // NOTE: The window.top property may be changed after an iframe is removed from DOM in IE, so we save it.
         this.topWindow = null;
@@ -70,24 +59,16 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     // @ts-ignore
-    private _onMessage (e) {
+    private _onMessage (e): void {
         const data = MessageSandbox._getMessageData(e);
 
-        if (data.type === MESSAGE_TYPE.service && e.source) {
-            if (this.pingCmd && data.message.cmd === this.pingCmd && data.message.isPingResponse) {
-                this.pingCallback();
-                this.pingCallback = null;
-                this.pingCmd      = null;
-            }
-            else
-                this.emit(this.SERVICE_MSG_RECEIVED_EVENT, { message: data.message, source: e.source, ports: e.ports });
-        }
+        this.emit(this.SERVICE_MSG_RECEIVED_EVENT, { message: data.message, source: e.source, ports: e.ports });
     }
 
-    private _onWindowMessage (e, originListener) {
+    private _onWindowMessage (e: MessageEvent, originListener) {
         const data = MessageSandbox._getMessageData(e);
 
-        if (data.type !== MESSAGE_TYPE.service) {
+        if (data.type !== MessageType.Service) {
             const originUrl = destLocation.get();
 
             if (data.targetUrl === '*' || destLocation.sameOriginCheck(originUrl, data.targetUrl))
@@ -97,7 +78,7 @@ export default class MessageSandbox extends SandboxBase {
         return null;
     }
 
-    private static _wrapMessage (type, message, targetUrl?: string) {
+    private static _wrapMessage (type: MessageType, message, targetUrl?: string) {
         const parsedDest = destLocation.getParsed();
         const originUrl  = formatUrl({
             /*eslint-disable no-restricted-properties*/
@@ -109,7 +90,7 @@ export default class MessageSandbox extends SandboxBase {
         return { message, originUrl, targetUrl, type };
     }
 
-    private _removeInternalMsgFromQueue (sendFunc) {
+    private _removeInternalMsgFromQueue (sendFunc: Function): boolean {
         for (let index = 0, length = this.iframeInternalMsgQueue.length; index < length; index++) {
             if (this.iframeInternalMsgQueue[index].sendFunc === sendFunc) {
                 this.iframeInternalMsgQueue.splice(index, 1);
@@ -121,7 +102,7 @@ export default class MessageSandbox extends SandboxBase {
         return false;
     }
 
-    attach (window: Window) {
+    attach (window: Window): void {
         super.attach(window);
         // NOTE: The window.top property may be changed after an iframe is removed from DOM in IE, so we save it.
         this.topWindow        = window.top;
@@ -157,7 +138,7 @@ export default class MessageSandbox extends SandboxBase {
                 const target = this.target;
                 const data   = nativeMethods.messageEventDataGetter.call(this);
 
-                if (data && data.type !== MESSAGE_TYPE.service && isWindow(target))
+                if (data && data.type !== MessageType.Service && isWindow(target))
                     return data.message;
 
                 return data;
@@ -196,20 +177,20 @@ export default class MessageSandbox extends SandboxBase {
             });
         }
 
-        args[0] = MessageSandbox._wrapMessage(MESSAGE_TYPE.user, args[0], targetUrl);
+        args[0] = MessageSandbox._wrapMessage(MessageType.User, args[0], targetUrl);
 
 
         return fastApply(contentWindow, 'postMessage', args);
     }
 
     sendServiceMsg (msg, targetWindow: Window, ports?: Transferable[]) {
-        const message         = MessageSandbox._wrapMessage(MESSAGE_TYPE.service, msg);
+        const message         = MessageSandbox._wrapMessage(MessageType.Service, msg);
         const canSendDirectly = !isCrossDomainWindows(targetWindow, this.window) && !!targetWindow[this.RECEIVE_MSG_FN];
 
         if (!canSendDirectly)
             return MessageSandbox._isWindowAvailable(targetWindow) && targetWindow.postMessage(message, '*', ports);
 
-        const sendFunc = force => {
+        const sendFunc = (force: boolean) => {
             // NOTE: In IE, this function is called on the timeout despite the fact that the timer has been cleared
             // in the unload event handler, so we check whether the function is in the queue
             if (force || this._removeInternalMsgFromQueue(sendFunc)) {

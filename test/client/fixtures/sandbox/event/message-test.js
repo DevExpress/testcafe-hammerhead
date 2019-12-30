@@ -63,7 +63,7 @@ asyncTest('onmessage event', function () {
 
 test('message types', function () {
     var checkValue = function (value, test) {
-        return new Promise(function (resove) {
+        return new Promise(function (resolve) {
             window.onmessage = function (e) {
                 if (test)
                     ok(test(e.data));
@@ -72,7 +72,7 @@ test('message types', function () {
 
                 window.onmessage = void 0;
 
-                resove();
+                resolve();
             };
 
             callMethod(window, 'postMessage', [value, '*']);
