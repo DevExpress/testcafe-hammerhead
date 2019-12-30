@@ -769,7 +769,7 @@ if (!browserUtils.isIE11) {
 
         eventTargetMethods.forEach(function (methodName) {
             window.EventTarget.prototype[methodName] = function () {
-                ok(true, `${this}: ${methodName}`);
+                ok(true, this + ': ' + methodName);
             };
         });
 
