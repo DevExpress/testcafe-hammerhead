@@ -23,7 +23,7 @@ export default class MessageSandbox extends SandboxBase {
     topWindow: Window | null;
     window: Window | null;
 
-    storedOnMessageHandler: any;
+    storedOnMessageHandler: Function;
     isWindowUnloaded: boolean;
 
     iframeInternalMsgQueue: any[];
@@ -50,7 +50,7 @@ export default class MessageSandbox extends SandboxBase {
 
     // NOTE: some window may be unavailable for the sending message, for example, if it was removed.
     // In some browsers, window.postMessage is equal null, but other throw exception by property access.
-    private static  _isWindowAvailable (window: Window) {
+    private static  _isWindowAvailable (window: Window): boolean {
         try {
             return !!window.postMessage;
         } catch (e) {
@@ -59,13 +59,14 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     // @ts-ignore
-    private _onMessage (e): void {
+    private _onMessage (e: MessageEvent): void {
         const data = MessageSandbox._getMessageData(e);
 
-        this.emit(this.SERVICE_MSG_RECEIVED_EVENT, { message: data.message, source: e.source, ports: e.ports });
+        if (data.type === MessageType.Service && e.source)
+            this.emit(this.SERVICE_MSG_RECEIVED_EVENT, { message: data.message, source: e.source, ports: e.ports });
     }
 
-    private _onWindowMessage (e: MessageEvent, originListener) {
+    private _onWindowMessage (e: MessageEvent, originListener): void {
         const data = MessageSandbox._getMessageData(e);
 
         if (data.type !== MessageType.Service) {
