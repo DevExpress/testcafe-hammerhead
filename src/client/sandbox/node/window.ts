@@ -546,7 +546,7 @@ export default class WindowSandbox extends SandboxBase {
 
         if (window.Proxy) {
             window.Proxy = function (target, handler) {
-                if (handler.get) {
+                if (handler.get && !handler.__overwritten__) {
                     const storedGet = handler.get;
 
                     handler.get = function (getterTarget, name, receiver) {
@@ -555,6 +555,7 @@ export default class WindowSandbox extends SandboxBase {
 
                         return storedGet.call(this, getterTarget, name, receiver);
                     };
+                    handler.__overwritten__ = true;
                 }
 
                 return new nativeMethods.Proxy(target, handler);
