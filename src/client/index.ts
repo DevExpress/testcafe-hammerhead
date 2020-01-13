@@ -29,13 +29,15 @@ import INTERNAL_PROPS from '../processing/dom/internal-properties';
 import PageNavigationWatch from './page-navigation-watch';
 import domProcessor from './dom-processor';
 import { HammerheadInitSettings } from '../typings/client';
+import { Dictionary } from '../typings/common';
+import ShadowUI from './sandbox/shadow-ui';
 
 class Hammerhead {
     win: Window;
     sandbox: Sandbox;
     pageNavigationWatch: PageNavigationWatch;
-    EVENTS: any;
-    PROCESSING_COMMENTS: any;
+    EVENTS: Dictionary<string>;
+    PROCESSING_COMMENTS: Dictionary<string>;
     EventEmitter: any;
     doUpload: Function;
     createNativeXHR: Function;
@@ -45,10 +47,10 @@ class Hammerhead {
     json: any;
     transport: Transport;
     nativeMethods: any;
-    shadowUI: any;
+    shadowUI: ShadowUI;
     storages: any;
-    eventSandbox: any;
-    utils: any;
+    eventSandbox: Dictionary<any>;
+    utils: Dictionary<any>;
 
     constructor () {
         //@ts-ignore
@@ -77,8 +79,7 @@ class Hammerhead {
             pageNavigationTriggered: this.pageNavigationWatch.PAGE_NAVIGATION_TRIGGERED_EVENT,
             scriptElementAdded:      this.sandbox.node.element.SCRIPT_ELEMENT_ADDED_EVENT,
             consoleMethCalled:       this.sandbox.console.CONSOLE_METH_CALLED_EVENT,
-            windowOpened:            this.sandbox.childWindow.WINDOW_OPENED_EVENT,
-            windowClosed:            this.sandbox.childWindow.WINDOW_CLOSED_EVENT
+            windowOpened:            this.sandbox.childWindow.WINDOW_OPENED_EVENT
         };
 
         this.PROCESSING_COMMENTS = {
@@ -178,7 +179,6 @@ class Hammerhead {
                 return this.sandbox.console;
 
             case this.EVENTS.windowOpened:
-            case this.EVENTS.windowClosed:
                 return this.sandbox.childWindow;
 
             default:

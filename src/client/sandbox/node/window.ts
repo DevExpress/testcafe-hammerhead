@@ -438,10 +438,6 @@ export default class WindowSandbox extends SandboxBase {
             return windowSandbox._childWindowSandbox.handleWindowOpen(window, args);
         };
 
-        window.close = function () {
-            windowSandbox._childWindowSandbox.handleWindowClose(window);
-        };
-
         if (window.FontFace) {
             window.FontFace           = (family, source, descriptors) => {
                 source = styleProcessor.process(source, convertToProxyUrl);
