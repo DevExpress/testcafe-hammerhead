@@ -53,8 +53,8 @@ export default class Listeners extends EventEmitter {
 
             return el.body !== void 0 ? nativeMethods.documentAddEventListener : nativeMethods.addEventListener;
         }
-        else
-            return nativeMethods.eventTargetAddEventListener;
+
+        return nativeMethods.eventTargetAddEventListener;
     }
 
     private static _getNativeRemoveEventListener (el) {
@@ -64,9 +64,8 @@ export default class Listeners extends EventEmitter {
 
             return el.body !== void 0 ? nativeMethods.documentRemoveEventListener : nativeMethods.removeEventListener;
         }
-        else
-            return nativeMethods.eventTargetRemoveEventListener;
 
+        return nativeMethods.eventTargetRemoveEventListener;
     }
 
     private static _getEventListenerWrapper (eventCtx, listener) {
