@@ -14,7 +14,6 @@ const DEFAULT_WINDOW_PARAMETERS = 'width=500px, height=500px';
 
 export default class ChildWindowSandbox extends SandboxBase {
     readonly WINDOW_OPENED_EVENT = 'hammerhead|event|window-opened';
-    readonly WINDOW_CLOSED_EVENT = 'hammerhead|event|window-closed';
 
     // @ts-ignore
     constructor (private readonly _messageSandbox: MessageSandbox,
@@ -72,12 +71,6 @@ export default class ChildWindowSandbox extends SandboxBase {
         }
 
         return nativeMethods.windowOpen.apply(window, args);
-    }
-
-    handleWindowClose (window: Window): void {
-        nativeMethods.windowClose.call(window);
-
-        this.emit(this.WINDOW_CLOSED_EVENT, { window });
     }
 
     _handleFormSubmitting (window: Window): void {

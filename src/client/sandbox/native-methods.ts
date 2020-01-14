@@ -90,11 +90,10 @@ class NativeMethods {
     windowDispatchEvent: any;
     postMessage: any;
     windowOpen: Window['open'];
-    windowClose: Window['close'];
-    setTimeout: any;
-    setInterval: any;
+    setTimeout: Window['setTimeout'];
+    setInterval: Window['setInterval'];
     clearTimeout: Window['clearTimeout'];
-    clearInterval: any;
+    clearInterval: Window['clearInterval'];
     registerProtocolHandler: any;
     sendBeacon: any;
     xhrAbort: any;
@@ -546,7 +545,6 @@ class NativeMethods {
         this.windowDispatchEvent = win.dispatchEvent;
         this.postMessage         = win.postMessage || winProto.postMessage;
         this.windowOpen          = win.open || winProto.open;
-        this.windowClose         = win.close || winProto.close;
         this.setTimeout          = win.setTimeout || winProto.setTimeout;
         this.setInterval         = win.setInterval || winProto.setInterval;
         this.clearTimeout        = win.clearTimeout || winProto.clearTimeout;
@@ -1058,8 +1056,8 @@ class NativeMethods {
         NativeMethods._ensureDocumentMethodRestore(document, window[this.documentWriteLnPropOwnerName].prototype, 'writeln', this.documentWriteLn);
     }
 
-    refreshIfNecessary (doc, win) {
-        const tryToExecuteCode = func => {
+    refreshIfNecessary (doc: Document, win: Window) {
+        const tryToExecuteCode = (func: Function) => {
             try {
                 return func();
             }
@@ -1082,6 +1080,7 @@ class NativeMethods {
         const needToRefreshWindowMethods = tryToExecuteCode(() => {
             this.setTimeout.call(win, () => void 0, 0);
 
+            //@ts-ignore
             return win.XMLHttpRequest.prototype.open.toString() === this.xhrOpen.toString();
         });
 
@@ -1097,7 +1096,7 @@ class NativeMethods {
             this.refreshWindowMeths(win);
     }
 
-    isNativeCode (fn) {
+    isNativeCode (fn: Function): boolean {
         return NATIVE_CODE_RE.test(fn.toString());
     }
 }
