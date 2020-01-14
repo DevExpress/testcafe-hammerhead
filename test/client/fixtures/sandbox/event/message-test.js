@@ -63,7 +63,7 @@ asyncTest('onmessage event', function () {
 
 test('message types', function () {
     var checkValue = function (value, test) {
-        return new Promise(function (resove) {
+        return new Promise(function (resolve) {
             window.onmessage = function (e) {
                 if (test)
                     ok(test(e.data));
@@ -72,7 +72,7 @@ test('message types', function () {
 
                 window.onmessage = void 0;
 
-                resove();
+                resolve();
             };
 
             callMethod(window, 'postMessage', [value, '*']);
@@ -197,73 +197,6 @@ asyncTest('service message handler should not call other handlers', function () 
             window.addEventListener('message', windowMessageHandler);
             messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
             messageSandbox.sendServiceMsg('service_msg', iframe.contentWindow);
-        });
-});
-
-module('ping window');
-
-asyncTest('iframe', function () {
-    var iframe                 = document.createElement('iframe');
-    var iframeResponseReceived = false;
-    var onMessageHandler       = function (evt) {
-        if (evt.data === 'ready') {
-            ok(iframeResponseReceived);
-
-            window.removeEventListener('message', onMessageHandler);
-            iframe.parentNode.removeChild(iframe);
-            start();
-        }
-    };
-
-    iframe.id = 'test05';
-
-    window.addEventListener('message', onMessageHandler);
-
-    messageSandbox.pingIframe(iframe, 'pingCmd')
-        .then(function () {
-            iframeResponseReceived = true;
-        });
-
-    iframe.src = getCrossDomainPageUrl('../../../data/cross-domain/wait-loading.html');
-    document.body.appendChild(iframe);
-});
-
-test('timeout (non-added to DOM iframe)', function () {
-    var iframe      = document.createElement('iframe');
-    var storedDelay = messageSandbox.PING_IFRAME_TIMEOUT;
-
-    messageSandbox.PING_IFRAME_TIMEOUT = 5;
-
-    iframe.id  = 'test' + Date.now();
-    iframe.src = 'http://cross.domain.com/';
-
-    return messageSandbox.pingIframe(iframe, 'pingCmd')
-        .then(function () {
-            ok(false, 'ping should not be resolved');
-        }, function () {
-            ok(true, 'ping should be rejected');
-        })
-        .then(function () {
-            messageSandbox.PING_IFRAME_TIMEOUT = storedDelay;
-        });
-});
-
-test('timeout (added to DOM iframe)', function () {
-    var storedDelay = messageSandbox.PING_IFRAME_TIMEOUT;
-
-    messageSandbox.PING_IFRAME_TIMEOUT = 5;
-
-    return createTestIframe({ src: 'http://cross.domain.com/' })
-        .then(function (iframe) {
-            return messageSandbox.pingIframe(iframe, 'pingCmd');
-        })
-        .then(function () {
-            ok(false, 'ping should not be resolved');
-        }, function () {
-            ok(true, 'ping should be rejected');
-        })
-        .then(function () {
-            messageSandbox.PING_IFRAME_TIMEOUT = storedDelay;
         });
 });
 
