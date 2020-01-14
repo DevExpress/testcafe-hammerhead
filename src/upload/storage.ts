@@ -1,4 +1,3 @@
-// @ts-ignore
 import { castArray } from 'lodash';
 import mime from 'mime';
 import path from 'path';
@@ -13,6 +12,12 @@ interface CopiedFileInfo {
 interface CopyingError {
     err: Error;
     path: string;
+}
+
+interface ResolvePathError {
+    err: string;
+    path: string;
+    resolvedPaths: string[];
 }
 
 export default class UploadStorage {
@@ -41,7 +46,7 @@ export default class UploadStorage {
         return { filesToCopy, errs };
     }
 
-    static _generateName (existingNames: string[], fileName: string) {
+    static _generateName (existingNames: string[], fileName: string): string {
         const extName  = path.extname(fileName);
         const template = path.basename(fileName, extName) + ' %s' + extName;
         let index      = 0;
@@ -89,7 +94,7 @@ export default class UploadStorage {
         return storedFiles;
     }
 
-    async _resolvePath (filePath: string, errors): Promise<string> {
+    async _resolvePath (filePath: string, result: ResolvePathError[]): Promise<string | null> {
         let resolvedPath = null;
 
         if (path.isAbsolute(filePath))
@@ -107,7 +112,7 @@ export default class UploadStorage {
             }
 
             if (resolvedPath === null) {
-                errors.push({
+                result.push({
                     err:           `Cannot find the ${filePath}. None path of these exists: ${nonExistingPaths.join(', ')}.`,
                     path:          filePath,
                     resolvedPaths: nonExistingPaths
@@ -122,7 +127,7 @@ export default class UploadStorage {
         const result = [];
 
         for (const filePath of filePathList) {
-            const resolvedPath = await this._resolvePath(filePath, result);
+            const resolvedPath: string | null = await this._resolvePath(filePath, result);
 
             if (resolvedPath === null)
                 continue;
@@ -175,7 +180,7 @@ export default class UploadStorage {
         return { copiedFiles, errs };
     }
 
-    static async ensureUploadsRoot (uploadsRoot: string) {
+    static async ensureUploadsRoot (uploadsRoot: string): Promise<Error | null> {
         try {
             if (!await fsObjectExists(uploadsRoot))
                 await makeDir(uploadsRoot);

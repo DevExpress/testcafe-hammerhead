@@ -22,7 +22,8 @@ export default class ChildWindowSandbox extends SandboxBase {
     }
 
     private static _shouldOpenInNewWindow (target: string): boolean {
-        target = target.toLowerCase();
+        if (!target)
+            return false;
 
         return target === '_blank' || !windowsStorage.findByName(target);
     }
@@ -101,7 +102,7 @@ export default class ChildWindowSandbox extends SandboxBase {
         });
     }
 
-    attach(window: Window) {
+    attach(window: Window): void {
         super.attach(window, window.document);
         this._handleFormSubmitting(window);
     }
