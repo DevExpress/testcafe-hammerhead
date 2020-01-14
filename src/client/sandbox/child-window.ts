@@ -25,6 +25,8 @@ export default class ChildWindowSandbox extends SandboxBase {
         if (!target)
             return false;
 
+        target = target.toLowerCase();
+
         return target === '_blank' || !windowsStorage.findByName(target);
     }
 

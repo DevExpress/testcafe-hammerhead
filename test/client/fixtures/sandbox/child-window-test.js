@@ -6,6 +6,7 @@ test('_shouldOpenInNewWindow', function () {
     notOk(ChildWindowSandbox._shouldOpenInNewWindow(null));
     notOk(ChildWindowSandbox._shouldOpenInNewWindow(''));
     ok(ChildWindowSandbox._shouldOpenInNewWindow('_blank'));
+    ok(ChildWindowSandbox._shouldOpenInNewWindow('_Blank'));
     ok(ChildWindowSandbox._shouldOpenInNewWindow('wrong-window-name'));
     notOk(ChildWindowSandbox._shouldOpenInNewWindow('test-window-name'));
 
