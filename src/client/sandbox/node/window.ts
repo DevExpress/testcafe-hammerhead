@@ -55,7 +55,7 @@ import NodeMutation from './mutation';
 import MessageSandbox from '../event/message';
 import Listeners from '../event/listeners';
 import ElementEditingWatcher from '../event/element-editing-watcher';
-import ChildWindowSandbox from "../child-window";
+import ChildWindowSandbox from '../child-window';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -76,6 +76,8 @@ const SANDBOX_DOM_TOKEN_LIST_UPDATE_FN = 'hammerhead|sandbox-dom-token-list-upda
 
 const IS_PROXY_OBJECT_INTERNAL_PROP_NAME  = 'hammerhead|is-proxy-object|internal-prop-name';
 const IS_PROXY_OBJECT_INTERNAL_PROP_VALUE = 'hammerhead|is-proxy-object|internal-prop-value';
+
+const PROXY_HANDLER_FLAG = 'hammerhead|proxy-handler-flag';
 
 const NO_STACK_TRACE_AVAILABLE_MESSAGE = 'No stack trace available';
 
@@ -542,7 +544,7 @@ export default class WindowSandbox extends SandboxBase {
 
         if (window.Proxy) {
             window.Proxy = function (target, handler) {
-                if (handler.get && !handler.__overwritten__) {
+                if (handler.get && !handler.get[PROXY_HANDLER_FLAG]) {
                     const storedGet = handler.get;
 
                     handler.get = function (getterTarget, name, receiver) {
@@ -551,7 +553,8 @@ export default class WindowSandbox extends SandboxBase {
 
                         return storedGet.call(this, getterTarget, name, receiver);
                     };
-                    handler.__overwritten__ = true;
+
+                    handler.get[PROXY_HANDLER_FLAG] = true;
                 }
 
                 return new nativeMethods.Proxy(target, handler);
