@@ -11,12 +11,13 @@ let collectionProtoGettersCount        = 0;
 export default function HTMLCollectionWrapper (collection: HTMLCollection, tagName: string) {
     tagName = tagName.toLowerCase();
 
-    nativeMethods.objectDefineProperties.call(Object, this, {
+    nativeMethods.objectDefineProperties(this, {
         _collection:         { value: collection },
         _filteredCollection: { value: [] },
         _tagName:            { value: tagName },
         _version:            { value: -Infinity, writable: true },
-        _namedProps:         { value: ELEMENTS_WITH_NAME_ATTRIBUTE.indexOf(tagName) !== -1 ? [] : null }
+        _namedProps:         { value: ELEMENTS_WITH_NAME_ATTRIBUTE.indexOf(tagName) !== -1 ? [] : null },
+        _lastNativeLength:   { value: 0, writable: true }
     });
 
     this._refreshCollection();
@@ -40,7 +41,7 @@ if (HTMLCollection.prototype.namedItem) {
     };
 }
 
-nativeMethods.objectDefineProperties.call(Object, HTMLCollectionWrapper.prototype, {
+nativeMethods.objectDefineProperties(HTMLCollectionWrapper.prototype, {
     length: {
         configurable: true,
         enumerable:   true,
@@ -50,20 +51,26 @@ nativeMethods.objectDefineProperties.call(Object, HTMLCollectionWrapper.prototyp
             return this._filteredCollection.length;
         }
     },
-
     _refreshCollection: {
         value: function () {
-            if (!DOMMutationTracker.isOutdated(this._tagName, this._version))
+            const storedNativeCollectionLength = this._lastNativeLength;
+            const nativeCollectionLength       = nativeMethods.htmlCollectionLengthGetter.call(this._collection);
+
+            this._lastNativeLength = nativeCollectionLength;
+
+            if (!DOMMutationTracker.isOutdated(this._tagName, this._version) &&
+                (DOMMutationTracker.isDomContentLoaded() || storedNativeCollectionLength === nativeCollectionLength))
                 return;
 
             const storedFilteredCollectionLength = this._filteredCollection.length;
-            const currentNamedProps              = filterCollection(this);
+            const currentNamedProps              = filterCollection(this, nativeCollectionLength);
 
             this._version = DOMMutationTracker.getVersion(this._tagName);
 
             updateCollectionIndexGetters(this, storedFilteredCollectionLength, this._filteredCollection.length);
             updateNamedProps(this, this._namedProps, currentNamedProps);
-        }
+        },
+        enumerable: false
     }
 });
 
@@ -81,7 +88,7 @@ function addShadowGetters (count: number) {
     }
 }
 
-function updateCollectionIndexGetters (wrapper, oldLength: number, currentLength: number) {
+function updateCollectionIndexGetters (wrapper: HTMLCollectionWrapper, oldLength: number, currentLength: number) {
     if (oldLength === currentLength)
         return;
 
@@ -104,7 +111,7 @@ function updateCollectionIndexGetters (wrapper, oldLength: number, currentLength
         addShadowGetters(currentLength - maxCollectionLength);
 }
 
-function updateNamedProps (wrapper, oldNamedProps, currentNamedProps) {
+function updateNamedProps (wrapper: HTMLCollectionWrapper, oldNamedProps, currentNamedProps) {
     if (!currentNamedProps)
         return;
 
@@ -128,9 +135,8 @@ function updateNamedProps (wrapper, oldNamedProps, currentNamedProps) {
     }
 }
 
-function filterCollection (wrapper) {
+function filterCollection (wrapper: HTMLCollectionWrapper, nativeCollectionLength: number) {
     const nativeCollection       = wrapper._collection;
-    const nativeCollectionLength = nativeMethods.htmlCollectionLengthGetter.call(nativeCollection);
     const currentNamedProps      = wrapper._namedProps ? [] : null;
     const filteredCollection     = wrapper._filteredCollection;
 

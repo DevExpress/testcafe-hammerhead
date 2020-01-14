@@ -55,8 +55,16 @@
     assertions.push([elements[0], textarea1, 'elements[0] after remove textarea2']);
     assertions.push([elements[1], void 0, 'elements[1] after remove textarea2']);
     assertions.push([elements.length, 1, 'elements.length after remove textarea2']);
-    assertions.push([refreshCollectionCount, 7, 'count of the refreshNodeList calls']);
+    assertions.push([refreshCollectionCount, 1, 'count of the refreshNodeList calls']);
     assertions.push([domContentLoadedIsRaised, false, 'domContentLoadedIsRaised']);
+</script>
+<textarea></textarea>
+<script>
+    assertions.push([elements[0], textarea1, 'elements[0]']);
+    assertions.push([elements[1], document.body.lastElementChild.previousElementSibling, 'elements[1]']);
+    assertions.push([elements[2], void 0, 'elements[2]']);
+    assertions.push([elements.length, 2, 'elements.length']);
+    assertions.push([refreshCollectionCount, 2, 'count of the refreshNodeList calls']);
 </script>
 </body>
 </html>

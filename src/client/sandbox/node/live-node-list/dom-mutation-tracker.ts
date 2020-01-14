@@ -51,10 +51,11 @@ class DOMMutationTracker {
         this._processChildren(el);
     }
 
-    isOutdated (tagName: string, version: number): boolean {
-        if (!this._isDomContentLoaded)
-            return true;
+    isDomContentLoaded () {
+        return this._isDomContentLoaded;
+    }
 
+    isOutdated (tagName: string, version: number): boolean {
         const isTagTracked = tagName in this._mutations;
 
         if (!isTagTracked)
