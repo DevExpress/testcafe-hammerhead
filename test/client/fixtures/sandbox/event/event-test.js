@@ -261,7 +261,7 @@ test('the click event handler for the svg element must be overridden correctly (
 });
 
 test('SVGElement.dispatchEvent should be overriden (GH-614)', function () {
-    var svg             = document.createElement('svg');
+    var svg             = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     var handlerIsCalled = false;
 
     document.body.appendChild(svg);
