@@ -1,3 +1,4 @@
+import Promise from 'pinkie';
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import * as destLocation from '../../utils/destination-location';
@@ -17,11 +18,17 @@ enum MessageType {
 };
 
 export default class MessageSandbox extends SandboxBase {
+    readonly PING_DELAY = 200;
+    readonly PING_IFRAME_TIMEOUT = 7000;
+    readonly PING_IFRAME_MIN_TIMEOUT = 100;
     readonly SERVICE_MSG_RECEIVED_EVENT = 'hammerhead|event|service-msg-received';
     readonly RECEIVE_MSG_FN = 'hammerhead|receive-msg-function';
 
     topWindow: Window | null;
     window: Window | null;
+
+    pingCallback: any;
+    pingCmd: any;
 
     storedOnMessageHandler: Function;
     isWindowUnloaded: boolean;
@@ -62,8 +69,15 @@ export default class MessageSandbox extends SandboxBase {
     private _onMessage (e: MessageEvent): void {
         const data = MessageSandbox._getMessageData(e);
 
-        if (data.type === MessageType.Service && e.source)
-            this.emit(this.SERVICE_MSG_RECEIVED_EVENT, { message: data.message, source: e.source, ports: e.ports });
+        if (data.type === MessageType.Service && e.source) {
+            if (this.pingCmd && data.message.cmd === this.pingCmd && data.message.isPingResponse) {
+                this.pingCallback();
+                this.pingCallback = null;
+                this.pingCmd      = null;
+            }
+            else
+                this.emit(this.SERVICE_MSG_RECEIVED_EVENT, { message: data.message, source: e.source, ports: e.ports });
+        }
     }
 
     private _onWindowMessage (e: MessageEvent, originListener): void {
@@ -225,5 +239,50 @@ export default class MessageSandbox extends SandboxBase {
             sendFunc(true);
 
         return null;
+    }
+
+    // NOTE: This code is used only in legacy API.
+    pingIframe (targetIframe, pingMessageCommand, shortWaiting: boolean) {
+        return new Promise((resolve, reject) => {
+            let pingInterval = null;
+            let pingTimeout  = null;
+            let targetWindow = null;
+
+            const sendPingRequest = () => {
+                targetWindow = nativeMethods.contentWindowGetter.call(targetIframe);
+
+                if (targetWindow) {
+                    this.sendServiceMsg({
+                        cmd:           this.pingCmd,
+                        isPingRequest: true
+                    }, targetWindow);
+                }
+            };
+
+            const cleanTimeouts = () => {
+                nativeMethods.clearInterval.call(this.window, pingInterval);
+                nativeMethods.clearTimeout.call(this.window, pingTimeout);
+
+                this.pingCallback = null;
+                this.pingCmd      = null;
+                pingInterval      = null;
+                pingTimeout       = null;
+            };
+
+            pingTimeout = nativeMethods.setTimeout.call(this.window, () => {
+                cleanTimeouts();
+                reject();
+            }, shortWaiting ? this.PING_IFRAME_MIN_TIMEOUT : this.PING_IFRAME_TIMEOUT);
+
+            this.pingCallback = () => {
+                cleanTimeouts();
+                resolve();
+            };
+
+            this.pingCmd = pingMessageCommand;
+
+            sendPingRequest();
+            pingInterval = nativeMethods.setInterval.call(this.window, sendPingRequest, this.PING_DELAY);
+        });
     }
 }
