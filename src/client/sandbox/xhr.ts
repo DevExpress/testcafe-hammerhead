@@ -7,6 +7,7 @@ import { getOriginHeader } from '../utils/destination-location';
 import { overrideDescriptor } from '../utils/property-overriding';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
 import CookieSandbox from './cookie';
+import { isIE11 } from '../utils/browser';
 
 const XHR_READY_STATES = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
 
@@ -25,13 +26,13 @@ export default class XhrSandbox extends SandboxBase {
         xhr.open                  = nativeMethods.xhrOpen;
         xhr.abort                 = nativeMethods.xhrAbort;
         xhr.send                  = nativeMethods.xhrSend;
-        xhr.addEventListener      = nativeMethods.xhrAddEventListener;
-        xhr.removeEventListener   = nativeMethods.xhrRemoveEventListener;
+        xhr.addEventListener      = isIE11 ? nativeMethods.xhrAddEventListener : nativeMethods.eventTargetAddEventListener;
+        xhr.removeEventListener   = isIE11 ? nativeMethods.xhrRemoveEventListener : nativeMethods.eventTargetRemoveEventListener;
         xhr.setRequestHeader      = nativeMethods.xhrSetRequestHeader;
         xhr.getResponseHeader     = nativeMethods.xhrGetResponseHeader;
         xhr.getAllResponseHeaders = nativeMethods.xhrGetAllResponseHeaders;
         xhr.overrideMimeType      = nativeMethods.xhrOverrideMimeType;
-        xhr.dispatchEvent         = nativeMethods.xhrDispatchEvent;
+        xhr.dispatchEvent         = isIE11 ? nativeMethods.xhrDispatchEvent : nativeMethods.eventTargetDispatchEvent;
 
         return xhr;
     }

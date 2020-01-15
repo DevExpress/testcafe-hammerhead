@@ -349,6 +349,7 @@ class NativeMethods {
     cryptoGetRandomValues: Function;
     eventTargetAddEventListener: any;
     eventTargetRemoveEventListener: any;
+    eventTargetDispatchEvent: any;
 
     constructor (doc?: Document, win?: Window) {
         win = win || window;
@@ -503,14 +504,14 @@ class NativeMethods {
         }
 
         // Event
-        // NOTE: IE11 has no EventTarget so we should save "...EventListener" methods separately
+        // NOTE: IE11 has no EventTarget so we should save "...EventListener" and "dispatchEvent" methods separately
         if (!win.EventTarget) {
             this.addEventListener    = nativeElement.addEventListener;
             this.removeEventListener = nativeElement.removeEventListener;
+            this.dispatchEvent       = nativeElement.dispatchEvent;
         }
         this.blur                      = nativeElement.blur;
         this.click                     = nativeElement.click;
-        this.dispatchEvent             = nativeElement.dispatchEvent;
         this.focus                     = nativeElement.focus;
         // @ts-ignore
         this.select                    = window.TextRange ? createElement('body').createTextRange().select : null;
@@ -552,7 +553,10 @@ class NativeMethods {
 
         this.historyPushState    = win.history.pushState;
         this.historyReplaceState = win.history.replaceState;
-        this.windowDispatchEvent = win.dispatchEvent;
+        // NOTE: IE11 has no EventTarget so we should save "dispatchEvent" methods separately
+        if (!win.EventTarget) {
+            this.windowDispatchEvent = win.dispatchEvent;
+        }
         this.postMessage         = win.postMessage || winProto.postMessage;
         this.windowOpen          = win.open || winProto.open;
         this.setTimeout          = win.setTimeout || winProto.setTimeout;
@@ -576,7 +580,10 @@ class NativeMethods {
         this.xhrGetAllResponseHeaders = win.XMLHttpRequest.prototype.getAllResponseHeaders;
         this.xhrSetRequestHeader      = win.XMLHttpRequest.prototype.setRequestHeader;
         this.xhrOverrideMimeType      = win.XMLHttpRequest.prototype.overrideMimeType;
-        this.xhrDispatchEvent         = win.XMLHttpRequest.prototype.dispatchEvent;
+        // NOTE: IE11 has no EventTarget so we should save "dispatchEvent" methods separately
+        if (!win.EventTarget) {
+            this.xhrDispatchEvent = win.XMLHttpRequest.prototype.dispatchEvent;
+        }
 
         try {
             this.registerServiceWorker        = win.navigator.serviceWorker.register;
@@ -624,6 +631,7 @@ class NativeMethods {
         if (win.EventTarget) {
             this.eventTargetAddEventListener    = win.EventTarget.prototype.addEventListener;
             this.eventTargetRemoveEventListener = win.EventTarget.prototype.removeEventListener;
+            this.eventTargetDispatchEvent       = win.EventTarget.prototype.dispatchEvent;
         }
 
         this.canvasContextDrawImage = win.CanvasRenderingContext2D.prototype.drawImage;

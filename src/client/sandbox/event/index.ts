@@ -5,7 +5,7 @@ import Selection from './selection';
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import * as domUtils from '../../utils/dom';
-import { isIE, isFirefox } from '../../utils/browser';
+import { isIE, isIE11, isFirefox } from '../../utils/browser';
 import { DOM_EVENTS, preventDefault } from '../../utils/event';
 import DataTransfer from './drag-and-drop/data-transfer';
 import DragDataStore from './drag-and-drop/drag-data-store';
@@ -78,12 +78,20 @@ export default class EventSandbox extends SandboxBase {
 
         this._overriddenMethods = {
             dispatchEvent: function () {
+                const isWindow = domUtils.isWindow(this);
+
                 Listeners.beforeDispatchEvent(this);
 
-                const isWindow = domUtils.isWindow(this);
-                const res      = isWindow
-                    ? nativeMethods.windowDispatchEvent.apply(this, arguments)
-                    : nativeMethods.dispatchEvent.apply(this, arguments);
+                let res;
+
+                if (isIE11) {
+                    res = isWindow
+                        ? nativeMethods.windowDispatchEvent.apply(this, arguments)
+                        : nativeMethods.dispatchEvent.apply(this, arguments);
+                }
+                else {
+                    res = nativeMethods.eventTargetDispatchEvent.apply(this, arguments);
+                }
 
                 Listeners.afterDispatchEvent(this);
 
@@ -176,14 +184,20 @@ export default class EventSandbox extends SandboxBase {
         window.HTMLInputElement.prototype.setSelectionRange    = this._overriddenMethods.setSelectionRange;
         //@ts-ignore
         window.HTMLTextAreaElement.prototype.setSelectionRange = this._overriddenMethods.setSelectionRange;
-        //@ts-ignore
-        window.Window.prototype.dispatchEvent                  = this._overriddenMethods.dispatchEvent;
-        //@ts-ignore
-        window.Document.prototype.dispatchEvent                = this._overriddenMethods.dispatchEvent;
-        //@ts-ignore
-        window.HTMLElement.prototype.dispatchEvent             = this._overriddenMethods.dispatchEvent;
-        //@ts-ignore
-        window.SVGElement.prototype.dispatchEvent              = this._overriddenMethods.dispatchEvent;
+        if (isIE11) {
+            //@ts-ignore
+            window.Window.prototype.dispatchEvent      = this._overriddenMethods.dispatchEvent;
+            //@ts-ignore
+            window.Document.prototype.dispatchEvent    = this._overriddenMethods.dispatchEvent;
+            //@ts-ignore
+            window.HTMLElement.prototype.dispatchEvent = this._overriddenMethods.dispatchEvent;
+            //@ts-ignore
+            window.SVGElement.prototype.dispatchEvent  = this._overriddenMethods.dispatchEvent;
+        }
+        else {
+            //@ts-ignore
+            window.EventTarget.prototype.dispatchEvent = this._overriddenMethods.dispatchEvent;
+        }
         //@ts-ignore
         window.HTMLElement.prototype.focus                     = this._overriddenMethods.focus;
         //@ts-ignore

@@ -241,7 +241,7 @@ test('parameters passed to the native function in its original form', function (
 
     checkNativeFunctionArgs('querySelector', 'documentFragmentQuerySelector', documentFragment);
     checkNativeFunctionArgs('querySelectorAll', 'documentFragmentQuerySelectorAll', documentFragment);
-    checkNativeFunctionArgs('dispatchEvent', 'windowDispatchEvent', window);
+    checkNativeFunctionArgs('dispatchEvent', browserUtils.isIE11 ? 'windowDispatchEvent' : 'eventTargetDispatchEvent', window);
 });
 
 if (window.history.replaceState && window.history.pushState) {

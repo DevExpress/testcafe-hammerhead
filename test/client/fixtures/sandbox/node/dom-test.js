@@ -192,7 +192,7 @@ test('parameters passed to the native dom element function in its original form'
     checkNativeFunctionArgs('removeChild', 'removeChild', el);
     checkNativeFunctionArgs('setAttribute', 'setAttribute', el);
     checkNativeFunctionArgs('setAttributeNS', 'setAttributeNS', el);
-    checkNativeFunctionArgs('dispatchEvent', 'dispatchEvent', el);
+    checkNativeFunctionArgs('dispatchEvent', browserUtils.isIE11 ? 'dispatchEvent' : 'eventTargetDispatchEvent', el);
 
     listeners.initElementListening(el, ['click']);
 
