@@ -409,7 +409,7 @@ class NativeMethods {
             this.registerElement = docPrototype.registerElement;
 
         // Event
-        // NOTE: IE11 has no EventTarget so we should save "...EventListener" methods separately
+        // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
         // @ts-ignore
         if (!win.EventTarget) {
             this.documentAddEventListener    = docPrototype.addEventListener;
@@ -504,7 +504,7 @@ class NativeMethods {
         }
 
         // Event
-        // NOTE: IE11 has no EventTarget so we should save "...EventListener" and "dispatchEvent" methods separately
+        // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
         if (!win.EventTarget) {
             this.addEventListener    = nativeElement.addEventListener;
             this.removeEventListener = nativeElement.removeEventListener;
@@ -553,10 +553,6 @@ class NativeMethods {
 
         this.historyPushState    = win.history.pushState;
         this.historyReplaceState = win.history.replaceState;
-        // NOTE: IE11 has no EventTarget so we should save "dispatchEvent" methods separately
-        if (!win.EventTarget) {
-            this.windowDispatchEvent = win.dispatchEvent;
-        }
         this.postMessage         = win.postMessage || winProto.postMessage;
         this.windowOpen          = win.open || winProto.open;
         this.setTimeout          = win.setTimeout || winProto.setTimeout;
@@ -574,16 +570,16 @@ class NativeMethods {
         this.xhrAbort                 = win.XMLHttpRequest.prototype.abort;
         this.xhrOpen                  = win.XMLHttpRequest.prototype.open;
         this.xhrSend                  = win.XMLHttpRequest.prototype.send;
-        this.xhrAddEventListener      = win.XMLHttpRequest.prototype.addEventListener;
-        this.xhrRemoveEventListener   = win.XMLHttpRequest.prototype.removeEventListener;
+        // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
+        if (!win.EventTarget) {
+            this.xhrAddEventListener    = win.XMLHttpRequest.prototype.addEventListener;
+            this.xhrRemoveEventListener = win.XMLHttpRequest.prototype.removeEventListener;
+            this.xhrDispatchEvent       = win.XMLHttpRequest.prototype.dispatchEvent;
+        }
         this.xhrGetResponseHeader     = win.XMLHttpRequest.prototype.getResponseHeader;
         this.xhrGetAllResponseHeaders = win.XMLHttpRequest.prototype.getAllResponseHeaders;
         this.xhrSetRequestHeader      = win.XMLHttpRequest.prototype.setRequestHeader;
         this.xhrOverrideMimeType      = win.XMLHttpRequest.prototype.overrideMimeType;
-        // NOTE: IE11 has no EventTarget so we should save "dispatchEvent" methods separately
-        if (!win.EventTarget) {
-            this.xhrDispatchEvent = win.XMLHttpRequest.prototype.dispatchEvent;
-        }
 
         try {
             this.registerServiceWorker        = win.navigator.serviceWorker.register;
@@ -613,10 +609,11 @@ class NativeMethods {
         }
 
         // Event
-        // NOTE: IE11 has no EventTarget so we should save "...EventListener" methods separately
+        // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
         if (!win.EventLisener) {
             this.windowAddEventListener    = win.addEventListener || winProto.addEventListener;
             this.windowRemoveEventListener = win.removeEventListener || winProto.removeEventListener;
+            this.windowDispatchEvent       = win.dispatchEvent;
         }
         this.WindowPointerEvent   = win.PointerEvent || winProto.PointerEvent;
         this.WindowMSPointerEvent = win.MSPointerEvent || winProto.MSPointerEvent;

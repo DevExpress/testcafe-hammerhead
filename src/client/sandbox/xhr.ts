@@ -51,8 +51,12 @@ export default class XhrSandbox extends SandboxBase {
 
         const emitXhrCompletedEventIfNecessary = function () {
             if (this.readyState === this.DONE) {
+                const nativeRemoveEventListener = isIE11
+                    ? nativeMethods.xhrRemoveEventListener
+                    : nativeMethods.eventTargetRemoveEventListener;
+
                 xhrSandbox.emit(xhrSandbox.XHR_COMPLETED_EVENT, { xhr: this });
-                nativeMethods.xhrRemoveEventListener.call(this, 'readystatechange', emitXhrCompletedEventIfNecessary);
+                nativeRemoveEventListener.call(this, 'readystatechange', emitXhrCompletedEventIfNecessary);
             }
         };
 
@@ -60,16 +64,24 @@ export default class XhrSandbox extends SandboxBase {
             if (this.readyState < this.HEADERS_RECEIVED)
                 return;
 
+            const nativeRemoveEventListener = isIE11
+                ? nativeMethods.xhrRemoveEventListener
+                : nativeMethods.eventTargetRemoveEventListener;
+
             xhrSandbox._cookieSandbox.syncCookie();
 
-            nativeMethods.xhrRemoveEventListener.call(this, 'readystatechange', syncCookieWithClientIfNecessary);
+            nativeRemoveEventListener.call(this, 'readystatechange', syncCookieWithClientIfNecessary);
         };
 
         const xmlHttpRequestWrapper = function () {
+            const nativeAddEventListener = isIE11
+                ? nativeMethods.xhrAddEventListener
+                : nativeMethods.eventTargetAddEventListener;
+
             const xhr = new nativeMethods.XMLHttpRequest();
 
-            nativeMethods.xhrAddEventListener.call(xhr, 'readystatechange', emitXhrCompletedEventIfNecessary);
-            nativeMethods.xhrAddEventListener.call(xhr, 'readystatechange', syncCookieWithClientIfNecessary);
+            nativeAddEventListener.call(xhr, 'readystatechange', emitXhrCompletedEventIfNecessary);
+            nativeAddEventListener.call(xhr, 'readystatechange', syncCookieWithClientIfNecessary);
 
             return xhr;
         };
