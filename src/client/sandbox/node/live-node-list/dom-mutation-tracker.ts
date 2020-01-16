@@ -51,7 +51,7 @@ class DOMMutationTracker {
         this._processChildren(el);
     }
 
-    isDomContentLoaded () {
+    isDomContentLoaded (): boolean {
         return this._isDomContentLoaded;
     }
 

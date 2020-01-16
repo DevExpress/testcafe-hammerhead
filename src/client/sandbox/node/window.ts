@@ -554,7 +554,7 @@ export default class WindowSandbox extends SandboxBase {
                         return storedGet.call(this, getterTarget, name, receiver);
                     };
 
-                    handler.get[PROXY_HANDLER_FLAG] = true;
+                    nativeMethods.objectDefineProperty(handler.get, PROXY_HANDLER_FLAG, { value: true, enumerable: false });
                 }
 
                 return new nativeMethods.Proxy(target, handler);
