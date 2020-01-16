@@ -658,6 +658,21 @@ if (window.Proxy) {
         strictEqual(proxy.prop, 1);
     });
 
+    test('proxy created with the same handler (GH-2206)', function () {
+        var handler = {
+            get: function (obj, prop) {
+                return prop in obj ? obj[prop] : 37;
+            }
+        };
+
+        var p;
+
+        for (let i = 0; i < 100000; i++)
+            p = new Proxy({}, handler);
+
+        strictEqual(p.a, 37);
+    });
+
     test('should not call a `get` handler during an internal property accessing', function () {
         var handledWasCalled = false;
 
