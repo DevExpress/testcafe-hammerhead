@@ -736,10 +736,11 @@ asyncTest('window.onhashchange should be instrumented', function () {
 });
 
 if (!browserUtils.isIE11) {
-    test('patching EventTarget methods on the client side: addEventListener, removeEventListener (GH-1902)', function () {
+    test('patching EventTarget methods on the client side: addEventListener, removeEventListener, dispatchEvent (GH-1902)', function () {
         var eventTargetMethods = [
             'addEventListener',
-            'removeEventListener'
+            'removeEventListener',
+            'dispatchEvent'
         ];
         var savedMethods       = eventTargetMethods.map(function (methodName) {
             return window.EventTarget.prototype[methodName];
@@ -757,7 +758,10 @@ if (!browserUtils.isIE11) {
         document.body.appendChild(div);
 
         function callMethod (contextEl, methodName) {
-            contextEl[methodName]('click', function () { });
+            if (methodName === 'dispatchEvent')
+                contextEl[methodName]('click');
+            else
+                contextEl[methodName]('click', function () { });
         }
 
         function checkMethod (methodName) {
