@@ -428,7 +428,9 @@ if (nativeMethods.winOnUnhandledRejectionSetter) {
 }
 
 if (nativeMethods.windowOriginGetter) {
-    test('should override window.origin', function () {
+    module('window.origin');
+
+    test('getter', function () {
         strictEqual(window.origin, 'https://example.com');
 
         var storedWindowOriginGetter = nativeMethods.windowOriginGetter;
@@ -450,6 +452,15 @@ if (nativeMethods.windowOriginGetter) {
         strictEqual(window.origin, null);
 
         destLocation.forceLocation(storedForcedLocation);
+    });
+
+    test('setter', function () {
+        strictEqual(window.origin, 'https://example.com');
+
+        strictEqual(window.origin = '1', '1');
+
+        window.origin = 2;
+        strictEqual(window.origin, 2);
     });
 }
 

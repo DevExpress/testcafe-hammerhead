@@ -146,7 +146,7 @@ export default class WindowSandbox extends SandboxBase {
         return hasStringItem;
     }
 
-    _raiseUncaughtJsErrorEvent (type: string, event: any, window: Window) {
+    _raiseUncaughtJsErrorEvent (type: string, event: ErrorEvent | PromiseRejectionEvent, window: Window): void {
         if (isCrossDomainWindows(window, window.top))
             return;
 
@@ -156,12 +156,12 @@ export default class WindowSandbox extends SandboxBase {
         let stack             = null;
 
         if (type === this.UNHANDLED_REJECTION_EVENT) {
-            msg   = WindowSandbox._formatUnhandledRejectionReason(event.reason);
-            stack = event.reason && event.reason.stack;
+            msg   = WindowSandbox._formatUnhandledRejectionReason((event as PromiseRejectionEvent).reason);
+            stack = (event as PromiseRejectionEvent).reason && (event as PromiseRejectionEvent).reason.stack;
         }
         else if (type === this.UNCAUGHT_JS_ERROR_EVENT) {
-            msg   = event.error ? event.error.message : event.message;
-            stack = event.error && event.error.stack;
+            msg   = (event as ErrorEvent).error ? (event as ErrorEvent).error.message : (event as ErrorEvent).message;
+            stack = (event as ErrorEvent).error && (event as ErrorEvent).error.stack;
         }
 
         stack = WindowSandbox._prepareStack(msg, stack);
@@ -175,12 +175,12 @@ export default class WindowSandbox extends SandboxBase {
             this.emit(type, { msg, pageUrl, stack });
     }
 
-    _reattachHandler (window: Window, eventName: string) {
+    _reattachHandler (window: Window, eventName: string): void {
         nativeMethods.windowRemoveEventListener.call(window, eventName, this);
         nativeMethods.windowAddEventListener.call(window, eventName, this);
     }
 
-    static _formatUnhandledRejectionReason (reason: any) {
+    static _formatUnhandledRejectionReason (reason: any): string {
         if (!isPrimitiveType(reason)) {
             const reasonStr = nativeMethods.objectToString.call(reason);
 
@@ -193,7 +193,7 @@ export default class WindowSandbox extends SandboxBase {
         return String(reason);
     }
 
-    static _getUrlAttr (el: HTMLElement, attr: string) {
+    static _getUrlAttr (el: HTMLElement, attr: string): string {
         const attrValue       = nativeMethods.getAttribute.call(el, attr);
         const currentDocument = el.ownerDocument || document;
 
@@ -235,7 +235,7 @@ export default class WindowSandbox extends SandboxBase {
         return processedText;
     }
 
-    _overrideUrlAttrDescriptors (attr, elementConstructors) {
+    _overrideUrlAttrDescriptors (attr, elementConstructors): void {
         const windowSandbox = this;
 
         for (const constructor of elementConstructors) {
@@ -250,7 +250,7 @@ export default class WindowSandbox extends SandboxBase {
         }
     }
 
-    _overrideAttrDescriptors (attr, elementConstructors) {
+    _overrideAttrDescriptors (attr, elementConstructors): void {
         const windowSandbox = this;
 
         for (const constructor of elementConstructors) {
@@ -265,7 +265,7 @@ export default class WindowSandbox extends SandboxBase {
         }
     }
 
-    _overrideUrlPropDescriptor (prop, nativePropGetter, nativePropSetter) {
+    _overrideUrlPropDescriptor (prop, nativePropGetter, nativePropSetter): void {
         // @ts-ignore
         overrideDescriptor(window.HTMLAnchorElement.prototype, prop, {
             getter: function () {
@@ -277,7 +277,8 @@ export default class WindowSandbox extends SandboxBase {
         });
     }
 
-    _overrideEventPropDescriptor (window, eventName, nativePropSetter) {
+    _overrideEventPropDescriptor (window: Window, eventName: string, nativePropSetter): void {
+        // @ts-ignore
         const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;
 
         overrideDescriptor(eventPropsOwner, 'on' + eventName, {
@@ -294,7 +295,7 @@ export default class WindowSandbox extends SandboxBase {
         });
     }
 
-    _createOverriddenDOMTokenListMethod (nativeMethod) {
+    _createOverriddenDOMTokenListMethod (nativeMethod): Function {
         const windowSandbox = this;
 
         return function () {
@@ -344,7 +345,7 @@ export default class WindowSandbox extends SandboxBase {
             this.emit(this.HASH_CHANGE_EVENT);
     }
 
-    attach (window) {
+    attach (window): void {
         super.attach(window);
 
         const messageSandbox = this.messageSandbox;
@@ -1402,6 +1403,10 @@ export default class WindowSandbox extends SandboxBase {
                         return null;
 
                     return destLocation.getOriginHeader();
+                },
+
+                setter: function (value) {
+                    return nativeMethods.windowOriginSetter.call(this, value);
                 }
             });
         }
