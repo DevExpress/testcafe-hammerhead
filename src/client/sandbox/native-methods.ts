@@ -17,10 +17,10 @@ class NativeMethods {
     elementFromPoint: Document['elementFromPoint'];
     caretRangeFromPoint: any;
     caretPositionFromPoint: any;
-    getElementById: any;
-    getElementsByClassName: any;
-    getElementsByName: any;
-    getElementsByTagName: any;
+    getElementById: Document['getElementById'];
+    getElementsByClassName: Document['getElementsByClassName'];
+    getElementsByName: Document['getElementsByName'];
+    getElementsByTagName: Document['getElementsByTagName'];
     querySelector: any;
     querySelectorAll: any;
     createHTMLDocument: any;
@@ -128,6 +128,7 @@ class NativeMethods {
     WindowInputEvent: any;
     WindowMouseEvent: any;
     windowOriginGetter: () => string;
+    windowOriginSetter: () => any;
     canvasContextDrawImage: any;
     formDataAppend: FormData['append'];
     date: DateConstructor;
@@ -695,8 +696,10 @@ class NativeMethods {
         const iframeSandboxDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'sandbox');
         const windowOriginDescriptor         = win.Object.getOwnPropertyDescriptor(win, 'origin');
 
-        if (windowOriginDescriptor)
+        if (windowOriginDescriptor) {
             this.windowOriginGetter = windowOriginDescriptor.get;
+            this.windowOriginSetter = windowOriginDescriptor.set;
+        }
 
         // NOTE: Html properties is located in HTMLElement prototype in IE11 only
         this.elementHTMLPropOwnerName = win.Element.prototype.hasOwnProperty('innerHTML') ? 'Element' : 'HTMLElement';
