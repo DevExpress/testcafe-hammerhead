@@ -268,8 +268,8 @@ test('parameters passed to the native function in its original form', function (
     checkNativeFunctionArgs('getElementsByTagName', 'getElementsByTagName', document);
     checkNativeFunctionArgs('querySelector', 'querySelector', document);
     checkNativeFunctionArgs('querySelectorAll', 'querySelectorAll', document);
-    checkNativeFunctionArgs('addEventListener', browserUtils.isIE11 ? 'documentAddEventListener' : 'eventTargetAddEventListener', document);
-    checkNativeFunctionArgs('removeEventListener', browserUtils.isIE11 ? 'documentRemoveEventListener' : 'eventTargetRemoveEventListener', document);
+    checkNativeFunctionArgs('addEventListener', browserUtils.isIE11 ? 'documentAddEventListener' : 'addEventListener', document);
+    checkNativeFunctionArgs('removeEventListener', browserUtils.isIE11 ? 'documentRemoveEventListener' : 'removeEventListener', document);
 
     var storedBeforeDocumentCleaned = hammerhead.sandbox.node.doc._beforeDocumentCleaned;
     var storedRestoreDocumentMeths  = nativeMethods.restoreDocumentMeths;

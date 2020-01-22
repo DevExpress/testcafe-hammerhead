@@ -671,9 +671,7 @@ test('only first base tag should be affected', function () {
             proxiedIframe = iframe;
 
             return new Promise(function (resolve) {
-                const nativeAddEventListener = browserUtils.isIE11
-                    ? nativeMethods.documentAddEventListener
-                    : nativeMethods.eventTargetAddEventListener;
+                const nativeAddEventListener = nativeMethods.documentAddEventListener || nativeMethods.addEventListener;
 
                 nativeAddEventListener.call(nativeIframe, 'load', resolve);
                 nativeMethods.appendChild.call(document.body, nativeIframe);

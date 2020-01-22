@@ -1,7 +1,7 @@
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import createPropertyDesc from '../../utils/create-property-desc.js';
-import { isFirefox, isIE11, isIOS } from '../../utils/browser';
+import { isFirefox, isIOS } from '../../utils/browser';
 import { overrideDescriptor } from '../../utils/property-overriding';
 import Listeners from './listeners';
 
@@ -70,10 +70,8 @@ export default class UnloadSandbox extends SandboxBase {
     }
 
     private _reattachBeforeUnloadListener () {
-        const nativeAddEventListener    = isIE11 ? nativeMethods.windowAddEventListener
-            : nativeMethods.eventTargetAddEventListener;
-        const nativeRemoveEventListener = isIE11 ? nativeMethods.windowRemoveEventListener
-            : nativeMethods.eventTargetRemoveEventListener;
+        const nativeAddEventListener    = nativeMethods.windowAddEventListener || nativeMethods.addEventListener;
+        const nativeRemoveEventListener = nativeMethods.windowRemoveEventListener || nativeMethods.removeEventListener;
 
         // NOTE: reattach the Listener, it'll be the last in the queue.
         nativeRemoveEventListener.call(this.window, this.beforeUnloadEventName, this);
@@ -86,9 +84,7 @@ export default class UnloadSandbox extends SandboxBase {
         this._listeners.setEventListenerWrapper(window, [this.beforeUnloadEventName], (e, listener) => this._onBeforeUnloadHandler(e, listener));
         this._listeners.addInternalEventListener(window, ['unload'], () => this.emit(this.UNLOAD_EVENT));
 
-        const nativeAddEventListener = isIE11
-            ? nativeMethods.windowAddEventListener
-            : nativeMethods.eventTargetAddEventListener;
+        const nativeAddEventListener = nativeMethods.windowAddEventListener || nativeMethods.addEventListener;
 
         nativeAddEventListener.call(window, this.beforeUnloadEventName, this);
 

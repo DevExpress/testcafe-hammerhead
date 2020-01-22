@@ -486,9 +486,7 @@ test('should not process an iframe with a same url twice (GH-1419)', function ()
         })
         .then(function () {
             var nestedIframeHammerhead             = nestedIframe.contentWindow['%hammerhead%'];
-            var nestedIframeNativeAddEventListener = browserUtils.isIE11
-                ? nestedIframeHammerhead.nativeMethods.windowAddEventListener
-                : nestedIframeHammerhead.nativeMethods.eventTargetAddEventListener;
+            var nestedIframeNativeAddEventListener = nestedIframeHammerhead.nativeMethods.windowAddEventListener || nestedIframeHammerhead.nativeMethods.addEventListener;
             var stringifiedAddEventListener        = nestedIframeNativeAddEventListener.toString();
 
             ok(/\s*function\s+[^\s(]*\s*\([^)]*\)\s*{\s*\[native code]\s*}\s*/.test(stringifiedAddEventListener));

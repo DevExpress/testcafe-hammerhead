@@ -1,13 +1,8 @@
 var nativeMethods = hammerhead.nativeMethods;
-var browserUtils  = hammerhead.utils.browser;
 
 asyncTest('cross domain messaging between windows', function () {
-    var nativeAddEventListener    = browserUtils.isIE11
-        ? nativeMethods.windowAddEventListener
-        : nativeMethods.eventTargetAddEventListener;
-    var nativeRemoveEventListener = browserUtils.isIE11
-        ? nativeMethods.windowRemoveEventListener
-        : nativeMethods.eventTargetRemoveEventListener;
+    var nativeAddEventListener    = nativeMethods.windowAddEventListener || nativeMethods.addEventListener;
+    var nativeRemoveEventListener = nativeMethods.windowRemoveEventListener || nativeMethods.removeEventListener;
 
     var iframe = document.createElement('iframe');
 

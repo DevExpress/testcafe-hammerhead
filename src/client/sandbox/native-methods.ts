@@ -347,9 +347,6 @@ class NativeMethods {
     scrollTo: any;
     crypto: Crypto;
     cryptoGetRandomValues: Function;
-    eventTargetAddEventListener: any;
-    eventTargetRemoveEventListener: any;
-    eventTargetDispatchEvent: any;
 
     constructor (doc?: Document, win?: Window) {
         win = win || window;
@@ -504,8 +501,13 @@ class NativeMethods {
         }
 
         // Event
-        // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
-        if (!win.EventTarget) {
+        if (win.EventTarget) {
+            this.addEventListener    = win.EventTarget.prototype.addEventListener;
+            this.removeEventListener = win.EventTarget.prototype.removeEventListener;
+            this.dispatchEvent       = win.EventTarget.prototype.dispatchEvent;
+        }
+        // NOTE: IE11 has no EventTarget
+        else {
             this.addEventListener    = nativeElement.addEventListener;
             this.removeEventListener = nativeElement.removeEventListener;
             this.dispatchEvent       = nativeElement.dispatchEvent;
@@ -624,12 +626,6 @@ class NativeMethods {
         this.WindowTextEvent      = win.TextEvent || winProto.TextEvent;
         this.WindowInputEvent     = win.InputEvent || winProto.InputEvent;
         this.WindowMouseEvent     = win.MouseEvent || winProto.MouseEvent;
-
-        if (win.EventTarget) {
-            this.eventTargetAddEventListener    = win.EventTarget.prototype.addEventListener;
-            this.eventTargetRemoveEventListener = win.EventTarget.prototype.removeEventListener;
-            this.eventTargetDispatchEvent       = win.EventTarget.prototype.dispatchEvent;
-        }
 
         this.canvasContextDrawImage = win.CanvasRenderingContext2D.prototype.drawImage;
 

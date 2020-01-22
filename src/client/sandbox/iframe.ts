@@ -4,7 +4,7 @@ import settings from '../settings';
 import nativeMethods from '../sandbox/native-methods';
 import DomProcessor from '../../processing/dom';
 import { isShadowUIElement, isIframeWithoutSrc, getTagName } from '../utils/dom';
-import { isFirefox, isWebKit, isIE, isIE11 } from '../utils/browser';
+import { isFirefox, isWebKit, isIE } from '../utils/browser';
 // @ts-ignore
 import * as JSON from 'json-hammerhead';
 import NodeMutation from './node/mutation';
@@ -158,13 +158,9 @@ export default class IframeSandbox extends SandboxBase {
             tagName === 'frame' && nativeMethods.frameContentWindowGetter.call(el))
             this._raiseReadyToInitEvent(el);
 
-        const nativeAddEventListener = isIE11
-            ? this.nativeMethods.addEventListener
-            : this.nativeMethods.eventTargetAddEventListener;
-
         // NOTE: This handler exists for iframes without the src attribute. In some the browsers (e.g. Chrome)
         // the load event is triggering immediately after an iframe added to DOM. In other browsers,
         // the _raiseReadyToInitEvent function is calling in our function wrapper after an iframe added to DOM.
-        nativeAddEventListener.call(el, 'load', () => this._raiseReadyToInitEvent(el));
+        this.nativeMethods.addEventListener.call(el, 'load', () => this._raiseReadyToInitEvent(el));
     }
 }

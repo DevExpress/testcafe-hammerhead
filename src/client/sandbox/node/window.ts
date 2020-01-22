@@ -14,7 +14,7 @@ import {
     stringifyResourceType,
     resolveUrlAsDest
 } from '../../utils/url';
-import { isFirefox, isIE, isIE11, isAndroid, isMSEdge, version as browserVersion } from '../../utils/browser';
+import { isFirefox, isIE, isAndroid, isMSEdge, version as browserVersion } from '../../utils/browser';
 import {
     isCrossDomainWindows,
     isImgElement,
@@ -176,12 +176,8 @@ export default class WindowSandbox extends SandboxBase {
     }
 
     _reattachHandler (window: Window, eventName: string): void {
-        const nativeAddEventListener    = isIE11
-            ? nativeMethods.windowAddEventListener
-            : nativeMethods.eventTargetAddEventListener;
-        const nativeRemoveEventListener = isIE11
-            ? nativeMethods.windowRemoveEventListener
-            : nativeMethods.eventTargetRemoveEventListener;
+        const nativeAddEventListener    = nativeMethods.windowAddEventListener || nativeMethods.addEventListener;
+        const nativeRemoveEventListener = nativeMethods.windowRemoveEventListener || nativeMethods.removeEventListener;
 
         nativeRemoveEventListener.call(window, eventName, this);
         nativeAddEventListener.call(window, eventName, this);
@@ -398,11 +394,7 @@ export default class WindowSandbox extends SandboxBase {
                     args[0] = image;
 
                     if (!image.complete) {
-                        const nativeAddEventListener = isIE11
-                            ? nativeMethods.addEventListener
-                            : nativeMethods.eventTargetAddEventListener;
-
-                        nativeAddEventListener.call(image, 'load',
+                        nativeMethods.addEventListener.call(image, 'load',
                             () => nativeMethods.canvasContextDrawImage.apply(this, args));
                     }
                 }

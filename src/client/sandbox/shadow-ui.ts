@@ -11,7 +11,7 @@ import { stopPropagation } from '../utils/event';
 import { getNativeQuerySelectorAll } from '../utils/query-selector';
 import HTMLCollectionWrapper from './node/live-node-list/html-collection-wrapper';
 import { getElementsByNameReturnsHTMLCollection } from '../utils/feature-detection';
-import { isIE, isIE11 } from '../utils/browser';
+import { isIE } from '../utils/browser';
 import { DocumentCleanedEvent } from '../../typings/client';
 import NodeMutation from './node/mutation';
 import MessageSandbox from './event/message';
@@ -398,15 +398,10 @@ export default class ShadowUI extends SandboxBase {
                 ShadowUI.markElementAsShadow(this.root);
                 nativeMethods.appendChild.call(this.document.body, this.root);
 
-                const nativeAddEventListener         = isIE11
-                    ? nativeMethods.addEventListener
-                    : nativeMethods.eventTargetAddEventListener;
-                const nativeDocumentAddEventListener = isIE11
-                    ? nativeMethods.documentAddEventListener
-                    : nativeMethods.eventTargetAddEventListener;
+                const nativeDocumentAddEventListener = nativeMethods.documentAddEventListener || nativeMethods.addEventListener;
 
                 for (const event of DomProcessor.EVENTS)
-                    nativeAddEventListener.call(this.root, event, stopPropagation);
+                    nativeMethods.addEventListener.call(this.root, event, stopPropagation);
 
                 this._bringRootToWindowTopLeft();
                 nativeDocumentAddEventListener.call(this.document, 'DOMContentLoaded', () => {

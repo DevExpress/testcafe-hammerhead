@@ -217,8 +217,8 @@ test('parameters passed to the native function in its original form', function (
         checkNativeFunctionArgs('register', 'registerServiceWorker', window.navigator.serviceWorker);
 
     // Event
-    checkNativeFunctionArgs('addEventListener', browserUtils.isIE11 ? 'windowAddEventListener' : 'eventTargetAddEventListener', window);
-    checkNativeFunctionArgs('removeEventListener', browserUtils.isIE11 ? 'windowRemoveEventListener' : 'eventTargetRemoveEventListener', window);
+    checkNativeFunctionArgs('addEventListener', browserUtils.isIE11 ? 'windowAddEventListener' : 'addEventListener', window);
+    checkNativeFunctionArgs('removeEventListener', browserUtils.isIE11 ? 'windowRemoveEventListener' : 'removeEventListener', window);
 
     // Canvas
     var canvas = document.createElement('canvas');
@@ -241,7 +241,7 @@ test('parameters passed to the native function in its original form', function (
 
     checkNativeFunctionArgs('querySelector', 'documentFragmentQuerySelector', documentFragment);
     checkNativeFunctionArgs('querySelectorAll', 'documentFragmentQuerySelectorAll', documentFragment);
-    checkNativeFunctionArgs('dispatchEvent', browserUtils.isIE11 ? 'windowDispatchEvent' : 'eventTargetDispatchEvent', window);
+    checkNativeFunctionArgs('dispatchEvent', browserUtils.isIE11 ? 'windowDispatchEvent' : 'dispatchEvent', window);
 });
 
 if (window.history.replaceState && window.history.pushState) {

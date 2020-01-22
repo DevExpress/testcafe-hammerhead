@@ -54,7 +54,7 @@ export default class Listeners extends EventEmitter {
             return el.body !== void 0 ? nativeMethods.documentAddEventListener : nativeMethods.addEventListener;
         }
 
-        return nativeMethods.eventTargetAddEventListener;
+        return nativeMethods.addEventListener;
     }
 
     private static _getNativeRemoveEventListener (el) {
@@ -65,7 +65,7 @@ export default class Listeners extends EventEmitter {
             return el.body !== void 0 ? nativeMethods.documentRemoveEventListener : nativeMethods.removeEventListener;
         }
 
-        return nativeMethods.eventTargetRemoveEventListener;
+        return nativeMethods.removeEventListener;
     }
 
     private static _getEventListenerWrapper (eventCtx, listener) {
@@ -269,7 +269,7 @@ export default class Listeners extends EventEmitter {
                 const listener               = args[1];
                 const useCapture             = Listeners._getUseCaptureParam(args[2]);
                 const eventListeningInfo     = listeningCtx.getEventCtx(this, type);
-                const nativeAddEventListener = nativeMethods.eventTargetAddEventListener;
+                const nativeAddEventListener = nativeMethods.addEventListener;
 
                 if (!eventListeningInfo || !isValidEventListener(listener))
                     return nativeAddEventListener.apply(this, args);
@@ -300,7 +300,7 @@ export default class Listeners extends EventEmitter {
                 const type                      = args[0];
                 const listener                  = args[1];
                 const useCapture                = Listeners._getUseCaptureParam(args[2]);
-                const nativeRemoveEventListener = nativeMethods.eventTargetRemoveEventListener;
+                const nativeRemoveEventListener = nativeMethods.removeEventListener;
                 const eventListeningInfo        = listeningCtx.getEventCtx(this, type);
 
                 if (!eventListeningInfo || !isValidEventListener(listener))

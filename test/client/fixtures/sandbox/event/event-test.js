@@ -209,11 +209,7 @@ asyncTest('handler not the function for addEventListener (T261234)', function ()
 
     listeners.initElementListening(divEl);
 
-    var nativeAddEventListener = browserUtils.isIE11
-        ? nativeMethods.addEventListener
-        : nativeMethods.eventTargetAddEventListener;
-
-    nativeAddEventListener.call(divEl, 'click', eventObjOrigin);
+    nativeMethods.addEventListener.call(divEl, 'click', eventObjOrigin);
     divEl.addEventListener('click', eventObjWrap);
     divEl.click();
 });
@@ -295,9 +291,7 @@ test('should not wrap invalid event handlers (GH-1251)', function () {
 
     // NOTE: on adding some type of handlers an "Invalid argument" error can be raised
     for (var i = handlers.length - 1; i > -1; i--) {
-        var nativeAddEventListener = browserUtils.isIE11
-            ? nativeMethods.windowAddEventListener
-            : nativeMethods.eventTargetAddEventListener;
+        var nativeAddEventListener = nativeMethods.windowAddEventListener || nativeMethods.addEventListener;
 
         try {
             nativeAddEventListener.call(window, 'click', handlers[i]);
@@ -327,9 +321,7 @@ test('should not wrap invalid event handlers (GH-1251)', function () {
         // NOTE: we need to remove global event handlers before next test starts
         // we need try/catch statement because we have incorrect handler object
         handlers.forEach(function (handler) {
-            var nativeRemoveEventListener = browserUtils.isIE11
-                ? nativeMethods.windowRemoveEventListener
-                : nativeMethods.eventTargetRemoveEventListener;
+            var nativeRemoveEventListener = nativeMethods.windowRemoveEventListener || nativeMethods.removeEventListener;
 
             try {
                 nativeRemoveEventListener.call(target, 'click', handler);

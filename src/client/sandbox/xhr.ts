@@ -7,7 +7,6 @@ import { getOriginHeader } from '../utils/destination-location';
 import { overrideDescriptor } from '../utils/property-overriding';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
 import CookieSandbox from './cookie';
-import { isIE11 } from '../utils/browser';
 
 const XHR_READY_STATES = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
 
@@ -26,13 +25,13 @@ export default class XhrSandbox extends SandboxBase {
         xhr.open                  = nativeMethods.xhrOpen;
         xhr.abort                 = nativeMethods.xhrAbort;
         xhr.send                  = nativeMethods.xhrSend;
-        xhr.addEventListener      = isIE11 ? nativeMethods.xhrAddEventListener : nativeMethods.eventTargetAddEventListener;
-        xhr.removeEventListener   = isIE11 ? nativeMethods.xhrRemoveEventListener : nativeMethods.eventTargetRemoveEventListener;
+        xhr.addEventListener      = nativeMethods.xhrAddEventListener || nativeMethods.addEventListener;
+        xhr.removeEventListener   = nativeMethods.xhrRemoveEventListener || nativeMethods.removeEventListener;
         xhr.setRequestHeader      = nativeMethods.xhrSetRequestHeader;
         xhr.getResponseHeader     = nativeMethods.xhrGetResponseHeader;
         xhr.getAllResponseHeaders = nativeMethods.xhrGetAllResponseHeaders;
         xhr.overrideMimeType      = nativeMethods.xhrOverrideMimeType;
-        xhr.dispatchEvent         = isIE11 ? nativeMethods.xhrDispatchEvent : nativeMethods.eventTargetDispatchEvent;
+        xhr.dispatchEvent         = nativeMethods.xhrDispatchEvent || nativeMethods.dispatchEvent;
 
         return xhr;
     }
@@ -51,9 +50,7 @@ export default class XhrSandbox extends SandboxBase {
 
         const emitXhrCompletedEventIfNecessary = function () {
             if (this.readyState === this.DONE) {
-                const nativeRemoveEventListener = isIE11
-                    ? nativeMethods.xhrRemoveEventListener
-                    : nativeMethods.eventTargetRemoveEventListener;
+                const nativeRemoveEventListener = nativeMethods.xhrRemoveEventListener || nativeMethods.removeEventListener;
 
                 xhrSandbox.emit(xhrSandbox.XHR_COMPLETED_EVENT, { xhr: this });
                 nativeRemoveEventListener.call(this, 'readystatechange', emitXhrCompletedEventIfNecessary);
@@ -64,9 +61,7 @@ export default class XhrSandbox extends SandboxBase {
             if (this.readyState < this.HEADERS_RECEIVED)
                 return;
 
-            const nativeRemoveEventListener = isIE11
-                ? nativeMethods.xhrRemoveEventListener
-                : nativeMethods.eventTargetRemoveEventListener;
+            const nativeRemoveEventListener = nativeMethods.xhrRemoveEventListener || nativeMethods.removeEventListener;
 
             xhrSandbox._cookieSandbox.syncCookie();
 
@@ -74,9 +69,7 @@ export default class XhrSandbox extends SandboxBase {
         };
 
         const xmlHttpRequestWrapper = function () {
-            const nativeAddEventListener = isIE11
-                ? nativeMethods.xhrAddEventListener
-                : nativeMethods.eventTargetAddEventListener;
+            const nativeAddEventListener = nativeMethods.xhrAddEventListener || nativeMethods.addEventListener;
 
             const xhr = new nativeMethods.XMLHttpRequest();
 

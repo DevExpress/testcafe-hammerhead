@@ -2,7 +2,6 @@ import nativeMethods from '../../native-methods';
 import { getTagName, isShadowUIElement } from '../../../utils/dom';
 import { getNativeQuerySelectorAll } from '../../../utils/query-selector';
 import IntegerIdGenerator from '../../../utils/integer-id-generator';
-import { isIE11 } from '../../../utils/browser';
 
 class DOMMutationTracker {
     _mutations: any;
@@ -12,11 +11,7 @@ class DOMMutationTracker {
         this._mutations          = nativeMethods.objectCreate(null);
         this._isDomContentLoaded = false;
 
-        const nativeAddEventListener = isIE11
-            ? nativeMethods.addEventListener
-            : nativeMethods.eventTargetAddEventListener;
-
-        nativeAddEventListener.call(document, 'DOMContentLoaded', () => {
+        nativeMethods.addEventListener.call(document, 'DOMContentLoaded', () => {
             this._isDomContentLoaded = true;
         });
     }

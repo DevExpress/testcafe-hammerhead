@@ -78,20 +78,11 @@ export default class EventSandbox extends SandboxBase {
 
         this._overriddenMethods = {
             dispatchEvent: function () {
-                const isWindow = domUtils.isWindow(this);
-
                 Listeners.beforeDispatchEvent(this);
 
-                let res;
-
-                if (isIE11) {
-                    res = isWindow
-                        ? nativeMethods.windowDispatchEvent.apply(this, arguments)
-                        : nativeMethods.dispatchEvent.apply(this, arguments);
-                }
-                else {
-                    res = nativeMethods.eventTargetDispatchEvent.apply(this, arguments);
-                }
+                const res = (isIE11 && domUtils.isWindow(this))
+                    ? nativeMethods.windowDispatchEvent.apply(this, arguments)
+                    : nativeMethods.dispatchEvent.apply(this, arguments);
 
                 Listeners.afterDispatchEvent(this);
 
