@@ -626,7 +626,7 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.EventTarget) {
-            const overriddenMethods = this.listenersSandbox.createEventTargetOverriddenMethods();
+            const overriddenMethods = this.listenersSandbox.createOverriddenMethods();
 
             window.EventTarget.prototype.addEventListener    = overriddenMethods.addEventListener;
             window.EventTarget.prototype.removeEventListener = overriddenMethods.removeEventListener;

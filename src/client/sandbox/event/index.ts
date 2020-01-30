@@ -66,11 +66,11 @@ export default class EventSandbox extends SandboxBase {
         this._onFocus              = null;
         this._cancelInternalEvents = null;
 
-        this._createOverridedMethods();
+        this._createOverriddenMethods();
         this._createInternalHandlers();
     }
 
-    _createOverridedMethods (): void {
+    _createOverriddenMethods (): void {
         const selection        = this.selection;
         const focusBlurSandbox = this.focusBlur;
         const eventSimulator   = this.eventSimulator;
@@ -80,7 +80,7 @@ export default class EventSandbox extends SandboxBase {
             dispatchEvent: function () {
                 Listeners.beforeDispatchEvent(this);
 
-                const res = (isIE11 && domUtils.isWindow(this))
+                const res = isIE11 && domUtils.isWindow(this)
                     ? nativeMethods.windowDispatchEvent.apply(this, arguments)
                     : nativeMethods.dispatchEvent.apply(this, arguments);
 
