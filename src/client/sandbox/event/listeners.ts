@@ -59,16 +59,14 @@ export default class Listeners extends EventEmitter {
         return nativeMethods.removeEventListener;
     }
 
-    private static _shouldIgnoreListener (listener: boolean, cancelOuterHandlers: boolean): boolean {
+    private static isIEServiceHandler (listener): boolean {
         // NOTE: Ignore IE11's and Edge's service handlers (GH-379)
-        const isIEServiceHandler = listener.toString() === '[object FunctionWrapper]';
-
-        return isIEServiceHandler || cancelOuterHandlers;
+        return listener.toString() === '[object FunctionWrapper]';
     }
 
     private static _getEventListenerWrapper (eventCtx, listener) {
         return function (e: Event) {
-            if (Listeners._shouldIgnoreListener(listener, eventCtx.cancelOuterHandlers))
+            if (Listeners.isIEServiceHandler(listener) || eventCtx.cancelOuterHandlers)
                 return null;
 
             if (typeof eventCtx.outerHandlersWrapper === 'function')
