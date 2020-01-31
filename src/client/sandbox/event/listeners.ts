@@ -59,12 +59,16 @@ export default class Listeners extends EventEmitter {
         return nativeMethods.removeEventListener;
     }
 
+    private static _shouldIgnoreListener (listener: boolean, cancelOuterHandlers: boolean): boolean {
+        // NOTE: Ignore IE11's and Edge's service handlers (GH-379)
+        const isIEServiceHandler = listener.toString() === '[object FunctionWrapper]';
+
+        return isIEServiceHandler || cancelOuterHandlers;
+    }
+
     private static _getEventListenerWrapper (eventCtx, listener) {
         return function (e: Event) {
-            // NOTE: Ignore IE11's and Edge's service handlers (GH-379)
-            const isIEServiceHandler = listener.toString() === '[object FunctionWrapper]';
-
-            if (isIEServiceHandler || eventCtx.cancelOuterHandlers)
+            if (Listeners._shouldIgnoreListener(listener, eventCtx.cancelOuterHandlers))
                 return null;
 
             if (typeof eventCtx.outerHandlersWrapper === 'function')
@@ -146,54 +150,50 @@ export default class Listeners extends EventEmitter {
 
         return {
             addEventListener: function (...args: any[]) {
-                const [type, listener]       = args;
+                const [eventType, listener]  = args;
                 const el                     = this;
                 const useCapture             = Listeners._getUseCaptureParam(args[2]);
-                const eventListeningInfo     = listeningCtx.getEventCtx(el, type);
+                const eventCtx               = listeningCtx.getEventCtx(el, eventType);
                 const nativeAddEventListener = Listeners._getNativeAddEventListener(el);
 
-                if (!eventListeningInfo || !isValidEventListener(listener))
+                if (!eventCtx || !isValidEventListener(listener))
                     return nativeAddEventListener.apply(el, args);
 
                 // NOTE: T233158
-                const isDifferentHandler = Listeners._isDifferentHandler(eventListeningInfo.outerHandlers, listener, useCapture);
+                const isDifferentHandler = Listeners._isDifferentHandler(eventCtx.outerHandlers, listener, useCapture);
 
                 if (!isDifferentHandler)
                     return null;
 
-                const wrapper = Listeners._getEventListenerWrapper(eventListeningInfo, listener);
+                const wrapper = Listeners._getEventListenerWrapper(eventCtx, listener);
 
                 args[1] = wrapper;
 
-                listeningCtx.wrapEventListener(eventListeningInfo, listener, wrapper, useCapture);
+                listeningCtx.wrapEventListener(eventCtx, listener, wrapper, useCapture);
 
                 const res = nativeAddEventListener.apply(el, args);
 
-                listeners.emit(listeners.EVENT_LISTENER_ATTACHED_EVENT, {
-                    el,
-                    eventType: type,
-                    listener:  listener
-                });
+                listeners.emit(listeners.EVENT_LISTENER_ATTACHED_EVENT, { el, eventType, listener });
 
                 return res;
             },
             removeEventListener: function (...args: any[]) {
-                const [type, listener]          = args;
+                const [eventType, listener]     = args;
                 const el                        = this;
                 const useCapture                = Listeners._getUseCaptureParam(args[2]);
                 const nativeRemoveEventListener = Listeners._getNativeRemoveEventListener(el);
-                const eventListeningInfo        = listeningCtx.getEventCtx(el, type);
+                const eventCtx                  = listeningCtx.getEventCtx(el, eventType);
 
-                if (!eventListeningInfo || !isValidEventListener(listener))
+                if (!eventCtx || !isValidEventListener(listener))
                     return nativeRemoveEventListener.apply(el, args);
 
-                const wrapper = listeningCtx.getWrapper(eventListeningInfo, listener, useCapture);
+                const wrapper = listeningCtx.getWrapper(eventCtx, listener, useCapture);
 
                 args[1] = wrapper;
 
                 const res = nativeRemoveEventListener.apply(el, args);
 
-                listeners.emit(listeners.EVENT_LISTENER_DETACHED_EVENT, { el, listener, eventType: type });
+                listeners.emit(listeners.EVENT_LISTENER_DETACHED_EVENT, { el, listener, eventType });
 
                 return res;
             }
@@ -272,9 +272,9 @@ export default class Listeners extends EventEmitter {
             this.initElementListening(el, events);
 
         for (const event of events) {
-            const eventListeningInfo = this.listeningCtx.getEventCtx(el, event);
+            const eventCtx = this.listeningCtx.getEventCtx(el, event);
 
-            eventListeningInfo.outerHandlersWrapper = wrapper;
+            eventCtx.outerHandlersWrapper = wrapper;
         }
     }
 
