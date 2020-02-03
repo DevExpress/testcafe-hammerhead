@@ -78,6 +78,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     if (locationWrapper)
                         return locationWrapper;
+                    else if (!owner.location)
+                        return owner.location;
 
                     //@ts-ignore
                     const wnd = domUtils.isWindow(owner) ? owner : owner.defaultView;
