@@ -83,7 +83,7 @@ export default class ResponseMock {
         this.requestOptions = opts;
     }
 
-    getResponse (): IncomingMessageMock {
+    async getResponse (): Promise<IncomingMessageMock> {
         let response: any = {
             headers: {
                 'content-type': this._getContentType()
@@ -103,7 +103,7 @@ export default class ResponseMock {
                 response._body = value;
             };
 
-            response = Object.assign(response, this.body(this.requestOptions, response));
+            response = Object.assign(response, await this.body(this.requestOptions, response));
 
             delete response.setBody;
         }

@@ -75,7 +75,7 @@ const stages = [
         }
 
         if (ctx.mock)
-            ctx.mockResponse();
+            await ctx.mockResponse();
         else
             await sendRequest(ctx);
     },

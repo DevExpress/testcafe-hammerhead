@@ -377,9 +377,10 @@ export default class RequestPipelineContext {
         res.addTrailers(this.destRes.trailers as http.OutgoingHttpHeaders);
     }
 
-    mockResponse (): void {
+    async mockResponse (): Promise<void> {
         this.mock.setRequestOptions(this.reqOpts);
-        this.destRes = this.mock.getResponse();
+
+        this.destRes = await this.mock.getResponse();
     }
 
     setupMockIfNecessary (rule: RequestFilterRule): void {

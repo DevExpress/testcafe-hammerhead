@@ -1,4 +1,7 @@
 {
+  "parserOptions": {
+    "ecmaVersion": 8
+  },
   "extends": "eslint:recommended",
   "rules": {
     "no-alert": 2,
