@@ -8,25 +8,24 @@ const noop                          = require('lodash').noop;
 
 describe('ResponseMock', () => {
     describe('Header names should be lowercased', () => {
-        it('"Headers" parameter', () => {
+        it('"Headers" parameter', async () => {
             const body     = '<html><body><h1>Test</h1></body></html>';
             const mock     = new ResponseMock(body, 200, { 'Access-Control-Allow-Origin': '*' });
-            const response = mock.getResponse();
+            const response = await mock.getResponse();
 
             expect(response.headers['access-control-allow-origin']).eql('*');
         });
 
-        it('Respond function', () => {
+        it('Respond function', async () => {
             const mock = new ResponseMock((req, res) => {
                 res.headers['Access-Control-Allow-Origin'] = '*';
             });
 
-            const response = mock.getResponse();
+            const response = await mock.getResponse();
 
             expect(response.headers['access-control-allow-origin']).eql('*');
         });
     });
-
 
     describe('Validation', () => {
         it('Body', () => {
@@ -58,64 +57,64 @@ describe('ResponseMock', () => {
     });
 
     describe('Response types', () => {
-        it('JSON', () => {
+        it('JSON', async () => {
             const data     = { test: 1 };
             const mock     = new ResponseMock(data);
-            const response = mock.getResponse();
+            const response = await mock.getResponse();
 
             expect(response.headers['content-type']).eql('application/json');
             expect(response.statusCode).eql(200);
             expect(response.read().toString()).eql(JSON.stringify(data));
         });
 
-        it('HTML page', () => {
+        it('HTML page', async () => {
             const html     = '<html><body><h1>Test</h1></body></html>';
             const mock     = new ResponseMock(html);
-            const response = mock.getResponse();
+            const response = await mock.getResponse();
 
             expect(response.headers['content-type']).to.include('text/html');
             expect(response.statusCode).eql(200);
             expect(response.read().toString()).eql(html);
         });
 
-        it('Binary data', () => {
+        it('Binary data', async () => {
             const binaryData = Buffer.from([0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x01]);
             const mock       = new ResponseMock(binaryData);
-            const response   = mock.getResponse();
+            const response   = await mock.getResponse();
 
             expect(response.statusCode).eql(200);
             expect(response.read()).eql(binaryData);
         });
 
-        it('Empty HTML page', () => {
+        it('Empty HTML page', async () => {
             const mock     = new ResponseMock();
-            const response = mock.getResponse();
+            const response = await mock.getResponse();
 
             expect(response.headers['content-type']).to.include('text/html');
             expect(response.statusCode).eql(200);
             expect(response.read().toString()).eql('<html><body></body></html>');
         });
 
-        it('Custom status code', () => {
+        it('Custom status code', async () => {
             const mock     = new ResponseMock(null, 204);
-            const response = mock.getResponse();
+            const response = await mock.getResponse();
 
             expect(response.headers['content-type']).to.include('text/html');
             expect(response.statusCode).eql(204);
             expect(response.read()).to.be.null;
         });
 
-        it('Custom headers', () => {
+        it('Custom headers', async () => {
             const script   = 'var t = 10';
             const mock     = new ResponseMock(script, 200, { 'content-type': 'application/javascript' });
-            const response = mock.getResponse();
+            const response = await mock.getResponse();
 
             expect(response.headers['content-type']).eql('application/javascript');
             expect(response.statusCode).eql(200);
             expect(response.read().toString()).eql(script);
         });
 
-        it('Respond function', () => {
+        it('Respond function', async () => {
             const mock = new ResponseMock((req, res) => {
                 res.headers['x-calculated-header-name'] = 'calculated-value';
                 res.statusCode                          = 555;
@@ -133,13 +132,31 @@ describe('ResponseMock', () => {
 
             mock.setRequestOptions(reqOptions);
 
-            const response = mock.getResponse();
+            const response = await mock.getResponse();
 
             expect(response.setBody).to.be.indefined;
             expect(response.headers['content-type']).to.include('text/html');
             expect(response.statusCode).eql(555);
             expect(response.headers['x-calculated-header-name']).eql('calculated-value');
             expect(response.read().toString()).eql('calculated body3');
+        });
+
+        it('Async respond function', async () => {
+            const bodyPromise = new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve('body');
+                }, 1000);
+            });
+
+            const mock = new ResponseMock(async (req, res) => {
+                const body = await bodyPromise;
+
+                res.setBody(body);
+            });
+
+            const response = await mock.getResponse();
+
+            expect(response.read().toString()).eql('body');
         });
     });
 });
