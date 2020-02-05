@@ -257,7 +257,7 @@ test('the click event handler for the svg element must be overridden correctly (
 });
 
 test('SVGElement.dispatchEvent should be overriden (GH-614)', function () {
-    var svg             = document.createElement('svg');
+    var svg             = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     var handlerIsCalled = false;
 
     document.body.appendChild(svg);
@@ -291,8 +291,10 @@ test('should not wrap invalid event handlers (GH-1251)', function () {
 
     // NOTE: on adding some type of handlers an "Invalid argument" error can be raised
     for (var i = handlers.length - 1; i > -1; i--) {
+        var nativeAddEventListener = nativeMethods.windowAddEventListener || nativeMethods.addEventListener;
+
         try {
-            nativeMethods.windowAddEventListener.call(window, 'click', handlers[i]);
+            nativeAddEventListener.call(window, 'click', handlers[i]);
         }
         catch (e) {
             if (!errorText)
@@ -319,8 +321,10 @@ test('should not wrap invalid event handlers (GH-1251)', function () {
         // NOTE: we need to remove global event handlers before next test starts
         // we need try/catch statement because we have incorrect handler object
         handlers.forEach(function (handler) {
+            var nativeRemoveEventListener = nativeMethods.windowRemoveEventListener || nativeMethods.removeEventListener;
+
             try {
-                nativeMethods.windowRemoveEventListener.call(target, 'click', handler);
+                nativeRemoveEventListener.call(target, 'click', handler);
             }
             catch (e) {
                 //

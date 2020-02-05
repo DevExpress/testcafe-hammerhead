@@ -176,8 +176,11 @@ export default class WindowSandbox extends SandboxBase {
     }
 
     _reattachHandler (window: Window, eventName: string): void {
-        nativeMethods.windowRemoveEventListener.call(window, eventName, this);
-        nativeMethods.windowAddEventListener.call(window, eventName, this);
+        const nativeAddEventListener    = nativeMethods.windowAddEventListener || nativeMethods.addEventListener;
+        const nativeRemoveEventListener = nativeMethods.windowRemoveEventListener || nativeMethods.removeEventListener;
+
+        nativeRemoveEventListener.call(window, eventName, this);
+        nativeAddEventListener.call(window, eventName, this);
     }
 
     static _formatUnhandledRejectionReason (reason: any): string {
@@ -620,6 +623,13 @@ export default class WindowSandbox extends SandboxBase {
 
                 return fragment;
             };
+        }
+
+        if (window.EventTarget) {
+            const overriddenMethods = this.listenersSandbox.createOverriddenMethods();
+
+            window.EventTarget.prototype.addEventListener    = overriddenMethods.addEventListener;
+            window.EventTarget.prototype.removeEventListener = overriddenMethods.removeEventListener;
         }
 
         window.Image           = function () {

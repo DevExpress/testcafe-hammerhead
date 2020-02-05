@@ -452,7 +452,7 @@ export default class ElementSandbox extends SandboxBase {
         this._nodeSandbox.processNodes(node);
     }
 
-    private _createOverridedMethods () {
+    private _createOverriddenMethods () {
         // NOTE: We need the closure because a context of overridden methods is an html element
         const sandbox = this;
 
@@ -792,7 +792,7 @@ export default class ElementSandbox extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        this._createOverridedMethods();
+        this._createOverriddenMethods();
 
         window.Element.prototype.setAttribute              = this.overriddenMethods.setAttribute;
         window.Element.prototype.setAttributeNS            = this.overriddenMethods.setAttributeNS;

@@ -70,9 +70,12 @@ export default class UnloadSandbox extends SandboxBase {
     }
 
     private _reattachBeforeUnloadListener () {
+        const nativeAddEventListener    = nativeMethods.windowAddEventListener || nativeMethods.addEventListener;
+        const nativeRemoveEventListener = nativeMethods.windowRemoveEventListener || nativeMethods.removeEventListener;
+
         // NOTE: reattach the Listener, it'll be the last in the queue.
-        nativeMethods.windowRemoveEventListener.call(this.window, this.beforeUnloadEventName, this);
-        nativeMethods.windowAddEventListener.call(this.window, this.beforeUnloadEventName, this);
+        nativeRemoveEventListener.call(this.window, this.beforeUnloadEventName, this);
+        nativeAddEventListener.call(this.window, this.beforeUnloadEventName, this);
     }
 
     attach (window: Window) {
@@ -81,7 +84,9 @@ export default class UnloadSandbox extends SandboxBase {
         this._listeners.setEventListenerWrapper(window, [this.beforeUnloadEventName], (e, listener) => this._onBeforeUnloadHandler(e, listener));
         this._listeners.addInternalEventListener(window, ['unload'], () => this.emit(this.UNLOAD_EVENT));
 
-        nativeMethods.windowAddEventListener.call(window, this.beforeUnloadEventName, this);
+        const nativeAddEventListener = nativeMethods.windowAddEventListener || nativeMethods.addEventListener;
+
+        nativeAddEventListener.call(window, this.beforeUnloadEventName, this);
 
         this._listeners.addInternalEventListener(window, [this.beforeUnloadEventName], () => this.emit(this.BEFORE_BEFORE_UNLOAD_EVENT));
         this._listeners.on(this._listeners.EVENT_LISTENER_ATTACHED_EVENT, e => {

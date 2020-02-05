@@ -217,8 +217,8 @@ test('parameters passed to the native function in its original form', function (
         checkNativeFunctionArgs('register', 'registerServiceWorker', window.navigator.serviceWorker);
 
     // Event
-    checkNativeFunctionArgs('addEventListener', 'windowAddEventListener', window);
-    checkNativeFunctionArgs('removeEventListener', 'windowRemoveEventListener', window);
+    checkNativeFunctionArgs('addEventListener', browserUtils.isIE11 ? 'windowAddEventListener' : 'addEventListener', window);
+    checkNativeFunctionArgs('removeEventListener', browserUtils.isIE11 ? 'windowRemoveEventListener' : 'removeEventListener', window);
 
     // Canvas
     var canvas = document.createElement('canvas');
@@ -241,7 +241,7 @@ test('parameters passed to the native function in its original form', function (
 
     checkNativeFunctionArgs('querySelector', 'documentFragmentQuerySelector', documentFragment);
     checkNativeFunctionArgs('querySelectorAll', 'documentFragmentQuerySelectorAll', documentFragment);
-    checkNativeFunctionArgs('dispatchEvent', 'windowDispatchEvent', window);
+    checkNativeFunctionArgs('dispatchEvent', browserUtils.isIE11 ? 'windowDispatchEvent' : 'dispatchEvent', window);
 });
 
 if (window.history.replaceState && window.history.pushState) {
@@ -734,3 +734,55 @@ asyncTest('window.onhashchange should be instrumented', function () {
 
     window.location += '#test';
 });
+
+if (!browserUtils.isIE11) {
+    test('patching EventTarget methods on the client side: addEventListener, removeEventListener, dispatchEvent (GH-1902)', function () {
+        var eventTargetMethods = [
+            'addEventListener',
+            'removeEventListener',
+            'dispatchEvent'
+        ];
+        var savedMethods       = eventTargetMethods.map(function (methodName) {
+            return window.EventTarget.prototype[methodName];
+        });
+        const div              = document.createElement('div');
+        var contextElements    = [
+            window,
+            document,
+            document.body,
+            div
+        ];
+
+        expect(eventTargetMethods.length * contextElements.length);
+
+        document.body.appendChild(div);
+
+        function callMethod (contextEl, methodName) {
+            if (methodName === 'dispatchEvent')
+                contextEl[methodName]('click');
+            else
+                contextEl[methodName]('click', function () { });
+        }
+
+        function checkMethod (methodName) {
+            contextElements.forEach(function (el) {
+                callMethod(el, methodName);
+            });
+        }
+
+
+        eventTargetMethods.forEach(function (methodName) {
+            window.EventTarget.prototype[methodName] = function () {
+                ok(true, this + ': ' + methodName);
+            };
+        });
+
+        eventTargetMethods.forEach(function (methodName) {
+            checkMethod(methodName);
+        });
+
+        eventTargetMethods.forEach(function (methodName, index) {
+            window.EventTarget.prototype[methodName] = savedMethods[index];
+        });
+    });
+}

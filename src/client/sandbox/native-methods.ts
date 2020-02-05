@@ -406,11 +406,15 @@ class NativeMethods {
             this.registerElement = docPrototype.registerElement;
 
         // Event
-        this.documentAddEventListener    = docPrototype.addEventListener;
-        this.documentRemoveEventListener = docPrototype.removeEventListener;
-        this.documentCreateEvent         = docPrototype.createEvent;
-        this.documentCreateTouch         = docPrototype.createTouch;
-        this.documentCreateTouchList     = docPrototype.createTouchList;
+        // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
+        // @ts-ignore
+        if (!win.EventTarget) {
+            this.documentAddEventListener    = docPrototype.addEventListener;
+            this.documentRemoveEventListener = docPrototype.removeEventListener;
+        }
+        this.documentCreateEvent     = docPrototype.createEvent;
+        this.documentCreateTouch     = docPrototype.createTouch;
+        this.documentCreateTouchList = docPrototype.createTouchList;
 
         // getters/setters
         this.documentCookiePropOwnerName  = NativeMethods._getDocumentPropOwnerName(docPrototype, 'cookie');
@@ -497,11 +501,19 @@ class NativeMethods {
         }
 
         // Event
-        this.addEventListener          = nativeElement.addEventListener;
-        this.removeEventListener       = nativeElement.removeEventListener;
+        if (win.EventTarget) {
+            this.addEventListener    = win.EventTarget.prototype.addEventListener;
+            this.removeEventListener = win.EventTarget.prototype.removeEventListener;
+            this.dispatchEvent       = win.EventTarget.prototype.dispatchEvent;
+        }
+        // NOTE: IE11 has no EventTarget
+        else {
+            this.addEventListener    = nativeElement.addEventListener;
+            this.removeEventListener = nativeElement.removeEventListener;
+            this.dispatchEvent       = nativeElement.dispatchEvent;
+        }
         this.blur                      = nativeElement.blur;
         this.click                     = nativeElement.click;
-        this.dispatchEvent             = nativeElement.dispatchEvent;
         this.focus                     = nativeElement.focus;
         // @ts-ignore
         this.select                    = window.TextRange ? createElement('body').createTextRange().select : null;
@@ -543,7 +555,6 @@ class NativeMethods {
 
         this.historyPushState    = win.history.pushState;
         this.historyReplaceState = win.history.replaceState;
-        this.windowDispatchEvent = win.dispatchEvent;
         this.postMessage         = win.postMessage || winProto.postMessage;
         this.windowOpen          = win.open || winProto.open;
         this.setTimeout          = win.setTimeout || winProto.setTimeout;
@@ -561,13 +572,16 @@ class NativeMethods {
         this.xhrAbort                 = win.XMLHttpRequest.prototype.abort;
         this.xhrOpen                  = win.XMLHttpRequest.prototype.open;
         this.xhrSend                  = win.XMLHttpRequest.prototype.send;
-        this.xhrAddEventListener      = win.XMLHttpRequest.prototype.addEventListener;
-        this.xhrRemoveEventListener   = win.XMLHttpRequest.prototype.removeEventListener;
+        // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
+        if (!win.EventTarget) {
+            this.xhrAddEventListener    = win.XMLHttpRequest.prototype.addEventListener;
+            this.xhrRemoveEventListener = win.XMLHttpRequest.prototype.removeEventListener;
+            this.xhrDispatchEvent       = win.XMLHttpRequest.prototype.dispatchEvent;
+        }
         this.xhrGetResponseHeader     = win.XMLHttpRequest.prototype.getResponseHeader;
         this.xhrGetAllResponseHeaders = win.XMLHttpRequest.prototype.getAllResponseHeaders;
         this.xhrSetRequestHeader      = win.XMLHttpRequest.prototype.setRequestHeader;
         this.xhrOverrideMimeType      = win.XMLHttpRequest.prototype.overrideMimeType;
-        this.xhrDispatchEvent         = win.XMLHttpRequest.prototype.dispatchEvent;
 
         try {
             this.registerServiceWorker        = win.navigator.serviceWorker.register;
@@ -597,17 +611,21 @@ class NativeMethods {
         }
 
         // Event
-        this.windowAddEventListener    = win.addEventListener || winProto.addEventListener;
-        this.windowRemoveEventListener = win.removeEventListener || winProto.removeEventListener;
-        this.WindowPointerEvent        = win.PointerEvent || winProto.PointerEvent;
-        this.WindowMSPointerEvent      = win.MSPointerEvent || winProto.MSPointerEvent;
-        this.WindowTouch               = win.Touch || winProto.Touch;
-        this.WindowTouchEvent          = win.TouchEvent || winProto.TouchEvent;
-        this.WindowKeyboardEvent       = win.KeyboardEvent || winProto.KeyboardEvent;
-        this.WindowFocusEvent          = win.FocusEvent || winProto.FocusEvent;
-        this.WindowTextEvent           = win.TextEvent || winProto.TextEvent;
-        this.WindowInputEvent          = win.InputEvent || winProto.InputEvent;
-        this.WindowMouseEvent          = win.MouseEvent || winProto.MouseEvent;
+        // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
+        if (!win.EventLisener) {
+            this.windowAddEventListener    = win.addEventListener || winProto.addEventListener;
+            this.windowRemoveEventListener = win.removeEventListener || winProto.removeEventListener;
+            this.windowDispatchEvent       = win.dispatchEvent;
+        }
+        this.WindowPointerEvent   = win.PointerEvent || winProto.PointerEvent;
+        this.WindowMSPointerEvent = win.MSPointerEvent || winProto.MSPointerEvent;
+        this.WindowTouch          = win.Touch || winProto.Touch;
+        this.WindowTouchEvent     = win.TouchEvent || winProto.TouchEvent;
+        this.WindowKeyboardEvent  = win.KeyboardEvent || winProto.KeyboardEvent;
+        this.WindowFocusEvent     = win.FocusEvent || winProto.FocusEvent;
+        this.WindowTextEvent      = win.TextEvent || winProto.TextEvent;
+        this.WindowInputEvent     = win.InputEvent || winProto.InputEvent;
+        this.WindowMouseEvent     = win.MouseEvent || winProto.MouseEvent;
 
         this.canvasContextDrawImage = win.CanvasRenderingContext2D.prototype.drawImage;
 
@@ -1047,8 +1065,11 @@ class NativeMethods {
         NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'querySelectorAll', this.querySelectorAll);
 
         // Event
-        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'addEventListener', this.documentAddEventListener);
-        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'removeEventListener', this.documentRemoveEventListener);
+        // NOTE: IE11 has no EventTarget
+        if (!window.EventTarget) {
+            NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'addEventListener', this.documentAddEventListener);
+            NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'removeEventListener', this.documentRemoveEventListener);
+        }
         NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'createEvent', this.documentCreateEvent);
         NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'createTouch', this.documentCreateTouch);
         NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'createTouchList', this.documentCreateTouchList);

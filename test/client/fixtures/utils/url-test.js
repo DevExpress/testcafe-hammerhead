@@ -671,7 +671,9 @@ test('only first base tag should be affected', function () {
             proxiedIframe = iframe;
 
             return new Promise(function (resolve) {
-                nativeMethods.documentAddEventListener.call(nativeIframe, 'load', resolve);
+                const nativeAddEventListener = nativeMethods.documentAddEventListener || nativeMethods.addEventListener;
+
+                nativeAddEventListener.call(nativeIframe, 'load', resolve);
                 nativeMethods.appendChild.call(document.body, nativeIframe);
             });
         })
