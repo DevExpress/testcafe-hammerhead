@@ -15,6 +15,7 @@ import {
     parseClientSyncCookieStr,
     prepareSyncCookieProperties
 } from '../../../utils/cookie';
+import { CookieRecord } from '../../../typings/cookie';
 
 const MIN_DATE_VALUE = new nativeMethods.date(0).toUTCString();
 
@@ -100,7 +101,7 @@ export default class CookieSandbox extends SandboxBase {
         return settings.get().cookie || '';
     }
 
-    setCookie (_document, cookie): void {
+    setCookie (cookie: CookieRecord | string): void {
         const setByClient = typeof cookie === 'string';
 
         // NOTE: Cookie cannot be set in iframe without src in IE
@@ -159,16 +160,16 @@ export default class CookieSandbox extends SandboxBase {
             if (parsedCookie.isServerSync)
                 serverSyncCookies.push(parsedCookie);
             else if (parsedCookie.isWindowSync)
-                this.setCookie(this.document, parsedCookie);
+                this.setCookie(parsedCookie);
         }
 
         if (serverSyncCookies.length)
             this._syncServerCookie(serverSyncCookies);
     }
 
-    _syncServerCookie (parsedCookies): void {
+    _syncServerCookie (parsedCookies: CookieRecord[]): void {
         for (const parsedCookie of parsedCookies) {
-            this.setCookie(this.document, parsedCookie);
+            this.setCookie(parsedCookie);
 
             nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(parsedCookie));
             changeSyncType(parsedCookie, { server: false, window: true });
@@ -178,7 +179,7 @@ export default class CookieSandbox extends SandboxBase {
         this._windowSync.syncBetweenWindows(parsedCookies);
     }
 
-    _syncClientCookie (parsedCookie): void {
+    _syncClientCookie (parsedCookie: CookieRecord): void {
         parsedCookie.isClientSync = true;
         parsedCookie.isWindowSync = true;
         parsedCookie.sid          = settings.get().sessionId;
@@ -191,19 +192,19 @@ export default class CookieSandbox extends SandboxBase {
         this._windowSync.syncBetweenWindows([parsedCookie]);
     }
 
-    static isSyncCookieExists (parsedCookie, clientCookieStr: string): boolean {
+    static isSyncCookieExists (parsedCookie: CookieRecord, clientCookieStr: string): boolean {
         const startIndex = clientCookieStr.indexOf(parsedCookie.cookieStr);
         const endIndex   = startIndex + parsedCookie.cookieStr.length;
 
         return startIndex > -1 && (clientCookieStr.length === endIndex || clientCookieStr.charAt(endIndex) === ';');
     }
 
-    syncWindowCookie (parsedCookies): void {
+    syncWindowCookie (parsedCookies: CookieRecord[]): void {
         const clientCookie = nativeMethods.documentCookieGetter.call(this.document);
 
         for (const parsedCookie of parsedCookies) {
             if (CookieSandbox.isSyncCookieExists(parsedCookie, clientCookie))
-                this.setCookie(this.document, parsedCookie);
+                this.setCookie(parsedCookie);
         }
     }
 

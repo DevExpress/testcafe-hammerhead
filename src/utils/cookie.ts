@@ -19,7 +19,7 @@ export const SYNCHRONIZATION_TYPE = {
 
 const SYNCHRONIZATION_TYPE_RE = new RegExp(`^[${SYNCHRONIZATION_TYPE.server}${SYNCHRONIZATION_TYPE.client}${SYNCHRONIZATION_TYPE.window}]+`);
 
-function isSameCookies (cookie1: CookieRecord, cookie2: CookieRecord) {
+function isSameCookies (cookie1: CookieRecord, cookie2: CookieRecord): boolean {
     return cookie1.sid === cookie2.sid &&
            cookie1.key === cookie2.key &&
            cookie1.domain === cookie2.domain &&
@@ -60,7 +60,7 @@ function stringifySyncType (cookie: CookieRecord): string {
            (cookie.isWindowSync ? SYNCHRONIZATION_TYPE.window : '');
 }
 
-function formatSyncCookieKey (cookie): string {
+function formatSyncCookieKey (cookie: CookieRecord): string {
     const syncType     = stringifySyncType(cookie);
     const key          = encodeURIComponent(cookie.key);
     const domain       = encodeURIComponent(cookie.domain);
@@ -85,19 +85,19 @@ export function parseClientSyncCookieStr (cookieStr: string): ParsedClientSyncCo
     return sortByOutdatedAndActual(parsedCookies);
 }
 
-export function prepareSyncCookieProperties (cookie: CookieRecord) {
+export function prepareSyncCookieProperties (cookie: CookieRecord): void {
     cookie.syncKey   = cookie.syncKey || formatSyncCookieKey(cookie);
     cookie.cookieStr = cookie.cookieStr || `${cookie.syncKey}=${cookie.value}`;
 }
 
-export function formatSyncCookie (cookie) {
+export function formatSyncCookie (cookie: CookieRecord): string {
     if (cookie.cookieStr)
         return `${cookie.cookieStr};path=/`;
 
     return `${formatSyncCookieKey(cookie)}=${cookie.value};path=/`;
 }
 
-export function parseSyncCookie (cookieStr: string) {
+export function parseSyncCookie (cookieStr: string): CookieRecord {
     const [, key, value] = KEY_VALUE_REGEX.exec(cookieStr);
     const parsedKey: any = key !== void 0 && value !== void 0 && key.split('|');
 
@@ -121,7 +121,7 @@ export function parseSyncCookie (cookieStr: string) {
     };
 }
 
-export function changeSyncType (parsedCookie: CookieRecord, flags) {
+export function changeSyncType (parsedCookie: CookieRecord, flags): void {
     if ('server' in flags)
         parsedCookie.isServerSync = flags.server;
 
@@ -137,7 +137,7 @@ export function changeSyncType (parsedCookie: CookieRecord, flags) {
     parsedCookie.cookieStr = parsedCookie.cookieStr.replace(SYNCHRONIZATION_TYPE_RE, newSyncTypeStr);
 }
 
-export function isOutdatedSyncCookie (currentCookie: CookieRecord, newCookie: CookieRecord) {
+export function isOutdatedSyncCookie (currentCookie: CookieRecord, newCookie: CookieRecord): boolean {
     return newCookie.isServerSync === currentCookie.isServerSync &&
            newCookie.sid === currentCookie.sid &&
            newCookie.key === currentCookie.key &&
