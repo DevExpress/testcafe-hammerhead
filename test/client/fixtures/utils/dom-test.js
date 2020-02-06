@@ -973,7 +973,7 @@ test('isInputWithNativeDialog', function () {
 if (browserUtils.isChrome) {
     test('should return active element inside shadow DOM', function () {
         var host  = document.createElement('div');
-        var root  = host.createShadowRoot();
+        var root  = host.attachShadow({ mode: 'open' });
         var input = document.createElement('input');
 
         document.body.appendChild(host);
@@ -989,8 +989,8 @@ if (browserUtils.isChrome) {
     test('should return active element inside nested shadow DOM', function () {
         var hostParent = document.createElement('div');
         var hostChild  = document.createElement('div');
-        var rootParent = hostParent.createShadowRoot();
-        var rootChild  = hostChild.createShadowRoot();
+        var rootParent = hostParent.attachShadow({ mode: 'open' });
+        var rootChild  = hostChild.attachShadow({ mode: 'open' });
         var input      = document.createElement('input');
 
         document.body.appendChild(hostParent);
@@ -1005,18 +1005,18 @@ if (browserUtils.isChrome) {
     });
 }
 
-if (window.HTMLElement.prototype.createShadowRoot) {
+if (window.HTMLElement.prototype.attachShadow) {
     test('isShadowRoot', function () {
         notOk(domUtils.isShadowRoot(null));
         notOk(domUtils.isShadowRoot(document));
         notOk(domUtils.isShadowRoot(window));
         notOk(domUtils.isShadowRoot(document.createElement('div')));
-        ok(domUtils.isShadowRoot(document.createElement('div').createShadowRoot()));
+        ok(domUtils.isShadowRoot(document.createElement('div').attachShadow({ mode: 'open' })));
     });
 
     test('"getParents" should work properly for elements inside shadowDOM', function () {
         var host  = document.createElement('div');
-        var root  = host.createShadowRoot();
+        var root  = host.attachShadow({ mode: 'open' });
         var div   = document.createElement('div');
         var input = document.createElement('input');
 
