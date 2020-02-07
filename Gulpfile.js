@@ -44,7 +44,7 @@ const getClientTestSettings = () => {
 };
 
 const CLIENT_TESTS_BROWSERS = [
-    {
+    /*{
         platform:    'Windows 10',
         browserName: 'MicrosoftEdge'
     },
@@ -60,34 +60,33 @@ const CLIENT_TESTS_BROWSERS = [
         platform:    'Windows 10',
         browserName: 'internet explorer',
         version:     '11.0'
-    },
+    },*/
     // NOTE: Temporary disable because of https://github.com/webdriverio/webdriverio/issues/3754#issuecomment-475876500
     /*{
         browserName: 'safari',
         platform:    'macOS 10.14',
         version:     '12.0'
     },*/
-    {
+/*    {
         browserName:     'Safari',
         deviceName:      'iPhone 7 Plus Simulator',
         platformVersion: '11.3',
         platformName:    'iOS'
-    },
-    // NOTE: Temporarily disabled, see https://github.com/DevExpress/testcafe-hammerhead/pull/2224
-    /*{
+    },*/
+    {
         deviceName:      'Android GoogleAPI Emulator',
         browserName:     'Chrome',
         platformVersion: '7.1',
         platformName:    'Android'
-    },*/
-    {
+    },
+    /*{
         browserName: 'chrome',
         platform:    'OS X 10.11'
     },
     {
         browserName: 'firefox',
         platform:    'OS X 10.11'
-    }
+    }*/
 ];
 
 const SAUCELABS_SETTINGS = {
@@ -228,7 +227,7 @@ gulp.task('build',
         gulp.parallel(
             'client-scripts',
             'templates',
-            'lint'
+            // 'lint'
         )
     )
 );
@@ -264,7 +263,7 @@ gulp.task('test-client-dev', gulp.series('set-dev-mode', 'test-client'));
 
 gulp.step('travis-saucelabs-qunit', () => {
     return gulp
-        .src('./test/client/fixtures/**/*-test.js')
+        .src('./test/client/fixtures/utils/style-test.js')
         .pipe(qunitHarness(getClientTestSettings(), SAUCELABS_SETTINGS));
 });
 
