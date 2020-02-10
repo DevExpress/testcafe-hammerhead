@@ -4,36 +4,52 @@ var featureDetection = hammerhead.utils.featureDetection;
 var nativeMethods    = hammerhead.nativeMethods;
 
 test('getBordersWidth', function () {
+    var initCssObj = {
+        'border-color': 'black',
+        'border-style': 'solid'
+    };
+    var initCssStr = 'border-color: black; border-style: solid';
+
+    function nativeSetMediumBorderTopWidth (el) {
+        var elStyle = nativeMethods.htmlElementStyleGetter.call(el);
+
+        return nativeMethods.styleSetProperty.call(elStyle, 'border-top-width', 'medium');
+    }
+
+    function getNativeBorderTopWidthConstants () {
+        var nativeDiv = nativeMethods.createElement.call(document, 'div');
+
+        nativeDiv.style.cssText = initCssStr;
+
+        nativeMethods.appendChild.call(document.body, nativeDiv);
+
+        var defaultValue = styleUtils.getBordersWidth(nativeDiv).top;
+
+        nativeSetMediumBorderTopWidth(nativeDiv);
+
+        var mediumValue = styleUtils.getBordersWidth(nativeDiv).top;
+
+        nativeMethods.removeChild.call(document.body, nativeDiv);
+
+        return { defaultValue: defaultValue, mediumValue: mediumValue };
+    }
+
+    var nativeValues = getNativeBorderTopWidthConstants();
+
     var $el = $('<div>')
-        .css({
-            'border-color': 'black',
-            'border-style': 'solid'
-        })
+        .css(initCssObj)
         .appendTo('body');
 
-    var nativeDiv = nativeMethods.createElement.call(document, 'div');
-
-    nativeDiv.style.cssText = 'border-color: black; border-style: solid';
-
-    nativeMethods.appendChild.call(document.body, nativeDiv);
-
-    var defaultBrowserBorderTopWidthValue   = styleUtils.getBordersWidth(nativeDiv).top;
-
-    nativeDiv.style.cssText = 'border-color: black; border-style: solid; border-top-width: medium';
-
-    var browserBorderTopWidthValueForMedium = styleUtils.getBordersWidth(nativeDiv).top;
-
-    strictEqual(styleUtils.getBordersWidth($el[0]).top, defaultBrowserBorderTopWidthValue);
+    strictEqual(styleUtils.getBordersWidth($el[0]).top, nativeValues.defaultValue);
 
     $el.css('borderTopWidth', 'medium');
-    strictEqual(styleUtils.getBordersWidth($el[0]).top, browserBorderTopWidthValueForMedium);
+    strictEqual(styleUtils.getBordersWidth($el[0]).top, nativeValues.mediumValue);
 
     $el.css('borderTopWidth', '10px');
     strictEqual(styleUtils.getBordersWidth($el[0]).top, 10);
     strictEqual(styleUtils.getBordersWidth(document.documentElement).top, 0);
 
     $el.remove();
-    nativeMethods.removeChild.call(document.body, nativeDiv);
 });
 
 test('getHeight', function () {

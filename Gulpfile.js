@@ -44,7 +44,7 @@ const getClientTestSettings = () => {
 };
 
 const CLIENT_TESTS_BROWSERS = [
-    /*{
+    {
         platform:    'Windows 10',
         browserName: 'MicrosoftEdge'
     },
@@ -60,33 +60,45 @@ const CLIENT_TESTS_BROWSERS = [
         platform:    'Windows 10',
         browserName: 'internet explorer',
         version:     '11.0'
-    },*/
+    },
     // NOTE: Temporary disable because of https://github.com/webdriverio/webdriverio/issues/3754#issuecomment-475876500
     /*{
         browserName: 'safari',
         platform:    'macOS 10.14',
         version:     '12.0'
     },*/
-/*    {
+    {
         browserName:     'Safari',
         deviceName:      'iPhone 7 Plus Simulator',
         platformVersion: '11.3',
         platformName:    'iOS'
-    },*/
+    },
     {
         deviceName:      'Android GoogleAPI Emulator',
         browserName:     'Chrome',
         platformVersion: '7.1',
         platformName:    'Android'
     },
-    /*{
+    {
+        deviceName:      'Android GoogleAPI Emulator',
+        browserName:     'Chrome',
+        platformVersion: '8.1',
+        platformName:    'Android'
+    },
+    {
+        deviceName:      'Android GoogleAPI Emulator',
+        browserName:     'Chrome',
+        platformVersion: '10.0',
+        platformName:    'Android'
+    },
+    {
         browserName: 'chrome',
         platform:    'OS X 10.11'
     },
     {
         browserName: 'firefox',
         platform:    'OS X 10.11'
-    }*/
+    }
 ];
 
 const SAUCELABS_SETTINGS = {
