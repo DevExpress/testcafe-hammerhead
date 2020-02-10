@@ -2,6 +2,7 @@ const fs                                   = require('fs');
 const os                                   = require('os');
 const http                                 = require('http');
 const https                                = require('https');
+const EventEmitter                         = require('events').EventEmitter;
 const urlLib                               = require('url');
 const request                              = require('request-promise-native');
 const path                                 = require('path');
@@ -3982,6 +3983,41 @@ describe('Proxy', () => {
                     }, 3000);
                 });
             });
+        });
+
+        it('Should respond with an error when destination server emits an error', () => {
+            const url               = 'http://127.0.0.1:2000/error-emulation';
+            const storedHttpRequest = http.request;
+            const options           = {
+                url:                     proxy.openSession(url, session),
+                resolveWithFullResponse: true,
+                simple:                  false
+            };
+
+            http.request = function (opts, callback) {
+                if (opts.url === url) {
+                    const mock = new EventEmitter();
+
+                    mock.setTimeout = mock.write = mock.end = noop;
+
+                    setTimeout(() => mock.emit('error', new Error('Emulation of error!')), 500);
+
+                    return mock;
+                }
+
+                return storedHttpRequest(opts, callback);
+            };
+
+            return request(options)
+                .then(res => {
+                    http.request = storedHttpRequest;
+
+                    expect(res.statusCode).eql(500);
+                    expect(res.body).eql('Failed to perform a request to the resource at ' +
+                                         '<a href="http://127.0.0.1:2000/error-emulation">' +
+                                         'http://127.0.0.1:2000/error-emulation</a> ' +
+                                         'because of an error.\nError: Emulation of error!');
+                });
         });
     });
 });

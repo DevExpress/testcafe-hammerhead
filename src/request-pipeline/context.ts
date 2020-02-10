@@ -74,7 +74,6 @@ export default class RequestPipelineContext {
     destRes: http.IncomingMessage | FileStream | IncomingMessageMock = null;
     isDestResReadableEnded = false;
     destResBody: Buffer = null;
-    hasDestReqErr: boolean = false;
     isXhr: boolean = false;
     isFetch: boolean = false;
     isPage: boolean = false;

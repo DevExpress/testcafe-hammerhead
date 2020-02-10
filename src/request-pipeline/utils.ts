@@ -14,6 +14,7 @@ import RequestEventNames from '../session/events/names';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
 import { toReadableStream } from '../utils/buffer';
 import { PassThrough } from 'stream';
+import { getText, MESSAGE } from '../messages';
 
 export function sendRequest (ctx: RequestPipelineContext) {
     return new Promise(resolve => {
@@ -36,8 +37,14 @@ export function sendRequest (ctx: RequestPipelineContext) {
             resolve();
         });
 
-        req.on('error', () => {
-            ctx.hasDestReqErr = true;
+        req.on('error', err => {
+            // NOTE: Sometimes the underlying socket emits an error event. But if we have a response body,
+            // we can still process such requests. (B234324)
+            if (ctx.isDestResBodyMalformed()) {
+                error(ctx, getText(MESSAGE.destConnectionTerminated, ctx.dest.url, err.toString()));
+                ctx.goToNextStage = false;
+            }
+
             resolve();
         });
 
