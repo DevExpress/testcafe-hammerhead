@@ -20,8 +20,8 @@ export function get (el, property: string, doc?: Document, win?: Window) {
 
     const computedStyle = getComputedStyle(el, doc, win);
 
-    if (property === 'borderBottomWidth' && el.tagName.toLowerCase() === 'div')
-        throw new Error(el.tagName.toLowerCase() + '->' + property + ': ' + computedStyle[property]);
+    // if (property === 'borderBottomWidth' && el.tagName.toLowerCase() === 'div')
+    //     throw new Error(el.tagName.toLowerCase() + '->' + property + ': ' + computedStyle[property]);
 
     return computedStyle && computedStyle[property];
 }
@@ -32,6 +32,9 @@ export function set (el, property, value) {
 }
 
 export function getBordersWidth (el) {
+    if (el.tagName.toLowerCase() === 'div')
+        throw new Error('div getBordersWidth. get(el, \'borderTopWidth\'):' + get(el, 'borderTopWidth') + ' getIntValue(get(el, \'borderTopWidth\')): ' + getIntValue(get(el, 'borderTopWidth')));
+
     return {
         bottom: getIntValue(get(el, 'borderBottomWidth')),
         left:   getIntValue(get(el, 'borderLeftWidth')),
