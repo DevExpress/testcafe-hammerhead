@@ -1,22 +1,49 @@
 var styleUtils       = hammerhead.utils.style;
 var browserUtils     = hammerhead.utils.browser;
 var featureDetection = hammerhead.utils.featureDetection;
+var nativeMethods    = hammerhead.nativeMethods;
 
 test('getBordersWidth', function () {
+    var initCssObj = {
+        'border-color': 'black',
+        'border-style': 'solid'
+    };
+    var initCssStr = 'border-color: black; border-style: solid';
+
+    function nativeSetMediumBorderTopWidth (el) {
+        var elStyle = nativeMethods.htmlElementStyleGetter.call(el);
+
+        return nativeMethods.styleSetProperty.call(elStyle, 'border-top-width', 'medium');
+    }
+
+    function getNativeBorderTopWidthConstants () {
+        var nativeDiv = nativeMethods.createElement.call(document, 'div');
+
+        nativeDiv.style.cssText = initCssStr;
+
+        nativeMethods.appendChild.call(document.body, nativeDiv);
+
+        var defaultValue = styleUtils.getBordersWidth(nativeDiv).top;
+
+        nativeSetMediumBorderTopWidth(nativeDiv);
+
+        var mediumValue = styleUtils.getBordersWidth(nativeDiv).top;
+
+        nativeMethods.removeChild.call(document.body, nativeDiv);
+
+        return { defaultValue: defaultValue, mediumValue: mediumValue };
+    }
+
+    var nativeWidth = getNativeBorderTopWidthConstants();
+
     var $el = $('<div>')
-        .css({
-            'border-color': 'black',
-            'border-style': 'solid'
-        })
+        .css(initCssObj)
         .appendTo('body');
 
-    var defaultBrowserBorderWidthValue   = 3;
-    var browserBorderWidthValueForMedium = 3;
-
-    strictEqual(styleUtils.getBordersWidth($el[0]).top, defaultBrowserBorderWidthValue);
+    strictEqual(styleUtils.getBordersWidth($el[0]).top, nativeWidth.defaultValue);
 
     $el.css('borderTopWidth', 'medium');
-    strictEqual(styleUtils.getBordersWidth($el[0]).top, browserBorderWidthValueForMedium);
+    strictEqual(styleUtils.getBordersWidth($el[0]).top, nativeWidth.mediumValue);
 
     $el.css('borderTopWidth', '10px');
     strictEqual(styleUtils.getBordersWidth($el[0]).top, 10);
