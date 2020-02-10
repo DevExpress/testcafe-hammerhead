@@ -72,6 +72,7 @@ export default class RequestPipelineContext {
     reqBody: Buffer = null;
     dest: DestInfo = null;
     destRes: http.IncomingMessage | FileStream | IncomingMessageMock = null;
+    isDestResReadableEnded = false;
     destResBody: Buffer = null;
     hasDestReqErr: boolean = false;
     isXhr: boolean = false;

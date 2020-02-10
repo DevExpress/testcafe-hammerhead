@@ -24,12 +24,15 @@ export function sendRequest (ctx: RequestPipelineContext) {
         req.on('response', (res: http.IncomingMessage | FileStream) => {
             if (ctx.isWebSocketConnectionReset) {
                 res.destroy();
-
                 resolve();
+                return;
             }
 
             ctx.destRes       = res;
             ctx.goToNextStage = true;
+            res.once('end', () => {
+                ctx.isDestResReadableEnded = true;
+            });
             resolve();
         });
 
