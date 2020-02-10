@@ -76,7 +76,7 @@ const CLIENT_TESTS_BROWSERS = [
     {
         deviceName:      'Android GoogleAPI Emulator',
         browserName:     'Chrome',
-        platformVersion: '10.0',
+        platformVersion: '7.1',
         platformName:    'Android'
     },
     /*{
