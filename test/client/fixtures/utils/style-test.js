@@ -10,7 +10,7 @@ test('getBordersWidth', function () {
         })
         .appendTo('body');
 
-    throw new Error(navigator.userAgent);
+    // throw new Error(navigator.userAgent);
 
     var defaultBrowserBorderWidthValue   = 3;
     var browserBorderWidthValueForMedium = 3;
