@@ -4,7 +4,6 @@ import Session from '../session';
 import { ServerInfo } from '../typings/proxy';
 import RequestPipelineContext from './context';
 import { process as processResource } from '../processing/resources';
-import { MESSAGE, getText } from '../messages';
 import connectionResetGuard from './connection-reset-guard';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from './xhr/same-origin-check-failed-status-code';
 import { fetchBody, respond404 } from '../utils/http';
@@ -155,13 +154,6 @@ const stages = [
 
         if (ctx.requestFilterRules.length)
             ctx.saveNonProcessedDestResBody(ctx.destResBody);
-
-        // NOTE: Sometimes the underlying socket emits an error event. But if we have a response body,
-        // we can still process such requests. (B234324)
-        if (ctx.hasDestReqErr && ctx.isDestResBodyMalformed()) {
-            error(ctx, getText(MESSAGE.destConnectionTerminated, ctx.dest.url));
-            ctx.goToNextStage = false;
-        }
     },
 
     async function processContent (ctx: RequestPipelineContext) {

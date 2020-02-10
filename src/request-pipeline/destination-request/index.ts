@@ -189,6 +189,4 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         else
             this.emit('error', err);
     }
-
-
 }

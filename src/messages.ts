@@ -1,5 +1,5 @@
 export const MESSAGE = {
-    destConnectionTerminated:         'Failed to perform a request for the resource at <a href="{url}">{url}</a> because connection was unexpectedly terminated.',
+    destConnectionTerminated:         'Failed to perform a request for the resource at <a href="{url}">{url}</a> because connection was unexpectedly terminated.\n{message}',
     cantResolveUrl:                   'Failed to find a DNS-record for the resource at <a href="{url}">{url}</a>.',
     cantEstablishTunnelingConnection: 'Failed to connect to the proxy. Cannot establish tunneling connection to the host at <a href="{url}">{url}</a>.',
     cantEstablishProxyConnection:     'Failed to connect to the proxy host at <a href="{url}">{url}</a>.',
