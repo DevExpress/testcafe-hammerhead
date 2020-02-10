@@ -4013,11 +4013,10 @@ describe('Proxy', () => {
                     http.request = storedHttpRequest;
 
                     expect(res.statusCode).eql(500);
-                    expect(res.body).eql('Failed to perform a request for the resource at ' +
+                    expect(res.body).eql('Failed to perform a request to the resource at ' +
                                          '<a href="http://127.0.0.1:2000/error-emulation">' +
                                          'http://127.0.0.1:2000/error-emulation</a> ' +
-                                         'because connection was unexpectedly terminated.\n' +
-                                         'Error: Emulation of error!');
+                                         'because of an error.\nError: Emulation of error!');
                 });
         });
     });
