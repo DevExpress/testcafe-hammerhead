@@ -20,6 +20,9 @@ export function get (el, property: string, doc?: Document, win?: Window) {
 
     const computedStyle = getComputedStyle(el, doc, win);
 
+    if (property === 'borderBottomWidth' && el.tagName.toLowerCase() === 'div')
+        throw new Error(el.tagName.toLowerCase() + '->' + property + ': ' + computedStyle[property]);
+
     return computedStyle && computedStyle[property];
 }
 
