@@ -3,11 +3,7 @@ var browserUtils     = hammerhead.utils.browser;
 var featureDetection = hammerhead.utils.featureDetection;
 var nativeMethods    = hammerhead.nativeMethods;
 
-test('getBordersWidth', function () {
-    var initCssObj = {
-        'border-color': 'black',
-        'border-style': 'solid'
-    };
+test('getBordersWidth (border-top-width)', function () {
     var initCssStr = 'border-color: black; border-style: solid';
 
     function setMediumBorderTopWidthNatively (el) {
@@ -38,21 +34,22 @@ test('getBordersWidth', function () {
     }
 
     var nativeWidth = getNativeBorderTopWidthConstants();
+    var div         = document.createElement('div');
 
-    var $el = $('<div>')
-        .css(initCssObj)
-        .appendTo('body');
+    div.style.cssText = initCssStr;
 
-    strictEqual(styleUtils.getBordersWidth($el[0]).top, nativeWidth.defaultValue);
+    document.body.appendChild(div);
 
-    $el.css('borderTopWidth', 'medium');
-    strictEqual(styleUtils.getBordersWidth($el[0]).top, nativeWidth.mediumValue);
+    strictEqual(styleUtils.getBordersWidth(div).top, nativeWidth.defaultValue);
 
-    $el.css('borderTopWidth', '10px');
-    strictEqual(styleUtils.getBordersWidth($el[0]).top, 10);
+    div.style.setProperty('border-top-width', 'medium');
+    strictEqual(styleUtils.getBordersWidth(div).top, nativeWidth.mediumValue);
+
+    div.style.borderTopWidth = '10px';
+    strictEqual(styleUtils.getBordersWidth(div).top, 10);
     strictEqual(styleUtils.getBordersWidth(document.documentElement).top, 0);
 
-    $el.remove();
+    div.parentNode.removeChild(div);
 });
 
 test('getHeight', function () {
