@@ -709,6 +709,8 @@ test('mouse events on disabled elements', function () {
 
     deepEqual(eventLog, []);
 
+    document.body.removeChild(button);
+
     div.addEventListener('mousedown', mouseEventHandler);
     div.addEventListener('mouseup', mouseEventHandler);
     div.addEventListener('click', mouseEventHandler);
@@ -717,9 +719,13 @@ test('mouse events on disabled elements', function () {
     eventSimulator.click(div);
     eventSimulator.mouseup(div);
 
-    deepEqual(eventLog, ['mousedown', 'click', 'mouseup']);
+    // NOTE: it's possible to disable the 'div' element in IE
+    if (browserUtils.isIE11)
+        deepEqual(eventLog, []);
+    else
+        deepEqual(eventLog, ['mousedown', 'click', 'mouseup']);
 
-    document.body.removeChild(button);
+
     document.body.removeChild(div);
 });
 
