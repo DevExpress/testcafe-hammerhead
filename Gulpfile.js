@@ -73,13 +73,12 @@ const CLIENT_TESTS_BROWSERS = [
         platformVersion: '11.3',
         platformName:    'iOS'
     },
-    // NOTE: Temporarily disabled, see https://github.com/DevExpress/testcafe-hammerhead/pull/2224
-    /*{
+    {
         deviceName:      'Android GoogleAPI Emulator',
         browserName:     'Chrome',
         platformVersion: '7.1',
         platformName:    'Android'
-    },*/
+    },
     {
         browserName: 'chrome',
         platform:    'OS X 10.11'
