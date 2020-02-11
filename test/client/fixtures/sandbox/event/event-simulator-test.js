@@ -682,32 +682,45 @@ if (!browserUtils.isIE) {
 }
 
 test('mouse events on disabled elements', function () {
-    var button           = document.createElement('button');
-    var span             = document.createElement('span');
-    var mouseEventRaised = false;
+    var button   = document.createElement('button');
+    var span     = document.createElement('span');
+    var div      = document.createElement('div');
+    var eventLog = [];
 
     document.body.appendChild(button);
+    document.body.appendChild(div);
     button.appendChild(span);
 
-    var mouseEventHandler = function () {
-        mouseEventRaised = true;
+    var mouseEventHandler = function (event) {
+        eventLog.push(event.type);
     };
 
     button.disabled = true;
+    div.disabled    = true;
+    div.innerText   = 'text';
 
     span.addEventListener('mousedown', mouseEventHandler);
     span.addEventListener('mouseup', mouseEventHandler);
     span.addEventListener('click', mouseEventHandler);
-    span.addEventListener('mouseover', mouseEventHandler);
-    span.addEventListener('mouseout', mouseEventHandler);
 
     eventSimulator.mousedown(span);
     eventSimulator.click(span);
     eventSimulator.mouseup(span);
 
-    notOk(mouseEventRaised);
+    deepEqual(eventLog, []);
+
+    div.addEventListener('mousedown', mouseEventHandler);
+    div.addEventListener('mouseup', mouseEventHandler);
+    div.addEventListener('click', mouseEventHandler);
+
+    eventSimulator.mousedown(div);
+    eventSimulator.click(div);
+    eventSimulator.mouseup(div);
+
+    deepEqual(eventLog, ['mousedown', 'click', 'mouseup']);
 
     document.body.removeChild(button);
+    document.body.removeChild(div);
 });
 
 module('regression');
