@@ -10,7 +10,7 @@ test('getBordersWidth', function () {
     };
     var initCssStr = 'border-color: black; border-style: solid';
 
-    function nativeSetMediumBorderTopWidth (el) {
+    function setMediumBorderTopWidthNatively (el) {
         var elStyle = nativeMethods.htmlElementStyleGetter.call(el);
 
         return nativeMethods.styleSetProperty.call(elStyle, 'border-top-width', 'medium');
@@ -25,13 +25,16 @@ test('getBordersWidth', function () {
 
         var defaultValue = styleUtils.getBordersWidth(nativeDiv).top;
 
-        nativeSetMediumBorderTopWidth(nativeDiv);
+        setMediumBorderTopWidthNatively(nativeDiv);
 
         var mediumValue = styleUtils.getBordersWidth(nativeDiv).top;
 
         nativeMethods.removeChild.call(document.body, nativeDiv);
 
-        return { defaultValue: defaultValue, mediumValue: mediumValue };
+        return {
+            defaultValue: defaultValue,
+            mediumValue:  mediumValue
+        };
     }
 
     var nativeWidth = getNativeBorderTopWidthConstants();
