@@ -605,7 +605,9 @@ export default class EventSimulator {
     }
 
     _dispatchMouseEvent (el, args, { dataTransfer, timeStamp }: any) {
-        const disabledParent = domUtils.findParent(el, true, node => node.disabled);
+        const disabledParent = domUtils.findParent(el, true, node => {
+            return node.hasAttribute && nativeMethods.hasAttribute.call(node, 'disabled');
+        });
 
         if (disabledParent)
             return null;
