@@ -582,7 +582,6 @@ if (browserUtils.isChrome) {
         ok(inputChanged);
 
         input.parentNode.removeChild(input);
-        etalon.parentNode.removeChild(etalon);
     });
 }
 
