@@ -538,6 +538,54 @@ test('input.autocomplete', function () {
     strictEqual(nativeMethods.getAttribute.call(input, storedAttr), domProcessor.AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER);
 });
 
+if (browserUtils.isChrome) {
+    test('input.disabled', function () {
+        var input        = document.createElement('input');
+        var inputChanged = false;
+
+        document.body.appendChild(input);
+
+        input.addEventListener('change', function () {
+            inputChanged = true;
+        });
+
+        function reset () {
+            nativeMethods.inputDisabledSetter.call(input, false);
+
+            inputChanged = false;
+            input.value  = '';
+
+            nativeMethods.focus.call(document.body);
+        }
+
+        // NOTE: set 'disabled' on empty input should not raise 'change'
+        nativeMethods.focus.call(input);
+
+        input.disabled = true;
+
+        ok(!inputChanged);
+        reset();
+
+        // NOTE: set 'disabled' on not focused input should not raise 'change'
+        input.value    = '100';
+        input.disabled = true;
+
+        ok(!inputChanged);
+        reset();
+
+        // NOTE: set 'disabled' on focused input should raise 'change'
+        nativeMethods.focus.call(input);
+
+        input.value    = '100';
+        input.disabled = true;
+
+        ok(inputChanged);
+
+        input.parentNode.removeChild(input);
+        etalon.parentNode.removeChild(etalon);
+    });
+}
+
 test('window.onbeforeunload', function () {
     var evName = 'on' + unloadSandbox.beforeUnloadEventName;
 
