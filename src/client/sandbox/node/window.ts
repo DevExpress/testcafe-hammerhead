@@ -886,25 +886,28 @@ export default class WindowSandbox extends SandboxBase {
             }
         });
 
-        overrideDescriptor(window.HTMLInputElement.prototype, 'disabled', {
-            getter: function () {
-                return nativeMethods.inputDisabledGetter.call(this);
-            },
-            setter: function (value) {
-                if (isChrome && nativeMethods.documentActiveElementGetter.call(document) === this) {
-                    const savedValue        = windowSandbox.elementEditingWatcher.getElementSavedValue(this);
-                    const currentValue      = nativeMethods.inputValueGetter.call(this);
-                    const ignoreChangeEvent = savedValue === void 0 && currentValue === '';
+        // NOTE: HTMLInputElement raises the `change` event on `disabled` only in Chrome
+        if (isChrome) {
+            overrideDescriptor(window.HTMLInputElement.prototype, 'disabled', {
+                getter: function () {
+                    return nativeMethods.inputDisabledGetter.call(this);
+                },
+                setter: function (value) {
+                    if (nativeMethods.documentActiveElementGetter.call(document) === this) {
+                        const savedValue = windowSandbox.elementEditingWatcher.getElementSavedValue(this);
+                        const currentValue = nativeMethods.inputValueGetter.call(this);
+                        const ignoreChangeEvent = savedValue === void 0 && currentValue === '';
 
-                    if (!ignoreChangeEvent && currentValue !== savedValue)
-                        windowSandbox.eventSimulator.change(this);
+                        if (!ignoreChangeEvent && currentValue !== savedValue)
+                            windowSandbox.eventSimulator.change(this);
 
-                    windowSandbox.elementEditingWatcher.stopWatching(this);
+                        windowSandbox.elementEditingWatcher.stopWatching(this);
+                    }
+
+                    nativeMethods.inputDisabledSetter.call(this, value);
                 }
-
-                nativeMethods.inputDisabledSetter.call(this, value);
-            }
-        });
+            });
+        }
 
         overrideDescriptor(window.HTMLInputElement.prototype, 'required', {
             getter: function () {
