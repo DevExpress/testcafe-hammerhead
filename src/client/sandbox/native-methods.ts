@@ -722,6 +722,15 @@ class NativeMethods {
             this.windowOriginSetter = windowOriginDescriptor.set;
         }
 
+        // NOTE: We need 'disabled' property only for Chrome.
+        // In Chrome it's located in HTMLInputElement.prototype
+        // But in IE11 it's located in HTMLElement.prototype
+        // So we need the null check
+        if (inputDisabledDescriptor) {
+            this.inputDisabledSetter = inputDisabledDescriptor.set;
+            this.inputDisabledGetter = inputDisabledDescriptor.get;
+        }
+
         // NOTE: Html properties is located in HTMLElement prototype in IE11 only
         this.elementHTMLPropOwnerName = win.Element.prototype.hasOwnProperty('innerHTML') ? 'Element' : 'HTMLElement';
 
@@ -732,7 +741,6 @@ class NativeMethods {
         this.objectDataSetter        = objectDataDescriptor.set;
         this.inputTypeSetter         = inputTypeDescriptor.set;
         this.inputValueSetter        = inputValueDescriptor.set;
-        this.inputDisabledSetter     = inputDisabledDescriptor.set;
         this.inputRequiredSetter     = inputRequiredDescriptor.set;
         this.textAreaValueSetter     = textAreaValueDescriptor.set;
         this.imageSrcSetter          = imageSrcDescriptor.set;
@@ -820,7 +828,6 @@ class NativeMethods {
         this.objectDataGetter               = objectDataDescriptor.get;
         this.inputTypeGetter                = inputTypeDescriptor.get;
         this.inputValueGetter               = inputValueDescriptor.get;
-        this.inputDisabledGetter            = inputDisabledDescriptor.get;
         this.inputRequiredGetter            = inputRequiredDescriptor.get;
         this.textAreaValueGetter            = textAreaValueDescriptor.get;
         this.imageSrcGetter                 = imageSrcDescriptor.get;
