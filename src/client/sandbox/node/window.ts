@@ -889,9 +889,7 @@ export default class WindowSandbox extends SandboxBase {
         // NOTE: HTMLInputElement raises the `change` event on `disabled` only in Chrome
         if (isChrome) {
             overrideDescriptor(window.HTMLInputElement.prototype, 'disabled', {
-                getter: function () {
-                    return nativeMethods.inputDisabledGetter.call(this);
-                },
+                getter: null,
                 setter: function (value) {
                     if (nativeMethods.documentActiveElementGetter.call(document) === this) {
                         const savedValue = windowSandbox.elementEditingWatcher.getElementSavedValue(this);
