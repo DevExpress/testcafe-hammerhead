@@ -38,9 +38,7 @@ This opens a playground page where you can specify a webpage to proxy. Enter the
 
 ##  Reporting Issues and Contributing
 
-* If your website works differently with and without a proxy, create an issue.
-* If you find a problem, please provide a public link to your website or create a simple example to reproduce it.
-* All PRs with bug fixes should contain tests (there may be rare exceptions)
+Read our [Contributing Guide](https://github.com/DevExpress/testcafe-hammerhead/blob/master/CONTRIBUTING.md) to learn how to contribute to the project.
 
 [![Build Status](https://travis-ci.org/DevExpress/testcafe-hammerhead.svg)](https://travis-ci.org/DevExpress/testcafe-hammerhead)
 
