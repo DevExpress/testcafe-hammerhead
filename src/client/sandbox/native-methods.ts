@@ -161,6 +161,7 @@ class NativeMethods {
     objectDataSetter: any;
     inputTypeSetter: any;
     inputValueSetter: any;
+    inputDisabledSetter: any;
     inputRequiredSetter: any;
     textAreaValueSetter: any;
     imageSrcSetter: any;
@@ -224,6 +225,7 @@ class NativeMethods {
     objectDataGetter: any;
     inputTypeGetter: any;
     inputValueGetter: any;
+    inputDisabledGetter: any;
     inputRequiredGetter: any;
     textAreaValueGetter: any;
     imageSrcGetter: any;
@@ -671,6 +673,7 @@ class NativeMethods {
         const objectDataDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLObjectElement.prototype, 'data');
         const inputTypeDescriptor            = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'type');
         const inputValueDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'value');
+        const inputDisabledDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'disabled');
         const inputRequiredDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'required');
         const textAreaValueDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLTextAreaElement.prototype, 'value');
         const imageSrcDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLImageElement.prototype, 'src');
@@ -717,6 +720,15 @@ class NativeMethods {
         if (windowOriginDescriptor) {
             this.windowOriginGetter = windowOriginDescriptor.get;
             this.windowOriginSetter = windowOriginDescriptor.set;
+        }
+
+        // NOTE: We need 'disabled' property only for Chrome.
+        // In Chrome it's located in HTMLInputElement.prototype
+        // But in IE11 it's located in HTMLElement.prototype
+        // So we need the null check
+        if (inputDisabledDescriptor) {
+            this.inputDisabledSetter = inputDisabledDescriptor.set;
+            this.inputDisabledGetter = inputDisabledDescriptor.get;
         }
 
         // NOTE: Html properties is located in HTMLElement prototype in IE11 only

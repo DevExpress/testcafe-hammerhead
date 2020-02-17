@@ -39,10 +39,10 @@ export default class ElementEditingWatcher {
             nativeMethods.removeEventListener.call(el, 'blur', e => this._onBlur(e));
             nativeMethods.removeEventListener.call(el, 'change', e => this._onChange(e));
 
-            if (el[ELEMENT_EDITING_OBSERVED_FLAG])
+            if (el[ELEMENT_EDITING_OBSERVED_FLAG] !== void 0)
                 delete el[ELEMENT_EDITING_OBSERVED_FLAG];
 
-            if (el[OLD_VALUE_PROPERTY])
+            if (el[OLD_VALUE_PROPERTY] !== void 0)
                 delete el[OLD_VALUE_PROPERTY];
         }
     }
@@ -74,5 +74,9 @@ export default class ElementEditingWatcher {
         }
 
         return false;
+    }
+
+    getElementSavedValue (el) {
+        return el[OLD_VALUE_PROPERTY];
     }
 }

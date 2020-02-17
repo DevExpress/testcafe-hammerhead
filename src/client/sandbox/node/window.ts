@@ -2,6 +2,7 @@
 import SandboxBase from '../base';
 import ShadowUI from '../shadow-ui';
 import nativeMethods from '../native-methods';
+import EventSimulator from '../event/simulator';
 import { processScript } from '../../../processing/script';
 import styleProcessor from '../../../processing/style';
 import * as destLocation from '../../utils/destination-location';
@@ -14,7 +15,7 @@ import {
     stringifyResourceType,
     resolveUrlAsDest
 } from '../../utils/url';
-import { isFirefox, isIE, isAndroid, isMSEdge, version as browserVersion } from '../../utils/browser';
+import { isFirefox, isChrome, isIE, isAndroid, isMSEdge, version as browserVersion } from '../../utils/browser';
 import {
     isCrossDomainWindows,
     isImgElement,
@@ -88,6 +89,7 @@ export default class WindowSandbox extends SandboxBase {
     messageSandbox: MessageSandbox;
     listenersSandbox: Listeners;
     elementEditingWatcher: ElementEditingWatcher;
+    eventSimulator: EventSimulator;
     uploadSandbox: UploadSandbox;
     shadowUI: ShadowUI;
     nodeMutation: NodeMutation;
@@ -109,6 +111,7 @@ export default class WindowSandbox extends SandboxBase {
         this.messageSandbox        = eventSandbox.message;
         this.listenersSandbox      = eventSandbox.listeners;
         this.elementEditingWatcher = eventSandbox.elementEditingWatcher;
+        this.eventSimulator        = eventSandbox.eventSimulator;
         this.uploadSandbox         = uploadSandbox;
         this.shadowUI              = nodeSandbox.shadowUI;
         this.nodeMutation          = nodeMutation;
@@ -882,6 +885,27 @@ export default class WindowSandbox extends SandboxBase {
                     windowSandbox.uploadSandbox.setUploadElementValue(this, value);
             }
         });
+
+        // NOTE: HTMLInputElement raises the `change` event on `disabled` only in Chrome
+        if (isChrome) {
+            overrideDescriptor(window.HTMLInputElement.prototype, 'disabled', {
+                getter: null,
+                setter: function (value) {
+                    if (nativeMethods.documentActiveElementGetter.call(document) === this) {
+                        const savedValue = windowSandbox.elementEditingWatcher.getElementSavedValue(this);
+                        const currentValue = nativeMethods.inputValueGetter.call(this);
+                        const ignoreChangeEvent = savedValue === void 0 && currentValue === '';
+
+                        if (!ignoreChangeEvent && currentValue !== savedValue)
+                            windowSandbox.eventSimulator.change(this);
+
+                        windowSandbox.elementEditingWatcher.stopWatching(this);
+                    }
+
+                    nativeMethods.inputDisabledSetter.call(this, value);
+                }
+            });
+        }
 
         overrideDescriptor(window.HTMLInputElement.prototype, 'required', {
             getter: function () {
