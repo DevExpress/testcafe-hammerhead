@@ -333,20 +333,41 @@ test('we should clean up hammerhead script and style for all elements (GH-1079)'
 });
 
 test('we should clean up html and remove extra namespaces from svg (GH-1083)', function () {
-    var svg          = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    var anchor       = document.createElement('a');
-    var div          = document.createElement('div');
-    var nativeSvg    = nativeMethods.createElementNS.call(document, 'http://www.w3.org/2000/svg', 'svg');
-    var nativeAnchor = nativeMethods.createElement.call(document, 'a');
-    var nativeDiv    = nativeMethods.createElement.call(document, 'div');
+    var svg           = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    var anchor        = document.createElement('a');
+    var div           = document.createElement('div');
+    var defs          = document.createElement('defs');
+    var feImage       = document.createElementNS('http://www.w3.org/2000/svg', 'feImage');
+    var use           = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    var nativeSvg     = nativeMethods.createElementNS.call(document, 'http://www.w3.org/2000/svg', 'svg');
+    var nativeAnchor  = nativeMethods.createElement.call(document, 'a');
+    var nativeDiv     = nativeMethods.createElement.call(document, 'div');
+    var nativeDefs    = nativeMethods.createElement.call(document, 'defs');
+    var nativeFeImage = nativeMethods.createElementNS.call(document, 'http://www.w3.org/2000/svg', 'feImage');
+    var nativeUse     = nativeMethods.createElementNS.call(document, 'http://www.w3.org/2000/svg', 'use');
 
     anchor.setAttribute('href', '/path');
     nativeMethods.setAttribute.call(nativeAnchor, 'href', '/path');
 
     anchor.innerText = nativeAnchor.innerHTML = 'link';
 
+    feImage.setAttribute('href', '/path');
+    nativeMethods.setAttribute.call(nativeFeImage, 'href', '/path');
+
+    use.setAttribute('href', '/path');
+    nativeMethods.setAttribute.call(nativeUse, 'href', '/path');
+
+    defs.appendChild(feImage);
+    nativeMethods.appendChild.call(nativeDefs, nativeFeImage);
+
     svg.appendChild(anchor);
     nativeMethods.appendChild.call(nativeSvg, nativeAnchor);
+
+    svg.appendChild(defs);
+    nativeMethods.appendChild.call(nativeSvg, nativeDefs);
+
+    svg.appendChild(use);
+    nativeMethods.appendChild.call(nativeSvg, nativeUse);
 
     div.appendChild(svg);
     nativeMethods.appendChild.call(nativeDiv, nativeSvg);
