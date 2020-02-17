@@ -2,7 +2,7 @@
 Thank you for your contribution.
 
 Before making a PR, please read our contributing guidelines at
-https://github.com/DevExpress/testcafe/blob/master/CONTRIBUTING.md#code-contribution
+https://github.com/DevExpress/testcafe-hammerhead/blob/master/CONTRIBUTING.md#code-contribution
 
 We recommend creating a *draft* PR, so that you can mark it as 'ready for review' when you are done.
 -->
