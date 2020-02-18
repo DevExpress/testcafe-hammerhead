@@ -28,9 +28,8 @@ import { isFirefox } from '../../utils/browser';
 import UploadSandbox from '../upload';
 import IframeSandbox from '../iframe';
 import EventSandbox from '../event';
-import ChildWindowSandbox from "../child-window";
-
-const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
+import ChildWindowSandbox from '../child-window';
+import isKeywordTarget from '../../../utils/is-keyword-target';
 
 const RESTRICTED_META_HTTP_EQUIV_VALUES = ['refresh', 'content-security-policy'];
 
@@ -49,12 +48,6 @@ export default class ElementSandbox extends SandboxBase {
         super();
 
         this.overriddenMethods = null;
-    }
-
-    private static _isKeywordTarget (value: string): boolean {
-        value = value.toLowerCase();
-
-        return KEYWORD_TARGETS.indexOf(value) !== -1;
     }
 
     private static _onTargetChanged (el: HTMLElement): void {
@@ -896,7 +889,7 @@ export default class ElementSandbox extends SandboxBase {
         if (settings.get().allowMultipleWindows)
             return target;
 
-        if (target && !ElementSandbox._isKeywordTarget(target) && !windowsStorage.findByName(target) ||
+        if (target && !isKeywordTarget(target) && !windowsStorage.findByName(target) ||
             /_blank/i.test(target))
             return '_top';
 
