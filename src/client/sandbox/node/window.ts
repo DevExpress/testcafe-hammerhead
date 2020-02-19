@@ -57,6 +57,8 @@ import MessageSandbox from '../event/message';
 import Listeners from '../event/listeners';
 import ElementEditingWatcher from '../event/element-editing-watcher';
 import ChildWindowSandbox from '../child-window';
+import settings from '../../settings';
+import DefaultTarget from '../child-window/default-target';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -147,6 +149,13 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         return hasStringItem;
+    }
+
+    _getWindowOpenTarget (originTarget: string): string {
+        if (originTarget)
+            return this.nodeSandbox.element.getCorrectedTarget(String(originTarget));
+
+        return settings.get().allowMultipleWindows ? DefaultTarget.windowOpen : '_self';
     }
 
     _raiseUncaughtJsErrorEvent (type: string, event: ErrorEvent | PromiseRejectionEvent, window: Window): void {
@@ -442,7 +451,7 @@ export default class WindowSandbox extends SandboxBase {
 
         window.open = function (...args) {
             args[0] = getProxyUrl(args[0]);
-            args[1] = args[1] ? nodeSandbox.element.getCorrectedTarget(String(args[1])) : '_self';
+            args[1] = windowSandbox._getWindowOpenTarget(args[1]);
 
             return windowSandbox._childWindowSandbox.handleWindowOpen(window, args);
         };
