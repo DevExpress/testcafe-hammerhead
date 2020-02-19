@@ -759,22 +759,6 @@ describe('Proxy', () => {
                     });
             });
 
-            it('Should not generate cookie for synchronization for page', function () {
-                const cookie  = encodeURIComponent('aaa=111;path=/path');
-                const options = {
-                    url:     proxy.openSession('http://127.0.0.1:2000/cookie-server-sync/' + cookie, session),
-                    headers: { accept: 'text/html' },
-
-                    resolveWithFullResponse: true,
-                    simple:                  false
-                };
-
-                return request(options)
-                    .then(res => {
-                        expect(res.headers).to.not.have.property('set-cookie');
-                    });
-            });
-
             it('Should generate cookie for synchronization for iframe', function () {
                 const cookie  = encodeURIComponent('aaa=111;path=/path');
                 const options = {

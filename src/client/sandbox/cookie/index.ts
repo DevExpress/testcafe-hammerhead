@@ -16,6 +16,7 @@ import {
     prepareSyncCookieProperties
 } from '../../../utils/cookie';
 import { CookieRecord } from '../../../typings/cookie';
+import ChildWindowSandbox from '../child-window';
 
 const MIN_DATE_VALUE = new nativeMethods.date(0).toUTCString();
 
@@ -23,10 +24,11 @@ export default class CookieSandbox extends SandboxBase {
     private readonly _windowSync: WindowSync;
 
     constructor (messageSandbox: MessageSandbox,
-        private readonly _unloadSandbox: UnloadSandbox) {
+        private readonly _unloadSandbox: UnloadSandbox,
+        childWindowSandbox: ChildWindowSandbox) {
         super();
 
-        this._windowSync = new WindowSync(this, messageSandbox);
+        this._windowSync = new WindowSync(this, messageSandbox, childWindowSandbox);
     }
 
     private static _removeAllSyncCookie (): void {
@@ -217,7 +219,7 @@ export default class CookieSandbox extends SandboxBase {
 
         this._windowSync.attach(window);
 
-        if (window === window.top)
+        if (window === window.top && !window.opener)
             this._unloadSandbox.on(this._unloadSandbox.UNLOAD_EVENT, CookieSandbox._removeAllSyncCookie);
     }
 }

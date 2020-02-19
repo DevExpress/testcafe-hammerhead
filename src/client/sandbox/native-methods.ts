@@ -155,6 +155,7 @@ class NativeMethods {
     arrayJoin: any;
     arraySplice: any;
     arrayForEach: any;
+    arrayFrom: any;
     DOMParserParseFromString: any;
     arrayBufferIsView: any;
     elementHTMLPropOwnerName: string;
@@ -665,6 +666,7 @@ class NativeMethods {
         this.arrayJoin    = win.Array.prototype.join;
         this.arraySplice  = win.Array.prototype.splice;
         this.arrayForEach = win.Array.prototype.forEach;
+        this.arrayFrom    = win.Array.from;
 
         this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
 

@@ -4,11 +4,8 @@ import Promise from 'pinkie';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import IntegerIdGenerator from '../../utils/integer-id-generator';
 import nativeMethods from '../native-methods';
-import {
-    changeSyncType,
-    formatSyncCookie,
-    generateDeleteSyncCookieStr
-} from '../../../utils/cookie';
+import { changeSyncType, formatSyncCookie, generateDeleteSyncCookieStr } from '../../../utils/cookie';
+import ChildWindowSandbox from "../child-window";
 
 const SYNC_COOKIE_START_CMD      = 'hammerhead|command|sync-cookie-start';
 const SYNC_COOKIE_DONE_CMD       = 'hammerhead|command|sync-cookie-done';
@@ -27,7 +24,8 @@ export default class WindowSync {
     private _resolversMap: Map<number, () => void> = new Map<number, () => void>();
 
     constructor (private readonly _cookieSandbox: CookieSandbox,
-        private readonly _messageSandbox: MessageSandbox) {
+        private readonly _messageSandbox: MessageSandbox,
+        private readonly _childWindowSandbox: ChildWindowSandbox) {
     }
 
     private static _getCookieSandbox (win: Window): CookieSandbox {
@@ -48,6 +46,13 @@ export default class WindowSync {
 
             if (this._win !== this._win.top)
                 this._messageSandbox.sendServiceMsg({ id: message.id, cmd: SYNC_COOKIE_DONE_CMD }, source);
+            else if (this._win.opener) {
+                this.syncBetweenWindows(message.cookies, source)
+                    .then(() => this._messageSandbox.sendServiceMsg({
+                        id: message.id,
+                        cmd: SYNC_COOKIE_DONE_CMD
+                    }, source));
+            }
             else
                 this.syncBetweenWindows(message.cookies, source);
         }
@@ -59,7 +64,7 @@ export default class WindowSync {
         }
     }
 
-    private _getWindowsForSync (initiator: Window, currentWindow: Window = this._win.top, windows: Window[] = []): Window[] {
+    private _getWindowsForSync (initiator: Window, currentWindow: Window, windows: Window[] = []): Window[] {
         if (currentWindow !== initiator && currentWindow !== this._win.top)
             windows.push(currentWindow);
 
@@ -98,15 +103,16 @@ export default class WindowSync {
         });
     }
 
-    private _delegateSyncBetweenWindowsToTop (cookies): void {
-        const cookieSandboxTop = WindowSync._getCookieSandbox(this._win.top);
+    private _delegateSyncBetweenWindowsToMainTopWindow (cookies): void {
+        const mainTopWindow    = this._childWindowSandbox.getMainTopWindow();
+        const cookieSandboxTop = WindowSync._getCookieSandbox(mainTopWindow);
 
         if (cookieSandboxTop) {
             cookieSandboxTop.syncWindowCookie(cookies);
             cookieSandboxTop.getWindowSync().syncBetweenWindows(cookies, this._win);
         }
         else
-            this._messageSandbox.sendServiceMsg({ cmd: SYNC_COOKIE_START_CMD, cookies }, this._win.top);
+            this._messageSandbox.sendServiceMsg({ cmd: SYNC_COOKIE_START_CMD, cookies }, mainTopWindow);
     }
 
     private _removeSyncCookie (cookies): void {
@@ -125,13 +131,26 @@ export default class WindowSync {
         }
     }
 
-    // eslint-disable-next-line consistent-return
-    syncBetweenWindows (cookies, initiator?: Window): void {
-        if (this._win !== this._win.top)
-            return this._delegateSyncBetweenWindowsToTop(cookies);
+    syncBetweenWindows (cookies, initiator?: Window): Promise<void> {
+        if (this._win !== this._win.top || this._win.opener && !initiator) {
+            this._delegateSyncBetweenWindowsToMainTopWindow(cookies);
 
-        const windowsForSync = this._getWindowsForSync(initiator);
-        const syncMessages   = [];
+            return Promise.resolve();
+        }
+
+        const windowsForSync                = this._getWindowsForSync(initiator, this._win);
+        const syncMessages: Promise<void>[] = [];
+
+        if (!this._win.opener) {
+            for (const win of this._childWindowSandbox.getChildWindows()) {
+                const cookieSandbox = WindowSync._getCookieSandbox(win);
+
+                if (cookieSandbox)
+                    syncMessages.push(cookieSandbox.getWindowSync().syncBetweenWindows(cookies));
+                else
+                    syncMessages.push(this._sendSyncMessage(win, SYNC_COOKIE_START_CMD, cookies));
+            }
+        }
 
         for (const win of windowsForSync) {
             const cookieSandbox = WindowSync._getCookieSandbox(win);
@@ -142,10 +161,19 @@ export default class WindowSync {
                 syncMessages.push(this._sendSyncMessage(win, SYNC_COOKIE_START_CMD, cookies));
         }
 
-        if (syncMessages.length)
-            Promise.all(syncMessages).then(() => this._removeSyncCookie(cookies));
-        else
+        if (syncMessages.length) {
+            let syncMessagesPromise = Promise.all(syncMessages);
+
+            if (!this._win.opener)
+                syncMessagesPromise = syncMessagesPromise.then(() => this._removeSyncCookie(cookies));
+
+            return syncMessagesPromise;
+        }
+        else {
             this._removeSyncCookie(cookies);
+
+            return Promise.resolve();
+        }
     }
 
     attach (win: Window): void {
