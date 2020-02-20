@@ -3,11 +3,17 @@ var browserUtils     = hammerhead.utils.browser;
 var nativeMethods    = hammerhead.nativeMethods;
 
 var inputTestValue  = 'test@host.net';
+// var isChrome        = browserUtils.isChrome;
+var isSafari        = browserUtils.isSafari;
+var isFirefox       = browserUtils.isFirefox;
 var isIE            = browserUtils.isIE;
-var isMobileBrowser = browserUtils.isIOS || browserUtils.isAndroid;
-var browserVersion  = browserUtils.version;
+var isIE11          = browserUtils.isIE11;
+// var isAndroid       = browserUtils.isAndroid;
+// var browserVersion  = browserUtils.version;
+// var isMobileBrowser = browserUtils.isIOS || isAndroid;
+var isMacPlatform   = browserUtils.isMacPlatform;
 
-var FOCUS_TIMEOUT = browserUtils.isIE11 ? 100 : 0;
+var FOCUS_TIMEOUT = isIE11 ? 100 : 0;
 
 var createTestInput = function (type, value) {
     var input = document.createElement('input');
@@ -43,20 +49,27 @@ test('Set and get selection on input with "email" type', function () {
     document.body.removeChild(input);
 });
 
-test('Get selection on input with "email" type', function () {
+test('!!! Get selection on input with "email" type', function () {
     var input     = createTestInput('email', inputTestValue);
     var selection = selectionSandbox.getSelection(input);
 
-    var isNotSupportedBrowser = browserUtils.isFirefox && browserVersion > 67 || isIE || browserUtils.isChrome && browserVersion > 74;
+    var expectedPosition;
 
-    strictEqual(selection.start, isNotSupportedBrowser ? 0 : inputTestValue.length);
-    strictEqual(selection.end, isNotSupportedBrowser ? 0 : inputTestValue.length);
+    if (isSafari)
+        expectedPosition = inputTestValue.length;
+    else if (isIE)
+        expectedPosition = 0;
+    else
+        expectedPosition = null;
 
-    if (isMobileBrowser && !browserUtils.isAndroid || browserUtils.isSafari ||
-        browserUtils.isChrome && (browserUtils.isMacPlatform || browserVersion < 54))
-        strictEqual(selection.direction, 'none');
-    else if (!isIE)
-        strictEqual(selection.direction, 'forward');
+    strictEqual(selection.start, expectedPosition);
+    strictEqual(selection.end, expectedPosition);
+
+    var isDirectionSupported = !isIE11;
+    var expectedDirection = isMacPlatform ? 'none' : 'forward';
+
+    if (isDirectionSupported)
+        strictEqual(selection.direction, expectedDirection);
 
     document.body.removeChild(input);
 });
@@ -105,7 +118,7 @@ asyncTest('Focus should not be called during setting selection if conteneditable
     }, true, true);
 
     window.setTimeout(function () {
-        if (!browserUtils.isFirefox)
+        if (!isFirefox)
             ok(focused);
 
         ok(selectionSet);
@@ -134,7 +147,7 @@ asyncTest('Focus should not be called during setting selection if conteneditable
 asyncTest('Focus should not be called during setting selection if editable element has been already focused (TestCafe GH - 2301)', function () {
     var input           = createTestInput('text', 'some text');
     var focused         = false;
-    var shouldBeFocused = browserUtils.isIE || browserUtils.isSafari;
+    var shouldBeFocused = isIE || isSafari;
     var startPos        = 1;
     var endPos          = 3;
 

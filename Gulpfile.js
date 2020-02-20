@@ -267,7 +267,7 @@ gulp.task('test-client-dev', gulp.series('set-dev-mode', 'test-client'));
 
 gulp.step('travis-saucelabs-qunit', () => {
     return gulp
-        .src('./test/client/fixtures/**/*-test.js')
+        .src('./test/client/fixtures/sandbox/selection-test.js')
         .pipe(qunitHarness(getClientTestSettings(), SAUCELABS_SETTINGS));
 });
 
