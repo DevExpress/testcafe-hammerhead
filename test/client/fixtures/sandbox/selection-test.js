@@ -8,10 +8,11 @@ var isSafari        = browserUtils.isSafari;
 var isFirefox       = browserUtils.isFirefox;
 var isIE            = browserUtils.isIE;
 var isIE11          = browserUtils.isIE11;
+var isMSEdge        = browserUtils.isMSEdge;
 // var isAndroid       = browserUtils.isAndroid;
 // var browserVersion  = browserUtils.version;
 // var isMobileBrowser = browserUtils.isIOS || isAndroid;
-var isMacPlatform   = browserUtils.isMacPlatform;
+// var isMacPlatform   = browserUtils.isMacPlatform;
 
 var FOCUS_TIMEOUT = isIE11 ? 100 : 0;
 
@@ -65,11 +66,17 @@ test('!!! Get selection on input with "email" type', function () {
     strictEqual(selection.start, expectedPosition);
     strictEqual(selection.end, expectedPosition);
 
-    var isDirectionSupported = isSafari;
-    var expectedDirection = isMacPlatform ? 'none' : 'forward';
+    var expectedDirection;
 
-    if (isDirectionSupported)
+    if (isSafari)
+        expectedDirection = 'none';
+    else if (isMSEdge)
+        expectedDirection = 'forward';
+
+    if (isSafari || isMSEdge)
         strictEqual(selection.direction, expectedDirection);
+    else if (!isIE11)
+        strictEqual(selection.direction, null);
 
     document.body.removeChild(input);
 });
