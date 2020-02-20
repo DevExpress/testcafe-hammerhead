@@ -65,7 +65,7 @@ test('!!! Get selection on input with "email" type', function () {
     strictEqual(selection.start, expectedPosition);
     strictEqual(selection.end, expectedPosition);
 
-    var isDirectionSupported = !isIE11;
+    var isDirectionSupported = isSafari;
     var expectedDirection = isMacPlatform ? 'none' : 'forward';
 
     if (isDirectionSupported)
