@@ -143,13 +143,11 @@ export default class Selection {
     getSelection (el) {
         const internalSelection = el[INTERNAL_PROPS.selection];
 
-        const selection = {
+        return {
             start:     internalSelection ? internalSelection.selectionStart : el.selectionStart,
             end:       internalSelection ? internalSelection.selectionEnd : el.selectionEnd,
             direction: internalSelection ? internalSelection.selectionDirection : el.selectionDirection
         };
-
-        return selection;
     }
 
     wrapSetterSelection (el, selectionSetter, needFocus, isContentEditable?: boolean) {

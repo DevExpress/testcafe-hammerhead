@@ -63,7 +63,7 @@ const CLIENT_TESTS_BROWSERS = [
     },
     {
         browserName: 'safari',
-        platform:    'macOS 10.14',
+        platform:    'macOS 10.13', // NOTE: Temporary revert to 10.13 from 10.14 because of https://github.com/webdriverio/webdriverio/issues/3754#issuecomment-475876500
         version:     '12.0'
     },
     {

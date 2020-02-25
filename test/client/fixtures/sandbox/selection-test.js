@@ -76,7 +76,7 @@ test('!!! Get selection on input with "email" type', function () {
     if (isSafari || isMSEdge)
         strictEqual(selection.direction, expectedDirection);
     else if (!isIE11)
-        strictEqual(selection.direction, null);
+        strictEqual(selection.direction, null); // TODO: remove this case
 
     document.body.removeChild(input);
 });
