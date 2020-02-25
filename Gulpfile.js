@@ -64,7 +64,12 @@ const CLIENT_TESTS_BROWSERS = [
     {
         browserName: 'safari',
         platform:    'macOS 10.13', // NOTE: Temporary revert to 10.13 from 10.14 because of https://github.com/webdriverio/webdriverio/issues/3754#issuecomment-475876500
-        version:     '12.1'
+        version:     '13.0'
+    },
+    {
+        browserName: 'safari',
+        platform:    'macOS 10.15',
+        version:     '13.0'
     },
     {
         browserName: 'safari',
@@ -267,7 +272,7 @@ gulp.task('test-client-dev', gulp.series('set-dev-mode', 'test-client'));
 
 gulp.step('travis-saucelabs-qunit', () => {
     return gulp
-        .src('./test/client/fixtures/sandbox/selection-test.js')
+        .src('./test/client/fixtures/**/*-test.js')
         .pipe(qunitHarness(getClientTestSettings(), SAUCELABS_SETTINGS));
 });
 
