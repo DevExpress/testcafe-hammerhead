@@ -61,11 +61,12 @@ const CLIENT_TESTS_BROWSERS = [
         browserName: 'internet explorer',
         version:     '11.0'
     },
-    {
+    // NOTE: Temporary disable because of https://github.com/webdriverio/webdriverio/issues/3754#issuecomment-475876500
+    /*{
         browserName: 'safari',
-        platform:    'macOS 10.12', // NOTE: Temporary revert to 10.13 from 10.14 because of https://github.com/webdriverio/webdriverio/issues/3754#issuecomment-475876500
-        version:     '11.0' // NOTE: https://github.com/DevExpress/testcafe-hammerhead/issues/2254
-    },
+        platform:    'macOS 10.14',
+        version:     '12.0' // NOTE: https://github.com/DevExpress/testcafe-hammerhead/issues/2254
+    },*/
     {
         browserName: 'safari',
         platform:    'macOS 10.15',
