@@ -2,17 +2,11 @@ var selectionSandbox = hammerhead.eventSandbox.selection;
 var browserUtils     = hammerhead.utils.browser;
 var nativeMethods    = hammerhead.nativeMethods;
 
-var inputTestValue  = 'test@host.net';
-// var isChrome        = browserUtils.isChrome;
-var isSafari        = browserUtils.isSafari;
-var isFirefox       = browserUtils.isFirefox;
-var isIE            = browserUtils.isIE;
-var isIE11          = browserUtils.isIE11;
-var isMSEdge        = browserUtils.isMSEdge;
-// var isAndroid       = browserUtils.isAndroid;
-// var browserVersion  = browserUtils.version;
-// var isMobileBrowser = browserUtils.isIOS || isAndroid;
-// var isMacPlatform   = browserUtils.isMacPlatform;
+var inputTestValue = 'test@host.net';
+var isSafari       = browserUtils.isSafari;
+var isFirefox      = browserUtils.isFirefox;
+var isIE           = browserUtils.isIE;
+var isIE11         = browserUtils.isIE11;
 
 var FOCUS_TIMEOUT = isIE11 ? 100 : 0;
 
@@ -22,6 +16,18 @@ var createTestInput = function (type, value) {
     input.setAttribute('type', type);
 
     document.body.appendChild(input);
+
+    nativeMethods.inputValueSetter.call(input, value);
+
+    return input;
+};
+
+var createNativeInput = function (type, value) {
+    var input = nativeMethods.createElement.call(document, 'input');
+
+    nativeMethods.setAttribute.call(input, 'type', type);
+
+    nativeMethods.appendChild.call(document.body, input);
 
     nativeMethods.inputValueSetter.call(input, value);
 
@@ -50,34 +56,16 @@ test('Set and get selection on input with "email" type', function () {
     document.body.removeChild(input);
 });
 
-test('!!! Get selection on input with "email" type', function () {
-    var input     = createTestInput('email', inputTestValue);
-    var selection = selectionSandbox.getSelection(input);
+test('Get selection on input with "email" type', function () {
+    var input       = createTestInput('email', inputTestValue);
+    var selection   = selectionSandbox.getSelection(input);
+    var nativeInput = createNativeInput('email', inputTestValue);
 
-    var expectedPosition;
+    strictEqual(selection.start, nativeInput.selectionStart);
+    strictEqual(selection.end, nativeInput.selectionEnd);
+    strictEqual(selection.direction, nativeInput.selectionDirection);
 
-    if (isSafari)
-        expectedPosition = inputTestValue.length;
-    else if (isIE)
-        expectedPosition = 0;
-    else
-        expectedPosition = null;
-
-    strictEqual(selection.start, expectedPosition);
-    strictEqual(selection.end, expectedPosition);
-
-    var expectedDirection;
-
-    if (isSafari)
-        expectedDirection = 'none';
-    else if (isMSEdge)
-        expectedDirection = 'forward';
-
-    if (isSafari || isMSEdge)
-        strictEqual(selection.direction, expectedDirection);
-    else if (!isIE11)
-        strictEqual(selection.direction, null); // TODO: remove this case
-
+    nativeMethods.removeChild.call(document.body, nativeInput);
     document.body.removeChild(input);
 });
 
