@@ -61,12 +61,16 @@ const CLIENT_TESTS_BROWSERS = [
         browserName: 'internet explorer',
         version:     '11.0'
     },
-    // NOTE: Temporary disable because of https://github.com/webdriverio/webdriverio/issues/3754#issuecomment-475876500
-    /*{
+    {
         browserName: 'safari',
         platform:    'macOS 10.14',
         version:     '12.0'
-    },*/
+    },
+    {
+        browserName: 'safari',
+        platform:    'macOS 10.15',
+        version:     '13.0'
+    },
     {
         browserName:     'Safari',
         deviceName:      'iPhone 7 Plus Simulator',
