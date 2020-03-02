@@ -15,7 +15,7 @@ import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import getTopOpenerWindow from '../../utils/get-top-opener-window';
 
 const DEFAULT_WINDOW_PARAMETERS = 'width=500px, height=500px';
-const STORE_CHILD_WINDOW_CMD = 'hammerhead|command|store-child-window';
+const STORE_CHILD_WINDOW_CMD    = 'hammerhead|command|store-child-window';
 
 export default class ChildWindowSandbox extends SandboxBase {
     readonly WINDOW_OPENED_EVENT = 'hammerhead|event|window-opened';
@@ -124,6 +124,25 @@ export default class ChildWindowSandbox extends SandboxBase {
         }
     }
 
+    private _setupChildWindowCollecting (window: Window) {
+        if (window !== window.top)
+            return;
+
+        const topOpenerWindow = getTopOpenerWindow();
+
+        if (window.opener) {
+            if (!this._tryToStoreChildWindow(window, topOpenerWindow))
+                this._messageSandbox.sendServiceMsg({ cmd: STORE_CHILD_WINDOW_CMD }, topOpenerWindow);
+        } else {
+            this._childWindows = new Set();
+
+            this._messageSandbox.on(this._messageSandbox.SERVICE_MSG_RECEIVED_EVENT, ({ message, source }) => {
+                if (message.cmd === STORE_CHILD_WINDOW_CMD)
+                    this._childWindows.add(source);
+            });
+        }
+    }
+
     addWindow (win: Window) {
         this._childWindows.add(win);
     }
@@ -146,21 +165,6 @@ export default class ChildWindowSandbox extends SandboxBase {
     attach(window: Window): void {
         super.attach(window, window.document);
         this._handleFormSubmitting(window);
-
-        const topOpenerWindow = getTopOpenerWindow();
-
-        if (window === window.top) {
-            if (window.opener) {
-                if (!this._tryToStoreChildWindow(window, topOpenerWindow))
-                    this._messageSandbox.sendServiceMsg({ cmd: STORE_CHILD_WINDOW_CMD }, topOpenerWindow);
-            } else {
-                this._childWindows = new Set();
-
-                this._messageSandbox.on(this._messageSandbox.SERVICE_MSG_RECEIVED_EVENT, ({ message, source }) => {
-                    if (message.cmd === STORE_CHILD_WINDOW_CMD)
-                        this._childWindows.add(source);
-                });
-            }
-        }
+        this._setupChildWindowCollecting(window);
     }
 }
