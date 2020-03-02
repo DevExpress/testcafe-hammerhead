@@ -5,7 +5,8 @@ import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import IntegerIdGenerator from '../../utils/integer-id-generator';
 import nativeMethods from '../native-methods';
 import { changeSyncType, formatSyncCookie, generateDeleteSyncCookieStr } from '../../../utils/cookie';
-import ChildWindowSandbox from "../child-window";
+import ChildWindowSandbox from '../child-window';
+import getTopOpenerWindow from '../../utils/get-top-opener-window';
 
 const SYNC_COOKIE_START_CMD      = 'hammerhead|command|sync-cookie-start';
 const SYNC_COOKIE_DONE_CMD       = 'hammerhead|command|sync-cookie-done';
@@ -104,15 +105,15 @@ export default class WindowSync {
     }
 
     private _delegateSyncBetweenWindowsToMainTopWindow (cookies): void {
-        const mainTopWindow    = this._childWindowSandbox.getMainTopWindow();
-        const cookieSandboxTop = WindowSync._getCookieSandbox(mainTopWindow);
+        const topOpenerWindow  = getTopOpenerWindow();
+        const cookieSandboxTop = WindowSync._getCookieSandbox(topOpenerWindow);
 
         if (cookieSandboxTop) {
             cookieSandboxTop.syncWindowCookie(cookies);
             cookieSandboxTop.getWindowSync().syncBetweenWindows(cookies, this._win);
         }
         else
-            this._messageSandbox.sendServiceMsg({ cmd: SYNC_COOKIE_START_CMD, cookies }, mainTopWindow);
+            this._messageSandbox.sendServiceMsg({ cmd: SYNC_COOKIE_START_CMD, cookies }, topOpenerWindow);
     }
 
     private _removeSyncCookie (cookies): void {

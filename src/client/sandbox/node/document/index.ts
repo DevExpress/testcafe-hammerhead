@@ -298,9 +298,7 @@ export default class DocumentSandbox extends SandboxBase {
 
         overrideDescriptor(documentCookiePropOwnerPrototype, 'cookie', {
             getter: () => documentSandbox._cookieSandbox.getCookie(),
-            setter: function (value) {
-                documentSandbox._cookieSandbox.setCookie(String(value));
-            }
+            setter: value => documentSandbox._cookieSandbox.setCookie(String(value))
         });
 
         overrideDescriptor(docPrototype, 'activeElement', {

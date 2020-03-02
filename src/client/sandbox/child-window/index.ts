@@ -12,6 +12,7 @@ import DefaultTarget from './default-target';
 import isKeywordTarget from '../../../utils/is-keyword-target';
 import Listeners from '../event/listeners';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
+import getTopOpenerWindow from '../../utils/get-top-opener-window';
 
 const DEFAULT_WINDOW_PARAMETERS = 'width=500px, height=500px';
 const STORE_CHILD_WINDOW_CMD = 'hammerhead|command|store-child-window';
@@ -19,7 +20,6 @@ const STORE_CHILD_WINDOW_CMD = 'hammerhead|command|store-child-window';
 export default class ChildWindowSandbox extends SandboxBase {
     readonly WINDOW_OPENED_EVENT = 'hammerhead|event|window-opened';
     private _childWindows: Set<Window> | null;
-    private _mainTopWindow: Window;
 
     // @ts-ignore
     constructor (private readonly _messageSandbox: MessageSandbox,
@@ -47,7 +47,7 @@ export default class ChildWindowSandbox extends SandboxBase {
         const targetWindow = window || this.window;
         const openedWindow = nativeMethods.windowOpen.call(targetWindow, newPageUrl, windowName, windowParams);
 
-        this._tryToStoreChildWindow(openedWindow);
+        this._tryToStoreChildWindow(openedWindow, getTopOpenerWindow());
 
         this.emit(this.WINDOW_OPENED_EVENT, { windowId, window: openedWindow });
 
@@ -113,9 +113,9 @@ export default class ChildWindowSandbox extends SandboxBase {
         });
     }
 
-    private _tryToStoreChildWindow (win: Window): boolean {
+    private _tryToStoreChildWindow (win: Window, topOpenerWindow: Window): boolean {
         try {
-            this._mainTopWindow[INTERNAL_PROPS.hammerhead].sandbox.childWindow.addWindow(win);
+            topOpenerWindow[INTERNAL_PROPS.hammerhead].sandbox.childWindow.addWindow(win);
 
             return true;
         }
@@ -143,25 +143,16 @@ export default class ChildWindowSandbox extends SandboxBase {
         return childWindows;
     }
 
-    getMainTopWindow () {
-        return this._mainTopWindow;
-    }
-
     attach(window: Window): void {
         super.attach(window, window.document);
         this._handleFormSubmitting(window);
 
-        let mainTopWindow = window.top;
-
-        while (mainTopWindow.opener)
-            mainTopWindow = mainTopWindow.opener.top;
-
-        this._mainTopWindow = mainTopWindow;
+        const topOpenerWindow = getTopOpenerWindow();
 
         if (window === window.top) {
             if (window.opener) {
-                if (!this._tryToStoreChildWindow(window))
-                    this._messageSandbox.sendServiceMsg({ cmd: STORE_CHILD_WINDOW_CMD }, mainTopWindow);
+                if (!this._tryToStoreChildWindow(window, topOpenerWindow))
+                    this._messageSandbox.sendServiceMsg({ cmd: STORE_CHILD_WINDOW_CMD }, topOpenerWindow);
             } else {
                 this._childWindows = new Set();
 
