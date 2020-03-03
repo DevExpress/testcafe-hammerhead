@@ -48,13 +48,11 @@ export default class XhrSandbox extends SandboxBase {
         const xmlHttpRequestProto    = window.XMLHttpRequest.prototype;
         const xmlHttpRequestToString = nativeMethods.XMLHttpRequest.toString();
 
-        const emitXhrCompletedEventIfNecessary = function () {
-            if (this.readyState === this.DONE) {
-                const nativeRemoveEventListener = nativeMethods.xhrRemoveEventListener || nativeMethods.removeEventListener;
+        const emitXhrCompletedEvent = function () {
+            const nativeRemoveEventListener = nativeMethods.xhrRemoveEventListener || nativeMethods.removeEventListener;
 
-                xhrSandbox.emit(xhrSandbox.XHR_COMPLETED_EVENT, { xhr: this });
-                nativeRemoveEventListener.call(this, 'readystatechange', emitXhrCompletedEventIfNecessary);
-            }
+            xhrSandbox.emit(xhrSandbox.XHR_COMPLETED_EVENT, { xhr: this });
+            nativeRemoveEventListener.call(this, 'loadend', emitXhrCompletedEvent);
         };
 
         const syncCookieWithClientIfNecessary = function () {
@@ -73,7 +71,7 @@ export default class XhrSandbox extends SandboxBase {
 
             const xhr = new nativeMethods.XMLHttpRequest();
 
-            nativeAddEventListener.call(xhr, 'readystatechange', emitXhrCompletedEventIfNecessary);
+            nativeAddEventListener.call(xhr, 'loadend', emitXhrCompletedEvent);
             nativeAddEventListener.call(xhr, 'readystatechange', syncCookieWithClientIfNecessary);
 
             return xhr;
@@ -131,7 +129,9 @@ export default class XhrSandbox extends SandboxBase {
             nativeMethods.xhrSend.apply(this, arguments);
 
             // NOTE: For xhr with the sync mode
-            emitXhrCompletedEventIfNecessary.call(this);
+            if (this.readyState === this.DONE)
+                emitXhrCompletedEvent.call(this);
+
             syncCookieWithClientIfNecessary.call(this);
         };
 
