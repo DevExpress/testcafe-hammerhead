@@ -202,14 +202,8 @@ export const responseTransforms = {
 
 export const forcedResponseTransforms = {
     'set-cookie': (src: string, ctx: RequestPipelineContext) => {
-        let parsedCookies;
+        let parsedCookies = src ? ctx.session.cookies.setByServer(ctx.dest.url, src) : [];
 
-        if (src)
-            parsedCookies = ctx.session.cookies.setByServer(ctx.dest.url, src);
-
-        if (!ctx.isPage || ctx.isIframe)
-            return generateSyncCookie(ctx, parsedCookies || []);
-
-        return [];
+        return generateSyncCookie(ctx, parsedCookies);
     }
 };

@@ -15,7 +15,7 @@ import UnloadSandbox from './unload';
 enum MessageType {
     Service = 'hammerhead|service-msg',
     User    = 'hammerhead|user-msg'
-};
+}
 
 export default class MessageSandbox extends SandboxBase {
     readonly PING_DELAY = 200;

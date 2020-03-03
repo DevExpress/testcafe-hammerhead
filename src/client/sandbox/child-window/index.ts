@@ -2,7 +2,6 @@ import SandboxBase from '../base';
 import MessageSandbox from '../event/message';
 import settings from '../../settings';
 import nativeMethods from '../native-methods';
-import EventSandbox from '../event';
 import * as windowsStorage from '../windows-storage';
 import getRandomInt16Value from '../../utils/get-random-int-16-value';
 import * as domUtils from '../../utils/dom';
@@ -11,15 +10,20 @@ import { SPECIAL_BLANK_PAGE } from '../../../utils/url';
 import { OpenedWindowInfo } from '../../../typings/client';
 import DefaultTarget from './default-target';
 import isKeywordTarget from '../../../utils/is-keyword-target';
+import Listeners from '../event/listeners';
+import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
+import getTopOpenerWindow from '../../utils/get-top-opener-window';
 
 const DEFAULT_WINDOW_PARAMETERS = 'width=500px, height=500px';
+const STORE_CHILD_WINDOW_CMD    = 'hammerhead|command|store-child-window';
 
 export default class ChildWindowSandbox extends SandboxBase {
     readonly WINDOW_OPENED_EVENT = 'hammerhead|event|window-opened';
+    private _childWindows: Set<Window> | null;
 
     // @ts-ignore
     constructor (private readonly _messageSandbox: MessageSandbox,
-        private readonly _eventSandbox: EventSandbox) {
+        private readonly _listeners: Listeners) {
         super();
     }
 
@@ -43,6 +47,8 @@ export default class ChildWindowSandbox extends SandboxBase {
         const targetWindow = window || this.window;
         const openedWindow = nativeMethods.windowOpen.call(targetWindow, newPageUrl, windowName, windowParams);
 
+        this._tryToStoreChildWindow(openedWindow, getTopOpenerWindow());
+
         this.emit(this.WINDOW_OPENED_EVENT, { windowId, window: openedWindow });
 
         return { windowId, wnd: openedWindow };
@@ -52,8 +58,8 @@ export default class ChildWindowSandbox extends SandboxBase {
         if (!settings.get().allowMultipleWindows)
             return;
 
-        this._eventSandbox.listeners.initElementListening(el, ['click']);
-        this._eventSandbox.listeners.addInternalEventListener(el, ['click'], (_e, _dispatched, preventEvent, _cancelHandlers, stopEventPropagation) => {
+        this._listeners.initElementListening(el, ['click']);
+        this._listeners.addInternalEventListener(el, ['click'], (_e, _dispatched, preventEvent, _cancelHandlers, stopEventPropagation) => {
             if (!ChildWindowSandbox._shouldOpenInNewWindow(el.target, DefaultTarget.linkOrArea))
                 return;
 
@@ -83,8 +89,8 @@ export default class ChildWindowSandbox extends SandboxBase {
         if (!settings.get().allowMultipleWindows)
             return;
 
-        this._eventSandbox.listeners.initElementListening(window, ['submit']);
-        this._eventSandbox.listeners.addInternalEventListener(window, ['submit'], e => {
+        this._listeners.initElementListening(window, ['submit']);
+        this._listeners.addInternalEventListener(window, ['submit'], e => {
             if (!domUtils.isFormElement(e.target))
                 return;
 
@@ -107,8 +113,58 @@ export default class ChildWindowSandbox extends SandboxBase {
         });
     }
 
+    private _tryToStoreChildWindow (win: Window, topOpenerWindow: Window): boolean {
+        try {
+            topOpenerWindow[INTERNAL_PROPS.hammerhead].sandbox.childWindow.addWindow(win);
+
+            return true;
+        }
+        catch (e) {
+            return false;
+        }
+    }
+
+    private _setupChildWindowCollecting (window: Window) {
+        if (window !== window.top)
+            return;
+
+        const topOpenerWindow = getTopOpenerWindow();
+
+        if (window.opener) {
+            if (!this._tryToStoreChildWindow(window, topOpenerWindow))
+                this._messageSandbox.sendServiceMsg({ cmd: STORE_CHILD_WINDOW_CMD }, topOpenerWindow);
+        } else {
+            this._childWindows = new Set();
+
+            this._messageSandbox.on(this._messageSandbox.SERVICE_MSG_RECEIVED_EVENT, ({ message, source }) => {
+                if (message.cmd === STORE_CHILD_WINDOW_CMD)
+                    this._childWindows.add(source);
+            });
+        }
+    }
+
+    addWindow (win: Window) {
+        this._childWindows.add(win);
+    }
+
+    getChildWindows (): Window[] {
+        const childWindows = [];
+
+        // eslint-disable-next-line hammerhead/proto-methods
+        this._childWindows.forEach(win => {
+            // NOTE: sort windows that can be closed
+            if (win.parent)
+                childWindows.push(win);
+            else
+                this._childWindows.delete(win);
+        });
+
+        return childWindows;
+    }
+
     attach(window: Window): void {
         super.attach(window, window.document);
         this._handleFormSubmitting(window);
+        this._setupChildWindowCollecting(window);
     }
 }
