@@ -50,6 +50,11 @@ const CLIENT_TESTS_BROWSERS = [
     },
     {
         platform:    'Windows 10',
+        browserName: 'MicrosoftEdge',
+        version:     '18.17763'
+    },
+    {
+        platform:    'Windows 10',
         browserName: 'chrome'
     },
     {
@@ -61,12 +66,11 @@ const CLIENT_TESTS_BROWSERS = [
         browserName: 'internet explorer',
         version:     '11.0'
     },
-    // NOTE: Temporary disable because of https://github.com/webdriverio/webdriverio/issues/3754#issuecomment-475876500
-    /*{
+    {
         browserName: 'safari',
         platform:    'macOS 10.14',
-        version:     '12.0' // NOTE: https://github.com/DevExpress/testcafe-hammerhead/issues/2254
-    },*/
+        version:     '12.0'
+    },
     {
         browserName: 'safari',
         platform:    'macOS 10.15',
@@ -91,6 +95,22 @@ const CLIENT_TESTS_BROWSERS = [
     {
         browserName: 'firefox',
         platform:    'OS X 10.11'
+    },
+    {
+        browserName: 'chrome',
+        platform:    'macOS 10.15'
+    },
+    {
+        browserName: 'firefox',
+        platform:    'macOS 10.15'
+    },
+    {
+        browserName: 'chrome',
+        platform:    'Linux'
+    },
+    {
+        browserName: 'firefox',
+        platform:    'Linux'
     }
 ];
 
@@ -268,7 +288,7 @@ gulp.task('test-client-dev', gulp.series('set-dev-mode', 'test-client'));
 
 gulp.step('travis-saucelabs-qunit', () => {
     return gulp
-        .src('./test/client/fixtures/**/*-test.js')
+        .src('./test/client/fixtures/sandbox/selection-test.js')
         .pipe(qunitHarness(getClientTestSettings(), SAUCELABS_SETTINGS));
 });
 
