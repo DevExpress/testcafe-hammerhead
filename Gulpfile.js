@@ -103,14 +103,6 @@ const CLIENT_TESTS_BROWSERS = [
     {
         browserName: 'firefox',
         platform:    'macOS 10.15'
-    },
-    {
-        browserName: 'chrome',
-        platform:    'Linux'
-    },
-    {
-        browserName: 'firefox',
-        platform:    'Linux'
     }
 ];
 
