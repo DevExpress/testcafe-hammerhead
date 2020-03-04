@@ -931,7 +931,7 @@ describe('Script processor', () => {
                 },
                 {
                     src:      'const y = { async [x] () { await (0); } }[x]', // GH-1862
-                    expected: 'const y = __get$({ async [x] () { await (0); } }, x)'
+                    expected: 'const y = __get$({ async [x] () { await 0; } }, x)'
                 },
                 {
                     src:      'new X(() => {(async () => { b[c] = d; })(); })', // GH-2002
@@ -944,6 +944,14 @@ describe('Script processor', () => {
                 {
                     src:      'd[f]=async function(){await(x={qwe:123},y(x))}', // GH-2072
                     expected: '__set$(d,f,async function(){await (x={qwe:123},y(x));})'
+                },
+                {
+                    src:      'async function f() { result[type] = (await result).clone(); }', // GH-2255
+                    expected: 'async function f() {  __set$(result,type,(await result).clone()); }'
+                },
+                {
+                    src:      'async function f() { result[type] = await result.clone(); }', // GH-2255
+                    expected: 'async function f() {  __set$(result,type,await result.clone()); }'
                 }
             ]);
         });
