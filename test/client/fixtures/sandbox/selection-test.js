@@ -35,8 +35,7 @@ var createNativeInput = function (type, value) {
 };
 
 test('!!! Selection properties', function () {
-    var nativeEmailInput  = createNativeInput('email', 'test@test.com');
-    var nativeNumberInput = createNativeInput('email', 42);
+    var nativeNumberInput = createNativeInput('number', 42);
 
     function checkSelection (nativeInput) {
         strictEqual(nativeInput.selectionStart, '___', '[' + nativeInput.type + '] selectionStart');
@@ -44,10 +43,8 @@ test('!!! Selection properties', function () {
         strictEqual(nativeInput.selectionDirection, '___', '[' + nativeInput.type + '] selectionDirection');
     }
 
-    checkSelection(nativeEmailInput);
     checkSelection(nativeNumberInput);
 
-    nativeMethods.removeChild.call(document.body, nativeEmailInput);
     nativeMethods.removeChild.call(document.body, nativeNumberInput);
 });
 
