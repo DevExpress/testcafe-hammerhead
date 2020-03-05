@@ -1,10 +1,13 @@
 import { ServiceMessage } from '../../typings/proxy';
 
+const MAX_RETRIES = 3;
+
 interface RequestContext {
     url: string;
     msg: ServiceMessage;
     callback: (err?: string, response?: any) => void;
     handleEvent: (e: ProgressEvent) => void;
+    retries: number;
 }
 
 function handleResolve (ctx: RequestContext, e: ProgressEvent) {
@@ -32,7 +35,14 @@ function handleReject (ctx: RequestContext, e: ProgressEvent) {
         ctx.callback(errorMsg);
     }
     else {
-        ctx.msg.disableResending = true;
+        ctx.retries = Math.min(MAX_RETRIES, ctx.retries + 1);
+
+        if (ctx.retries === MAX_RETRIES) {
+            ctx.msg.disableResending = true;
+        }
+
+        // Reloading the page as iframe is not loaded
+        window.location.reload();
 
         request(ctx.url, ctx.msg, ctx.callback);
     }
@@ -49,7 +59,7 @@ function handleEvent (e: ProgressEvent) {
 
 export default function request (url: string, msg: ServiceMessage, callback: RequestContext['callback']) {
     const xhr                 = new XMLHttpRequest();
-    const ctx: RequestContext = { url, msg, callback, handleEvent };
+    const ctx: RequestContext = { url, msg, callback, handleEvent, retries: 0 };
 
     xhr.open('POST', url, true);
     xhr.setRequestHeader('cache-control', 'no-cache, no-store, must-revalidate');
