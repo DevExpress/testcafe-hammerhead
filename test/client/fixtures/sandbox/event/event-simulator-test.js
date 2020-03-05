@@ -947,3 +947,65 @@ test('wrong type of the blur event (GH-947)', function () {
     ok(raised);
 });
 
+if (!browserUtils.isIE) {
+    test('specific events has the `composed: true` property', function () {
+        var log = {};
+
+        var expectedLog = {
+            'blur':        true,
+            'focus':       true,
+            'focusin':     true,
+            'focusout':    true,
+            'click':       true,
+            'dblclick':    true,
+            'mousedown':   true,
+            'mousemove':   true,
+            'mouseout':    true,
+            'mouseover':   true,
+            'mouseup':     true,
+            'beforeinput': true,
+            'input':       true,
+            'keydown':     true,
+            'keyup':       true
+        };
+
+        function handler (e) {
+            log[e.type] = e.composed;
+        }
+
+        domElement.addEventListener('blur', handler);
+        domElement.addEventListener('focus', handler);
+        domElement.addEventListener('focusin', handler);
+        domElement.addEventListener('focusout', handler);
+        domElement.addEventListener('click', handler);
+        domElement.addEventListener('dblclick', handler);
+        domElement.addEventListener('mousedown', handler);
+        domElement.addEventListener('mousemove', handler);
+        domElement.addEventListener('mouseout', handler);
+        domElement.addEventListener('mouseover', handler);
+        domElement.addEventListener('mouseup', handler);
+        domElement.addEventListener('beforeinput', handler);
+        domElement.addEventListener('input', handler);
+        domElement.addEventListener('keyup', handler);
+        domElement.addEventListener('keydown', handler);
+        domElement.addEventListener('keyup', handler);
+
+        eventSimulator.blur(domElement);
+        eventSimulator.focus(domElement);
+        eventSimulator.focusin(domElement);
+        eventSimulator.focusout(domElement);
+        eventSimulator.click(domElement);
+        eventSimulator.dblclick(domElement);
+        eventSimulator.mousedown(domElement);
+        eventSimulator.mousemove(domElement);
+        eventSimulator.mouseout(domElement);
+        eventSimulator.mouseover(domElement);
+        eventSimulator.mouseup(domElement);
+        eventSimulator.beforeInput(domElement);
+        eventSimulator.input(domElement);
+        eventSimulator.keydown(domElement);
+        eventSimulator.keyup(domElement);
+
+        deepEqual(log, expectedLog);
+    });
+}
