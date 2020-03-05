@@ -1,5 +1,22 @@
 import nativeMethods from '../sandbox/native-methods';
 
+const COMPOSED_EVENTS = [
+    'blur',
+    'focus',
+    'focusin',
+    'focusout',
+    'click',
+    'dblclick',
+    'mousedown',
+    'mousemove',
+    'mouseout',
+    'mouseover',
+    'mouseup',
+    'beforeinput',
+    'input',
+    'keydown',
+    'keyup'
+];
 
 export const BUTTON = {
     left:   0,
@@ -72,6 +89,10 @@ export function callEventListener (ctx, listener, e) {
         return listener.handleEvent.call(listener, e);
 
     return listener.call(ctx, e);
+}
+
+export function isComposedEvent (event) {
+    return COMPOSED_EVENTS.indexOf(event) !== -1;
 }
 
 export const hasPointerEvents = !!(nativeMethods.WindowPointerEvent || nativeMethods.WindowMSPointerEvent);

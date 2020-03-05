@@ -146,6 +146,7 @@ export default class EventSimulator {
 
         return {
             type:       type,
+            composed :  options.composed,
             canBubble:  options.canBubble !== false,
             cancelable: options.cancelable !== false,
             view:       options.view || window,
@@ -245,6 +246,8 @@ export default class EventSimulator {
                 relatedTarget: userOptions.relatedTarget
             } : {},
             options);
+
+        opts.composed = eventUtils.isComposedEvent(event);
 
         if (!opts.relatedTarget)
             opts.relatedTarget = document.body;
@@ -382,6 +385,7 @@ export default class EventSimulator {
         if (this.browserWithNewEventsStyle && nativeMethods.WindowKeyboardEvent) {
             const eventArgs: any = {
                 bubbles:          args.canBubble,
+                composed:         args.composed,
                 cancelable:       args.cancelable,
                 cancelBubble:     false,
                 defaultPrevented: false,
@@ -617,6 +621,7 @@ export default class EventSimulator {
         if (this.browserWithNewEventsStyle && nativeMethods.WindowMouseEvent) {
             event = new nativeMethods.WindowMouseEvent(args.type, {
                 bubbles:       args.canBubble,
+                composed:      args.composed,
                 cancelable:    args.cancelable,
                 view:          window,
                 detail:        args.detail,
@@ -676,6 +681,7 @@ export default class EventSimulator {
         if (this.browserWithNewEventsStyle && nativeMethods.WindowFocusEvent) {
             event = new nativeMethods.WindowFocusEvent(name, {
                 bubbles:          bubbles,
+                composed:         eventUtils.isComposedEvent(name),
                 cancelable:       false,
                 cancelBubble:     false,
                 relatedTarget:    relatedTarget,
@@ -720,21 +726,21 @@ export default class EventSimulator {
     }
 
     _dispatchInputEvent (el, type, text) {
-        if (nativeMethods.WindowInputEvent) {
-            const args = {
-                bubbles:    true,
-                cancelable: true,
-                view:       window,
-                inputType:  'insertText',
-                data:       text
-            };
+        if (!nativeMethods.WindowInputEvent)
+            return this._dispatchEvent(el, type, true);
 
-            const event = new nativeMethods.WindowInputEvent(type, args);
+        const args = {
+            bubbles:    true,
+            composed:   eventUtils.isComposedEvent(type),
+            cancelable: true,
+            view:       window,
+            inputType:  'insertText',
+            data:       text
+        };
 
-            return this._raiseDispatchEvent(el, event);
-        }
+        const event = new nativeMethods.WindowInputEvent(type, args);
 
-        return null;
+        return this._raiseDispatchEvent(el, event);
     }
 
     _dispatchEvent (el, name, shouldBubble, flag?: string) {
@@ -926,7 +932,7 @@ export default class EventSimulator {
     }
 
     input (el) {
-        return this._dispatchEvent(el, 'input', true);
+        return this._dispatchInputEvent(el, 'input', null);
     }
 
     submit (el) {
