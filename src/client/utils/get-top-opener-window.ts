@@ -4,7 +4,7 @@ export default function getTopOpenerWindow() {
     if (!topOpenerWindow) {
         topOpenerWindow = window.top;
 
-        while (topOpenerWindow.opener)
+        while (topOpenerWindow.opener && topOpenerWindow !== topOpenerWindow.opener)
             topOpenerWindow = topOpenerWindow.opener.top;
     }
 
