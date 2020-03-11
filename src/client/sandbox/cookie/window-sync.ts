@@ -47,7 +47,7 @@ export default class WindowSync {
 
             if (this._win !== this._win.top)
                 this._messageSandbox.sendServiceMsg({ id: message.id, cmd: SYNC_COOKIE_DONE_CMD }, source);
-            else if (this._win.opener) {
+            else if (this._win !== getTopOpenerWindow()) {
                 this.syncBetweenWindows(message.cookies, source)
                     .then(() => this._messageSandbox.sendServiceMsg({
                         id: message.id,
@@ -133,7 +133,9 @@ export default class WindowSync {
     }
 
     syncBetweenWindows (cookies, initiator?: Window): Promise<void> {
-        if (this._win !== this._win.top || this._win.opener && !initiator) {
+        const topOpenerWindow = getTopOpenerWindow();
+
+        if (this._win !== this._win.top || this._win !== topOpenerWindow && !initiator) {
             this._delegateSyncBetweenWindowsToMainTopWindow(cookies);
 
             return Promise.resolve();
@@ -142,7 +144,7 @@ export default class WindowSync {
         const windowsForSync                = this._getWindowsForSync(initiator, this._win);
         const syncMessages: Promise<void>[] = [];
 
-        if (!this._win.opener) {
+        if (this._win === topOpenerWindow) {
             for (const win of this._childWindowSandbox.getChildWindows()) {
                 const cookieSandbox = WindowSync._getCookieSandbox(win);
 
@@ -165,7 +167,7 @@ export default class WindowSync {
         if (syncMessages.length) {
             let syncMessagesPromise = Promise.all(syncMessages);
 
-            if (!this._win.opener)
+            if (this._win === topOpenerWindow)
                 syncMessagesPromise = syncMessagesPromise.then(() => this._removeSyncCookie(cookies));
 
             return syncMessagesPromise;

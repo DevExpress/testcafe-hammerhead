@@ -17,6 +17,7 @@ import {
 } from '../../../utils/cookie';
 import { CookieRecord } from '../../../typings/cookie';
 import ChildWindowSandbox from '../child-window';
+import getTopOpenerWindow from '../../utils/get-top-opener-window';
 
 const MIN_DATE_VALUE = new nativeMethods.date(0).toUTCString();
 
@@ -219,7 +220,7 @@ export default class CookieSandbox extends SandboxBase {
 
         this._windowSync.attach(window);
 
-        if (window === window.top && !window.opener)
+        if (window === getTopOpenerWindow())
             this._unloadSandbox.on(this._unloadSandbox.UNLOAD_EVENT, CookieSandbox._removeAllSyncCookie);
     }
 }

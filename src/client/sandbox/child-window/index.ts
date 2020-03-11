@@ -130,7 +130,7 @@ export default class ChildWindowSandbox extends SandboxBase {
 
         const topOpenerWindow = getTopOpenerWindow();
 
-        if (window.opener) {
+        if (window !== topOpenerWindow) {
             if (!this._tryToStoreChildWindow(window, topOpenerWindow))
                 this._messageSandbox.sendServiceMsg({ cmd: STORE_CHILD_WINDOW_CMD }, topOpenerWindow);
         } else {
