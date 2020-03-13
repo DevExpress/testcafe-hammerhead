@@ -2,12 +2,15 @@ var selectionSandbox = hammerhead.eventSandbox.selection;
 var browserUtils     = hammerhead.utils.browser;
 var nativeMethods    = hammerhead.nativeMethods;
 
-var inputTestValue  = 'test@host.net';
-var isIE            = browserUtils.isIE;
-var isMobileBrowser = browserUtils.isIOS || browserUtils.isAndroid;
-var browserVersion  = browserUtils.version;
+var emailInputTestValue  = 'test@host.net';
+var numberInputTestValue = '42';
 
-var FOCUS_TIMEOUT = browserUtils.isIE11 ? 100 : 0;
+var isSafari  = browserUtils.isSafari;
+var isFirefox = browserUtils.isFirefox;
+var isIE      = browserUtils.isIE;
+var isIE11    = browserUtils.isIE11;
+
+var FOCUS_TIMEOUT = isIE11 ? 100 : 0;
 
 var createTestInput = function (type, value) {
     var input = document.createElement('input');
@@ -21,8 +24,20 @@ var createTestInput = function (type, value) {
     return input;
 };
 
+var createNativeInput = function (type, value) {
+    var input = nativeMethods.createElement.call(document, 'input');
+
+    nativeMethods.setAttribute.call(input, 'type', type);
+
+    nativeMethods.appendChild.call(document.body, input);
+
+    nativeMethods.inputValueSetter.call(input, value);
+
+    return input;
+};
+
 test('Set and get selection on input with "email" type', function () {
-    var input = createTestInput('email', inputTestValue);
+    var input = createTestInput('email', emailInputTestValue);
 
     var testSelection = {
         start:     2,
@@ -43,22 +58,28 @@ test('Set and get selection on input with "email" type', function () {
     document.body.removeChild(input);
 });
 
-test('Get selection on input with "email" type', function () {
-    var input     = createTestInput('email', inputTestValue);
-    var selection = selectionSandbox.getSelection(input);
+test('Selection of "email" and "number" inputs should be equal to native ones', function () {
+    var emailInput          = createTestInput('email', emailInputTestValue);
+    var emailInputSelection = selectionSandbox.getSelection(emailInput);
+    var nativeEmailInput    = createNativeInput('email', emailInputTestValue);
 
-    var isNotSupportedBrowser = browserUtils.isFirefox && browserVersion > 67 || isIE || browserUtils.isChrome && browserVersion > 74;
+    var numberInput          = createTestInput('number', numberInputTestValue);
+    var numberInputSelection = selectionSandbox.getSelection(numberInput);
+    var nativeNumberInput    = createNativeInput('number', numberInputTestValue);
 
-    strictEqual(selection.start, isNotSupportedBrowser ? 0 : inputTestValue.length);
-    strictEqual(selection.end, isNotSupportedBrowser ? 0 : inputTestValue.length);
+    function checkSelection (testInputSelection, nativeInput) {
+        strictEqual(testInputSelection.start, nativeInput.selectionStart);
+        strictEqual(testInputSelection.end, nativeInput.selectionEnd);
+        strictEqual(testInputSelection.direction, nativeInput.selectionDirection);
+    }
 
-    if (isMobileBrowser && !browserUtils.isAndroid || browserUtils.isSafari ||
-        browserUtils.isChrome && (browserUtils.isMacPlatform || browserVersion < 54))
-        strictEqual(selection.direction, 'none');
-    else if (!isIE)
-        strictEqual(selection.direction, 'forward');
+    checkSelection(emailInputSelection, nativeEmailInput);
+    checkSelection(numberInputSelection, nativeNumberInput);
 
-    document.body.removeChild(input);
+    nativeMethods.removeChild.call(document.body, nativeEmailInput);
+    document.body.removeChild(emailInput);
+    nativeMethods.removeChild.call(document.body, nativeNumberInput);
+    document.body.removeChild(numberInput);
 });
 
 test('Focus should stay on input with "number" type after setting selection', function () {
@@ -105,7 +126,7 @@ asyncTest('Focus should not be called during setting selection if conteneditable
     }, true, true);
 
     window.setTimeout(function () {
-        if (!browserUtils.isFirefox)
+        if (!isFirefox)
             ok(focused);
 
         ok(selectionSet);
@@ -134,7 +155,7 @@ asyncTest('Focus should not be called during setting selection if conteneditable
 asyncTest('Focus should not be called during setting selection if editable element has been already focused (TestCafe GH - 2301)', function () {
     var input           = createTestInput('text', 'some text');
     var focused         = false;
-    var shouldBeFocused = browserUtils.isIE || browserUtils.isSafari;
+    var shouldBeFocused = isIE || isSafari;
     var startPos        = 1;
     var endPos          = 3;
 
