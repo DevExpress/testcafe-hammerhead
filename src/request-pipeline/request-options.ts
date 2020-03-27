@@ -20,6 +20,7 @@ export default class RequestOptions {
     rawHeaders: string[];
     headers: IncomingHttpHeaders;
     auth: string | void;
+    requestId: string;
     proxy?: ExternalProxySettings;
     agent?: any;
     ecdhCurve?: string;
@@ -49,6 +50,7 @@ export default class RequestOptions {
         this.isAjax      = ctx.isAjax;
         this.rawHeaders  = ctx.req.rawHeaders;
         this.headers     = headers;
+        this.requestId   = ctx.requestId;
 
         this._applyExternalProxySettings(proxy, ctx, headers);
     }

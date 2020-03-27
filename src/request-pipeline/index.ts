@@ -26,6 +26,7 @@ import {
     callOnResponseEventCallbackWithoutBodyForNonProcessedResource,
     callOnResponseEventCallbackForMotModifiedResource
 } from './utils';
+import { proxyRequestLogger, proxyErrorLogger } from '../utils/debug-network';
 
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 
@@ -36,6 +37,8 @@ const stages = [
             return;
 
         ctx.res.on('error', e => {
+            proxyErrorLogger(ctx, e);
+
             // @ts-ignore
             if (e.code === 'ECONNRESET' && !ctx.mock) {
                 if (ctx.destRes)
@@ -191,6 +194,8 @@ const stages = [
 
 export async function run (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo, openSessions: Map<string, Session>): Promise<void> {
     const ctx = new RequestPipelineContext(req, res, serverInfo);
+
+    proxyRequestLogger(ctx);
 
     if (!ctx.dispatch(openSessions)) {
         respond404(res);

@@ -383,6 +383,8 @@ export default class RequestPipelineContext {
 
         res.writeHead(this.destRes.statusCode as number, headers);
         res.addTrailers(this.destRes.trailers as http.OutgoingHttpHeaders);
+
+        proxyResponseLogger(this, headers);
     }
 
     async mockResponse (): Promise<void> {

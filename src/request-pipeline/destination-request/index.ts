@@ -11,6 +11,12 @@ import { getAuthInfo, addCredentials, requiresResBody } from 'webauth';
 import connectionResetGuard from '../connection-reset-guard';
 import { MESSAGE, getText } from '../../messages';
 import { transformHeadersCaseToRaw } from '../header-transforms';
+import {
+    destinationRequestLogger,
+    destinationResponseLogger,
+    destinationErrorLogger,
+    destinationTimeoutLogger
+} from '../../utils/debug-network';
 
 const TUNNELING_SOCKET_ERR_RE    = /tunneling socket could not be established/i;
 const TUNNELING_AUTHORIZE_ERR_RE = /statusCode=407/i;
@@ -39,6 +45,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     private readonly opts: RequestOptions;
     private readonly isHttps: boolean;
     private readonly protocolInterface: any;
+    private readonly timeout: number;
 
     static TIMEOUT = 25 * 1000;
     static AJAX_TIMEOUT = 2 * 60 * 1000;
@@ -49,6 +56,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         this.opts              = opts;
         this.isHttps           = opts.protocol === 'https:';
         this.protocolInterface = this.isHttps ? https : http;
+        this.timeout           = this.opts.isAjax ? DestinationRequest.AJAX_TIMEOUT : DestinationRequest.TIMEOUT;
 
         // NOTE: Ignore SSL auth.
         if (this.isHttps) {
@@ -64,7 +72,6 @@ export default class DestinationRequest extends EventEmitter implements Destinat
 
     _send (waitForData?: boolean): void {
         connectionResetGuard(() => {
-            const timeout       = this.opts.isAjax ? DestinationRequest.AJAX_TIMEOUT : DestinationRequest.TIMEOUT;
             const storedHeaders = this.opts.headers;
 
             // NOTE: The headers are converted to raw headers because some sites ignore headers in a lower case. (GH-1380)
@@ -84,9 +91,11 @@ export default class DestinationRequest extends EventEmitter implements Destinat
 
             this.req.on('error', (err: Error) => this._onError(err));
             this.req.on('upgrade', (res: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgrade(res, socket, head));
-            this.req.setTimeout(timeout, () => this._onTimeout());
+            this.req.setTimeout(this.timeout, () => this._onTimeout());
             this.req.write(this.opts.body);
             this.req.end();
+
+            destinationRequestLogger(this.opts);
         });
     }
 
@@ -105,6 +114,8 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     }
 
     _onResponse (res: http.IncomingMessage): void {
+        destinationResponseLogger(this.opts.requestId, res);
+
         if (this._shouldResendWithCredentials(res))
             this._resendWithCredentials(res);
         else if (!this.isHttps && this.opts.proxy && res.statusCode === 407)
@@ -157,6 +168,8 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     }
 
     _onTimeout (): void {
+        destinationTimeoutLogger(this.opts, this.timeout);
+
         // NOTE: this handler is also called if we get an error response (for example, 404). So, we should check
         // for the response presence before raising the timeout error.
         if (!this.hasResponse)
@@ -164,6 +177,8 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     }
 
     _onError (err: Error): void {
+        destinationErrorLogger(this.opts, err);
+
         if (this._isSocketHangUpErr(err))
             this.emit('socketHangUp');
 
