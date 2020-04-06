@@ -816,5 +816,5 @@ export function isNumberOrEmailInput (el): boolean {
 }
 
 export function isInputWithoutSelectionProperties (el): boolean {
-    return isNumberOrEmailInput(el) && (typeof el.selectionStart !== 'number');
+    return isNumberOrEmailInput(el);
 }
