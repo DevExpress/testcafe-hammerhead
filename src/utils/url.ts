@@ -5,6 +5,7 @@
 
 import trim from './string-trim';
 import { ParsedUrl, ResourceType, RequestDescriptor, ParsedProxyUrl, ProxyUrlOptions } from '../typings/url';
+import { ServerInfo } from '../typings/proxy';
 
 const PROTOCOL_RE        = /^([\w-]+?:)(\/\/|[^\\/]|$)/;
 const LEADING_SLASHES_RE = /^(\/\/)/;
@@ -457,4 +458,12 @@ export function prepareUrl (url: string): string {
     url = ensureOriginTrailingSlash(url);
 
     return url;
+}
+
+export function updateScriptImportUrls (cachedScript: string, serverInfo: ServerInfo, sessionId: string, windowId?: string) {
+    const regExp  = new RegExp('(' + serverInfo.protocol + '//' + serverInfo.hostname + ':(?:' + serverInfo.port + '|' +
+        serverInfo.crossDomainPort + ')/)[^/' + REQUEST_DESCRIPTOR_VALUES_SEPARATOR + ']+', 'g');
+    const pattern = '$1' + sessionId + (windowId ? REQUEST_DESCRIPTOR_SESSION_INFO_VALUES_SEPARATOR + windowId : '');
+
+    return cachedScript.replace(regExp, pattern);
 }
