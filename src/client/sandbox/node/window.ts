@@ -82,7 +82,8 @@ const IS_PROXY_OBJECT_INTERNAL_PROP_VALUE = 'hammerhead|is-proxy-object|internal
 
 const PROXY_HANDLER_FLAG = 'hammerhead|proxy-handler-flag';
 
-const NO_STACK_TRACE_AVAILABLE_MESSAGE = 'No stack trace available';
+const NO_STACK_TRACE_AVAILABLE_MESSAGE        = 'No stack trace available';
+const DEFAULT_UNHANDLED_REJECTION_REASON_NAME = 'Error';
 
 const TRACKED_EVENTS = ['error', 'unhandledrejection', 'hashchange'];
 
@@ -197,12 +198,13 @@ export default class WindowSandbox extends SandboxBase {
 
     static _formatUnhandledRejectionReason (reason: any): string {
         if (!isPrimitiveType(reason)) {
-            const reasonStr = nativeMethods.objectToString.call(reason);
+            if (reason instanceof (nativeMethods.Error as any)) {
+                const name = reason.name || DEFAULT_UNHANDLED_REJECTION_REASON_NAME;
 
-            if (reasonStr === '[object Error]')
-                return reason.message;
+                return `${name}: ${reason.message}`;
+            }
 
-            return reasonStr;
+            return nativeMethods.objectToString.call(reason);
         }
 
         return String(reason);

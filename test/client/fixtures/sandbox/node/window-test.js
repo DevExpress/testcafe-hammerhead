@@ -157,12 +157,17 @@ if (nativeMethods.winOnUnhandledRejectionSetter) {
                     return testMsg(new Error('error message'));
                 })
                 .then(function (msg) {
-                    strictEqual(msg, 'error message');
+                    strictEqual(msg, 'Error: error message');
+
+                    return testMsg(new DOMException('You cannot use function', 'SecurityError'));
+                })
+                .then(function (msg) {
+                    strictEqual(msg, 'SecurityError: You cannot use function');
 
                     return testMsg(new TypeError('type error'));
                 })
                 .then(function (msg) {
-                    strictEqual(msg, 'type error');
+                    strictEqual(msg, 'TypeError: type error');
 
                     return testMsg({ a: 1 });
                 })
