@@ -129,7 +129,7 @@ export default class WindowSandbox extends SandboxBase {
         if (!stack || stack.indexOf(msg) === -1) {
             stack = stack || `    ${NO_STACK_TRACE_AVAILABLE_MESSAGE}`;
 
-            return `${msg}:\n${stack}`;
+            return `${msg}\n${stack}`;
         }
 
         return stack;
