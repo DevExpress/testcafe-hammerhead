@@ -149,7 +149,7 @@ export default class WindowSync {
                 const cookieSandbox = WindowSync._getCookieSandbox(win);
 
                 if (cookieSandbox)
-                    syncMessages.push(cookieSandbox.getWindowSync().syncBetweenWindows(cookies));
+                    syncMessages.push(cookieSandbox.getWindowSync().syncBetweenWindows(cookies, this._win));
                 else
                     syncMessages.push(this._sendSyncMessage(win, SYNC_COOKIE_START_CMD, cookies));
             }
