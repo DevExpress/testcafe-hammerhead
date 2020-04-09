@@ -20,7 +20,7 @@ matrix:
      env: GULP_TASK="test-server"
    - node_js: "stable"
      env: GULP_TASK="test-client-travis"
-   - node_js: "8"
+   - node_js: "10"
      env: GULP_TASK="test-functional-testcafe-travis"
  fast_finish: true
 

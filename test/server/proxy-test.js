@@ -444,6 +444,13 @@ describe('Proxy', () => {
             writeBody();
         });
 
+        app.get('/script-with-import-statement', (req, res) => {
+            res
+                .status(200)
+                .set('content-type', 'text/javascript')
+                .end('import m from "module-name";');
+        });
+
         destServer = app.listen(2000);
 
         const crossDomainApp = express();
@@ -711,6 +718,53 @@ describe('Proxy', () => {
                     expect('expires' in res.headers).to.be.false;
 
                     session.disablePageCaching = false;
+                });
+        });
+
+        it('Should correctly cache scripts that contain session id in the import statement', () => {
+            const getUrlFromBodyReqExp = /[\S\s]+import m from\s+"([^"]+)[\S\s]+/g;
+            const someSession          = new Session();
+
+            someSession.id                 = 'dIonisses';
+            someSession.windowId           = '54321';
+            someSession.getAuthCredentials = () => null;
+            someSession.handleFileDownload = () => void 0;
+
+            let scriptProxyUrl = urlUtils.getProxyUrl('http://localhost:2000/script-with-import-statement', {
+                proxyHostname: PROXY_HOSTNAME,
+                proxyPort:     1836,
+                sessionId:     someSession.id,
+                windowId:      someSession.windowId,
+                resourceType:  urlUtils.getResourceTypeString({ isScript: true })
+            });
+
+            proxy.openSession('http://localhost:2000/', someSession);
+
+            return request(scriptProxyUrl)
+                .then(body => {
+                    const importUrl = body.replace(getUrlFromBodyReqExp, '$1');
+
+                    expect(importUrl).eql('http://127.0.0.1:1836/dIonisses*54321!s!utf-8/http://localhost:2000/module-name');
+
+
+                    session.id     = 'sessionId';
+                    scriptProxyUrl = urlUtils.getProxyUrl('http://localhost:2000/script-with-import-statement', {
+                        proxyHostname: PROXY_HOSTNAME,
+                        proxyPort:     1836,
+                        sessionId:     session.id,
+                        windowId:      session.windowId,
+                        resourceType:  urlUtils.getResourceTypeString({ isScript: true })
+                    });
+
+                    proxy.closeSession(someSession);
+                    proxy.openSession('http://localhost:2000/', session);
+
+                    return request(scriptProxyUrl);
+                })
+                .then(body => {
+                    const importUrl = body.replace(getUrlFromBodyReqExp, '$1');
+
+                    expect(importUrl).eql('http://127.0.0.1:1836/sessionId*12345!s!utf-8/http://localhost:2000/module-name');
                 });
         });
     });
