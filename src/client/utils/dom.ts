@@ -816,5 +816,12 @@ export function isNumberOrEmailInput (el): boolean {
 }
 
 export function isInputWithoutSelectionProperties (el): boolean {
-    return isNumberOrEmailInput(el) && (isWebKit || isFirefox);
+    if (!isNumberOrEmailInput(el))
+        return false;
+
+    const hasSelectionProperties = typeof el.selectionStart === 'number' &&
+        typeof el.selectionEnd === 'number' &&
+        typeof el.selectionDirection === 'string';
+
+    return !hasSelectionProperties;
 }
