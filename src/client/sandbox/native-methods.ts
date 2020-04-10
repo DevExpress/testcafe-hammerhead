@@ -324,10 +324,11 @@ class NativeMethods {
     Uint16Array: typeof Uint16Array;
     Uint32Array: typeof Uint32Array;
     DataView: any;
-    Blob: any;
+    Blob: Window['Blob'];
     XMLHttpRequest: any;
     Image: any;
     Function: any;
+    Error: any;
     functionToString: any;
     FontFace: any;
     StorageEvent: any;
@@ -1016,6 +1017,7 @@ class NativeMethods {
         this.Image            = win.Image;
         this.Function         = win.Function;
         this.functionToString = win.Function.toString;
+        this.Error            = win.Error;
         this.FontFace         = win.FontFace;
         this.StorageEvent     = win.StorageEvent;
         this.MutationObserver = win.MutationObserver;
