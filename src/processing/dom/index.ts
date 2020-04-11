@@ -319,7 +319,7 @@ export default class DomProcessor {
             if (target === '_parent')
                 return mustProcessTag && !this.adapter.isTopParentIframe(el);
 
-            if (mustProcessTag && (this.adapter.hasIframeParent(el) || isNameTarget && this.adapter.isExistingTarget(target)))
+            if (mustProcessTag && (this.adapter.hasIframeParent(el) || isNameTarget && this.adapter.isExistingTarget(target, el)))
                 return true;
         }
 

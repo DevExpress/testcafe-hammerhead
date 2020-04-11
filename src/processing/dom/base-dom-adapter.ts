@@ -36,5 +36,5 @@ export default abstract class BaseDomAdapter {
     abstract isTopParentIframe (el: HTMLElement | ASTNode): boolean;
     abstract sameOriginCheck (destUrl: string, resourceUrl: string): boolean;
     abstract getClassName (el: HTMLElement | ASTNode): string;
-    abstract isExistingTarget (target: string): boolean;
+    abstract isExistingTarget (target: string, el: ASTNode | void): boolean;
 }

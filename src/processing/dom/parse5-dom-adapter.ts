@@ -110,7 +110,12 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
         return urlUtils.sameOriginCheck(location, checkedUrl);
     }
 
-    isExistingTarget (): boolean {
-        return false;
+    isExistingTarget (target: string, el: ASTNode): boolean {
+        while (el.parentNode)
+            el = el.parentNode;
+
+        return parse5Utils.findElement(el, e => {
+            return this.getAttr(e, 'name') === target;
+        });
     }
 }
