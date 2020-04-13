@@ -82,18 +82,18 @@ export function findElementsByTagNames (root: ASTNode, tagNames: string[]): any 
     return elements;
 }
 
-export function findElement (el: ASTNode, predicate: Function) {
+export function findElement (el: ASTNode, predicate: (el: ASTNode) => boolean) {
     if (isElementNode(el) && predicate(el))
         return el;
 
     if (!el.childNodes)
         return null;
 
-    for (let i = 0; i < el.childNodes.length; i++) {
-        const child = findElement(el.childNodes[i], predicate);
+    for (let child of el.childNodes) {
+        const result = findElement(child, predicate);
 
-        if (child)
-            return child;
+        if (result)
+            return result;
     }
 
     return null;
