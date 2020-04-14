@@ -3,6 +3,13 @@ import { ASTAttribute, ASTNode } from 'parse5';
 
 const ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR = ':';
 
+function isElementNode (el: ASTNode) {
+    return el.nodeName !== '#document' &&
+        el.nodeName !== '#text' &&
+        el.nodeName !== '#documentType' &&
+        el.nodeName !== '#comment';
+}
+
 function getAttrName (attr: ASTAttribute) {
     return attr.prefix ? attr.prefix + ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR + attr.name : attr.name;
 }
@@ -75,9 +82,25 @@ export function findElementsByTagNames (root: ASTNode, tagNames: string[]): any 
     return elements;
 }
 
+export function findElement (el: ASTNode, predicate: (el: ASTNode) => boolean) {
+    if (isElementNode(el) && predicate(el))
+        return el;
+
+    if (!el.childNodes)
+        return null;
+
+    for (let child of el.childNodes) {
+        const result = findElement(child, predicate);
+
+        if (result)
+            return result;
+    }
+
+    return null;
+}
+
 export function walkElements (el: ASTNode, processor: Function): void {
-    if (el.nodeName !== '#document' && el.nodeName !== '#text' &&
-        el.nodeName !== '#documentType' && el.nodeName !== '#comment')
+    if (isElementNode(el))
         processor(el);
 
     if (el.childNodes)

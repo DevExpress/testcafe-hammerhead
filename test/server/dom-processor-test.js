@@ -145,17 +145,26 @@ describe('DOM processor', () => {
     });
 
     it('Should process target attribute for the elements in <iframe>', () => {
-        const root = process('<a id="a" href="http://example.com"></a>' +
-                           '<form id="form" action="http://example.com"></form>' +
-                           '<a id="a_target_top" href="http://example.com" target="_top"></a>' +
-                           '<a id="a_target_parent" href="http://example.com" target="_parent"></a>', true);
+        let root = process('<a id="a" href="http://example.com"></a>' +
+                             '<form id="form_simple" action="http://example.com"></form>' +
+                             '<a id="a_target_top" href="http://example.com" target="_top"></a>' +
+                             '<a id="a_target_parent" href="http://example.com" target="_parent"></a>', true);
 
-        const elements = parse5Utils.findElementsByTagNames(root, ['a', 'form']);
+        let elements = parse5Utils.findElementsByTagNames(root, ['a', 'form']);
 
         expect(urlUtils.parseProxyUrl(domAdapter.getAttr(elements.a[0], 'href')).resourceType).eql('i');
         expect(urlUtils.parseProxyUrl(domAdapter.getAttr(elements.form[0], 'action')).resourceType).eql('if');
         expect(urlUtils.parseProxyUrl(domAdapter.getAttr(elements.a[1], 'href')).resourceType).to.be.null;
         expect(domAdapter.getAttr(elements.a[2], 'href')).eql('http://example.com');
+
+        root = process('<form id="form" action="http://example.com"></form>' +
+                       '<form id="form_target_iframe" target="custom_iframe" action="http://example.com"></form>' +
+                       '<iframe name="custom_iframe"></iframe>', false);
+
+        elements = parse5Utils.findElementsByTagNames(root, ['form']);
+
+        expect(urlUtils.parseProxyUrl(domAdapter.getAttr(elements.form[0], 'action')).resourceType).eql('f');
+        expect(urlUtils.parseProxyUrl(domAdapter.getAttr(elements.form[1], 'action')).resourceType).eql('if');
     });
 
     it('Should process <iframe> with src without protocol', () => {
