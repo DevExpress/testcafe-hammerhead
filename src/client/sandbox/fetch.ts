@@ -25,8 +25,10 @@ export default class FetchSandbox extends SandboxBase {
         const credentials = init.credentials || DEFAULT_REQUEST_CREDENTIALS;
         let headers       = init.headers;
 
-        if (!isFetchHeaders(headers))
+        if (!isFetchHeaders(headers)) {
+            // @ts-ignore
             headers = init.headers = headers ? new nativeMethods.Headers(headers) : new nativeMethods.Headers();
+        }
 
         // eslint-disable-next-line no-restricted-properties
         nativeMethods.headersSet.call(headers, XHR_HEADERS.origin, getOriginHeader());
@@ -89,9 +91,13 @@ export default class FetchSandbox extends SandboxBase {
         if (entry.done)
             return entry;
 
-        // eslint-disable-next-line no-restricted-properties
+        /* eslint-disable no-restricted-properties */
         if (entry.value[0] === XHR_HEADERS.origin || entry.value[0] === XHR_HEADERS.fetchRequestCredentials)
             return FetchSandbox._entriesFilteredNext(iterator, nativeNext);
+
+        if (entry.value[0] === XHR_HEADERS.wwwAuth)
+            entry.value[0] = 'www-authenticate';
+        /* eslint-enable no-restricted-properties */
 
         return entry;
     }
@@ -211,14 +217,33 @@ export default class FetchSandbox extends SandboxBase {
             const callback = args[0];
 
             if (typeof callback === 'function') {
-                args[0] = function (_value, name) {
+                args[0] = function (value, name, headers) {
                     // eslint-disable-next-line no-restricted-properties
-                    if (name !== XHR_HEADERS.origin && name !== XHR_HEADERS.fetchRequestCredentials)
-                        callback.apply(this, arguments);
+                    if (name === XHR_HEADERS.origin || name === XHR_HEADERS.fetchRequestCredentials)
+                        return;
+
+                    if (name.toLocaleLowerCase() === XHR_HEADERS.wwwAuth)
+                        name = 'www-authenticate';
+
+                    callback.call(this, value, name, headers);
                 };
             }
 
             return nativeMethods.headersForEach.apply(this, args);
+        };
+
+        window.Headers.prototype.get = function (headerName: any) {
+            if (typeof headerName === 'string' && headerName.toLocaleLowerCase() === 'www-authenticate')
+                headerName = XHR_HEADERS.wwwAuth;
+
+            return nativeMethods.headersGet.call(this, headerName);
+        };
+
+        window.Headers.prototype.has = function (headerName: any) {
+            if (typeof headerName === 'string' && headerName.toLocaleLowerCase() === 'www-authenticate')
+                headerName = XHR_HEADERS.wwwAuth;
+
+            return nativeMethods.headersHas.call(this, headerName);
         };
     }
 }

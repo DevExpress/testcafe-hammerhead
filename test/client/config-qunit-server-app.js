@@ -155,6 +155,16 @@ module.exports = function (app) {
         res.json(req.headers);
     });
 
+    app.post('/set-response-headers', function (req, res) {
+        fetchContent(req)
+            .then(body => {
+                var headers = JSON.parse(body);
+
+                res.writeHead(200, headers);
+                res.end();
+            });
+    });
+
     app.post('/set-cookie-msg/', function (req, res) {
         fetchContent(req)
             .then(body => {

@@ -160,5 +160,18 @@ export default class XhrSandbox extends SandboxBase {
                 }
             });
         }
+
+        xmlHttpRequestProto.getResponseHeader = function (headerName: any) {
+            if (typeof headerName === 'string' && headerName.toLocaleLowerCase() === 'www-authenticate')
+                headerName = XHR_HEADERS.wwwAuth;
+
+            return nativeMethods.xhrGetResponseHeader.call(this, headerName);
+        };
+
+        xmlHttpRequestProto.getAllResponseHeaders = function () {
+            const allHeaders = nativeMethods.xhrGetAllResponseHeaders.call(this);
+
+            return allHeaders.replace(XHR_HEADERS.wwwAuth, 'www-authenticate');
+        };
     }
 }

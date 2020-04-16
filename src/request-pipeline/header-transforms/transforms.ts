@@ -205,5 +205,8 @@ export const forcedResponseTransforms = {
         let parsedCookies = src ? ctx.session.cookies.setByServer(ctx.dest.url, src) : [];
 
         return generateSyncCookie(ctx, parsedCookies);
-    }
+    },
+
+    [XHR_HEADERS.wwwAuth]: (_src: string, ctx: RequestPipelineContext) =>
+        'www-authenticate' in ctx.destRes.headers ? ctx.destRes.headers['www-authenticate'] : void 0
 };
