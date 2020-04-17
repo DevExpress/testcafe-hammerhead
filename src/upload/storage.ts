@@ -1,4 +1,4 @@
-import { castArray } from 'lodash';
+import { chain } from 'lodash';
 import mime from 'mime';
 import path from 'path';
 import { format } from 'util';
@@ -24,7 +24,7 @@ export default class UploadStorage {
     uploadRoots: string[];
 
     constructor (uploadRoots: string[]) {
-        this.uploadRoots = castArray(uploadRoots);
+        this.uploadRoots = chain(uploadRoots).castArray().uniq().value();
     }
 
     static async _getFilesToCopy (files: CopiedFileInfo[]): Promise<{ filesToCopy: CopiedFileInfo[]; errs: CopyingError[] }> {
