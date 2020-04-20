@@ -266,6 +266,44 @@ if (window.fetch) {
                 });
         });
 
+        test('the www-authenticate header processing', function () {
+            var headers = { 'content-type': 'text/plain' };
+
+            headers[xhrHeaders.wwwAuth] = 'Basic realm="Login"';
+
+            return fetch('/echo-request-body-in-response-headers', { method: 'post', body: JSON.stringify(headers) })
+                .then(function (res) {
+                    strictEqual(nativeMethods.headersHas.call(res.headers, xhrHeaders.wwwAuth), true);
+                    strictEqual(nativeMethods.headersHas.call(res.headers, 'www-authenticate'), false);
+                    strictEqual(res.headers.has('WWW-Authenticate'), true);
+                    strictEqual(res.headers.get('WWW-Authenticate'), 'Basic realm="Login"');
+
+                    var headersValuesIterator = res.headers.values();
+                    var headersValuesArray    = [];
+
+                    for (var value = headersValuesIterator.next(); !value.done; value = headersValuesIterator.next())
+                        headersValuesArray.push(value.value);
+
+                    notEqual(headersValuesArray.indexOf('Basic realm="Login"'), -1);
+
+                    var headersEntriesIterator = res.headers.entries();
+                    var headersEntriesArray    = [];
+
+                    for (var entry = headersEntriesIterator.next(); !entry.done; entry = headersEntriesIterator.next())
+                        headersEntriesArray.push(entry.value[0] + ': ' + entry.value[1]);
+
+                    notEqual(headersEntriesArray.indexOf('www-authenticate: Basic realm="Login"'), -1);
+
+                    headersEntriesArray = [];
+
+                    res.headers.forEach(function (hValue, hName) {
+                        headersEntriesArray.push(hName + ': ' + hValue);
+                    });
+
+                    notEqual(headersEntriesArray.indexOf('www-authenticate: Basic realm="Login"'), -1);
+                });
+        });
+
         module('Fetch request credentials', function () {
             module('default values');
 

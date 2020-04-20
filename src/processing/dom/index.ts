@@ -105,7 +105,7 @@ export default class DomProcessor {
     }
 
     _getRelAttribute (el: HTMLElement): string {
-        return String(this.adapter.getAttr(el, 'rel')).toLocaleLowerCase();
+        return String(this.adapter.getAttr(el, 'rel')).toLowerCase();
     }
 
     _createProcessorPatterns (adapter: any): ElementProcessingPattern[] {

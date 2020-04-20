@@ -242,22 +242,11 @@ describe('Proxy', () => {
 
         app.options('/preflight', (req, res) => res.end('42'));
 
-        app.get('/with-auth', (req, res) => {
-            const authHeader = req.headers['authorization'];
-
-            if (authHeader) {
-                const expectedAuthCredentials = 'testUsername:testPassword';
-                const expectedAuthHeader      = 'Basic ' + Buffer.from(expectedAuthCredentials).toString('base64');
-
-                if (authHeader === expectedAuthHeader) {
-                    res.end('42');
-                    return;
-                }
-            }
-
-            res.status(401);
-            res.set('www-authenticate', 'Basic');
-            res.end();
+        app.get('/www-authenticate', (req, res) => {
+            res
+                .status(401)
+                .set('www-authenticate', 'Basic realm="Login"')
+                .end();
         });
 
         app.get('/B234325,GH-284/reply-with-origin', (req, res) => {
@@ -950,6 +939,20 @@ describe('Proxy', () => {
             return request(options)
                 .then(res => {
                     expect(res.headers['link']).is.undefined;
+                });
+        });
+
+        it('Should process the `www-authenticate` header', () => {
+            const options = {
+                url:                     proxy.openSession('http://127.0.0.1:2000/www-authenticate', session),
+                resolveWithFullResponse: true,
+                simple:                  false
+            };
+
+            return request(options)
+                .then(res => {
+                    expect(res.headers['www-authenticate']).is.undefined;
+                    expect(res.headers[XHR_HEADERS.wwwAuth]).eql('Basic realm="Login"');
                 });
         });
 

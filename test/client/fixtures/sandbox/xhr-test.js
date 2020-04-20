@@ -1,5 +1,6 @@
 var XhrSandbox    = hammerhead.get('./sandbox/xhr');
 var AUTHORIZATION = hammerhead.get('../request-pipeline/xhr/authorization');
+var XHR_HEADERS   = hammerhead.get('../request-pipeline/xhr/headers');
 var destLocation  = hammerhead.get('./utils/destination-location');
 var urlUtils      = hammerhead.get('./utils/url');
 
@@ -280,6 +281,42 @@ asyncTest('authorization headers by client should be processed (GH-1016)', funct
         }
     });
     xhr.send();
+});
+
+asyncTest('getResponseHeader', function () {
+    var xhr     = new XMLHttpRequest();
+    var headers = { 'content-type': 'text/plain' };
+
+    headers[XHR_HEADERS.wwwAuth] = 'Basic realm="Login"';
+
+    xhr.open('post', '/echo-request-body-in-response-headers');
+    xhr.addEventListener('load', function () {
+        strictEqual(xhr.getResponseHeader('WWW-Authenticate'), 'Basic realm="Login"');
+        strictEqual(nativeMethods.xhrGetResponseHeader.call(xhr, XHR_HEADERS.wwwAuth), 'Basic realm="Login"');
+        strictEqual(nativeMethods.xhrGetResponseHeader.call(xhr, 'www-authenticate'), null);
+        strictEqual(xhr.getResponseHeader('content-type'), 'text/plain');
+
+        start();
+    });
+    xhr.send(JSON.stringify(headers));
+});
+
+asyncTest('getAllResponseHeaders', function () {
+    var xhr     = new XMLHttpRequest();
+    var headers = { 'content-type': 'text/plain' };
+
+    headers[XHR_HEADERS.wwwAuth] = 'Basic realm="Login"';
+
+    xhr.open('post', '/echo-request-body-in-response-headers');
+    xhr.addEventListener('load', function () {
+        ok(xhr.getAllResponseHeaders().indexOf('\nwww-authenticate: Basic realm="Login"') !== -1);
+        ok(xhr.getAllResponseHeaders().indexOf(XHR_HEADERS.wwwAuth) === -1);
+        ok(nativeMethods.xhrGetAllResponseHeaders.call(xhr).indexOf(XHR_HEADERS.wwwAuth) !== -1);
+        ok(nativeMethods.xhrGetAllResponseHeaders.call(xhr).indexOf('\nwww-authenticate') === -1);
+
+        start();
+    });
+    xhr.send(JSON.stringify(headers));
 });
 
 asyncTest('"XHR_COMPLETED_EVENT" should be raised when xhr is prevented (GH-1283)', function () {

@@ -112,10 +112,12 @@ class NativeMethods {
     performanceNow: any;
     fetch: any;
     Request: any;
-    Headers: any;
-    headersSet: any;
-    headersEntries: any;
-    headersForEach: any;
+    Headers: Headers['constructor'];
+    headersSet: Headers['set'];
+    headersGet: Headers['get'];
+    headersHas: Headers['has'];
+    headersEntries: Headers['entries'];
+    headersForEach: Headers['forEach'];
     windowAddEventListener: any;
     windowRemoveEventListener: any;
     WindowPointerEvent: any;
@@ -610,6 +612,8 @@ class NativeMethods {
         if (win.Headers) {
             this.Headers        = win.Headers;
             this.headersSet     = win.Headers.prototype.set;
+            this.headersGet     = win.Headers.prototype.get;
+            this.headersHas     = win.Headers.prototype.has;
             this.headersEntries = win.Headers.prototype.entries;
             this.headersForEach = win.Headers.prototype.forEach;
         }
