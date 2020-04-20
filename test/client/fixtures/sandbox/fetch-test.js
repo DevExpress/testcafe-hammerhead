@@ -271,7 +271,7 @@ if (window.fetch) {
 
             headers[xhrHeaders.wwwAuth] = 'Basic realm="Login"';
 
-            return fetch('/set-response-headers', { method: 'post', body: JSON.stringify(headers) })
+            return fetch('/echo-request-body-in-response-headers', { method: 'post', body: JSON.stringify(headers) })
                 .then(function (res) {
                     strictEqual(nativeMethods.headersHas.call(res.headers, xhrHeaders.wwwAuth), true);
                     strictEqual(nativeMethods.headersHas.call(res.headers, 'www-authenticate'), false);

@@ -155,7 +155,7 @@ module.exports = function (app) {
         res.json(req.headers);
     });
 
-    app.post('/set-response-headers', function (req, res) {
+    app.post('/echo-request-body-in-response-headers', function (req, res) {
         fetchContent(req)
             .then(body => {
                 var headers = JSON.parse(body);

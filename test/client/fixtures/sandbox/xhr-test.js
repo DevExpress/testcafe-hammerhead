@@ -289,7 +289,7 @@ asyncTest('getResponseHeader', function () {
 
     headers[XHR_HEADERS.wwwAuth] = 'Basic realm="Login"';
 
-    xhr.open('post', '/set-response-headers');
+    xhr.open('post', '/echo-request-body-in-response-headers');
     xhr.addEventListener('load', function () {
         strictEqual(xhr.getResponseHeader('WWW-Authenticate'), 'Basic realm="Login"');
         strictEqual(nativeMethods.xhrGetResponseHeader.call(xhr, XHR_HEADERS.wwwAuth), 'Basic realm="Login"');
@@ -307,7 +307,7 @@ asyncTest('getAllResponseHeaders', function () {
 
     headers[XHR_HEADERS.wwwAuth] = 'Basic realm="Login"';
 
-    xhr.open('post', '/set-response-headers');
+    xhr.open('post', '/echo-request-body-in-response-headers');
     xhr.addEventListener('load', function () {
         ok(xhr.getAllResponseHeaders().indexOf('\nwww-authenticate: Basic realm="Login"') !== -1);
         ok(xhr.getAllResponseHeaders().indexOf(XHR_HEADERS.wwwAuth) === -1);

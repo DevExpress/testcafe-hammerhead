@@ -222,7 +222,7 @@ export default class FetchSandbox extends SandboxBase {
                     if (name === XHR_HEADERS.origin || name === XHR_HEADERS.fetchRequestCredentials)
                         return;
 
-                    if (name.toLocaleLowerCase() === XHR_HEADERS.wwwAuth)
+                    if (name.toLowerCase() === XHR_HEADERS.wwwAuth)
                         name = 'www-authenticate';
 
                     callback.call(this, value, name, headers);
@@ -233,14 +233,14 @@ export default class FetchSandbox extends SandboxBase {
         };
 
         window.Headers.prototype.get = function (headerName: any) {
-            if (typeof headerName === 'string' && headerName.toLocaleLowerCase() === 'www-authenticate')
+            if (typeof headerName === 'string' && headerName.toLowerCase() === 'www-authenticate')
                 headerName = XHR_HEADERS.wwwAuth;
 
             return nativeMethods.headersGet.call(this, headerName);
         };
 
         window.Headers.prototype.has = function (headerName: any) {
-            if (typeof headerName === 'string' && headerName.toLocaleLowerCase() === 'www-authenticate')
+            if (typeof headerName === 'string' && headerName.toLowerCase() === 'www-authenticate')
                 headerName = XHR_HEADERS.wwwAuth;
 
             return nativeMethods.headersHas.call(this, headerName);

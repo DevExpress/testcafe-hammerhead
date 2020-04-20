@@ -162,7 +162,7 @@ export default class XhrSandbox extends SandboxBase {
         }
 
         xmlHttpRequestProto.getResponseHeader = function (headerName: any) {
-            if (typeof headerName === 'string' && headerName.toLocaleLowerCase() === 'www-authenticate')
+            if (typeof headerName === 'string' && headerName.toLowerCase() === 'www-authenticate')
                 headerName = XHR_HEADERS.wwwAuth;
 
             return nativeMethods.xhrGetResponseHeader.call(this, headerName);
