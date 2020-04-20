@@ -428,6 +428,14 @@ describe('Upload', () => {
                     fs.unlinkSync(copiedFilePath);
                 });
         });
+
+        it('Should remove duplicated upload roots', () => {
+            const storage = new UploadStorage(['/folder/1', '/folder/2', '/folder/1']);
+
+            expect(storage.uploadRoots.length).eql(2);
+            expect(storage.uploadRoots[0]).eql('/folder/1');
+            expect(storage.uploadRoots[1]).eql('/folder/2');
+        });
     });
 
     it('Should inject uploads', () => {
