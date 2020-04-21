@@ -1,5 +1,6 @@
 import zlib from 'zlib';
 import { gzip, deflate, gunzip, inflate, inflateRaw } from '../../utils/promisified-functions';
+import { brotliCompress, brotliDecompress } from './brotli';
 // @ts-ignore
 import charsetEncoder from 'iconv-lite';
 import Charset from './charset';
@@ -37,7 +38,7 @@ export async function decodeContent (content: Buffer, encoding: string, charset:
         content = await inflateWithFallback(content);
 
     else if (encoding === BROTLI_CONTENT_ENCODING)
-        content = Buffer.from(require('brotli').decompress(content));
+        content = await brotliDecompress(content);
 
     charset.fromBOM(content);
 
@@ -54,7 +55,7 @@ export async function encodeContent (content: string, encoding: string, charset:
         return deflate(content);
 
     if (encoding === BROTLI_CONTENT_ENCODING)
-        return Buffer.from(require('brotli').compress(content));
+        return brotliCompress(content);
 
     return content;
 }
