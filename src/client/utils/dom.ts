@@ -819,9 +819,7 @@ export function isInputWithoutSelectionProperties (el): boolean {
     if (!isNumberOrEmailInput(el))
         return false;
 
-    const hasSelectionProperties = typeof el.selectionStart === 'number' &&
-        typeof el.selectionEnd === 'number' &&
-        typeof el.selectionDirection === 'string';
+    const hasSelectionProperties = typeof el.selectionStart === 'number' && typeof el.selectionEnd === 'number';
 
     return !hasSelectionProperties;
 }

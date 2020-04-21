@@ -789,6 +789,27 @@ test('isTextEditableInput', function () {
     }
 });
 
+test('isInputWithoutSelectionProperties', function () {
+    var input1 = nativeMethods.createElement.call(document, 'input');
+    var input2 = nativeMethods.createElement.call(document, 'input');
+    var input3 = nativeMethods.createElement.call(document, 'input');
+
+    input1.type = 'email';
+    input2.type = 'number';
+    input3.type = 'text';
+
+    if (browserUtils.isIE || browserUtils.isSafari) {
+        notOk(domUtils.isInputWithoutSelectionProperties(input1));
+        notOk(domUtils.isInputWithoutSelectionProperties(input2));
+    }
+    else {
+        ok(domUtils.isInputWithoutSelectionProperties(input1));
+        ok(domUtils.isInputWithoutSelectionProperties(input2));
+    }
+
+    notOk(domUtils.isInputWithoutSelectionProperties(input3));
+});
+
 test('isElementReadOnly', function () {
     var input = document.createElement('input');
 
