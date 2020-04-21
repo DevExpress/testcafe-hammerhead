@@ -1,5 +1,6 @@
 import { FileInputInfo } from '../typings/upload';
 import * as bufferUtils from '../utils/buffer';
+import BUILTIN_HEADERS from '../request-pipeline/builtin-header-names';
 
 const INPUT_NAME_RE = /;\s*name="([^"]*)"/i;
 const FILE_NAME_RE  = /;\s*filename="([^"]*)"/i;
@@ -23,7 +24,7 @@ export default class FormDataEntry {
         this.name     = name;
         this.fileName = fileName;
 
-        this._headers['Content-Disposition'] = `form-data; name="${name}"; filename="${fileName}"`;
+        this._headers[BUILTIN_HEADERS.contentDisposition] = `form-data; name="${name}"; filename="${fileName}"`;
     }
 
     // API
@@ -32,18 +33,18 @@ export default class FormDataEntry {
 
         this._setContentDisposition(fileInfo.name, file.name);
 
-        this.body                     = [Buffer.from(file.data, 'base64')];
-        this._headers['Content-Type'] = file.type;
+        this.body                                  = [Buffer.from(file.data, 'base64')];
+        this._headers[BUILTIN_HEADERS.contentType] = file.type;
     }
 
     setHeader (header: string, newValue?: string) {
         const headerMatch = header.match(HEADER_RE);
-        const name        = headerMatch && headerMatch[1] || '';
+        const name        = headerMatch && headerMatch[1].toLowerCase() || '';
         const value       = newValue || headerMatch && headerMatch[2] || '';
 
         this._headers[name] = value;
 
-        if (name === 'Content-Disposition')
+        if (name === BUILTIN_HEADERS.contentDisposition)
             this._parseContentDisposition(value);
     }
 

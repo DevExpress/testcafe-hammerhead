@@ -30,8 +30,9 @@ import IframeSandbox from '../iframe';
 import EventSandbox from '../event';
 import ChildWindowSandbox from '../child-window';
 import isKeywordTarget from '../../../utils/is-keyword-target';
+import BUILTIN_HEADERS from '../../../request-pipeline/builtin-header-names';
 
-const RESTRICTED_META_HTTP_EQUIV_VALUES = ['refresh', 'content-security-policy'];
+const RESTRICTED_META_HTTP_EQUIV_VALUES = [BUILTIN_HEADERS.refresh, BUILTIN_HEADERS.contentSecurityPolicy];
 
 export default class ElementSandbox extends SandboxBase {
     overriddenMethods: any;

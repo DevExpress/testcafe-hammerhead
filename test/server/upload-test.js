@@ -70,7 +70,7 @@ describe('Upload', () => {
 
             expect(entry.name).eql('upload');
             expect(entry.fileName).eql('plain.txt');
-            expect(entry._headers['Content-Type']).eql('text/plain');
+            expect(entry._headers['content-type']).eql('text/plain');
             expect(body).eql('I am a plain text file\r\n');
         });
 
@@ -87,7 +87,7 @@ describe('Upload', () => {
 
             expect(entry1.name).eql('upload');
             expect(entry1.fileName).eql(': \\ ? % * | &#9731; %22 < > . ? ; \' @ # $ ^ & ( ) - _ = + { } [ ] ` ~.txt');
-            expect(entry1._headers['Content-Type']).eql('text/plain');
+            expect(entry1._headers['content-type']).eql('text/plain');
             expect(body1).eql('I am a text file with a funky name!\r\n');
         });
 
@@ -98,7 +98,7 @@ describe('Upload', () => {
 
             expect(entry.name).eql('upload');
             expect(entry.fileName).to.be.empty;
-            expect(entry._headers['Content-Type']).eql('text/plain');
+            expect(entry._headers['content-type']).eql('text/plain');
             expect(body).eql('I am a plain text file\r\n');
         });
 
@@ -111,7 +111,7 @@ describe('Upload', () => {
             expect(formData._preamble[0].toString()).eql('This is a preamble which should be ignored');
             expect(entry.name).eql('upload');
             expect(entry.fileName).eql('plain.txt');
-            expect(entry._headers['Content-Type']).eql('text/plain');
+            expect(entry._headers['content-type']).eql('text/plain');
             expect(body).eql('I am a plain text file\r\n');
         });
 
@@ -124,7 +124,7 @@ describe('Upload', () => {
             expect(formData._preamble[0].toString()).to.be.empty;
             expect(entry.name).eql('upload');
             expect(entry.fileName).eql('plain.txt');
-            expect(entry._headers['Content-Type']).eql('text/plain');
+            expect(entry._headers['content-type']).eql('text/plain');
             expect(body).eql('I am a plain text file\r\n');
         });
 
@@ -137,7 +137,7 @@ describe('Upload', () => {
             expect(formData._epilogue[0].toString()).eql('This is a epilogue which should be ignored');
             expect(entry.name).eql('upload');
             expect(entry.fileName).eql('plain.txt');
-            expect(entry._headers['Content-Type']).eql('text/plain');
+            expect(entry._headers['content-type']).eql('text/plain');
             expect(body).eql('I am a plain text file\r\n');
         });
 
@@ -148,7 +148,7 @@ describe('Upload', () => {
 
             expect(entry.name).eql('upload');
             expect(entry.fileName).eql('plain.txt');
-            expect(entry._headers['Content-Type']).eql('text/plain');
+            expect(entry._headers['content-type']).eql('text/plain');
             expect(body).eql('I am a plain text file\r\n');
         });
 
@@ -177,15 +177,16 @@ describe('Upload', () => {
 
             cases.forEach(testCase => {
                 const formData = initFormData(testCase.src);
+                const expected = testCase.expected.replace(/Content-[DT]/g, str => str.toLowerCase());
 
-                expect(formData.toBuffer().toString()).eql(testCase.expected);
+                expect(formData.toBuffer().toString()).eql(expected);
             });
         });
 
         it('Should format data with missing headers', () => {
             const formData = initFormData('empty-headers');
             const actual   = formData.toBuffer().toString().replace(/ /g, '');
-            const expected = data['empty-headers'].toString().replace(/ /g, '');
+            const expected = data['empty-headers'].toString().replace(/ /g, '').toLowerCase();
 
             expect(actual).eql(expected);
         });
@@ -203,7 +204,7 @@ describe('Upload', () => {
             cases.forEach(dataName => {
                 const formData = initFormData(dataName);
                 const actual   = formData.toBuffer().toString();
-                const expected = data[dataName].toString();
+                const expected = data[dataName].toString().replace(/Content-[DT]/g, str => str.toLowerCase());
 
                 expect(actual).eql(expected);
             });

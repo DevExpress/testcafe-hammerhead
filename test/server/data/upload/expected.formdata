@@ -1,11 +1,11 @@
 --separator
-Content-Disposition: form-data; name="inputUpload"; filename="text.txt"
-Content-Type: text/plain
+content-disposition: form-data; name="inputUpload"; filename="text.txt"
+content-type: text/plain
 
 text
 --separator
-Content-Disposition: form-data; name="inputUpload"; filename="1"
-Content-Type: text/plain
+content-disposition: form-data; name="inputUpload"; filename="1"
+content-type: text/plain
 
 123
 --separator--

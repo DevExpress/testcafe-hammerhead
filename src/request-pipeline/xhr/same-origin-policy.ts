@@ -1,5 +1,6 @@
 import RequestPipelineContext from '../context';
-import XHR_HEADERS from './headers';
+import BUILTIN_HEADERS from '../builtin-header-names';
+import INTERNAL_HEADERS from '../internal-header-names';
 import { castArray } from 'lodash';
 
 // NOTE: https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS
@@ -14,9 +15,9 @@ export function check (ctx: RequestPipelineContext): boolean {
     if (ctx.req.method === 'OPTIONS')
         return true;
 
-    const withCredentials        = !!ctx.req.headers[XHR_HEADERS.withCredentials] || ctx.req.headers[XHR_HEADERS.fetchRequestCredentials] === 'include';
-    const allowOriginHeader      = ctx.destRes.headers['access-control-allow-origin'];
-    const allowCredentialsHeader = ctx.destRes.headers['access-control-allow-credentials'];
+    const withCredentials        = ctx.req.headers[INTERNAL_HEADERS.credentials] === (ctx.isXhr ? 'true' : 'include');
+    const allowOriginHeader      = ctx.destRes.headers[BUILTIN_HEADERS.accessControlAllowOrigin];
+    const allowCredentialsHeader = ctx.destRes.headers[BUILTIN_HEADERS.accessControlAllowCredentials];
     const allowCredentials       = String(allowCredentialsHeader).toLowerCase() === 'true';
     const allowedOrigins         = castArray(allowOriginHeader);
     const wildcardAllowed        = allowedOrigins.includes('*');

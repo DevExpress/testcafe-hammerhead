@@ -1,10 +1,10 @@
 --separator
-Content-Disposition: form-data; name="picture_file"; filename="image.png"
-Content-Type: image/png
+content-disposition: form-data; name="picture_file"; filename="image.png"
+content-type: image/png
 
 text
 --separator
-Content-Disposition: form-data; name="picture_file"; filename=""
+content-disposition: form-data; name="picture_file"; filename=""
 
 
 --separator--

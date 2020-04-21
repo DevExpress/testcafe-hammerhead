@@ -1,4 +1,5 @@
 import IncomingMessageMock from './incoming-message-mock';
+import BUILTIN_HEADERS from './builtin-header-names';
 
 export default function createSpecialPageResponse () {
     return new IncomingMessageMock({
@@ -6,8 +7,8 @@ export default function createSpecialPageResponse () {
         statusCode: 200,
         trailers:   {},
         headers:    {
-            'content-type':   'text/html',
-            'content-length': '0'
+            [BUILTIN_HEADERS.contentType]:   'text/html',
+            [BUILTIN_HEADERS.contentLength]: '0'
         }
     });
 }
