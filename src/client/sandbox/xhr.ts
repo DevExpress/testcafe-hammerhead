@@ -3,7 +3,7 @@ import nativeMethods from './native-methods';
 import { getProxyUrl, parseProxyUrl } from '../utils/url';
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
 import INTERNAL_HEADERS from '../../request-pipeline/internal-header-names';
-import { transformRequestHeaderNameToInternal, transformResponseHeaderNameToInternal } from '../utils/headers';
+import { transformHeaderNameToInternal } from '../utils/headers';
 import { getOriginHeader } from '../utils/destination-location';
 import { overrideDescriptor } from '../utils/property-overriding';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
@@ -133,7 +133,7 @@ export default class XhrSandbox extends SandboxBase {
         };
 
         xmlHttpRequestProto.setRequestHeader = function (...args) {
-            args[0] = transformRequestHeaderNameToInternal(args[0]);
+            args[0] = transformHeaderNameToInternal(args[0]);
 
             return nativeMethods.xhrSetRequestHeader.apply(this, args);
         };
@@ -158,7 +158,7 @@ export default class XhrSandbox extends SandboxBase {
         }
 
         xmlHttpRequestProto.getResponseHeader = function (...args) {
-            args[0] = transformResponseHeaderNameToInternal(args[0]);
+            args[0] = transformHeaderNameToInternal(args[0]);
 
             return nativeMethods.xhrGetResponseHeader.apply(this, args);
         };

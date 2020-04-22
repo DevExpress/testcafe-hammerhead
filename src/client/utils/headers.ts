@@ -1,44 +1,24 @@
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
 import INTERNAL_HEADERS from '../../request-pipeline/internal-header-names';
 
-export function transformRequestHeaderNameToInternal (headerName: any) {
-    if (typeof headerName === 'string') {
-        headerName = headerName.toLowerCase();
+const BUILTIN_TO_INTERNAL_HEADERS_MAP = new Map<string, string>();
+const INTERNAL_TO_BUILTIN_HEADERS_MAP = new Map<string, string>();
 
-        if (headerName === BUILTIN_HEADERS.authorization)
-            headerName = INTERNAL_HEADERS.authorization;
-        else if (headerName === BUILTIN_HEADERS.proxyAuthorization)
-            headerName = INTERNAL_HEADERS.proxyAuthorization;
-    }
+BUILTIN_TO_INTERNAL_HEADERS_MAP.set(BUILTIN_HEADERS.authorization, INTERNAL_HEADERS.authorization);
+BUILTIN_TO_INTERNAL_HEADERS_MAP.set(BUILTIN_HEADERS.proxyAuthorization, INTERNAL_HEADERS.proxyAuthorization);
+BUILTIN_TO_INTERNAL_HEADERS_MAP.set(BUILTIN_HEADERS.wwwAuthenticate, INTERNAL_HEADERS.wwwAuthenticate);
+BUILTIN_TO_INTERNAL_HEADERS_MAP.set(BUILTIN_HEADERS.proxyAuthenticate, INTERNAL_HEADERS.proxyAuthenticate);
 
-    return headerName;
-}
-
-export function transformResponseHeaderNameToInternal (headerName: any) {
-    if (typeof headerName === 'string') {
-        headerName = headerName.toLowerCase();
-
-        if (headerName === BUILTIN_HEADERS.wwwAuthenticate)
-            headerName = INTERNAL_HEADERS.wwwAuthenticate;
-        else if (headerName === BUILTIN_HEADERS.proxyAuthenticate)
-            headerName = INTERNAL_HEADERS.proxyAuthenticate;
-    }
-
-    return headerName;
-}
+INTERNAL_TO_BUILTIN_HEADERS_MAP.set(INTERNAL_HEADERS.authorization, BUILTIN_HEADERS.authorization);
+INTERNAL_TO_BUILTIN_HEADERS_MAP.set(INTERNAL_HEADERS.proxyAuthorization, BUILTIN_HEADERS.proxyAuthorization);
+INTERNAL_TO_BUILTIN_HEADERS_MAP.set(INTERNAL_HEADERS.wwwAuthenticate, BUILTIN_HEADERS.wwwAuthenticate);
+INTERNAL_TO_BUILTIN_HEADERS_MAP.set(INTERNAL_HEADERS.proxyAuthenticate, BUILTIN_HEADERS.proxyAuthenticate);
 
 export function transformHeaderNameToBuiltin (headerName: any) {
     if (typeof headerName === 'string') {
         headerName = headerName.toLowerCase();
 
-        if (headerName === INTERNAL_HEADERS.authorization)
-            headerName = BUILTIN_HEADERS.authorization;
-        else if (headerName === INTERNAL_HEADERS.proxyAuthorization)
-            headerName = BUILTIN_HEADERS.proxyAuthorization;
-        else if (headerName === INTERNAL_HEADERS.wwwAuthenticate)
-            headerName = BUILTIN_HEADERS.wwwAuthenticate;
-        else if (headerName === INTERNAL_HEADERS.proxyAuthenticate)
-            headerName = BUILTIN_HEADERS.proxyAuthenticate;
+        return INTERNAL_TO_BUILTIN_HEADERS_MAP.get(headerName) || headerName;
     }
 
     return headerName;
@@ -48,14 +28,7 @@ export function transformHeaderNameToInternal (headerName: any) {
     if (typeof headerName === 'string') {
         headerName = headerName.toLowerCase();
 
-        if (headerName === BUILTIN_HEADERS.authorization)
-            headerName = INTERNAL_HEADERS.authorization;
-        else if (headerName === BUILTIN_HEADERS.proxyAuthorization)
-            headerName = INTERNAL_HEADERS.proxyAuthorization;
-        else if (headerName === BUILTIN_HEADERS.wwwAuthenticate)
-            headerName = INTERNAL_HEADERS.wwwAuthenticate;
-        else if (headerName === BUILTIN_HEADERS.proxyAuthenticate)
-            headerName = INTERNAL_HEADERS.proxyAuthenticate;
+        return BUILTIN_TO_INTERNAL_HEADERS_MAP.get(headerName) || headerName;
     }
 
     return headerName;

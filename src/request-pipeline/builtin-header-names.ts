@@ -40,5 +40,3 @@ export default {
     xContentSecurityPolicyReportOnly: 'x-content-security-policy-report-only',
     xWebkitCsp:                       'x-webkit-csp'
 };
-
-// xhr/headers
