@@ -6,12 +6,13 @@ import stylesheetProcessor from './stylesheet';
 import * as urlUtil from '../../utils/url';
 import { encodeContent, decodeContent } from '../encoding';
 import { platform } from 'os';
+import RequestPipelineContext from '../../request-pipeline/context';
 
 const IS_WIN: boolean     = platform() === 'win32';
 const DISK_RE     = /^[A-Za-z]:/;
 const RESOURCE_PROCESSORS = [pageProcessor, manifestProcessor, scriptProcessor, stylesheetProcessor];
 
-function getResourceUrlReplacer (ctx) {
+function getResourceUrlReplacer (ctx: RequestPipelineContext): Function {
     return function (resourceUrl: string, resourceType: string, charsetAttrValue, baseUrl: string) {
         if (!urlUtil.isSupportedProtocol(resourceUrl) && !urlUtil.isSpecialPage(resourceUrl))
             return resourceUrl;
@@ -28,8 +29,9 @@ function getResourceUrlReplacer (ctx) {
         if (!urlUtil.isValidUrl(resolvedUrl))
             return resourceUrl;
 
-        const isScript   = urlUtil.parseResourceType(resourceType).isScript;
-        const charsetStr = charsetAttrValue || isScript && ctx.contentInfo.charset.get();
+        // NOTE: Script or <link rel='preload' as='script'>
+        const isScriptLike = urlUtil.parseResourceType(resourceType).isScript;
+        const charsetStr   = charsetAttrValue || isScriptLike && ctx.contentInfo.charset.get();
 
         resolvedUrl = urlUtil.ensureTrailingSlash(resourceUrl, resolvedUrl);
 
@@ -40,7 +42,7 @@ function getResourceUrlReplacer (ctx) {
     };
 }
 
-export async function process (ctx) {
+export async function process (ctx: RequestPipelineContext): Promise<Buffer> {
     const body        = ctx.destResBody;
     const contentInfo = ctx.contentInfo;
     const encoding    = contentInfo.encoding;

@@ -178,6 +178,7 @@ class NativeMethods {
     anchorHrefSetter: any;
     linkHrefSetter: any;
     linkRelSetter: any;
+    linkAsSetter: any;
     areaHrefSetter: any;
     baseHrefSetter: any;
     anchorHostSetter: any;
@@ -696,6 +697,7 @@ class NativeMethods {
         const linkHrefDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLLinkElement.prototype, 'href');
         const linkIntegrityDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLLinkElement.prototype, 'integrity');
         const linkRelDescriptor              = win.Object.getOwnPropertyDescriptor(win.HTMLLinkElement.prototype, 'rel');
+        const linkAsDescriptor               = win.Object.getOwnPropertyDescriptor(win.HTMLLinkElement.prototype, 'as');
         const areaHrefDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLAreaElement.prototype, 'href');
         const baseHrefDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLBaseElement.prototype, 'href');
         const anchorHostDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'host');
@@ -761,6 +763,7 @@ class NativeMethods {
         this.anchorHrefSetter        = anchorHrefDescriptor.set;
         this.linkHrefSetter          = linkHrefDescriptor.set;
         this.linkRelSetter           = linkRelDescriptor.set;
+        this.linkAsSetter            = linkAsDescriptor && linkAsDescriptor.set;
         this.areaHrefSetter          = areaHrefDescriptor.set;
         this.baseHrefSetter          = baseHrefDescriptor.set;
         this.anchorHostSetter        = anchorHostDescriptor.set;
