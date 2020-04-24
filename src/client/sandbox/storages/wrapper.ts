@@ -6,10 +6,9 @@ import * as destLocation from '../../utils/destination-location';
 import * as JSON from 'json-hammerhead';
 import nativeMethods from '../native-methods';
 
-const STORAGES_SANDBOX_TEMP = 'hammerhead|storages-sandbox-temp';
-const API_KEY_PREFIX        = 'hammerhead|api-key-prefix|';
-const KEY                   = 0;
-const VALUE                 = 1;
+const API_KEY_PREFIX = 'hammerhead|api-key-prefix|';
+const KEY            = 0;
+const VALUE          = 1;
 
 function getWrapperMethods () {
     const methods = [];
@@ -191,22 +190,13 @@ export default class StorageWrapper {
             nativeMethods.clearInterval.call(this.window, this.intervalId);
         };
 
-        const castToString = value => {
-            // NOTE: The browser automatically translates the key and the value to a string. To repeat this behavior,
-            // we use native storage:
-            // localStorage.setItem(null, null) equivalently to localStorage.setItem('null', 'null')
-            this.nativeStorage[STORAGES_SANDBOX_TEMP] = value;
-
-            return this.nativeStorage[STORAGES_SANDBOX_TEMP];
-        };
-
         const getValidKey = key => {
             const isWrapperMember = this.wrapperMethods.indexOf(key) !== -1 || this.initialProperties.indexOf(key) !==
                                     -1;
 
             key = isWrapperMember ? API_KEY_PREFIX + key : key;
 
-            return castToString(key);
+            return String(key);
         };
 
         // API
@@ -253,7 +243,7 @@ export default class StorageWrapper {
                 throw new TypeError();
 
             key   = getValidKey(key);
-            value = castToString(value);
+            value = String(value);
 
             this[key] = value;
             checkStorageChanged();
