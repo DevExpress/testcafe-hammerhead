@@ -223,21 +223,15 @@ gulp.step('lint-ts', () => {
 
 gulp.task('lint', gulp.parallel('lint-js', 'lint-ts'));
 
-gulp.step('set-dev-mode', done => {
-    util.env.dev = true;
-    done();
-});
-
 gulp.task('build',
     gulp.series(
-        'set-dev-mode',
         'clean-lib',
         'clean-outdated-js',
         'server-scripts',
         gulp.parallel(
             'client-scripts',
-            'templates'
-            // 'lint'
+            'templates',
+            'lint'
         )
     )
 );
@@ -264,11 +258,16 @@ gulp.step('qunit', () => {
 
 gulp.task('test-client', gulp.series('build', 'qunit'));
 
+gulp.step('set-dev-mode', done => {
+    util.env.dev = true;
+    done();
+});
+
 gulp.task('test-client-dev', gulp.series('set-dev-mode', 'test-client'));
 
 gulp.step('travis-saucelabs-qunit', () => {
     return gulp
-        .src('./test/client/fixtures/sandbox/storages-test.js')
+        .src('./test/client/fixtures/**/*-test.js')
         .pipe(qunitHarness(getClientTestSettings(), SAUCELABS_SETTINGS));
 });
 

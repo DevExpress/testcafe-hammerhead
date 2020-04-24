@@ -162,7 +162,6 @@ export default class StorageWrapper {
 
         this.saveToNativeStorage = () => {
             const state = JSON.stringify(this.getCurrentState());
-            console.log('state:', state);
 
             if (this.nativeStorage[this.nativeStorageKey] !== state)
                 this.nativeStorage[this.nativeStorageKey] = state;
