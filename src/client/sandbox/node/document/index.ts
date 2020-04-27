@@ -238,6 +238,7 @@ export default class DocumentSandbox extends SandboxBase {
 
         const htmlDocPrototype = window.HTMLDocument.prototype;
         let storedDomain       = '';
+        let storedTitle        = '';
 
         if (nativeMethods.documentDocumentURIGetter) {
             overrideDescriptor(docPrototype, 'documentURI', {
@@ -320,6 +321,15 @@ export default class DocumentSandbox extends SandboxBase {
                 const length  = nativeMethods.htmlCollectionLengthGetter.call(scripts);
 
                 return documentSandbox._shadowUI._filterNodeList(scripts, length);
+            }
+        });
+
+        overrideDescriptor(docPrototype, 'title', {
+            getter: function () {
+                return storedTitle || nativeMethods.documentTitleGetter.call(document);
+            },
+            setter: function (value) {
+                return storedTitle = value;
             }
         });
     }

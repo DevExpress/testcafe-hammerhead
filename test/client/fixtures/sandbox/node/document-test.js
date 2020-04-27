@@ -847,3 +847,13 @@ test('should reprocess element if it is created in iframe window and it is not f
             strictEqual(iframeLink[INTERNAL_PROPS.processedContext], iframe.contentWindow);
         });
 });
+
+test('document.title', function () {
+    strictEqual(document.title, '');
+    strictEqual(document.title = 'end-user title', 'end-user title');
+
+    nativeMethods.documentTitleSetter.call(document, 'native title');
+
+    strictEqual(document.title, 'end-user title');
+    strictEqual(nativeMethods.documentTitleGetter.call(document), 'native title');
+});
