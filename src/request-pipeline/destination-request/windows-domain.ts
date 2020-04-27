@@ -14,7 +14,7 @@ async function queryOSForCredential (cmd: string): Promise<string> {
     }
 }
 
-export async function assign (credentials: WindowCredentials) {
+export async function assign (credentials: WindowCredentials): Promise<void> {
     if (!cached) {
         cached = {
             domain:      await queryOSForCredential('echo %userdomain%'),

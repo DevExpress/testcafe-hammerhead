@@ -5,6 +5,7 @@ import nativeMethods from '../native-methods';
 import EventSimulator from '../event/simulator';
 import { processScript } from '../../../processing/script';
 import styleProcessor from '../../../processing/style';
+import domProcessor from '../../dom-processor';
 import * as destLocation from '../../utils/destination-location';
 import { cleanUpHtml, processHtml } from '../../utils/html';
 import {
@@ -1452,6 +1453,24 @@ export default class WindowSandbox extends SandboxBase {
 
                 setter: function (value) {
                     return nativeMethods.windowOriginSetter.call(this, value);
+                }
+            });
+        }
+
+        if (nativeMethods.linkAsSetter) {
+            overrideDescriptor(window.HTMLLinkElement.prototype, 'as', {
+                getter: null,
+                setter: function (value) {
+                    const currentValue         = this.as;
+                    const shouldRecalculateUrl = value !== currentValue &&
+                        (value === domProcessor.PROCESSED_PRELOAD_LINK_CONTENT_TYPE || currentValue === domProcessor.PROCESSED_PRELOAD_LINK_CONTENT_TYPE);
+
+                    nativeMethods.linkAsSetter.call(this, value);
+
+                    if (shouldRecalculateUrl)
+                        this.href = this.href; // eslint-disable-line no-restricted-properties
+
+                    return value;
                 }
             });
         }

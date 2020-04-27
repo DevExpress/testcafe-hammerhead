@@ -1213,3 +1213,25 @@ test('instance of attributesWrapper should contain enumerable attribute properti
 
     deepEqual(testSiteFunction(input, 'data-parsley-'), { multiple: 'should-not-change', test123: 'value' });
 });
+
+// NOTE: IE11 doesn't fetch content for <link rel=preload as=script>.
+// So, it's not neccessary to process such elements in IE11
+if (nativeMethods.linkAsSetter) {
+    test('"preload" link with "script" behavior (GH-2299)', function () {
+        var link = document.createElement('link');
+
+        link.href = '/test';
+
+        equal(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test'));
+
+        link.as = 'script';
+
+        equal(link.as, 'script');
+        equal(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test', { resourceType: 's' } ));
+
+        link.as = 'style';
+        equal(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test'));
+    });
+}
+
+
