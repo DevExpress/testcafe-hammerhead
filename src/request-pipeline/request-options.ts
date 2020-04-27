@@ -16,7 +16,7 @@ export default class RequestOptions {
     method: string;
     credentials: Credentials;
     body: Buffer;
-    isXhr: boolean;
+    isAjax: boolean;
     rawHeaders: string[];
     headers: IncomingHttpHeaders;
     auth: string | void;
@@ -46,7 +46,7 @@ export default class RequestOptions {
         this.method      = ctx.req.method;
         this.credentials = ctx.session.getAuthCredentials();
         this.body        = ctx.reqBody;
-        this.isXhr       = ctx.isXhr;
+        this.isAjax      = ctx.isAjax;
         this.rawHeaders  = ctx.req.rawHeaders;
         this.headers     = headers;
 

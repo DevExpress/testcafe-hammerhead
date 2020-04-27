@@ -109,6 +109,10 @@ function getFileProtocolUrl (filePath) {
     return 'file:' + (isWindows ? '///' : '//') + path.resolve(__dirname, filePath).replace(/\\/g, '/');
 }
 
+function replaceLastAccessedTime (cookie) {
+    return cookie.replace(/[a-z0-9]+=/, '%lastAccessed%=');
+}
+
 describe('Proxy', () => {
     let destServer        = null;
     let crossDomainServer = null;
@@ -157,6 +161,14 @@ describe('Proxy', () => {
             res.set('location', '/cookie/echo');
 
             res.end();
+        });
+
+        app.get('/cookie/set-cookie-cors', (req, res) => {
+            res
+                .set('set-cookie', 'cookie-for=example; path=/')
+                .set('access-control-allow-origin', 'http://example.com')
+                .set('access-control-allow-credentials', 'false')
+                .end();
         });
 
         app.get('/cookie/set1', (req, res) => {
@@ -782,10 +794,6 @@ describe('Proxy', () => {
         });
 
         describe('Server synchronization with client', () => {
-            function replaceLastAccessedTime (cookie) {
-                return cookie.replace(/[a-z0-9]+=/, '%lastAccessed%=');
-            }
-
             it('Should generate cookie for synchronization', function () {
                 const cookie  = encodeURIComponent('aaa=111;path=/path');
                 const options = {
@@ -1048,7 +1056,7 @@ describe('Proxy', () => {
                 resolveWithFullResponse: true,
                 headers:                 {
                     referer:                        proxy.openSession('http://example.com', session),
-                    [INTERNAL_HEADERS.credentials]: 'false'
+                    [INTERNAL_HEADERS.credentials]: 'same-origin'
                 }
             };
 
@@ -1065,7 +1073,7 @@ describe('Proxy', () => {
                 resolveWithFullResponse: true,
                 headers:                 {
                     referer:                        proxy.openSession('file:///path/page.html', session),
-                    [INTERNAL_HEADERS.credentials]: 'false'
+                    [INTERNAL_HEADERS.credentials]: 'same-origin'
                 }
             };
 
@@ -1082,7 +1090,7 @@ describe('Proxy', () => {
                 resolveWithFullResponse: true,
                 headers:                 {
                     referer:                        proxy.openSession('file:///path/page.html', session),
-                    [INTERNAL_HEADERS.credentials]: 'false'
+                    [INTERNAL_HEADERS.credentials]: 'same-origin'
                 }
             };
 
@@ -1100,7 +1108,7 @@ describe('Proxy', () => {
                 resolveWithFullResponse: true,
                 headers:                 {
                     referer:                        proxy.openSession('http://example.com', session),
-                    [INTERNAL_HEADERS.credentials]: 'false'
+                    [INTERNAL_HEADERS.credentials]: 'same-origin'
                 }
             };
 
@@ -1117,7 +1125,7 @@ describe('Proxy', () => {
                 resolveWithFullResponse: true,
                 headers:                 {
                     referer:                        proxy.openSession('http://example.com', session),
-                    [INTERNAL_HEADERS.credentials]: 'false'
+                    [INTERNAL_HEADERS.credentials]: 'same-origin'
                 }
             };
 
@@ -1135,7 +1143,7 @@ describe('Proxy', () => {
                 headers:                 {
                     referer:                        proxy.openSession('http://example.com', session),
                     'x-allow-origin':               'http://example.com',
-                    [INTERNAL_HEADERS.credentials]: 'false'
+                    [INTERNAL_HEADERS.credentials]: 'same-origin'
                 }
             };
 
@@ -1153,7 +1161,7 @@ describe('Proxy', () => {
                 headers:                 {
                     referer:                        proxy.openSession('http://example.com', session),
                     'if-modified-since':            'Thu, 01 Aug 2013 18:31:48 GMT',
-                    [INTERNAL_HEADERS.credentials]: 'false'
+                    [INTERNAL_HEADERS.credentials]: 'same-origin'
                 }
             };
 
@@ -1165,12 +1173,51 @@ describe('Proxy', () => {
                     expect(err.statusCode).eql(304);
                 });
         });
+
+        it('Should apply "set-cookie" header if the credentials check is passed but request is restricted (GH-2166)', () => {
+            const options = {
+                url:                     proxy.openSession('http://127.0.0.1:2000/cookie-server-sync/key=value;%20path=%2F', session),
+                resolveWithFullResponse: true,
+                headers:                 {
+                    referer:                        proxy.openSession('http://example.com', session),
+                    [INTERNAL_HEADERS.credentials]: 'include',
+                    [INTERNAL_HEADERS.origin]:      'http://example.com'
+                }
+            };
+
+            return request(options)
+                .then(res => {
+                    expect(res.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
+                    expect(replaceLastAccessedTime(res.headers['set-cookie'][0]))
+                        .eql(`s|${session.id}|key|127.0.0.1|%2F||%lastAccessed%=value;path=/`);
+                    expect(session.cookies.getClientString('http://127.0.0.1:2000')).eql('key=value');
+                });
+        });
+
+        it('Should not apply "set-cookie" header if the credentials check is not passed (GH-2166)', () => {
+            const options = {
+                url:                     proxy.openSession('http://127.0.0.1:2000/cookie/set-cookie-cors', session),
+                resolveWithFullResponse: true,
+                headers:                 {
+                    referer:                        proxy.openSession('http://example.com', session),
+                    [INTERNAL_HEADERS.credentials]: 'same-origin',
+                    [INTERNAL_HEADERS.origin]:      'http://example.com'
+                }
+            };
+
+            return request(options)
+                .then(res => {
+                    expect(res.statusCode).eql(200);
+                    expect(res.headers['set-cookie']).to.be.empty;
+                    expect(session.cookies.getClientString('http://127.0.0.1:2000')).to.be.empty;
+                });
+        });
     });
 
     describe('Fetch', () => {
         describe('Credential modes', () => {
             describe('Omit', () => {
-                it('Should omit cookie and pass authorization headers for same-domain request', () => {
+                it('Should omit cookie and authorization header for same-domain request', () => {
                     session.cookies.setByServer('http://127.0.0.1:2000', 'key=value');
 
                     const options = {
@@ -1186,11 +1233,11 @@ describe('Proxy', () => {
                     return request(options)
                         .then(parsedBody => {
                             expect(parsedBody.cookie).to.be.undefined;
-                            expect(parsedBody.authorization).eql('value');
+                            expect(parsedBody.authorization).to.be.undefined;
                         });
                 });
 
-                it('Should omit cookie and pass authorization headers for cross-domain request', () => {
+                it('Should omit cookie and authorization header for cross-domain request', () => {
                     session.cookies.setByServer('http://127.0.0.1:2000', 'key=value');
 
                     const options = {
@@ -1206,7 +1253,7 @@ describe('Proxy', () => {
                     return request(options)
                         .then(parsedBody => {
                             expect(parsedBody.cookie).to.be.undefined;
-                            expect(parsedBody.authorization).eql('value');
+                            expect(parsedBody.authorization).to.be.undefined;
                         });
                 });
             });
@@ -1232,7 +1279,7 @@ describe('Proxy', () => {
                         });
                 });
 
-                it('Should omit cookie and pass authorization headers for cross-domain request', () => {
+                it('Should omit cookie and authorization header for cross-domain request', () => {
                     session.cookies.setByServer('http://127.0.0.1:2000', 'key=value');
 
                     const options = {
@@ -1248,7 +1295,7 @@ describe('Proxy', () => {
                     return request(options)
                         .then(parsedBody => {
                             expect(parsedBody.cookie).to.be.undefined;
-                            expect(parsedBody.authorization).eql('value');
+                            expect(parsedBody.authorization).to.be.undefined;
                         });
                 });
             });
@@ -1405,7 +1452,7 @@ describe('Proxy', () => {
                 headers: {
                     accept:                         PAGE_ACCEPT_HEADER,
                     referer:                        proxy.openSession('http://127.0.0.1:2000/', session),
-                    [INTERNAL_HEADERS.credentials]: 'false'
+                    [INTERNAL_HEADERS.credentials]: 'same-origin'
                 }
             };
 
@@ -2449,7 +2496,7 @@ describe('Proxy', () => {
                     resolveWithFullResponse: true,
                     headers:                 {
                         referer:                        proxy.openSession('http://example.com', session),
-                        [INTERNAL_HEADERS.credentials]: 'false'
+                        [INTERNAL_HEADERS.credentials]: 'same-origin'
                     }
                 };
 
@@ -2748,7 +2795,7 @@ describe('Proxy', () => {
                     headers: {
                         accept:                         PAGE_ACCEPT_HEADER,
                         referer:                        proxy.openSession('http://example.com', session),
-                        [INTERNAL_HEADERS.credentials]: 'false'
+                        [INTERNAL_HEADERS.credentials]: 'same-origin'
                     }
                 };
 
@@ -2912,7 +2959,7 @@ describe('Proxy', () => {
                 url:     proxy.openSession('http://127.0.0.1:2000/B234325,GH-284/reply-with-origin', session),
                 headers: {
                     referer:                        proxy.openSession('http://example.com', session),
-                    [INTERNAL_HEADERS.credentials]: 'false'
+                    [INTERNAL_HEADERS.credentials]: 'same-origin'
                 }
             };
 
@@ -2977,16 +3024,16 @@ describe('Proxy', () => {
 
         it('Should use a special timeout for xhr requests (GH-347)', () => {
             const savedReqTimeout    = DestinationRequest.TIMEOUT;
-            const savedXhrReqTimeout = DestinationRequest.XHR_TIMEOUT;
+            const savedXhrReqTimeout = DestinationRequest.AJAX_TIMEOUT;
 
             DestinationRequest.TIMEOUT     = 100;
-            DestinationRequest.XHR_TIMEOUT = 200;
+            DestinationRequest.AJAX_TIMEOUT = 200;
 
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/T224541/hang-forever', session),
                 headers: {
                     accept:                         'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                    [INTERNAL_HEADERS.credentials]: 'false'
+                    [INTERNAL_HEADERS.credentials]: 'same-origin'
                 }
             };
 
@@ -3000,10 +3047,10 @@ describe('Proxy', () => {
                     const responseTime = Date.now();
 
                     expect(err.toString()).include('socket hang up');
-                    expect(responseTime - requestTime).above(DestinationRequest.XHR_TIMEOUT);
+                    expect(responseTime - requestTime).above(DestinationRequest.AJAX_TIMEOUT);
 
-                    DestinationRequest.TIMEOUT     = savedReqTimeout;
-                    DestinationRequest.XHR_TIMEOUT = savedXhrReqTimeout;
+                    DestinationRequest.TIMEOUT      = savedReqTimeout;
+                    DestinationRequest.AJAX_TIMEOUT = savedXhrReqTimeout;
                 });
         });
 
@@ -3090,7 +3137,7 @@ describe('Proxy', () => {
                 headers: {
                     origin:                         'http://127.0.0.1:1836',
                     [INTERNAL_HEADERS.origin]:      'http://example.com',
-                    [INTERNAL_HEADERS.credentials]: 'false'
+                    [INTERNAL_HEADERS.credentials]: 'same-origin'
                 }
             };
 
@@ -3181,7 +3228,7 @@ describe('Proxy', () => {
                 resolveWithFullResponse: true,
                 headers:                 {
                     referer:                        proxy.openSession('http://example.com', session),
-                    [INTERNAL_HEADERS.credentials]: 'false'
+                    [INTERNAL_HEADERS.credentials]: 'same-origin'
                 }
             };
 
@@ -3201,7 +3248,7 @@ describe('Proxy', () => {
                     referer:                        proxy.openSession('http://example.com', session),
                     authorization:                  'value',
                     'proxy-authorization':          'value',
-                    [INTERNAL_HEADERS.credentials]: 'false'
+                    [INTERNAL_HEADERS.credentials]: 'same-origin'
                 }
             };
 
@@ -3219,7 +3266,7 @@ describe('Proxy', () => {
                 json:    true,
                 headers: {
                     referer:                        proxy.openSession('http://127.0.0.1:2000', session),
-                    [INTERNAL_HEADERS.credentials]: 'true',
+                    [INTERNAL_HEADERS.credentials]: 'include',
                     [INTERNAL_HEADERS.origin]:      'origin_value'
                 }
             };
@@ -3397,7 +3444,7 @@ describe('Proxy', () => {
                 path:       '/wait/150',
                 method:     'GET',
                 body:       Buffer.alloc(0),
-                isXhr:      false,
+                isAjax:     false,
                 headers:    {},
                 rawHeaders: []
             });

@@ -121,7 +121,7 @@ export default class XhrSandbox extends SandboxBase {
             // Access-Control_Allow_Origin flag and skip "preflight" requests.
             // eslint-disable-next-line no-restricted-properties
             nativeMethods.xhrSetRequestHeader.call(this, INTERNAL_HEADERS.origin, getOriginHeader());
-            nativeMethods.xhrSetRequestHeader.call(this, INTERNAL_HEADERS.credentials, this.withCredentials.toString());
+            nativeMethods.xhrSetRequestHeader.call(this, INTERNAL_HEADERS.credentials, this.withCredentials ? 'include' : 'same-origin');
 
             nativeMethods.xhrSend.apply(this, arguments);
 

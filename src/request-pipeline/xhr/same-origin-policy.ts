@@ -15,7 +15,7 @@ export function check (ctx: RequestPipelineContext): boolean {
     if (ctx.req.method === 'OPTIONS')
         return true;
 
-    const withCredentials        = ctx.req.headers[INTERNAL_HEADERS.credentials] === (ctx.isXhr ? 'true' : 'include');
+    const withCredentials        = ctx.req.headers[INTERNAL_HEADERS.credentials] === 'include';
     const allowOriginHeader      = ctx.destRes.headers[BUILTIN_HEADERS.accessControlAllowOrigin];
     const allowCredentialsHeader = ctx.destRes.headers[BUILTIN_HEADERS.accessControlAllowCredentials];
     const allowCredentials       = String(allowCredentialsHeader).toLowerCase() === 'true';
@@ -34,4 +34,17 @@ export function check (ctx: RequestPipelineContext): boolean {
 
     // FINAL CHECK: The request origin should match one of the allowed origins.
     return wildcardAllowed || allowedOrigins.includes(reqOrigin);
+}
+
+export function shouldOmitCredentials (ctx: RequestPipelineContext): boolean {
+    switch (ctx.req.headers[INTERNAL_HEADERS.credentials]) {
+        case 'omit':
+            return true;
+        case 'same-origin':
+            return ctx.dest.reqOrigin !== ctx.dest.domain;
+        case 'include':
+            return false;
+        default:
+            return false;
+    }
 }

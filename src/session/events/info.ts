@@ -18,7 +18,7 @@ export class RequestInfo {
         this.userAgent = ctx.reqOpts.headers['user-agent'] || '';
         this.url       = ctx.reqOpts.url;
         this.method    = ctx.reqOpts.method.toLowerCase();
-        this.isAjax    = ctx.isXhr || ctx.isFetch;
+        this.isAjax    = ctx.isAjax;
         this.headers   = ctx.reqOpts.headers;
         this.body      = ctx.reqOpts.body;
         this.sessionId = ctx.session.id;
