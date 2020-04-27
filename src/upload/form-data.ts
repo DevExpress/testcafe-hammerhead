@@ -24,21 +24,19 @@ export default class FormData {
     }
 
     private _injectFileInfo (fileInfo: FileInputInfo): void {
-        const entries: FormDataEntry[] = this._getEntriesByName(fileInfo.name);
-        let entry: FormDataEntry       = null;
-
-        if (!entries.length)
-            entries.push(new FormDataEntry());
+        const entries: FormDataEntry[]   = this._getEntriesByName(fileInfo.name);
+        let previousEntry: FormDataEntry = null;
 
         for (let idx = 0; idx < fileInfo.files.length; idx++) {
-            entry = entries[idx];
+            let entry = entries[idx];
 
             if (!entry) {
-                entry = entries[idx - 1].cloneWithRawHeaders();
+                entry = previousEntry ? previousEntry.cloneWithRawHeaders() : new FormDataEntry();
 
                 this._entries.push(entry);
             }
 
+            previousEntry = entry;
             entry.addFileInfo(fileInfo, idx);
         }
     }
