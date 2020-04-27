@@ -1,5 +1,6 @@
 import { IncomingHttpHeaders, OutgoingHttpHeaders } from 'http';
 import RequestPipelineContext from '../context';
+import BUILTIN_HEADERS from '../builtin-header-names';
 import {
     requestTransforms,
     forcedRequestTransforms,
@@ -62,9 +63,9 @@ export function transformHeadersCaseToRaw (headers: OutgoingHttpHeaders, rawHead
 }
 
 export function setupPreventCachingHeaders (headers: OutgoingHttpHeaders) {
-    headers['cache-control'] = PREVENT_CACHING_HEADERS['cache-control'];
-    headers['pragma']        = PREVENT_CACHING_HEADERS['pragma'];
+    headers[BUILTIN_HEADERS.cacheControl] = PREVENT_CACHING_HEADERS[BUILTIN_HEADERS.cacheControl];
+    headers[BUILTIN_HEADERS.pragma]       = PREVENT_CACHING_HEADERS[BUILTIN_HEADERS.pragma];
 
-    delete headers['etag'];
-    delete headers['expires'];
+    delete headers[BUILTIN_HEADERS.eTag];
+    delete headers[BUILTIN_HEADERS.expires];
 }

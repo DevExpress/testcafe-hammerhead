@@ -1,8 +1,9 @@
 import SandboxBase from './base';
 import nativeMethods from './native-methods';
 import { getProxyUrl, parseProxyUrl } from '../utils/url';
-import XHR_HEADERS from '../../request-pipeline/xhr/headers';
-import AUTHORIZATION from '../../request-pipeline/xhr/authorization';
+import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
+import INTERNAL_HEADERS from '../../request-pipeline/internal-header-names';
+import { transformHeaderNameToInternal } from '../utils/headers';
 import { getOriginHeader } from '../utils/destination-location';
 import { overrideDescriptor } from '../utils/property-overriding';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
@@ -38,7 +39,7 @@ export default class XhrSandbox extends SandboxBase {
 
     static openNativeXhr (xhr, url, isAsync) {
         xhr.open('POST', url, isAsync);
-        xhr.setRequestHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        xhr.setRequestHeader(BUILTIN_HEADERS.cacheControl, 'no-cache, no-store, must-revalidate');
     }
 
     attach (window) {
@@ -115,16 +116,12 @@ export default class XhrSandbox extends SandboxBase {
         xmlHttpRequestProto.send = function () {
             xhrSandbox.emit(xhrSandbox.BEFORE_XHR_SEND_EVENT, { xhr: this });
 
-            // NOTE: Add the XHR request mark, so that a proxy can recognize a request as a XHR request. As all
-            // requests are passed to the proxy, we need to perform Same Origin Policy compliance checks on the
+            // NOTE: As all requests are passed to the proxy, we need to perform Same Origin Policy compliance checks on the
             // server side. So, we pass the CORS support flag to inform the proxy that it can analyze the
             // Access-Control_Allow_Origin flag and skip "preflight" requests.
-            nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.requestMarker, 'true');
             // eslint-disable-next-line no-restricted-properties
-            nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.origin, getOriginHeader());
-
-            if (this.withCredentials)
-                nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.withCredentials, 'true');
+            nativeMethods.xhrSetRequestHeader.call(this, INTERNAL_HEADERS.origin, getOriginHeader());
+            nativeMethods.xhrSetRequestHeader.call(this, INTERNAL_HEADERS.credentials, this.withCredentials.toString());
 
             nativeMethods.xhrSend.apply(this, arguments);
 
@@ -135,11 +132,10 @@ export default class XhrSandbox extends SandboxBase {
             syncCookieWithClientIfNecessary.call(this);
         };
 
-        xmlHttpRequestProto.setRequestHeader = function (header, value) {
-            if (typeof header === 'string' && AUTHORIZATION.headers.indexOf(header.toLowerCase()) !== -1)
-                value = AUTHORIZATION.valuePrefix + value;
+        xmlHttpRequestProto.setRequestHeader = function (...args) {
+            args[0] = transformHeaderNameToInternal(args[0]);
 
-            return nativeMethods.xhrSetRequestHeader.call(this, header, value);
+            return nativeMethods.xhrSetRequestHeader.apply(this, args);
         };
 
         overrideDescriptor(window.XMLHttpRequest.prototype, 'status', {
@@ -161,17 +157,18 @@ export default class XhrSandbox extends SandboxBase {
             });
         }
 
-        xmlHttpRequestProto.getResponseHeader = function (headerName: any) {
-            if (typeof headerName === 'string' && headerName.toLowerCase() === 'www-authenticate')
-                headerName = XHR_HEADERS.wwwAuth;
+        xmlHttpRequestProto.getResponseHeader = function (...args) {
+            args[0] = transformHeaderNameToInternal(args[0]);
 
-            return nativeMethods.xhrGetResponseHeader.call(this, headerName);
+            return nativeMethods.xhrGetResponseHeader.apply(this, args);
         };
 
         xmlHttpRequestProto.getAllResponseHeaders = function () {
-            const allHeaders = nativeMethods.xhrGetAllResponseHeaders.call(this);
+            const allHeaders = nativeMethods.xhrGetAllResponseHeaders.apply(this, arguments);
 
-            return allHeaders.replace(XHR_HEADERS.wwwAuth, 'www-authenticate');
+            return allHeaders
+                .replace(INTERNAL_HEADERS.wwwAuthenticate, BUILTIN_HEADERS.wwwAuthenticate)
+                .replace(INTERNAL_HEADERS.proxyAuthenticate, BUILTIN_HEADERS.proxyAuthenticate);
         };
     }
 }

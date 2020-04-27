@@ -1,5 +1,5 @@
 import { ServiceMessage } from '../../typings/proxy';
-
+import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
 interface RequestContext {
     url: string;
     msg: ServiceMessage;
@@ -52,7 +52,7 @@ export default function request (url: string, msg: ServiceMessage, callback: Req
     const ctx: RequestContext = { url, msg, callback, handleEvent };
 
     xhr.open('POST', url, true);
-    xhr.setRequestHeader('cache-control', 'no-cache, no-store, must-revalidate');
+    xhr.setRequestHeader(BUILTIN_HEADERS.cacheControl, 'no-cache, no-store, must-revalidate');
 
     xhr.addEventListener('load', ctx);
     xhr.addEventListener('abort', ctx);

@@ -1,12 +1,13 @@
 import SandboxBase from './base';
 import nativeMethods from './native-methods';
-import XHR_HEADERS from '../../request-pipeline/xhr/headers';
+import INTERNAL_HEADERS from '../../request-pipeline/internal-header-names';
 import { getProxyUrl, parseProxyUrl } from '../utils/url';
 import { getOriginHeader, sameOriginCheck, get as getDestLocation } from '../utils/destination-location';
 import { isFetchHeaders, isFetchRequest } from '../utils/dom';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
 import { overrideDescriptor } from '../utils/property-overriding';
 import * as browserUtils from '../utils/browser';
+import { transformHeaderNameToBuiltin, transformHeaderNameToInternal } from '../utils/headers';
 
 const DEFAULT_REQUEST_CREDENTIALS = nativeMethods.Request ? new nativeMethods.Request(window.location.toString()).credentials : void 0;
 
@@ -31,8 +32,8 @@ export default class FetchSandbox extends SandboxBase {
         }
 
         // eslint-disable-next-line no-restricted-properties
-        nativeMethods.headersSet.call(headers, XHR_HEADERS.origin, getOriginHeader());
-        nativeMethods.headersSet.call(headers, XHR_HEADERS.fetchRequestCredentials, credentials);
+        nativeMethods.headersSet.call(headers, INTERNAL_HEADERS.origin, getOriginHeader());
+        nativeMethods.headersSet.call(headers, INTERNAL_HEADERS.credentials, credentials);
 
         return init;
     }
@@ -73,6 +74,14 @@ export default class FetchSandbox extends SandboxBase {
         return true;
     }
 
+    private static _createAccessorWrapper(nativeFn: Function) {
+        return function (...args) {
+            args[0] = transformHeaderNameToInternal(args[0]);
+
+            return nativeFn.apply(this, args);
+        }
+    }
+
     static _getResponseType (response) {
         const responseUrl       = nativeMethods.responseUrlGetter.call(response);
         const parsedResponseUrl = parseProxyUrl(responseUrl);
@@ -91,13 +100,13 @@ export default class FetchSandbox extends SandboxBase {
         if (entry.done)
             return entry;
 
-        /* eslint-disable no-restricted-properties */
-        if (entry.value[0] === XHR_HEADERS.origin || entry.value[0] === XHR_HEADERS.fetchRequestCredentials)
+        const headerName = entry.value[0]; // eslint-disable-line no-restricted-properties
+
+        // eslint-disable-next-line no-restricted-properties
+        if (headerName === INTERNAL_HEADERS.origin || headerName === INTERNAL_HEADERS.credentials)
             return FetchSandbox._entriesFilteredNext(iterator, nativeNext);
 
-        if (entry.value[0] === XHR_HEADERS.wwwAuth)
-            entry.value[0] = 'www-authenticate';
-        /* eslint-enable no-restricted-properties */
+        entry.value[0] = transformHeaderNameToBuiltin(headerName); // eslint-disable-line no-restricted-properties
 
         return entry;
     }
@@ -219,11 +228,10 @@ export default class FetchSandbox extends SandboxBase {
             if (typeof callback === 'function') {
                 args[0] = function (value, name, headers) {
                     // eslint-disable-next-line no-restricted-properties
-                    if (name === XHR_HEADERS.origin || name === XHR_HEADERS.fetchRequestCredentials)
+                    if (name === INTERNAL_HEADERS.origin || name === INTERNAL_HEADERS.credentials)
                         return;
 
-                    if (name.toLowerCase() === XHR_HEADERS.wwwAuth)
-                        name = 'www-authenticate';
+                    name = transformHeaderNameToBuiltin(name);
 
                     callback.call(this, value, name, headers);
                 };
@@ -232,18 +240,8 @@ export default class FetchSandbox extends SandboxBase {
             return nativeMethods.headersForEach.apply(this, args);
         };
 
-        window.Headers.prototype.get = function (headerName: any) {
-            if (typeof headerName === 'string' && headerName.toLowerCase() === 'www-authenticate')
-                headerName = XHR_HEADERS.wwwAuth;
-
-            return nativeMethods.headersGet.call(this, headerName);
-        };
-
-        window.Headers.prototype.has = function (headerName: any) {
-            if (typeof headerName === 'string' && headerName.toLowerCase() === 'www-authenticate')
-                headerName = XHR_HEADERS.wwwAuth;
-
-            return nativeMethods.headersHas.call(this, headerName);
-        };
+        window.Headers.prototype.get = FetchSandbox._createAccessorWrapper(nativeMethods.headersGet);
+        window.Headers.prototype.set = FetchSandbox._createAccessorWrapper(nativeMethods.headersSet);
+        window.Headers.prototype.has = FetchSandbox._createAccessorWrapper(nativeMethods.headersHas);
     }
 }

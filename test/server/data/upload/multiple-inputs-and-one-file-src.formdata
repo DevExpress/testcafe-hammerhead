@@ -1,5 +1,6 @@
 --separator
 Content-Disposition: form-data; name="picture_file"; filename=""
+Content-Type: application/octet-stream
 
 
 --separator

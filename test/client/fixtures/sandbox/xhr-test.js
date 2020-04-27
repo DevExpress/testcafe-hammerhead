@@ -1,8 +1,7 @@
-var XhrSandbox    = hammerhead.get('./sandbox/xhr');
-var AUTHORIZATION = hammerhead.get('../request-pipeline/xhr/authorization');
-var XHR_HEADERS   = hammerhead.get('../request-pipeline/xhr/headers');
-var destLocation  = hammerhead.get('./utils/destination-location');
-var urlUtils      = hammerhead.get('./utils/url');
+var XhrSandbox       = hammerhead.get('./sandbox/xhr');
+var INTERNAL_HEADERS = hammerhead.get('../request-pipeline/internal-header-names');
+var destLocation     = hammerhead.get('./utils/destination-location');
+var urlUtils         = hammerhead.get('./utils/url');
 
 var nativeMethods = hammerhead.nativeMethods;
 var xhrSandbox    = hammerhead.sandbox.xhr;
@@ -265,17 +264,15 @@ asyncTest('authorization headers by client should be processed (GH-1016)', funct
 
     xhr.open('GET', '/echo-request-headers/', true);
     xhr.setRequestHeader('Authorization', '123');
-    xhr.setRequestHeader('authentication-info', '123');
+    xhr.setRequestHeader('proxy-Authorization', 'Basic');
     xhr.setRequestHeader('x-header1', '456');
-    xhr.setRequestHeader('x-header2', '789');
     xhr.addEventListener('readystatechange', function () {
         if (this.readyState === this.DONE) {
             var headers = JSON.parse(this.responseText);
 
-            strictEqual(headers['authorization'], AUTHORIZATION.valuePrefix + '123');
-            strictEqual(headers['authentication-info'], AUTHORIZATION.valuePrefix + '123');
+            strictEqual(headers[INTERNAL_HEADERS.authorization], '123');
+            strictEqual(headers[INTERNAL_HEADERS.proxyAuthorization], 'Basic');
             strictEqual(headers['x-header1'], '456');
-            strictEqual(headers['x-header2'], '789');
 
             start();
         }
@@ -287,14 +284,16 @@ asyncTest('getResponseHeader', function () {
     var xhr     = new XMLHttpRequest();
     var headers = { 'content-type': 'text/plain' };
 
-    headers[XHR_HEADERS.wwwAuth] = 'Basic realm="Login"';
+    headers[INTERNAL_HEADERS.wwwAuthenticate] = 'Basic realm="Login"';
+    headers[INTERNAL_HEADERS.proxyAuthenticate] = 'Digital realm="Login"';
 
     xhr.open('post', '/echo-request-body-in-response-headers');
     xhr.addEventListener('load', function () {
         strictEqual(xhr.getResponseHeader('WWW-Authenticate'), 'Basic realm="Login"');
-        strictEqual(nativeMethods.xhrGetResponseHeader.call(xhr, XHR_HEADERS.wwwAuth), 'Basic realm="Login"');
+        strictEqual(nativeMethods.xhrGetResponseHeader.call(xhr, INTERNAL_HEADERS.wwwAuthenticate), 'Basic realm="Login"');
         strictEqual(nativeMethods.xhrGetResponseHeader.call(xhr, 'www-authenticate'), null);
         strictEqual(xhr.getResponseHeader('content-type'), 'text/plain');
+        strictEqual(xhr.getResponseHeader('Proxy-Authenticate'), 'Digital realm="Login"');
 
         start();
     });
@@ -305,14 +304,19 @@ asyncTest('getAllResponseHeaders', function () {
     var xhr     = new XMLHttpRequest();
     var headers = { 'content-type': 'text/plain' };
 
-    headers[XHR_HEADERS.wwwAuth] = 'Basic realm="Login"';
+    headers[INTERNAL_HEADERS.wwwAuthenticate]   = 'Digital realm="Login"';
+    headers[INTERNAL_HEADERS.proxyAuthenticate] = 'Basic realm="Login"';
 
     xhr.open('post', '/echo-request-body-in-response-headers');
     xhr.addEventListener('load', function () {
-        ok(xhr.getAllResponseHeaders().indexOf('\nwww-authenticate: Basic realm="Login"') !== -1);
-        ok(xhr.getAllResponseHeaders().indexOf(XHR_HEADERS.wwwAuth) === -1);
-        ok(nativeMethods.xhrGetAllResponseHeaders.call(xhr).indexOf(XHR_HEADERS.wwwAuth) !== -1);
+        ok(xhr.getAllResponseHeaders().indexOf('\nwww-authenticate: Digital realm="Login"') !== -1);
+        ok(xhr.getAllResponseHeaders().indexOf('\nproxy-authenticate: Basic realm="Login"') !== -1);
+        ok(xhr.getAllResponseHeaders().indexOf(INTERNAL_HEADERS.wwwAuthenticate) === -1);
+        ok(xhr.getAllResponseHeaders().indexOf(INTERNAL_HEADERS.proxyAuthenticate) === -1);
+        ok(nativeMethods.xhrGetAllResponseHeaders.call(xhr).indexOf(INTERNAL_HEADERS.wwwAuthenticate) !== -1);
+        ok(nativeMethods.xhrGetAllResponseHeaders.call(xhr).indexOf(INTERNAL_HEADERS.proxyAuthenticate) !== -1);
         ok(nativeMethods.xhrGetAllResponseHeaders.call(xhr).indexOf('\nwww-authenticate') === -1);
+        ok(nativeMethods.xhrGetAllResponseHeaders.call(xhr).indexOf('\nproxy-authenticate') === -1);
 
         start();
     });

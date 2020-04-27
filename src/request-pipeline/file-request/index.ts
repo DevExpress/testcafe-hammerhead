@@ -4,6 +4,7 @@ import { EventEmitter } from 'events';
 import { parse } from 'url';
 import { MESSAGE, getText } from '../../messages';
 import createResource from './create-resource';
+import BUILTIN_HEADERS from '../builtin-header-names';
 
 const DISK_RE = /^\/[A-Za-z]:/;
 
@@ -48,9 +49,7 @@ export default class FileRequest extends EventEmitter {
         stream = Object.assign(stream, {
             statusCode: 200,
             trailers:   {},
-            headers:    {
-                'content-type': mime.lookup(this._path)
-            }
+            headers:    { [BUILTIN_HEADERS.contentType]: mime.lookup(this._path) }
         });
 
         this.emit('response', stream);

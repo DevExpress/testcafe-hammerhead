@@ -1,12 +1,13 @@
 import { FileInputInfo } from '../typings/upload';
 import * as bufferUtils from '../utils/buffer';
+import BUILTIN_HEADERS from '../request-pipeline/builtin-header-names';
 
 const INPUT_NAME_RE = /;\s*name="([^"]*)"/i;
 const FILE_NAME_RE  = /;\s*filename="([^"]*)"/i;
 const HEADER_RE     = /^(.+?):\s*(.*)$/;
 
 export default class FormDataEntry {
-    private _headers: { [name: string]: string } = {};
+    private _headers: Map<string, { rawName: string; value: string }> = new Map();
     body: Buffer[] = [];
     name: string = '';
     fileName: string = '';
@@ -19,11 +20,18 @@ export default class FormDataEntry {
         this.fileName = fileNameMatch && fileNameMatch[1] || '';
     }
 
+    private _setHeader(name: string, value: string, rawHeader?: string) {
+        if (!this._headers.has(name))
+            this._headers.set(name, { rawName: typeof rawHeader === 'string' ? rawHeader : name, value });
+        else
+            this._headers.get(name).value = value;
+    }
+
     private _setContentDisposition (name: string, fileName: string) {
         this.name     = name;
         this.fileName = fileName;
 
-        this._headers['Content-Disposition'] = `form-data; name="${name}"; filename="${fileName}"`;
+        this._setHeader(BUILTIN_HEADERS.contentDisposition, `form-data; name="${name}"; filename="${fileName}"`);
     }
 
     // API
@@ -32,33 +40,40 @@ export default class FormDataEntry {
 
         this._setContentDisposition(fileInfo.name, file.name);
 
-        this.body                     = [Buffer.from(file.data, 'base64')];
-        this._headers['Content-Type'] = file.type;
+        this.body = [Buffer.from(file.data, 'base64')];
+
+        this._setHeader(BUILTIN_HEADERS.contentType, file.type);
     }
 
-    setHeader (header: string, newValue?: string) {
-        const headerMatch = header.match(HEADER_RE);
-        const name        = headerMatch && headerMatch[1] || '';
-        const value       = newValue || headerMatch && headerMatch[2] || '';
+    setRawHeader (rawHeader: string) {
+        const [, rawName = '', value = ''] = rawHeader.match(HEADER_RE);
+        const name                         = rawName.toLowerCase();
 
-        this._headers[name] = value;
+        this._headers.set(name, { rawName, value });
 
-        if (name === 'Content-Disposition')
+        if (name === BUILTIN_HEADERS.contentDisposition)
             this._parseContentDisposition(value);
     }
 
     toBuffer (): Buffer {
         const chunks: Buffer[] = [];
 
-        for (const name of Object.keys(this._headers)) {
-            const value = this._headers[name];
-
-            chunks.push(Buffer.from(`${name}: ${value}`));
+        for (const { rawName, value } of this._headers.values()) {
+            chunks.push(Buffer.from(`${rawName}: ${value}`));
             chunks.push(bufferUtils.CRLF);
         }
 
         chunks.push(bufferUtils.CRLF);
 
         return Buffer.concat(chunks.concat(this.body));
+    }
+
+    cloneWithRawHeaders() {
+        const entry = new FormDataEntry();
+
+        for (const [name, { rawName }] of this._headers)
+            entry._setHeader(name, '', rawName);
+
+        return entry;
     }
 }

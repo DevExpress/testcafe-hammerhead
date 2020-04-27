@@ -13,6 +13,7 @@ import { run as runRequestPipeline } from '../request-pipeline';
 import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
 import { resetKeepAliveConnections } from '../request-pipeline/destination-request/agent';
 import SERVICE_ROUTES from './service-routes';
+import BUILTIN_HEADERS from '../request-pipeline/builtin-header-names';
 
 const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
 
@@ -131,13 +132,13 @@ export default class Proxy extends Router {
     }
 
     _onTaskScriptRequest (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo, isIframe: boolean): void {
-        const referer     = req.headers['referer'];
+        const referer     = req.headers[BUILTIN_HEADERS.referer] as string;
         const refererDest = referer && urlUtils.parseProxyUrl(referer);
         const session     = refererDest && this.openSessions.get(refererDest.sessionId);
         const windowId    = refererDest && refererDest.windowId;
 
         if (session) {
-            res.setHeader('content-type', 'application/x-javascript');
+            res.setHeader(BUILTIN_HEADERS.contentType, 'application/x-javascript');
             addPreventCachingHeaders(res);
 
             const taskScript = session.getTaskScript({

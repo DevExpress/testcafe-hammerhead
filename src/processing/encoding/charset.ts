@@ -1,5 +1,6 @@
 import getEncodingName from './labels';
 import { startsWith } from '../../utils/buffer';
+import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
 
 const CHARSET_RE      = /(?:^|;)\s*charset=(.+)(?:;|$)/i;
 const META_CHARSET_RE = /charset ?= ?['"]?([^ ;"']*)['"]?/i;
@@ -97,10 +98,8 @@ export default class Charset {
             let charsetStr = null;
 
             metas.forEach(attrs => {
-                const shouldParseFromContentAttr = needPragma !== false &&
-                                                   attrs.content &&
-                                                   attrs.httpEquiv &&
-                                                   attrs.httpEquiv.toLowerCase() === 'content-type';
+                const shouldParseFromContentAttr = needPragma !== false && attrs.content && attrs.httpEquiv &&
+                                                   attrs.httpEquiv.toLowerCase() === BUILTIN_HEADERS.contentType;
 
                 if (shouldParseFromContentAttr) {
                     const charsetMatch = attrs.content.match(META_CHARSET_RE);

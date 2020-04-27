@@ -9,6 +9,7 @@ import { isScriptProcessed, processScript } from '../script';
 import styleProcessor from '../../processing/style';
 import * as urlUtils from '../../utils/url';
 import trim from '../../utils/string-trim';
+import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
 import { XML_NAMESPACE } from './namespaces';
 import { URL_ATTR_TAGS, URL_ATTRS, TARGET_ATTR_TAGS, TARGET_ATTRS } from './attributes';
 
@@ -441,7 +442,7 @@ export default class DomProcessor {
     _processMetaElement (el: HTMLElement, urlReplacer, pattern: ElementProcessingPattern): void {
         const httpEquivAttrValue = this.adapter.getAttr(el, 'http-equiv').toLowerCase();
 
-        if (httpEquivAttrValue === 'refresh') {
+        if (httpEquivAttrValue === BUILTIN_HEADERS.refresh) {
             let attr = this.adapter.getAttr(el, pattern.urlAttr);
 
             attr = attr.replace(/(url=)(.*)$/i, (_match, prefix, url) => prefix + urlReplacer(url));
@@ -449,7 +450,7 @@ export default class DomProcessor {
             this.adapter.setAttr(el, pattern.urlAttr, attr);
         }
         // TODO: remove after https://github.com/DevExpress/testcafe-hammerhead/issues/244 implementation
-        else if (httpEquivAttrValue === 'content-security-policy') {
+        else if (httpEquivAttrValue === BUILTIN_HEADERS.contentSecurityPolicy) {
             this.adapter.removeAttr(el, 'http-equiv');
             this.adapter.removeAttr(el, 'content');
         }

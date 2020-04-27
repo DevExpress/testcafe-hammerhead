@@ -110,7 +110,7 @@ module.exports = function (app) {
     });
 
     app.post('/xhr-origin-header-test/', function (req, res) {
-        res.send(req.headers['x-hammerhead|xhr|origin']);
+        res.send(req.headers['x-hammerhead-origin']);
     });
 
     app.get('/xhr-with-sync-cookie/', function (req, res) {

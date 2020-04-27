@@ -17,8 +17,7 @@ const { noop }                             = require('lodash');
 const isWindows                            = require('os-family').win;
 const promisifyEvent                       = require('promisify-event');
 const semver                               = require('semver');
-const XHR_HEADERS                          = require('../../lib/request-pipeline/xhr/headers');
-const AUTHORIZATION                        = require('../../lib/request-pipeline/xhr/authorization');
+const INTERNAL_HEADERS                     = require('../../lib/request-pipeline/internal-header-names');
 const SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = require('../../lib/request-pipeline/xhr/same-origin-check-failed-status-code');
 const Proxy                                = require('../../lib/proxy');
 const Session                              = require('../../lib/session');
@@ -242,10 +241,11 @@ describe('Proxy', () => {
 
         app.options('/preflight', (req, res) => res.end('42'));
 
-        app.get('/www-authenticate', (req, res) => {
+        app.get('/authenticate', (req, res) => {
             res
                 .status(401)
                 .set('www-authenticate', 'Basic realm="Login"')
+                .set('proxy-authenticate', 'Digital realm="Login"')
                 .end();
         });
 
@@ -944,7 +944,7 @@ describe('Proxy', () => {
 
         it('Should process the `www-authenticate` header', () => {
             const options = {
-                url:                     proxy.openSession('http://127.0.0.1:2000/www-authenticate', session),
+                url:                     proxy.openSession('http://127.0.0.1:2000/authenticate', session),
                 resolveWithFullResponse: true,
                 simple:                  false
             };
@@ -952,7 +952,9 @@ describe('Proxy', () => {
             return request(options)
                 .then(res => {
                     expect(res.headers['www-authenticate']).is.undefined;
-                    expect(res.headers[XHR_HEADERS.wwwAuth]).eql('Basic realm="Login"');
+                    expect(res.headers['proxy-authenticate']).is.undefined;
+                    expect(res.headers[INTERNAL_HEADERS.wwwAuthenticate]).eql('Basic realm="Login"');
+                    expect(res.headers[INTERNAL_HEADERS.proxyAuthenticate]).eql('Digital realm="Login"');
                 });
         });
 
@@ -1045,8 +1047,8 @@ describe('Proxy', () => {
                 url:                     proxy.openSession('http://127.0.0.1:2000/page/plain-text', session),
                 resolveWithFullResponse: true,
                 headers:                 {
-                    referer:                     proxy.openSession('http://example.com', session),
-                    [XHR_HEADERS.requestMarker]: 'true'
+                    referer:                        proxy.openSession('http://example.com', session),
+                    [INTERNAL_HEADERS.credentials]: 'false'
                 }
             };
 
@@ -1062,8 +1064,8 @@ describe('Proxy', () => {
                 url:                     proxy.openSession('http://127.0.0.1:2000/page/plain-text', session),
                 resolveWithFullResponse: true,
                 headers:                 {
-                    referer:                     proxy.openSession('file:///path/page.html', session),
-                    [XHR_HEADERS.requestMarker]: 'true'
+                    referer:                        proxy.openSession('file:///path/page.html', session),
+                    [INTERNAL_HEADERS.credentials]: 'false'
                 }
             };
 
@@ -1079,8 +1081,8 @@ describe('Proxy', () => {
                 url:                     proxy.openSession(getFileProtocolUrl('./data/stylesheet/src.css'), session),
                 resolveWithFullResponse: true,
                 headers:                 {
-                    referer:                     proxy.openSession('file:///path/page.html', session),
-                    [XHR_HEADERS.requestMarker]: 'true'
+                    referer:                        proxy.openSession('file:///path/page.html', session),
+                    [INTERNAL_HEADERS.credentials]: 'false'
                 }
             };
 
@@ -1097,8 +1099,8 @@ describe('Proxy', () => {
                 url:                     proxy.openSession('http://127.0.0.1:2000/preflight', session),
                 resolveWithFullResponse: true,
                 headers:                 {
-                    referer:                     proxy.openSession('http://example.com', session),
-                    [XHR_HEADERS.requestMarker]: 'true'
+                    referer:                        proxy.openSession('http://example.com', session),
+                    [INTERNAL_HEADERS.credentials]: 'false'
                 }
             };
 
@@ -1114,8 +1116,8 @@ describe('Proxy', () => {
                 url:                     proxy.openSession('http://127.0.0.1:2000/xhr-origin/allow-any', session),
                 resolveWithFullResponse: true,
                 headers:                 {
-                    referer:                     proxy.openSession('http://example.com', session),
-                    [XHR_HEADERS.requestMarker]: 'true'
+                    referer:                        proxy.openSession('http://example.com', session),
+                    [INTERNAL_HEADERS.credentials]: 'false'
                 }
             };
 
@@ -1131,9 +1133,9 @@ describe('Proxy', () => {
                 url:                     proxy.openSession('http://127.0.0.1:2000/xhr-origin/allow-provided', session),
                 resolveWithFullResponse: true,
                 headers:                 {
-                    referer:                     proxy.openSession('http://example.com', session),
-                    'x-allow-origin':            'http://example.com',
-                    [XHR_HEADERS.requestMarker]: 'true'
+                    referer:                        proxy.openSession('http://example.com', session),
+                    'x-allow-origin':               'http://example.com',
+                    [INTERNAL_HEADERS.credentials]: 'false'
                 }
             };
 
@@ -1149,9 +1151,9 @@ describe('Proxy', () => {
                 url:                     proxy.openSession('http://127.0.0.1:2000/304', session),
                 resolveWithFullResponse: true,
                 headers:                 {
-                    referer:                     proxy.openSession('http://example.com', session),
-                    'if-modified-since':         'Thu, 01 Aug 2013 18:31:48 GMT',
-                    [XHR_HEADERS.requestMarker]: 'true'
+                    referer:                        proxy.openSession('http://example.com', session),
+                    'if-modified-since':            'Thu, 01 Aug 2013 18:31:48 GMT',
+                    [INTERNAL_HEADERS.credentials]: 'false'
                 }
             };
 
@@ -1175,9 +1177,9 @@ describe('Proxy', () => {
                         url:     proxy.openSession('http://127.0.0.1:2000/echo-headers', session),
                         json:    true,
                         headers: {
-                            referer:                               proxy.openSession('http://127.0.0.1:2000', session),
-                            authorization:                         'value',
-                            [XHR_HEADERS.fetchRequestCredentials]: 'omit'
+                            referer:                        proxy.openSession('http://127.0.0.1:2000', session),
+                            authorization:                  'value',
+                            [INTERNAL_HEADERS.credentials]: 'omit'
                         }
                     };
 
@@ -1195,9 +1197,9 @@ describe('Proxy', () => {
                         url:     proxy.openSession('http://127.0.0.1:2002/echo-headers', session),
                         json:    true,
                         headers: {
-                            referer:                               proxy.openSession('http://127.0.0.1:2000', session),
-                            authorization:                         'value',
-                            [XHR_HEADERS.fetchRequestCredentials]: 'omit'
+                            referer:                        proxy.openSession('http://127.0.0.1:2000', session),
+                            authorization:                  'value',
+                            [INTERNAL_HEADERS.credentials]: 'omit'
                         }
                     };
 
@@ -1217,9 +1219,9 @@ describe('Proxy', () => {
                         url:     proxy.openSession('http://127.0.0.1:2000/echo-headers', session),
                         json:    true,
                         headers: {
-                            referer:                               proxy.openSession('http://127.0.0.1:2000', session),
-                            authorization:                         'value',
-                            [XHR_HEADERS.fetchRequestCredentials]: 'same-origin'
+                            referer:                        proxy.openSession('http://127.0.0.1:2000', session),
+                            authorization:                  'value',
+                            [INTERNAL_HEADERS.credentials]: 'same-origin'
                         }
                     };
 
@@ -1237,9 +1239,9 @@ describe('Proxy', () => {
                         url:     proxy.openSession('http://127.0.0.1:2002/echo-headers', session),
                         json:    true,
                         headers: {
-                            referer:                               proxy.openSession('http://127.0.0.1:2000', session),
-                            authorization:                         'value',
-                            [XHR_HEADERS.fetchRequestCredentials]: 'same-origin'
+                            referer:                        proxy.openSession('http://127.0.0.1:2000', session),
+                            authorization:                  'value',
+                            [INTERNAL_HEADERS.credentials]: 'same-origin'
                         }
                     };
 
@@ -1259,9 +1261,9 @@ describe('Proxy', () => {
                         url:     proxy.openSession('http://127.0.0.1:2000/echo-headers', session),
                         json:    true,
                         headers: {
-                            referer:                               proxy.openSession('http://127.0.0.1:2000', session),
-                            authorization:                         'value',
-                            [XHR_HEADERS.fetchRequestCredentials]: 'include'
+                            referer:                        proxy.openSession('http://127.0.0.1:2000', session),
+                            authorization:                  'value',
+                            [INTERNAL_HEADERS.credentials]: 'include'
                         }
                     };
 
@@ -1279,9 +1281,9 @@ describe('Proxy', () => {
                         url:     proxy.openSession('http://127.0.0.1:2002/echo-headers-with-credentials', session),
                         json:    true,
                         headers: {
-                            referer:                               proxy.openSession('http://127.0.0.1:2000', session),
-                            authorization:                         'value',
-                            [XHR_HEADERS.fetchRequestCredentials]: 'include'
+                            referer:                        proxy.openSession('http://127.0.0.1:2000', session),
+                            authorization:                  'value',
+                            [INTERNAL_HEADERS.credentials]: 'include'
                         }
                     };
 
@@ -1297,9 +1299,7 @@ describe('Proxy', () => {
         it('Should respond with error if an error is occurred on attempting to connect with destination server', () => {
             const options = {
                 url:     proxy.openSession('https://127.0.0.1:2000/', session),
-                headers: {
-                    [XHR_HEADERS.fetchRequestCredentials]: 'omit'
-                }
+                headers: { [INTERNAL_HEADERS.credentials]: 'omit' }
             };
 
             return request(options)
@@ -1403,9 +1403,9 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/page', session),
                 headers: {
-                    accept:                      PAGE_ACCEPT_HEADER,
-                    referer:                     proxy.openSession('http://127.0.0.1:2000/', session),
-                    [XHR_HEADERS.requestMarker]: 'true'
+                    accept:                         PAGE_ACCEPT_HEADER,
+                    referer:                        proxy.openSession('http://127.0.0.1:2000/', session),
+                    [INTERNAL_HEADERS.credentials]: 'false'
                 }
             };
 
@@ -1421,9 +1421,9 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/page', session),
                 headers: {
-                    accept:                                'text/html,application/xhtml+xml,application/xml',
-                    referer:                               proxy.openSession('http://127.0.0.1:2000/', session),
-                    [XHR_HEADERS.fetchRequestCredentials]: 'omit'
+                    accept:                         'text/html,application/xhtml+xml,application/xml',
+                    referer:                        proxy.openSession('http://127.0.0.1:2000/', session),
+                    [INTERNAL_HEADERS.credentials]: 'omit'
                 }
             };
 
@@ -2448,8 +2448,8 @@ describe('Proxy', () => {
                     url:                     proxy.openSession('http://127.0.0.1:2000/page/plain-text', session),
                     resolveWithFullResponse: true,
                     headers:                 {
-                        referer:                     proxy.openSession('http://example.com', session),
-                        [XHR_HEADERS.requestMarker]: 'true'
+                        referer:                        proxy.openSession('http://example.com', session),
+                        [INTERNAL_HEADERS.credentials]: 'false'
                     }
                 };
 
@@ -2746,9 +2746,9 @@ describe('Proxy', () => {
                 const options = {
                     url:     proxy.openSession(url, session),
                     headers: {
-                        accept:                      PAGE_ACCEPT_HEADER,
-                        referer:                     proxy.openSession('http://example.com', session),
-                        [XHR_HEADERS.requestMarker]: 'true'
+                        accept:                         PAGE_ACCEPT_HEADER,
+                        referer:                        proxy.openSession('http://example.com', session),
+                        [INTERNAL_HEADERS.credentials]: 'false'
                     }
                 };
 
@@ -2911,8 +2911,8 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/B234325,GH-284/reply-with-origin', session),
                 headers: {
-                    referer:                     proxy.openSession('http://example.com', session),
-                    [XHR_HEADERS.requestMarker]: 'true'
+                    referer:                        proxy.openSession('http://example.com', session),
+                    [INTERNAL_HEADERS.credentials]: 'false'
                 }
             };
 
@@ -2926,8 +2926,8 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/GH-1059/reply-with-origin', session),
                 headers: {
-                    referer:                               proxy.openSession('http://example.com', session),
-                    [XHR_HEADERS.fetchRequestCredentials]: 'include'
+                    referer:                        proxy.openSession('http://example.com', session),
+                    [INTERNAL_HEADERS.credentials]: 'include'
                 }
             };
 
@@ -2985,8 +2985,8 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/T224541/hang-forever', session),
                 headers: {
-                    accept:                      'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                    [XHR_HEADERS.requestMarker]: 'true'
+                    accept:                         'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                    [INTERNAL_HEADERS.credentials]: 'false'
                 }
             };
 
@@ -3088,9 +3088,9 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/B234325,GH-284/reply-with-origin', session),
                 headers: {
-                    origin:                      'http://127.0.0.1:1836',
-                    [XHR_HEADERS.origin]:        'http://example.com',
-                    [XHR_HEADERS.requestMarker]: 'true'
+                    origin:                         'http://127.0.0.1:1836',
+                    [INTERNAL_HEADERS.origin]:      'http://example.com',
+                    [INTERNAL_HEADERS.credentials]: 'false'
                 }
             };
 
@@ -3180,8 +3180,8 @@ describe('Proxy', () => {
                 url:                     proxy.openSession('http://127.0.0.1:2002/without-access-control-allow-origin-header', session),
                 resolveWithFullResponse: true,
                 headers:                 {
-                    referer:                     proxy.openSession('http://example.com', session),
-                    [XHR_HEADERS.requestMarker]: 'true'
+                    referer:                        proxy.openSession('http://example.com', session),
+                    [INTERNAL_HEADERS.credentials]: 'false'
                 }
             };
 
@@ -3198,12 +3198,10 @@ describe('Proxy', () => {
                 url:     proxy.openSession('http://127.0.0.1:2002/echo-headers', session),
                 json:    true,
                 headers: {
-                    referer:                     proxy.openSession('http://example.com', session),
-                    authorization:               'value',
-                    'authentication-info':       'value',
-                    'proxy-authenticate':        'value',
-                    'proxy-authorization':       'value',
-                    [XHR_HEADERS.requestMarker]: true
+                    referer:                        proxy.openSession('http://example.com', session),
+                    authorization:                  'value',
+                    'proxy-authorization':          'value',
+                    [INTERNAL_HEADERS.credentials]: 'false'
                 }
             };
 
@@ -3211,8 +3209,6 @@ describe('Proxy', () => {
                 .then(parsedBody => {
                     expect(parsedBody.cookie).to.be.undefined;
                     expect(parsedBody.authorization).to.be.undefined;
-                    expect(parsedBody['authentication-info']).to.be.undefined;
-                    expect(parsedBody['proxy-authenticate']).to.be.undefined;
                     expect(parsedBody['proxy-authorization']).to.be.undefined;
                 });
         });
@@ -3222,42 +3218,16 @@ describe('Proxy', () => {
                 url:     proxy.openSession('http://127.0.0.1:2002/echo-headers-with-credentials', session),
                 json:    true,
                 headers: {
-                    referer:                               proxy.openSession('http://127.0.0.1:2000', session),
-                    [XHR_HEADERS.requestMarker]:           'true',
-                    [XHR_HEADERS.withCredentials]:         'true',
-                    [XHR_HEADERS.origin]:                  'origin_value',
-                    [XHR_HEADERS.fetchRequestCredentials]: 'omit'
+                    referer:                        proxy.openSession('http://127.0.0.1:2000', session),
+                    [INTERNAL_HEADERS.credentials]: 'true',
+                    [INTERNAL_HEADERS.origin]:      'origin_value'
                 }
             };
 
             return request(options)
                 .then(parsedBody => {
-                    expect(parsedBody[XHR_HEADERS.requestMarker]).to.be.undefined;
-                    expect(parsedBody[XHR_HEADERS.withCredentials]).to.be.undefined;
-                    expect(parsedBody[XHR_HEADERS.origin]).to.be.undefined;
-                    expect(parsedBody[XHR_HEADERS.fetchRequestCredentials]).to.be.undefined;
-                });
-        });
-
-        it('Should remove hammerhead xhr headers before sending a request to the destination server', () => {
-            const options = {
-                url:     proxy.openSession('http://127.0.0.1:2002/echo-headers-with-credentials', session),
-                json:    true,
-                headers: {
-                    referer:                               proxy.openSession('http://127.0.0.1:2000', session),
-                    [XHR_HEADERS.requestMarker]:           'true',
-                    [XHR_HEADERS.withCredentials]:         'true',
-                    [XHR_HEADERS.origin]:                  'origin_value',
-                    [XHR_HEADERS.fetchRequestCredentials]: 'omit'
-                }
-            };
-
-            return request(options)
-                .then(parsedBody => {
-                    expect(parsedBody[XHR_HEADERS.requestMarker]).to.be.undefined;
-                    expect(parsedBody[XHR_HEADERS.withCredentials]).to.be.undefined;
-                    expect(parsedBody[XHR_HEADERS.origin]).to.be.undefined;
-                    expect(parsedBody[XHR_HEADERS.fetchRequestCredentials]).to.be.undefined;
+                    expect(parsedBody[INTERNAL_HEADERS.credentials]).to.be.undefined;
+                    expect(parsedBody[INTERNAL_HEADERS.origin]).to.be.undefined;
                 });
         });
 
@@ -3503,26 +3473,40 @@ describe('Proxy', () => {
         });
 
         it('Should pass authorization headers which are defined by client for cross-domain request without credentials (GH-1016)', () => {
-            const options = {
+            const options1 = {
                 url:     proxy.openSession('http://127.0.0.1:2002/echo-headers-with-credentials', session),
                 json:    true,
                 headers: {
-                    'authorization':             AUTHORIZATION.valuePrefix + 'authorization',
-                    'authentication-info':       AUTHORIZATION.valuePrefix + 'authentication-info',
-                    'proxy-authenticate':        'proxy-authenticate',
-                    'proxy-authorization':       'proxy-authorization',
-                    referer:                     proxy.openSession('http://127.0.0.1:2000', session),
-                    [XHR_HEADERS.requestMarker]: 'true'
+                    authorization:         'Basic origin==',
+                    'proxy-authorization': 'Digital origin=='
                 }
             };
 
-            return request(options)
-                .then(parsedBody => {
-                    expect(parsedBody['authorization']).eql('authorization');
-                    expect(parsedBody['authentication-info']).eql('authentication-info');
-                    expect(parsedBody['proxy-authenticate']).to.be.undefined;
-                    expect(parsedBody['proxy-authorization']).to.be.undefined;
-                });
+            const options2 = {
+                url:     proxy.openSession('http://127.0.0.1:2002/echo-headers-with-credentials', session),
+                json:    true,
+                headers: {
+                    [INTERNAL_HEADERS.authorization]:      'Basic 1243==',
+                    [INTERNAL_HEADERS.proxyAuthorization]: 'Digital 423=='
+                }
+            };
+
+            return Promise.all([
+                request(options1)
+                    .then(parsedBody => {
+                        expect(parsedBody['authorization']).eql('Basic origin==');
+                        expect(parsedBody['proxy-authorization']).eql('Digital origin==');
+                        expect(parsedBody[INTERNAL_HEADERS.authorization]).to.be.undefined;
+                        expect(parsedBody[INTERNAL_HEADERS.proxyAuthorization]).to.be.undefined;
+                    }),
+                request(options2)
+                    .then(parsedBody => {
+                        expect(parsedBody['authorization']).eql('Basic 1243==');
+                        expect(parsedBody['proxy-authorization']).eql('Digital 423==');
+                        expect(parsedBody[INTERNAL_HEADERS.authorization]).to.be.undefined;
+                        expect(parsedBody[INTERNAL_HEADERS.proxyAuthorization]).to.be.undefined;
+                    })
+            ]);
         });
 
         it('Should procees "x-frame-options" header (GH-1017)', () => {

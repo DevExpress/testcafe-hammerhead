@@ -2,6 +2,7 @@ import { Readable } from 'stream';
 import { ServerResponse, IncomingMessage } from 'http';
 import { defaultsDeep as defaultOptions } from 'lodash';
 import promisifyStream from '../utils/promisify-stream';
+import BUILTIN_HEADERS from '../request-pipeline/builtin-header-names';
 
 const STATIC_RESOURCES_DEFAULT_CACHING_OPTIONS = {
     maxAge:         30,
@@ -9,13 +10,13 @@ const STATIC_RESOURCES_DEFAULT_CACHING_OPTIONS = {
 };
 
 export const PREVENT_CACHING_HEADERS = {
-    'cache-control': 'no-cache, no-store, must-revalidate',
-    'pragma':        'no-cache'
+    [BUILTIN_HEADERS.cacheControl]: 'no-cache, no-store, must-revalidate',
+    [BUILTIN_HEADERS.pragma]:       'no-cache'
 };
 
 export function addPreventCachingHeaders (res: ServerResponse): void {
-    res.setHeader('cache-control', PREVENT_CACHING_HEADERS['cache-control']);
-    res.setHeader('pragma', PREVENT_CACHING_HEADERS['pragma']);
+    res.setHeader(BUILTIN_HEADERS.cacheControl, PREVENT_CACHING_HEADERS[BUILTIN_HEADERS.cacheControl]);
+    res.setHeader(BUILTIN_HEADERS.pragma, PREVENT_CACHING_HEADERS[BUILTIN_HEADERS.pragma]);
 }
 
 export function respond204 (res: ServerResponse): void {
@@ -35,7 +36,7 @@ export function respond500 (res: ServerResponse, err = ''): void {
 
 export function respondWithJSON (res: ServerResponse, data: object, skipContentType: boolean): void {
     if (!skipContentType)
-        res.setHeader('content-type', 'application/json');
+        res.setHeader(BUILTIN_HEADERS.contentType, 'application/json');
 
     // NOTE: GH-105
     addPreventCachingHeaders(res);
@@ -45,16 +46,16 @@ export function respondWithJSON (res: ServerResponse, data: object, skipContentT
 export function respondStatic (req: IncomingMessage, res: any, resource: any, cachingOptions: any = {}): void {
     cachingOptions = defaultOptions(cachingOptions, STATIC_RESOURCES_DEFAULT_CACHING_OPTIONS);
 
-    if (resource.etag === req.headers['if-none-match']) {
+    if (resource.etag === req.headers[BUILTIN_HEADERS.ifNoneMatch]) {
         res.statusCode = 304;
         res.end();
     }
     else {
         const { maxAge, mustRevalidate } = cachingOptions;
 
-        res.setHeader('cache-control', `max-age=${maxAge}${mustRevalidate ? ', must-revalidate' : ''}`);
-        res.setHeader('etag', resource.etag);
-        res.setHeader('content-type', resource.contentType);
+        res.setHeader(BUILTIN_HEADERS.cacheControl, `max-age=${maxAge}${mustRevalidate ? ', must-revalidate' : ''}`);
+        res.setHeader(BUILTIN_HEADERS.eTag, resource.etag);
+        res.setHeader(BUILTIN_HEADERS.contentType, resource.contentType);
         res.end(resource.content);
     }
 }

@@ -1,6 +1,6 @@
-var xhrHeaders   = hammerhead.get('../request-pipeline/xhr/headers');
-var destLocation = hammerhead.get('./utils/destination-location');
-var urlUtils     = hammerhead.get('./utils/url');
+var destLocation     = hammerhead.get('./utils/destination-location');
+var urlUtils         = hammerhead.get('./utils/url');
+var INTERNAL_HEADERS = hammerhead.get('../request-pipeline/internal-header-names');
 
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
@@ -261,22 +261,27 @@ if (window.fetch) {
 
             return fetch('/echo-request-headers', { method: 'post', headers: testHeaders })
                 .then(function () {
-                    notOk(xhrHeaders.fetchRequestCredentials in testHeaders);
-                    notOk(xhrHeaders.origin in testHeaders);
+                    notOk(INTERNAL_HEADERS.credentials in testHeaders);
+                    notOk(INTERNAL_HEADERS.origin in testHeaders);
                 });
         });
 
-        test('the www-authenticate header processing', function () {
+        test('the www-authenticate and proxy-authenticate header processing', function () {
             var headers = { 'content-type': 'text/plain' };
 
-            headers[xhrHeaders.wwwAuth] = 'Basic realm="Login"';
+            headers[INTERNAL_HEADERS.wwwAuthenticate]   = 'Basic realm="Login"';
+            headers[INTERNAL_HEADERS.proxyAuthenticate] = 'Digital realm="Login"';
 
             return fetch('/echo-request-body-in-response-headers', { method: 'post', body: JSON.stringify(headers) })
                 .then(function (res) {
-                    strictEqual(nativeMethods.headersHas.call(res.headers, xhrHeaders.wwwAuth), true);
+                    strictEqual(nativeMethods.headersHas.call(res.headers, INTERNAL_HEADERS.wwwAuthenticate), true);
+                    strictEqual(nativeMethods.headersHas.call(res.headers, INTERNAL_HEADERS.proxyAuthenticate), true);
                     strictEqual(nativeMethods.headersHas.call(res.headers, 'www-authenticate'), false);
+                    strictEqual(nativeMethods.headersHas.call(res.headers, 'proxy-authenticate'), false);
                     strictEqual(res.headers.has('WWW-Authenticate'), true);
                     strictEqual(res.headers.get('WWW-Authenticate'), 'Basic realm="Login"');
+                    strictEqual(res.headers.has('Proxy-Authenticate'), true);
+                    strictEqual(res.headers.get('Proxy-Authenticate'), 'Digital realm="Login"');
 
                     var headersValuesIterator = res.headers.values();
                     var headersValuesArray    = [];
@@ -304,6 +309,20 @@ if (window.fetch) {
                 });
         });
 
+        test('set header functionality', function () {
+            var headers = new Headers();
+
+            headers.set(INTERNAL_HEADERS.authorization, 'Basic');
+
+            strictEqual(nativeMethods.headersHas.call(headers, INTERNAL_HEADERS.authorization), true);
+            strictEqual(nativeMethods.headersHas.call(headers, 'authorization'), false);
+            strictEqual(nativeMethods.headersGet.call(headers, INTERNAL_HEADERS.authorization), 'Basic');
+            strictEqual(nativeMethods.headersGet.call(headers, 'authorization'), null);
+
+            strictEqual(headers.has('authorization'), true);
+            strictEqual(headers.get('authorization'), 'Basic');
+        });
+
         module('Fetch request credentials', function () {
             module('default values');
 
@@ -318,7 +337,7 @@ if (window.fetch) {
                         return response.json();
                     })
                     .then(function (headers) {
-                        ok(headers.hasOwnProperty(xhrHeaders.fetchRequestCredentials));
+                        ok(headers.hasOwnProperty(INTERNAL_HEADERS.credentials));
                     });
             });
 
@@ -335,7 +354,7 @@ if (window.fetch) {
                         return response.json();
                     })
                     .then(function (headers) {
-                        ok(headers.hasOwnProperty(xhrHeaders.fetchRequestCredentials));
+                        ok(headers.hasOwnProperty(INTERNAL_HEADERS.credentials));
                     });
             });
 
@@ -351,7 +370,7 @@ if (window.fetch) {
                         return response.json();
                     })
                     .then(function (headers) {
-                        strictEqual(headers[xhrHeaders.fetchRequestCredentials], 'same-origin');
+                        strictEqual(headers[INTERNAL_HEADERS.credentials], 'same-origin');
                     });
             });
 
@@ -369,7 +388,7 @@ if (window.fetch) {
                         return response.json();
                     })
                     .then(function (headers) {
-                        strictEqual(headers[xhrHeaders.fetchRequestCredentials], 'same-origin');
+                        strictEqual(headers[INTERNAL_HEADERS.credentials], 'same-origin');
                     });
             });
         });
@@ -388,7 +407,7 @@ if (window.fetch) {
                         return response.json();
                     })
                     .then(function (headers) {
-                        strictEqual(headers[xhrHeaders.origin], 'https://example.com');
+                        strictEqual(headers[INTERNAL_HEADERS.origin], 'https://example.com');
                     });
             });
 
@@ -405,7 +424,7 @@ if (window.fetch) {
                         return response.json();
                     })
                     .then(function (headers) {
-                        strictEqual(headers[xhrHeaders.origin], 'https://example.com');
+                        strictEqual(headers[INTERNAL_HEADERS.origin], 'https://example.com');
                     });
             });
 
@@ -424,7 +443,7 @@ if (window.fetch) {
                         return response.json();
                     })
                     .then(function (headers) {
-                        strictEqual(headers[xhrHeaders.origin], 'https://example.com');
+                        strictEqual(headers[INTERNAL_HEADERS.origin], 'https://example.com');
                     });
             });
 
@@ -443,7 +462,7 @@ if (window.fetch) {
                         return response.json();
                     })
                     .then(function (headers) {
-                        strictEqual(headers[xhrHeaders.origin], 'https://example.com');
+                        strictEqual(headers[INTERNAL_HEADERS.origin], 'https://example.com');
                     });
             });
 
@@ -460,7 +479,7 @@ if (window.fetch) {
                         return response.json();
                     })
                     .then(function (headers) {
-                        strictEqual(headers[xhrHeaders.origin], 'file:///path/index.html');
+                        strictEqual(headers[INTERNAL_HEADERS.origin], 'file:///path/index.html');
                         destLocation.forceLocation('http://localhost/sessionId/https://example.com');
                     });
             });
@@ -480,7 +499,7 @@ if (window.fetch) {
                         return response.json();
                     })
                     .then(function (headers) {
-                        strictEqual(headers[xhrHeaders.origin], 'file:///path/index.html');
+                        strictEqual(headers[INTERNAL_HEADERS.origin], 'file:///path/index.html');
                         destLocation.forceLocation('http://localhost/sessionId/https://example.com');
                     });
             });
@@ -656,8 +675,8 @@ if (window.fetch) {
             fetch('/echo-request-headers', reqInit);
             fetch('/echo-request-headers', reqInit);
 
-            var origin                  = reqInit.headers.get(xhrHeaders.origin);
-            var fetchRequestCredentials = reqInit.headers.get(xhrHeaders.fetchRequestCredentials);
+            var origin                  = reqInit.headers.get(INTERNAL_HEADERS.origin);
+            var fetchRequestCredentials = reqInit.headers.get(INTERNAL_HEADERS.credentials);
 
             strictEqual(origin, 'https://example.com');
             strictEqual(fetchRequestCredentials, 'same-origin');
@@ -727,7 +746,7 @@ if (window.fetch) {
                 .then(function (headers) {
                     ok(headers['content-type'], 'text/xml');
                     ok(headers['breaking-bad'], '<3');
-                    ok(headers.hasOwnProperty(xhrHeaders.fetchRequestCredentials));
+                    ok(headers.hasOwnProperty(INTERNAL_HEADERS.credentials));
                 });
         });
 

@@ -1,5 +1,6 @@
 import IncomingMessageMock from '../incoming-message-mock';
 import { JSON_MIME } from '../../utils/content-type';
+import BUILTIN_HEADERS from '../builtin-header-names';
 
 const PAGE_CONTENT_TYPE = 'text/html; charset=utf-8';
 const EMPTY_PAGE_HTML   = '<html><body></body></html>';
@@ -85,10 +86,7 @@ export default class ResponseMock {
 
     async getResponse (): Promise<IncomingMessageMock> {
         let response: any = {
-            headers: {
-                'content-type': this._getContentType()
-            },
-
+            headers:    { [BUILTIN_HEADERS.contentType]: this._getContentType() },
             trailers:   {},
             statusCode: this.statusCode || 200
         };

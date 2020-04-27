@@ -11,7 +11,7 @@ import IncomingMessageMock from './incoming-message-mock';
 import RequestOptions from './request-options';
 import { ParsedProxyUrl } from '../typings/url';
 import { OnResponseEventData } from '../typings/context';
-import XHR_HEADERS from './xhr/headers';
+import INTERNAL_HEADERS from './internal-header-names';
 import Charset from '../processing/encoding/charset';
 import * as urlUtils from '../utils/url';
 import * as contentTypeUtils from '../utils/content-type';
@@ -20,6 +20,7 @@ import { check as checkSameOriginPolicy } from './xhr/same-origin-policy';
 import * as headerTransforms from './header-transforms';
 import { RequestInfo } from '../session/events/info';
 import SERVICE_ROUTES from '../proxy/service-routes';
+import BUILTIN_HEADERS from './builtin-header-names';
 
 interface DestInfo {
     url: string;
@@ -102,10 +103,10 @@ export default class RequestPipelineContext {
         this.req = req;
         this.res = res;
 
-        const acceptHeader = req.headers['accept'];
+        const acceptHeader = req.headers[BUILTIN_HEADERS.accept] as string;
 
-        this.isXhr   = !!req.headers[XHR_HEADERS.requestMarker];
-        this.isFetch = !!req.headers[XHR_HEADERS.fetchRequestCredentials];
+        this.isXhr   = RequestPipelineContext._isXhr(req.headers[INTERNAL_HEADERS.credentials] as string);
+        this.isFetch = !!req.headers[INTERNAL_HEADERS.credentials] && !this.isXhr;
         this.isPage  = !this.isXhr && !this.isFetch && !!acceptHeader && contentTypeUtils.isPage(acceptHeader);
 
         this.parsedClientSyncCookie = req.headers.cookie && parseClientSyncCookieStr(req.headers.cookie);
@@ -139,7 +140,7 @@ export default class RequestPipelineContext {
     }
 
     private _isFileDownload (): boolean {
-        const contentDisposition = this.destRes.headers['content-disposition'];
+        const contentDisposition = this.destRes.headers[BUILTIN_HEADERS.contentDisposition];
 
         return !!contentDisposition &&
                contentDisposition.includes('attachment') &&
@@ -151,7 +152,7 @@ export default class RequestPipelineContext {
     }
 
     private _initRequestNatureInfo (): void {
-        const acceptHeader = this.req.headers['accept'];
+        const acceptHeader = this.req.headers[BUILTIN_HEADERS.accept] as string;
 
         this.isWebSocket    = this.dest.isWebSocket;
         this.isHtmlImport   = this.dest.isHtmlImport;
@@ -175,7 +176,7 @@ export default class RequestPipelineContext {
     // API
     dispatch (openSessions: Map<string, Session>): boolean {
         const parsedReqUrl  = urlUtils.parseProxyUrl(this.req.url);
-        const referer       = this.req.headers['referer'];
+        const referer       = this.req.headers[BUILTIN_HEADERS.referer] as string;
         const parsedReferer = referer && urlUtils.parseProxyUrl(referer);
 
         // TODO: Remove it after parseProxyURL is rewritten.
@@ -205,8 +206,8 @@ export default class RequestPipelineContext {
                 ? flattenParsedReferer.dest.url
                 : urlUtils.getDomain(flattenParsedReferer.dest);
         }
-        else if (this.req.headers[XHR_HEADERS.origin])
-            this.dest.reqOrigin = this.req.headers[XHR_HEADERS.origin] as string;
+        else if (this.req.headers[INTERNAL_HEADERS.origin])
+            this.dest.reqOrigin = this.req.headers[INTERNAL_HEADERS.origin] as string;
 
         this._initRequestNatureInfo();
         this._applyClientSyncCookie();
@@ -231,10 +232,14 @@ export default class RequestPipelineContext {
         return (str[0] === '/' ? '' : '/') + str;
     }
 
+    private static _isXhr(credentialsHeader: string | undefined) {
+        return typeof credentialsHeader === 'string' && (credentialsHeader === 'true' || credentialsHeader === 'false');
+    }
+
     buildContentInfo () {
-        const contentType = this.destRes.headers['content-type'] || '';
-        const accept      = this.req.headers['accept'] || '';
-        const encoding    = this.destRes.headers['content-encoding'];
+        const contentType = this.destRes.headers[BUILTIN_HEADERS.contentType] as string || '';
+        const accept      = this.req.headers[BUILTIN_HEADERS.accept] as string || '';
+        const encoding    = this.destRes.headers[BUILTIN_HEADERS.contentEncoding] as string;
 
         if (this.isPage && contentType)
             this.isPage = !this.isXhr && !this.isFetch && contentTypeUtils.isPage(contentType);
@@ -245,11 +250,12 @@ export default class RequestPipelineContext {
         const isForm                  = this.dest.isForm;
         const isFormWithEmptyResponse = isForm && this.destRes.statusCode === 204;
 
-        const isRedirect              = this.destRes.headers['location'] &&
+        const isRedirect              = this.destRes.headers[BUILTIN_HEADERS.location] &&
                                         REDIRECT_STATUS_CODES.includes(this.destRes.statusCode);
         const requireAssetsProcessing = (isCSS || isScript || isManifest) && this.destRes.statusCode !== 204;
         const isNotModified           = this.req.method === 'GET' && this.destRes.statusCode === 304 &&
-                                        !!(this.req.headers['if-modified-since'] || this.req.headers['if-none-match']);
+                                        !!(this.req.headers[BUILTIN_HEADERS.ifModifiedSince] ||
+                                           this.req.headers[BUILTIN_HEADERS.ifNoneMatch]);
         const requireProcessing       = !this.isXhr && !this.isFetch && !isFormWithEmptyResponse && !isRedirect &&
                                         !isNotModified && (this.isPage || this.isIframe || requireAssetsProcessing);
         const isFileDownload          = this._isFileDownload() && !this.dest.isScript;
@@ -288,7 +294,7 @@ export default class RequestPipelineContext {
         };
     }
 
-    _getInjectableUserScripts () {
+    private _getInjectableUserScripts () {
         const requestInfo = new RequestInfo(this);
 
         return this.session.injectable.userScripts
@@ -314,7 +320,7 @@ export default class RequestPipelineContext {
         const res: http.ServerResponse = this.res as http.ServerResponse;
 
         res.statusCode = 302;
-        res.setHeader('location', url);
+        res.setHeader(BUILTIN_HEADERS.location, url);
         res.end();
     }
 
@@ -325,7 +331,7 @@ export default class RequestPipelineContext {
     closeWithError (statusCode: number, resBody: string | Buffer = ''): void {
         if ('setHeader' in this.res && !this.res.headersSent) {
             this.res.statusCode = statusCode;
-            this.res.setHeader('content-type', 'text/html');
+            this.res.setHeader(BUILTIN_HEADERS.contentType, 'text/html');
             this.res.write(resBody);
         }
 
@@ -391,7 +397,7 @@ export default class RequestPipelineContext {
     }
 
     isDestResBodyMalformed (): boolean {
-        return !this.destResBody || this.destResBody.length.toString() !== this.destRes.headers['content-length'];
+        return !this.destResBody || this.destResBody.length.toString() !== this.destRes.headers[BUILTIN_HEADERS.contentLength];
     }
 
     getOnResponseEventData ({ includeBody }: { includeBody: boolean }): OnResponseEventData[] {
