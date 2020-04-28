@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Site title</title>
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+</head>
+<body>
+    <script>
+        var hammerhead = window['%hammerhead%'];
+
+        hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
+        hammerhead.start({ crossDomainProxyPort: 2000 });
+
+        hammerhead.nativeMethods.documentTitleSetter.call(document, 'The title specified by hammerhead');
+    </script>
+</body>
+</html>

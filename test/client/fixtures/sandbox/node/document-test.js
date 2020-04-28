@@ -511,6 +511,25 @@ test('patching Node methods on the client side: appendChild, insertBefore, repla
     });
 });
 
+test('document.title', function () {
+    strictEqual(document.title, '');
+    strictEqual(document.title = 'end-user title', 'end-user title');
+
+    nativeMethods.documentTitleSetter.call(document, 'native title');
+
+    strictEqual(document.title, 'end-user title');
+    strictEqual(nativeMethods.documentTitleGetter.call(document), 'native title');
+});
+
+test('document.title (initial value)', function () {
+    var src = getSameDomainPageUrl('../../../data/document_title/initial_value.html');
+
+    return createTestIframe({ src: src })
+        .then(function (iframe) {
+            strictEqual(iframe.contentDocument.title, 'Site title');
+        });
+});
+
 module('resgression');
 
 test('document.write for several tags in iframe (T215136)', function () {
@@ -848,12 +867,3 @@ test('should reprocess element if it is created in iframe window and it is not f
         });
 });
 
-test('document.title', function () {
-    strictEqual(document.title, '');
-    strictEqual(document.title = 'end-user title', 'end-user title');
-
-    nativeMethods.documentTitleSetter.call(document, 'native title');
-
-    strictEqual(document.title, 'end-user title');
-    strictEqual(nativeMethods.documentTitleGetter.call(document), 'native title');
-});
