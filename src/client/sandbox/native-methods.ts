@@ -39,6 +39,8 @@ class NativeMethods {
     documentCookieGetter: any;
     documentCookieSetter: any;
     documentDocumentURIGetter: any;
+    documentTitleGetter: any;
+    documentTitleSetter: any;
     appendChild: any;
     replaceChild: any;
     cloneNode: any;
@@ -460,6 +462,12 @@ class NativeMethods {
 
         if (documentDocumentURIDescriptor)
             this.documentDocumentURIGetter = documentDocumentURIDescriptor.get;
+
+        // @ts-ignore
+        const documentTitleDescriptor = win.Object.getOwnPropertyDescriptor(docPrototype, 'title');
+
+        this.documentTitleGetter = documentTitleDescriptor.get;
+        this.documentTitleSetter = documentTitleDescriptor.set;
     }
 
     refreshElementMeths (doc, win) {
