@@ -238,7 +238,7 @@ export default class DocumentSandbox extends SandboxBase {
 
         const htmlDocPrototype = window.HTMLDocument.prototype;
         let storedDomain       = '';
-        let storedTitle        = '';
+        let storedTitle        = nativeMethods.documentTitleGetter.call(document);
 
         if (nativeMethods.documentDocumentURIGetter) {
             overrideDescriptor(docPrototype, 'documentURI', {
@@ -325,11 +325,9 @@ export default class DocumentSandbox extends SandboxBase {
         });
 
         overrideDescriptor(docPrototype, 'title', {
-            getter: function () {
-                return storedTitle || nativeMethods.documentTitleGetter.call(document);
-            },
-            setter: function (value) {
-                return storedTitle = value;
+            getter: () => storedTitle,
+            setter: value => {
+                storedTitle = value;
             }
         });
     }
