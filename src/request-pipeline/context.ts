@@ -21,6 +21,8 @@ import * as headerTransforms from './header-transforms';
 import { RequestInfo } from '../session/events/info';
 import SERVICE_ROUTES from '../proxy/service-routes';
 import BUILTIN_HEADERS from './builtin-header-names';
+import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from './xhr/same-origin-check-failed-status-code';
+import { processSetCookieHeader } from './header-transforms/transforms';
 
 interface DestInfo {
     url: string;
@@ -75,8 +77,7 @@ export default class RequestPipelineContext {
     destRes: http.IncomingMessage | FileStream | IncomingMessageMock = null;
     isDestResReadableEnded = false;
     destResBody: Buffer = null;
-    isXhr: boolean = false;
-    isFetch: boolean = false;
+    isAjax: boolean = false;
     isPage: boolean = false;
     isHTMLPage: boolean = false;
     isHtmlImport: boolean = false;
@@ -105,9 +106,8 @@ export default class RequestPipelineContext {
 
         const acceptHeader = req.headers[BUILTIN_HEADERS.accept] as string;
 
-        this.isXhr   = RequestPipelineContext._isXhr(req.headers[INTERNAL_HEADERS.credentials] as string);
-        this.isFetch = !!req.headers[INTERNAL_HEADERS.credentials] && !this.isXhr;
-        this.isPage  = !this.isXhr && !this.isFetch && !!acceptHeader && contentTypeUtils.isPage(acceptHeader);
+        this.isAjax = typeof req.headers[INTERNAL_HEADERS.credentials] === 'string';
+        this.isPage  = !this.isAjax && !!acceptHeader && contentTypeUtils.isPage(acceptHeader);
 
         this.parsedClientSyncCookie = req.headers.cookie && parseClientSyncCookieStr(req.headers.cookie);
     }
@@ -156,7 +156,7 @@ export default class RequestPipelineContext {
 
         this.isWebSocket    = this.dest.isWebSocket;
         this.isHtmlImport   = this.dest.isHtmlImport;
-        this.isPage         = !this.isXhr && !this.isFetch && !this.isWebSocket && acceptHeader &&
+        this.isPage         = !this.isAjax && !this.isWebSocket && acceptHeader &&
                               contentTypeUtils.isPage(acceptHeader) || this.isHtmlImport;
         this.isIframe       = this.dest.isIframe;
         this.isSpecialPage  = urlUtils.isSpecialPage(this.dest.url);
@@ -232,17 +232,13 @@ export default class RequestPipelineContext {
         return (str[0] === '/' ? '' : '/') + str;
     }
 
-    private static _isXhr(credentialsHeader: string | undefined) {
-        return typeof credentialsHeader === 'string' && (credentialsHeader === 'true' || credentialsHeader === 'false');
-    }
-
     buildContentInfo () {
         const contentType = this.destRes.headers[BUILTIN_HEADERS.contentType] as string || '';
         const accept      = this.req.headers[BUILTIN_HEADERS.accept] as string || '';
         const encoding    = this.destRes.headers[BUILTIN_HEADERS.contentEncoding] as string;
 
         if (this.isPage && contentType)
-            this.isPage = !this.isXhr && !this.isFetch && contentTypeUtils.isPage(contentType);
+            this.isPage = !this.isAjax && contentTypeUtils.isPage(contentType);
 
         const isCSS                   = contentTypeUtils.isCSSResource(contentType, accept);
         const isManifest              = contentTypeUtils.isManifest(contentType);
@@ -256,7 +252,7 @@ export default class RequestPipelineContext {
         const isNotModified           = this.req.method === 'GET' && this.destRes.statusCode === 304 &&
                                         !!(this.req.headers[BUILTIN_HEADERS.ifModifiedSince] ||
                                            this.req.headers[BUILTIN_HEADERS.ifNoneMatch]);
-        const requireProcessing       = !this.isXhr && !this.isFetch && !isFormWithEmptyResponse && !isRedirect &&
+        const requireProcessing       = !this.isAjax && !isFormWithEmptyResponse && !isRedirect &&
                                         !isNotModified && (this.isPage || this.isIframe || requireAssetsProcessing);
         const isFileDownload          = this._isFileDownload() && !this.dest.isScript;
         const isIframeWithImageSrc    = this.isIframe && !this.isPage && /^\s*image\//.test(contentType);
@@ -329,6 +325,13 @@ export default class RequestPipelineContext {
     }
 
     closeWithError (statusCode: number, resBody: string | Buffer = ''): void {
+        if (statusCode === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE) {
+            const processedCookie = processSetCookieHeader(this.destRes.headers[BUILTIN_HEADERS.setCookie], this);
+
+            if (processedCookie && processedCookie.length)
+                (this.res as http.ServerResponse).setHeader(BUILTIN_HEADERS.setCookie, processedCookie);
+        }
+
         if ('setHeader' in this.res && !this.res.headersSent) {
             this.res.statusCode = statusCode;
             this.res.setHeader(BUILTIN_HEADERS.contentType, 'text/html');
@@ -359,8 +362,7 @@ export default class RequestPipelineContext {
     }
 
     isPassSameOriginPolicy (): boolean {
-        const isAjaxRequest          = this.isXhr || this.isFetch;
-        const shouldPerformCORSCheck = isAjaxRequest && !this.contentInfo.isNotModified;
+        const shouldPerformCORSCheck = this.isAjax && !this.contentInfo.isNotModified;
 
         return !shouldPerformCORSCheck || checkSameOriginPolicy(this);
     }

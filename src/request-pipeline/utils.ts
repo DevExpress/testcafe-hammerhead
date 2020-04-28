@@ -66,7 +66,7 @@ export function sendRequest (ctx: RequestPipelineContext) {
 export function error (ctx: RequestPipelineContext, err: string) {
     if (ctx.isPage && !ctx.isIframe)
         ctx.session.handlePageError(ctx, err);
-    else if (ctx.isFetch || ctx.isXhr)
+    else if (ctx.isAjax)
         ctx.req.destroy();
     else
         ctx.closeWithError(500, err.toString());

@@ -41,7 +41,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     private readonly protocolInterface: any;
 
     static TIMEOUT = 25 * 1000;
-    static XHR_TIMEOUT = 2 * 60 * 1000;
+    static AJAX_TIMEOUT = 2 * 60 * 1000;
 
     constructor (opts: RequestOptions) {
         super();
@@ -64,7 +64,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
 
     _send (waitForData?: boolean): void {
         connectionResetGuard(() => {
-            const timeout       = this.opts.isXhr ? DestinationRequest.XHR_TIMEOUT : DestinationRequest.TIMEOUT;
+            const timeout       = this.opts.isAjax ? DestinationRequest.AJAX_TIMEOUT : DestinationRequest.TIMEOUT;
             const storedHeaders = this.opts.headers;
 
             // NOTE: The headers are converted to raw headers because some sites ignore headers in a lower case. (GH-1380)
