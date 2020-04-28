@@ -25,6 +25,7 @@
     "iconv-lite": "0.4.11",
     "lodash": "^4.17.13",
     "lru-cache": "2.6.3",
+    "lz-string": "^1.4.4",
     "match-url-wildcard": "0.0.4",
     "merge-stream": "^1.0.1",
     "mime": "~1.4.1",

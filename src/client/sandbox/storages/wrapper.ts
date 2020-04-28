@@ -5,11 +5,11 @@ import * as destLocation from '../../utils/destination-location';
 // @ts-ignore
 import * as JSON from 'json-hammerhead';
 import nativeMethods from '../native-methods';
+import { compressToUTF16 as compress, decompressFromUTF16 as decompress } from 'lz-string';
 
-const STORAGES_SANDBOX_TEMP = 'hammerhead|storages-sandbox-temp';
-const API_KEY_PREFIX        = 'hammerhead|api-key-prefix|';
-const KEY                   = 0;
-const VALUE                 = 1;
+const API_KEY_PREFIX = 'hammerhead|api-key-prefix|';
+const KEY            = 0;
+const VALUE          = 1;
 
 function getWrapperMethods () {
     const methods = [];
@@ -85,8 +85,11 @@ export default class StorageWrapper {
         });
 
         const loadStorage = (storage?: any) => {
-            if (!storage)
+            if (!storage) {
                 storage = this.nativeStorage[this.nativeStorageKey];
+
+                storage = decompress(storage);
+            }
 
             storage = JSON.parse(storage || '[[],[]]');
 
@@ -162,7 +165,10 @@ export default class StorageWrapper {
         this.getContext = () => this.context;
 
         this.saveToNativeStorage = () => {
-            const state = JSON.stringify(this.getCurrentState());
+            let state = JSON.stringify(this.getCurrentState());
+
+            // GH-1454
+            state = compress(state);
 
             if (this.nativeStorage[this.nativeStorageKey] !== state)
                 this.nativeStorage[this.nativeStorageKey] = state;
@@ -191,22 +197,13 @@ export default class StorageWrapper {
             nativeMethods.clearInterval.call(this.window, this.intervalId);
         };
 
-        const castToString = value => {
-            // NOTE: The browser automatically translates the key and the value to a string. To repeat this behavior,
-            // we use native storage:
-            // localStorage.setItem(null, null) equivalently to localStorage.setItem('null', 'null')
-            this.nativeStorage[STORAGES_SANDBOX_TEMP] = value;
-
-            return this.nativeStorage[STORAGES_SANDBOX_TEMP];
-        };
-
         const getValidKey = key => {
             const isWrapperMember = this.wrapperMethods.indexOf(key) !== -1 || this.initialProperties.indexOf(key) !==
                                     -1;
 
             key = isWrapperMember ? API_KEY_PREFIX + key : key;
 
-            return castToString(key);
+            return String(key);
         };
 
         // API
@@ -253,7 +250,7 @@ export default class StorageWrapper {
                 throw new TypeError();
 
             key   = getValidKey(key);
-            value = castToString(value);
+            value = String(value);
 
             this[key] = value;
             checkStorageChanged();

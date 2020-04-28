@@ -35,6 +35,13 @@ function waitStorageEvent (window, action) {
     });
 }
 
+var compressedStorageStates = {
+    '[["key1"],["value1"]]':  '᭸ᄦ塉䅜࣪̈ͦüѐ۠坫悤䀠 ',
+    '[["key2"],["value2"]]':  '᭸ᄦ塉䅜Ӫ̈ͦüѐ۠坫悤䀠 ',
+    '[["key11"],["value1"]]': '᭸ᄦ塉䅜࣫倷›ᠦ灁䁖˚⃥ठ ',
+    '[["key12"],["value2"]]': '᭸ᄦ塉䅜࣠♰ீസΐრᬢ嵈䥄䀠 '
+};
+
 module('storage sandbox API');
 
 test('clear', function () {
@@ -48,8 +55,8 @@ test('clear', function () {
 
     storageSandbox._unloadSandbox.emit(storageSandbox._unloadSandbox.BEFORE_UNLOAD_EVENT);
 
-    strictEqual(nativeLocalStorage.getItem(localStorage.nativeStorageKey), '[["key11"],["value1"]]');
-    strictEqual(nativeSessionStorage.getItem(sessionStorage.nativeStorageKey), '[["key12"],["value2"]]');
+    strictEqual(nativeLocalStorage.getItem(localStorage.nativeStorageKey), compressedStorageStates['[["key11"],["value1"]]']);
+    strictEqual(nativeSessionStorage.getItem(sessionStorage.nativeStorageKey), compressedStorageStates['[["key12"],["value2"]]']);
 
     storageSandbox.clear();
 
@@ -230,8 +237,8 @@ test('iframe with empty src', function () {
 module('sync state with native');
 
 test('storages load their state from native', function () {
-    nativeLocalStorage[storageWrapperKey]   = '[[ "key1" ],[ "value1" ]]';
-    nativeSessionStorage[storageWrapperKey] = '[[ "key2" ],[ "value2" ]]';
+    nativeLocalStorage[storageWrapperKey]   = compressedStorageStates['[["key1"],["value1"]]'];
+    nativeSessionStorage[storageWrapperKey] = compressedStorageStates['[["key2"],["value2"]]'];
 
     var localSandboxWrapper   = new StorageWrapper(window, nativeLocalStorage, storageWrapperKey, hammerhead.sandbox.event.listeners);
     var sessionSandboxWrapper = new StorageWrapper(window, nativeSessionStorage, storageWrapperKey, hammerhead.sandbox.event.listeners);
@@ -250,8 +257,8 @@ test('storages save their state on the beforeunload event', function () {
     // NOTE: Simulate page leaving
     hammerhead.sandbox.event.unload._emitBeforeUnloadEvent();
 
-    strictEqual(nativeLocalStorage[storageWrapperKey], JSON.stringify([['key1'], ['value1']]));
-    strictEqual(nativeSessionStorage[storageWrapperKey], JSON.stringify([['key2'], ['value2']]));
+    strictEqual(nativeLocalStorage[storageWrapperKey], compressedStorageStates['[["key1"],["value1"]]']);
+    strictEqual(nativeSessionStorage[storageWrapperKey], compressedStorageStates['[["key2"],["value2"]]']);
 });
 
 module('storage changed event');
