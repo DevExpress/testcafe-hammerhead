@@ -641,8 +641,8 @@ describe('Proxy', () => {
                         });
                 }
 
-                session._getPayloadScript       = () => 'PayloadScript';
-                session._getIframePayloadScript = () => 'IframePayloadScript';
+                session._getPayloadScript       = async () => 'PayloadScript';
+                session._getIframePayloadScript = async () => 'IframePayloadScript';
 
                 return Promise.all([
                     testTaskScriptRequest('http://localhost:1836/task.js', 'PayloadScript'),
