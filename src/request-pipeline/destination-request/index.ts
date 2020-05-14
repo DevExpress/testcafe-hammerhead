@@ -11,12 +11,7 @@ import { getAuthInfo, addCredentials, requiresResBody } from 'webauth';
 import connectionResetGuard from '../connection-reset-guard';
 import { MESSAGE, getText } from '../../messages';
 import { transformHeadersCaseToRaw } from '../header-transforms';
-import {
-    destinationRequestLogger,
-    destinationResponseLogger,
-    destinationErrorLogger,
-    destinationTimeoutLogger
-} from '../../utils/debug-network';
+import { destinationLogger } from '../../utils/debug';
 
 const TUNNELING_SOCKET_ERR_RE    = /tunneling socket could not be established/i;
 const TUNNELING_AUTHORIZE_ERR_RE = /statusCode=407/i;
@@ -95,7 +90,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
             this.req.write(this.opts.body);
             this.req.end();
 
-            destinationRequestLogger(this.opts);
+            destinationLogger('Request to destination server %s %s %s %j', this.opts.requestId, this.opts.method, this.opts.url, this.opts.headers);
         });
     }
 
@@ -114,12 +109,14 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     }
 
     _onResponse (res: http.IncomingMessage): void {
-        destinationResponseLogger(this.opts.requestId, res);
+        destinationLogger('Destination response %s %d %j', this.opts.requestId, res.statusCode, res.headers);
 
         if (this._shouldResendWithCredentials(res))
             this._resendWithCredentials(res);
-        else if (!this.isHttps && this.opts.proxy && res.statusCode === 407)
+        else if (!this.isHttps && this.opts.proxy && res.statusCode === 407) {
+            destinationLogger('Cannot authorize to proxy %s', this.opts.requestId);
             this._fatalError(MESSAGE.cantAuthorizeToProxy, this.opts.proxy.host);
+        }
         else {
             this.hasResponse = true;
             this.emit('response', res);
@@ -127,6 +124,8 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     }
 
     _onUpgrade (res: http.IncomingMessage, socket: net.Socket, head: Buffer): void {
+        destinationLogger('Destination upgrade %s %d %j', this.opts.requestId, res.statusCode, res.headers);
+
         if (head && head.length)
             socket.unshift(head);
 
@@ -134,6 +133,8 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     }
 
     async _resendWithCredentials (res): Promise<void> {
+        destinationLogger('Resend request with credentials %s', this.opts.requestId);
+
         addCredentials(this.opts.credentials, this.opts, res, this.protocolInterface);
         this.credentialsSent = true;
 
@@ -168,7 +169,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     }
 
     _onTimeout (): void {
-        destinationTimeoutLogger(this.opts, this.timeout);
+        destinationLogger('Request timeout %s (%d ms)', this.opts.requestId, this.timeout);
 
         // NOTE: this handler is also called if we get an error response (for example, 404). So, we should check
         // for the response presence before raising the timeout error.
@@ -177,7 +178,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     }
 
     _onError (err: Error): void {
-        destinationErrorLogger(this.opts, err);
+        destinationLogger('Request error %s %o', this.opts.requestId, err);
 
         if (this._isSocketHangUpErr(err))
             this.emit('socketHangUp');

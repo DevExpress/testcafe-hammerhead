@@ -26,7 +26,7 @@ import {
     callOnResponseEventCallbackWithoutBodyForNonProcessedResource,
     callOnResponseEventCallbackForMotModifiedResource
 } from './utils';
-import { proxyRequestLogger, proxyErrorLogger } from '../utils/debug-network';
+import { proxyLogger } from '../utils/debug';
 
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 
@@ -37,7 +37,7 @@ const stages = [
             return;
 
         ctx.res.on('error', e => {
-            proxyErrorLogger(ctx, e);
+            proxyLogger('Request[%s] from browser emits the error %o', ctx.requestId, e);
 
             // @ts-ignore
             if (e.code === 'ECONNRESET' && !ctx.mock) {
@@ -96,6 +96,7 @@ const stages = [
             await ctx.session.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
             await callOnResponseEventCallbackForFailedSameOriginCheck(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
         });
+        proxyLogger('CORS check failed %s, respond 222', ctx.requestId);
         ctx.closeWithError(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
     },
 
@@ -195,9 +196,10 @@ const stages = [
 export async function run (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo, openSessions: Map<string, Session>): Promise<void> {
     const ctx = new RequestPipelineContext(req, res, serverInfo);
 
-    proxyRequestLogger(ctx);
+    proxyLogger('Request to proxy %s %s %s %j', ctx.requestId, ctx.req.method, ctx.req.url, ctx.req.headers);
 
     if (!ctx.dispatch(openSessions)) {
+        proxyLogger('Request to proxy cannot be dispatched %s, respond 404', ctx.requestId);
         respond404(res);
 
         return;
