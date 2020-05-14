@@ -1,5 +1,6 @@
 var urlUtils     = hammerhead.get('./utils/url');
 var destLocation = hammerhead.get('./utils/destination-location');
+var INSTRUCTION  = hammerhead.get('../processing/script/instruction');
 
 var windowSandox  = hammerhead.sandbox.node.win;
 var nativeMethods = hammerhead.nativeMethods;
@@ -718,6 +719,35 @@ if (window.Proxy) {
         strictEqual(getProperty(obj, 'proxy'), obj.proxy);
         strictEqual(setProperty(obj.proxy, 'prop1', 1), 1);
         notOk(handledWasCalled);
+    });
+
+    test('any proxy object should return correct code instrumentation instructions (GH-2056)', function () {
+        var proxy = new Proxy({}, {
+            get: function () {
+                return void 0;
+            }
+        });
+
+        strictEqual(proxy[INSTRUCTION.processScript], window[INSTRUCTION.processScript]);
+        strictEqual(proxy[INSTRUCTION.setProperty], window[INSTRUCTION.setProperty]);
+        strictEqual(proxy[INSTRUCTION.getProperty], window[INSTRUCTION.getProperty]);
+
+        eval(window.processScript([
+            'var proxy = new Proxy({ eval: window.eval }, {',
+            '    get: function (target, prop) {',
+            '        return target[prop];',
+            '    },',
+            '    has: function () {',
+            '        return true',
+            '    }',
+            '});',
+            '',
+            'with (proxy) {',
+            '    eval(";");',
+            '}'
+        ].join('\n')));
+
+        ok(true, 'regression check');
     });
 }
 
