@@ -14,8 +14,8 @@ function createWindowId() {
 function createSession () {
     const session = new Session(['test/playground/upload-storage']);
 
-    session._getIframePayloadScript = () => '';
-    session._getPayloadScript       = () => '';
+    session.getIframePayloadScript = async () => '';
+    session.getPayloadScript       = async () => '';
     session.getAuthCredentials      = () => ({});
     session.handleFileDownload      = () => void 0;
     session.handlePageError         = (ctx, err) => {

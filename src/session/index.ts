@@ -139,14 +139,14 @@ export default abstract class Session extends EventEmitter {
         });
     }
 
-    getIframeTaskScriptTemplate (serverInfo: ServerInfo): string {
+    async getIframeTaskScriptTemplate (serverInfo: ServerInfo): Promise<string> {
         const taskScriptTemplate = this._fillTaskScriptTemplate({
             serverInfo,
             isFirstPageLoad:          false,
             referer:                  null,
             cookie:                   null,
             iframeTaskScriptTemplate: null,
-            payloadScript:            this._getIframePayloadScript(true),
+            payloadScript:            await this.getIframePayloadScript(true),
             allowMultipleWindows:     this.allowMultipleWindows,
             isRecordMode:             this._recordMode
         });
@@ -154,19 +154,19 @@ export default abstract class Session extends EventEmitter {
         return JSON.stringify(taskScriptTemplate);
     }
 
-    getTaskScript ({ referer, cookieUrl, serverInfo, isIframe, withPayload, windowId }: TaskScriptOpts): string {
+    async getTaskScript ({ referer, cookieUrl, serverInfo, isIframe, withPayload, windowId }: TaskScriptOpts): Promise<string> {
         const cookies     = JSON.stringify(this.cookies.getClientString(cookieUrl));
         let payloadScript = '';
 
         if (withPayload)
-            payloadScript = isIframe ? this._getIframePayloadScript(false) : this._getPayloadScript();
+            payloadScript = isIframe ? await this.getIframePayloadScript(false) : await this.getPayloadScript();
 
         const taskScript = this._fillTaskScriptTemplate({
             serverInfo,
             isFirstPageLoad:          this.pageLoadCount === 0,
             referer,
             cookie:                   cookies,
-            iframeTaskScriptTemplate: this.getIframeTaskScriptTemplate(serverInfo),
+            iframeTaskScriptTemplate: await this.getIframeTaskScriptTemplate(serverInfo),
             payloadScript,
             allowMultipleWindows:     this.allowMultipleWindows,
             isRecordMode:             this._recordMode,
@@ -288,8 +288,8 @@ export default abstract class Session extends EventEmitter {
         this._recordMode = true;
     }
 
-    abstract _getIframePayloadScript (iframeWithoutSrc: boolean): string;
-    abstract _getPayloadScript (): string;
+    abstract async getIframePayloadScript (iframeWithoutSrc: boolean): Promise<string>;
+    abstract async getPayloadScript (): Promise<string>;
     abstract handleFileDownload (): void;
     abstract handlePageError (ctx: RequestPipelineContext, err: string): void;
     abstract getAuthCredentials (): Credentials;

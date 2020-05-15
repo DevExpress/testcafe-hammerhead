@@ -131,7 +131,7 @@ export default class Proxy extends Router {
             respond500(res, SESSION_IS_NOT_OPENED_ERR);
     }
 
-    _onTaskScriptRequest (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo, isIframe: boolean): void {
+    async _onTaskScriptRequest (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo, isIframe: boolean): Promise<void> {
         const referer     = req.headers[BUILTIN_HEADERS.referer] as string;
         const refererDest = referer && urlUtils.parseProxyUrl(referer);
         const session     = refererDest && this.openSessions.get(refererDest.sessionId);
@@ -141,7 +141,7 @@ export default class Proxy extends Router {
             res.setHeader(BUILTIN_HEADERS.contentType, 'application/x-javascript');
             addPreventCachingHeaders(res);
 
-            const taskScript = session.getTaskScript({
+            const taskScript = await session.getTaskScript({
                 referer,
                 cookieUrl:   refererDest.destUrl,
                 serverInfo,

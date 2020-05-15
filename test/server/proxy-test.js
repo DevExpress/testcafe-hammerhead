@@ -641,8 +641,8 @@ describe('Proxy', () => {
                         });
                 }
 
-                session._getPayloadScript       = () => 'PayloadScript';
-                session._getIframePayloadScript = () => 'IframePayloadScript';
+                session.getPayloadScript       = async () => 'PayloadScript';
+                session.getIframePayloadScript = async () => 'IframePayloadScript';
 
                 return Promise.all([
                     testTaskScriptRequest('http://localhost:1836/task.js', 'PayloadScript'),
@@ -2870,8 +2870,8 @@ describe('Proxy', () => {
         });
 
         it('Should pass `forceProxySrcForImage` option in task script', () => {
-            session._getPayloadScript       = () => 'PayloadScript';
-            session._getIframePayloadScript = () => 'IframePayloadScript';
+            session.getPayloadScript       = () => 'PayloadScript';
+            session.getIframePayloadScript = () => 'IframePayloadScript';
 
             const rule = RequestFilterRule.ANY;
 
