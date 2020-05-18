@@ -48,7 +48,7 @@ export function sendRequest (ctx: RequestPipelineContext) {
         });
 
         req.on('fatalError', err => {
-            if (this.isFileProtocol)
+            if (ctx.isFileProtocol)
                 logger.destination('File reading error %s %o', ctx.requestId, err);
 
             error(ctx, err);
