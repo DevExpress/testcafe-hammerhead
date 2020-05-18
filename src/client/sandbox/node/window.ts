@@ -1433,7 +1433,7 @@ export default class WindowSandbox extends SandboxBase {
             getter: function () {
                 const originNextSibling = nativeMethods.mutationRecordNextSiblingGetter.call(this);
 
-                return windowSandbox.shadowUI.getNextSibling(originNextSibling);
+                return windowSandbox.shadowUI.getMutationRecordNextSibling(originNextSibling);
             }
         });
 
@@ -1441,7 +1441,7 @@ export default class WindowSandbox extends SandboxBase {
             getter: function () {
                 const originPrevSibling = nativeMethods.mutationRecordPrevSiblingGetter.call(this);
 
-                return windowSandbox.shadowUI.getPrevSibling(originPrevSibling);
+                return windowSandbox.shadowUI.getMutationRecordPrevSibling(originPrevSibling);
             }
         });
 
