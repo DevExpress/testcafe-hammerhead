@@ -1,6 +1,7 @@
 import IncomingMessageMock from '../incoming-message-mock';
 import { JSON_MIME } from '../../utils/content-type';
 import BUILTIN_HEADERS from '../builtin-header-names';
+import RequestOptions from '../request-options';
 
 const PAGE_CONTENT_TYPE = 'text/html; charset=utf-8';
 const EMPTY_PAGE_HTML   = '<html><body></body></html>';
@@ -13,7 +14,7 @@ export default class ResponseMock {
     private readonly body: any;
     private readonly statusCode: string;
     private readonly headers: any;
-    requestOptions: any = null;
+    requestOptions: RequestOptions = null;
 
     constructor (body, statusCode, headers) {
         this.body       = body;
@@ -80,7 +81,7 @@ export default class ResponseMock {
         return PAGE_CONTENT_TYPE;
     }
 
-    setRequestOptions (opts): void {
+    setRequestOptions (opts: RequestOptions): void {
         this.requestOptions = opts;
     }
 

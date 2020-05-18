@@ -23,7 +23,7 @@ import SERVICE_ROUTES from '../proxy/service-routes';
 import BUILTIN_HEADERS from './builtin-header-names';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from './xhr/same-origin-check-failed-status-code';
 import { processSetCookieHeader } from './header-transforms/transforms';
-import { proxyLogger } from '../utils/debug';
+import logger from '../utils/logger';
 
 interface DestInfo {
     url: string;
@@ -290,7 +290,7 @@ export default class RequestPipelineContext {
             isRedirect
         };
 
-        proxyLogger('Proxy request content info %s %i', this.requestId, this);
+        logger.proxy('Proxy resource content info %s %i', this.requestId, this);
     }
 
     private _getInjectableUserScripts () {
@@ -384,14 +384,15 @@ export default class RequestPipelineContext {
         if (this.isHTMLPage && this.session.disablePageCaching)
             headerTransforms.setupPreventCachingHeaders(headers);
 
-        proxyLogger('Proxy response %s %d %j', this.requestId, this.destRes.statusCode, headers);
+        logger.proxy('Proxy response %s %d %j', this.requestId, this.destRes.statusCode, headers);
 
         res.writeHead(this.destRes.statusCode as number, headers);
         res.addTrailers(this.destRes.trailers as http.OutgoingHttpHeaders);
     }
 
     async mockResponse (): Promise<void> {
-        proxyLogger('Destination request is mocking %s', this.requestId);
+        // @ts-ignore
+        logger.destination('Destination request is mocking %s %s %j', this.requestId, this.mock.statusCode, this.mock.headers);
 
         this.mock.setRequestOptions(this.reqOpts);
 

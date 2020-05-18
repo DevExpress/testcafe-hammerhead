@@ -14,7 +14,7 @@ import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
 import { resetKeepAliveConnections } from '../request-pipeline/destination-request/agent';
 import SERVICE_ROUTES from './service-routes';
 import BUILTIN_HEADERS from '../request-pipeline/builtin-header-names';
-import { serviceMsgsLogger } from '../utils/debug';
+import logger from '../utils/logger';
 
 const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
 
@@ -122,12 +122,12 @@ export default class Proxy extends Router {
             try {
                 const result = await session.handleServiceMessage(msg, serverInfo);
 
-                serviceMsgsLogger('Service message %j, result %j', msg, result);
+                logger.serviceMsg('Service message %j, result %j', msg, result);
 
                 respondWithJSON(res, result, false);
             }
             catch (err) {
-                serviceMsgsLogger('Service message %j, error %o', msg, err);
+                logger.serviceMsg('Service message %j, error %o', msg, err);
 
                 respond500(res, err.toString());
             }
