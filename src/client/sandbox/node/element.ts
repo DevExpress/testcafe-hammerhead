@@ -417,8 +417,11 @@ export default class ElementSandbox extends SandboxBase {
         let result          = null;
         let childNodesArray = null;
 
-        if (domUtils.isDocumentFragmentNode(newNode))
-            childNodesArray = domUtils.nodeListToArray(newNode.childNodes);
+        if (domUtils.isDocumentFragmentNode(newNode)) {
+            const childNodes = nativeMethods.nodeChildNodesGetter.call(newNode);
+
+            childNodesArray = domUtils.nodeListToArray(childNodes);
+        }
 
         // NOTE: Before the page's <body> is processed and added to DOM,
         // some javascript frameworks create their own body element, perform
