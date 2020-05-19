@@ -391,7 +391,6 @@ export default class RequestPipelineContext {
     }
 
     async mockResponse (): Promise<void> {
-        // @ts-ignore
         logger.destination('Destination request is mocking %s %s %j', this.requestId, this.mock.statusCode, this.mock.headers);
 
         this.mock.setRequestOptions(this.reqOpts);

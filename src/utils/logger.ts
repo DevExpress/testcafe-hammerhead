@@ -47,7 +47,7 @@ debug.formatters.i = (ctx: RequestPipelineContext): string => {
     return `{ ${stringifiedInfoArr.join(', ')} }`;
 };
 
-const hammerhead        = debug('hammerhead');
+const hammerhead = debug('hammerhead');
 
 export default {
     proxy:       hammerhead.extend('proxy'),

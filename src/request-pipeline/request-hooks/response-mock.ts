@@ -12,8 +12,8 @@ const INVALID_STATUS_CODE_MESSAGE = 'Invalid status code. It should be a number 
 
 export default class ResponseMock {
     private readonly body: any;
-    private readonly statusCode: string;
-    private readonly headers: any;
+    readonly statusCode: string;
+    readonly headers: any;
     requestOptions: RequestOptions = null;
 
     constructor (body, statusCode, headers) {
