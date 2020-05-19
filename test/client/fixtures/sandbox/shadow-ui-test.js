@@ -179,7 +179,7 @@ if (window.MutationObserver) {
             document.body.appendChild(el);
         });
 
-        asyncTest('nextSibling', function () {
+        asyncTest('nextSibling shadow element', function () {
             var shadowUIEl   = document.createElement('div');
             var el           = document.createElement('div');
             var shadowUIRoot = shadowUI.getRoot();
@@ -202,7 +202,32 @@ if (window.MutationObserver) {
             document.body.appendChild(el);
         });
 
-        asyncTest('prevSibling', function () {
+        asyncTest('nextSibling dom element', function () {
+            createTestIframe()
+                .then(function (iframe) {
+                    var iframeDocument = iframe.contentDocument;
+
+                    var scriptEl1 = iframeDocument.createElement('script');
+                    var scriptEl2 = iframeDocument.createElement('script');
+
+                    iframeDocument.head.appendChild(scriptEl1);
+
+                    var observer = new MutationObserver(function (mutations) {
+                        strictEqual(mutations[0].nextSibling, scriptEl1);
+
+                        observer.disconnect();
+                        scriptEl1.parentNode.removeChild(scriptEl1);
+                        scriptEl2.parentNode.removeChild(scriptEl2);
+
+                        start();
+                    });
+
+                    observer.observe(iframeDocument.head, { childList: true });
+                    iframeDocument.head.insertBefore(scriptEl2, scriptEl1);
+                });
+        });
+
+        asyncTest('prevSibling shadow element', function () {
             createTestIframe()
                 .then(function (iframe) {
                     var iframeDocument = iframe.contentDocument;
@@ -224,6 +249,31 @@ if (window.MutationObserver) {
 
                     observer.observe(iframeDocument.head, { childList: true });
                     iframeDocument.head.insertBefore(scriptEl, iframeDocument.head.firstChild);
+                });
+        });
+
+        asyncTest('prevSibling dom element', function () {
+            createTestIframe()
+                .then(function (iframe) {
+                    var iframeDocument = iframe.contentDocument;
+
+                    var scriptEl1 = iframeDocument.createElement('script');
+                    var scriptEl2 = iframeDocument.createElement('script');
+
+                    iframeDocument.head.appendChild(scriptEl1);
+
+                    var observer = new MutationObserver(function (mutations) {
+                        strictEqual(mutations[0].previousSibling, scriptEl1);
+
+                        observer.disconnect();
+                        scriptEl1.parentNode.removeChild(scriptEl1);
+                        scriptEl2.parentNode.removeChild(scriptEl2);
+
+                        start();
+                    });
+
+                    observer.observe(iframeDocument.head, { childList: true });
+                    iframeDocument.head.appendChild(scriptEl2);
                 });
         });
 

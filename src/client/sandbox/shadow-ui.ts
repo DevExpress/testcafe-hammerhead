@@ -506,6 +506,26 @@ export default class ShadowUI extends SandboxBase {
         return el;
     }
 
+    getMutationRecordNextSibling (el) {
+        if (!el)
+            return el;
+
+        while (el && domUtils.isShadowUIElement(el))
+            el = nativeMethods.nodeNextSiblingGetter.call(el);
+
+        return el;
+    }
+
+    getMutationRecordPrevSibling (el) {
+        if (!el)
+            return el;
+
+        while (el && domUtils.isShadowUIElement(el))
+            el = nativeMethods.nodePrevSiblingGetter.call(el);
+
+        return el;
+    }
+
     getNextElementSibling (el) {
         do
             el = nativeMethods.elementNextElementSiblingGetter.call(el);
