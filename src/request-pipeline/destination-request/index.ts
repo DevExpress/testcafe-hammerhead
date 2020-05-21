@@ -133,7 +133,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     }
 
     async _resendWithCredentials (res): Promise<void> {
-        logger.destination('Destination request resend request with credentials %s', this.opts.requestId);
+        logger.destination('Destination request resent with credentials %s', this.opts.requestId);
 
         addCredentials(this.opts.credentials, this.opts, res, this.protocolInterface);
         this.credentialsSent = true;

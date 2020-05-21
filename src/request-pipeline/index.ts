@@ -96,7 +96,7 @@ const stages = [
             await ctx.session.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
             await callOnResponseEventCallbackForFailedSameOriginCheck(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
         });
-        logger.proxy('Proxy CORS check failed %s, respond 222', ctx.requestId);
+        logger.proxy('Proxy CORS check failed %s, responding 222', ctx.requestId);
         ctx.closeWithError(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
     },
 
@@ -199,7 +199,7 @@ export async function run (req: http.IncomingMessage, res: http.ServerResponse |
     logger.proxy('Proxy request %s %s %s %j', ctx.requestId, ctx.req.method, ctx.req.url, ctx.req.headers);
 
     if (!ctx.dispatch(openSessions)) {
-        logger.proxy('Proxy error: request to proxy cannot be dispatched %s, respond 404', ctx.requestId);
+        logger.proxy('Proxy error: request to proxy cannot be dispatched %s, responding 404', ctx.requestId);
         respond404(res);
 
         return;
