@@ -11,6 +11,7 @@ import { getAuthInfo, addCredentials, requiresResBody } from 'webauth';
 import connectionResetGuard from '../connection-reset-guard';
 import { MESSAGE, getText } from '../../messages';
 import { transformHeadersCaseToRaw } from '../header-transforms';
+import logger from '../../utils/logger';
 
 const TUNNELING_SOCKET_ERR_RE    = /tunneling socket could not be established/i;
 const TUNNELING_AUTHORIZE_ERR_RE = /statusCode=407/i;
@@ -39,6 +40,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     private readonly opts: RequestOptions;
     private readonly isHttps: boolean;
     private readonly protocolInterface: any;
+    private readonly timeout: number;
 
     static TIMEOUT = 25 * 1000;
     static AJAX_TIMEOUT = 2 * 60 * 1000;
@@ -49,6 +51,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         this.opts              = opts;
         this.isHttps           = opts.protocol === 'https:';
         this.protocolInterface = this.isHttps ? https : http;
+        this.timeout           = this.opts.isAjax ? DestinationRequest.AJAX_TIMEOUT : DestinationRequest.TIMEOUT;
 
         // NOTE: Ignore SSL auth.
         if (this.isHttps) {
@@ -64,7 +67,6 @@ export default class DestinationRequest extends EventEmitter implements Destinat
 
     _send (waitForData?: boolean): void {
         connectionResetGuard(() => {
-            const timeout       = this.opts.isAjax ? DestinationRequest.AJAX_TIMEOUT : DestinationRequest.TIMEOUT;
             const storedHeaders = this.opts.headers;
 
             // NOTE: The headers are converted to raw headers because some sites ignore headers in a lower case. (GH-1380)
@@ -84,9 +86,11 @@ export default class DestinationRequest extends EventEmitter implements Destinat
 
             this.req.on('error', (err: Error) => this._onError(err));
             this.req.on('upgrade', (res: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgrade(res, socket, head));
-            this.req.setTimeout(timeout, () => this._onTimeout());
+            this.req.setTimeout(this.timeout, () => this._onTimeout());
             this.req.write(this.opts.body);
             this.req.end();
+
+            logger.destination('Destination request %s %s %s %j', this.opts.requestId, this.opts.method, this.opts.url, this.opts.headers);
         });
     }
 
@@ -105,10 +109,14 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     }
 
     _onResponse (res: http.IncomingMessage): void {
+        logger.destination('Destination response %s %d %j', this.opts.requestId, res.statusCode, res.headers);
+
         if (this._shouldResendWithCredentials(res))
             this._resendWithCredentials(res);
-        else if (!this.isHttps && this.opts.proxy && res.statusCode === 407)
+        else if (!this.isHttps && this.opts.proxy && res.statusCode === 407) {
+            logger.destination('Destination error: Cannot authorize to proxy %s', this.opts.requestId);
             this._fatalError(MESSAGE.cantAuthorizeToProxy, this.opts.proxy.host);
+        }
         else {
             this.hasResponse = true;
             this.emit('response', res);
@@ -116,6 +124,8 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     }
 
     _onUpgrade (res: http.IncomingMessage, socket: net.Socket, head: Buffer): void {
+        logger.destination('Destination upgrade %s %d %j', this.opts.requestId, res.statusCode, res.headers);
+
         if (head && head.length)
             socket.unshift(head);
 
@@ -123,6 +133,8 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     }
 
     async _resendWithCredentials (res): Promise<void> {
+        logger.destination('Destination request resent with credentials %s', this.opts.requestId);
+
         addCredentials(this.opts.credentials, this.opts, res, this.protocolInterface);
         this.credentialsSent = true;
 
@@ -157,6 +169,8 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     }
 
     _onTimeout (): void {
+        logger.destination('Destination request timeout %s (%d ms)', this.opts.requestId, this.timeout);
+
         // NOTE: this handler is also called if we get an error response (for example, 404). So, we should check
         // for the response presence before raising the timeout error.
         if (!this.hasResponse)
@@ -164,6 +178,8 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     }
 
     _onError (err: Error): void {
+        logger.destination('Destination error %s %o', this.opts.requestId, err);
+
         if (this._isSocketHangUpErr(err))
             this.emit('socketHangUp');
 

@@ -15,6 +15,7 @@ import ConfigureResponseEventOptions from '../session/events/configure-response-
 import { toReadableStream } from '../utils/buffer';
 import { PassThrough } from 'stream';
 import { getText, MESSAGE } from '../messages';
+import logger from '../utils/logger';
 
 export function sendRequest (ctx: RequestPipelineContext) {
     return new Promise(resolve => {
@@ -47,6 +48,9 @@ export function sendRequest (ctx: RequestPipelineContext) {
         });
 
         req.on('fatalError', err => {
+            if (ctx.isFileProtocol)
+                logger.destination('File read error %s %o', ctx.requestId, err);
+
             error(ctx, err);
             resolve();
         });
@@ -56,8 +60,10 @@ export function sendRequest (ctx: RequestPipelineContext) {
             resolve();
         });
 
-        if (req instanceof FileRequest)
+        if (req instanceof FileRequest) {
+            logger.destination('Read file %s %s', ctx.requestId, ctx.reqOpts.url);
             req.init();
+        }
     });
 }
 
