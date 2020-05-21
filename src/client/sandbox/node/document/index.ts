@@ -12,6 +12,7 @@ import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import LocationAccessorsInstrumentation from '../../code-instrumentation/location';
 import { overrideDescriptor, createOverriddenDescriptor } from '../../../utils/property-overriding';
 import NodeSandbox from '../index';
+import DocumentTitleStorage from './title-storage';
 
 export default class DocumentSandbox extends SandboxBase {
     documentWriter: any;
@@ -127,6 +128,7 @@ export default class DocumentSandbox extends SandboxBase {
         }
 
         super.attach(window, document);
+        DocumentTitleStorage.init(document);
 
         const documentSandbox = this;
         const docPrototype    = window.Document.prototype;
@@ -238,7 +240,6 @@ export default class DocumentSandbox extends SandboxBase {
 
         const htmlDocPrototype = window.HTMLDocument.prototype;
         let storedDomain       = '';
-        let storedTitle        = nativeMethods.documentTitleGetter.call(document);
 
         if (nativeMethods.documentDocumentURIGetter) {
             overrideDescriptor(docPrototype, 'documentURI', {
@@ -325,9 +326,13 @@ export default class DocumentSandbox extends SandboxBase {
         });
 
         overrideDescriptor(docPrototype, 'title', {
-            getter: () => storedTitle,
-            setter: value => {
-                storedTitle = value;
+            getter: function () {
+                return DocumentTitleStorage.getTitle();
+            } ,
+            setter: function (value) {
+                DocumentTitleStorage.setTitle(value);
+
+                return value;
             }
         });
     }

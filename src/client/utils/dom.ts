@@ -402,6 +402,10 @@ export function isInputElement (el: any): el is HTMLInputElement {
     return instanceToString(el) === '[object HTMLInputElement]';
 }
 
+export function isTitleElement (el: any): el is HTMLTitleElement {
+    return instanceToString(el) === '[object HTMLTitleElement]';
+}
+
 export function isButtonElement (el: any): el is HTMLButtonElement {
     return instanceToString(el) === '[object HTMLButtonElement]';
 }
