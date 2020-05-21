@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+</head>
+<body>
+<script type="text/javascript">
+    var hammerhead = window['%hammerhead%'];
+
+    hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
+    hammerhead.start({ crossDomainProxyPort: 2000 });
+
+    var INSTRUCTION   = hammerhead.get('../processing/script/instruction');
+    var hhPostMessage = hammerhead.sandbox.event.message.postMessage;
+
+    window.onmessage = function (evt) {
+        if (evt.data.type === 'get ancestorOrigin') {
+            var nestedIframe = document.createElement('iframe');
+
+            nestedIframe.id  = 'test' + Date.now();
+            nestedIframe.src = evt.data.nestedIframeSrc;
+
+            document.body.appendChild(nestedIframe);
+
+            var ancestorOrigins = eval(window[INSTRUCTION.processScript]('nestedIframe.contentWindow.location.ancestorOrigins'));
+
+            hhPostMessage(top, [{ id: 'GH-2326', ancestorOrigins: ancestorOrigins }, '*']);
+
+            document.body.removeChild(nestedIframe);
+        }
+    };
+</script>
+</body>
+</html>

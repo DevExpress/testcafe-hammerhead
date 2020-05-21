@@ -4,7 +4,7 @@ import { createOverriddenDescriptor } from '../../../utils/property-overriding';
 
 const lengthWeakMap = new WeakMap<DOMStringListWrapper, number>();
 
-export default function DOMStringListWrapper (window: Window, getCrossDomainOrigin: Function) {
+export default function DOMStringListWrapper (window: Window, getCrossDomainOrigin?: Function) {
     const nativeOrigins = window.location.ancestorOrigins;
     const length        = nativeOrigins.length;
     let parentWindow    = window.parent;
@@ -17,9 +17,9 @@ export default function DOMStringListWrapper (window: Window, getCrossDomainOrig
         const isCrossDomainParent   = parentLocationWrapper === parentWindow.location;
 
         // @ts-ignore
-        updateOrigin(nativeOrigins, this, i.toString(), isCrossDomainParent ? '' : parentLocationWrapper.origin);// eslint-disable-line no-restricted-properties
+        updateOrigin(nativeOrigins, this, i.toString(), isCrossDomainParent ? '' : parentLocationWrapper.origin); // eslint-disable-line no-restricted-properties
 
-        if (isCrossDomainParent)
+        if (isCrossDomainParent && getCrossDomainOrigin)
             //@ts-ignore
             getCrossDomainOrigin(parentWindow, (origin: string) => updateOrigin(nativeOrigins, this, i, origin));
 
