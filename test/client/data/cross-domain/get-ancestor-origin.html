@@ -20,7 +20,7 @@
     var ancestorOrigins = locationWrapper.ancestorOrigins;
 
     window.onmessage = function (evt) {
-        if (evt.data = 'get ancestorOrigin') {
+        if (evt.data === 'get ancestorOrigin') {
             var data = {
                 id:  'GH-1342',
                 msg: JSON.stringify({ ancestorOrigins: ancestorOrigins, ancestorOriginsLength: ancestorOrigins.length })

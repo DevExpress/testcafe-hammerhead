@@ -558,17 +558,24 @@ if (window.location.ancestorOrigins) {
     });
 
     test('cross-domain iframe with nested not loaded iframe (GH-2326)', function () {
-        return createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/simple-page.html') })
+        return createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/get-ancestor-origin-of-not-loaded-iframe.html') })
             .then(function (iframe) {
-                var nestedIframe = document.createElement('iframe');
+                callMethod(iframe.contentWindow, 'postMessage', [{
+                    type:            'get ancestorOrigin',
+                    nestedIframeSrc: getCrossDomainPageUrl('../../../data/iframe/simple-iframe.html')
+                }, '*']);
 
-                nestedIframe.id  = 'test' + Date.now();
-                nestedIframe.src = getSameDomainPageUrl('../../../data/iframe/simple-iframe.html');
-                iframe.contentDocument.body.appendChild(nestedIframe);
-
-                ok(!!eval(processScript('iframe.contentWindow.location')));
-
-                iframe.contentDocument.body.removeChild(nestedIframe);
+                return new Promise(function (resolve) {
+                    window.addEventListener('message', function onMessageHandler (evt) {
+                        if (evt.data.id === 'GH-2326') {
+                            window.removeEventListener('message', onMessageHandler);
+                            resolve(evt);
+                        }
+                    });
+                });
+            })
+            .then(function (evt) {
+                deepEqual(evt.data.ancestorOrigins, { '0': 'http://origin_iframe_host', '1': void 0 });
             });
     });
 }
