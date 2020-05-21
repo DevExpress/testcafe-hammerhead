@@ -153,9 +153,7 @@ export default class LocationWrapper {
 
                 callbacks[id] = callback;
 
-                if (messageSandbox) {
-                    messageSandbox.sendServiceMsg({ id, cmd: GET_ORIGIN_CMD }, win);
-                }
+                messageSandbox.sendServiceMsg({ id, cmd: GET_ORIGIN_CMD }, win);
             };
 
             if (messageSandbox) {
@@ -173,7 +171,7 @@ export default class LocationWrapper {
                 });
             }
 
-            const ancestorOrigins = new DOMStringListWrapper(window, getCrossDomainOrigin);
+            const ancestorOrigins = new DOMStringListWrapper(window, messageSandbox ? getCrossDomainOrigin : void 0);
 
             locationProps.ancestorOrigins = createOverriddenDescriptor(locationPropsOwner, 'ancestorOrigins', {
                 getter: () => ancestorOrigins
