@@ -4,14 +4,18 @@ import * as domUtils from '../../../utils/dom';
 class DocumentTitleStorage {
     private _value: string = '';
     private _document: Document;
-    private _titles: HTMLCollection;
 
-    private _getTitleCollection (): HTMLCollection {
-        return nativeMethods.elementGetElementsByTagName.call(this._document.head, 'title');
+    private _getTitles (): HTMLTitleElement[] {
+        if (!this._document.head)
+            return [];
+
+        return nativeMethods.elementQuerySelectorAll.call(this._document.head, 'title');
     }
 
     private _ensureFirstTitleElementInHead (value: string): void {
-        if (this._titles.length !== 0)
+        const titles = this._getTitles();
+
+        if (titles.length !== 0)
             return;
 
         const titleElement = this._document.createElement('title');
@@ -23,11 +27,10 @@ class DocumentTitleStorage {
     init (document: Document): void {
         this._value    = nativeMethods.documentTitleGetter.call(document);
         this._document = document;
-        this._titles   = this._getTitleCollection();
     }
 
     update (): void {
-        const firstTitleElement = this._titles[0];
+        const firstTitleElement = this._getTitles()[0];
 
         this._value = firstTitleElement && nativeMethods.titleElementTextGetter.call(firstTitleElement) || '';
     }
@@ -39,7 +42,7 @@ class DocumentTitleStorage {
         if (!domUtils.isElementInDocument(el, this._document))
             return false;
 
-        if (this._titles[0] !== el)
+        if (this._getTitles()[0] !== el)
             return false;
 
         return true;
