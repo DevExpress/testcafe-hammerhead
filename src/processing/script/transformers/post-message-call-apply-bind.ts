@@ -7,7 +7,7 @@
 import { CallExpression, Expression, MemberExpression } from 'estree';
 import { Transformer } from './index';
 /*eslint-enable no-unused-vars*/
-import { createGetPostMessageMethCall } from '../node-builder';
+import { createGetPostMessageMethodCall } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
 import replaceNode from './replace-node';
 
@@ -51,7 +51,7 @@ const transformer: Transformer<CallExpression> = {
 
     run: node => {
         const callee             = node.callee as MemberExpression;
-        const getPostMessageNode = createGetPostMessageMethCall(callee.object as Expression);
+        const getPostMessageNode = createGetPostMessageMethodCall(callee.object as Expression);
 
         replaceNode(callee.object, getPostMessageNode, callee, 'object');
 

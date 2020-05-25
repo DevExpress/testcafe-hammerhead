@@ -7,7 +7,7 @@
 import { CallExpression, MemberExpression, Expression, Literal, Identifier } from 'estree';
 import { Transformer } from './index';
 /*eslint-enable no-unused-vars*/
-import { createStringLiteral, createMethCallWrapper } from '../node-builder';
+import { createSimpleLiteral, createMethodCallWrapper } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
 import { shouldInstrumentMethod } from '../instrumented';
 
@@ -41,9 +41,9 @@ const transformer: Transformer<CallExpression> = {
         const callee = node.callee as MemberExpression;
         const method = callee.computed
             ? callee.property as Literal
-            : createStringLiteral((callee.property as Identifier).name); // eslint-disable-line no-extra-parens
+            : createSimpleLiteral((callee.property as Identifier).name); // eslint-disable-line no-extra-parens
 
-        return createMethCallWrapper(callee.object as Expression, method, node.arguments);
+        return createMethodCallWrapper(callee.object as Expression, method, node.arguments);
     }
 };
 

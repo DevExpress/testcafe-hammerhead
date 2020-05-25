@@ -7,7 +7,7 @@
 import { CallExpression } from 'estree';
 import { Transformer } from './index';
 /*eslint-enable no-unused-vars*/
-import { createGetProxyUrlMethCall } from '../node-builder';
+import { createGetProxyUrlMethodCall } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
 import replaceNode from './replace-node';
 
@@ -25,7 +25,7 @@ const transformer: Transformer<CallExpression> = {
     condition: node => node.callee.type === Syntax.Import,
 
     run: node => {
-        const newArgs = createGetProxyUrlMethCall(node.arguments[0], transformer.baseUrl);
+        const newArgs = createGetProxyUrlMethodCall(node.arguments[0], transformer.baseUrl);
 
         replaceNode(node.arguments[0], newArgs, node, 'arguments');
 

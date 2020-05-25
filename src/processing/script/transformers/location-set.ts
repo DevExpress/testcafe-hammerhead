@@ -4,7 +4,7 @@
 // -------------------------------------------------------------
 
 /*eslint-disable no-unused-vars*/
-import { AssignmentExpression } from 'estree';
+import { AssignmentExpression, Identifier } from 'estree';
 import { Transformer } from './index';
 /*eslint-enable no-unused-vars*/
 import { createLocationSetWrapper } from '../node-builder';
@@ -29,7 +29,7 @@ const transformer: Transformer<AssignmentExpression> = {
                                  // @ts-ignore
                                  (parent.type !== Syntax.SequenceExpression || parent.expressions[0] === node);
 
-        return createLocationSetWrapper(node.right, wrapWithSequence);
+        return createLocationSetWrapper(node.left as Identifier, node.right, wrapWithSequence);
     }
 };
 
