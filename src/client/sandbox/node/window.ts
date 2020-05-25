@@ -1245,66 +1245,64 @@ export default class WindowSandbox extends SandboxBase {
                 if (windowSandbox._documentTitleStorage.isAffected(el))
                     windowSandbox._documentTitleStorage.setTitle(value);
 
-                else {
-                    const isStyleEl  = isStyleElement(el);
-                    const isScriptEl = isScriptElement(el);
+                const isStyleEl  = isStyleElement(el);
+                const isScriptEl = isScriptElement(el);
 
-                    let processedValue = value !== null && value !== void 0 ? String(value) : value;
+                let processedValue = value !== null && value !== void 0 ? String(value) : value;
 
-                    if (processedValue) {
-                        if (isStyleEl)
-                            processedValue = styleProcessor.process(processedValue, getProxyUrl, true);
-                        else if (isScriptEl)
-                            processedValue = processScript(processedValue, true, false, convertToProxyUrl);
-                        else {
-                            processedValue = processHtml(processedValue, {
-                                parentTag:        el.tagName,
-                                processedContext: el[INTERNAL_PROPS.processedContext]
-                            });
-                        }
+                if (processedValue) {
+                    if (isStyleEl)
+                        processedValue = styleProcessor.process(processedValue, getProxyUrl, true);
+                    else if (isScriptEl)
+                        processedValue = processScript(processedValue, true, false, convertToProxyUrl);
+                    else {
+                        processedValue = processHtml(processedValue, {
+                            parentTag:        el.tagName,
+                            processedContext: el[INTERNAL_PROPS.processedContext]
+                        });
                     }
+                }
 
-                    if (!isStyleEl && !isScriptEl)
-                        DOMMutationTracker.onChildrenChanged(el);
-
-                    nativeMethods.elementInnerHTMLSetter.call(el, processedValue);
-
-                    if (isStyleEl || isScriptEl)
-                        return;
-
+                if (!isStyleEl && !isScriptEl)
                     DOMMutationTracker.onChildrenChanged(el);
 
-                    if (windowSandbox.document.body === el) {
-                        const shadowUIRoot = windowSandbox.shadowUI.getRoot();
+                nativeMethods.elementInnerHTMLSetter.call(el, processedValue);
 
-                        windowSandbox.shadowUI.markShadowUIContainers(windowSandbox.document.head, el);
-                        ShadowUI.markElementAndChildrenAsShadow(shadowUIRoot);
-                    }
+                if (isStyleEl || isScriptEl)
+                    return;
 
-                    else if (isShadowUIElement(el))
-                        ShadowUI.markElementAndChildrenAsShadow(el);
+                DOMMutationTracker.onChildrenChanged(el);
 
-                    const parentDocument = findDocument(el);
-                    const parentWindow   = parentDocument ? parentDocument.defaultView : null;
+                if (windowSandbox.document.body === el) {
+                    const shadowUIRoot = windowSandbox.shadowUI.getRoot();
 
-                    // NOTE: For the iframe with an empty src.
-                    if (parentWindow && parentWindow !== window &&
-                        parentWindow[INTERNAL_PROPS.processDomMethodName])
-                        parentWindow[INTERNAL_PROPS.processDomMethodName](el, parentDocument);
-                    else if (window[INTERNAL_PROPS.processDomMethodName])
-                        window[INTERNAL_PROPS.processDomMethodName](el);
+                    windowSandbox.shadowUI.markShadowUIContainers(windowSandbox.document.head, el);
+                    ShadowUI.markElementAndChildrenAsShadow(shadowUIRoot);
+                }
 
-                    // NOTE: Fix for B239138 - unroll.me 'Cannot read property 'document' of null' error raised
-                    // during recording. There was an issue when the document.body was replaced, so we need to
-                    // reattach UI to a new body manually.
+                else if (isShadowUIElement(el))
+                    ShadowUI.markElementAndChildrenAsShadow(el);
 
-                    // NOTE: This check is required because jQuery calls the set innerHTML method for an element
-                    // in an unavailable window.
-                    if (window.self) {
-                        // NOTE: Use timeout, so that changes take effect.
-                        if (isHtmlElement(el) || isBodyElement(el))
-                            nativeMethods.setTimeout.call(window, () => windowSandbox.nodeMutation.onBodyContentChanged(el), 0);
-                    }
+                const parentDocument = findDocument(el);
+                const parentWindow   = parentDocument ? parentDocument.defaultView : null;
+
+                // NOTE: For the iframe with an empty src.
+                if (parentWindow && parentWindow !== window &&
+                    parentWindow[INTERNAL_PROPS.processDomMethodName])
+                    parentWindow[INTERNAL_PROPS.processDomMethodName](el, parentDocument);
+                else if (window[INTERNAL_PROPS.processDomMethodName])
+                    window[INTERNAL_PROPS.processDomMethodName](el);
+
+                // NOTE: Fix for B239138 - unroll.me 'Cannot read property 'document' of null' error raised
+                // during recording. There was an issue when the document.body was replaced, so we need to
+                // reattach UI to a new body manually.
+
+                // NOTE: This check is required because jQuery calls the set innerHTML method for an element
+                // in an unavailable window.
+                if (window.self) {
+                    // NOTE: Use timeout, so that changes take effect.
+                    if (isHtmlElement(el) || isBodyElement(el))
+                        nativeMethods.setTimeout.call(window, () => windowSandbox.nodeMutation.onBodyContentChanged(el), 0);
                 }
 
                 return value;
@@ -1363,13 +1361,12 @@ export default class WindowSandbox extends SandboxBase {
             setter: function (value) {
                 if (windowSandbox._documentTitleStorage.isAffected(this))
                     windowSandbox._documentTitleStorage.setTitle(value);
-                else {
-                    const processedValue = WindowSandbox._processTextPropValue(this, value);
 
-                    DOMMutationTracker.onChildrenChanged(this);
+                const processedValue = WindowSandbox._processTextPropValue(this, value);
 
-                    nativeMethods.htmlElementInnerTextSetter.call(this, processedValue);
-                }
+                DOMMutationTracker.onChildrenChanged(this);
+
+                nativeMethods.htmlElementInnerTextSetter.call(this, processedValue);
 
                 return value;
             }
@@ -1415,13 +1412,12 @@ export default class WindowSandbox extends SandboxBase {
             setter: function (value) {
                 if (windowSandbox._documentTitleStorage.isAffected(this))
                     windowSandbox._documentTitleStorage.setTitle(value);
-                else {
-                    const processedValue = WindowSandbox._processTextPropValue(this, value);
 
-                    DOMMutationTracker.onChildrenChanged(this);
+                const processedValue = WindowSandbox._processTextPropValue(this, value);
 
-                    nativeMethods.nodeTextContentSetter.call(this, processedValue);
-                }
+                DOMMutationTracker.onChildrenChanged(this);
+
+                nativeMethods.nodeTextContentSetter.call(this, processedValue);
 
                 return value;
             }
@@ -1528,8 +1524,8 @@ export default class WindowSandbox extends SandboxBase {
             setter: function (value) {
                 if (windowSandbox._documentTitleStorage.isAffected(this))
                     windowSandbox._documentTitleStorage.setTitle(value);
-                else
-                    nativeMethods.titleElementTextSetter.call(this, value);
+
+                nativeMethods.titleElementTextSetter.call(this, value);
 
                 return value;
             }
