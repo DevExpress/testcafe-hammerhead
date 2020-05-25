@@ -68,21 +68,21 @@ export default class Sandbox extends SandboxBase {
         const cookieSandbox         = new CookieSandbox(messageSandbox, unloadSandbox, childWindowSandbox);
 
         // API
-        this.ieDebug               = ieDebugSandbox;
-        this.cookie                = cookieSandbox; // eslint-disable-line no-restricted-properties
-        this.childWindow           = childWindowSandbox;
-        this.storageSandbox        = new StorageSandbox(listeners, unloadSandbox, eventSimulator);
-        this.xhr                   = new XhrSandbox(cookieSandbox);
-        this.fetch                 = new FetchSandbox(cookieSandbox);
-        this.iframe                = new IframeSandbox(nodeMutation, cookieSandbox);
-        this.shadowUI              = new ShadowUI(nodeMutation, messageSandbox, this.iframe, ieDebugSandbox);
-        this.upload                = new UploadSandbox(listeners, eventSimulator, transport);
-        this.event                 = new EventSandbox(listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, this.shadowUI, timersSandbox);
-        this.node                  = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI, cookieSandbox, this.childWindow);
-        this.codeInstrumentation   = new CodeInstrumentation(this.event, messageSandbox);
-        this.console               = new ConsoleSandbox(messageSandbox);
-        this.style                 = new StyleSandbox();
-        this.unload                = unloadSandbox;
+        this.ieDebug             = ieDebugSandbox;
+        this.cookie              = cookieSandbox; // eslint-disable-line no-restricted-properties
+        this.childWindow         = childWindowSandbox;
+        this.storageSandbox      = new StorageSandbox(listeners, unloadSandbox, eventSimulator);
+        this.xhr                 = new XhrSandbox(cookieSandbox);
+        this.fetch               = new FetchSandbox(cookieSandbox);
+        this.iframe              = new IframeSandbox(nodeMutation, cookieSandbox);
+        this.shadowUI            = new ShadowUI(nodeMutation, messageSandbox, this.iframe, ieDebugSandbox);
+        this.upload              = new UploadSandbox(listeners, eventSimulator, transport);
+        this.event               = new EventSandbox(listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, this.shadowUI, timersSandbox);
+        this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI, cookieSandbox, this.childWindow);
+        this.codeInstrumentation = new CodeInstrumentation(this.event, messageSandbox);
+        this.console             = new ConsoleSandbox(messageSandbox);
+        this.style               = new StyleSandbox();
+        this.unload              = unloadSandbox;
 
         if (isElectron)
             this.electron = new ElectronSandbox();
