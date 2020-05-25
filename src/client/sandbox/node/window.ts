@@ -60,7 +60,7 @@ import ElementEditingWatcher from '../event/element-editing-watcher';
 import ChildWindowSandbox from '../child-window';
 import settings from '../../settings';
 import DefaultTarget from '../child-window/default-target';
-import DocumentTitleStorage from "./document/title-storage";
+import DocumentTitleStorage from './document/title-storage';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 const INSTRUCTION_VALUES    = (() => {
@@ -118,7 +118,8 @@ export default class WindowSandbox extends SandboxBase {
         eventSandbox: EventSandbox,
         uploadSandbox: UploadSandbox,
         nodeMutation: NodeMutation,
-        private readonly _childWindowSandbox: ChildWindowSandbox) {
+        private readonly _childWindowSandbox: ChildWindowSandbox,
+        private readonly _documentTitleStorage: DocumentTitleStorage) {
         super();
 
         this.nodeSandbox           = nodeSandbox;
@@ -1226,8 +1227,8 @@ export default class WindowSandbox extends SandboxBase {
 
         overrideDescriptor(window[nativeMethods.elementHTMLPropOwnerName].prototype, 'innerHTML', {
             getter: function () {
-                if (DocumentTitleStorage.isAffected(this))
-                    return DocumentTitleStorage.getTitle();
+                if (windowSandbox._documentTitleStorage.isAffected(this))
+                    return windowSandbox._documentTitleStorage.getTitle();
 
                 const innerHTML = nativeMethods.elementInnerHTMLGetter.call(this);
 
@@ -1241,8 +1242,8 @@ export default class WindowSandbox extends SandboxBase {
             setter: function (value) {
                 const el = this;
 
-                if (DocumentTitleStorage.isAffected(el))
-                    DocumentTitleStorage.setTitle(value);
+                if (windowSandbox._documentTitleStorage.isAffected(el))
+                    windowSandbox._documentTitleStorage.setTitle(value);
 
                 else {
                     const isStyleEl  = isStyleElement(el);
@@ -1352,16 +1353,16 @@ export default class WindowSandbox extends SandboxBase {
 
         overrideDescriptor(window.HTMLElement.prototype, 'innerText', {
             getter: function () {
-                if (DocumentTitleStorage.isAffected(this))
-                    return DocumentTitleStorage.getTitle();
+                if (windowSandbox._documentTitleStorage.isAffected(this))
+                    return windowSandbox._documentTitleStorage.getTitle();
 
                 const textContent = nativeMethods.htmlElementInnerTextGetter.call(this);
 
                 return WindowSandbox._removeProcessingInstructions(textContent);
             },
             setter: function (value) {
-                if (DocumentTitleStorage.isAffected(this))
-                    DocumentTitleStorage.setTitle(value);
+                if (windowSandbox._documentTitleStorage.isAffected(this))
+                    windowSandbox._documentTitleStorage.setTitle(value);
                 else {
                     const processedValue = WindowSandbox._processTextPropValue(this, value);
 
@@ -1404,16 +1405,16 @@ export default class WindowSandbox extends SandboxBase {
 
         overrideDescriptor(window.Node.prototype, 'textContent', {
             getter: function () {
-                if (DocumentTitleStorage.isAffected(this))
-                    return DocumentTitleStorage.getTitle();
+                if (windowSandbox._documentTitleStorage.isAffected(this))
+                    return windowSandbox._documentTitleStorage.getTitle();
 
                 const textContent = nativeMethods.nodeTextContentGetter.call(this);
 
                 return WindowSandbox._removeProcessingInstructions(textContent);
             },
             setter: function (value) {
-                if (DocumentTitleStorage.isAffected(this))
-                    DocumentTitleStorage.setTitle(value);
+                if (windowSandbox._documentTitleStorage.isAffected(this))
+                    windowSandbox._documentTitleStorage.setTitle(value);
                 else {
                     const processedValue = WindowSandbox._processTextPropValue(this, value);
 
@@ -1518,15 +1519,15 @@ export default class WindowSandbox extends SandboxBase {
 
         overrideDescriptor(window.HTMLTitleElement.prototype, 'text', {
             getter: function () {
-                if (DocumentTitleStorage.isAffected(this))
-                    return DocumentTitleStorage.getTitle();
+                if (windowSandbox._documentTitleStorage.isAffected(this))
+                    return windowSandbox._documentTitleStorage.getTitle();
 
                 return nativeMethods.titleElementTextGetter.call(this);
 
             },
             setter: function (value) {
-                if (DocumentTitleStorage.isAffected(this))
-                    DocumentTitleStorage.setTitle(value);
+                if (windowSandbox._documentTitleStorage.isAffected(this))
+                    windowSandbox._documentTitleStorage.setTitle(value);
                 else
                     nativeMethods.titleElementTextSetter.call(this, value);
 

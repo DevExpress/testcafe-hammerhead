@@ -1,7 +1,7 @@
 import nativeMethods from '../../native-methods';
 import * as domUtils from '../../../utils/dom';
 
-class DocumentTitleStorage {
+export default class DocumentTitleStorage {
     private _value: string = '';
     private _document: Document;
 
@@ -29,7 +29,7 @@ class DocumentTitleStorage {
         this._document = document;
     }
 
-    update (): void {
+    updateFromFirstTitleElement (): void {
         const firstTitleElement = this._getTitles()[0];
 
         this._value = firstTitleElement && nativeMethods.titleElementTextGetter.call(firstTitleElement) || '';
@@ -59,4 +59,3 @@ class DocumentTitleStorage {
     }
 }
 
-export default new DocumentTitleStorage();

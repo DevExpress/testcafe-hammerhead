@@ -15,11 +15,12 @@ import NodeSandbox from '../index';
 import DocumentTitleStorage from './title-storage';
 
 export default class DocumentSandbox extends SandboxBase {
-    documentWriter: any;
+    documentWriter: DocumentWriter;
 
     constructor (private readonly _nodeSandbox: NodeSandbox,
         private readonly _shadowUI: ShadowUI,
-        private readonly _cookieSandbox) {
+        private readonly _cookieSandbox,
+        private readonly _documentTitleStorage: DocumentTitleStorage) {
 
         super();
 
@@ -128,7 +129,6 @@ export default class DocumentSandbox extends SandboxBase {
         }
 
         super.attach(window, document);
-        DocumentTitleStorage.init(document);
 
         const documentSandbox = this;
         const docPrototype    = window.Document.prototype;
@@ -327,10 +327,10 @@ export default class DocumentSandbox extends SandboxBase {
 
         overrideDescriptor(docPrototype, 'title', {
             getter: function () {
-                return DocumentTitleStorage.getTitle();
+                return documentSandbox._documentTitleStorage.getTitle();
             } ,
             setter: function (value) {
-                DocumentTitleStorage.setTitle(value);
+                documentSandbox._documentTitleStorage.setTitle(value);
 
                 return value;
             }

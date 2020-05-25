@@ -46,7 +46,8 @@ export default class ElementSandbox extends SandboxBase {
         private readonly _iframeSandbox: IframeSandbox,
         private readonly _shadowUI: ShadowUI,
         private readonly _eventSandbox: EventSandbox,
-        private readonly _childWindowSandbox: ChildWindowSandbox) {
+        private readonly _childWindowSandbox: ChildWindowSandbox,
+        private readonly _documentTitleStorage: DocumentTitleStorage) {
         super();
 
         this.overriddenMethods = null;
@@ -758,7 +759,7 @@ export default class ElementSandbox extends SandboxBase {
         }
 
         if (domUtils.isTitleElement(el))
-            DocumentTitleStorage.update();
+            this._documentTitleStorage.updateFromFirstTitleElement();
     }
 
     private _onElementRemoved (el: HTMLElement): void {
@@ -766,7 +767,7 @@ export default class ElementSandbox extends SandboxBase {
             this._shadowUI.onBodyElementMutation();
 
         else if (domUtils.isTitleElement(el))
-            DocumentTitleStorage.update();
+            this._documentTitleStorage.updateFromFirstTitleElement();
 
         else if (domUtils.isBaseElement(el)) {
             const firstBaseEl    = nativeMethods.querySelector.call(this.document, 'base');
