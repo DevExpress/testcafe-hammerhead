@@ -8,7 +8,7 @@ import { Identifier } from 'estree';
 import { Transformer } from './index';
 /*eslint-enable no-unused-vars*/
 import INSTRUCTION from '../instruction';
-import { createGetPostMessageMethCall } from '../node-builder';
+import { createGetPostMessageMethodCall } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
 
 // Transform:
@@ -77,7 +77,7 @@ const transformer: Transformer<Identifier> = {
         return true;
     },
 
-    run: createGetPostMessageMethCall
+    run: createGetPostMessageMethodCall
 };
 
 export default transformer;

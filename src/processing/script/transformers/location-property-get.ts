@@ -4,7 +4,7 @@
 // -------------------------------------------------------------
 
 /*eslint-disable no-unused-vars*/
-import { MemberExpression } from 'estree';
+import { Identifier, MemberExpression } from 'estree';
 import { Transformer } from './index';
 /*eslint-enable no-unused-vars*/
 import { createLocationGetWrapper } from '../node-builder';
@@ -29,7 +29,7 @@ const transformer: Transformer<MemberExpression> = {
     },
 
     run: (node: MemberExpression) => {
-        replaceNode(node.object, createLocationGetWrapper(), node, 'object');
+        replaceNode(node.object, createLocationGetWrapper(node.object as Identifier), node, 'object');
 
         return null;
     }

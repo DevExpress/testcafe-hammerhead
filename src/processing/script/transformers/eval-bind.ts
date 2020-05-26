@@ -7,7 +7,7 @@
 import { CallExpression, MemberExpression, Expression } from 'estree';
 import { Transformer } from './index';
 /*eslint-enable no-unused-vars*/
-import { createGetEvalMethCall } from '../node-builder';
+import { createGetEvalMethodCall } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
 import replaceNode from './replace-node';
 
@@ -41,7 +41,7 @@ const transformer: Transformer<CallExpression> = {
 
     run: node => {
         const callee      = node.callee as MemberExpression;
-        const getEvalNode = createGetEvalMethCall(callee.object as Expression);
+        const getEvalNode = createGetEvalMethodCall(callee.object as Expression);
 
         replaceNode(callee.object, getEvalNode, callee, 'object');
 

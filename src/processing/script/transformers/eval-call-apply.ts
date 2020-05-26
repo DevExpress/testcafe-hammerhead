@@ -7,7 +7,7 @@
 import { CallExpression, Identifier, MemberExpression } from 'estree';
 import { Transformer } from './index';
 /*eslint-enable no-unused-vars*/
-import { createProcessScriptMethCall } from '../node-builder';
+import { createProcessScriptMethodCall } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
 import replaceNode from './replace-node';
 
@@ -50,7 +50,7 @@ const transformer: Transformer<CallExpression> = {
     run: node => {
         const callee   = node.callee as MemberExpression;
         const property = callee.property as Identifier;
-        const newArg   = createProcessScriptMethCall(node.arguments[1], property.name === 'apply');
+        const newArg   = createProcessScriptMethodCall(node.arguments[1], property.name === 'apply');
 
         replaceNode(node.arguments[1], newArg, node, 'arguments');
 

@@ -13,7 +13,22 @@ import {
     MemberExpression,
     SpreadElement,
     VariableDeclaration,
-    Statement
+    Statement,
+    Pattern,
+    AssignmentOperator,
+    VariableDeclarator,
+    SimpleLiteral,
+    SimpleCallExpression,
+    Super,
+    ArrayExpression,
+    BinaryExpression,
+    BinaryOperator,
+    SequenceExpression,
+    ThisExpression,
+    LogicalExpression,
+    LogicalOperator,
+    ReturnStatement,
+    FunctionExpression
 } from 'estree';
 
 import { Syntax } from 'esotope-hammerhead';
@@ -21,365 +36,185 @@ import INTERNAL_LITERAL from './internal-literal';
 import INSTRUCTION from './instruction';
 import { getResourceTypeString } from '../../utils/url';
 
-export function createStringLiteral (value: string): Literal {
-    return {
-        type:  Syntax.Literal,
-        value: value,
-        raw:   `"${value}"`
-    };
+function createIdentifier (name: string): Identifier {
+    return { type: Syntax.Identifier, name };
+}
+
+function createExpressionStatement (expression: Expression): ExpressionStatement {
+    return { type: Syntax.ExpressionStatement, expression };
+}
+
+function createAssignmentExpression (left: Pattern | MemberExpression, operator: AssignmentOperator, right: Expression): AssignmentExpression {
+    return { type: Syntax.AssignmentExpression, operator, left, right };
+}
+
+function createSimpleCallExpression (callee: Expression | Super, args: (Expression | SpreadElement)[]): SimpleCallExpression {
+    return { type: Syntax.CallExpression, callee, arguments: args };
+}
+
+function createArrayExpression (elements: (Expression | SpreadElement)[]): ArrayExpression {
+    return { type: Syntax.ArrayExpression, elements };
+}
+
+function createMemberExpression (object: Expression | Super, property: Expression, computed: boolean): MemberExpression {
+    return { type: Syntax.MemberExpression, object, property, computed };
+}
+
+function createBinaryExpression (left: Expression, operator: BinaryOperator, right: Expression): BinaryExpression {
+    return { type: Syntax.BinaryExpression, left, right, operator };
+}
+
+function createSequenceExpression (expressions: Expression[]): SequenceExpression {
+    return { type: Syntax.SequenceExpression, expressions };
+}
+
+function createThisExpression (): ThisExpression {
+    return { type: Syntax.ThisExpression };
+}
+
+function createLogicalExpression (left: Expression, operator: LogicalOperator, right: Expression): LogicalExpression {
+    return { type: Syntax.LogicalExpression, left, right, operator }
+}
+
+function createReturnStatement (argument: Expression = null): ReturnStatement {
+    return { type: Syntax.ReturnStatement, argument };
+}
+
+function createFunctionExpression (id: Identifier | null, params: Pattern[], body: BlockStatement, async = false, generator = false): FunctionExpression {
+    return { type: Syntax.FunctionExpression, id, params, body, async, generator };
+}
+
+export function createSimpleLiteral (value: string | boolean | number | null): SimpleLiteral {
+    return { type: Syntax.Literal, value };
 }
 
 export function createTempVarIdentifier (): Identifier {
-    return {
-        type: Syntax.Identifier,
-        name: INTERNAL_LITERAL.tempVar
-    };
+    return createIdentifier(INTERNAL_LITERAL.tempVar);
 }
 
 export function createAssignmentExprStmt (left: MemberExpression, right: Identifier): ExpressionStatement {
-    return {
-        type: Syntax.ExpressionStatement,
-
-        expression: {
-            type:     Syntax.AssignmentExpression,
-            operator: '=',
-            left:     left,
-            right:    right
-        }
-    };
+    return createExpressionStatement(createAssignmentExpression(left, '=', right));
 }
 
-export function createBlockExprStmt (children: Statement[]): BlockStatement {
-    return {
-        type: Syntax.BlockStatement,
-        body: children
-    };
+export function createBlockStatement (body: Statement[]): BlockStatement {
+    return { type: Syntax.BlockStatement, body };
 }
 
-export function createVarDeclaration (identifier: Identifier, init?: Expression): VariableDeclaration {
-    return {
-        type: Syntax.VariableDeclaration,
-
-        declarations: [
-            {
-                type: Syntax.VariableDeclarator,
-                id:   identifier,
-                init: init || null
-            }
-        ],
-
-        kind: 'var'
-    };
+export function createVariableDeclarator (id: Pattern, init: Expression = null): VariableDeclarator {
+    return { type: Syntax.VariableDeclarator, id, init };
 }
 
-export function createProcessScriptMethCall (arg: Expression | SpreadElement, isApply?: boolean): CallExpression {
+export function createVariableDeclaration (kind: 'var' | 'let' | 'const', declarations: VariableDeclarator[]): VariableDeclaration {
+    return { type: Syntax.VariableDeclaration, declarations, kind };
+}
+
+export function createProcessScriptMethodCall (arg: Expression | SpreadElement, isApply?: boolean): CallExpression {
     const args: (Expression | SpreadElement)[] = [arg];
+    const processScriptIdentifier              = createIdentifier(INSTRUCTION.processScript);
 
-    if (isApply) {
-        args.push({
-            type:  Syntax.Literal,
-            value: true,
-            raw:   'true'
-        });
-    }
+    if (isApply)
+        args.push(createSimpleLiteral(true));
 
-    return {
-        type: Syntax.CallExpression,
-
-        callee: {
-            type: Syntax.Identifier,
-            name: INSTRUCTION.processScript
-        },
-
-        arguments: args
-    };
+    return createSimpleCallExpression(processScriptIdentifier, args);
 }
 
-export function createLocationGetWrapper (): CallExpression {
-    return {
-        type: Syntax.CallExpression,
+export function createLocationGetWrapper (location: Identifier): CallExpression {
+    const getLocationIdentifier = createIdentifier(INSTRUCTION.getLocation);
 
-        callee: {
-            type: Syntax.Identifier,
-            name: INSTRUCTION.getLocation
-        },
-
-        arguments: [
-            {
-                type: Syntax.Identifier,
-                name: 'location'
-            }
-        ]
-    };
+    return createSimpleCallExpression(getLocationIdentifier, [location]);
 }
 
-export function createLocationSetWrapper (value: Expression, wrapWithSequence: boolean): Expression {
-    const tempIdentifier                 = createTempVarIdentifier();
-    const locationIdentifier: Identifier = {
-        type: Syntax.Identifier,
-        name: 'location'
-    };
+export function createLocationSetWrapper (locationIdentifier: Identifier, value: Expression, wrapWithSequence: boolean): Expression {
+    const tempIdentifier            = createTempVarIdentifier();
+    const setLocationIdentifier     = createIdentifier(INSTRUCTION.setLocation);
+    const setLocationCall           = createSimpleCallExpression(setLocationIdentifier, [locationIdentifier, tempIdentifier]);
+    const locationAssignment        = createAssignmentExpression(locationIdentifier, '=', tempIdentifier);
+    const callIdentifier            = createIdentifier('call');
+    const functionWrapper           = createFunctionExpression(null, [], createBlockStatement([
+        createVariableDeclaration('var', [createVariableDeclarator(tempIdentifier, value)]),
+        createReturnStatement(createLogicalExpression(setLocationCall, '||', locationAssignment))
+    ]));
+    const functionWrapperCallMember = createMemberExpression(functionWrapper, callIdentifier, false);
+    const functionWrapperCall       = createSimpleCallExpression(functionWrapperCallMember, [createThisExpression()]);
 
-    let wrapper: Expression = {
-        type: Syntax.CallExpression,
+    if (wrapWithSequence)
+        return createSequenceExpression([createSimpleLiteral(0), functionWrapperCall]);
 
-        callee: {
-            type:     Syntax.MemberExpression,
-            computed: false,
-
-            object: {
-                type:   Syntax.FunctionExpression,
-                id:     null,
-                params: [],
-
-                body: {
-                    type: Syntax.BlockStatement,
-                    body: [
-                        createVarDeclaration(tempIdentifier, value),
-                        {
-                            type: Syntax.ReturnStatement,
-
-                            argument: {
-                                type:     Syntax.LogicalExpression,
-                                operator: '||',
-
-                                left: {
-                                    type: Syntax.CallExpression,
-
-                                    callee: {
-                                        type: Syntax.Identifier,
-                                        name: INSTRUCTION.setLocation
-                                    },
-
-                                    arguments: [locationIdentifier, tempIdentifier]
-                                },
-
-                                right: {
-                                    type:     Syntax.AssignmentExpression,
-                                    operator: '=',
-                                    left:     locationIdentifier,
-                                    right:    tempIdentifier
-                                }
-                            }
-                        }
-                    ]
-                },
-
-                generator: false
-            },
-
-            property: {
-                type: Syntax.Identifier,
-                name: 'call'
-            }
-        },
-
-        arguments: [
-            {
-                type: Syntax.ThisExpression
-            }
-        ]
-    };
-
-    if (wrapWithSequence) {
-        wrapper = {
-            type: Syntax.SequenceExpression,
-
-            expressions: [
-                {
-                    type:  'Literal',
-                    value: 0,
-                    raw:   '0'
-                },
-                wrapper
-            ]
-        };
-    }
-
-    return wrapper;
+    return functionWrapperCall;
 }
 
 export function createPropertySetWrapper (propertyName: string, obj: Expression, value: Expression): CallExpression {
-    return {
-        type: Syntax.CallExpression,
+    const setPropertyIdentifier = createIdentifier(INSTRUCTION.setProperty);
 
-        callee: {
-            type: Syntax.Identifier,
-            name: INSTRUCTION.setProperty
-        },
-
-        arguments: [obj, createStringLiteral(propertyName), value]
-    };
+    return createSimpleCallExpression(setPropertyIdentifier, [obj, createSimpleLiteral(propertyName), value]);
 }
 
-export function createMethCallWrapper (owner: Expression, meth: Literal, args: (Expression | SpreadElement)[]): CallExpression {
-    return {
-        type: Syntax.CallExpression,
+export function createMethodCallWrapper (owner: Expression, method: Literal, args: (Expression | SpreadElement)[]): CallExpression {
+    const callMethodIdentifier = createIdentifier(INSTRUCTION.callMethod);
+    const methodArgsArray      = createArrayExpression(args);
 
-        callee: {
-            type: Syntax.Identifier,
-            name: INSTRUCTION.callMethod
-        },
-
-        arguments: [owner, meth, {
-            type:     Syntax.ArrayExpression,
-            elements: args
-        }]
-    };
+    return createSimpleCallExpression(callMethodIdentifier, [owner, method, methodArgsArray]);
 }
 
 export function createPropertyGetWrapper (propertyName: string, owner: Expression): CallExpression {
-    return {
-        type: Syntax.CallExpression,
+    const getPropertyIdentifier = createIdentifier(INSTRUCTION.getProperty);
 
-        callee: {
-            type: Syntax.Identifier,
-            name: INSTRUCTION.getProperty
-        },
-
-        arguments: [owner, createStringLiteral(propertyName)]
-    };
+    return createSimpleCallExpression(getPropertyIdentifier,  [owner, createSimpleLiteral(propertyName)]);
 }
 
 export function createComputedPropertyGetWrapper (property: Expression, owner: Expression): CallExpression {
-    return {
-        type: Syntax.CallExpression,
+    const getPropertyIdentifier = createIdentifier(INSTRUCTION.getProperty);
 
-        callee: {
-            type: Syntax.Identifier,
-            name: INSTRUCTION.getProperty
-        },
-
-        arguments: [owner, property]
-    };
+    return  createSimpleCallExpression(getPropertyIdentifier,  [owner, property]);
 }
 
 export function createComputedPropertySetWrapper (property: Expression, owner: Expression, value: Expression): CallExpression {
-    return {
-        type: Syntax.CallExpression,
+    const setPropertyIdentifier = createIdentifier(INSTRUCTION.setProperty);
 
-        callee: {
-            type: Syntax.Identifier,
-            name: INSTRUCTION.setProperty
-        },
-
-        arguments: [owner, property, value]
-    };
+    return createSimpleCallExpression(setPropertyIdentifier, [owner, property, value]);
 }
 
-export function createGetEvalMethCall (node: Expression): CallExpression {
-    return {
-        type: Syntax.CallExpression,
+export function createGetEvalMethodCall (node: Expression): CallExpression {
+    const getEvalIdentifier = createIdentifier(INSTRUCTION.getEval);
 
-        callee: {
-            type: Syntax.Identifier,
-            name: INSTRUCTION.getEval
-        },
-
-        arguments: [node]
-    };
+    return createSimpleCallExpression(getEvalIdentifier, [node]);
 }
 
-export function getProxyUrlLiteral (source: Literal, resolver: Function): Literal {
+export function getProxyUrlLiteral (source: Literal, resolver: Function): SimpleLiteral {
     const proxyUrl = resolver(String(source.value), getResourceTypeString({ isScript: true }));
 
-    return {
-        type:  Syntax.Literal,
-        value: proxyUrl,
-        raw:   `"${proxyUrl}"`
-    };
+    return createSimpleLiteral(proxyUrl);
 }
 
-export function createGetProxyUrlMethCall (arg: Expression | SpreadElement, baseUrl?: string): CallExpression {
-    const args = [arg];
+export function createGetProxyUrlMethodCall (arg: Expression | SpreadElement, baseUrl?: string): CallExpression {
+    const getProxyUrlIdentifier                = createIdentifier(INSTRUCTION.getProxyUrl);
+    const args: (Expression | SpreadElement)[] = [arg];
 
-    if (baseUrl) {
-        args.push({
-            type:  Syntax.Literal,
-            value: baseUrl,
-            raw:   `"${baseUrl}"`
-        });
-    }
+    if (baseUrl)
+        args.push(createSimpleLiteral(baseUrl));
 
-    return {
-        type: Syntax.CallExpression,
-
-        callee: {
-            type: Syntax.Identifier,
-            name: INSTRUCTION.getProxyUrl
-        },
-
-        arguments: args
-    };
+    return createSimpleCallExpression(getProxyUrlIdentifier, args);
 }
 
-export function createGetPostMessageMethCall (node: Expression): CallExpression {
-    const parentObject = node.type === Syntax.MemberExpression ? node.object as Expression : null;
+export function createGetPostMessageMethodCall (node: Expression): CallExpression {
+    const getPostMessageIdentifier             = createIdentifier(INSTRUCTION.getPostMessage);
+    const args: (Expression | SpreadElement)[] = node.type === Syntax.MemberExpression
+        ? [node.object as Expression]
+        : [createSimpleLiteral(null), node];
 
-    return {
-        type: Syntax.CallExpression,
-
-        callee: {
-            type: Syntax.Identifier,
-            name: INSTRUCTION.getPostMessage
-        },
-
-        arguments: parentObject ? [parentObject] : [
-            {
-                type:  Syntax.Literal,
-                value: null
-            },
-            node
-        ]
-    };
+    return createSimpleCallExpression(getPostMessageIdentifier, args);
 }
 
 export function createExpandedConcatOperation (left: Identifier | MemberExpression, right: Expression): AssignmentExpression {
-    return {
-        type:     Syntax.AssignmentExpression,
-        operator: '=',
-        left:     left,
-
-        right: {
-            type:     Syntax.BinaryExpression,
-            operator: '+',
-            left:     left,
-            right:    right
-        }
-    };
+    return createAssignmentExpression(left, '=', createBinaryExpression(left, '+', right));
 }
 
-export function createHtmlProcessorWrapper (node: ExpressionStatement): Statement {
-    const member: MemberExpression = {
-        type:     Syntax.MemberExpression,
-        computed: false,
+export function createHtmlProcessorWrapper (node: ExpressionStatement): ExpressionStatement {
+    const processHtmlIdentifier    = createIdentifier(INSTRUCTION.processHtml);
+    const parentIdentifier         = createIdentifier('parent');
+    const windowIdentifier         = createIdentifier('window');
+    const processHtmlThroughParent = createMemberExpression(parentIdentifier, processHtmlIdentifier, false);
+    const processHtmlCall          = createSimpleCallExpression(processHtmlThroughParent, [windowIdentifier, node.expression]);
 
-        object: {
-            type: Syntax.Identifier,
-            name: 'parent'
-        },
-
-        property: {
-            type: Syntax.Identifier,
-            name: INSTRUCTION.processHtml
-        }
-    };
-
-    return {
-        type: Syntax.ExpressionStatement,
-
-        expression: {
-            type: Syntax.CallExpression,
-
-            callee: member,
-
-            arguments: [
-                {
-                    type: Syntax.Identifier,
-                    name: 'window'
-                },
-                node.expression
-            ]
-        }
-    };
+    return createExpressionStatement(processHtmlCall);
 }

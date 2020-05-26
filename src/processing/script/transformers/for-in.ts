@@ -11,8 +11,9 @@ import { Syntax } from 'esotope-hammerhead';
 import {
     createTempVarIdentifier,
     createAssignmentExprStmt,
-    createVarDeclaration,
-    createBlockExprStmt
+    createVariableDeclarator,
+    createVariableDeclaration,
+    createBlockStatement
 } from '../node-builder';
 import replaceNode from './replace-node';
 
@@ -29,11 +30,11 @@ const transformer: Transformer<ForInStatement> = {
 
     run: node => {
         const tempVarAst         = createTempVarIdentifier();
-        const varDeclaration     = createVarDeclaration(tempVarAst);
+        const varDeclaration     = createVariableDeclaration('var', [createVariableDeclarator(tempVarAst)]);
         const assignmentExprStmt = createAssignmentExprStmt(node.left as MemberExpression, tempVarAst);
 
         if (node.body.type !== Syntax.BlockStatement)
-            replaceNode(node.body, createBlockExprStmt([assignmentExprStmt, node.body]), node, 'body');
+            replaceNode(node.body, createBlockStatement([assignmentExprStmt, node.body]), node, 'body');
         else
             replaceNode(null, assignmentExprStmt, node.body, 'body');
 
