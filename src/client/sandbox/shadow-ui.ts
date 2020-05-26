@@ -218,7 +218,7 @@ export default class ShadowUI extends SandboxBase {
     _markShadowUIContainerAndCollections (containerEl) {
         ShadowUI._markAsShadowContainer(containerEl);
         ShadowUI.markAsShadowContainerCollection(containerEl.children);
-        ShadowUI.markAsShadowContainerCollection(containerEl.childNodes);
+        ShadowUI.markAsShadowContainerCollection(nativeMethods.nodeChildNodesGetter.call(containerEl));
     }
 
     markShadowUIContainers (head, body) {
@@ -455,8 +455,9 @@ export default class ShadowUI extends SandboxBase {
 
     // Accessors
     getFirstChild (el) {
-        const length        = nativeMethods.nodeListLengthGetter.call(el.childNodes);
-        const filteredNodes = this._filterNodeList(el.childNodes, length);
+        const childNodes    = nativeMethods.nodeChildNodesGetter.call(el);
+        const length        = nativeMethods.nodeListLengthGetter.call(childNodes);
+        const filteredNodes = this._filterNodeList(childNodes, length);
 
         return filteredNodes[0] || null;
     }
@@ -469,9 +470,10 @@ export default class ShadowUI extends SandboxBase {
     }
 
     getLastChild (el) {
-        const length        = nativeMethods.nodeListLengthGetter.call(el.childNodes);
-        const filteredNodes = this._filterNodeList(el.childNodes, length);
-        const index         = el.childNodes === filteredNodes ? length - 1 : filteredNodes.length - 1;
+        const childNodes    = nativeMethods.nodeChildNodesGetter.call(el);
+        const length        = nativeMethods.nodeListLengthGetter.call(childNodes);
+        const filteredNodes = this._filterNodeList(childNodes, length);
+        const index         = childNodes === filteredNodes ? length - 1 : filteredNodes.length - 1;
 
         return index >= 0 ? filteredNodes[index] : null;
     }
@@ -741,7 +743,10 @@ export default class ShadowUI extends SandboxBase {
         ShadowUI._markAsShadowContainer(form);
         ShadowUI.markAsShadowContainerCollection(form.elements);
         ShadowUI.markAsShadowContainerCollection(form.children);
-        ShadowUI.markAsShadowContainerCollection(form.childNodes);
+
+        const childNodes = nativeMethods.nodeChildNodesGetter.call(form);
+
+        ShadowUI.markAsShadowContainerCollection(childNodes);
     }
 
     static markElementAndChildrenAsShadow (el) {
