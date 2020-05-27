@@ -30,7 +30,8 @@ import {
     isStyleElement,
     findDocument,
     isBodyElement,
-    isHtmlElement, isTitleElement
+    isHtmlElement,
+    isTitleElement
 } from '../../utils/dom';
 import { isPrimitiveType } from '../../utils/types';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
