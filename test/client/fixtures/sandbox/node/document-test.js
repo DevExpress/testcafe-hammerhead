@@ -511,17 +511,21 @@ test('patching Node methods on the client side: appendChild, insertBefore, repla
     });
 });
 
-test('document.title', function () {
-    strictEqual(document.title, '');
-    strictEqual(document.title = 'end-user title', 'end-user title');
-
-    nativeMethods.documentTitleSetter.call(document, 'native title');
-
-    strictEqual(document.title, 'end-user title');
-    strictEqual(nativeMethods.documentTitleGetter.call(document), 'native title');
+module('document.title', {
+    beforeEach: function () {
+        nativeMethods.documentTitleSetter.call(document, 'Test title');
+    },
+    afterEach: function () {
+        strictEqual(nativeMethods.documentTitleGetter.call(document), 'Test title', 'check into afterEach hook');
+    }
 });
 
-test('document.title (initial value)', function () {
+test('basic', function () {
+    strictEqual(document.title, '');
+    strictEqual(document.title = 'end-user title', 'end-user title');
+});
+
+test('initial value', function () {
     var src = getSameDomainPageUrl('../../../data/document_title/initial_value.html');
 
     return createTestIframe({ src: src })
@@ -530,7 +534,127 @@ test('document.title (initial value)', function () {
         });
 });
 
-module('resgression');
+test('text properties of the first <title> element', function () {
+    var titles = document.getElementsByTagName('title');
+
+    strictEqual(titles.length, 1);
+
+    var title = titles[0];
+
+    title.text = 'text-title';
+
+    strictEqual(document.title, 'text-title');
+    strictEqual(title.text, 'text-title');
+
+    title.innerText = 'innerText-title';
+
+    strictEqual(document.title, 'innerText-title');
+    strictEqual(title.innerText, 'innerText-title');
+
+    title.textContent = 'textContent-title';
+
+    strictEqual(document.title, 'textContent-title');
+    strictEqual(title.textContent, 'textContent-title');
+
+    title.innerHTML = 'innerHTML-title';
+
+    strictEqual(document.title, 'innerHTML-title');
+    strictEqual(title.innerHTML, 'innerHTML-title');
+
+    document.title = '';
+});
+
+test('several <title> nodes', function () {
+    var titles     = document.getElementsByTagName('title');
+    var firstTitle = titles[0];
+
+    strictEqual(titles.length, 1);
+    strictEqual(firstTitle.text, '');
+    strictEqual(document.title, '');
+
+    var secondTitle = document.createElement('title');
+
+    secondTitle.text = 'Second title';
+
+    strictEqual(secondTitle.text, 'Second title');
+    strictEqual(document.title, '');
+
+    document.head.appendChild(secondTitle);
+
+    secondTitle.text = 'Updated second title';
+
+    strictEqual(document.title, '');
+
+    firstTitle.text = 'Updated first title';
+
+    strictEqual(document.title, 'Updated first title');
+
+    secondTitle.parentNode.removeChild(secondTitle);
+});
+
+test('undefined', function () {
+    document.title = void 0;
+
+    strictEqual(document.title, 'undefined');
+
+    var firstTitle = document.head.querySelector('title');
+
+    firstTitle.text = void 0;
+
+    strictEqual(firstTitle.text, 'undefined');
+});
+
+test('add/remove nodes', function () {
+    var titles      = document.getElementsByTagName('title');
+    var firstTitle  = titles[0];
+
+    firstTitle.text  = 'First title';
+
+    strictEqual(document.title, 'First title');
+
+    var secondTitle = document.createElement('title');
+
+    secondTitle.text = 'Second title';
+
+    document.head.insertBefore(secondTitle, firstTitle);
+
+    strictEqual(document.title, 'Second title');
+
+    secondTitle.parentNode.removeChild(secondTitle);
+
+    strictEqual(document.title, 'First title');
+});
+
+test('<title> from another window', function () {
+    document.title = 'Test title';
+
+    return createTestIframe()
+        .then(function (iframe) {
+            var titleElement = iframe.contentDocument.createElement('title');
+
+            iframe.contentDocument.head.appendChild(titleElement);
+
+            titleElement.text = 'Title for iframe';
+
+            strictEqual(document.title, 'Test title');
+        });
+});
+
+test('create <title> element if it does not exists', function () {
+    var titles = document.getElementsByTagName('title');
+
+    for (var i = 0; i < titles.length; i++)
+        titles[0].parentNode.removeChild(titles[0]);
+
+    strictEqual(document.title, '');
+
+    document.title = 'Test title';
+
+    strictEqual(titles.length, 1);
+    strictEqual(titles[0].text, 'Test title');
+});
+
+module('regression');
 
 test('document.write for several tags in iframe (T215136)', function () {
     return createTestIframe({ src: getSameDomainPageUrl('../../../data/node-sandbox/iframe-with-doc-write.html') })

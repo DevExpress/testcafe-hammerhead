@@ -18,6 +18,7 @@ import ShadowUI from '../shadow-ui';
 import CookieSandbox from '../cookie';
 import * as browserUtils from '../../utils/browser';
 import ChildWindowSandbox from '../child-window';
+import DocumentTitleStorage from './document/title-storage';
 
 const ATTRIBUTE_SELECTOR_REG_EX          = /\[([\w-]+)(\^?=.+?)]/g;
 const ATTRIBUTE_OPERATOR_WITH_HASH_VALUE = /^\W+\s*#/;
@@ -29,6 +30,7 @@ export default class NodeSandbox extends SandboxBase {
     doc: DocumentSandbox;
     win: WindowSandbox;
     element: ElementSandbox;
+    private _documentTitleStorage: DocumentTitleStorage
 
     constructor (readonly mutation: NodeMutation,
         readonly iframeSandbox: IframeSandbox,
@@ -48,9 +50,10 @@ export default class NodeSandbox extends SandboxBase {
             writable: true
         });
 
-        this.doc     = new DocumentSandbox(this, this.shadowUI, this._cookieSandbox);
-        this.win     = new WindowSandbox(this, this._eventSandbox, this._uploadSandbox, this.mutation, this._childWindowSandbox);
-        this.element = new ElementSandbox(this, this._uploadSandbox, this.iframeSandbox, this.shadowUI, this._eventSandbox, this._childWindowSandbox);
+        this._documentTitleStorage = new DocumentTitleStorage();
+        this.doc                   = new DocumentSandbox(this, this.shadowUI, this._cookieSandbox, this._documentTitleStorage);
+        this.win                   = new WindowSandbox(this, this._eventSandbox, this._uploadSandbox, this.mutation, this._childWindowSandbox, this._documentTitleStorage);
+        this.element               = new ElementSandbox(this, this._uploadSandbox, this.iframeSandbox, this.shadowUI, this._eventSandbox, this._childWindowSandbox);
     }
 
     private _onBodyCreated (): void {
@@ -114,6 +117,7 @@ export default class NodeSandbox extends SandboxBase {
         let domContentLoadedEventRaised = false;
 
         super.attach(window, document);
+        this._documentTitleStorage.init(document);
 
         this.iframeSandbox.on(this.iframeSandbox.IFRAME_DOCUMENT_CREATED_EVENT, ({ iframe }) => {
             const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
