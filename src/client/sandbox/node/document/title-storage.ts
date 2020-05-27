@@ -2,7 +2,7 @@ import nativeMethods from '../../native-methods';
 
 const DEFAULT_TITLE_VALUE      = '';
 
-// NOTE: All properties that can affects the real document.title are sandboxed.
+// NOTE: All properties that can affect the real document.title are sandboxed.
 // Their values stored into the single internal property.
 const INTERNAL_TITLE_PROP_NAME = 'hammerhead|document-title-storage|internal-prop-name'
 
