@@ -512,21 +512,17 @@ test('patching Node methods on the client side: appendChild, insertBefore, repla
 });
 
 module('document.title', {
+    beforeEach: function () {
+        nativeMethods.documentTitleSetter.call(document, 'Test title');
+    },
     afterEach: function () {
-        document.title = '';
-
-        nativeMethods.documentTitleSetter.call(document, '');
+        strictEqual(nativeMethods.documentTitleGetter.call(document), 'Test title', 'check into afterEach hook');
     }
 });
 
 test('basic', function () {
     strictEqual(document.title, '');
     strictEqual(document.title = 'end-user title', 'end-user title');
-
-    nativeMethods.documentTitleSetter.call(document, 'native title');
-
-    strictEqual(document.title, 'end-user title');
-    strictEqual(nativeMethods.documentTitleGetter.call(document), 'native title');
 });
 
 test('initial value', function () {
@@ -564,6 +560,8 @@ test('text properties of the first <title> element', function () {
 
     strictEqual(document.title, 'innerHTML-title');
     strictEqual(title.innerHTML, 'innerHTML-title');
+
+    document.title = '';
 });
 
 test('several <title> nodes', function () {
@@ -594,6 +592,18 @@ test('several <title> nodes', function () {
     secondTitle.parentNode.removeChild(secondTitle);
 });
 
+test('undefined', function () {
+    document.title = void 0;
+
+    strictEqual(document.title, 'undefined');
+
+    var firstTitle = document.head.querySelector('title');
+
+    firstTitle.text = void 0;
+
+    strictEqual(firstTitle.text, 'undefined');
+});
+
 test('add/remove nodes', function () {
     var titles      = document.getElementsByTagName('title');
     var firstTitle  = titles[0];
@@ -602,29 +612,17 @@ test('add/remove nodes', function () {
 
     strictEqual(document.title, 'First title');
 
-    firstTitle.parentNode.removeChild(firstTitle);
-
-    strictEqual(document.title, '');
-
     var secondTitle = document.createElement('title');
 
     secondTitle.text = 'Second title';
 
-    document.head.appendChild(secondTitle);
+    document.head.insertBefore(secondTitle, firstTitle);
 
     strictEqual(document.title, 'Second title');
 
-    var thirdTitle = document.createElement('title');
-
-    thirdTitle.text = 'Third title';
-
-    document.head.appendChild(thirdTitle);
-
     secondTitle.parentNode.removeChild(secondTitle);
 
-    strictEqual(document.title, 'Third title');
-
-    thirdTitle.parentNode.removeChild(thirdTitle);
+    strictEqual(document.title, 'First title');
 });
 
 test('<title> from another window', function () {
@@ -650,10 +648,10 @@ test('create <title> element if it does not exists', function () {
 
     strictEqual(document.title, '');
 
-    document.title = 'Title';
+    document.title = 'Test title';
 
     strictEqual(titles.length, 1);
-    strictEqual(titles[0].text, 'Title');
+    strictEqual(titles[0].text, 'Test title');
 });
 
 module('regression');

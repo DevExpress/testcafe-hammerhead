@@ -31,7 +31,6 @@ import EventSandbox from '../event';
 import ChildWindowSandbox from '../child-window';
 import isKeywordTarget from '../../../utils/is-keyword-target';
 import BUILTIN_HEADERS from '../../../request-pipeline/builtin-header-names';
-import DocumentTitleStorage from './document/title-storage';
 
 const RESTRICTED_META_HTTP_EQUIV_VALUES = [BUILTIN_HEADERS.refresh, BUILTIN_HEADERS.contentSecurityPolicy];
 
@@ -46,8 +45,7 @@ export default class ElementSandbox extends SandboxBase {
         private readonly _iframeSandbox: IframeSandbox,
         private readonly _shadowUI: ShadowUI,
         private readonly _eventSandbox: EventSandbox,
-        private readonly _childWindowSandbox: ChildWindowSandbox,
-        private readonly _documentTitleStorage: DocumentTitleStorage) {
+        private readonly _childWindowSandbox: ChildWindowSandbox) {
         super();
 
         this.overriddenMethods = null;
@@ -757,17 +755,11 @@ export default class ElementSandbox extends SandboxBase {
                 // @ts-ignore
                 urlResolver.updateBase(storedHrefAttrValue, this.document);
         }
-
-        if (domUtils.isTitleElement(el))
-            this._documentTitleStorage.updateFromFirstTitleElement();
     }
 
     private _onElementRemoved (el: HTMLElement): void {
         if (domUtils.isBodyElement(el))
             this._shadowUI.onBodyElementMutation();
-
-        else if (domUtils.isTitleElement(el))
-            this._documentTitleStorage.updateFromFirstTitleElement();
 
         else if (domUtils.isBaseElement(el)) {
             const firstBaseEl    = nativeMethods.querySelector.call(this.document, 'base');

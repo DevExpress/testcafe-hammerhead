@@ -331,8 +331,6 @@ export default class DocumentSandbox extends SandboxBase {
             } ,
             setter: function (value) {
                 documentSandbox._documentTitleStorage.setTitle(value);
-
-                return value;
             }
         });
     }

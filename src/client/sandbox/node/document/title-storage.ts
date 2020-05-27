@@ -1,21 +1,18 @@
 import nativeMethods from '../../native-methods';
-import * as domUtils from '../../../utils/dom';
+
+const DEFAULT_TITLE_VALUE      = '';
+
+// NOTE: All properties that can affects the real document.title are sandboxed.
+// Their values stored into the single internal property.
+const INTERNAL_TITLE_PROP_NAME = 'hammerhead|document-title-storage|internal-prop-name'
 
 export default class DocumentTitleStorage {
-    private _value: string = '';
     private _document: Document;
 
-    private _getTitles (): HTMLTitleElement[] {
-        if (!this._document.head)
-            return [];
-
-        return nativeMethods.elementQuerySelectorAll.call(this._document.head, 'title');
-    }
-
     private _ensureFirstTitleElementInHead (value: string): void {
-        const titles = this._getTitles();
+        const firstTitle = this._getFirstTitleElement();
 
-        if (titles.length !== 0)
+        if (firstTitle)
             return;
 
         const titleElement = this._document.createElement('title');
@@ -24,38 +21,59 @@ export default class DocumentTitleStorage {
         document.head.appendChild(titleElement);
     }
 
+    private _getValueFromFirstTitleElement (): string | undefined {
+        const firstTitle = this._getFirstTitleElement();
+
+        return firstTitle && firstTitle[INTERNAL_TITLE_PROP_NAME];
+    }
+
+    private _setValueForFirstTitleElementIfExists (value?: string): void {
+        const firstTitle = this._getFirstTitleElement();
+
+        if(!firstTitle)
+            return;
+
+        if(value === void 0)
+            value = nativeMethods.titleElementTextGetter.call(firstTitle);
+
+        this.setTitleElementPropertyValue(firstTitle, value);
+    }
+
+    private _getFirstTitleElement (): HTMLTitleElement | undefined {
+        return this._document.head && nativeMethods.elementQuerySelector.call(this._document.head, 'title');
+    }
+
     init (document: Document): void {
-        this._value    = nativeMethods.documentTitleGetter.call(document);
         this._document = document;
-    }
 
-    updateFromFirstTitleElement (): void {
-        const firstTitleElement = this._getTitles()[0];
-
-        this._value = firstTitleElement && nativeMethods.titleElementTextGetter.call(firstTitleElement) || '';
-    }
-
-    isAffected (el: HTMLElement): boolean {
-        if (!domUtils.isTitleElement(el))
-            return false;
-
-        if (!domUtils.isElementInDocument(el, this._document))
-            return false;
-
-        if (this._getTitles()[0] !== el)
-            return false;
-
-        return true;
+        this._setValueForFirstTitleElementIfExists();
     }
 
     getTitle (): string {
-        return this._value;
+        return this._getValueFromFirstTitleElement() || DEFAULT_TITLE_VALUE;
     }
 
     setTitle(value: string): void {
-        this._ensureFirstTitleElementInHead(value);
+        value = String(value);
 
-        this._value = value;
+        this._ensureFirstTitleElementInHead(value);
+        this._setValueForFirstTitleElementIfExists(value);
+    }
+
+    getTitleElementPropertyValue (element: HTMLTitleElement): string {
+        return element[INTERNAL_TITLE_PROP_NAME];
+    }
+
+    setTitleElementPropertyValue (element: HTMLTitleElement, value: string): void {
+        value = String(value);
+
+        if (INTERNAL_TITLE_PROP_NAME in element)
+            element[INTERNAL_TITLE_PROP_NAME] = value;
+        else
+            nativeMethods.objectDefineProperty(element, INTERNAL_TITLE_PROP_NAME, {
+                value,
+                writable: true
+            });
     }
 }
 
