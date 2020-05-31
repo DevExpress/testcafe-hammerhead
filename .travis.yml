@@ -1,28 +1,24 @@
 if: NOT (commit_message =~ /^\[docs\]/)
 
 language: node_js
-
-addons:
- chrome:  stable
- firefox: latest
- apt:
-  packages:
-   - dbus
-
-before_install:
- - export $(dbus-launch)
-
-matrix:
- include:
-   - node_js: "stable"
-     env: GULP_TASK="test-server"
-   - node_js: "10"
-     env: GULP_TASK="test-server"
-   - node_js: "stable"
-     env: GULP_TASK="test-client-travis"
-   - node_js: "10"
-     env: GULP_TASK="test-functional-testcafe-travis"
- fast_finish: true
+os: linux
+dist: "xenial"
+jobs:
+  include:
+    - node_js: "stable"
+      env: GULP_TASK="test-server"
+    - node_js: "10"
+      env: GULP_TASK="test-server"
+    - node_js: "stable"
+      env: GULP_TASK="test-client-travis"
+    - node_js: "10"
+      env:
+        GULP_TASK="test-functional-testcafe-travis"
+        RETRY_FAILED_TESTS="true"
+      addons:
+        chrome:  stable
+        firefox: latest
+  fast_finish: true
 
 notifications:
- email: false
+  email: false

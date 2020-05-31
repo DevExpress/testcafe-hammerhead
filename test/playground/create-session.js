@@ -1,15 +1,5 @@
-const crypto  = require('crypto');
-const Session = require('../../lib/session');
-
-function createWindowId() {
-    const buf = crypto.randomBytes(2);
-    let res   = '';
-
-    for(const val of buf.values())
-        res += val.toString();
-
-    return res;
-}
+const Session          = require('../../lib/session');
+const generateUniqueId = require('../../lib/utils/generate-unique-id');
 
 function createSession () {
     const session = new Session(['test/playground/upload-storage']);
@@ -26,7 +16,7 @@ function createSession () {
     session.allowMultipleWindows = !!global.process.env.allowMultipleWindows;
 
     if (session.allowMultipleWindows)
-        session.windowId = createWindowId();
+        session.windowId = generateUniqueId();
 
     return session;
 }
