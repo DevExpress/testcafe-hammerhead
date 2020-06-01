@@ -178,18 +178,20 @@ export default class MessageSandbox extends SandboxBase {
     postMessage (contentWindow: Window, args) {
         const targetUrl = args[1] || destLocation.getOriginHeader();
 
-        if (isCrossDomainWindows(this.window, contentWindow))
-            args[1] = getCrossDomainProxyUrl();
-        else if (!isSupportedProtocol(contentWindow.location.toString()) ||
-                 !isSupportedProtocol(this.window.location.toString()))
-            args[1] = '*';
-        else {
-            args[1] = formatUrl({
-                /*eslint-disable no-restricted-properties*/
-                protocol: this.window.location.protocol,
-                host:     this.window.location.host
-                /*eslint-enable no-restricted-properties*/
-            });
+        if (args[1] !== '*') {
+            if (isCrossDomainWindows(this.window, contentWindow))
+                args[1] = getCrossDomainProxyUrl();
+            else if (!isSupportedProtocol(contentWindow.location.toString()) ||
+                !isSupportedProtocol(this.window.location.toString()))
+                args[1] = '*';
+            else {
+                args[1] = formatUrl({
+                    /*eslint-disable no-restricted-properties*/
+                    protocol: this.window.location.protocol,
+                    host: this.window.location.host
+                    /*eslint-enable no-restricted-properties*/
+                });
+            }
         }
 
         args[0] = MessageSandbox._wrapMessage(MessageType.User, args[0], targetUrl);

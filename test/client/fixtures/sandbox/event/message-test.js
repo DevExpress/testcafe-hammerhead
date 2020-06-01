@@ -61,6 +61,20 @@ asyncTest('onmessage event', function () {
         });
 });
 
+asyncTest('cross domain postMessage with no preference ("*") to "top" (GH-2165)', function () {
+    var onMessageHandler = function (evt) {
+        strictEqual(evt.data, 'GH-2165');
+
+        window.removeEventListener('message', onMessageHandler);
+
+        start();
+    };
+
+    window.addEventListener('message', onMessageHandler);
+
+    createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/no-preference-message-to-top.html') });
+});
+
 test('message types', function () {
     var checkValue = function (value, test) {
         return new Promise(function (resolve) {

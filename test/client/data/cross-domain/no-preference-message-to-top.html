@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+
+
+</head>
+<body>
+<script type="text/javascript">
+    var hammerhead = window['%hammerhead%'];
+
+    var iframe        = document.createElement('iframe');
+    var domUtils      = hammerhead.utils.dom;
+    var browserUtils  = hammerhead.utils.browser;
+    var hhPostMessage = hammerhead.sandbox.event.message.postMessage;
+    var test          = function () {
+        var winWithSrc;
+
+        hhPostMessage(top, ['GH-2165', '*']);
+    };
+
+    iframe.src = 'about:blank';
+
+    // TODO: check the Firefox case
+    // if (browserUtils.isFirefox)
+    //     setTimeout(test, 300);
+    // else
+    //     iframe.addEventListener('load', test);
+
+    iframe.addEventListener('load', test);
+
+    document.body.appendChild(iframe);
+</script>
+</body>
+</html>
