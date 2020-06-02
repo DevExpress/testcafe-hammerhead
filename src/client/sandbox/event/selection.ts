@@ -141,42 +141,13 @@ export default class Selection {
     }
 
     getSelection (el) {
-        const useInternalSelection = domUtils.isInputWithoutSelectionProperties(el);
-        const activeElement        = domUtils.getActiveElement(domUtils.findDocument(el));
-        const isElementActive      = activeElement === el;
-        const savedType            = el.type;
-        let selection              = null;
-
-        // HACK: (A problem with input type = ‘number’ after Chrome is updated to v.33.0.1750.117 and in
-        // Firefox 29.0. T101195) To get selection, if the input type is  'number' or 'email', we need to change
-        // the type to text (B254340). However, the type is changed asynchronously in this case. To force type changing,
-        // we need to call blur.Then call focus to make the element active.
-        if (useInternalSelection) {
-            // NOTE: We shouldn't call blur while changing element's type in Firefox, cause
-            // sometimes it can't be focused after. The reason of this behavior is hard to
-            // be determinated, this was found during execution testcafe client tests.
-            if (!browserUtils.isFirefox && isElementActive)
-                this.focusBlurSandbox.blur(el, null, true);
-
-            el.type = 'text';
-        }
-
         const internalSelection = el[INTERNAL_PROPS.selection];
 
-        selection = {
+        return {
             start:     internalSelection ? internalSelection.selectionStart : el.selectionStart,
             end:       internalSelection ? internalSelection.selectionEnd : el.selectionEnd,
             direction: internalSelection ? internalSelection.selectionDirection : el.selectionDirection
         };
-
-        if (useInternalSelection) {
-            el.type = savedType;
-
-            if (isElementActive)
-                this.focusBlurSandbox.focus(el, null, true);
-        }
-
-        return selection;
     }
 
     wrapSetterSelection (el, selectionSetter, needFocus, isContentEditable?: boolean) {
