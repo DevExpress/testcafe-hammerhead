@@ -49,6 +49,7 @@ asyncTest('onmessage event', function () {
 
         if (count === 4) {
             window.removeEventListener('message', onMessageHandler);
+            window.onmessage = void 0;
             start();
         }
     };
@@ -61,7 +62,7 @@ asyncTest('onmessage event', function () {
         });
 });
 
-asyncTest('cross domain postMessage with no preference ("*") to "top" (GH-2165)', function () {
+asyncTest('cross domain postMessage from iframe with "about:blank" src and no "targetOrigin" preference ("*") to "top" (GH-2165)', function () {
     var onMessageHandler = function (evt) {
         strictEqual(evt.data, 'GH-2165');
 
@@ -294,7 +295,7 @@ asyncTest('send message from iframe with "about:blank" src (GH-1026)', function 
             return;
 
         iframe.parentNode.removeChild(iframe);
-        window.onmessage = null;
+        window.onmessage = void 0;
         ok(true);
         start();
     };
