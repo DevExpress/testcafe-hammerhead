@@ -62,7 +62,7 @@ asyncTest('onmessage event', function () {
         });
 });
 
-asyncTest('cross domain postMessage from iframe with "about:blank" src and no "targetOrigin" preference ("*") to "top" (GH-2165)', function () {
+asyncTest('cross domain message from iframe with "about:blank" src and no "targetOrigin" preference ("*") to "top" (GH-2165)', function () {
     var onMessageHandler = function (evt) {
         strictEqual(evt.data, 'GH-2165');
 

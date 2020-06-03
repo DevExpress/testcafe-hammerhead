@@ -23,12 +23,6 @@
 
     iframe.src = 'about:blank';
 
-    // TODO: check the Firefox case
-    // if (browserUtils.isFirefox)
-    //     setTimeout(test, 300);
-    // else
-    //     iframe.addEventListener('load', test);
-
     iframe.addEventListener('load', test);
 
     document.body.appendChild(iframe);
