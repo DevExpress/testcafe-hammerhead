@@ -62,6 +62,7 @@ import ChildWindowSandbox from '../child-window';
 import settings from '../../settings';
 import DefaultTarget from '../child-window/default-target';
 import DocumentTitleStorage from './document/title-storage';
+import { getNativeQuerySelectorAll } from '../../utils/query-selector';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 const INSTRUCTION_VALUES    = (() => {
@@ -348,6 +349,16 @@ export default class WindowSandbox extends SandboxBase {
         return ALLOWED_SERVICE_WORKER_PROTOCOLS.indexOf(parsedUrl.protocol) === -1 &&
                ALLOWED_SERVICE_WORKER_HOST_NAMES.indexOf(parsedUrl.hostname) === -1;
         /*eslint-enable no-restricted-properties*/
+    }
+
+    private _setSandboxedTextForTitleElements (el: HTMLElement): void {
+        const titleElements = getNativeQuerySelectorAll(el).call(el, 'title');
+
+        for(const titleElement of titleElements) {
+            const nativeText = nativeMethods.titleElementTextGetter.call(titleElement);
+
+            this._documentTitleStorage.setTitleElementPropertyValue(titleElement, nativeText);
+        }
     }
 
     static isProxyObject (obj: any): boolean {
@@ -1270,6 +1281,7 @@ export default class WindowSandbox extends SandboxBase {
                     DOMMutationTracker.onChildrenChanged(el);
 
                 nativeMethods.elementInnerHTMLSetter.call(el, processedValue);
+                windowSandbox._setSandboxedTextForTitleElements(el);
 
                 if (isStyleEl || isScriptEl)
                     return;
@@ -1331,6 +1343,7 @@ export default class WindowSandbox extends SandboxBase {
                         processedContext: el[INTERNAL_PROPS.processedContext]
                     }));
 
+                    windowSandbox._setSandboxedTextForTitleElements(parentEl);
                     DOMMutationTracker.onChildrenChanged(parentEl);
 
                     // NOTE: For the iframe with an empty src.
@@ -1518,18 +1531,10 @@ export default class WindowSandbox extends SandboxBase {
 
         overrideDescriptor(window.HTMLTitleElement.prototype, 'text', {
             getter: function () {
-                if (isTitleElement(this))
-                    return windowSandbox._documentTitleStorage.getTitleElementPropertyValue(this);
-
-                return nativeMethods.titleElementTextGetter.call(this);
-
+                return windowSandbox._documentTitleStorage.getTitleElementPropertyValue(this);
             },
             setter: function (value) {
-                if (isTitleElement(this))
-                    windowSandbox._documentTitleStorage.setTitleElementPropertyValue(this, value);
-
-                else
-                    nativeMethods.titleElementTextSetter.call(this, value);
+                windowSandbox._documentTitleStorage.setTitleElementPropertyValue(this, value);
             }
         });
     }

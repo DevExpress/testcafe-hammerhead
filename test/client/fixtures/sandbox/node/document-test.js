@@ -654,6 +654,24 @@ test('create <title> element if it does not exists', function () {
     strictEqual(titles[0].text, 'Test title');
 });
 
+test('creation via set "innerHTML" or "outerHTML"', function () {
+    var div = document.createElement('div');
+
+    div.innerHTML = '<div id="d1"><title>Title from innerHTML</title></div>';
+
+    document.body.appendChild(div);
+
+    var title = div.getElementsByTagName('title')[0];
+
+    strictEqual(title.text, 'Title from innerHTML');
+
+    div.firstChild.outerHTML = '<div id="d2"><div><title>Title from outerHTML</title></div></div>';
+
+    title = div.getElementsByTagName('title')[0];
+
+    strictEqual(title.text, 'Title from outerHTML');
+});
+
 module('regression');
 
 test('document.write for several tags in iframe (T215136)', function () {
@@ -873,7 +891,7 @@ test('an iframe should not contain self-removing scripts after document.close (G
         });
 });
 
-test('should not throw an error when document.defualtView is null (GH-1272)', function () {
+test('should not throw an error when document.defaultView is null (GH-1272)', function () {
     return new Promise(function (resolve, reject) {
         var iframe         = document.createElement('iframe');
         var loadEventCount = 0;
