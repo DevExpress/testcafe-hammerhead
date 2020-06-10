@@ -39,7 +39,7 @@ const transformer: Transformer<Identifier> = {
             return false;
 
         // Skip: object.location || location.field
-        if (parent.type === Syntax.MemberExpression)
+        if (parent.type === Syntax.MemberExpression && parent.property === node)
             return false;
 
         // Skip: { location: value }

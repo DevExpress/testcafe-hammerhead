@@ -13,5 +13,7 @@ export default {
     processHtml:    '__proc$Html',
     getEval:        '__get$Eval',
     getPostMessage: '__get$PostMessage',
-    getProxyUrl:    '__get$ProxyUrl'
+    getProxyUrl:    '__get$ProxyUrl',
+    restArray:      '__rest$Array',
+    restObject:     '__rest$Object'
 };
