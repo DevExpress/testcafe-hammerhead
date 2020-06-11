@@ -141,6 +141,3 @@ export default function process(pattern: Pattern, value: Expression, build: Node
     else
         build(pattern, value);
 }
-
-
-/// не процессить если спред не последний эллемент

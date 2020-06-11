@@ -822,16 +822,22 @@ describe('Script processor', () => {
                           ' }.call(this),' +
                           ' href = __get$(_hh$temp0, "href"));'
             },
-            // {
-            //     src:      'var [{location}, ...args] = [window, i, j];',
-            //     expected: 'var _hh$temp0 = [window,i,j], _hh$temp0$i0 = _hh$temp0[0],' +
-            //               'location = __get$(_hh$temp0$i0,"location"), args = __rest$Array(_hh$temp0, 1);'
-            // },
-            // {
-            //     src:      'if (a === b) { [{location}, ...args] = [window, i, j];}',
-            //     expected: 'if (a === b) { var _hh$temp0, _hh$temp0$i0; (_hh$temp0 = [window,i,j], _hh$temp0$i0 = _hh$temp0[0],' +
-            //               'location = __get$(_hh$temp0$i0,"location"), args = __rest$Array(_hh$temp0, 1)); }'
-            // }
+            {
+                src: 'if (a === b) {' +
+                     '    [{location}, ...args] = [window, i, j];' +
+                     '}',
+
+                expected: 'if (a === b) {' +
+                          '    var _hh$temp0, _hh$temp0$i0;' +
+                          '    _hh$temp0 = [window,i,j],' +
+                          '    _hh$temp0$i0 = _hh$temp0[0],' +
+                          '    function() {' +
+                          '        var __set$temp = _hh$temp0$i0.location;' +
+                          '        return __set$Loc(location, __set$temp) || (location = __set$temp);' +
+                          '    }.call(this),' +
+                          '    args = __rest$Array(_hh$temp0, 1);' +
+                          '}'
+            },
             {
                 src:      'var { a, b: y, ...c } = obj;',
                 expected: 'var _hh$temp0 = obj,' +
@@ -863,13 +869,13 @@ describe('Script processor', () => {
                           '    item3 = __get$(_hh$temp0, _hh$temp2),' +
                           '    other = __rest$Object(_hh$temp0, [_hh$temp1, x, _hh$temp2]);'
             },
-            // {
-            //     src:      '[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];',
-            //     expected: 'var _hh$temp0;' +
-            //               '(_hh$temp0 = [shuffled[j], shuffled[i]],' +
-            //               ' shuffled[i] = _hh$temp0[0],' +
-            //               ' shuffled[j] = _hh$temp0[1]);'
-            // }
+            {
+                src:      '[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];',
+                expected: 'var _hh$temp0;' +
+                          '_hh$temp0 = [__get$(shuffled, j), __get$(shuffled, i)],' +
+                          '__set$(shuffled, i, _hh$temp0[0]),' +
+                          '__set$(shuffled, j, _hh$temp0[1]);'
+            }
         ]);
     });
 
