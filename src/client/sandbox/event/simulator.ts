@@ -610,7 +610,15 @@ export default class EventSimulator {
 
     _dispatchMouseEvent (el, args, { dataTransfer, timeStamp }: any) {
         const disabledParent = domUtils.findParent(el, true, node => {
-            return node.hasAttribute && nativeMethods.hasAttribute.call(node, 'disabled');
+            let constructorAttributes;
+
+            if (node.__proto__.constructor.observedAttributes) {
+                constructorAttributes = node.__proto__.constructor.observedAttributes;
+            } else {
+                constructorAttributes = [];
+            }
+            
+            return node.hasAttribute && nativeMethods.hasAttribute.call(node, 'disabled') && (constructorAttributes.indexOf('disabled') === -1);
         });
 
         if (disabledParent)
