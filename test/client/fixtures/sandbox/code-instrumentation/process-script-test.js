@@ -1,6 +1,9 @@
-var urlUtils = hammerhead.get('./utils/url');
+var urlUtils      = hammerhead.get('./utils/url');
+var processScript = hammerhead.get('../processing/script').processScript;
+var scriptHeader  = hammerhead.get('../processing/script/header');
 
 var nativeMethods = hammerhead.nativeMethods;
+var browserUtils  = hammerhead.utils.browser;
 
 var url = 'http://example.com/test';
 
@@ -99,3 +102,45 @@ test('the script processor should process eval\'s global', function () {
     ok(nativeMethods.getAttribute.call(link, 'href') !== testUrl);
     strictEqual(execScript('var ev = eval; ev("test.href")'), testUrl);
 });
+
+module('destructuring');
+
+if (!browserUtils.isIE11) {
+    test('destructuring object with rest element', function () {
+        var script = 'let obj = { a: 1, b: 2, c: 3, d: 4 };' +
+                     'let { a, "b": i, j = 7, ...other } = obj;' +
+                     'window.destructingResult = "" + a + i + j + JSON.stringify(other);';
+
+        var defaultRestObjectStr = 'var ' + scriptHeader.add('')
+            .replace(/[\s\S]+(__rest\$Object\s*=\s*function[\s\S]+return[^}]+})[\s\S]+/g, '$1');
+
+        eval(defaultRestObjectStr + ';' + processScript(script));
+
+        strictEqual(window.destructingResult, '127{"c":3,"d":4}');
+
+        window.destructingResult = void 0;
+
+        eval(processScript(script));
+
+        strictEqual(window.destructingResult, '127{"c":3,"d":4}');
+    });
+
+    test('destructuring array with rest element', function () {
+        var script = 'let arr = [1, 2, 3, 4];' +
+                     'let [ a, b = 9, ...other ] = arr;' +
+                     'window.destructingResult = "" + a + b + JSON.stringify(other);';
+
+        var defaultRestObjectStr = 'var ' + scriptHeader.add('')
+            .replace(/[\s\S]+(__rest\$Array\s*=\s*function[^}]+})[\s\S]+/g, '$1');
+
+        eval(defaultRestObjectStr + ';' + processScript(script));
+
+        strictEqual(window.destructingResult, '12[3,4]');
+
+        window.destructingResult = void 0;
+
+        eval(processScript(script));
+
+        strictEqual(window.destructingResult, '12[3,4]');
+    });
+}
