@@ -2,16 +2,16 @@ import { Expression } from 'estree';
 import { Syntax } from 'esotope-hammerhead';
 
 export default class TempVariables {
-    private static _tempVariableId = 0;
-    private _variables: string[] = [];
+    private static _counter = 0;
+    private _list: string[] = [];
 
-    static resetId () {
-        TempVariables._tempVariableId = 0;
+    static resetCounter () {
+        TempVariables._counter = 0;
     }
 
-    static generate(baseName?: string, key?: Expression, index?: number): string {
+    static generateName(baseName?: string, key?: Expression, index?: number): string {
         if (!baseName)
-            return `_hh$temp${TempVariables._tempVariableId++}`;
+            return `_hh$temp${TempVariables._counter++}`;
 
         if (key) {
             if (key.type === Syntax.Identifier)
@@ -25,10 +25,10 @@ export default class TempVariables {
     }
 
     append (name: string) {
-        this._variables.push(name);
+        this._list.push(name);
     }
 
     get (): string[] {
-        return this._variables;
+        return this._list;
     }
 }

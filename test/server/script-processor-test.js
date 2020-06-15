@@ -805,7 +805,7 @@ describe('Script processor', () => {
     });
 
     describe('Destructuring', () => {
-        it('Should process object pattern declaration', () => {
+        it('object pattern declaration', () => {
             testProcessing([
                 {
                     src:      'var { location, href } = some;',
@@ -816,7 +816,7 @@ describe('Script processor', () => {
             ]);
         });
 
-        it('Should process object pattern assignment', () => {
+        it('object pattern assignment', () => {
             testProcessing([
                 {
                     src:      '({ location, href } = some);',
@@ -831,7 +831,7 @@ describe('Script processor', () => {
             ]);
         });
 
-        it('Should process object pattern declaration with rest argument', () => {
+        it('object pattern declaration with rest argument', () => {
             testProcessing([
                 {
                     src:      'var { a, b: y, ...c } = obj;',
@@ -843,7 +843,7 @@ describe('Script processor', () => {
             ]);
         });
 
-        it('Should process object pattern declaration with default argument and nested destructuring', () => {
+        it('object pattern declaration with default argument and nested destructuring', () => {
             testProcessing([
                 {
                     src:      'var {x: [y] = z} = some;',
@@ -855,7 +855,7 @@ describe('Script processor', () => {
             ]);
         });
 
-        it('Should process array pattern assignment with rest argument and nested destructuring', () => {
+        it('array pattern assignment with rest argument and nested destructuring', () => {
             testProcessing([
                 {
                     src: 'if (a === b) {' +
@@ -876,7 +876,7 @@ describe('Script processor', () => {
             ]);
         });
 
-        it('Should process object pattern declaration with difficult names', () => {
+        it('object pattern declaration with difficult names', () => {
             testProcessing([
                 {
                     src:      'var { [`str${a}`]: item1, [x]: item2, [obj.k]: item3 } = some;',
@@ -888,7 +888,7 @@ describe('Script processor', () => {
             ]);
         });
 
-        it('Should process object pattern declaration with difficult names and rest argument', () => {
+        it('object pattern declaration with difficult names and rest argument', () => {
             testProcessing([
                 {
                     src:      'var { [`str${a}`]: item1, [x]: item2, [obj.k]: item3, ...other } = some;',
@@ -903,7 +903,7 @@ describe('Script processor', () => {
             ]);
         });
 
-        it('Should process swap', () => {
+        it('swap', () => {
             testProcessing([
                 {
                     src:      '[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];',

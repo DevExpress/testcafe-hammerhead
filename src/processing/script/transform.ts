@@ -206,7 +206,7 @@ export default function transformProgram(node: Program, wrapLastExprWithProcessH
     const state    = new State();
     const tempVars = new TempVariables();
 
-    TempVariables.resetId();
+    TempVariables.resetCounter();
     beforeTransform(wrapLastExprWithProcessHtml, resolver);
     transformChildNodes(node, changes, state, tempVars);
     addTempVarsDeclaration(node, changes, state, tempVars);

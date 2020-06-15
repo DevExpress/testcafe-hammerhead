@@ -46,7 +46,7 @@ function createRestArray (array: Identifier, startIndex: number): CallExpression
 
 function processObjectPattern (pattern: ObjectPattern, value: Expression, build: NodeBuilder, baseTempName: string) {
     if (!baseTempName)
-        baseTempName = TempVariables.generate(baseTempName);
+        baseTempName = TempVariables.generateName(baseTempName);
 
     const properties     = pattern.properties;
     // @ts-ignore
@@ -66,7 +66,7 @@ function processObjectPattern (pattern: ObjectPattern, value: Expression, build:
             else if (key.type === Syntax.Literal)
                 propNames.push(key);
             else {
-                const tempPropKey = createIdentifier(TempVariables.generate());
+                const tempPropKey = createIdentifier(TempVariables.generateName());
 
                 build(tempPropKey, key, true);
                 propNames.push(tempPropKey);
@@ -85,13 +85,13 @@ function processObjectPattern (pattern: ObjectPattern, value: Expression, build:
             build(prop.argument, createObjectRest(tempIdentifier, propNames));
         }
         else
-            processObjectProperty(prop, tempIdentifier, build, TempVariables.generate(baseTempName, prop.key, i));
+            processObjectProperty(prop, tempIdentifier, build, TempVariables.generateName(baseTempName, prop.key, i));
     }
 }
 
 function processArrayPattern (pattern: ArrayPattern, value: Expression, build: NodeBuilder, baseTempName?: string) {
     if (!baseTempName)
-        baseTempName = TempVariables.generate(baseTempName);
+        baseTempName = TempVariables.generateName(baseTempName);
 
     const tempIdentifier = createIdentifier(baseTempName);
 
@@ -110,13 +110,13 @@ function processArrayPattern (pattern: ArrayPattern, value: Expression, build: N
         else
             value = createMemberExpression(tempIdentifier, createSimpleLiteral(i), true);
 
-        process(elem, value, build, TempVariables.generate(baseTempName, null, i));
+        process(elem, value, build, TempVariables.generateName(baseTempName, null, i));
     }
 }
 
 function processAssignmentPattern (pattern: AssignmentPattern, value: Expression, build: NodeBuilder, baseTempName?: string) {
     if (!baseTempName)
-        baseTempName = TempVariables.generate(baseTempName);
+        baseTempName = TempVariables.generateName(baseTempName);
 
     const { left, right } = pattern;
     let tempIdentifier    = createIdentifier(baseTempName);
