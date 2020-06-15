@@ -729,40 +729,44 @@ test('mouse events on disabled elements', function () {
     document.body.removeChild(div);
 });
 
-test('mouse events on custom elements with "disabled" property should still work (GH-2346)', function () {
-    class DisabledCustomElement extends HTMLElement {
-        constructor () {
-            super();
+if (!browserUtils.isIE) {
+    test('mouse events on custom elements with "disabled" property should still work (GH-2346)', function () {
+        function DisabledCustomElement () {
+            return Reflect.construct(HTMLElement, [], this.constructor);
         }
-    }
 
-    customElements.define('disabled-cutsom-element', DisabledCustomElement);
+        DisabledCustomElement.prototype = Object.create(HTMLElement.prototype);
+        DisabledCustomElement.prototype.constructor = DisabledCustomElement;
+        Object.setPrototypeOf(DisabledCustomElement, HTMLElement);
 
-    var disabledCustomElement   = document.createElement('disabled-cutsom-element');
-    var span     = document.createElement('span');
-    var eventLog = [];
+        customElements.define('disabled-cutsom-element', DisabledCustomElement);
 
-    document.body.appendChild(disabledCustomElement);
-    disabledCustomElement.appendChild(span);
+        var disabledCustomElement   = document.createElement('disabled-cutsom-element');
+        var span     = document.createElement('span');
+        var eventLog = [];
 
-    var mouseEventHandler = function (event) {
-        eventLog.push(event.type);
-    };
+        document.body.appendChild(disabledCustomElement);
+        disabledCustomElement.appendChild(span);
 
-    disabledCustomElement.setAttribute('disabled', true);
+        var mouseEventHandler = function (event) {
+            eventLog.push(event.type);
+        };
 
-    span.addEventListener('mousedown', mouseEventHandler);
-    span.addEventListener('mouseup', mouseEventHandler);
-    span.addEventListener('click', mouseEventHandler);
+        disabledCustomElement.setAttribute('disabled', true);
 
-    eventSimulator.mousedown(span);
-    eventSimulator.click(span);
-    eventSimulator.mouseup(span);
+        span.addEventListener('mousedown', mouseEventHandler);
+        span.addEventListener('mouseup', mouseEventHandler);
+        span.addEventListener('click', mouseEventHandler);
 
-    deepEqual(eventLog, ['mousedown', 'click', 'mouseup']);
+        eventSimulator.mousedown(span);
+        eventSimulator.click(span);
+        eventSimulator.mouseup(span);
 
-    document.body.removeChild(disabledCustomElement);
-});
+        deepEqual(eventLog, ['mousedown', 'click', 'mouseup']);
+
+        document.body.removeChild(disabledCustomElement);
+    });
+}
 
 module('regression');
 
