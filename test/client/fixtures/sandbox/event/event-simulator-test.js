@@ -729,6 +729,41 @@ test('mouse events on disabled elements', function () {
     document.body.removeChild(div);
 });
 
+test('mouse events on custom elements with "disabled" property should still work (GH-2346)', function () {
+    class DisabledCustomElement extends HTMLElement {
+        constructor () {
+            super();
+        }
+    }
+
+    customElements.define('disabled-cutsom-element', DisabledCustomElement);
+
+    var disabledCustomElement   = document.createElement('disabled-cutsom-element');
+    var span     = document.createElement('span');
+    var eventLog = [];
+
+    document.body.appendChild(disabledCustomElement);
+    disabledCustomElement.appendChild(span);
+
+    var mouseEventHandler = function (event) {
+        eventLog.push(event.type);
+    };
+
+    disabledCustomElement.setAttribute('disabled', true);
+
+    span.addEventListener('mousedown', mouseEventHandler);
+    span.addEventListener('mouseup', mouseEventHandler);
+    span.addEventListener('click', mouseEventHandler);
+
+    eventSimulator.mousedown(span);
+    eventSimulator.click(span);
+    eventSimulator.mouseup(span);
+
+    deepEqual(eventLog, ['mousedown', 'click', 'mouseup']);
+
+    document.body.removeChild(disabledCustomElement);
+});
+
 module('regression');
 
 if (browserUtils.isIE) {

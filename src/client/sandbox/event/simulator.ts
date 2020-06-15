@@ -47,6 +47,16 @@ const TOUCH_TO_POINTER_EVENT_TYPE_MAP = {
     touchmove:  'pointermove'
 };
 
+const DISABLEABLE_HTML_ELEMENT_CLASSES = [
+    HTMLButtonElement,
+    HTMLFieldSetElement,
+    HTMLInputElement,
+    HTMLOptGroupElement,
+    HTMLOptionElement,
+    HTMLSelectElement,
+    HTMLTextAreaElement
+]
+
 export default class EventSimulator {
     DISPATCHED_EVENT_FLAG: string = 'hammerhead|dispatched-event';
 
@@ -610,15 +620,14 @@ export default class EventSimulator {
 
     _dispatchMouseEvent (el, args, { dataTransfer, timeStamp }: any) {
         const disabledParent = domUtils.findParent(el, true, node => {
-            let constructorAttributes;
+            let disableable = false;
 
-            if (node.__proto__.constructor.observedAttributes) {
-                constructorAttributes = node.__proto__.constructor.observedAttributes;
-            } else {
-                constructorAttributes = [];
+            for (const disableableHTMLElementClass of DISABLEABLE_HTML_ELEMENT_CLASSES) {
+                if (node instanceof disableableHTMLElementClass)
+                    disableable = true;
             }
             
-            return node.hasAttribute && nativeMethods.hasAttribute.call(node, 'disabled') && (constructorAttributes.indexOf('disabled') === -1);
+            return disableable && node.hasAttribute && nativeMethods.hasAttribute.call(node, 'disabled');
         });
 
         if (disabledParent)
