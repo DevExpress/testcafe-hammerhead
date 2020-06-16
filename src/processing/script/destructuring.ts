@@ -50,7 +50,7 @@ function processObjectPattern (pattern: ObjectPattern, value: Expression, build:
 
     const properties     = pattern.properties;
     // @ts-ignore
-    const hasRest        = properties[properties.length - 1].type === Syntax.RestElement;
+    const hasRest        = properties.length && properties[properties.length - 1].type === Syntax.RestElement;
     const tempIdentifier = createIdentifier(baseTempName);
     const propNames      = [] as Expression[];
 

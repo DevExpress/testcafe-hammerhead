@@ -903,6 +903,24 @@ describe('Script processor', () => {
             ]);
         });
 
+        it('empty object pattern declaration', () => {
+            testProcessing([
+                {
+                    src:      'const {} = { a: 5 };',
+                    expected: 'const _hh$temp0 = { a: 5 };'
+                }
+            ]);
+        });
+
+        it('empty array pattern declaration', () => {
+            testProcessing([
+                {
+                    src:      'let [] = [1, 2];',
+                    expected: 'let _hh$temp0 = [1, 2];'
+                }
+            ]);
+        });
+
         it('swap', () => {
             testProcessing([
                 {

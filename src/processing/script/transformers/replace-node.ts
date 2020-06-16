@@ -2,10 +2,7 @@
 // WARNING: this file is used by both the client and the server.
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
-
-/*eslint-disable no-unused-vars*/
 import { Node } from 'estree';
-/*eslint-enable no-unused-vars*/
 
 export default function replaceNode<T extends Node> (node: Node | null, newNode: Node, parent: T, key: keyof T) {
     const oldNode = parent[key];

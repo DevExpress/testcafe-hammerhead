@@ -28,9 +28,6 @@ const transformer: Transformer<VariableDeclaration> = {
     // @ts-ignore
     condition: node => {
         for (const declarator of node.declarations) {
-            if (!declarator || !declarator.id)
-                debugger; // eslint-disable-line
-
             if (declarator.id.type === Syntax.ObjectPattern || declarator.id.type === Syntax.ArrayPattern)
                 return true;
         }
