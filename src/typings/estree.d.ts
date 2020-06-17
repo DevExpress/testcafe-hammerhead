@@ -6,5 +6,6 @@ declare module 'estree' {
         end?: number;
         originStart?: number;
         originEnd?: number;
+        reTransform?: boolean;
     }
 }

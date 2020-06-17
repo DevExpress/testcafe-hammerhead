@@ -24,6 +24,6 @@ export default function replaceNode<T extends Node> (node: Node | null, newNode:
     }
     else {
         /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
-        newNode.originStart = newNode.originEnd = oldNode[1] ? oldNode[1].start! : parent.start! + 1;
+        newNode.start = newNode.end = newNode.originStart = newNode.originEnd = oldNode[1] ? oldNode[1].start! : parent.start! + 1;
     }
 }

@@ -27,6 +27,8 @@ import staticImportTransformer from './static-import';
 import dynamicImportTransformer from './dynamic-import';
 import declarationDestructuring from './declaration-destructuring';
 import assignmentDestructuring from './assignment-destructuring';
+import createFuncArgsDestructing from './func-args-destructing';
+import { Syntax } from 'esotope-hammerhead';
 
 export interface Transformer<C extends Node> {
     nodeReplacementRequireTransform: boolean;
@@ -39,6 +41,9 @@ export interface Transformer<C extends Node> {
 }
 
 const TRANSFORMERS: Transformer<any>[] = [
+    createFuncArgsDestructing(Syntax.FunctionDeclaration),
+    createFuncArgsDestructing(Syntax.FunctionExpression),
+    createFuncArgsDestructing(Syntax.ArrowFunctionExpression),
     assignmentDestructuring,
     computedPropertyGetTransformer,
     computedPropertySetTransformer,
