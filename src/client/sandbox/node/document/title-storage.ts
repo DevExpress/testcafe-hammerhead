@@ -8,6 +8,11 @@ const INTERNAL_TITLE_PROP_NAME = 'hammerhead|document-title-storage|internal-pro
 
 export default class DocumentTitleStorage {
     private _document: Document;
+    private _initialized: boolean;
+
+    public constructor() {
+        this._initialized = false;
+    }
 
     private _ensureFirstTitleElementInHead (value: string): void {
         const firstTitle = this._getFirstTitleElement();
@@ -24,7 +29,10 @@ export default class DocumentTitleStorage {
     private _getValueFromFirstTitleElement (): string | undefined {
         const firstTitle = this._getFirstTitleElement();
 
-        return firstTitle && firstTitle[INTERNAL_TITLE_PROP_NAME];
+        if (!firstTitle)
+            return DEFAULT_TITLE_VALUE;
+
+        return this.getTitleElementPropertyValue(firstTitle);
     }
 
     private _setValueForFirstTitleElementIfExists (value?: string): void {
@@ -40,17 +48,22 @@ export default class DocumentTitleStorage {
     }
 
     private _getFirstTitleElement (): HTMLTitleElement | undefined {
-        return this._document.head && nativeMethods.elementQuerySelector.call(this._document.head, 'title');
+        return this._document &&
+            this._document.head &&
+            nativeMethods.elementQuerySelector.call(this._document.head, 'title');
     }
 
     init (document: Document): void {
-        this._document = document;
+        if (this._initialized)
+            return;
 
+        this._document = document;
         this._setValueForFirstTitleElementIfExists();
+        this._initialized = true;
     }
 
     getTitle (): string {
-        return this._getValueFromFirstTitleElement() || DEFAULT_TITLE_VALUE;
+        return this._getValueFromFirstTitleElement();
     }
 
     setTitle(value: string): void {
@@ -61,7 +74,7 @@ export default class DocumentTitleStorage {
     }
 
     getTitleElementPropertyValue (element: HTMLTitleElement): string {
-        return element[INTERNAL_TITLE_PROP_NAME];
+        return element[INTERNAL_TITLE_PROP_NAME] || DEFAULT_TITLE_VALUE;
     }
 
     setTitleElementPropertyValue (element: HTMLTitleElement, value: string): void {

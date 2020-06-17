@@ -30,7 +30,7 @@ export default class NodeSandbox extends SandboxBase {
     doc: DocumentSandbox;
     win: WindowSandbox;
     element: ElementSandbox;
-    private _documentTitleStorage: DocumentTitleStorage
+    private readonly _documentTitleStorage: DocumentTitleStorage
 
     constructor (readonly mutation: NodeMutation,
         readonly iframeSandbox: IframeSandbox,
@@ -57,6 +57,7 @@ export default class NodeSandbox extends SandboxBase {
     }
 
     private _onBodyCreated (): void {
+        this._documentTitleStorage.init(this.document);
         this._eventSandbox.listeners.initDocumentBodyListening(this.document);
         this.mutation.onBodyCreated(this.document.body as HTMLBodyElement);
     }
@@ -91,7 +92,11 @@ export default class NodeSandbox extends SandboxBase {
         this.element.processElement(el);
     }
 
-    processNodes (el, doc?: Document) {
+    onFirstTitleElementInHeadLoaded (): void {
+        this._documentTitleStorage.init(this.document);
+    }
+
+    processNodes (el, doc?: Document): void {
         if (!el) {
             doc = doc || this.document;
 
@@ -112,12 +117,11 @@ export default class NodeSandbox extends SandboxBase {
     // NOTE: DOM sandbox hides evidence of the content proxying from a page native script. Proxy replaces URLs for
     // resources. Our goal is to make the native script think that all resources are fetched from the destination
     // resource, not from proxy, and also provide proxying for dynamically created elements.
-    attach (window) {
+    attach (window): void {
         const document                  = window.document;
         let domContentLoadedEventRaised = false;
 
         super.attach(window, document);
-        this._documentTitleStorage.init(document);
 
         this.iframeSandbox.on(this.iframeSandbox.IFRAME_DOCUMENT_CREATED_EVENT, ({ iframe }) => {
             const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
@@ -165,7 +169,7 @@ export default class NodeSandbox extends SandboxBase {
         this.element.attach(window);
     }
 
-    private static _processAttributeSelector (selector) {
+    private static _processAttributeSelector (selector: string): string {
         if (!ATTRIBUTE_SELECTOR_REG_EX.test(selector))
             return selector;
 
@@ -181,7 +185,7 @@ export default class NodeSandbox extends SandboxBase {
         });
     }
 
-    static _processPseudoClassSelectors (selector: string) {
+    static _processPseudoClassSelectors (selector: string): string {
         // NOTE: When a selector that contains the ':focus' pseudo-class is used in the querySelector and
         // querySelectorAll functions, these functions return an empty result if the browser is not focused.
         // This replaces ':focus' with a custom CSS class to return the current active element in that case.
@@ -195,7 +199,7 @@ export default class NodeSandbox extends SandboxBase {
         return selector;
     }
 
-    static processSelector (selector) {
+    static processSelector (selector: string): string {
         if (selector) {
             selector = NodeSandbox._processPseudoClassSelectors(selector);
             selector = NodeSandbox._processAttributeSelector(selector);

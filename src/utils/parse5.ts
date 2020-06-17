@@ -62,6 +62,18 @@ export function insertBeforeFirstScript (el: ASTNode, parent: ASTNode): void {
     parent.childNodes.splice(elIndex, 0, el);
 }
 
+export function insertAfterFirstTitle(insertedNode: ASTNode, parent: ASTNode): void {
+    insertedNode.namespaceURI = parent.namespaceURI;
+    insertedNode.parentNode   = parent;
+
+    const firstTitleIndexIndex = parent.childNodes.findIndex(node => node.tagName === 'title');
+
+    if (firstTitleIndexIndex === -1)
+        return;
+
+    parent.childNodes.splice(firstTitleIndexIndex + 1, 0, insertedNode);
+}
+
 export function removeNode (node: ASTNode): void {
     const parent  = node.parentNode;
     const elIndex = parent.childNodes.indexOf(node);
