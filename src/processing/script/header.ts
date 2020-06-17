@@ -30,7 +30,9 @@ const HEADER: string = `
                 ${INSTRUCTION.processScript} = window.${INSTRUCTION.processScript},
                 ${INSTRUCTION.processHtml} = window.${INSTRUCTION.processHtml},
                 ${INSTRUCTION.getPostMessage} = window.${INSTRUCTION.getPostMessage},
-                ${INSTRUCTION.getProxyUrl} = window.${INSTRUCTION.getProxyUrl};
+                ${INSTRUCTION.getProxyUrl} = window.${INSTRUCTION.getProxyUrl},
+                ${INSTRUCTION.restArray} = window.${INSTRUCTION.restArray},
+                ${INSTRUCTION.restObject} = window.${INSTRUCTION.restObject};
         }
     } else {
         var ${INSTRUCTION.getLocation} = function(l){return l},
@@ -42,7 +44,9 @@ const HEADER: string = `
             ${INSTRUCTION.processScript} = function(s){return s},
             ${INSTRUCTION.processHtml} = function(h){return h},
             ${INSTRUCTION.getPostMessage} = function(w,p){return arguments.length===1?w.postMessage:p},
-            ${INSTRUCTION.getProxyUrl} = function(u,d){return u};
+            ${INSTRUCTION.getProxyUrl} = function(u,d){return u},
+            ${INSTRUCTION.restArray} = function(a,i){return Array.prototype.slice.call(a, i)},
+            ${INSTRUCTION.restObject} = function(o,p){var k=Object.keys(o),n={};for(var i=0;i<k.length;++i)if(p.indexOf(k[i])<0)n[k[i]]=o[k[i]];return n};
     }
     ${SCRIPT_PROCESSING_END_HEADER_COMMENT}
 `.replace(/\n(?!$)\s*/g, '');

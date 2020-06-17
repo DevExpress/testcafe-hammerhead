@@ -804,6 +804,136 @@ describe('Script processor', () => {
         ]);
     });
 
+    describe('Destructuring', () => {
+        it('object pattern declaration', () => {
+            testProcessing([
+                {
+                    src:      'var { location, href } = some;',
+                    expected: 'var _hh$temp0 = some,' +
+                              '    location = __get$(_hh$temp0, "location"),' +
+                              '    href = __get$(_hh$temp0, "href");'
+                }
+            ]);
+        });
+
+        it('object pattern assignment', () => {
+            testProcessing([
+                {
+                    src:      '({ location, href } = some);',
+                    expected: 'var _hh$temp0;' +
+                              '(_hh$temp0 = some,' +
+                              ' function() {' +
+                              '     var __set$temp = _hh$temp0.location;' +
+                              '     return __set$Loc(location, __set$temp) || (location = __set$temp);' +
+                              ' }.call(this),' +
+                              ' href = __get$(_hh$temp0, "href"));'
+                }
+            ]);
+        });
+
+        it('object pattern declaration with rest argument', () => {
+            testProcessing([
+                {
+                    src:      'var { a, b: y, ...c } = obj;',
+                    expected: 'var _hh$temp0 = obj,' +
+                              '    a = _hh$temp0.a,' +
+                              '    y = _hh$temp0.b,' +
+                              '    c = __rest$Object(_hh$temp0, ["a", "b"]);'
+                }
+            ]);
+        });
+
+        it('object pattern declaration with default argument and nested destructuring', () => {
+            testProcessing([
+                {
+                    src:      'var {x: [y] = z} = some;',
+                    expected: 'var _hh$temp0 = some,' +
+                              '    _hh$temp0$x = _hh$temp0.x,' +
+                              '    _hh$temp0$x$assign = _hh$temp0$x === void 0 ? z : _hh$temp0$x,' +
+                              '    y = _hh$temp0$x$assign[0];'
+                }
+            ]);
+        });
+
+        it('array pattern assignment with rest argument and nested destructuring', () => {
+            testProcessing([
+                {
+                    src: 'if (a === b) {' +
+                         '    [{ location }, ...args] = [window, i, j];' +
+                         '}',
+
+                    expected: 'if (a === b) {' +
+                              '    var _hh$temp0, _hh$temp0$i0;' +
+                              '    _hh$temp0 = [window,i,j],' +
+                              '    _hh$temp0$i0 = _hh$temp0[0],' +
+                              '    function() {' +
+                              '        var __set$temp = _hh$temp0$i0.location;' +
+                              '        return __set$Loc(location, __set$temp) || (location = __set$temp);' +
+                              '    }.call(this),' +
+                              '    args = __rest$Array(_hh$temp0, 1);' +
+                              '}'
+                }
+            ]);
+        });
+
+        it('object pattern declaration with difficult names', () => {
+            testProcessing([
+                {
+                    src:      'var { [`str${a}`]: item1, [x]: item2, [obj.k]: item3 } = some;',
+                    expected: 'var _hh$temp0 = some,' +
+                              '    item1 = __get$(_hh$temp0, `str${a}`),' +
+                              '    item2 = __get$(_hh$temp0, x),' +
+                              '    item3 = __get$(_hh$temp0, obj.k);'
+                }
+            ]);
+        });
+
+        it('object pattern declaration with difficult names and rest argument', () => {
+            testProcessing([
+                {
+                    src:      'var { [`str${a}`]: item1, [x]: item2, [obj.k]: item3, ...other } = some;',
+                    expected: 'var _hh$temp0 = some,' +
+                              '    _hh$temp1 = `str${a}`,' +
+                              '    _hh$temp2 = obj.k,' +
+                              '    item1 = __get$(_hh$temp0, _hh$temp1),' +
+                              '    item2 = __get$(_hh$temp0, x),' +
+                              '    item3 = __get$(_hh$temp0, _hh$temp2),' +
+                              '    other = __rest$Object(_hh$temp0, [_hh$temp1, x, _hh$temp2]);'
+                }
+            ]);
+        });
+
+        it('empty object pattern declaration', () => {
+            testProcessing([
+                {
+                    src:      'const {} = { a: 5 };',
+                    expected: 'const _hh$temp0 = { a: 5 };'
+                }
+            ]);
+        });
+
+        it('empty array pattern declaration', () => {
+            testProcessing([
+                {
+                    src:      'let [] = [1, 2];',
+                    expected: 'let _hh$temp0 = [1, 2];'
+                }
+            ]);
+        });
+
+        it('swap', () => {
+            testProcessing([
+                {
+                    src:      '[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];',
+                    expected: 'var _hh$temp0;' +
+                              '_hh$temp0 = [__get$(shuffled, j), __get$(shuffled, i)],' +
+                              '__set$(shuffled, i, _hh$temp0[0]),' +
+                              '__set$(shuffled, j, _hh$temp0[1]);'
+                }
+            ]);
+        });
+    });
+
     describe('Regression', () => {
         it('Should leave comments unchanged (T170848)', () => {
             testProcessing({

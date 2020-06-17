@@ -105,6 +105,27 @@ export default class CodeInstrumentation extends SandboxBase {
 
             configurable: true
         });
+
+        nativeMethods.objectDefineProperty(window, INSTRUCTION.restArray, {
+            value:        (array: any[], startIndex: number) => nativeMethods.arraySlice.call(array, startIndex),
+            configurable: true
+        });
+
+        nativeMethods.objectDefineProperty(window, INSTRUCTION.restObject, {
+            value: (obj: object, excludeProps: string[]) => {
+                const rest = {};
+                const keys = nativeMethods.objectKeys(obj);
+
+                for (const key of keys) {
+                    if (excludeProps.indexOf(key) < 0)
+                        rest[key] = obj[key];
+                }
+
+                return rest;
+            },
+
+            configurable: true
+        });
     }
 }
 
