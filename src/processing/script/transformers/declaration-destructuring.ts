@@ -26,7 +26,11 @@ const transformer: Transformer<VariableDeclaration> = {
     nodeTypes: Syntax.VariableDeclaration,
 
     // @ts-ignore
-    condition: node => {
+    condition: (node, parent) => {
+        // Skip: for (let { x } in some);
+        if (parent.type === Syntax.ForInStatement)
+            return false;
+
         for (const declarator of node.declarations) {
             if (declarator.id.type === Syntax.ObjectPattern || declarator.id.type === Syntax.ArrayPattern)
                 return true;

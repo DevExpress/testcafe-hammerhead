@@ -102,7 +102,7 @@ export function createSimpleLiteral (value: string | boolean | number | null): S
     return { type: Syntax.Literal, value };
 }
 
-export function createAssignmentExprStmt (left: MemberExpression, right: Identifier): ExpressionStatement {
+export function createAssignmentExprStmt (left: Pattern | MemberExpression, right: Identifier): ExpressionStatement {
     return createExpressionStatement(createAssignmentExpression(left, '=', right));
 }
 

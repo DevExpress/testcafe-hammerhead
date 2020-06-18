@@ -74,6 +74,14 @@ const transformer: Transformer<Identifier> = {
         if (parent.type === Syntax.RestElement)
             return false;
 
+        // Skip: export { postMessage } from "module";
+        if (parent.type === Syntax.ExportSpecifier)
+            return false;
+
+        // Skip: import { postMessage } from "module";
+        if (parent.type === Syntax.ImportSpecifier)
+            return false;
+
         return true;
     },
 

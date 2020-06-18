@@ -1,6 +1,8 @@
 import { Expression } from 'estree';
 import { Syntax } from 'esotope-hammerhead';
 
+const TEMP_VARIABLE_PREFIX = '_hh$temp';
+
 export default class TempVariables {
     private static _counter = 0;
     private _list: string[] = [];
@@ -11,7 +13,7 @@ export default class TempVariables {
 
     static generateName(baseName?: string, key?: Expression, index?: number): string {
         if (!baseName)
-            return `_hh$temp${TempVariables._counter++}`;
+            return TEMP_VARIABLE_PREFIX + TempVariables._counter++;
 
         if (key) {
             if (key.type === Syntax.Identifier)
@@ -22,6 +24,10 @@ export default class TempVariables {
         }
 
         return baseName + '$i' + index;
+    }
+
+    static isHHTempVariable (name): boolean {
+        return name.indexOf(TEMP_VARIABLE_PREFIX) === 0;
     }
 
     append (name: string) {

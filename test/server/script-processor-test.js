@@ -954,12 +954,10 @@ describe('Script processor', () => {
                          '}',
 
                     expected: 'function x (_hh$temp0, _hh$temp1 = [1, 2], e = 5) {' +
-                              '    var _hh$temp2 = _hh$temp0,' +
-                              '        a = _hh$temp2.a,' +
-                              '        href = __get$(_hh$temp2, "href"),' +
-                              '        _hh$temp3 = _hh$temp1,' +
-                              '        c = _hh$temp3[0],' +
-                              '        d = _hh$temp3[1];' +
+                              '    var a = _hh$temp0.a,' +
+                              '        href = __get$(_hh$temp0, "href"),' +
+                              '        c = _hh$temp1[0],' +
+                              '        d = _hh$temp1[1];' +
                               '    func = "body";' +
                               '}'
                 }
@@ -974,8 +972,7 @@ describe('Script processor', () => {
                          '}',
 
                     expected: 'var y = function (_hh$temp0 = __get$Loc(location)) {' +
-                              '    var _hh$temp1 = _hh$temp0,' +
-                              '        href = __get$(_hh$temp1,"href");' +
+                              '    var href = __get$(_hh$temp0, "href");' +
                               '    func = "body";' +
                               '}'
                 }
@@ -993,8 +990,7 @@ describe('Script processor', () => {
 
                     expected: 'class A {' +
                               '    m (_hh$temp0 = link, ...args) {' +
-                              '        var _hh$temp1 = _hh$temp0,' +
-                              '            url = __get$(_hh$temp1, "href");' +
+                              '        var url = __get$(_hh$temp0, "href");' +
                               '        g = 6;' +
                               '    }' +
                               '}'
@@ -1007,9 +1003,8 @@ describe('Script processor', () => {
                 {
                     src:      'links.forEach(({ href, port }, index) => { href = port; });',
                     expected: 'links.forEach((_hh$temp0, index) => {' +
-                              '    var _hh$temp1 = _hh$temp0,' +
-                              '        href = __get$(_hh$temp1, "href"),' +
-                              '        port = _hh$temp1.port;' +
+                              '    var href = __get$(_hh$temp0, "href"),' +
+                              '        port = _hh$temp0.port;' +
                               '    href = port;' +
                               '});'
                 }
@@ -1021,12 +1016,83 @@ describe('Script processor', () => {
                 {
                     src:      'links.sort(({ href: href1 }, { href: href2 }) => href2 == href1);',
                     expected: 'links.sort((_hh$temp0, _hh$temp1) => {' +
-                              '    var _hh$temp2 = _hh$temp0,' +
-                              '        href1 = __get$(_hh$temp2, "href"),' +
-                              '        _hh$temp3 = _hh$temp1,' +
-                              '        href2 = __get$(_hh$temp3, "href");' +
+                              '    var href1 = __get$(_hh$temp0, "href"),' +
+                              '        href2 = __get$(_hh$temp1, "href");' +
                               '    return href2 == href1;' +
                               '});'
+                }
+            ]);
+        });
+
+        it('for-of operator', () => {
+            testProcessing([
+                {
+                    src:      'for (let { href, location } of some) ;',
+                    expected: 'for (let _hh$temp0 of some) {' +
+                              '    let href = __get$(_hh$temp0, "href"),' +
+                              '        location = __get$(_hh$temp0, "location");' +
+                              '    ;' +
+                              '}'
+                },
+                {
+                    src: 'for (const [href, location] of some) {' +
+                         '    a = b;' +
+                         '}',
+
+                    expected: 'for (const _hh$temp0 of some) {' +
+                              '    const href = _hh$temp0[0],' +
+                              '        location = _hh$temp0[1];' +
+                              '    a = b;' +
+                              '}'
+                },
+                {
+                    src: 'for ([href, location] of some) {' +
+                         '    h = href;' +
+                         '}',
+
+                    expected: 'for (var _hh$temp0 of some) {' +
+                              '    href = _hh$temp0[0], function () {' +
+                              '        var _hh$temp1 = _hh$temp0[1];' +
+                              '        return __set$Loc(location, _hh$temp1) || (location = _hh$temp1);' +
+                              '    }.call(this);' +
+                              '    h = href;' +
+                              '}'
+                },
+                {
+                    src: 'for ({ href, location } of some) a = b;',
+
+                    expected: 'for (var _hh$temp0 of some) {' +
+                              '    href = __get$(_hh$temp0, "href"), function() {' +
+                              '        var _hh$temp1 = _hh$temp0.location;' +
+                              '        return __set$Loc(location, _hh$temp1) || (location = _hh$temp1);' +
+                              '    }.call(this);' +
+                              '    a = b;' +
+                              '}'
+                }
+            ]);
+        });
+
+        it('Should not process destructuring', () => {
+            testProcessing([
+                {
+                    src:      'export { href as location, postMessage, eval as g } from "module";',
+                    expected: 'export { href as location, postMessage, eval as g } from "http://localhost:3000/ksadjo23/http://example.com/module";'
+                },
+                {
+                    src:      'import { location, postMessage, eval } from "module";',
+                    expected: 'import { location, postMessage, eval } from "http://localhost:3000/ksadjo23/http://example.com/module";'
+                },
+                {
+                    src:      'for (let { location, eval, postMessage } in some);',
+                    expected: 'for (let { location, eval, postMessage } in some);'
+                },
+                {
+                    src:      'for ({ eval, location, postMessage } in some);',
+                    expected: 'for ({ eval, location, postMessage } in some);'
+                },
+                {
+                    src:      'try { } catch ({ msg, stack, location, eval, postMessage }) {}',
+                    expected: 'try { } catch ({ msg, stack, location, eval, postMessage }) {}'
                 }
             ]);
         });

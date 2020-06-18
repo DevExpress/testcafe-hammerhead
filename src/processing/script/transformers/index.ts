@@ -17,6 +17,7 @@ import postMessageGetTransformer from './post-message-get';
 import windowPostMessageGetTransformer from './window-post-message-get';
 import postMessageCallApplyTransformer from './post-message-call-apply-bind';
 import forInTransformer from './for-in';
+import forOfTransformer from './for-of';
 import locationGetTransformer from './location-get';
 import locationSetTransformer from './location-set';
 import propertyGetTransformer from './property-get';
@@ -57,6 +58,7 @@ const TRANSFORMERS: Transformer<any>[] = [
     windowPostMessageGetTransformer,
     postMessageCallApplyTransformer,
     forInTransformer,
+    forOfTransformer,
     locationGetTransformer,
     locationSetTransformer,
     propertyGetTransformer,
