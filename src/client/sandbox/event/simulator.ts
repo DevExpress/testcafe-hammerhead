@@ -55,7 +55,7 @@ const DISABLEABLE_HTML_ELEMENT_TYPE_CHECKERS = [
     domUtils.isOptionElement,
     domUtils.isSelectElement,
     domUtils.isTextAreaElement
-]
+];
 
 export default class EventSimulator {
     DISPATCHED_EVENT_FLAG: string = 'hammerhead|dispatched-event';
@@ -623,8 +623,10 @@ export default class EventSimulator {
             let disableable = false;
 
             for (const isDisableableHTMLElementType of DISABLEABLE_HTML_ELEMENT_TYPE_CHECKERS) {
-                if (isDisableableHTMLElementType(node))
+                if (isDisableableHTMLElementType(node)) {
                     disableable = true;
+                    break;
+                }
             }
             
             return disableable && node.hasAttribute && nativeMethods.hasAttribute.call(node, 'disabled');
