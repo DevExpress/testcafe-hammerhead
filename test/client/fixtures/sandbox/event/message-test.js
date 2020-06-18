@@ -62,18 +62,23 @@ asyncTest('onmessage event', function () {
         });
 });
 
-asyncTest('cross domain message from iframe with "about:blank" src and no "targetOrigin" preference ("*") to "top" (GH-2165)', function () {
+asyncTest('cross domain messages should follow the "targetOrigin" rule (GH-2165)', function () {
+    var recievedMessages = [];
+
     var onMessageHandler = function (evt) {
-        strictEqual(evt.data, 'GH-2165');
+        if (recievedMessages.push(evt.data) === 2) {
+            ok(recievedMessages.indexOf('GH-2165: correct targetOrigin') > -1, 'https://example.com/');
+            ok(recievedMessages.indexOf('GH-2165: no targetOrigin preference') > -1, '*');
 
-        window.removeEventListener('message', onMessageHandler);
+            window.removeEventListener('message', onMessageHandler);
 
-        start();
+            start();
+        }
     };
 
     window.addEventListener('message', onMessageHandler);
 
-    createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/no-preference-message-to-top.html') });
+    createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/targetorigin-message-to-top.html') });
 });
 
 test('message types', function () {

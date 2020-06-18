@@ -23,16 +23,6 @@ function getProxyUrl (url, resourceType, protocol, windowId) {
     });
 }
 
-test('getCrossDomainProxyUrl', function () {
-    var storedCrossDomainport = settings.get().crossDomainProxyPort;
-
-    settings.get().crossDomainProxyPort = '5555';
-
-    strictEqual(urlUtils.getCrossDomainProxyUrl(), 'http://' + location.hostname + ':5555/');
-
-    settings.get().crossDomainProxyPort = storedCrossDomainport;
-});
-
 test('getCrossDomainIframeProxyUrl (GH-749)', function () {
     var destUrl               = 'test.html';
     var storedCrossDomainport = settings.get().crossDomainProxyPort;
