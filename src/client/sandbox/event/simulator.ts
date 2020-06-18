@@ -47,14 +47,14 @@ const TOUCH_TO_POINTER_EVENT_TYPE_MAP = {
     touchmove:  'pointermove'
 };
 
-const DISABLEABLE_HTML_ELEMENT_CLASSES = [
-    HTMLButtonElement,
-    HTMLFieldSetElement,
-    HTMLInputElement,
-    HTMLOptGroupElement,
-    HTMLOptionElement,
-    HTMLSelectElement,
-    HTMLTextAreaElement
+const DISABLEABLE_HTML_ELEMENT_TYPE_CHECKERS = [
+    domUtils.isButtonElement,
+    domUtils.isFieldSetElement,
+    domUtils.isInputElement,
+    domUtils.isOptGroupElement,
+    domUtils.isOptionElement,
+    domUtils.isSelectElement,
+    domUtils.isTextAreaElement
 ]
 
 export default class EventSimulator {
@@ -622,8 +622,8 @@ export default class EventSimulator {
         const disabledParent = domUtils.findParent(el, true, node => {
             let disableable = false;
 
-            for (const disableableHTMLElementClass of DISABLEABLE_HTML_ELEMENT_CLASSES) {
-                if (node instanceof disableableHTMLElementClass)
+            for (const isDisableableHTMLElementType of DISABLEABLE_HTML_ELEMENT_TYPE_CHECKERS) {
+                if (isDisableableHTMLElementType(node))
                     disableable = true;
             }
             
