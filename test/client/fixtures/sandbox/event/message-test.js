@@ -67,8 +67,8 @@ asyncTest('cross domain messages should follow the "targetOrigin" rule (GH-2165)
 
     var onMessageHandler = function (evt) {
         if (recievedMessages.push(evt.data) === 2) {
-            ok(recievedMessages.indexOf('GH-2165: correct targetOrigin') > -1, 'https://example.com/');
-            ok(recievedMessages.indexOf('GH-2165: no targetOrigin preference') > -1, '*');
+            ok(recievedMessages.indexOf('Should pass an origin check: correct targetOrigin') > -1, 'https://example.com/');
+            ok(recievedMessages.indexOf('Should pass an origin check: no targetOrigin preference ("*")') > -1, '*');
 
             window.removeEventListener('message', onMessageHandler);
 

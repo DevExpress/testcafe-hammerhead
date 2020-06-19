@@ -14,9 +14,11 @@
     var iframe        = document.createElement('iframe');
     var hhPostMessage = hammerhead.sandbox.event.message.postMessage;
     var test          = function () {
-        hhPostMessage(top, ['GH-2165: wrong targetOrigin', 'https://wrong-target-origin.com/']);
-        hhPostMessage(top, ['GH-2165: correct targetOrigin', 'https://example.com/']);
-        hhPostMessage(top, ['GH-2165: no targetOrigin preference', '*']);
+        hhPostMessage(top, ['Should not pass an origin check: no targetOrigin parameter']);
+        hhPostMessage(top, ['Should not pass an origin check: wrong targetOrigin', 'https://wrong-target-origin.com/']);
+
+        hhPostMessage(top, ['Should pass an origin check: correct targetOrigin', 'https://example.com/']);
+        hhPostMessage(top, ['Should pass an origin check: no targetOrigin preference ("*")', '*']);
     };
 
     iframe.src = 'about:blank';
