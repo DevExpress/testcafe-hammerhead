@@ -1213,7 +1213,7 @@ describe('Script processor', () => {
             });
         });
 
-        it('Should process async function (GH-1260)', function () {
+        it('Should process async function (GH-1260)', () => {
             testProcessing([
                 {
                     src:      'async function foo() { return await bar(obj[src]); }',
@@ -1246,6 +1246,15 @@ describe('Script processor', () => {
                 {
                     src:      'async function f() { result[type] = await result.clone(); }', // GH-2255
                     expected: 'async function f() {  __set$(result,type,await result.clone()); }'
+                }
+            ]);
+        });
+
+        it('Should process array with holes without errors', () => {
+            testProcessing([
+                {
+                    src:      'var x = [1, , 3];',
+                    expected: 'var x = [1, , 3];'
                 }
             ]);
         });

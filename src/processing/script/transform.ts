@@ -76,8 +76,11 @@ function transformChildNodes (node: Node, changes: CodeChange[], state: State, t
             // @ts-ignore
             const childNodes = childNode as Node[];
 
-            for (const nthNode of childNodes)
-                transform(nthNode, changes, state, node, key, tempVars);
+            for (const nthNode of childNodes) {
+                // NOTE: Some items of ArrayExpression can be null
+                if (nthNode)
+                    transform(nthNode, changes, state, node, key, tempVars);
+            }
         }
         else if (stringifiedNode === '[object Object]') {
             // @ts-ignore
