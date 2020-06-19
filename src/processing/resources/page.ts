@@ -1,4 +1,4 @@
-import parse5 from 'parse5';
+import parse5, { ASTNode } from 'parse5';
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import DomProcessor from '../dom';
 import DomAdapter from '../dom/parse5-dom-adapter';
@@ -12,22 +12,26 @@ import RequestPipelineContext from '../../request-pipeline/context';
 import Charset from '../encoding/charset';
 import BaseDomAdapter from '../dom/base-dom-adapter';
 
-const BODY_CREATED_EVENT_SCRIPT: string = createSelfRemovingScript(`
+const BODY_CREATED_EVENT_SCRIPT = createSelfRemovingScript(`
     if (window["${ INTERNAL_PROPS.hammerhead }"])
         window["${ INTERNAL_PROPS.hammerhead }"].sandbox.node.raiseBodyCreatedEvent();
 `);
 
+const FIRST_TITLE_ELEMENT_LOADED_SCRIPT = createSelfRemovingScript(`
+    if (window["${ INTERNAL_PROPS.hammerhead }"])
+        window["${ INTERNAL_PROPS.hammerhead }"].sandbox.node.onFirstTitleElementInHeadLoaded();
+`);
+
+const PARSED_BODY_CREATED_EVENT_SCRIPT         = parse5.parseFragment(BODY_CREATED_EVENT_SCRIPT).childNodes[0];
+const PARSED_FIRST_TITLE_ELEMENT_LOADED_SCRIPT = parse5.parseFragment(FIRST_TITLE_ELEMENT_LOADED_SCRIPT).childNodes[0];
+
 class PageProcessor extends ResourceProcessorBase {
     RESTART_PROCESSING: symbol;
-    PARSED_BODY_CREATED_EVENT_SCRIPT: parse5.ASTNode;
 
     constructor () {
         super();
 
-        const parsedDocumentFragment = parse5.parseFragment(BODY_CREATED_EVENT_SCRIPT);
-
-        this.RESTART_PROCESSING               = Symbol();
-        this.PARSED_BODY_CREATED_EVENT_SCRIPT = parsedDocumentFragment.childNodes[0];
+        this.RESTART_PROCESSING = Symbol();
     }
 
     private _createRestoreStoragesScript (storageKey, storages) {
@@ -65,7 +69,7 @@ class PageProcessor extends ResourceProcessorBase {
         return metas;
     }
 
-    private static _addPageResources (head: any, processingOptions: any) {
+    private static _addPageResources (head: ASTNode, processingOptions: any) {
         const result = [];
 
         if (processingOptions.stylesheets) {
@@ -95,7 +99,11 @@ class PageProcessor extends ResourceProcessorBase {
             parse5Utils.insertBeforeFirstScript(result[i], head);
     }
 
-    private static _addCharsetInfo (head: any, charset: string) {
+    private static _addFirstTitleParsedScript (head: ASTNode) {
+        parse5Utils.insertAfterFirstTitle(PARSED_FIRST_TITLE_ELEMENT_LOADED_SCRIPT, head);
+    }
+
+    private static _addCharsetInfo (head: ASTNode, charset: string): void {
         parse5Utils.unshiftElement(parse5Utils.createElement('meta', [
             { name: 'class', value: SHADOW_UI_CLASSNAME.charset },
             { name: 'charset', value: charset }
@@ -119,15 +127,15 @@ class PageProcessor extends ResourceProcessorBase {
         return html;
     }
 
-    private _addRestoreStoragesScript (ctx: RequestPipelineContext, head: parse5.ASTNode) {
+    private _addRestoreStoragesScript (ctx: RequestPipelineContext, head: ASTNode): void {
         const storageKey            = getStorageKey(ctx.session.id, ctx.dest.host);
         const restoreStoragesScript = this._createRestoreStoragesScript(storageKey, ctx.restoringStorages);
 
         parse5Utils.insertBeforeFirstScript(restoreStoragesScript, head);
     }
 
-    private _addBodyCreatedEventScript (body: parse5.ASTNode) {
-        parse5Utils.unshiftElement(this.PARSED_BODY_CREATED_EVENT_SCRIPT, body);
+    private _addBodyCreatedEventScript (body: ASTNode) {
+        parse5Utils.unshiftElement(PARSED_BODY_CREATED_EVENT_SCRIPT, body);
     }
 
     shouldProcessResource (ctx: RequestPipelineContext): boolean {
@@ -166,6 +174,7 @@ class PageProcessor extends ResourceProcessorBase {
 
         if (!ctx.isHtmlImport) {
             PageProcessor._addPageResources(head, processingOpts);
+            PageProcessor._addFirstTitleParsedScript(head);
             this._addBodyCreatedEventScript(body);
 
             if (ctx.restoringStorages && !processingOpts.isIframe)

@@ -525,15 +525,6 @@ test('basic', function () {
     strictEqual(document.title = 'end-user title', 'end-user title');
 });
 
-test('initial value', function () {
-    var src = getSameDomainPageUrl('../../../data/document_title/initial_value.html');
-
-    return createTestIframe({ src: src })
-        .then(function (iframe) {
-            strictEqual(iframe.contentDocument.title, 'Site title');
-        });
-});
-
 test('text properties of the first <title> element', function () {
     var titles = document.getElementsByTagName('title');
 
