@@ -44,17 +44,26 @@ function createRestArray (array: Identifier, startIndex: number): CallExpression
     return createSimpleCallExpression(restArrayIdentifier, [array, createSimpleLiteral(startIndex)]);
 }
 
-function processObjectPattern (pattern: ObjectPattern, value: Expression, build: NodeBuilder, baseTempName: string) {
-    if (!baseTempName)
-        baseTempName = TempVariables.generateName(baseTempName);
+function createTempIdentifierOrUseExisting (value: Expression, build: NodeBuilder, baseTempName?: string): Identifier {
+    if (value.type === Syntax.Identifier && TempVariables.isHHTempVariable(value.name))
+        return value;
 
+    const tempIdentifier = createIdentifier(baseTempName || TempVariables.generateName(baseTempName));
+
+    build(tempIdentifier, value, true);
+
+    return tempIdentifier;
+}
+
+function processObjectPattern (pattern: ObjectPattern, value: Expression, build: NodeBuilder, baseTempName?: string) {
     const properties     = pattern.properties;
     // @ts-ignore
     const hasRest        = properties.length && properties[properties.length - 1].type === Syntax.RestElement;
-    const tempIdentifier = createIdentifier(baseTempName);
+    const tempIdentifier = createTempIdentifierOrUseExisting(value, build, baseTempName);
     const propNames      = [] as Expression[];
 
-    build(tempIdentifier, value, true);
+    if (!baseTempName)
+        baseTempName = tempIdentifier.name;
 
     if (hasRest) {
         for (let i = 0; i < properties.length - 1; i++) {
@@ -90,12 +99,10 @@ function processObjectPattern (pattern: ObjectPattern, value: Expression, build:
 }
 
 function processArrayPattern (pattern: ArrayPattern, value: Expression, build: NodeBuilder, baseTempName?: string) {
+    const tempIdentifier = createTempIdentifierOrUseExisting(value, build, baseTempName);
+
     if (!baseTempName)
-        baseTempName = TempVariables.generateName(baseTempName);
-
-    const tempIdentifier = createIdentifier(baseTempName);
-
-    build(tempIdentifier, value, true);
+        baseTempName = tempIdentifier.name;
 
     for (let i = 0; i < pattern.elements.length; i++) {
         let elem = pattern.elements[i];
@@ -115,16 +122,13 @@ function processArrayPattern (pattern: ArrayPattern, value: Expression, build: N
 }
 
 function processAssignmentPattern (pattern: AssignmentPattern, value: Expression, build: NodeBuilder, baseTempName?: string) {
-    if (!baseTempName)
-        baseTempName = TempVariables.generateName(baseTempName);
-
     const { left, right } = pattern;
-    let tempIdentifier    = createIdentifier(baseTempName);
-
-    build(tempIdentifier, value, true);
-
+    const tempIdentifier  = createTempIdentifierOrUseExisting(value, build, baseTempName);
     const tempCondition   = createBinaryExpression(tempIdentifier, '===', createUndefined());
     const tempConditional = createConditionalExpression(tempCondition, right, tempIdentifier);
+
+    if (!baseTempName)
+        baseTempName = tempIdentifier.name;
 
     baseTempName += '$' + 'assign';
 

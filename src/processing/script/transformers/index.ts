@@ -17,6 +17,7 @@ import postMessageGetTransformer from './post-message-get';
 import windowPostMessageGetTransformer from './window-post-message-get';
 import postMessageCallApplyTransformer from './post-message-call-apply-bind';
 import forInTransformer from './for-in';
+import forOfTransformer from './for-of';
 import locationGetTransformer from './location-get';
 import locationSetTransformer from './location-set';
 import propertyGetTransformer from './property-get';
@@ -27,6 +28,8 @@ import staticImportTransformer from './static-import';
 import dynamicImportTransformer from './dynamic-import';
 import declarationDestructuring from './declaration-destructuring';
 import assignmentDestructuring from './assignment-destructuring';
+import createFuncArgsDestructing from './func-args-destructing';
+import { Syntax } from 'esotope-hammerhead';
 
 export interface Transformer<C extends Node> {
     nodeReplacementRequireTransform: boolean;
@@ -39,6 +42,9 @@ export interface Transformer<C extends Node> {
 }
 
 const TRANSFORMERS: Transformer<any>[] = [
+    createFuncArgsDestructing(Syntax.FunctionDeclaration),
+    createFuncArgsDestructing(Syntax.FunctionExpression),
+    createFuncArgsDestructing(Syntax.ArrowFunctionExpression),
     assignmentDestructuring,
     computedPropertyGetTransformer,
     computedPropertySetTransformer,
@@ -52,6 +58,7 @@ const TRANSFORMERS: Transformer<any>[] = [
     windowPostMessageGetTransformer,
     postMessageCallApplyTransformer,
     forInTransformer,
+    forOfTransformer,
     locationGetTransformer,
     locationSetTransformer,
     propertyGetTransformer,

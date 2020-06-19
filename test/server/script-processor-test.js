@@ -179,7 +179,7 @@ describe('Script processor', () => {
             { src: 'var location = value', expected: 'var location = value' },
             {
                 src:      'location = value',
-                expected: '0,function(){var __set$temp = value; return __set$Loc(location,__set$temp)||(location=__set$temp);}.call(this)'
+                expected: '0,function(){var _hh$temp0 = value; return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this)'
             },
             {
                 src:      '{ location: 123 }',
@@ -196,11 +196,11 @@ describe('Script processor', () => {
             { src: 'location[someProperty]', expected: '__get$(__get$Loc(location), someProperty)' },
             {
                 src:      'obj.location = location = value;',
-                expected: '__set$(obj, "location", function(){var __set$temp = value; return __set$Loc(location,__set$temp)||(location=__set$temp);}.call(this));'
+                expected: '__set$(obj, "location", function(){var _hh$temp0 = value; return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this));'
             },
             {
                 src:      'a(location = value)',
-                expected: 'a(function() { var __set$temp = value; return __set$Loc(location, __set$temp) || (location = __set$temp); }.call(this))'
+                expected: 'a(function() { var _hh$temp0 = value; return __set$Loc(location, _hh$temp0) || (location = _hh$temp0); }.call(this))'
             },
             {
                 src:      'obj.location = obj.location = obj.location',
@@ -218,13 +218,13 @@ describe('Script processor', () => {
 
             {
                 src:      'location+=value',
-                expected: '0,function(){ var __set$temp = __get$Loc(location)+value; return __set$Loc(location,__set$temp)||' +
-                          '(location=__set$temp);}.call(this)'
+                expected: '0,function(){ var _hh$temp0 = __get$Loc(location)+value; return __set$Loc(location,_hh$temp0)||' +
+                          '(location=_hh$temp0);}.call(this)'
             },
             {
                 src:      'location+=location+value',
-                expected: '0,function(){var __set$temp = __get$Loc(location)+(__get$Loc(location)+value); return __set$Loc(location,__set$temp)||' +
-                          '(location=__set$temp);}.call(this)'
+                expected: '0,function(){var _hh$temp0 = __get$Loc(location)+(__get$Loc(location)+value); return __set$Loc(location,_hh$temp0)||' +
+                          '(location=_hh$temp0);}.call(this)'
             },
             {
                 src:      'location.href+=value',
@@ -246,38 +246,38 @@ describe('Script processor', () => {
             {
                 src: 'new function(a){location=str,a.click();}();',
 
-                expected: 'new function(a) {(0,function(){var __set$temp = str; return __set$Loc(location,__set$temp)||' +
-                          '(location=__set$temp);}.call(this)), a.click();}();'
+                expected: 'new function(a) {(0,function(){var _hh$temp0 = str; return __set$Loc(location,_hh$temp0)||' +
+                          '(location=_hh$temp0);}.call(this)), a.click();}();'
             },
             {
                 src: 'b.onerror = b.onload = function (a) { location = a; };',
 
                 expected: 'b.onerror = b.onload = function(a){' +
-                          '0,function(){var __set$temp = a; return__set$Loc(location,__set$temp)||(location=__set$temp);}.call(this);};'
+                          '0,function(){var _hh$temp0 = a; return__set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this);};'
             },
             {
                 src: 'location = newLocation, x = 5;',
 
-                expected: '0,function(){var __set$temp = newLocation; return __set$Loc(location,__set$temp)||(location=__set$temp);}.call(this), x = 5;'
+                expected: '0,function(){var _hh$temp0 = newLocation; return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this), x = 5;'
             },
             {
                 src: 'x = 5, location = newLocation;',
 
-                expected: 'x = 5, function(){var __set$temp = newLocation; return __set$Loc(location,__set$temp)||(location=__set$temp);}.call(this);'
+                expected: 'x = 5, function(){var _hh$temp0 = newLocation; return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this);'
             },
             {
                 src: 'location ? location = newLocation : location = "#123";',
 
                 expected: '__get$Loc(location)' +
-                          '? function(){var __set$temp = newLocation; return __set$Loc(location,__set$temp)||(location=__set$temp);}.call(this)' +
-                          ': function(){var __set$temp = "#123"; return __set$Loc(location,__set$temp)||(location=__set$temp);}.call(this);'
+                          '? function(){var _hh$temp0 = newLocation; return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this)' +
+                          ': function(){var _hh$temp1 = "#123"; return __set$Loc(location,_hh$temp1)||(location=_hh$temp1);}.call(this);'
             },
             {
                 src: 'if (location) { location = newLocation; } else location = "#123";',
 
                 expected: 'if (__get$Loc(location)) {' +
-                          '0,function(){var __set$temp = newLocation; return __set$Loc(location,__set$temp)||(location=__set$temp);}.call(this);}' +
-                          'else 0,function(){var __set$temp = "#123"; return __set$Loc(location,__set$temp)||(location=__set$temp);}.call(this);'
+                          '0,function(){var _hh$temp0 = newLocation; return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this);}' +
+                          'else 0,function(){var _hh$temp1 = "#123"; return __set$Loc(location,_hh$temp1)||(location=_hh$temp1);}.call(this);'
             },
             {
                 src:      'var obj = { location: function location() {} }',
@@ -314,7 +314,7 @@ describe('Script processor', () => {
             {
                 // NOTE: The fn function must be called once
                 src:      'location = fn();',
-                expected: '0,function(){var __set$temp = fn(); return __set$Loc(location,__set$temp)||(location=__set$temp);}.call(this);'
+                expected: '0,function(){var _hh$temp0 = fn(); return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this);'
             }
         ]);
     });
@@ -719,21 +719,34 @@ describe('Script processor', () => {
 
     it('Should process for..in iteration', () => {
         testProcessing([
-            { src: 'for(obj.prop in src){}', expected: 'for(var __set$temp in src){obj.prop = __set$temp;}' },
-            { src: 'for(obj["prop"] in src){}', expected: 'for(var __set$temp in src){obj["prop"] = __set$temp;}' },
-            { src: 'for(obj[i++] in src){}', expected: 'for(var __set$temp in src){__set$(obj, i++, __set$temp);}' },
-            { src: 'for(obj.href in src){}', expected: 'for(var __set$temp in src){__set$(obj, "href", __set$temp);}' },
+            { src: 'for(obj.prop in src){}', expected: 'for(var _hh$temp0 in src){obj.prop = _hh$temp0;}' },
+            { src: 'for(obj["prop"] in src){}', expected: 'for(var _hh$temp0 in src){obj["prop"] = _hh$temp0;}' },
+            { src: 'for(obj[i++] in src){}', expected: 'for(var _hh$temp0 in src){__set$(obj, i++, _hh$temp0);}' },
+            { src: 'for(obj.href in src){}', expected: 'for(var _hh$temp0 in src){__set$(obj, "href", _hh$temp0);}' },
             {
                 src:      'for(obj["href"] in src){}',
-                expected: 'for(var __set$temp in src){__set$(obj, "href", __set$temp);}'
+                expected: 'for(var _hh$temp0 in src){__set$(obj, "href", _hh$temp0);}'
             },
             {
                 src:      'for(obj[prop] in src)obj[prop]=123;',
-                expected: 'for(var __set$temp in src){__set$(obj, prop, __set$temp);__set$(obj, prop, 123);}'
+                expected: 'for(var _hh$temp0 in src){__set$(obj, prop, _hh$temp0);__set$(obj, prop, 123);}'
             },
             {
                 src:      'for(obj[prop] in src);',
-                expected: 'for(var __set$temp in src){__set$(obj, prop, __set$temp);;}'
+                expected: 'for(var _hh$temp0 in src){__set$(obj, prop, _hh$temp0);;}'
+            },
+            {
+                src: 'for(obj[prop] in some)' +
+                     '    for (win[prop] in src)' +
+                     '        ;',
+
+                expected: 'for(var _hh$temp0 in some) {' +
+                          '    __set$(obj, prop, _hh$temp0);' +
+                          '    for(var _hh$temp1 in src) {' +
+                          '        __set$(win, prop, _hh$temp1);' +
+                          '        ;' +
+                          '    }' +
+                          '}'
             }
         ]);
     });
@@ -823,8 +836,8 @@ describe('Script processor', () => {
                     expected: 'var _hh$temp0;' +
                               '(_hh$temp0 = some,' +
                               ' function() {' +
-                              '     var __set$temp = _hh$temp0.location;' +
-                              '     return __set$Loc(location, __set$temp) || (location = __set$temp);' +
+                              '     var _hh$temp1 = _hh$temp0.location;' +
+                              '     return __set$Loc(location, _hh$temp1) || (location = _hh$temp1);' +
                               ' }.call(this),' +
                               ' href = __get$(_hh$temp0, "href"));'
                 }
@@ -867,8 +880,8 @@ describe('Script processor', () => {
                               '    _hh$temp0 = [window,i,j],' +
                               '    _hh$temp0$i0 = _hh$temp0[0],' +
                               '    function() {' +
-                              '        var __set$temp = _hh$temp0$i0.location;' +
-                              '        return __set$Loc(location, __set$temp) || (location = __set$temp);' +
+                              '        var _hh$temp1 = _hh$temp0$i0.location;' +
+                              '        return __set$Loc(location, _hh$temp1) || (location = _hh$temp1);' +
                               '    }.call(this),' +
                               '    args = __rest$Array(_hh$temp0, 1);' +
                               '}'
@@ -929,6 +942,157 @@ describe('Script processor', () => {
                               '_hh$temp0 = [__get$(shuffled, j), __get$(shuffled, i)],' +
                               '__set$(shuffled, i, _hh$temp0[0]),' +
                               '__set$(shuffled, j, _hh$temp0[1]);'
+                }
+            ]);
+        });
+
+        it('function declaration parameters', () => {
+            testProcessing([
+                {
+                    src: 'function x ({ a, href }, [c, d] = [1, 2], e = 5) {' +
+                         '    func = "body";' +
+                         '}',
+
+                    expected: 'function x (_hh$temp0, _hh$temp1 = [1, 2], e = 5) {' +
+                              '    var a = _hh$temp0.a,' +
+                              '        href = __get$(_hh$temp0, "href"),' +
+                              '        c = _hh$temp1[0],' +
+                              '        d = _hh$temp1[1];' +
+                              '    func = "body";' +
+                              '}'
+                }
+            ]);
+        });
+
+        it('function expression parameters', () => {
+            testProcessing([
+                {
+                    src: 'var y = function ({ href } = location) {' +
+                         '    func = "body";' +
+                         '}',
+
+                    expected: 'var y = function (_hh$temp0 = __get$Loc(location)) {' +
+                              '    var href = __get$(_hh$temp0, "href");' +
+                              '    func = "body";' +
+                              '}'
+                }
+            ]);
+        });
+
+        it('class method parameters', () => {
+            testProcessing([
+                {
+                    src: 'class A {' +
+                         '    m ({ href: url } = link, ...args) {' +
+                         '        g = 6;' +
+                         '    }' +
+                         '}',
+
+                    expected: 'class A {' +
+                              '    m (_hh$temp0 = link, ...args) {' +
+                              '        var url = __get$(_hh$temp0, "href");' +
+                              '        g = 6;' +
+                              '    }' +
+                              '}'
+                }
+            ]);
+        });
+
+        it('arrow function with block statement parameters', () => {
+            testProcessing([
+                {
+                    src:      'links.forEach(({ href, port }, index) => { href = port; });',
+                    expected: 'links.forEach((_hh$temp0, index) => {' +
+                              '    var href = __get$(_hh$temp0, "href"),' +
+                              '        port = _hh$temp0.port;' +
+                              '    href = port;' +
+                              '});'
+                }
+            ]);
+        });
+
+        it('arrow function without block statement parameters', () => {
+            testProcessing([
+                {
+                    src:      'links.sort(({ href: href1 }, { href: href2 }) => href2 == href1);',
+                    expected: 'links.sort((_hh$temp0, _hh$temp1) => {' +
+                              '    var href1 = __get$(_hh$temp0, "href"),' +
+                              '        href2 = __get$(_hh$temp1, "href");' +
+                              '    return href2 == href1;' +
+                              '});'
+                }
+            ]);
+        });
+
+        it('for-of operator', () => {
+            testProcessing([
+                {
+                    src:      'for (let { href, location } of some) ;',
+                    expected: 'for (let _hh$temp0 of some) {' +
+                              '    let href = __get$(_hh$temp0, "href"),' +
+                              '        location = __get$(_hh$temp0, "location");' +
+                              '    ;' +
+                              '}'
+                },
+                {
+                    src: 'for (const [href, location] of some) {' +
+                         '    a = b;' +
+                         '}',
+
+                    expected: 'for (const _hh$temp0 of some) {' +
+                              '    const href = _hh$temp0[0],' +
+                              '        location = _hh$temp0[1];' +
+                              '    a = b;' +
+                              '}'
+                },
+                {
+                    src: 'for ([href, location] of some) {' +
+                         '    h = href;' +
+                         '}',
+
+                    expected: 'for (var _hh$temp0 of some) {' +
+                              '    href = _hh$temp0[0], function () {' +
+                              '        var _hh$temp1 = _hh$temp0[1];' +
+                              '        return __set$Loc(location, _hh$temp1) || (location = _hh$temp1);' +
+                              '    }.call(this);' +
+                              '    h = href;' +
+                              '}'
+                },
+                {
+                    src: 'for ({ href, location } of some) a = b;',
+
+                    expected: 'for (var _hh$temp0 of some) {' +
+                              '    href = __get$(_hh$temp0, "href"), function() {' +
+                              '        var _hh$temp1 = _hh$temp0.location;' +
+                              '        return __set$Loc(location, _hh$temp1) || (location = _hh$temp1);' +
+                              '    }.call(this);' +
+                              '    a = b;' +
+                              '}'
+                }
+            ]);
+        });
+
+        it('Should not process destructuring', () => {
+            testProcessing([
+                {
+                    src:      'export { href as location, postMessage, eval as g } from "module";',
+                    expected: 'export { href as location, postMessage, eval as g } from "http://localhost:3000/ksadjo23/http://example.com/module";'
+                },
+                {
+                    src:      'import { location, postMessage, eval } from "module";',
+                    expected: 'import { location, postMessage, eval } from "http://localhost:3000/ksadjo23/http://example.com/module";'
+                },
+                {
+                    src:      'for (let { location, eval, postMessage } in some);',
+                    expected: 'for (let { location, eval, postMessage } in some);'
+                },
+                {
+                    src:      'for ({ eval, location, postMessage } in some);',
+                    expected: 'for ({ eval, location, postMessage } in some);'
+                },
+                {
+                    src:      'try { } catch ({ msg, stack, location, eval, postMessage }) {}',
+                    expected: 'try { } catch ({ msg, stack, location, eval, postMessage }) {}'
                 }
             ]);
         });

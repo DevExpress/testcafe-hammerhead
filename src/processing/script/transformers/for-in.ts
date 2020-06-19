@@ -9,17 +9,18 @@ import { Transformer } from './index';
 /*eslint-enable no-unused-vars*/
 import { Syntax } from 'esotope-hammerhead';
 import {
-    createTempVarIdentifier,
     createAssignmentExprStmt,
     createVariableDeclarator,
     createVariableDeclaration,
-    createBlockStatement
+    createBlockStatement,
+    createIdentifier
 } from '../node-builder';
 import replaceNode from './replace-node';
+import TempVariables from './temp-variables';
 
 // Transform:
 // for(obj[prop] in src), for(obj.prop in src) -->
-// for(const __set$temp in src) { obj[prop] = __set$temp; }
+// for(const _hh$temp0 in src) { obj[prop] = _hh$temp0; }
 
 const transformer: Transformer<ForInStatement> = {
     nodeReplacementRequireTransform: false,
@@ -29,7 +30,7 @@ const transformer: Transformer<ForInStatement> = {
     condition: node => node.left.type === Syntax.MemberExpression,
 
     run: node => {
-        const tempVarAst         = createTempVarIdentifier();
+        const tempVarAst         = createIdentifier(TempVariables.generateName());
         const varDeclaration     = createVariableDeclaration('var', [createVariableDeclarator(tempVarAst)]);
         const assignmentExprStmt = createAssignmentExprStmt(node.left as MemberExpression, tempVarAst);
 

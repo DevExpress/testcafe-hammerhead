@@ -34,15 +34,15 @@ import {
     UnaryExpression
 } from 'estree';
 import { Syntax } from 'esotope-hammerhead';
-import INTERNAL_LITERAL from './internal-literal';
 import INSTRUCTION from './instruction';
 import { getResourceTypeString } from '../../utils/url';
+import TempVariables from './transformers/temp-variables';
 
 export function createIdentifier (name: string): Identifier {
     return { type: Syntax.Identifier, name };
 }
 
-function createExpressionStatement (expression: Expression): ExpressionStatement {
+export function createExpressionStatement (expression: Expression): ExpressionStatement {
     return { type: Syntax.ExpressionStatement, expression };
 }
 
@@ -78,7 +78,7 @@ function createLogicalExpression (left: Expression, operator: LogicalOperator, r
     return { type: Syntax.LogicalExpression, left, right, operator }
 }
 
-function createReturnStatement (argument: Expression = null): ReturnStatement {
+export function createReturnStatement (argument: Expression = null): ReturnStatement {
     return { type: Syntax.ReturnStatement, argument };
 }
 
@@ -102,11 +102,7 @@ export function createSimpleLiteral (value: string | boolean | number | null): S
     return { type: Syntax.Literal, value };
 }
 
-export function createTempVarIdentifier (): Identifier {
-    return createIdentifier(INTERNAL_LITERAL.tempVar);
-}
-
-export function createAssignmentExprStmt (left: MemberExpression, right: Identifier): ExpressionStatement {
+export function createAssignmentExprStmt (left: Pattern | MemberExpression, right: Identifier): ExpressionStatement {
     return createExpressionStatement(createAssignmentExpression(left, '=', right));
 }
 
@@ -139,7 +135,7 @@ export function createLocationGetWrapper (location: Identifier): CallExpression 
 }
 
 export function createLocationSetWrapper (locationIdentifier: Identifier, value: Expression, wrapWithSequence: boolean): Expression {
-    const tempIdentifier            = createTempVarIdentifier();
+    const tempIdentifier            = createIdentifier(TempVariables.generateName());
     const setLocationIdentifier     = createIdentifier(INSTRUCTION.setLocation);
     const setLocationCall           = createSimpleCallExpression(setLocationIdentifier, [locationIdentifier, tempIdentifier]);
     const locationAssignment        = createAssignmentExpression(locationIdentifier, '=', tempIdentifier);

@@ -157,7 +157,7 @@ function transform<T extends Node> (node: Node,
     if (allowTempVarAdd)
         tempVars = new TempVariables();
 
-    if (!reTransform && isNodeTransformed(node)) {
+    if (!reTransform && !node.reTransform && isNodeTransformed(node)) {
         addChangeForTransformedNode(state, changes, node, parent, key);
         nodeTransformed = true;
     }
@@ -177,7 +177,6 @@ function transform<T extends Node> (node: Node,
             addChangeForTransformedNode(state, changes, replacement, parent, key);
 
             nodeTransformed = true;
-
 
             if (!transformer.nodeReplacementRequireTransform)
                 break;

@@ -75,6 +75,14 @@ const transformer: Transformer<Identifier> = {
             if (parent.type === Syntax.RestElement)
                 return false;
 
+            // Skip: export { eval } from "module";
+            if (parent.type === Syntax.ExportSpecifier)
+                return false;
+
+            // Skip: import { eval } from "module";
+            if (parent.type === Syntax.ImportSpecifier)
+                return false;
+
             return true;
         }
 
