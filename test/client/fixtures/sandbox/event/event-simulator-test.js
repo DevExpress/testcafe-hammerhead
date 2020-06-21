@@ -735,15 +735,16 @@ if (!browserUtils.isIE) {
             return Reflect.construct(HTMLElement, [], this.constructor);
         }
 
-        DisabledCustomElement.prototype = Object.create(HTMLElement.prototype);
+        DisabledCustomElement.prototype             = Object.create(HTMLElement.prototype);
         DisabledCustomElement.prototype.constructor = DisabledCustomElement;
+
         Object.setPrototypeOf(DisabledCustomElement, HTMLElement);
 
         customElements.define('disabled-cutsom-element', DisabledCustomElement);
 
-        var disabledCustomElement   = document.createElement('disabled-cutsom-element');
-        var span     = document.createElement('span');
-        var eventLog = [];
+        var disabledCustomElement = document.createElement('disabled-cutsom-element');
+        var span                  = document.createElement('span');
+        var eventLog              = [];
 
         document.body.appendChild(disabledCustomElement);
         disabledCustomElement.appendChild(span);

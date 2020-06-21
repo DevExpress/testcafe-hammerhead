@@ -593,6 +593,16 @@ export default class EventSimulator {
         this._raiseDispatchEvent(el, pointEvent);
     }
 
+    _isDisableableHTMLElement (el): boolean {
+        for (const isDisableableHTMLElementType of DISABLEABLE_HTML_ELEMENT_TYPE_CHECKERS) {
+            if (isDisableableHTMLElementType(el)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     _dispatchMouseRelatedEvents (el, args, userOptions = {}) {
         if (args.type !== 'mouseover' && args.type !== 'mouseenter' && shouldIgnoreMouseEventInsideIframe(el, args.clientX, args.clientY))
             return true;
@@ -620,16 +630,7 @@ export default class EventSimulator {
 
     _dispatchMouseEvent (el, args, { dataTransfer, timeStamp }: any) {
         const disabledParent = domUtils.findParent(el, true, node => {
-            let disableable = false;
-
-            for (const isDisableableHTMLElementType of DISABLEABLE_HTML_ELEMENT_TYPE_CHECKERS) {
-                if (isDisableableHTMLElementType(node)) {
-                    disableable = true;
-                    break;
-                }
-            }
-            
-            return disableable && node.hasAttribute && nativeMethods.hasAttribute.call(node, 'disabled');
+            return this._isDisableableHTMLElement(node) && node.hasAttribute && nativeMethods.hasAttribute.call(node, 'disabled');
         });
 
         if (disabledParent)
