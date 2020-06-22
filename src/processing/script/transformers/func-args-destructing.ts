@@ -43,7 +43,7 @@ export default function create<T extends (FunctionDeclaration | FunctionExpressi
         },
 
         run: (node) => {
-            const declarations: VariableDeclarator[] = [];
+            const declarations = [] as VariableDeclarator[];
 
             for (let param of node.params) {
                 let tempVarParent = node;
@@ -70,6 +70,11 @@ export default function create<T extends (FunctionDeclaration | FunctionExpressi
                 const returnStmt = createReturnStatement(node.body);
 
                 replaceNode(node.body, createBlockStatement([declaration, returnStmt]), node, 'body');
+
+                // @ts-ignore
+                node.expression = false;
+
+                return node;
             }
             else
                 replaceNode(null, declaration, node.body, 'body');
