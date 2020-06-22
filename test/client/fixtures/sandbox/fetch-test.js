@@ -309,6 +309,24 @@ if (window.fetch) {
                 });
         });
 
+        test('the authorization and proxy-authorization header processing (GH-2344)', function () {
+            var headers = { 'content-type': 'text/plain' };
+
+            headers['Authorization']       = 'Basic qwerty';
+            headers['proxy-Authorization'] = 'Digital abcdifg';
+
+            return fetch('/echo-request-headers', { method: 'post', headers: headers })
+                .then(function (res) {
+                    return res.json();
+                })
+                .then(function (proxyHeaders) {
+                    notOk('authorization' in proxyHeaders);
+                    notOk('proxy-authorization' in proxyHeaders);
+                    strictEqual(proxyHeaders[INTERNAL_HEADERS.authorization], 'Basic qwerty');
+                    strictEqual(proxyHeaders[INTERNAL_HEADERS.proxyAuthorization], 'Digital abcdifg');
+                });
+        });
+
         test('set header functionality', function () {
             var headers = new Headers();
 
@@ -763,7 +781,7 @@ if (window.fetch) {
                     return response.json();
                 })
                 .then(function (headers) {
-                    strictEqual(headers.authorization, '123', 'Authorization');
+                    strictEqual(headers[INTERNAL_HEADERS.authorization], '123', 'Authorization');
                     strictEqual(headers['content-type'], 'charset=utf-8', 'Content-Type');
                 });
         });
