@@ -1,6 +1,7 @@
 import SandboxBase from './base';
 import nativeMethods from './native-methods';
 import INTERNAL_HEADERS from '../../request-pipeline/internal-header-names';
+import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
 import { getProxyUrl, parseProxyUrl } from '../utils/url';
 import { getOriginHeader, sameOriginCheck, get as getDestLocation } from '../utils/destination-location';
 import { isFetchHeaders, isFetchRequest } from '../utils/dom';
@@ -28,12 +29,26 @@ export default class FetchSandbox extends SandboxBase {
 
         if (!isFetchHeaders(headers)) {
             // @ts-ignore
-            headers = init.headers = headers ? new nativeMethods.Headers(headers) : new nativeMethods.Headers();
+            headers      = headers ? new nativeMethods.Headers(headers) : new nativeMethods.Headers();
+            init.headers = headers;
         }
 
         // eslint-disable-next-line no-restricted-properties
         nativeMethods.headersSet.call(headers, INTERNAL_HEADERS.origin, getOriginHeader());
         nativeMethods.headersSet.call(headers, INTERNAL_HEADERS.credentials, credentials);
+
+        const authorizationValue      = nativeMethods.headersGet.call(headers, BUILTIN_HEADERS.authorization);
+        const proxyAuthorizationValue = nativeMethods.headersGet.call(headers, BUILTIN_HEADERS.proxyAuthorization);
+
+        if (authorizationValue !== null) {
+            nativeMethods.headersSet.call(headers, INTERNAL_HEADERS.authorization, authorizationValue);
+            nativeMethods.headersDelete.call(headers, BUILTIN_HEADERS.authorization);
+        }
+
+        if (proxyAuthorizationValue !== null) {
+            nativeMethods.headersSet.call(headers, INTERNAL_HEADERS.proxyAuthorization, proxyAuthorizationValue);
+            nativeMethods.headersDelete.call(headers, BUILTIN_HEADERS.proxyAuthorization);
+        }
 
         return init;
     }
