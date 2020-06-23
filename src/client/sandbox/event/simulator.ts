@@ -47,6 +47,16 @@ const TOUCH_TO_POINTER_EVENT_TYPE_MAP = {
     touchmove:  'pointermove'
 };
 
+const DISABLEABLE_HTML_ELEMENT_TYPE_CHECKERS = [
+    domUtils.isButtonElement,
+    domUtils.isFieldSetElement,
+    domUtils.isInputElement,
+    domUtils.isOptGroupElement,
+    domUtils.isOptionElement,
+    domUtils.isSelectElement,
+    domUtils.isTextAreaElement
+];
+
 export default class EventSimulator {
     DISPATCHED_EVENT_FLAG: string = 'hammerhead|dispatched-event';
 
@@ -583,6 +593,16 @@ export default class EventSimulator {
         this._raiseDispatchEvent(el, pointEvent);
     }
 
+    _elementCanBeDisabled (el): boolean {
+        for (const elementCanBeDisabled of DISABLEABLE_HTML_ELEMENT_TYPE_CHECKERS) {
+            if (elementCanBeDisabled(el)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     _dispatchMouseRelatedEvents (el, args, userOptions = {}) {
         if (args.type !== 'mouseover' && args.type !== 'mouseenter' && shouldIgnoreMouseEventInsideIframe(el, args.clientX, args.clientY))
             return true;
@@ -610,7 +630,7 @@ export default class EventSimulator {
 
     _dispatchMouseEvent (el, args, { dataTransfer, timeStamp }: any) {
         const disabledParent = domUtils.findParent(el, true, node => {
-            return node.hasAttribute && nativeMethods.hasAttribute.call(node, 'disabled');
+            return this._elementCanBeDisabled(node) && node.hasAttribute && nativeMethods.hasAttribute.call(node, 'disabled');
         });
 
         if (disabledParent)

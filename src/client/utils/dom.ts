@@ -410,6 +410,14 @@ export function isButtonElement (el: any): el is HTMLButtonElement {
     return instanceToString(el) === '[object HTMLButtonElement]';
 }
 
+export function isFieldSetElement (el: any): el is HTMLFieldSetElement {
+    return instanceToString(el) === '[object HTMLFieldSetElement]';
+}
+
+export function isOptGroupElement (el: any): el is HTMLOptGroupElement {
+    return instanceToString(el) === '[object HTMLOptGroupElement]';
+}
+
 export function isHtmlElement (el: any): el is HTMLHtmlElement {
     return instanceToString(el) === '[object HTMLHtmlElement]';
 }
