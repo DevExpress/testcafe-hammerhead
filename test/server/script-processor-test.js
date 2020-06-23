@@ -1024,6 +1024,18 @@ describe('Script processor', () => {
             ]);
         });
 
+        it('arrow function without block statement parameters that returns object expression', () => {
+            testProcessing([
+                {
+                    src:      'links.forEach(({ href }) => ({ a: href, b: 23 }));',
+                    expected: 'links.forEach(_hh$temp0 => {' +
+                              '    var href = __get$(_hh$temp0, "href");' +
+                              '    return { a: href, b: 23 };' +
+                              '});'
+                }
+            ]);
+        });
+
         it('for-of operator', () => {
             testProcessing([
                 {
