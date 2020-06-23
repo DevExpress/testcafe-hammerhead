@@ -2870,8 +2870,8 @@ describe('Proxy', () => {
         });
 
         it('Should pass `forceProxySrcForImage` option in task script', () => {
-            session.getPayloadScript       = () => 'PayloadScript';
-            session.getIframePayloadScript = () => 'IframePayloadScript';
+            session.getPayloadScript       = async () => 'PayloadScript';
+            session.getIframePayloadScript = async () => 'IframePayloadScript';
 
             const rule = RequestFilterRule.ANY;
 

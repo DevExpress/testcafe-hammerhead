@@ -11,8 +11,8 @@ interface ExternalProxySettingsRaw {
 }
 
 interface Session {
-    getIframePayloadScript (iframeWithoutSrc: boolean): string;
-    getPayloadScript (): string;
+    getIframePayloadScript (iframeWithoutSrc: boolean): Promise<string>;
+    getPayloadScript (): Promise<string>;
     handleFileDownload (): void;
 }
 
