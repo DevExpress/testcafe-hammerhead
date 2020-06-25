@@ -11,13 +11,13 @@ function liveHandler( event ) {
     }
 
     for ( j in live ) {
-        fn =  __get$(live,j);
+        fn =  __get$(live,j) ;
         if ( fn.live === event.type ||
              fn.altLive && jQuery.inArray(event.type, fn.altLive) > -1 ) {
 
             data = fn.data;
-            if ( !(data.beforeFilter &&  __get$(data.beforeFilter,event.type) &&
-                   ! __call$(data.beforeFilter,event.type,[event])) ) {
+            if ( !(data.beforeFilter &&  __get$(data.beforeFilter,event.type)  &&
+                   ! __call$(data.beforeFilter,event.type,[event]) ) ) {
                 selectors.push( fn.selector );
             }
         } else {
@@ -29,11 +29,11 @@ function liveHandler( event ) {
 
     for ( i = 0, l = match.length; i < l; i++ ) {
         for ( j in live ) {
-            fn =  __get$(live,j);
-            elem =  __get$(match,i).elem;
+            fn =  __get$(live,j) ;
+            elem =  __get$(match,i) .elem;
             related = null;
 
-            if (  __get$(match,i).selector === fn.selector ) {
+            if (  __get$(match,i) .selector === fn.selector ) {
                 // Those two events require additional checking
                 if ( fn.live === "mouseenter" || fn.live === "mouseleave" ) {
                     related = jQuery( event.relatedTarget ).closest( fn.selector )[0];
@@ -47,7 +47,7 @@ function liveHandler( event ) {
     }
 
     for ( i = 0, l = elems.length; i < l; i++ ) {
-        match =  __get$(elems,i);
+        match =  __get$(elems,i) ;
         event.currentTarget = match.elem;
         event.data = match.fn.data;
         if ( match.fn.apply( match.elem, args ) === false ) {
