@@ -148,11 +148,12 @@ function applyChanges (script: string, changes: CodeChange[], isObject: boolean)
         const nodeOrNodes = change.parent[change.key];
         // @ts-ignore
         const replacement = (change.index > -1 ? nodeOrNodes[change.index] : nodeOrNodes) as Node;
+        const isSequence  = replacement.type === Syntax.SequenceExpression;
 
         chunks.push(script.substring(index, changeStart));
-        chunks.push(' ');
+        chunks.push(isSequence ? '(' : ' ');
         chunks.push(getCode(replacement, script.substring(changeStart, changeEnd)));
-        chunks.push(' ');
+        chunks.push(isSequence ? ')' : ' ');
         index += changeEnd - index;
     }
 
