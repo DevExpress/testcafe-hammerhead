@@ -152,6 +152,7 @@ function applyChanges (script: string, changes: CodeChange[], isObject: boolean)
         chunks.push(script.substring(index, changeStart));
         chunks.push(' ');
         chunks.push(getCode(replacement, script.substring(changeStart, changeEnd)));
+        chunks.push(' ');
         index += changeEnd - index;
     }
 

@@ -336,7 +336,7 @@ describe('Script processor', () => {
     it('Should add a space before the replacement string', () => {
         const processed = processScript('if(true){;}else"0"[s]', false);
 
-        expect(processed).eql('if(true){;}else __get$("0",s)');
+        expect(processed).eql('if(true){;}else __get$("0",s) ');
     });
 
     it('Should process a "new" expression if its body contains processed nodes', () => {
@@ -1082,6 +1082,17 @@ describe('Script processor', () => {
                               '}'
                 }
             ]);
+        });
+
+        it('for-of without space after declaration', () => {
+            const src       = 'for (const {location}of some) ;';
+            const expected  = 'for (const  _hh$temp0 of some)  {const location=__get$(_hh$temp0,"location");;} ';
+            const processed = processScript(src, false, false);
+            const msg       = 'Source: ' + src + '\n' +
+                              'Result: ' + processed + '\n' +
+                              'Expected: ' + expected + '\n';
+
+            expect(processed).eql(expected, msg);
         });
 
         it('Should not process destructuring', () => {
