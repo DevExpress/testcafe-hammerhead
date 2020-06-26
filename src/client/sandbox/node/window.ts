@@ -355,6 +355,10 @@ export default class WindowSandbox extends SandboxBase {
         const titleElements = getNativeQuerySelectorAll(el).call(el, 'title');
 
         for(const titleElement of titleElements) {
+            // NOTE: SVGTitleElement can be here (GH-2364)
+            if (!isTitleElement(titleElement))
+                continue;
+
             const nativeText = nativeMethods.titleElementTextGetter.call(titleElement);
 
             this._documentTitleStorage.setTitleElementPropertyValue(titleElement, nativeText);
