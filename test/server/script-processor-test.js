@@ -1105,6 +1105,25 @@ describe('Script processor', () => {
             ]);
         });
 
+        it('multiple destructuring', () => {
+            testProcessing([
+                {
+                    src: 'function k () {' +
+                         '    let [a, b] = e;' +
+                         '    return [a, b] = e;' +
+                         '}',
+
+                    expected: 'function k () {' +
+                              '    var _hh$temp1;' +
+                              '    let _hh$temp0 = e,' +
+                              '        a = _hh$temp0[0],' +
+                              '        b = _hh$temp0[1];' +
+                              '    return (_hh$temp1 = e, a = _hh$temp1[0], b = _hh$temp1[1]);' +
+                              '}'
+                }
+            ]);
+        });
+
         it('Should not process destructuring', () => {
             testProcessing([
                 {
