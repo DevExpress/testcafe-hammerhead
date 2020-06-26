@@ -663,6 +663,25 @@ test('creation via set "innerHTML" or "outerHTML"', function () {
     strictEqual(title.text, 'Title from outerHTML');
 });
 
+test("SVG's <title> element (GH-2364)", function () {
+    var div = document.createElement('div');
+
+    div.innerHTML =
+        '<svg viewBox="0 0 20 10" xmlns="http://www.w3.org/2000/svg">' +
+        '  <circle cx="5" cy="5" r="4">' +
+        '    <title>I am a circle</title>' +
+        '  </circle>' +
+        '</svg>';
+
+    document.body.appendChild(div);
+
+    var title = div.getElementsByTagName('title')[0];
+
+    strictEqual(title.textContent, 'I am a circle');
+
+    div.parentNode.removeChild(div);
+});
+
 module('regression');
 
 test('document.write for several tags in iframe (T215136)', function () {
