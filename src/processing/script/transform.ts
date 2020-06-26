@@ -3,7 +3,7 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 import { BlockStatement, Node, Program } from 'estree';
-import transformers from './transformers';
+import transformers, { Transformer } from './transformers';
 import jsProtocolLastExpression from './transformers/js-protocol-last-expression';
 import staticImportTransformer from './transformers/static-import';
 import dynamicImportTransformer from './transformers/dynamic-import';
@@ -17,9 +17,7 @@ import TempVariables from './transformers/temp-variables';
 export interface CodeChange {
     start: number;
     end: number;
-    index: number;
-    parent: Node;
-    key: keyof this['parent'];
+    node: Node;
 }
 
 class State {
@@ -52,16 +50,13 @@ class State {
 const objectToString = Object.prototype.toString;
 const objectKeys     = Object.keys;
 
-function getChange<T extends Node> (node: Node, parent: T, key: keyof T): CodeChange {
+function getChange (node: Node): CodeChange {
     /*eslint-disable @typescript-eslint/no-non-null-assertion*/
     const start = node.originStart!;
     const end   = node.originEnd!;
-    const nodes = parent[key];
-    const index = nodes instanceof Array ? nodes.indexOf(node) : -1;
     /*eslint-disable @typescript-eslint/no-non-null-assertion*/
 
-    // @ts-ignore
-    return { start, end, index, parent, key };
+    return { start, end, node };
 }
 
 function transformChildNodes (node: Node, changes: CodeChange[], state: State, tempVars: TempVariables) {
@@ -93,7 +88,7 @@ function isNodeTransformed (node: Node): boolean {
     return node.originStart !== void 0 && node.originEnd !== void 0;
 }
 
-function addChangeForTransformedNode<T extends Node> (state: State, changes: CodeChange[], replacement: Node, parent: T, key: keyof T) {
+function addChangeForTransformedNode (state: State, changes: CodeChange[], replacement: Node) {
     const hasTransformedAncestor = state.hasTransformedAncestor ||
                                    state.newExpressionAncestor && isNodeTransformed(state.newExpressionAncestor);
 
@@ -102,10 +97,10 @@ function addChangeForTransformedNode<T extends Node> (state: State, changes: Cod
 
     if (state.newExpressionAncestor) {
         replaceNode(state.newExpressionAncestor, state.newExpressionAncestor, state.newExpressionAncestorParent!, state.newExpressionAncestorKey!);
-        changes.push(getChange(state.newExpressionAncestor, state.newExpressionAncestorParent!, state.newExpressionAncestorKey!));
+        changes.push(getChange(state.newExpressionAncestor));
     }
     else
-        changes.push(getChange(replacement, parent, key));
+        changes.push(getChange(replacement));
 }
 
 function addTempVarsDeclaration (node: BlockStatement | Program, changes: CodeChange[], state: State, tempVars: TempVariables) {
@@ -117,7 +112,7 @@ function addTempVarsDeclaration (node: BlockStatement | Program, changes: CodeCh
     const declaration = createTempVarsDeclaration(names);
 
     replaceNode(null, declaration, node, 'body');
-    addChangeForTransformedNode(state, changes, declaration, node, 'body');
+    addChangeForTransformedNode(state, changes, declaration);
 }
 
 function beforeTransform (wrapLastExprWithProcessHtml: boolean = false, resolver?: Function) {
@@ -145,53 +140,53 @@ function afterTransform () {
     dynamicImportTransformer.baseUrl      = void 0;
 }
 
-/* eslint-disable @typescript-eslint/indent */
-function transform<T extends Node> (node: Node,
-                                    changes: CodeChange[],
-                                    state: State,
-                                    parent: T,
-                                    key: keyof T,
-                                    tempVars: TempVariables,
-                                    reTransform?: boolean) {
-    /* eslint-enable @typescript-eslint/indent */
+function findTransformer (node: Node, parent: Node): Transformer<any> | null {
+    const nodeTransformers = transformers.get(node.type);
+
+    if (nodeTransformers) {
+        for (const transformer of nodeTransformers) {
+            if (transformer.condition(node, parent))
+                return transformer;
+        }
+    }
+
+    return null;
+}
+
+function transform<T extends Node> (node: Node, changes: CodeChange[], state: State, parent: T, key: keyof T, tempVars: TempVariables) {
     const allowTempVarAdd = node.type === Syntax.BlockStatement;
     let nodeTransformed   = false;
 
     if (allowTempVarAdd)
         tempVars = new TempVariables();
 
-    if (!reTransform && !node.reTransform && isNodeTransformed(node)) {
-        addChangeForTransformedNode(state, changes, node, parent, key);
+    if (!node.reTransform && isNodeTransformed(node)) {
+        addChangeForTransformedNode(state, changes, node);
         nodeTransformed = true;
     }
-    else if (transformers.has(node.type)) {
-        const nodeTransformers = transformers.get(node.type);
+    else {
+        let storedNode  = node;
+        let transformer = findTransformer(node, parent);
+        let replacement = null;
 
-        for (const transformer of nodeTransformers!) {
-            if (!transformer.condition(node, parent))
-                continue;
-
-            const replacement = transformer.run(node, parent, key, tempVars);
+        while (transformer) {
+            replacement = transformer.run(replacement || node, parent, key, tempVars);
 
             if (!replacement)
                 break;
-
-            replaceNode(node, replacement, parent, key);
-            addChangeForTransformedNode(state, changes, replacement, parent, key);
 
             nodeTransformed = true;
 
             if (!transformer.nodeReplacementRequireTransform)
                 break;
 
-            state = State.create(state, replacement, parent, key, nodeTransformed);
+            transformer = findTransformer(replacement, parent);
+            node        = replacement;
+        }
 
-            transform(replacement, changes, state, parent, key, tempVars, true);
-
-            if (allowTempVarAdd)
-                addTempVarsDeclaration(replacement as BlockStatement, changes, state, tempVars);
-
-            return;
+        if (nodeTransformed) {
+            replaceNode(storedNode, replacement, parent, key);
+            addChangeForTransformedNode(state, changes, replacement);
         }
     }
 
