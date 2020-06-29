@@ -616,9 +616,9 @@ test('script and style content added via a child text node must be overridden (G
     var scriptTextNode2 = document.createTextNode('var host2 = location.host');
 
     script.appendChild(scriptTextNode1);
-    ok(script.childNodes[0].data.indexOf('var host1 =  __get$Loc(location).host') > -1);
+    ok(script.childNodes[0].data.indexOf('var host1 =  __get$Loc(location) .host') > -1);
     script.insertBefore(scriptTextNode2, scriptTextNode1);
-    ok(script.childNodes[0].data.indexOf('var host2 =  __get$Loc(location).host') > -1);
+    ok(script.childNodes[0].data.indexOf('var host2 =  __get$Loc(location) .host') > -1);
 });
 
 test('node.replaceChild must be overridden (GH-264)', function () {
