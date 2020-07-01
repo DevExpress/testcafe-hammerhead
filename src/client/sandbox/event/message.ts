@@ -2,7 +2,7 @@ import Promise from 'pinkie';
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import * as destLocation from '../../utils/destination-location';
-import { formatUrl, getCrossDomainProxyUrl, isSupportedProtocol } from '../../utils/url';
+import { formatUrl } from '../../utils/url';
 // @ts-ignore
 import { parse as parseJSON, stringify as stringifyJSON } from 'json-hammerhead';
 import { isCrossDomainWindows, getTopSameDomainWindow, isWindow, isMessageEvent } from '../../utils/dom';
@@ -178,20 +178,9 @@ export default class MessageSandbox extends SandboxBase {
     postMessage (contentWindow: Window, args) {
         const targetUrl = args[1] || destLocation.getOriginHeader();
 
-        if (isCrossDomainWindows(this.window, contentWindow))
-            args[1] = getCrossDomainProxyUrl();
-        else if (!isSupportedProtocol(contentWindow.location.toString()) ||
-                 !isSupportedProtocol(this.window.location.toString()))
-            args[1] = '*';
-        else {
-            args[1] = formatUrl({
-                /*eslint-disable no-restricted-properties*/
-                protocol: this.window.location.protocol,
-                host:     this.window.location.host
-                /*eslint-enable no-restricted-properties*/
-            });
-        }
-
+        // NOTE: Here, we pass all messages as "no preference" ("*").
+        // We do an origin check in "_onWindowMessage" to access the target origin.
+        args[1] = '*';
         args[0] = MessageSandbox._wrapMessage(MessageType.User, args[0], targetUrl);
 
 

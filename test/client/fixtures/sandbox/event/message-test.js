@@ -49,6 +49,7 @@ asyncTest('onmessage event', function () {
 
         if (count === 4) {
             window.removeEventListener('message', onMessageHandler);
+            window.onmessage = void 0;
             start();
         }
     };
@@ -59,6 +60,25 @@ asyncTest('onmessage event', function () {
             window.addEventListener('message', onMessageHandler);
             callMethod(iframe.contentWindow, 'postMessage', ['', '*']);
         });
+});
+
+asyncTest('cross domain messages should follow the "targetOrigin" rule (GH-2165)', function () {
+    var recievedMessages = [];
+
+    var onMessageHandler = function (evt) {
+        if (recievedMessages.push(evt.data) === 2) {
+            ok(recievedMessages.indexOf('Should pass an origin check: correct targetOrigin') > -1, 'https://example.com/');
+            ok(recievedMessages.indexOf('Should pass an origin check: no targetOrigin preference ("*")') > -1, '*');
+
+            window.removeEventListener('message', onMessageHandler);
+
+            start();
+        }
+    };
+
+    window.addEventListener('message', onMessageHandler);
+
+    createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/targetorigin-message-to-top.html') });
 });
 
 test('message types', function () {
@@ -280,7 +300,7 @@ asyncTest('send message from iframe with "about:blank" src (GH-1026)', function 
             return;
 
         iframe.parentNode.removeChild(iframe);
-        window.onmessage = null;
+        window.onmessage = void 0;
         ok(true);
         start();
     };

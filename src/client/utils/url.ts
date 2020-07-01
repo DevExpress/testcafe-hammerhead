@@ -191,11 +191,6 @@ export function getCrossDomainProxyPort (proxyPort: string) {
         : settings.get().crossDomainProxyPort;
 }
 
-export function getCrossDomainProxyUrl () {
-    // eslint-disable-next-line no-restricted-properties
-    return location.protocol + '//' + location.hostname + ':' + settings.get().crossDomainProxyPort + '/';
-}
-
 export function resolveUrlAsDest (url: string) {
     return sharedUrlUtils.resolveUrlAsDest(url, getProxyUrl);
 }

@@ -26,7 +26,7 @@ asyncTest('cross domain messaging between windows', function () {
         if (nativeMessageCounter === 5) {
             nativeRemoveEventListener.call(window, 'message', nativeHandler);
             iframe.parentNode.removeChild(iframe);
-            window.onmessage = null;
+            window.onmessage = void 0;
             deepEqual(results.sort(), ['*', 'same origin']);
             start();
         }

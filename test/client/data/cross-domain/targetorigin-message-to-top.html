@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+
+
+</head>
+<body>
+<script type="text/javascript">
+    var hammerhead = window['%hammerhead%'];
+
+    var iframe        = document.createElement('iframe');
+    var hhPostMessage = hammerhead.sandbox.event.message.postMessage;
+    var test          = function () {
+        hhPostMessage(top, ['Should not pass an origin check: no targetOrigin parameter']);
+        hhPostMessage(top, ['Should not pass an origin check: wrong targetOrigin', 'https://wrong-target-origin.com/']);
+
+        hhPostMessage(top, ['Should pass an origin check: correct targetOrigin', 'https://example.com/']);
+        hhPostMessage(top, ['Should pass an origin check: no targetOrigin preference ("*")', '*']);
+    };
+
+    iframe.src = 'about:blank';
+
+    iframe.addEventListener('load', test);
+
+    document.body.appendChild(iframe);
+</script>
+</body>
+</html>
