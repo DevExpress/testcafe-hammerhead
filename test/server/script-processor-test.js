@@ -1310,5 +1310,21 @@ describe('Script processor', () => {
                 }
             ]);
         });
+
+        it('Should correctly format meta property', () => {
+            testProcessing([
+                {
+                    src: 'function x () {' +
+                         '    let { a, b } = new.target;' +
+                         '}',
+
+                    expected: 'function x () {' +
+                              '    let _hh$temp0 = new.target,' +
+                              '        a = _hh$temp0.a,' +
+                              '        b = _hh$temp0.b;' +
+                              '}'
+                }
+            ]);
+        });
     });
 });
