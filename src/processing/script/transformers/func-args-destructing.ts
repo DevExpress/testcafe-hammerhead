@@ -47,17 +47,20 @@ export default function create<T extends (FunctionDeclaration | FunctionExpressi
 
             for (let param of node.params) {
                 let tempVarParent = node;
+                let tempVarKey    = 'params';
 
                 if (param.type === Syntax.AssignmentPattern) {
                     // @ts-ignore
                     tempVarParent = param;
                     param         = param.left;
+                    tempVarKey    = 'left';
                 }
 
                 if (param.type === Syntax.ObjectPattern || param.type === Syntax.ArrayPattern) {
                     const tempVar = createIdentifier(TempVariables.generateName());
 
-                    replaceNode(param, tempVar, tempVarParent, 'params');
+                    // @ts-ignore
+                    replaceNode(param, tempVar, tempVarParent, tempVarKey);
 
                     declarations.push(createVariableDeclarator(param, tempVar));
                 }

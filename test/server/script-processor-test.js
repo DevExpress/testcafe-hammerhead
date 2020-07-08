@@ -1036,6 +1036,19 @@ describe('Script processor', () => {
             ]);
         });
 
+        it('arrow function without block statement with default parameter', () => {
+            testProcessing([
+                {
+                    src: 'var f = ({ accountSettings: e } = i) => 1 === Number(e.runAsThread)',
+
+                    expected: 'var f = (_hh$temp0 = i) => {' +
+                              '    var e = _hh$temp0.accountSettings;' +
+                              '    return 1 === Number(e.runAsThread);' +
+                              '}'
+                }
+            ]);
+        });
+
         it('for-of operator', () => {
             testProcessing([
                 {
