@@ -50,19 +50,18 @@ export default class NodeSandbox extends SandboxBase {
             writable: true
         });
 
-        this._documentTitleStorage = new DocumentTitleStorage();
+        this._documentTitleStorage = new DocumentTitleStorage(document);
         this.doc                   = new DocumentSandbox(this, this.shadowUI, this._cookieSandbox, this._documentTitleStorage);
         this.win                   = new WindowSandbox(this, this._eventSandbox, this._uploadSandbox, this.mutation, this._childWindowSandbox, this._documentTitleStorage);
         this.element               = new ElementSandbox(this, this._uploadSandbox, this.iframeSandbox, this.shadowUI, this._eventSandbox, this._childWindowSandbox);
     }
 
     private _onBodyCreated (): void {
-        this._documentTitleStorage.init(this.document);
         this._eventSandbox.listeners.initDocumentBodyListening(this.document);
         this.mutation.onBodyCreated(this.document.body as HTMLBodyElement);
     }
 
-    private _processElement (el) {
+    private _processElement (el: HTMLElement): void {
         const processedContext = el[INTERNAL_PROPS.processedContext];
 
         if (domUtils.isShadowUIElement(el) || processedContext === this.window)
@@ -93,10 +92,10 @@ export default class NodeSandbox extends SandboxBase {
     }
 
     onFirstTitleElementInHeadLoaded (): void {
-        this._documentTitleStorage.init(this.document);
+        this._documentTitleStorage.setValueForFirstTitleElementIfExists();
     }
 
-    processNodes (el, doc?: Document): void {
+    processNodes (el: HTMLElement, doc?: Document): void {
         if (!el) {
             doc = doc || this.document;
 
@@ -117,11 +116,12 @@ export default class NodeSandbox extends SandboxBase {
     // NOTE: DOM sandbox hides evidence of the content proxying from a page native script. Proxy replaces URLs for
     // resources. Our goal is to make the native script think that all resources are fetched from the destination
     // resource, not from proxy, and also provide proxying for dynamically created elements.
-    attach (window): void {
+    attach (window: Window): void {
         const document                  = window.document;
         let domContentLoadedEventRaised = false;
 
         super.attach(window, document);
+        this._documentTitleStorage.setValueForFirstTitleElementIfExists();
 
         this.iframeSandbox.on(this.iframeSandbox.IFRAME_DOCUMENT_CREATED_EVENT, ({ iframe }) => {
             const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
