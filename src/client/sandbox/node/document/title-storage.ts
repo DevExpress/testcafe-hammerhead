@@ -7,11 +7,10 @@ const DEFAULT_TITLE_VALUE      = '';
 const INTERNAL_TITLE_PROP_NAME = 'hammerhead|document-title-storage|internal-prop-name'
 
 export default class DocumentTitleStorage {
-    private _document: Document;
-    private _initialized: boolean;
+    private readonly _document: Document;
 
-    public constructor() {
-        this._initialized = false;
+    public constructor(document: Document) {
+        this._document = document;
     }
 
     private _ensureFirstTitleElementInHead (value: string): void {
@@ -35,7 +34,7 @@ export default class DocumentTitleStorage {
         return this.getTitleElementPropertyValue(firstTitle);
     }
 
-    private _setValueForFirstTitleElementIfExists (value?: string): void {
+    public setValueForFirstTitleElementIfExists (value?: string): void {
         const firstTitle = this._getFirstTitleElement();
 
         if(!firstTitle)
@@ -53,15 +52,6 @@ export default class DocumentTitleStorage {
             nativeMethods.elementQuerySelector.call(this._document.head, 'title');
     }
 
-    init (document: Document): void {
-        if (this._initialized)
-            return;
-
-        this._document = document;
-        this._setValueForFirstTitleElementIfExists();
-        this._initialized = true;
-    }
-
     getTitle (): string {
         return this._getValueFromFirstTitleElement();
     }
@@ -70,7 +60,7 @@ export default class DocumentTitleStorage {
         value = String(value);
 
         this._ensureFirstTitleElementInHead(value);
-        this._setValueForFirstTitleElementIfExists(value);
+        this.setValueForFirstTitleElementIfExists(value);
     }
 
     getTitleElementPropertyValue (element: HTMLTitleElement): string {
