@@ -81,6 +81,14 @@ export default class DestinationRequest extends EventEmitter implements Destinat
             });
             this.opts.headers = storedHeaders;
 
+            if (logger.destinationSocket.enabled) {
+                this.req.on('socket', socket => {
+                    socket.once('data', data =>
+                        logger.destinationSocket('Destination request socket first chunk of data %s %d %s', this.opts.requestId, data.length, JSON.stringify(data.toString())));
+                    socket.once('error', err => logger.destinationSocket('Destination request socket error %s %o', this.opts.requestId, err));
+                });
+            }
+
             if (!waitForData)
                 this.req.on('response', (res: http.IncomingMessage) => this._onResponse(res));
 
