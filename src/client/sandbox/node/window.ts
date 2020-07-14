@@ -149,7 +149,7 @@ export default class WindowSandbox extends SandboxBase {
         return stack;
     }
 
-    private static _isProcessableBlob (parts: any[]): boolean {
+    private static _isProcessableBlobParts (parts: any[]): boolean {
         let hasStringItem = false;
 
         for (const item of parts) {
@@ -164,6 +164,17 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         return hasStringItem;
+    }
+
+    private static _isProcessableBlob (array, opts): boolean {
+        const type = opts && opts.type && opts.type.toString().toLowerCase() || getMimeType(array);
+
+        // NOTE: If we cannot identify the content type of data, we're trying to process it as a script
+        // (in the case of the "Array<string | number | boolean>" blob parts array: GH-2115).
+        // Unfortunately, we do not have the ability to exactly identify a script. That's why we make such
+        // an assumption. We cannot solve this problem at the Worker level either, because the operation of
+        // creating a new Blob instance is asynchronous. (GH-231)
+        return (!type || JAVASCRIPT_MIME_TYPES.indexOf(type) !== -1) && WindowSandbox._isProcessableBlobParts(array);
     }
 
     _getWindowOpenTarget (originTarget: string): string {
@@ -525,14 +536,7 @@ export default class WindowSandbox extends SandboxBase {
                 if (arguments.length === 0)
                     return new nativeMethods.Blob();
 
-                const type = opts && opts.type && opts.type.toString().toLowerCase() || getMimeType(array);
-
-                // NOTE: If we cannot identify the content type of data, we're trying to process it as a script
-                // (in the case of the "Array<string | number | boolean>" blob parts array: GH-2115).
-                // Unfortunately, we do not have the ability to exactly identify a script. That's why we make such
-                // an assumption. We cannot solve this problem at the Worker level either, because the operation of
-                // creating a new Blob instance is asynchronous. (GH-231)
-                if ((!type || JAVASCRIPT_MIME_TYPES.indexOf(type) !== -1) && WindowSandbox._isProcessableBlob(array))
+                if (WindowSandbox._isProcessableBlob(array, opts))
                     array = [processScript(array.join(''), true, false, convertToProxyUrl)];
 
                 // NOTE: IE11 throws an error when the second parameter of the Blob function is undefined (GH-44)
@@ -542,6 +546,21 @@ export default class WindowSandbox extends SandboxBase {
             };
             window.Blob.prototype = nativeMethods.Blob.prototype;
             window.Blob.toString  = () => nativeMethods.Blob.toString();
+        }
+
+        // NOTE: non-IE11 case. window.File in IE11 is not constructable.
+        if (window.File && typeof window.File === 'function') {
+            window.File = function (array, fileName, opts) {
+                if (arguments.length === 0)
+                    return new nativeMethods.File();
+
+                if (WindowSandbox._isProcessableBlob(array, opts))
+                    array = [processScript(array.join(''), true, false, convertToProxyUrl)];
+
+                return new nativeMethods.File(array, fileName, opts);
+            };
+            window.File.prototype = nativeMethods.File.prototype;
+            window.File.toString  = () => nativeMethods.File.toString();
         }
 
         if (window.EventSource) {

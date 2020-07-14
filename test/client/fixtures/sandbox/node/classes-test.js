@@ -207,6 +207,171 @@ if (canCreateBlobFromNumberBooleanArray) {
     });
 }
 
+module('File');
+
+// IE11 doesn't support File constructor
+var isFileConstructable = (function () {
+    var array = [true, false, 1, 0];
+
+    try {
+        return !!new nativeMethods.File(array, 'file.js');
+    }
+    catch (err) {
+        return false;
+    }
+})();
+
+if (isFileConstructable) {
+    test('window.File should be overridden', function () {
+        notEqual(window.File, nativeMethods.File);
+    });
+
+    test('window.File([data], "file.name", { type: "" }) should return correct result for `ArrayBuffer`, `Uint8Array` and `DataView` data types', function () {
+        var bmpExample = {
+            signature: [0x42, 0x4D]
+        };
+
+        var testConstructor = function (constructor) {
+            return new Promise(function (resolve) {
+                var arrayBuffer;
+                var data;
+                var typedArray;
+                var i;
+
+                if (constructor === ArrayBuffer) {
+                    arrayBuffer = new constructor(bmpExample.signature.length);
+                    typedArray  = new Uint8Array(arrayBuffer);
+
+                    for (i = 0; i < typedArray.length; i++)
+                        typedArray[i] = bmpExample.signature[i];
+
+                    data = arrayBuffer;
+                }
+                else if (constructor === DataView) {
+                    arrayBuffer = new ArrayBuffer(bmpExample.signature.length);
+                    typedArray  = new Uint8Array(arrayBuffer);
+
+                    for (i = 0; i < typedArray.length; i++)
+                        typedArray[i] = bmpExample.signature[i];
+
+                    var dataView = new constructor(arrayBuffer);
+
+                    data = browserUtils.isIE11 ? dataView.buffer : dataView;
+                }
+                else {
+                    typedArray = new constructor(bmpExample.signature);
+                    data       = typedArray;
+                }
+
+                var resultFile = new File([data], 'file.name', { type: '' });
+                var fileReader = new FileReader();
+
+                fileReader.onload = function () {
+                    var resultArrayBuffer = this.result;
+
+                    var resultTypedArray = constructor === ArrayBuffer || constructor === DataView
+                        ? new Uint8Array(resultArrayBuffer)
+                        : new constructor(resultArrayBuffer);
+
+                    var resultArray = [].slice.call(resultTypedArray);
+
+                    strictEqual(resultArray.toString(), bmpExample.signature.toString());
+                    resolve();
+                };
+
+                fileReader.readAsArrayBuffer(resultFile);
+            });
+        };
+
+        return Promise.all([
+            testConstructor(ArrayBuffer),
+            testConstructor(Uint8Array),
+            testConstructor(DataView)
+        ]);
+    });
+
+    asyncTest('should process File parts in the case of the "Array<string | number | boolean>" array', function () {
+        var parts = ['var test = ', 1, '+', true, ';'];
+
+        var expectedScript = processScript(parts.join(''), true).replace(/\s/g, '');
+
+        var file   = new window.File(parts, { type: 'texT/javascript' });
+        var reader = new FileReader();
+
+        reader.addEventListener('loadend', function (e) {
+            strictEqual(e.target.result.replace(/\s/g, ''), expectedScript);
+            start();
+        });
+
+        reader.readAsText(file);
+    });
+
+    asyncTest('should try to process data as a script even if the content type is not passed', function () {
+        var script  = 'var obj = {}, prop = "prop"; obj[prop] = true; postMessage(true);';
+        var fileURL = URL.createObjectURL(new File([script], 'script.js'));
+
+        new Worker(fileURL).onmessage = function (e) {
+            ok(e.data);
+            start();
+        };
+    });
+
+    if (canCreateBlobFromNumberBooleanArray) {
+        test('should not process unprocessable File parts', function () {
+            var unprocessableFileParts = [true, false, 1, 0];
+            var processableFileParts   = ['const val1 =', true, '; const var2 =', 1];
+
+            var testCases = [
+                {
+                    fileParts: unprocessableFileParts,
+                    options:   { type: '' }
+                },
+                {
+                    fileParts: unprocessableFileParts,
+                    options:   { type: 'text/javascript' }
+                },
+                {
+                    fileParts: processableFileParts.concat([new nativeMethods.File(['unprocessable part'], 'file.name')]),
+                    options:   { type: '' }
+                },
+                {
+                    fileParts: processableFileParts.concat([new nativeMethods.File(['unprocessable part'], 'file.name')]),
+                    options:   { type: 'text/javascript' }
+                }
+            ];
+
+            var readFileContent = function (file) {
+                return new hammerhead.Promise(function (resolve) {
+                    var reader = new FileReader();
+
+                    reader.addEventListener('loadend', function () {
+                        var arr = new Uint8Array(this.result);
+
+                        resolve(arr);
+                    });
+                    reader.readAsArrayBuffer(file);
+                });
+            };
+
+            return Promise.all(testCases.map(function (testCase) {
+                var overridenFile  = new File(testCase.fileParts, 'file.name', testCase.options);
+                var nativeFile     = new nativeMethods.File(testCase.fileParts, 'file.name', testCase.options);
+                var redFileContent = null;
+
+                return readFileContent(overridenFile)
+                    .then(function (fileContent) {
+                        redFileContent = fileContent;
+
+                        return readFileContent(nativeFile);
+                    })
+                    .then(function (nativeFileContent) {
+                        deepEqual(redFileContent, nativeFileContent);
+                    });
+            }));
+        });
+    }
+}
+
 module('Image');
 
 test('window.Image should be overridden', function () {
