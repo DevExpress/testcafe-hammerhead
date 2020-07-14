@@ -47,10 +47,10 @@ debug.formatters.i = (ctx: RequestPipelineContext): string => {
     return `{ ${stringifiedInfoArr.join(', ')} }`;
 };
 
-const hammerhead = debug('hammerhead');
+const hammerhead        = debug('hammerhead');
+const proxy             = hammerhead.extend('proxy');
+const destination       = hammerhead.extend('destination');
+const destinationSocket = destination.extend('socket');
+const serviceMsg        = hammerhead.extend('service-message');
 
-export default {
-    proxy:       hammerhead.extend('proxy'),
-    destination: hammerhead.extend('destination'),
-    serviceMsg:  hammerhead.extend('service-message')
-};
+export default { proxy, destination, destinationSocket, serviceMsg };
