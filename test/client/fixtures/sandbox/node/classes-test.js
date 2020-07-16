@@ -741,7 +741,10 @@ if (window.FormData) {
                 type: 'text/plain',
                 name: 'correctName.txt'
             },
-            blob: new Blob(['text'], { type: 'text/plain' })
+            // NOTE: window.File in IE11 is not constructable.
+            blob: nativeMethods.File
+                ? new File(['text'], 'correctName.txt', { type: 'text/plain' })
+                : new Blob(['text'], { type: 'text/plain' })
         }));
         formData.append(INTERNAL_ATTRS.uploadInfoHiddenInputName, '[]');
 
