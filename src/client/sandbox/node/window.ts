@@ -16,7 +16,7 @@ import {
     stringifyResourceType,
     resolveUrlAsDest
 } from '../../utils/url';
-import { isFirefox, isChrome, isIE, isAndroid, isMSEdge, version as browserVersion } from '../../utils/browser';
+import { isFirefox, isChrome, isIE } from '../../utils/browser';
 import {
     isCrossDomainWindows,
     isImgElement,
@@ -612,29 +612,30 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (nativeMethods.registerServiceWorker) {
-            window.navigator.serviceWorker.register = (...args) => {
-                const url = args[0];
+            // debugger;
+            // window.navigator.serviceWorker.register = (...args) => {
+            //     const url = args[0];
 
-                if (typeof url === 'string') {
-                    if (WindowSandbox._isSecureOrigin(url)) {
-                        // NOTE: We cannot create an instance of the DOMException in the Android 6.0 and in the Edge 17 browsers.
-                        // The 'TypeError: Illegal constructor' error is raised if we try to call the constructor.
-                        return Promise.reject(isAndroid || isMSEdge && browserVersion >= 17
-                            ? new Error('Only secure origins are allowed.')
-                            : new DOMException('Only secure origins are allowed.', 'SecurityError'));
-                    }
+            //     if (typeof url === 'string' && !url.startsWith("/mockServiceWorker")) {
+            //         if (WindowSandbox._isSecureOrigin(url)) {
+            //             // NOTE: We cannot create an instance of the DOMException in the Android 6.0 and in the Edge 17 browsers.
+            //             // The 'TypeError: Illegal constructor' error is raised if we try to call the constructor.
+            //             return Promise.reject(isAndroid || isMSEdge && browserVersion >= 17
+            //                 ? new Error('Only secure origins are allowed.')
+            //                 : new DOMException('Only secure origins are allowed.', 'SecurityError'));
+            //         }
 
-                    args[0] = getProxyUrl(url, { resourceType: stringifyResourceType({ isScript: true }) });
-                }
+            //         args[0] = getProxyUrl(url, { resourceType: stringifyResourceType({ isScript: true }) });
+            //     }
 
-                if (args[1] && typeof args[1].scope === 'string') {
-                    args[1].scope = getProxyUrl(args[1].scope, {
-                        resourceType: stringifyResourceType({ isScript: true })
-                    });
-                }
+            //     if (args[1] && typeof args[1].scope === 'string') {
+            //         args[1].scope = getProxyUrl(args[1].scope, {
+            //             resourceType: stringifyResourceType({ isScript: true })
+            //         });
+            //     }
 
-                return nativeMethods.registerServiceWorker.apply(window.navigator.serviceWorker, args);
-            };
+            //     return nativeMethods.registerServiceWorker.apply(window.navigator.serviceWorker, args);
+            // };
         }
 
         if (nativeMethods.getRegistrationServiceWorker) {

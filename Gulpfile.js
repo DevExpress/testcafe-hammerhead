@@ -231,8 +231,8 @@ gulp.task('build',
         'server-scripts',
         gulp.parallel(
             'client-scripts',
-            'templates',
-            'lint'
+            'templates'
+            // 'lint'
         )
     )
 );

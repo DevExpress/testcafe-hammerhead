@@ -14,6 +14,7 @@ export const SCRIPT_PROCESSING_END_HEADER_COMMENT = '/*hammerhead|script|process
 const STRICT_MODE_PLACEHOLDER = '{strict-placeholder}';
 
 const HEADER: string = `
+if(!self.clients) {
     ${SCRIPT_PROCESSING_START_COMMENT}
     ${STRICT_MODE_PLACEHOLDER}
 
@@ -48,7 +49,7 @@ const HEADER: string = `
             ${INSTRUCTION.restArray} = function(a,i){return Array.prototype.slice.call(a, i)},
             ${INSTRUCTION.restObject} = function(o,p){var k=Object.keys(o),n={};for(var i=0;i<k.length;++i)if(p.indexOf(k[i])<0)n[k[i]]=o[k[i]];return n};
     }
-    ${SCRIPT_PROCESSING_END_HEADER_COMMENT}
+    ${SCRIPT_PROCESSING_END_HEADER_COMMENT}}
 `.replace(/\n(?!$)\s*/g, '');
 
 // NOTE: IE removes trailing newlines in script.textContent,

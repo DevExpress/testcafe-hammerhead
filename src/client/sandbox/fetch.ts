@@ -7,7 +7,7 @@ import { getOriginHeader, sameOriginCheck, get as getDestLocation } from '../uti
 import { isFetchHeaders, isFetchRequest } from '../utils/dom';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
 import { overrideDescriptor } from '../utils/property-overriding';
-import * as browserUtils from '../utils/browser';
+// import * as browserUtils from '../utils/browser';
 import { transformHeaderNameToBuiltin, transformHeaderNameToInternal } from '../utils/headers';
 
 const DEFAULT_REQUEST_CREDENTIALS = nativeMethods.Request ? new nativeMethods.Request(window.location.toString()).credentials : void 0;
@@ -157,7 +157,7 @@ export default class FetchSandbox extends SandboxBase {
         if (!nativeMethods.fetch)
             return;
 
-        const sandbox = this;
+        // const sandbox = this;
 
         window.Request           = function (...args) {
             FetchSandbox._processArguments(args);
@@ -174,37 +174,38 @@ export default class FetchSandbox extends SandboxBase {
         };
         window.Request.prototype = nativeMethods.Request.prototype;
 
-        window.fetch = function (...args) {
-            // NOTE: Safari processed the empty `fetch()` request without `Promise` rejection (GH-1613)
-            if (!args.length && !browserUtils.isSafari)
-                return nativeMethods.fetch.apply(this);
+        window.fetch = window.fetch;
+        // window.fetch = function (...args) {
+        //     // NOTE: Safari processed the empty `fetch()` request without `Promise` rejection (GH-1613)
+        //     if (!args.length && !browserUtils.isSafari)
+        //         return nativeMethods.fetch.apply(this);
 
-            try {
-                FetchSandbox._processArguments(args);
-            }
-            catch (e) {
-                // @ts-ignore
-                return nativeMethods.promiseReject.call(sandbox.window.Promise, e);
-            }
+        //     try {
+        //         FetchSandbox._processArguments(args);
+        //     }
+        //     catch (e) {
+        //         // @ts-ignore
+        //         return nativeMethods.promiseReject.call(sandbox.window.Promise, e);
+        //     }
 
-            if (!FetchSandbox._sameOriginCheck(args))
-                // @ts-ignore
-                return nativeMethods.promiseReject.call(sandbox.window.Promise, new TypeError());
+        //     if (!FetchSandbox._sameOriginCheck(args))
+        //         // @ts-ignore
+        //         return nativeMethods.promiseReject.call(sandbox.window.Promise, new TypeError());
 
-            window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = nativeMethods.headersEntries;
+        //     window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = nativeMethods.headersEntries;
 
-            const fetchPromise = nativeMethods.fetch.apply(this, args);
+        //     const fetchPromise = nativeMethods.fetch.apply(this, args);
 
-            window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = FetchSandbox._entriesWrapper;
+        //     window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = FetchSandbox._entriesWrapper;
 
-            sandbox.emit(sandbox.FETCH_REQUEST_SENT_EVENT, fetchPromise);
+        //     sandbox.emit(sandbox.FETCH_REQUEST_SENT_EVENT, fetchPromise);
 
-            return nativeMethods.promiseThen.call(fetchPromise, response => {
-                sandbox.cookieSandbox.syncCookie();
+        //     return nativeMethods.promiseThen.call(fetchPromise, response => {
+        //         sandbox.cookieSandbox.syncCookie();
 
-                return response;
-            });
-        };
+        //         return response;
+        //     });
+        // };
 
         const fetchToString = nativeMethods.fetch.toString();
 
