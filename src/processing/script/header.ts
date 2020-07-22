@@ -47,8 +47,8 @@ const HEADER: string = `
             ${INSTRUCTION.getProxyUrl} = function(u,d){return u},
             ${INSTRUCTION.restArray} = function(a,i){return Array.prototype.slice.call(a, i)},
             ${INSTRUCTION.restObject} = function(o,p){var k=Object.keys(o),n={};for(var i=0;i<k.length;++i)if(p.indexOf(k[i])<0)n[k[i]]=o[k[i]];return n};
-
-    ${SCRIPT_PROCESSING_END_HEADER_COMMENT}}
+    }
+    ${SCRIPT_PROCESSING_END_HEADER_COMMENT}
 `.replace(/\n(?!$)\s*/g, '');
 
 // NOTE: IE removes trailing newlines in script.textContent,

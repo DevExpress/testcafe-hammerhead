@@ -16,7 +16,7 @@ import {
     stringifyResourceType,
     resolveUrlAsDest
 } from '../../utils/url';
-import { isFirefox, isChrome, isIE, isAndroid, isMSEdge, version as browserVersion  } from '../../utils/browser';
+import { isFirefox, isChrome, isIE, isAndroid, isMSEdge, version as browserVersion } from '../../utils/browser';
 import {
     isCrossDomainWindows,
     isImgElement,
@@ -612,7 +612,6 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (nativeMethods.registerServiceWorker) {
-            // debugger;
             window.navigator.serviceWorker.register = (...args) => {
                 const url = args[0];
 

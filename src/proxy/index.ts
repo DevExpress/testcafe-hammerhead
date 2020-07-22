@@ -19,7 +19,6 @@ import mustache from 'mustache';
 
 const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
 
-
 function parseAsJson (msg: Buffer): ServiceMessage | null {
     try {
         return JSON.parse(msg.toString());

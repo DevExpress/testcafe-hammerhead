@@ -164,7 +164,6 @@ export function isScriptProcessed (code: string): boolean {
 }
 
 export function processScript (src: string, withHeader: boolean = false, wrapLastExprWithProcessHtml: boolean = false, resolver?: Function): string {
-
     const { bom, preprocessed } = preprocess(src);
     const withoutHtmlComments   = removeHtmlComments(preprocessed);
     const { ast, isObject }     = analyze(withoutHtmlComments);
