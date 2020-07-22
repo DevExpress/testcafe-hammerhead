@@ -15,8 +15,10 @@ import { resetKeepAliveConnections } from '../request-pipeline/destination-reque
 import SERVICE_ROUTES from './service-routes';
 import BUILTIN_HEADERS from '../request-pipeline/builtin-header-names';
 import logger from '../utils/logger';
+import mustache from 'mustache';
 
 const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
+
 
 function parseAsJson (msg: Buffer): ServiceMessage | null {
     try {
@@ -44,16 +46,18 @@ export default class Proxy extends Router {
     private readonly server1: http.Server | https.Server;
     private readonly server2: http.Server | https.Server;
     private readonly sockets: Set<net.Socket>;
+    private readonly allowedServiceWorkers: Array<string>;
 
     constructor (hostname: string, port1: string, port2: string, options: any = {}) {
         super(options);
 
-        const { ssl, developmentMode } = options;
+        const { ssl, developmentMode, allowedServiceWorkers = []} = options;
         const protocol                 = ssl ? 'https:' : 'http:';
 
         this.server1Info = createServerInfo(hostname, port1, port2, protocol);
         this.server2Info = createServerInfo(hostname, port2, port1, protocol);
 
+        this.allowedServiceWorkers = allowedServiceWorkers;
         if (ssl) {
             this.server1 = https.createServer(ssl, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server1Info));
             this.server2 = https.createServer(ssl, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server2Info));
@@ -93,10 +97,13 @@ export default class Proxy extends Router {
 
     _registerServiceRoutes (developmentMode: boolean) {
         const developmentModeSuffix   = developmentMode ? '' : '.min';
-        const hammerheadFileName      = `hammerhead${developmentModeSuffix}.js`;
-        const hammerheadScriptContent = read(`../client/${hammerheadFileName}`) as Buffer;
+        // const hammerheadFileName      = `hammerhead${developmentModeSuffix}.js`;
+        // const hammerheadScriptContent = read(`../client/${hammerheadFileName}`) as Buffer;
         const transportWorkerFileName = `transport-worker${developmentModeSuffix}.js`;
         const transportWorkerContent  = read(`../client/${transportWorkerFileName}`) as Buffer;
+        const HAMMERHEAD_TEMPLATE = read('../client/index.js.wrapper.mustache');
+        const HAMMERHEAD_SOURCE = read('../client/hammerhead.js');
+        const hammerheadScriptContent = mustache.render(HAMMERHEAD_TEMPLATE, {source:HAMMERHEAD_SOURCE, allowedServiceWorkers:JSON.stringify(this.allowedServiceWorkers)});
 
         this.GET(SERVICE_ROUTES.hammerhead, {
             contentType: 'application/x-javascript',

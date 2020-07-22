@@ -169,19 +169,12 @@ gulp.step('client-scripts-bundle', () => {
 });
 
 gulp.step('client-scripts-processing', () => {
-    const script = gulp.src('./src/client/index.js.wrapper.mustache')
-        .pipe(mustache({ source: fs.readFileSync('./lib/client/hammerhead.js').toString() }))
-        .pipe(rename('hammerhead.js'));
-
-    const bundledScript = script.pipe(clone())
-        .pipe(uglify())
-        .pipe(rename('hammerhead.min.js'));
-
+    
     const bundledTransportWorker = gulp.src('./lib/client/transport-worker.js')
         .pipe(uglify())
         .pipe(rename('transport-worker.min.js'));
 
-    return mergeStreams(script, bundledScript, bundledTransportWorker)
+    return mergeStreams(bundledTransportWorker)
         .pipe(gulp.dest('./lib/client'));
 });
 
@@ -199,7 +192,7 @@ gulp.step('server-scripts', () => {
 
 gulp.step('templates', () => {
     return gulp
-        .src('./src/client/task.js.mustache', { silent: false })
+        .src('./src/client/*.mustache', { silent: false })
         .pipe(gulp.dest('./lib/client'));
 });
 
