@@ -46,7 +46,7 @@ export default class Proxy extends Router {
     private readonly server1: http.Server | https.Server;
     private readonly server2: http.Server | https.Server;
     private readonly sockets: Set<net.Socket>;
-    private readonly allowedServiceWorkers: Array<string>;
+    private readonly allowedServiceWorkers: string[];
 
     constructor (hostname: string, port1: string, port2: string, options: any = {}) {
         super(options);
