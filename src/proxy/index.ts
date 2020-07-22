@@ -96,13 +96,14 @@ export default class Proxy extends Router {
 
     _registerServiceRoutes (developmentMode: boolean) {
         const developmentModeSuffix   = developmentMode ? '' : '.min';
-        // const hammerheadFileName      = `hammerhead${developmentModeSuffix}.js`;
-        // const hammerheadScriptContent = read(`../client/${hammerheadFileName}`) as Buffer;
         const transportWorkerFileName = `transport-worker${developmentModeSuffix}.js`;
         const transportWorkerContent  = read(`../client/${transportWorkerFileName}`) as Buffer;
         const HAMMERHEAD_TEMPLATE = read('../client/index.js.wrapper.mustache');
         const HAMMERHEAD_SOURCE = read('../client/hammerhead.js');
-        const hammerheadScriptContent = mustache.render(HAMMERHEAD_TEMPLATE, {source:HAMMERHEAD_SOURCE, allowedServiceWorkers:JSON.stringify(this.allowedServiceWorkers)});
+        const hammerheadScriptContent = mustache.render(HAMMERHEAD_TEMPLATE, {
+            source:HAMMERHEAD_SOURCE, 
+            allowedServiceWorkers:JSON.stringify(this.allowedServiceWorkers)
+        });
 
         this.GET(SERVICE_ROUTES.hammerhead, {
             contentType: 'application/x-javascript',
