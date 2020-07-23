@@ -14,8 +14,9 @@ export default class FileListWrapper {
         this.item = index => this[index];
     }
 
-    static _base64ToBlob (base64Data, fileName: string, mimeType: string, sliceSize?: number) {
-        mimeType  = mimeType || '';
+    static _base64ToBlob (base64Data, fileInfo, sliceSize?: number) {
+        const mimeType = fileInfo.info.type || '';
+
         sliceSize = sliceSize || 512;
 
         const byteCharacters = atob(base64Data);
@@ -33,7 +34,7 @@ export default class FileListWrapper {
 
         // NOTE: window.File in IE11 is not constructable.
         return nativeMethods.File
-            ? new File(byteArrays, fileName, { type: mimeType })
+            ? new File(byteArrays, fileInfo.info.name, { type: mimeType, lastModified: fileInfo.info.lastModified })
             : new Blob(byteArrays, { type: mimeType });
     }
 
@@ -49,15 +50,18 @@ export default class FileListWrapper {
         else if (fileInfo.blob) {
             // NOTE: window.File in IE11 is not constructable.
             wrapper = nativeMethods.File
-                ? new File([fileInfo.blob], fileInfo.info.name, {type: fileInfo.info.type})
+                ? new File([fileInfo.blob], fileInfo.info.name, {type: fileInfo.info.type, lastModified: fileInfo.info.lastModified})
                 : new Blob([fileInfo.blob], {type: fileInfo.info.type});
         }
         else
-            wrapper = FileListWrapper._base64ToBlob(fileInfo.data, fileInfo.info.name, fileInfo.info.type);
+            wrapper = FileListWrapper._base64ToBlob(fileInfo.data, fileInfo);
 
-        wrapper.name             = fileInfo.info.name;
-        wrapper.lastModifiedDate = new Date(fileInfo.info.lastModifiedDate);
-        wrapper.base64           = fileInfo.data;
+        wrapper.name = fileInfo.info.name;
+
+        if (fileInfo.info.lastModifiedDate)
+            wrapper.lastModifiedDate = fileInfo.info.lastModifiedDate;
+
+        wrapper.base64 = fileInfo.data;
 
         return wrapper;
     }

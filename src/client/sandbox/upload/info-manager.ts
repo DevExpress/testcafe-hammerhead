@@ -135,14 +135,21 @@ export default class UploadInfoManager {
             let file          = fileList[index];
 
             fileReader.addEventListener('load', (e: any) => {
+                const info: any = {
+                    type: file.type,
+                    name: file.name
+                };
+
+                if (typeof file.lastModified === 'number')
+                    info.lastModified = file.lastModified;
+
+                if (file.lastModifiedDate)
+                    info.lastModifiedDate = file.lastModifiedDate;
+
                 readedFiles.push({
                     data: e.target.result.substr(e.target.result.indexOf(',') + 1),
                     blob: file.slice(0, file.size),
-                    info: {
-                        type:             file.type,
-                        name:             file.name,
-                        lastModifiedDate: file.lastModifiedDate
-                    }
+                    info
                 });
 
                 if (fileList[++index]) {
@@ -152,6 +159,7 @@ export default class UploadInfoManager {
                 else
                     resolve(new FileListWrapper(readedFiles));
             });
+
             fileReader.readAsDataURL(file);
         });
     }

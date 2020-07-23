@@ -140,6 +140,7 @@ export default class UploadStorage {
                     data: fileContent.toString('base64'),
                     info: {
                         lastModifiedDate: fileStats.mtime,
+                        lastModified:     fileStats.mtimeMs,
                         name:             path.basename(resolvedPath),
                         type:             mime.lookup(resolvedPath)
                     }

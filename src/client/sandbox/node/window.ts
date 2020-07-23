@@ -549,7 +549,7 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         // NOTE: non-IE11 case. window.File in IE11 is not constructable.
-        if (window.File && typeof window.File === 'function') {
+        if (nativeMethods.File) {
             window.File = function (array, fileName, opts) {
                 if (arguments.length === 0)
                     return new nativeMethods.File();
