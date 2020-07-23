@@ -56,7 +56,8 @@ export default function create<T extends (FunctionDeclaration | FunctionExpressi
                     tempVarKey    = 'left';
                 }
 
-                if (param.type === Syntax.ObjectPattern || param.type === Syntax.ArrayPattern) {
+                if (param.type === Syntax.ObjectPattern && param.properties.length ||
+                    param.type === Syntax.ArrayPattern && param.elements.length) {
                     const tempVar = createIdentifier(TempVariables.generateName());
 
                     // @ts-ignore
@@ -65,6 +66,9 @@ export default function create<T extends (FunctionDeclaration | FunctionExpressi
                     declarations.push(createVariableDeclarator(param, tempVar));
                 }
             }
+
+            if (!declarations.length)
+                return null;
 
             const declaration = createVariableDeclaration('var', declarations);
 

@@ -1118,6 +1118,15 @@ describe('Script processor', () => {
             ]);
         });
 
+        it('empty function parameter destructuring', () => {
+            testProcessing([
+                {
+                    src:      'function x ({}, []) {}',
+                    expected: 'function x ({}, []) {}'
+                }
+            ]);
+        });
+
         it('multiple destructuring', () => {
             testProcessing([
                 {
