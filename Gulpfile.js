@@ -54,6 +54,18 @@ const CLIENT_TESTS_BROWSERS = [
         browserName: 'MicrosoftEdge',
         version:     '83.0'
     },
+    // Temporary check
+    {
+        platform:    'Windows 10',
+        browserName: 'MicrosoftEdge',
+        version:     '81.0'
+    },
+    // Temporary check
+    {
+        platform:    'Windows 10',
+        browserName: 'MicrosoftEdge',
+        version:     '80.0'
+    },
     {
         platform:    'Windows 10',
         browserName: 'chrome'
@@ -63,6 +75,18 @@ const CLIENT_TESTS_BROWSERS = [
         platform:    'Windows 10',
         browserName: 'chrome',
         version:     '83.0'
+    },
+    // Temporary check
+    {
+        platform:    'Windows 10',
+        browserName: 'chrome',
+        version:     '81.0'
+    },
+    // Temporary check
+    {
+        platform:    'Windows 10',
+        browserName: 'chrome',
+        version:     '80.0'
     },
     {
         platform:    'Windows 10',
@@ -104,6 +128,18 @@ const CLIENT_TESTS_BROWSERS = [
         browserName: 'chrome',
         platform:    'OS X 10.11',
         version:     '83.0'
+    },
+    // Temporary check
+    {
+        browserName: 'chrome',
+        platform:    'OS X 10.11',
+        version:     '81.0'
+    },
+    // Temporary check
+    {
+        browserName: 'chrome',
+        platform:    'OS X 10.11',
+        version:     '80.0'
     },
     {
         browserName: 'firefox',
