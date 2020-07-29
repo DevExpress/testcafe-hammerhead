@@ -252,6 +252,7 @@ describe('Upload', () => {
             expect(fileInfo.info.name).eql(fileName);
             expect(fileInfo.info.type).eql(mime.lookup(filePath));
             expect(fileInfo.info.lastModifiedDate).eql(fs.statSync(filePath).mtime);
+            expect(fileInfo.info.lastModified).eql(fs.statSync(filePath).mtimeMs);
         }
 
         it('Should store and get file', () => {
