@@ -120,7 +120,7 @@ function getInputMock (fileNames) {
     var fileListWrapper = fileNames.map(function (name) {
         // NOTE: window.File in IE11 is not constructable.
         var file = nativeMethods.File
-            ? new File(['123'], name, { type: 'image/png', modifiedDate: Date.now() })
+            ? new File(['123'], name, { type: 'image/png', lastModified: Date.now() })
             : new Blob(['123'], { type: 'image/png' });
 
         file.name = name;
