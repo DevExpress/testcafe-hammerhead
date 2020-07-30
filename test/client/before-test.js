@@ -32,28 +32,31 @@
         '    cookie: {{{cookie}}},',
         '    serviceMsgUrl : "{{{serviceMsgUrl}}}",',
         '    transportWorkerUrl: "{{{transportWorkerUrl}}}",',
+        '    workerHammerheadUrl: "{{{workerHammerheadUrl}}}",',
         '    sessionId : "sessionId",',
         '    forceProxySrcForImage: ' + 'false,',
         '    iframeTaskScriptTemplate: {{{iframeTaskScriptTemplate}}}',
         '});'
     ].join('');
 
-    window.getIframeTaskScript = function (referer, serviceMsgUrl, location, cookie, transportWorkerUrl) {
+    window.getIframeTaskScript = function (referer, serviceMsgUrl, location, cookie, transportWorkerUrl, workerHammerheadUrl) {
         return iframeTaskScriptTemplate
             .replace('{{{referer}}}', JSON.stringify(referer || ''))
             .replace('{{{serviceMsgUrl}}}', serviceMsgUrl || '')
             .replace('{{{location}}}', location || '')
             .replace('{{{cookie}}}', JSON.stringify(cookie || ''))
-            .replace('{{{transportWorkerUrl}}}', transportWorkerUrl || '');
+            .replace('{{{transportWorkerUrl}}}', transportWorkerUrl || '')
+            .replace('{{{workerHammerheadUrl}}}', workerHammerheadUrl || '');
     };
 
     window.initIframeTestHandler = function (iframe) {
-        var referer            = 'http://localhost/sessionId/https://example.com';
-        var location           = 'http://localhost/sessionId/https://example.com';
-        var serviceMsgUrl      = '/service-msg/100';
-        var transportWorkerUrl = '/transport-worker.js';
-        var cookie             = cookieSandbox.getCookie();
-        var iframeTaskScript   = JSON.stringify(window.getIframeTaskScript(referer, serviceMsgUrl, location, cookie, transportWorkerUrl));
+        var referer             = 'http://localhost/sessionId/https://example.com';
+        var location            = 'http://localhost/sessionId/https://example.com';
+        var serviceMsgUrl       = '/service-msg/100';
+        var transportWorkerUrl  = '/transport-worker.js';
+        var workerHammerheadUrl = '/worker-hammerhead.js';
+        var cookie              = cookieSandbox.getCookie();
+        var iframeTaskScript    = JSON.stringify(window.getIframeTaskScript(referer, serviceMsgUrl, location, cookie, transportWorkerUrl, workerHammerheadUrl));
 
         if (iframe.id.indexOf('test') !== -1) {
             iframe.contentWindow.eval.call(iframe.contentWindow, [
@@ -62,6 +65,7 @@
                 '    referer: ' + JSON.stringify(referer) + ',',
                 '    serviceMsgUrl: "' + serviceMsgUrl + '",',
                 '    transportWorkerUrl: "' + transportWorkerUrl + '",',
+                '    workerHammerheadUrl: "' + workerHammerheadUrl + '",',
                 '    sessionId: "sessionId",',
                 '    cookie: ' + JSON.stringify(cookie) + ',',
                 '    forceProxySrcForImage: ' + 'false,',
@@ -77,6 +81,7 @@
         crossDomainProxyPort:  2001,
         forceProxySrcForImage: false,
         transportWorkerUrl:    '/transport-worker.js',
+        workerHammerheadUrl:   '/worker-hammerhead.js',
         serviceMsgUrl:         '/service-msg'
     });
 

@@ -1,4 +1,4 @@
-import nativeMethods from '../../native-methods';
+import nativeMethods from '../../native-methods-adapter';
 import { getTagName, isShadowUIElement } from '../../../utils/dom';
 import { getNativeQuerySelectorAll } from '../../../utils/query-selector';
 import IntegerIdGenerator from '../../../utils/integer-id-generator';

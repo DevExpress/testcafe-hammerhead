@@ -3,7 +3,7 @@ import EventSimulator from './simulator';
 import EventSandbox from './index';
 import FocusBlurSandbox from './focus-blur';
 import Listeners from './listeners';
-import nativeMethods from '../native-methods';
+import nativeMethods from '../native-methods-adapter';
 import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';

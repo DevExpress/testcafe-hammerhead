@@ -15,9 +15,10 @@ import {
     prepareUrl,
     SPECIAL_BLANK_PAGE
 } from '../../../../utils/url';
-import nativeMethods from '../../native-methods';
+import nativeMethods from '../../native-methods-adapter';
 import urlResolver from '../../../utils/url-resolver';
-import DomProcessor from '../../../../processing/dom/index';
+import DomProcessor from '../../../../processing/dom';
+import domProcessor from '../../../dom-processor';
 import DOMStringListWrapper from './ancestor-origins-wrapper';
 import IntegerIdGenerator from '../../../utils/integer-id-generator';
 import { createOverriddenDescriptor } from '../../../utils/property-overriding';
@@ -73,7 +74,7 @@ export default class LocationWrapper {
             href = prepareUrl(href);
 
             if (DomProcessor.isJsProtocol(href))
-                return DomProcessor.processJsAttrValue(href, { isJsProtocol: true, isEventAttr: false });
+                return domProcessor.processJsAttrValue(href, { isJsProtocol: true, isEventAttr: false });
 
             const locationUrl = getLocationUrl(window);
 

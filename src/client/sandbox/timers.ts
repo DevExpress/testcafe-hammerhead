@@ -1,5 +1,5 @@
 import SandboxBase from './base';
-import nativeMethods from './native-methods';
+import nativeMethods from './native-methods-adapter';
 import { processScript } from '../../processing/script';
 import { isIE, version as browserVersion } from '../utils/browser';
 

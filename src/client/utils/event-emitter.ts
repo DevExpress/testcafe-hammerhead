@@ -1,4 +1,4 @@
-import nativeMethods from '../sandbox/native-methods';
+import nativeMethods from '../sandbox/native-methods-adapter';
 import { isIE } from './browser';
 
 export default class EventEmitter {

@@ -1,5 +1,5 @@
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
-import nativeMethods from '../native-methods';
+import nativeMethods from '../native-methods-adapter';
 import EventEmitter from '../../utils/event-emitter';
 import * as listeningCtx from './listening-context';
 import { preventDefault, stopPropagation, DOM_EVENTS, isValidEventListener, callEventListener } from '../../utils/event';

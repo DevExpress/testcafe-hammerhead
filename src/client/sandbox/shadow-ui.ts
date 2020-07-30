@@ -1,7 +1,7 @@
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import SandboxBase from './base';
 import NodeSandbox from './node/index';
-import nativeMethods from './native-methods';
+import nativeMethods from './native-methods-adapter';
 import * as domUtils from '../utils/dom';
 import DomProcessor from '../dom-processor';
 import { getOffsetPosition } from '../utils/position';

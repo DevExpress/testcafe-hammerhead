@@ -1,4 +1,4 @@
-import nativeMethods from '../../native-methods';
+import nativeMethods from '../../native-methods-adapter';
 import LocationAccessorsInstrumentation from './index';
 import { createOverriddenDescriptor } from '../../../utils/property-overriding';
 

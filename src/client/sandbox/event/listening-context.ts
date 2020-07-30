@@ -1,6 +1,6 @@
 // NOTE: For internal usage of Listeners.
 import { isIE, version as browserVersion } from '../../utils/browser';
-import nativeMethods from '../native-methods';
+import nativeMethods from '../native-methods-adapter';
 
 const ELEMENT_LISTENING_EVENTS_STORAGE_PROP = 'hammerhead|element-listening-events-storage-prop';
 

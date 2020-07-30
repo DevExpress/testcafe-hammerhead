@@ -1,5 +1,5 @@
 import Promise from 'pinkie';
-import nativeMethods from '../sandbox/native-methods';
+import nativeMethods from '../sandbox/native-methods-adapter';
 
 
 export default function (): Promise<any> {

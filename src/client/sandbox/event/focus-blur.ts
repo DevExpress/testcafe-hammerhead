@@ -2,7 +2,7 @@ import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import SandboxBase from '../base';
 import ActiveWindowTracker from '../event/active-window-tracker';
-import nativeMethods from '../native-methods';
+import nativeMethods from '../native-methods-adapter';
 import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
 import * as styleUtils from '../../utils/style';

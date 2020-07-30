@@ -1,5 +1,5 @@
 import { isArrayBuffer, isArrayBufferView, isDataView } from './dom';
-import nativeMethods from '../sandbox/native-methods';
+import nativeMethods from '../sandbox/native-methods-adapter';
 
 // https://mimesniff.spec.whatwg.org/
 

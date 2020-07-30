@@ -1,7 +1,7 @@
 import * as domUtils from './dom';
 import * as browserUtils from './browser';
 import * as featureDetection from './feature-detection';
-import nativeMethods from '../sandbox/native-methods';
+import nativeMethods from '../sandbox/native-methods-adapter';
 import { ScrollState } from '../../typings/client';
 
 // NOTE: For Chrome.

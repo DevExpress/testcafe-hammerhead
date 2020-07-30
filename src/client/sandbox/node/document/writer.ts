@@ -1,4 +1,4 @@
-import nativeMethods from '../../native-methods';
+import nativeMethods from '../../native-methods-adapter';
 import * as htmlUtils from '../../../utils/html';
 import { getTagName, isCommentNode, isStyleElement, isScriptElement } from '../../../utils/dom';
 import { isFirefox, isIE } from '../../../utils/browser';

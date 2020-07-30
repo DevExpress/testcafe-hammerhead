@@ -1,20 +1,12 @@
 import EventEmitter from '../utils/event-emitter';
-import nativeMethods from './native-methods';
+import nativeMethods from './native-methods-adapter';
 import { findDocument, isElementInDocument, getFrameElement } from '../utils/dom';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 
 export default class SandboxBase extends EventEmitter {
-    window: Window | null;
-    nativeMethods: any;
-    document: Document;
-
-    constructor () {
-        super();
-
-        this.window        = null;
-        this.document      = null;
-        this.nativeMethods = nativeMethods;
-    }
+    window: Window | null  = null;
+    nativeMethods = nativeMethods;
+    document: Document | null = null;
 
     // NOTE: The sandbox is deactivated when its window is removed from the DOM.
     isDeactivated (): boolean {
@@ -26,11 +18,10 @@ export default class SandboxBase extends EventEmitter {
             if (this.window[INTERNAL_PROPS.hammerhead]) {
                 const frameElement = getFrameElement(this.window);
 
-                return !!(frameElement && !isElementInDocument(frameElement, findDocument(frameElement)));
+                return !!frameElement && !isElementInDocument(frameElement, findDocument(frameElement));
             }
         }
-        // eslint-disable-next-line no-empty
-        catch (e) {
+        catch (e) { // eslint-disable-line no-empty
         }
 
         return true;

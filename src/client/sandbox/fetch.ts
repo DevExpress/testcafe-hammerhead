@@ -1,5 +1,5 @@
 import SandboxBase from './base';
-import nativeMethods from './native-methods';
+import nativeMethods from './native-methods-adapter';
 import INTERNAL_HEADERS from '../../request-pipeline/internal-header-names';
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
 import { getProxyUrl, parseProxyUrl } from '../utils/url';

@@ -335,7 +335,7 @@ class NativeMethods {
     DataView: any;
     Blob: Window['Blob'];
     File: any;
-    XMLHttpRequest: any;
+    XMLHttpRequest: typeof XMLHttpRequest;
     Image: any;
     Function: any;
     Error: any;
@@ -361,6 +361,7 @@ class NativeMethods {
     scrollTo: any;
     crypto: Crypto;
     cryptoGetRandomValues: Function;
+    URL: typeof URL;
 
     constructor (doc?: Document, win?: Window) {
         win = win || window;
@@ -1054,6 +1055,7 @@ class NativeMethods {
         this.HTMLCollection   = win.HTMLCollection;
         this.NodeList         = win.NodeList;
         this.Node             = win.Node;
+        this.URL              = win.URL;
 
         // NOTE: non-IE11 case. window.File in IE11 is not constructable.
         if (win.File && typeof win.File === 'function')

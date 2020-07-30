@@ -4,7 +4,7 @@ import LocationAccessorsInstrumentation from './location';
 import MethodCallInstrumentation from './methods';
 import { processScript } from '../../../processing/script';
 import INSTRUCTION from '../../../processing/script/instruction';
-import nativeMethods from '../../sandbox/native-methods';
+import nativeMethods from '../../sandbox/native-methods-adapter';
 import { processHtml } from '../../utils/html';
 import { getProxyUrl, stringifyResourceType } from '../../utils/url';
 import urlResolver from '../../utils/url-resolver';

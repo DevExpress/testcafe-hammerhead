@@ -4,7 +4,7 @@
 // So we have to create a mock for it to use it in drag-and-drop events
 import { isIE11 } from '../../../utils/browser';
 import { hasDataTransfer } from '../../../utils/feature-detection';
-import nativeMethods from '../../native-methods';
+import nativeMethods from '../../native-methods-adapter';
 import DataTransferItemList from './data-transfer-item-list';
 import FileList from './file-list';
 import DATA_STORE_MODE from './data-store-mode';

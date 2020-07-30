@@ -1,4 +1,4 @@
-import nativeMethods from '../sandbox/native-methods';
+import nativeMethods from '../sandbox/native-methods-adapter';
 
 function replaceNativeAccessor (descriptor, accessorName: string, newAccessor) {
     if (newAccessor && descriptor[accessorName]) {

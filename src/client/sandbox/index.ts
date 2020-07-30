@@ -26,7 +26,7 @@ import { dispose as anchorCodeInstumentationDispose } from './code-instrumentati
 import { create as createSandboxBackup, get as getSandboxBackup } from './backup';
 import urlResolver from '../utils/url-resolver';
 import * as windowStorage from './windows-storage';
-import nativeMethods from '../sandbox/native-methods';
+import nativeMethods from '../sandbox/native-methods-adapter';
 import IEDebugSandbox from './ie-debug';
 import Transport from '../transport';
 import ChildWindowSandbox from './child-window';

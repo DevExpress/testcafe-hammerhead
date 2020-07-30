@@ -1,7 +1,7 @@
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import SandboxBase from './base';
 import settings from '../settings';
-import nativeMethods from '../sandbox/native-methods';
+import nativeMethods from '../sandbox/native-methods-adapter';
 import DomProcessor from '../../processing/dom';
 import { isShadowUIElement, isIframeWithoutSrc, getTagName } from '../utils/dom';
 import { isFirefox, isWebKit, isIE } from '../utils/browser';
@@ -48,6 +48,7 @@ export default class IframeSandbox extends SandboxBase {
             this.iframeNativeMethodsBackup = null;
         }
         else if (this._shouldSaveIframeNativeMethods(iframe))
+            // @ts-ignore
             this.iframeNativeMethodsBackup = new this.nativeMethods.constructor(contentDocument, contentWindow);
     }
 

@@ -3,7 +3,7 @@ import { isIE } from '../../utils/browser';
 import { parseProxyUrl } from '../../utils/url';
 import * as destLocation from '../../utils/destination-location';
 import * as JSON from 'json-hammerhead';
-import nativeMethods from '../native-methods';
+import nativeMethods from '../native-methods-adapter';
 
 const API_KEY_PREFIX = 'hammerhead|api-key-prefix|';
 const KEY            = 0;

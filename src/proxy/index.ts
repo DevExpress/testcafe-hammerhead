@@ -96,6 +96,8 @@ export default class Proxy extends Router {
         const hammerheadScriptContent = read(`../client/${hammerheadFileName}`) as Buffer;
         const transportWorkerFileName = `transport-worker${developmentModeSuffix}.js`;
         const transportWorkerContent  = read(`../client/${transportWorkerFileName}`) as Buffer;
+        const workerHammerheadFileName = `worker-hammerhead${developmentModeSuffix}.js`;
+        const workerHammerheadContent  = read(`../client/${workerHammerheadFileName}`) as Buffer;
 
         this.GET(SERVICE_ROUTES.hammerhead, {
             contentType: 'application/x-javascript',
@@ -105,6 +107,11 @@ export default class Proxy extends Router {
         this.GET(SERVICE_ROUTES.transportWorker, {
             contentType: 'application/x-javascript',
             content:     transportWorkerContent
+        });
+
+        this.GET(SERVICE_ROUTES.workerHammerhead, {
+            contentType: 'application/x-javascript',
+            content:     workerHammerheadContent
         });
 
         this.POST(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onServiceMessage(req, res, serverInfo));

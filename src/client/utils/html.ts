@@ -1,6 +1,6 @@
 import INTERNAL_ATTRS from '../../processing/dom/internal-attributes';
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
-import nativeMethods from '../sandbox/native-methods';
+import nativeMethods from '../sandbox/native-methods-adapter';
 import DomProcessor from '../../processing/dom';
 import domProcessor from '../dom-processor';
 import { remove as removeProcessingHeader } from '../../processing/script/header';

@@ -1,4 +1,4 @@
-import nativeMethods from '../sandbox/native-methods';
+import nativeMethods from '../sandbox/native-methods-adapter';
 
 export default function (): number {
     const array = new nativeMethods.Uint16Array(1);

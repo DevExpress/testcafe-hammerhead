@@ -1,5 +1,5 @@
 import SandboxBase from '../base';
-import nativeMethods from '../native-methods';
+import nativeMethods from '../native-methods-adapter';
 import createPropertyDesc from '../../utils/create-property-desc.js';
 import { isFirefox, isIOS } from '../../utils/browser';
 import { overrideDescriptor } from '../../utils/property-overriding';

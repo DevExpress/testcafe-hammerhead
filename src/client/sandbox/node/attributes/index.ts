@@ -1,6 +1,6 @@
 import AttributesWrapper from './wrapper';
 import { isHammerheadAttr } from '../../../utils/dom';
-import nativeMethods from '../../native-methods';
+import nativeMethods from '../../native-methods-adapter';
 import DomProcessor from '../../../../processing/dom';
 
 const ATTRIBUTES_WRAPPER = 'hammerhead|element-attribute-wrappers';

@@ -1,5 +1,5 @@
 import trim from '../../utils/string-trim';
-import nativeMethods from '../sandbox/native-methods';
+import nativeMethods from '../sandbox/native-methods-adapter';
 
 const COOKIE_PAIR_REGEX        = /^((?:=)?([^=;]*)\s*=\s*)?([^\n\r\0]*)/;
 const TRAILING_SEMICOLON_REGEX = /;+$/;

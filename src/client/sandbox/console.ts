@@ -1,6 +1,6 @@
 import SandboxBase from './base';
 import { isCrossDomainWindows } from '../utils/dom';
-import nativeMethods from '../sandbox/native-methods';
+import nativeMethods from '../sandbox/native-methods-adapter';
 import MessageSandbox from './event/message';
 
 export default class ConsoleSandbox extends SandboxBase {

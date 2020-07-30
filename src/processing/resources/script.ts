@@ -4,6 +4,7 @@ import { processScript } from '../script';
 import RequestPipelineContext from '../../request-pipeline/context';
 import Charset from '../encoding/charset';
 import { updateScriptImportUrls } from '../../utils/url';
+import SERVICE_ROUTES from '../../proxy/service-routes';
 
 class ScriptResourceProcessor extends ResourceProcessorBase {
     jsCache: Lru<string, string>;
@@ -24,7 +25,8 @@ class ScriptResourceProcessor extends ResourceProcessorBase {
         let processedScript = this.jsCache.get(script);
 
         if (!processedScript) {
-            processedScript = processScript(script, true, false, urlReplacer);
+            processedScript = processScript(script, true, false, urlReplacer,
+                ctx.resolveInjectableUrl(SERVICE_ROUTES.workerHammerhead));
             this.jsCache.set(script, processedScript);
         }
         else

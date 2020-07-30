@@ -1,6 +1,6 @@
 import Promise from 'pinkie';
 import SandboxBase from '../base';
-import nativeMethods from '../native-methods';
+import nativeMethods from '../native-methods-adapter';
 import * as destLocation from '../../utils/destination-location';
 import { formatUrl } from '../../utils/url';
 import { parse as parseJSON, stringify as stringifyJSON } from 'json-hammerhead';

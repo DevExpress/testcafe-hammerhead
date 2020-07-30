@@ -1,6 +1,6 @@
 import { ServiceMessage } from '../../typings/proxy';
 import Promise from 'pinkie';
-import nativeMethods from '../sandbox/native-methods';
+import nativeMethods from '../sandbox/native-methods-adapter';
 import settings from '../settings';
 import { stringify as stringifyJSON, parse as parseJSON } from 'json-hammerhead';
 

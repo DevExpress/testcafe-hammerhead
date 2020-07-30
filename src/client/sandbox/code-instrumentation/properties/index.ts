@@ -8,8 +8,9 @@ import * as urlUtils from '../../../utils/url';
 import { prepareUrl } from '../../../../utils/url';
 import INSTRUCTION from '../../../../processing/script/instruction';
 import { shouldInstrumentProperty } from '../../../../processing/script/instrumented';
-import nativeMethods from '../../native-methods';
+import nativeMethods from '../../native-methods-adapter';
 import DomProcessor from '../../../../processing/dom';
+import domProcessor from '../../../dom-processor';
 import settings from '../../../settings';
 import { isIE } from '../../../utils/browser';
 import WindowSandbox from '../../node/window';
@@ -52,7 +53,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 : urlUtils.getProxyUrl(value, { proxyPort: settings.get().crossDomainProxyPort });
         }
         else
-            proxyUrl = DomProcessor.processJsAttrValue(value, { isJsProtocol: true, isEventAttr: false });
+            proxyUrl = domProcessor.processJsAttrValue(value, { isJsProtocol: true, isEventAttr: false });
 
         location.href = proxyUrl; // eslint-disable-line no-restricted-properties
 

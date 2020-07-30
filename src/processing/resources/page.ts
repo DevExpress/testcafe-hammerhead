@@ -11,6 +11,7 @@ import createSelfRemovingScript from '../../utils/create-self-removing-script';
 import RequestPipelineContext from '../../request-pipeline/context';
 import Charset from '../encoding/charset';
 import BaseDomAdapter from '../dom/base-dom-adapter';
+import SERVICE_ROUTES from '../../proxy/service-routes';
 
 const BODY_CREATED_EVENT_SCRIPT = createSelfRemovingScript(`
     if (window["${ INTERNAL_PROPS.hammerhead }"])
@@ -51,7 +52,8 @@ class PageProcessor extends ResourceProcessorBase {
             stylesheets:          ctx.getInjectableStyles(),
             scripts:              ctx.getInjectableScripts(),
             urlReplacer:          urlReplacer,
-            isIframeWithImageSrc: ctx.contentInfo && ctx.contentInfo.isIframeWithImageSrc
+            isIframeWithImageSrc: ctx.contentInfo && ctx.contentInfo.isIframeWithImageSrc,
+            workerHammerheadUrl:  ctx.resolveInjectableUrl(SERVICE_ROUTES.workerHammerhead)
         };
     }
 
@@ -154,7 +156,7 @@ class PageProcessor extends ResourceProcessorBase {
         PageProcessor._prepareHtml(html, processingOpts);
 
         const root       = parse5.parse(html);
-        const domAdapter = new DomAdapter(processingOpts.isIframe, processingOpts.crossDomainProxyPort);
+        const domAdapter = new DomAdapter(processingOpts.isIframe, processingOpts.crossDomainProxyPort, processingOpts.workerHammerheadUrl);
         const elements   = parse5Utils.findElementsByTagNames(root, ['base', 'meta', 'head', 'body', 'frameset']);
         const base       = elements.base ? elements.base[0] : null;
         const baseUrl    = base ? domAdapter.getAttr(base, 'href') : '';

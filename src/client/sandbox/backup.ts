@@ -1,5 +1,5 @@
 import { getTopSameDomainWindow, getFrameElement } from '../utils/dom';
-import nativeMethods from './native-methods';
+import nativeMethods from './native-methods-adapter';
 import Sandbox from './index';
 
 const SANDBOX_BACKUP = 'hammerhead|sandbox-backup';

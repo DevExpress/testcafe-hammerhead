@@ -2,7 +2,7 @@ import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import SandboxBase from '../base';
 import NodeSandbox from '../node/index';
 import DomProcessor from '../../../processing/dom';
-import nativeMethods from '../native-methods';
+import nativeMethods from '../native-methods-adapter';
 import domProcessor from '../../dom-processor';
 import { processScript } from '../../../processing/script';
 import styleProcessor from '../../../processing/style';
@@ -160,7 +160,7 @@ export default class ElementSandbox extends SandboxBase {
             const storedJsAttr = DomProcessor.getStoredAttrName(attr);
 
             if (isUrlAttr && isJsProtocol || isEventAttr)
-                args[valueIndex] = DomProcessor.processJsAttrValue(value, { isJsProtocol, isEventAttr });
+                args[valueIndex] = domProcessor.processJsAttrValue(value, { isJsProtocol, isEventAttr });
 
             setAttrMeth.apply(el, isNs ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
         }

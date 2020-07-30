@@ -1,4 +1,4 @@
-import nativeMethods from '../../native-methods';
+import nativeMethods from '../../native-methods-adapter';
 import DataTransferItem from './data-transfer-item';
 import DATA_STORE_MODE from './data-store-mode';
 import DATA_TRANSFER_ITEM_KIND from './data-transfer-item-kind';

@@ -1,5 +1,5 @@
 import DOMMutationTracker from './dom-mutation-tracker';
-import nativeMethods from '../../native-methods';
+import nativeMethods from '../../native-methods-adapter';
 import { isShadowUIElement } from '../../../utils/dom';
 
 // NOTE: Tags from https://www.w3schools.com/tags/att_name.asp

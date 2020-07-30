@@ -7,7 +7,7 @@ import DomProcessor from '../../../processing/dom';
 import domProcessor from '../../dom-processor';
 import * as domUtils from '../../utils/dom';
 import { getNativeQuerySelectorAll } from '../../utils/query-selector';
-import nativeMethods from '../native-methods';
+import nativeMethods from '../native-methods-adapter';
 import { URL_ATTRS } from '../../../processing/dom/attributes';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import NodeMutation from './mutation';
@@ -129,6 +129,7 @@ export default class NodeSandbox extends SandboxBase {
 
             // NOTE: Before overriding the iframe, we must restore native document methods.
             // Therefore, we save them before they are overridden.
+            // @ts-ignore
             const iframeNativeMethods = new this.nativeMethods.constructor(contentDocument, contentWindow);
 
             contentWindow[INTERNAL_PROPS.iframeNativeMethods] = iframeNativeMethods;

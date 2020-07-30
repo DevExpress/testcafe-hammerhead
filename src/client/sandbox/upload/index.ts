@@ -5,7 +5,7 @@ import { isFileInput } from '../../utils/dom';
 import { isIE, isFirefox, isChrome, isMacPlatform, isSafari, version as browserVersion } from '../../utils/browser';
 import { stopPropagation, preventDefault } from '../../utils/event';
 import { get as getSandboxBackup } from '../backup';
-import nativeMethods from '../native-methods';
+import nativeMethods from '../native-methods-adapter';
 import Listeners from '../event/listeners';
 import EventSimulator from '../event/simulator';
 import Transport from '../../transport';
