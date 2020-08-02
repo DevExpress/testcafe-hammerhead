@@ -5,7 +5,11 @@ export const MESSAGE = {
     cantEstablishProxyConnection:     'Failed to connect to the proxy host at <a href="{url}">{url}</a>.',
     cantAuthorizeToProxy:             'Failed to authorize to the proxy at <a href="{url}">{url}</a>.',
     destRequestTimeout:               'Failed to complete a request to <a href="{url}">{url}</a> within the timeout period. The problem may be related to local machine\'s network or firewall settings, server outage, or network problems that make the server inaccessible.',
-    cantReadFile:                     'Failed to read a file at <a href="{url}">{url}</a> because of the error:\n\n{message}'
+    cantReadFile:                     'Failed to read a file at <a href="{url}">{url}</a> because of the error:\n\n{message}',
+    nodeError: {
+        'HPE_HEADER_OVERFLOW': 'header overflow error message',
+        'ERR_INVALID_CHAR':    'invalid char error message'
+    }
 };
 
 export function getText (template: string, url: string, message?: string): string {

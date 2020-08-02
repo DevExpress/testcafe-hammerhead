@@ -42,7 +42,7 @@ export function sendRequest (ctx: RequestPipelineContext) {
             // NOTE: Sometimes the underlying socket emits an error event. But if we have a response body,
             // we can still process such requests. (B234324)
             if (!ctx.isDestResReadableEnded)
-                error(ctx, getText(MESSAGE.destConnectionTerminated, ctx.dest.url, err.toString()));
+                error(ctx, getText(MESSAGE.destConnectionTerminated, ctx.dest.url, MESSAGE.nodeError[err.code] || err.toString()));
 
             resolve();
         });
