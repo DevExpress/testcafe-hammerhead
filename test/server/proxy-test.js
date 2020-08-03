@@ -31,6 +31,7 @@ const resourceProcessor                    = require('../../lib/processing/resou
 const { gzip }                             = require('../../lib/utils/promisified-functions');
 const urlUtils                             = require('../../lib/utils/url');
 const Asar                                 = require('../../lib/utils/asar');
+const { MESSAGE }                          = require('../../lib/messages');
 
 const EMPTY_PAGE_MARKUP = '<html></html>';
 const TEST_OBJ          = {
@@ -4057,41 +4058,6 @@ describe('Proxy', () => {
             });
         });
 
-        it('Should respond with an error when destination server emits an error', () => {
-            const url               = 'http://127.0.0.1:2000/error-emulation';
-            const storedHttpRequest = http.request;
-            const options           = {
-                url:                     proxy.openSession(url, session),
-                resolveWithFullResponse: true,
-                simple:                  false
-            };
-
-            http.request = function (opts, callback) {
-                if (opts.url === url) {
-                    const mock = new EventEmitter();
-
-                    mock.setTimeout = mock.write = mock.end = noop;
-
-                    setTimeout(() => mock.emit('error', new Error('Emulation of error!')), 500);
-
-                    return mock;
-                }
-
-                return storedHttpRequest(opts, callback);
-            };
-
-            return request(options)
-                .then(res => {
-                    http.request = storedHttpRequest;
-
-                    expect(res.statusCode).eql(500);
-                    expect(res.body).eql('Failed to perform a request to the resource at ' +
-                                         '<a href="http://127.0.0.1:2000/error-emulation">' +
-                                         'http://127.0.0.1:2000/error-emulation</a> ' +
-                                         'because of an error.\nError: Emulation of error!');
-                });
-        });
-
         it('Should not emit error after a destination response is ended', () => {
             const nativeOnResponse = DestinationRequest.prototype._onResponse;
             let hasPageError       = false;
@@ -4115,6 +4081,115 @@ describe('Proxy', () => {
             return request(options)
                 .then(() => new Promise(resolve => setTimeout(resolve, 2000)))
                 .then(() => expect(hasPageError).to.be.false);
+        });
+
+        describe('Should respond with an error when destination server emits an error', () => {
+            it('Generic error', () => {
+                const url               = 'http://127.0.0.1:2000/error-emulation';
+                const storedHttpRequest = http.request;
+                const options           = {
+                    url:                     proxy.openSession(url, session),
+                    resolveWithFullResponse: true,
+                    simple:                  false
+                };
+
+                http.request = function (opts, callback) {
+                    if (opts.url === url) {
+                        const mock = new EventEmitter();
+
+                        mock.setTimeout = mock.write = mock.end = noop;
+
+                        setTimeout(() => mock.emit('error', new Error('Emulation of error!')), 500);
+
+                        return mock;
+                    }
+
+                    return storedHttpRequest(opts, callback);
+                };
+
+                return request(options)
+                    .then(res => {
+                        http.request = storedHttpRequest;
+
+                        expect(res.statusCode).eql(500);
+                        expect(res.body).eql('Failed to perform a request to the resource at ' +
+                                             '<a href="http://127.0.0.1:2000/error-emulation">' +
+                                             'http://127.0.0.1:2000/error-emulation</a> ' +
+                                             'because of an error.\nError: Emulation of error!');
+                    });
+            });
+
+            it('Header overflow error', () => {
+                const url               = 'http://127.0.0.1:2000/error-emulation';
+                const storedHttpRequest = http.request;
+                const options           = {
+                    url:                     proxy.openSession(url, session),
+                    resolveWithFullResponse: true,
+                    simple:                  false
+                };
+
+                http.request = function (opts, callback) {
+                    if (opts.url === url) {
+                        const mock = new EventEmitter();
+
+                        mock.setTimeout = mock.write = mock.end = noop;
+
+                        setTimeout(() => mock.emit('error', { code: 'HPE_HEADER_OVERFLOW' }), 500);
+
+                        return mock;
+                    }
+
+                    return storedHttpRequest(opts, callback);
+                };
+
+                return request(options)
+                    .then(res => {
+                        http.request = storedHttpRequest;
+
+                        expect(res.statusCode).eql(500);
+                        expect(res.body).eql('Failed to perform a request to the resource at ' +
+                                             '<a href="http://127.0.0.1:2000/error-emulation">' +
+                                             'http://127.0.0.1:2000/error-emulation</a> ' +
+                                             'because of an error.\n' +
+                                             MESSAGE.nodeError['HPE_HEADER_OVERFLOW']);
+                    });
+            });
+
+            it('Invalid header char error', () => {
+                const url               = 'http://127.0.0.1:2000/error-emulation';
+                const storedHttpRequest = http.request;
+                const options           = {
+                    url:                     proxy.openSession(url, session),
+                    resolveWithFullResponse: true,
+                    simple:                  false
+                };
+
+                http.request = function (opts, callback) {
+                    if (opts.url === url) {
+                        const mock = new EventEmitter();
+
+                        mock.setTimeout = mock.write = mock.end = noop;
+
+                        setTimeout(() => mock.emit('error', { code: 'ERR_INVALID_CHAR' }), 500);
+
+                        return mock;
+                    }
+
+                    return storedHttpRequest(opts, callback);
+                };
+
+                return request(options)
+                    .then(res => {
+                        http.request = storedHttpRequest;
+
+                        expect(res.statusCode).eql(500);
+                        expect(res.body).eql('Failed to perform a request to the resource at ' +
+                                             '<a href="http://127.0.0.1:2000/error-emulation">' +
+                                             'http://127.0.0.1:2000/error-emulation</a> ' +
+                                             'because of an error.\n' +
+                                             MESSAGE.nodeError['ERR_INVALID_CHAR']);
+                    });
+            });
         });
     });
 });
