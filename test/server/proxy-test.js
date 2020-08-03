@@ -31,7 +31,6 @@ const resourceProcessor                    = require('../../lib/processing/resou
 const { gzip }                             = require('../../lib/utils/promisified-functions');
 const urlUtils                             = require('../../lib/utils/url');
 const Asar                                 = require('../../lib/utils/asar');
-const { MESSAGE }                          = require('../../lib/messages');
 
 const EMPTY_PAGE_MARKUP = '<html></html>';
 const TEST_OBJ          = {
@@ -4084,6 +4083,22 @@ describe('Proxy', () => {
         });
 
         describe('Should respond with an error when destination server emits an error', () => {
+            function mockRequest (url, storedHttpRequest, error) {
+                return function (opts, callback) {
+                    if (opts.url === url) {
+                        const mock = new EventEmitter();
+
+                        mock.setTimeout = mock.write = mock.end = noop;
+
+                        setTimeout(() => mock.emit('error', error.code ? error : new Error(error.message)), 500);
+
+                        return mock;
+                    }
+
+                    return storedHttpRequest(opts, callback);
+                };
+            }
+
             it('Generic error', () => {
                 const url               = 'http://127.0.0.1:2000/error-emulation';
                 const storedHttpRequest = http.request;
@@ -4093,19 +4108,7 @@ describe('Proxy', () => {
                     simple:                  false
                 };
 
-                http.request = function (opts, callback) {
-                    if (opts.url === url) {
-                        const mock = new EventEmitter();
-
-                        mock.setTimeout = mock.write = mock.end = noop;
-
-                        setTimeout(() => mock.emit('error', new Error('Emulation of error!')), 500);
-
-                        return mock;
-                    }
-
-                    return storedHttpRequest(opts, callback);
-                };
+                http.request = mockRequest(url, storedHttpRequest, { message: 'Emulation of error!' });
 
                 return request(options)
                     .then(res => {
@@ -4120,7 +4123,7 @@ describe('Proxy', () => {
             });
 
             it('Header overflow error', () => {
-                const url               = 'http://127.0.0.1:2000/error-emulation';
+                const url               = 'http://127.0.0.1:2000/error-header-overflow';
                 const storedHttpRequest = http.request;
                 const options           = {
                     url:                     proxy.openSession(url, session),
@@ -4128,19 +4131,7 @@ describe('Proxy', () => {
                     simple:                  false
                 };
 
-                http.request = function (opts, callback) {
-                    if (opts.url === url) {
-                        const mock = new EventEmitter();
-
-                        mock.setTimeout = mock.write = mock.end = noop;
-
-                        setTimeout(() => mock.emit('error', { code: 'HPE_HEADER_OVERFLOW' }), 500);
-
-                        return mock;
-                    }
-
-                    return storedHttpRequest(opts, callback);
-                };
+                http.request = mockRequest(url, storedHttpRequest, { code: 'HPE_HEADER_OVERFLOW' });
 
                 return request(options)
                     .then(res => {
@@ -4148,15 +4139,17 @@ describe('Proxy', () => {
 
                         expect(res.statusCode).eql(500);
                         expect(res.body).eql('Failed to perform a request to the resource at ' +
-                                             '<a href="http://127.0.0.1:2000/error-emulation">' +
-                                             'http://127.0.0.1:2000/error-emulation</a> ' +
-                                             'because of an error.\n' +
-                                             MESSAGE.nodeError['HPE_HEADER_OVERFLOW']);
+                                             '<a href="http://127.0.0.1:2000/error-header-overflow">' +
+                                             'http://127.0.0.1:2000/error-header-overflow</a> because of an error.\n' +
+                                             'The request header\'s size exceeds the set limit.\n' +
+                                             'It causes an internal Node.js error on parsing this header.\n' +
+                                             'To fix the problem, you need to specify the maximum header size via the ' +
+                                             'NODE_OPTIONS=\'--max-http-header-size=...\' environment variable.');
                     });
             });
 
             it('Invalid header char error', () => {
-                const url               = 'http://127.0.0.1:2000/error-emulation';
+                const url               = 'http://127.0.0.1:2000/error-invalid-char';
                 const storedHttpRequest = http.request;
                 const options           = {
                     url:                     proxy.openSession(url, session),
@@ -4164,19 +4157,7 @@ describe('Proxy', () => {
                     simple:                  false
                 };
 
-                http.request = function (opts, callback) {
-                    if (opts.url === url) {
-                        const mock = new EventEmitter();
-
-                        mock.setTimeout = mock.write = mock.end = noop;
-
-                        setTimeout(() => mock.emit('error', { code: 'ERR_INVALID_CHAR' }), 500);
-
-                        return mock;
-                    }
-
-                    return storedHttpRequest(opts, callback);
-                };
+                http.request = mockRequest(url, storedHttpRequest, { code: 'ERR_INVALID_CHAR' });
 
                 return request(options)
                     .then(res => {
@@ -4184,10 +4165,15 @@ describe('Proxy', () => {
 
                         expect(res.statusCode).eql(500);
                         expect(res.body).eql('Failed to perform a request to the resource at ' +
-                                             '<a href="http://127.0.0.1:2000/error-emulation">' +
-                                             'http://127.0.0.1:2000/error-emulation</a> ' +
-                                             'because of an error.\n' +
-                                             MESSAGE.nodeError['ERR_INVALID_CHAR']);
+                                             '<a href="http://127.0.0.1:2000/error-invalid-char">' +
+                                             'http://127.0.0.1:2000/error-invalid-char</a> because of an error.\n' +
+                                             'The request contains a header that doesn\'t comply with the specification ' +
+                                             '<a href="https://httpwg.org/specs/rfc7230.html#rfc.section.3.2">' +
+                                             'https://httpwg.org/specs/rfc7230.html#rfc.section.3.2</a>' +
+                                             '.\nIt causes an internal Node.js error on parsing this header.\n' +
+                                             'To fix the problem, you need to specify the legacy http header parser via the ' +
+                                             'NODE_OPTIONS=\'--insecure-http-parser\' environment variable or change the header ' +
+                                             'name according to the specification.');
                     });
             });
         });
