@@ -4160,7 +4160,7 @@ describe('Proxy', () => {
                     simple:                  false
                 };
 
-                http.request = mockRequest(url, { code: 'ERR_INVALID_CHAR' });
+                http.request = mockRequest(url, { code: 'HPE_INVALID_HEADER_TOKEN' });
 
                 return request(options)
                     .then(res => {
