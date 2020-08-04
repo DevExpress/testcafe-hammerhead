@@ -4083,7 +4083,17 @@ describe('Proxy', () => {
         });
 
         describe('Should respond with an error when destination server emits an error', () => {
-            function mockRequest (url, storedHttpRequest, error) {
+            let storedHttpRequest = null;
+
+            beforeEach(() => {
+                storedHttpRequest = http.request;
+            });
+
+            afterEach(() => {
+                http.request = storedHttpRequest;
+            });
+
+            function mockRequest (url, error) {
                 return function (opts, callback) {
                     if (opts.url === url) {
                         const mock = new EventEmitter();
@@ -4101,19 +4111,16 @@ describe('Proxy', () => {
 
             it('Generic error', () => {
                 const url               = 'http://127.0.0.1:2000/error-emulation';
-                const storedHttpRequest = http.request;
                 const options           = {
                     url:                     proxy.openSession(url, session),
                     resolveWithFullResponse: true,
                     simple:                  false
                 };
 
-                http.request = mockRequest(url, storedHttpRequest, { message: 'Emulation of error!' });
+                http.request = mockRequest(url, { message: 'Emulation of error!' });
 
                 return request(options)
                     .then(res => {
-                        http.request = storedHttpRequest;
-
                         expect(res.statusCode).eql(500);
                         expect(res.body).eql('Failed to perform a request to the resource at ' +
                                              '<a href="http://127.0.0.1:2000/error-emulation">' +
@@ -4124,19 +4131,16 @@ describe('Proxy', () => {
 
             it('Header overflow error', () => {
                 const url               = 'http://127.0.0.1:2000/error-header-overflow';
-                const storedHttpRequest = http.request;
                 const options           = {
                     url:                     proxy.openSession(url, session),
                     resolveWithFullResponse: true,
                     simple:                  false
                 };
 
-                http.request = mockRequest(url, storedHttpRequest, { code: 'HPE_HEADER_OVERFLOW' });
+                http.request = mockRequest(url, { code: 'HPE_HEADER_OVERFLOW' });
 
                 return request(options)
                     .then(res => {
-                        http.request = storedHttpRequest;
-
                         expect(res.statusCode).eql(500);
                         expect(res.body).eql('Failed to perform a request to the resource at ' +
                                              '<a href="http://127.0.0.1:2000/error-header-overflow">' +
@@ -4150,19 +4154,16 @@ describe('Proxy', () => {
 
             it('Invalid header char error', () => {
                 const url               = 'http://127.0.0.1:2000/error-invalid-char';
-                const storedHttpRequest = http.request;
                 const options           = {
                     url:                     proxy.openSession(url, session),
                     resolveWithFullResponse: true,
                     simple:                  false
                 };
 
-                http.request = mockRequest(url, storedHttpRequest, { code: 'ERR_INVALID_CHAR' });
+                http.request = mockRequest(url, { code: 'ERR_INVALID_CHAR' });
 
                 return request(options)
                     .then(res => {
-                        http.request = storedHttpRequest;
-
                         expect(res.statusCode).eql(500);
                         expect(res.body).eql('Failed to perform a request to the resource at ' +
                                              '<a href="http://127.0.0.1:2000/error-invalid-char">' +
