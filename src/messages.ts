@@ -12,7 +12,14 @@ export const MESSAGE = {
     }
 };
 
-export function getText (template: string, parameters: Record<string, string>): string {
+class MessageParameters {
+    url:                        string;
+    message?:                   string;
+    headersSize?:               string;
+    recommendedMaxHeadersSize?: string;
+}
+
+export function getText (template: string, parameters: MessageParameters): string {
     let errorStr = template;
 
     for (const [parameterName, parameterValue] of Object.entries(parameters)) {

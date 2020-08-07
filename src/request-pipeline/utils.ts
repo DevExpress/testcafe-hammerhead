@@ -50,9 +50,9 @@ export function sendRequest (ctx: RequestPipelineContext) {
             // we can still process such requests. (B234324)
             if (!ctx.isDestResReadableEnded)
                 error(ctx, getText(MESSAGE.destConnectionTerminated, {
-                    url                      : ctx.dest.url,
-                    message                  : MESSAGE.nodeError[err.code] || err.toString(),
-                    headersSize              : req instanceof DestinationRequest ? req.getHeadersSize().toString() : '',
+                    url:                       ctx.dest.url,
+                    message:                   MESSAGE.nodeError[err.code] || err.toString(),
+                    headersSize:               req instanceof DestinationRequest ? req.getHeadersSize().toString() : '',
                     recommendedMaxHeadersSize: req instanceof DestinationRequest ? recommendMaxHeadersSize(req.getHeadersSize()).toString() : ''
                 }));
 
