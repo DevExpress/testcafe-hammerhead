@@ -26,5 +26,6 @@ export function getText (template: string, url: string, message?: string): strin
 }
 
 function recommendMaxHeaderSize (currentHeaderSize: number, headerSizeMultiplier: number, headerSizePrecision: number): number {
-    return Math.min(Number((currentHeaderSize * headerSizeMultiplier).toPrecision(headerSizePrecision)), NODE_MAX_HEADER_SIZE)
+    // NOTE: Node limits max header size to 80KB
+    return Math.min(Number((currentHeaderSize * headerSizeMultiplier).toPrecision(headerSizePrecision)), NODE_MAX_HEADER_SIZE);
 }
