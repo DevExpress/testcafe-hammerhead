@@ -17,6 +17,13 @@ import { PassThrough } from 'stream';
 import { getText, MESSAGE } from '../messages';
 import logger from '../utils/logger';
 
+const NODE_MAX_HEADER_SIZE = 81920;
+
+function recommendMaxHeadersSize (currentHeaderSize: number, headerSizeMultiplier: number = 2, headerSizePrecision: number = 2): number {
+    // NOTE: Node limits max header size to 80KB
+    return Math.min(Number((currentHeaderSize * headerSizeMultiplier).toPrecision(headerSizePrecision)), NODE_MAX_HEADER_SIZE);
+}
+
 export function sendRequest (ctx: RequestPipelineContext) {
     return new Promise(resolve => {
         const req = ctx.isFileProtocol ? new FileRequest(ctx.reqOpts.url) : new DestinationRequest(ctx.reqOpts);
@@ -39,16 +46,16 @@ export function sendRequest (ctx: RequestPipelineContext) {
         });
 
         req.on('error', err => {
-            debugger;
             // NOTE: Sometimes the underlying socket emits an error event. But if we have a response body,
             // we can still process such requests. (B234324)
 
-            function createKnownNodeErrorMessage (errCode: string): string {
-                return MESSAGE.nodeError[errCode] ? MESSAGE.nodeError[errCode](req) : '';
-            }
-
             if (!ctx.isDestResReadableEnded)
-                error(ctx, getText(MESSAGE.destConnectionTerminated, ctx.dest.url, createKnownNodeErrorMessage(err.code) || err.toString()));
+                error(ctx, getText(MESSAGE.destConnectionTerminated, {
+                    url                      : ctx.dest.url,
+                    message                  : MESSAGE.nodeError[err.code] || err.toString(),
+                    headersSize              : req instanceof DestinationRequest ? req.getHeadersSize().toString() : '',
+                    recommendedMaxHeadersSize: req instanceof DestinationRequest ? recommendMaxHeadersSize(req.getHeadersSize()).toString() : ''
+                }));
 
             resolve();
         });

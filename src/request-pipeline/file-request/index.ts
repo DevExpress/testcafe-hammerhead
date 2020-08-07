@@ -40,7 +40,7 @@ export default class FileRequest extends EventEmitter {
     }
 
     private _onError (err: Error) {
-        this.emit('fatalError', getText(MESSAGE.cantReadFile, this._url, err.message));
+        this.emit('fatalError', getText(MESSAGE.cantReadFile, { url: this._url, message: err.message }));
     }
 
     private _onOpen (contentStream: any) {

@@ -156,7 +156,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         if (!this.aborted) {
             this.aborted = true;
             this.req.abort();
-            this.emit('fatalError', getText(msg, url || this.opts.url));
+            this.emit('fatalError', getText(msg, { url: url || this.opts.url }));
         }
     }
 
