@@ -9,8 +9,7 @@ import { ASTNode } from 'parse5';
 
 export default class Parse5DomAdapter extends BaseDomAdapter {
     constructor (public readonly isIframe: boolean,
-        public readonly crossDomainPort: string,
-        public readonly workerHammerheadUrl: string) {
+        public readonly crossDomainPort: string) {
         super();
     }
 
@@ -111,9 +110,5 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
             el = el.parentNode;
 
         return parse5Utils.findElement(el, e => this.getAttr(e, 'name') === target);
-    }
-
-    getWorkerHammerheadUrl () {
-        return this.workerHammerheadUrl;
     }
 }

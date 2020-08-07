@@ -3,7 +3,7 @@ import CookieSandbox from './index';
 import Promise from 'pinkie';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import IntegerIdGenerator from '../../utils/integer-id-generator';
-import nativeMethods from '../native-methods-adapter';
+import nativeMethods from '../native-methods';
 import { changeSyncType, formatSyncCookie, generateDeleteSyncCookieStr } from '../../../utils/cookie';
 import ChildWindowSandbox from '../child-window';
 import getTopOpenerWindow from '../../utils/get-top-opener-window';

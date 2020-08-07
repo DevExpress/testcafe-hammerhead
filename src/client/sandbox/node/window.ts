@@ -1,7 +1,7 @@
 /*global navigator*/
 import SandboxBase from '../base';
 import ShadowUI from '../shadow-ui';
-import nativeMethods from '../native-methods-adapter';
+import nativeMethods from '../native-methods';
 import EventSimulator from '../event/simulator';
 import { processScript } from '../../../processing/script';
 import styleProcessor from '../../../processing/style';

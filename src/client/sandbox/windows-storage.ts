@@ -1,5 +1,5 @@
 import { getTopSameDomainWindow } from '../utils/dom';
-import nativeMethods from './native-methods-adapter';
+import nativeMethods from './native-methods';
 
 const WINDOWS_STORAGE = 'hammerhead|windows-storage';
 

@@ -1,6 +1,6 @@
 import SandboxBase from '../../base';
 import IframeSandbox from '../../iframe';
-import nativeMethods from '../../native-methods-adapter';
+import nativeMethods from '../../native-methods';
 import domProcessor from '../../../dom-processor';
 import * as urlUtils from '../../../utils/url';
 import settings from '../../../settings';

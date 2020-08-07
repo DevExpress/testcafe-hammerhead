@@ -126,7 +126,6 @@ export default abstract class Session extends EventEmitter {
             sessionId:             this.id,
             serviceMsgUrl:         domain + SERVICE_ROUTES.messaging,
             transportWorkerUrl:    domain + SERVICE_ROUTES.transportWorker,
-            workerHammerheadUrl:   domain + SERVICE_ROUTES.workerHammerhead,
             forceProxySrcForImage: this.hasRequestEventListeners(),
             crossDomainPort,
             isFirstPageLoad,

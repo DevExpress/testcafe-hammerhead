@@ -6,13 +6,13 @@
 import reEscape from '../../utils/regexp-escape';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import INSTRUCTION from './instruction';
+import SERVICE_ROUTES from '../../proxy/service-routes';
 
 export const SCRIPT_PROCESSING_START_COMMENT      = '/*hammerhead|script|start*/';
 export const SCRIPT_PROCESSING_END_COMMENT        = '/*hammerhead|script|end*/';
 export const SCRIPT_PROCESSING_END_HEADER_COMMENT = '/*hammerhead|script|processing-header-end*/';
 
-const STRICT_MODE_PLACEHOLDER           = '{strict-placeholder}';
-const WORKER_HAMMERHEAD_URL_PLACEHOLDER = '{worker-hammerhead-url}';
+const STRICT_MODE_PLACEHOLDER = '{strict-placeholder}';
 
 const HEADER: string = `
     ${SCRIPT_PROCESSING_START_COMMENT}
@@ -49,8 +49,8 @@ const HEADER: string = `
                 ${INSTRUCTION.restArray} = function(a,i){return Array.prototype.slice.call(a, i)},
                 ${INSTRUCTION.restObject} = function(o,p){var k=Object.keys(o),n={};for(var i=0;i<k.length;++i)if(p.indexOf(k[i])<0)n[k[i]]=o[k[i]];return n};
         
-        if (typeof importScripts !== "undefined" && /\\[native code]/g.test(importScripts.toString()))
-            importScripts("${WORKER_HAMMERHEAD_URL_PLACEHOLDER}");
+        if (typeof importScripts !== "undefined" && /\\[native code]/g.test(importScripts.toString())) {
+            importScripts(location.origin + "${SERVICE_ROUTES.workerHammerhead}");}
     }
     ${SCRIPT_PROCESSING_END_HEADER_COMMENT}
 `.replace(/\n(?!$)\s*/g, '');
@@ -66,17 +66,9 @@ export function remove (code: string): string {
         .replace(PROCESSING_END_COMMENT_RE, '');
 }
 
-export function add (code: string, isStrictMode: boolean, workerHammerheadUrl?: string): string {
-    if (!workerHammerheadUrl) {
-        /* eslint-disable-next-line @typescript-eslint/no-var-requires */
-        const settings = require('../../client/settings');
-
-        workerHammerheadUrl = settings.get().workerHammerheadUrl;
-    }
-
+export function add (code: string, isStrictMode: boolean): string {
     const header = HEADER
-        .replace(STRICT_MODE_PLACEHOLDER, isStrictMode ? '"use strict";' : '')
-        .replace(WORKER_HAMMERHEAD_URL_PLACEHOLDER, workerHammerheadUrl);
+        .replace(STRICT_MODE_PLACEHOLDER, isStrictMode ? '"use strict";' : '');
 
     return header + code + '\n' + SCRIPT_PROCESSING_END_COMMENT;
 }

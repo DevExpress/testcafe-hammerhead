@@ -1,4 +1,4 @@
-import nativeMethods from '../sandbox/native-methods-adapter';
+import nativeMethods from '../sandbox/native-methods';
 import * as destLocation from '../utils/destination-location';
 import { ensureTrailingSlash, parseUrl } from '../../utils/url';
 import { isIframeWithoutSrc, getFrameElement } from './dom';

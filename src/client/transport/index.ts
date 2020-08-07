@@ -1,4 +1,4 @@
-import nativeMethods from '../sandbox/native-methods-adapter';
+import nativeMethods from '../sandbox/native-methods';
 import settings from '../settings';
 import { isWebKit, isFirefox } from '../utils/browser';
 import Promise from 'pinkie';

@@ -5,7 +5,7 @@ import { isWindow, isLocation } from '../../utils/dom';
 import fastApply from '../../utils/fast-apply';
 import * as typeUtils from '../../utils/types';
 import { getProxyUrl, stringifyResourceType } from '../../utils/url';
-import nativeMethods from '../native-methods-adapter';
+import nativeMethods from '../native-methods';
 import MessageSandbox from '../event/message';
 
 export default class MethodCallInstrumentation extends SandboxBase {

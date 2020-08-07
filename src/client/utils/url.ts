@@ -12,7 +12,7 @@ const SUPPORTED_WEB_SOCKET_PROTOCOL_RE = /^wss?:/i;
 // therefore we need to find a window with src to get the proxy settings
 const DEFAULT_PROXY_SETTINGS = (function () {
     /*eslint-disable no-restricted-properties*/
-    let locationWindow = typeof window === 'undefined' ? self : window;
+    let locationWindow = typeof window !== 'undefined' ? window : { location: parseUrl(self.location.origin), parent: null };
     let proxyLocation  = locationWindow.location;
 
     while (!proxyLocation.hostname) {

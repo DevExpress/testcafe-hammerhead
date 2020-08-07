@@ -1,4 +1,4 @@
-import nativeMethods from '../sandbox/native-methods-adapter';
+import nativeMethods from '../sandbox/native-methods';
 import { isDocumentFragmentNode, isDomElement, isShadowRoot } from './dom';
 
 export function getNativeQuerySelector (el) {

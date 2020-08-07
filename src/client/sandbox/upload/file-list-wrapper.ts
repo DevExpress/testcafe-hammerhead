@@ -1,4 +1,4 @@
-import nativeMethods from '../native-methods-adapter';
+import nativeMethods from '../native-methods';
 
 export default class FileListWrapper {
     item: any;

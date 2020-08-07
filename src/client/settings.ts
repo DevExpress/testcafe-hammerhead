@@ -12,7 +12,6 @@ class Settings {
             referer:                  '',
             serviceMsgUrl:            '',
             transportWorkerUrl:       '',
-            workerHammerheadUrl:      '',
             iframeTaskScriptTemplate: '',
             cookie:                   '',
             allowMultipleWindows:     false,

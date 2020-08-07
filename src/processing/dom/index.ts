@@ -83,11 +83,11 @@ export default class DomProcessor {
         return attrName === 'autocomplete' && storedAttrValue === AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
     }
 
-    processJsAttrValue (value: string, { isJsProtocol, isEventAttr }: { isJsProtocol?: boolean; isEventAttr?: boolean}): string {
+    static processJsAttrValue (value: string, { isJsProtocol, isEventAttr }: { isJsProtocol?: boolean; isEventAttr?: boolean}): string {
         if (isJsProtocol)
             value = value.replace(JAVASCRIPT_PROTOCOL_REG_EX, '');
 
-        value = processScript(value, false, isJsProtocol && !isEventAttr, void 0, this.adapter.getWorkerHammerheadUrl());
+        value = processScript(value, false, isJsProtocol && !isEventAttr, void 0);
 
         if (isJsProtocol)
             value = 'javascript:' + value; // eslint-disable-line no-script-url
@@ -414,7 +414,7 @@ export default class DomProcessor {
         const storedUrlAttr  = DomProcessor.getStoredAttrName(attrName);
         const processed      = this.adapter.hasAttr(el, storedUrlAttr);
         const attrValue      = this.adapter.getAttr(el, processed ? storedUrlAttr : attrName);
-        const processedValue = this.processJsAttrValue(attrValue, { isJsProtocol, isEventAttr });
+        const processedValue = DomProcessor.processJsAttrValue(attrValue, { isJsProtocol, isEventAttr });
 
         if (attrValue !== processedValue) {
             this.adapter.setAttr(el, storedUrlAttr, attrValue);
@@ -511,8 +511,7 @@ export default class DomProcessor {
             if (hasCDATA)
                 result = result.replace(CDATA_REG_EX, '$2');
 
-            result = commentPrefix + processScript(result, true, false, urlReplacer,
-                this.adapter.getWorkerHammerheadUrl()) + commentPostfix;
+            result = commentPrefix + processScript(result, true, false, urlReplacer) + commentPostfix;
 
             if (hasCDATA)
                 result = '\n//<![CDATA[\n' + result + '//]]>';

@@ -1,7 +1,7 @@
 import SandboxBase from '../base';
 import MessageSandbox from '../event/message';
 import settings from '../../settings';
-import nativeMethods from '../native-methods-adapter';
+import nativeMethods from '../native-methods';
 import * as windowsStorage from '../windows-storage';
 import getRandomInt16Value from '../../utils/get-random-int-16-value';
 import * as domUtils from '../../utils/dom';

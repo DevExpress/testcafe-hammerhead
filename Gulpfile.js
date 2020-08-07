@@ -130,7 +130,8 @@ gulp.step('client-scripts-transpile', () => {
         './src/typings/*.ts',
         './src/upload/*.ts',
         './src/utils/*.ts',
-        './src/session/*.ts'
+        './src/session/*.ts',
+        './src/proxy/service-routes.ts'
     ];
 
     return gulp.src(['./src/client/**/*.ts'].concat(sharedScripts))

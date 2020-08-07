@@ -7,7 +7,7 @@ import DomProcessor from '../../../processing/dom';
 import domProcessor from '../../dom-processor';
 import * as domUtils from '../../utils/dom';
 import { getNativeQuerySelectorAll } from '../../utils/query-selector';
-import nativeMethods from '../native-methods-adapter';
+import nativeMethods from '../native-methods';
 import { URL_ATTRS } from '../../../processing/dom/attributes';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import NodeMutation from './mutation';

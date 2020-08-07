@@ -37,5 +37,4 @@ export default abstract class BaseDomAdapter {
     abstract sameOriginCheck (destUrl: string, resourceUrl: string): boolean;
     abstract getClassName (el: HTMLElement | ASTNode): string;
     abstract isExistingTarget (target: string, el?: HTMLElement | ASTNode): boolean;
-    abstract getWorkerHammerheadUrl (): string;
 }

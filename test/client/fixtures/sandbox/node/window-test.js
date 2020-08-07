@@ -482,28 +482,6 @@ if (nativeMethods.windowOriginGetter) {
 
 module('regression');
 
-// NOTE: https://connect.microsoft.com/IE/feedback/details/801810/web-workers-from-blob-urls-in-ie-10-and-11
-var isWorkerFromBlobSupported = (function () {
-    try {
-        return !!new Worker(URL.createObjectURL(new Blob(['var a = 42;'])));
-    }
-    catch (e) {
-        return false;
-    }
-})();
-
-if (isWorkerFromBlobSupported) {
-    asyncTest('blob should try to process data as a script even if the content type is not passed (GH-231)', function () {
-        var script  = 'var obj = {}, prop = "prop"; obj[prop] = true; postMessage(true);';
-        var blobURL = URL.createObjectURL(new Blob([script]));
-
-        new Worker(blobURL).onmessage = function (e) {
-            ok(e.data);
-            start();
-        };
-    });
-}
-
 if (window.navigator.sendBeacon) {
     test('Navigator.sendBeacon must be overriden (GH-1035)', function () {
         var originUrl    = 'http://example.com/index.html';

@@ -2,7 +2,7 @@ import LocationWrapper from './wrapper';
 import SandboxBase from '../../base';
 import { isLocation, isCrossDomainWindows } from '../../../utils/dom';
 import INSTRUCTION from '../../../../processing/script/instruction';
-import nativeMethods from '../../native-methods-adapter';
+import nativeMethods from '../../native-methods';
 import { isIE } from '../../../utils/browser';
 import MessageSandbox from '../../event/message';
 

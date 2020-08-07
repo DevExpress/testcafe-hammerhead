@@ -1,5 +1,5 @@
 import extend from '../../utils/extend';
-import nativeMethods from '../native-methods-adapter';
+import nativeMethods from '../native-methods';
 import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
 import * as eventUtils from '../../utils/event';

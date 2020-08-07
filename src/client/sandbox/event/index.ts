@@ -3,7 +3,7 @@ import HoverSandbox from './hover';
 import Listeners from './listeners';
 import Selection from './selection';
 import SandboxBase from '../base';
-import nativeMethods from '../native-methods-adapter';
+import nativeMethods from '../native-methods';
 import * as domUtils from '../../utils/dom';
 import { isIE, isIE11, isFirefox } from '../../utils/browser';
 import { DOM_EVENTS, preventDefault } from '../../utils/event';

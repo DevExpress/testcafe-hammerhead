@@ -10,8 +10,8 @@ class WorkerHammerhead {
         const parsedLocation  = sharedUrlUtils.parseProxyUrl(location.toString());
         const currentSettings = settings.get();
 
-        currentSettings.sessionId = parsedLocation.sessionId;
-        currentSettings.windowId  = parsedLocation.windowId;
+        currentSettings.sessionId = parsedLocation && parsedLocation.sessionId;
+        currentSettings.windowId  = parsedLocation && parsedLocation.windowId;
 
         settings.set(currentSettings);
 

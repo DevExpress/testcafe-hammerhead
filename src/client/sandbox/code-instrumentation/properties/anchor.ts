@@ -1,5 +1,5 @@
 import { parseProxyUrl } from '../../../utils/url';
-import nativeMethods from '../../native-methods-adapter';
+import nativeMethods from '../../native-methods';
 
 let anchor      = nativeMethods.createElement.call(document, 'a');
 let emptyAnchor = nativeMethods.createElement.call(document, 'a');

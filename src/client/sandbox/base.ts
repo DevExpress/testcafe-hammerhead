@@ -1,5 +1,5 @@
 import EventEmitter from '../utils/event-emitter';
-import nativeMethods from './native-methods-adapter';
+import nativeMethods from './native-methods';
 import { findDocument, isElementInDocument, getFrameElement } from '../utils/dom';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 

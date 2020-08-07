@@ -1,4 +1,4 @@
-import nativeMethods from '../sandbox/native-methods-adapter';
+import nativeMethods from '../sandbox/native-methods';
 import * as domUtils from './dom';
 import * as styleUtils from './style';
 import { isFirefox, isIE } from './browser';

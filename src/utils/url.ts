@@ -461,15 +461,9 @@ export function prepareUrl (url: string): string {
 }
 
 export function updateScriptImportUrls (cachedScript: string, serverInfo: ServerInfo, sessionId: string, windowId?: string) {
-    const descrSeparator    = REQUEST_DESCRIPTOR_VALUES_SEPARATOR;
-    const windowIdSeparator = REQUEST_DESCRIPTOR_SESSION_INFO_VALUES_SEPARATOR;
-
-    debugger;
-
-    const regExp  = new RegExp(`(${serverInfo.protocol}//${serverInfo.hostname}:(?:${serverInfo.port}|${serverInfo.crossDomainPort})/)` +
-        `[^/${descrSeparator + windowIdSeparator}]{${sessionId.length}}` +
-        `(?:\\${windowIdSeparator}[^/${descrSeparator}])?[/${descrSeparator}]`, 'g');
-    const pattern = '$1' + sessionId + (windowId ? windowIdSeparator + windowId : '');
+    const regExp  = new RegExp('(' + serverInfo.protocol + '//' + serverInfo.hostname + ':(?:' + serverInfo.port + '|' +
+        serverInfo.crossDomainPort + ')/)[^/' + REQUEST_DESCRIPTOR_VALUES_SEPARATOR + ']+', 'g');
+    const pattern = '$1' + sessionId + (windowId ? REQUEST_DESCRIPTOR_SESSION_INFO_VALUES_SEPARATOR + windowId : '');
 
     return cachedScript.replace(regExp, pattern);
 }

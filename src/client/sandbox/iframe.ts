@@ -1,7 +1,7 @@
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import SandboxBase from './base';
 import settings from '../settings';
-import nativeMethods from '../sandbox/native-methods-adapter';
+import nativeMethods from '../sandbox/native-methods';
 import DomProcessor from '../../processing/dom';
 import { isShadowUIElement, isIframeWithoutSrc, getTagName } from '../utils/dom';
 import { isFirefox, isWebKit, isIE } from '../utils/browser';

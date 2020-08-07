@@ -57,12 +57,12 @@ function removeSourceMap (code: string): string {
     return code.replace(SOURCEMAP_RE, '');
 }
 
-function postprocess (processed: string, withHeader: boolean, bom: string | null, strictMode: boolean, workerHammerheadUrl?: string): string {
+function postprocess (processed: string, withHeader: boolean, bom: string | null, strictMode: boolean): string {
     // NOTE: If the 'use strict' directive is not in the beginning of the file, it is ignored.
     // As we insert our header in the beginning of the script, we must put a new 'use strict'
     // before the header, otherwise it will be ignored.
     if (withHeader)
-        processed = addHeader(processed, strictMode, workerHammerheadUrl);
+        processed = addHeader(processed, strictMode);
 
     return bom ? bom + processed : processed;
 }
@@ -163,7 +163,7 @@ export function isScriptProcessed (code: string): boolean {
     return PROCESSED_SCRIPT_RE.test(code);
 }
 
-export function processScript (src: string, withHeader = false, wrapLastExprWithProcessHtml = false, resolver?: Function, workerHammerheadUrl?: string): string {
+export function processScript (src: string, withHeader = false, wrapLastExprWithProcessHtml = false, resolver?: Function): string {
     const { bom, preprocessed } = preprocess(src);
     const withoutHtmlComments   = removeHtmlComments(preprocessed);
     const { ast, isObject }     = analyze(withoutHtmlComments);
@@ -177,7 +177,7 @@ export function processScript (src: string, withHeader = false, wrapLastExprWith
 
     let processed = changes.length ? applyChanges(withoutHtmlComments, changes, isObject) : preprocessed;
 
-    processed = postprocess(processed, withHeader, bom, isStrictMode(ast), workerHammerheadUrl);
+    processed = postprocess(processed, withHeader, bom, isStrictMode(ast));
 
     if (isObject)
         processed = processed.replace(OBJECT_WRAPPER_RE, '$1');

@@ -1,7 +1,7 @@
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import EventEmitter from '../utils/event-emitter';
 import BaseDomAdapter from '../../processing/dom/base-dom-adapter';
-import nativeMethods from '../sandbox/native-methods-adapter';
+import nativeMethods from '../sandbox/native-methods';
 import settings from '../settings';
 import { sameOriginCheck } from '../utils/destination-location';
 import { getProxyUrl } from '../utils/url';
@@ -12,12 +12,8 @@ import { findByName } from '../sandbox/windows-storage';
 import DomProcessor from '../../processing/dom';
 
 export default class ClientDomAdapter extends BaseDomAdapter {
-    public readonly workerHammerheadUrl;
-
     constructor () {
         super();
-
-        this.workerHammerheadUrl = settings.get().workerHammerheadUrl;
     }
 
     removeAttr (el: HTMLElement, attr: string) {
@@ -126,9 +122,5 @@ export default class ClientDomAdapter extends BaseDomAdapter {
 
     isExistingTarget (target: string) {
         return !!findByName(target);
-    }
-
-    getWorkerHammerheadUrl () {
-        return this.workerHammerheadUrl;
     }
 }

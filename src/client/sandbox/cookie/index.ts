@@ -7,7 +7,7 @@ import * as destLocation from '../../utils/destination-location';
 import * as cookieUtils from '../../utils/cookie';
 import trim from '../../../utils/string-trim';
 import BYTES_PER_COOKIE_LIMIT from '../../../session/cookie-limit';
-import nativeMethods from '../../sandbox/native-methods-adapter';
+import nativeMethods from '../../sandbox/native-methods';
 import {
     changeSyncType,
     formatSyncCookie,

@@ -1,7 +1,7 @@
 import INTERNAL_ATTRS from '../../processing/dom/internal-attributes';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
-import nativeMethods from '../sandbox/native-methods-adapter';
+import nativeMethods from '../sandbox/native-methods';
 import * as urlUtils from './url';
 import { get as getStyle } from './style';
 import { sameOriginCheck } from './destination-location';

@@ -260,72 +260,6 @@ test('canvasRenderingContext2D.drawImage', function () {
     nativeMethods.canvasContextDrawImage = storedNativeMethod;
 });
 
-if (window.navigator.serviceWorker) {
-    test('window.navigator.serviceWorker.register (GH-797)', function () {
-        var storedNative = nativeMethods.registerServiceWorker;
-        var scriptUrl    = '/serviceWorker.js';
-        var scopeUrl     = '/';
-
-        nativeMethods.registerServiceWorker = function (url, options) {
-            var resourceType = urlUtils.stringifyResourceType({ isScript: true });
-
-            strictEqual(url, urlUtils.getProxyUrl(scriptUrl, { resourceType: resourceType }));
-            strictEqual(options.scope, urlUtils.getProxyUrl(scopeUrl, { resourceType: resourceType }));
-
-            nativeMethods.registerServiceWorker = storedNative;
-        };
-
-        window.navigator.serviceWorker.register(scriptUrl, { scope: scopeUrl });
-    });
-
-    test('should reject a Promise for unsecure url (GH-1411)', function () {
-        return window.navigator.serviceWorker.register('http://example.com/worker.js')
-            .then(function () {
-                ok(false);
-            })
-            .catch(function () {
-                ok(true);
-            });
-    });
-
-    // NOTE: Service workers are only accessible via https. The easiest way around it is
-    // to go to http://localhost instead of the IP address of the computer you are running.
-    // https://www.chromium.org/Home/chromium-security/prefer-secure-origins-for-powerful-new-features
-    // This condition works only for running on the local machine only. On Saucelabs url with a domain name is opened.
-    if (location.hostname === 'localhost') {
-        test('should correctly process the "scope" option into the serviceWorker.register (GH-1233)', function () {
-            var scriptUrl = window.QUnitGlobals.getResourceUrl('../../../data/serviceWorker.js');
-            var scopeUrl  = '/';
-
-            return window.navigator.serviceWorker.register(scriptUrl, { scope: scopeUrl })
-                .then(function () {
-                    ok(true);
-                })
-                .catch(function (err) {
-                    ok(false, err);
-                });
-        });
-
-        test('window.navigator.serviceWorker.getReqistration (GH-1618)', function () {
-            expect(1);
-
-            var scriptUrl = window.QUnitGlobals.getResourceUrl('../../../data/serviceWorker.js');
-            var scopeUrl  = '/';
-
-            return window.navigator.serviceWorker.register(scriptUrl, { scope: scopeUrl })
-                .then(function () {
-                    window.navigator.serviceWorker.getRegistration(scopeUrl)
-                        .then(function (serviceWorkerRegistration) {
-                            ok(!!serviceWorkerRegistration);
-                        })
-                        .catch(function (err) {
-                            ok(false, err);
-                        });
-                });
-        });
-    }
-}
-
 if (!browserUtils.isFirefox) {
     test('document.write exception', function () {
         var iframe      = document.createElement('iframe');
@@ -604,31 +538,5 @@ if (!browserUtils.isIE || browserUtils.version > 9) {
         var anchor   = fragment.childNodes[0];
 
         strictEqual(nativeMethods.anchorHrefGetter.call(anchor), urlUtils.getProxyUrl('http://some.domain.com/index.html'));
-    });
-}
-
-if (window.navigator.serviceWorker) {
-    asyncTest('navigator.serviceWorker in the iframe is not available (GH-277)', function () {
-        var iframe = document.createElement('iframe');
-
-        nativeMethods.setAttribute.call(iframe, 'sandbox', 'allow-scripts');
-
-        iframe.src = getCrossDomainPageUrl('../../../data/cross-domain/service-worker-not-available.html');
-
-        var onMessageHandler = function (e) {
-            window.removeEventListener('message', onMessageHandler);
-
-            var isRegisterServiceWorker = e.data;
-
-            strictEqual(isRegisterServiceWorker, browserUtils.isFirefox);
-
-            document.body.removeChild(iframe);
-
-            start();
-        };
-
-        window.addEventListener('message', onMessageHandler);
-
-        document.body.appendChild(iframe);
     });
 }

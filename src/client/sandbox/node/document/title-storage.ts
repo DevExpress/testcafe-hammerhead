@@ -1,4 +1,4 @@
-import nativeMethods from '../../native-methods-adapter';
+import nativeMethods from '../../native-methods';
 
 const DEFAULT_TITLE_VALUE = '';
 

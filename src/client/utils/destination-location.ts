@@ -2,7 +2,7 @@ import * as sharedUrlUtils from '../../utils/url';
 import * as domUtils from './dom';
 import * as urlResolver from './url-resolver';
 import settings from '../settings';
-import nativeMethods from '../sandbox/native-methods-adapter';
+import nativeMethods from '../sandbox/native-methods';
 
 let forcedLocation = null;
 

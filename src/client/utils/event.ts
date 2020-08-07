@@ -1,4 +1,4 @@
-import nativeMethods from '../sandbox/native-methods-adapter';
+import nativeMethods from '../sandbox/native-methods';
 
 const COMPOSED_EVENTS = [
     'blur',

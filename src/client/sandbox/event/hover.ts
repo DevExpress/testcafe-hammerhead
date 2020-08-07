@@ -1,6 +1,6 @@
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import SandboxBase from '../base';
-import nativeMethods from '../native-methods-adapter';
+import nativeMethods from '../native-methods';
 import * as domUtils from '../../utils/dom';
 import * as positionUtils from '../../utils/position';
 import * as browserUtils from '../../utils/browser';

@@ -5,7 +5,7 @@ import { isShadowUIElement, isAnchorElement, isFormElement, closest } from './ut
 import * as windowsStorage from './sandbox/windows-storage';
 import DomProcessor from '../processing/dom';
 import nextTick from './utils/next-tick';
-import nativeMethods from './sandbox/native-methods-adapter';
+import nativeMethods from './sandbox/native-methods';
 import INTERNAL_PROPS from '../processing/dom/internal-properties';
 import EventSandbox from './sandbox/event';
 import CodeInstrumentation from './sandbox/code-instrumentation';

@@ -1,4 +1,4 @@
-import nativeMethods from '../sandbox/native-methods-adapter';
+import nativeMethods from '../sandbox/native-methods';
 import * as browserUtils from './browser';
 
 export let emptyActionAttrFallbacksToTheLocation = false;

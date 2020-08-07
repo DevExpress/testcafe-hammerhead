@@ -1,6 +1,6 @@
 // https://w3c.github.io/FileAPI/#filelist-section
 // NOTE: we have limited support for FileList only for drag and drop DataTransfer purposes
-import nativeMethods from '../../native-methods-adapter';
+import nativeMethods from '../../native-methods';
 
 export default class FileList {
     constructor () {

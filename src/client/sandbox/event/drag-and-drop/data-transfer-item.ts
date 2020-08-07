@@ -1,4 +1,4 @@
-import nativeMethods from '../../native-methods-adapter';
+import nativeMethods from '../../native-methods';
 import DATA_TRANSFER_ITEM_KIND from './data-transfer-item-kind';
 
 // https://html.spec.whatwg.org/multipage/interaction.html#datatransferitem

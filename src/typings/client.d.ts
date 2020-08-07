@@ -12,7 +12,6 @@ export interface HammerheadInitSettings {
     referer: string;
     serviceMsgUrl: string;
     transportWorkerUrl: string;
-    workerHammerheadUrl: string;
     iframeTaskScriptTemplate: string;
     cookie: string;
     allowMultipleWindows: boolean;

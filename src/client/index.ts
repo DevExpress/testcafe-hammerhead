@@ -15,7 +15,7 @@ import trim from '../utils/string-trim';
 import * as urlUtils from './utils/url';
 import * as featureDetection from './utils/feature-detection';
 import * as htmlUtils from './utils/html';
-import nativeMethods from './sandbox/native-methods-adapter';
+import nativeMethods from './sandbox/native-methods';
 import { processScript } from '../processing/script';
 import {
     SCRIPT_PROCESSING_START_COMMENT,
