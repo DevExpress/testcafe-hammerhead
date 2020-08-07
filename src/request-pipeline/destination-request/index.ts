@@ -213,4 +213,8 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         else
             this.emit('error', err);
     }
+
+    getHeadersSize (bitsPerByte: number = 16): number {
+        return JSON.stringify(this.opts.rawHeaders).length * bitsPerByte;
+    }
 }

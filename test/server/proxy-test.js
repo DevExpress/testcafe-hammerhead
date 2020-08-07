@@ -4134,7 +4134,10 @@ describe('Proxy', () => {
                 const options           = {
                     url:                     proxy.openSession(url, session),
                     resolveWithFullResponse: true,
-                    simple:                  false
+                    simple:                  false,
+                    headers:                 {
+                        'header-name': 'header-value'
+                    }
                 };
 
                 http.request = mockRequest(url, { code: 'HPE_HEADER_OVERFLOW' });
@@ -4145,10 +4148,13 @@ describe('Proxy', () => {
                         expect(res.body).eql('Failed to perform a request to the resource at ' +
                                              '<a href="http://127.0.0.1:2000/error-header-overflow">' +
                                              'http://127.0.0.1:2000/error-header-overflow</a> because of an error.\n' +
-                                             'The request header\'s size exceeds the set limit.\n' +
-                                             'It causes an internal Node.js error on parsing this header.\n' +
-                                             'To fix the problem, you need to specify the maximum header size via the ' +
-                                             'NODE_OPTIONS=\'--max-http-header-size=...\' environment variable.');
+                                             'The request header\'s size is 1200 bytes which exceeds ' +
+                                             'the set limit.\nIt causes an internal Node.js error on parsing this header.\n' +
+                                             'To fix the problem, you need to add the \'--max-http-header-size=...\' flag ' +
+                                             'to the \'NODE_OPTIONS\' environment variable:\n\nmacOS, Linux (bash, zsh)\nexport ' +
+                                             'NODE_OPTIONS=\'--max-http-header-size=2400\'\n\nWindows (powershell)\n' +
+                                             '$env:NODE_OPTIONS=\'--max-http-header-size=2400\'\n\nWindows (cmd)\nset ' +
+                                             'NODE_OPTIONS=\'--max-http-header-size=2400\'\n\nand then start your tests.');
                     });
             });
 
@@ -4168,13 +4174,14 @@ describe('Proxy', () => {
                         expect(res.body).eql('Failed to perform a request to the resource at ' +
                                              '<a href="http://127.0.0.1:2000/error-invalid-char">' +
                                              'http://127.0.0.1:2000/error-invalid-char</a> because of an error.\n' +
-                                             'The request contains a header that doesn\'t comply with the specification ' +
-                                             '<a href="https://httpwg.org/specs/rfc7230.html#rfc.section.3.2">' +
-                                             'https://httpwg.org/specs/rfc7230.html#rfc.section.3.2</a>' +
-                                             '.\nIt causes an internal Node.js error on parsing this header.\n' +
-                                             'To fix the problem, you need to specify the legacy http header parser via the ' +
-                                             'NODE_OPTIONS=\'--insecure-http-parser\' environment variable or change the header ' +
-                                             'name according to the specification.');
+                                             'The request contains a header that doesn\'t comply with the ' +
+                                             'specification <a href="https://tools.ietf.org/html/rfc7230#section-3.2.4">' +
+                                             'https://tools.ietf.org/html/rfc7230#section-3.2.4</a>.\nIt causes an internal ' +
+                                             'Node.js error on parsing this header.\nTo fix the problem, you need to add the ' +
+                                             '\'--insecure-http-parser\' flag to the \'NODE_OPTIONS\' environment variable:\n\n' +
+                                             'macOS, Linux (bash, zsh)\nexport NODE_OPTIONS=\'--insecure-http-parser\'\n\nWindows ' +
+                                             '(powershell)\n$env:NODE_OPTIONS=\'--insecure-http-parser\'\n\nWindows (cmd)\nset ' +
+                                             'NODE_OPTIONS=\'--insecure-http-parser\'\n\nand then start your tests.');
                     });
             });
         });

@@ -39,10 +39,16 @@ export function sendRequest (ctx: RequestPipelineContext) {
         });
 
         req.on('error', err => {
+            debugger;
             // NOTE: Sometimes the underlying socket emits an error event. But if we have a response body,
             // we can still process such requests. (B234324)
+
+            function createKnownNodeErrorMessage (errCode: string): string {
+                return MESSAGE.nodeError[errCode] ? MESSAGE.nodeError[errCode](req) : '';
+            }
+
             if (!ctx.isDestResReadableEnded)
-                error(ctx, getText(MESSAGE.destConnectionTerminated, ctx.dest.url, MESSAGE.nodeError[err.code] || err.toString()));
+                error(ctx, getText(MESSAGE.destConnectionTerminated, ctx.dest.url, createKnownNodeErrorMessage(err.code) || err.toString()));
 
             resolve();
         });
