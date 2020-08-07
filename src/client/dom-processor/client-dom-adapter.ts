@@ -12,10 +12,6 @@ import { findByName } from '../sandbox/windows-storage';
 import DomProcessor from '../../processing/dom';
 
 export default class ClientDomAdapter extends BaseDomAdapter {
-    constructor () {
-        super();
-    }
-
     removeAttr (el: HTMLElement, attr: string) {
         return nativeMethods.removeAttribute.call(el, attr);
     }

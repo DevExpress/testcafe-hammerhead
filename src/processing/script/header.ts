@@ -49,8 +49,8 @@ const HEADER: string = `
                 ${INSTRUCTION.restArray} = function(a,i){return Array.prototype.slice.call(a, i)},
                 ${INSTRUCTION.restObject} = function(o,p){var k=Object.keys(o),n={};for(var i=0;i<k.length;++i)if(p.indexOf(k[i])<0)n[k[i]]=o[k[i]];return n};
         
-        if (typeof importScripts !== "undefined" && /\\[native code]/g.test(importScripts.toString())) {
-            importScripts(location.origin + "${SERVICE_ROUTES.workerHammerhead}");}
+        if (typeof importScripts !== "undefined" && /\\[native code]/g.test(importScripts.toString()))
+            importScripts(location.origin + "${SERVICE_ROUTES.workerHammerhead}");
     }
     ${SCRIPT_PROCESSING_END_HEADER_COMMENT}
 `.replace(/\n(?!$)\s*/g, '');
