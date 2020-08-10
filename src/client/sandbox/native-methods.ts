@@ -334,6 +334,7 @@ class NativeMethods {
     Uint32Array: typeof Uint32Array;
     DataView: any;
     Blob: Window['Blob'];
+    File: any;
     XMLHttpRequest: any;
     Image: any;
     Function: any;
@@ -1053,6 +1054,10 @@ class NativeMethods {
         this.HTMLCollection   = win.HTMLCollection;
         this.NodeList         = win.NodeList;
         this.Node             = win.Node;
+
+        // NOTE: non-IE11 case. window.File in IE11 is not constructable.
+        if (win.File && typeof win.File === 'function')
+            this.File = win.File;
 
         if (win.Proxy)
             this.Proxy = win.Proxy;

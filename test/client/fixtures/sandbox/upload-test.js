@@ -31,7 +31,7 @@ var files = [
         file:  {
             data: 'dGVzdA==',
             info: {
-                lastModifiedDate: Date.now(),
+                lastModifiedDate: new Date(Date.now()),
                 name:             'file.txt',
                 type:             'text/plain'
             }
@@ -42,7 +42,7 @@ var files = [
         file:  {
             data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjEwMPRyoQAAAAxJREFUGFdj+L99OwAFJgJueSUNaAAAAABJRU5ErkJggg==',
             info: {
-                lastModifiedDate: Date.now(),
+                lastModifiedDate: new Date(Date.now()),
                 name:             'file.png',
                 type:             'image/png'
             }
@@ -118,10 +118,15 @@ function getInputMock (fileNames) {
     var value = fileNames.join(',');
 
     var fileListWrapper = fileNames.map(function (name) {
-        var file = new Blob(['123'], { type: 'image/png' });
+        // NOTE: window.File in IE11 is not constructable.
+        var file = nativeMethods.File
+            ? new File(['123'], name, { type: 'image/png', lastModified: Date.now() })
+            : new Blob(['123'], { type: 'image/png' });
 
-        file.name             = name;
-        file.lastModifiedDate = Date.now();
+        file.name = name;
+
+        if (!nativeMethods.File)
+            file.lastModifiedDate = new Date(Date.now());
 
         return file;
     });
