@@ -116,7 +116,7 @@ if (nativeMethods.fetch) {
             };
         })
             .then(function (headers) {
-                strictEqual(headers['x-hammerhead-credentials'], 'same-origin');
+                strictEqual(headers['x-hammerhead-credentials'], 'omit');
                 strictEqual(headers['x-hammerhead-origin'], 'https://example.com');
             });
     });
