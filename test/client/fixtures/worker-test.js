@@ -45,13 +45,15 @@ test('checking parameters (GH-1132)', function () {
     nativeMethods.Worker = savedNativeWorker;
 });
 
-test('should work with the operator "instanceof" (GH-690)', function () {
-    var blob   = new Blob(['if(true) {}'], { type: 'text/javascript' });
-    var url    = URL.createObjectURL(blob);
-    var worker = new Worker(url);
+if (!browserUtils.isSafari) {
+    test('should work with the operator "instanceof" (GH-690)', function () {
+        var blob   = new Blob(['if(true) {}'], { type: 'text/javascript' });
+        var url    = URL.createObjectURL(blob);
+        var worker = new Worker(url);
 
-    ok(worker instanceof Worker);
-});
+        ok(worker instanceof Worker);
+    });
+}
 
 test('calling overridden window.Worker should not cause the "use the \'new\'..." error (GH-1970)', function () {
     expect(0);
@@ -84,35 +86,57 @@ test('calling Worker without the "new" keyword (GH-1970)', function () {
     }
 });
 
-test('send xhr from worker', function () {
-    var worker = new Worker(window.QUnitGlobals.getResourceUrl('../data/web-worker/xhr.js'));
+if (!browserUtils.isIE) {
+    test('send xhr from worker', function () {
+        var worker = new Worker(window.QUnitGlobals.getResourceUrl('../data/web-worker/xhr.js'));
 
-    return new Promise(function (resolve) {
+        return new Promise(function (resolve) {
+            worker.onmessage = function (e) {
+                worker.onmessage = void 0;
+
+                resolve(JSON.parse(e.data));
+            };
+        })
+            .then(function (headers) {
+                strictEqual(headers['x-hammerhead-credentials'], 'same-origin');
+                strictEqual(headers['x-hammerhead-origin'], 'https://example.com');
+            });
+    });
+}
+
+if (nativeMethods.fetch) {
+    test('send fetch from worker', function () {
+        var worker = new Worker(window.QUnitGlobals.getResourceUrl('../data/web-worker/fetch.js'));
+
+        return new Promise(function (resolve) {
+            worker.onmessage = function (e) {
+                worker.onmessage = void 0;
+
+                resolve(e.data);
+            };
+        })
+            .then(function (headers) {
+                strictEqual(headers['x-hammerhead-credentials'], 'same-origin');
+                strictEqual(headers['x-hammerhead-origin'], 'https://example.com');
+            });
+    });
+}
+
+if (!browserUtils.isIE && !browserUtils.isSafari) {
+    asyncTest('window.Blob with type=javascript must be overriden (T259367)', function () {
+        var script = ['self.onmessage = function() { var t = {};', '__set$(t, "blobTest", true); postMessage(t.blobTest); };'];
+        var blob   = new window.Blob(script, { type: 'texT/javascript' });
+        var url    = window.URL.createObjectURL(blob);
+        var worker = new window.Worker(url);
+
         worker.onmessage = function (e) {
-            worker.onmessage = void 0;
-
-            resolve(JSON.parse(e.data));
+            strictEqual(e.data, true);
+            start();
         };
-    })
-        .then(function (headers) {
-            strictEqual(headers['x-hammerhead-credentials'], 'same-origin');
-            strictEqual(headers['x-hammerhead-origin'], 'https://example.com');
-        });
-});
 
-asyncTest('window.Blob with type=javascript must be overriden (T259367)', function () {
-    var script = ['self.onmessage = function() { var t = {};', '__set$(t, "blobTest", true); postMessage(t.blobTest); };'];
-    var blob   = new window.Blob(script, { type: 'texT/javascript' });
-    var url    = window.URL.createObjectURL(blob);
-    var worker = new window.Worker(url);
-
-    worker.onmessage = function (e) {
-        strictEqual(e.data, true);
-        start();
-    };
-
-    worker.postMessage('');
-});
+        worker.postMessage('');
+    });
+}
 
 module('Service Worker');
 

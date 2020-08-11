@@ -595,7 +595,7 @@ class NativeMethods {
 
         // XHR
         // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
-        const xhrEventProto = win.EventTarget.prototype || win.XMLHttpRequest.prototype;
+        const xhrEventProto = (win.EventTarget || win.XMLHttpRequest).prototype;
 
         this.xhrAbort                 = win.XMLHttpRequest.prototype.abort;
         this.xhrOpen                  = win.XMLHttpRequest.prototype.open;
@@ -619,10 +619,13 @@ class NativeMethods {
 
         this.createContextualFragment = win.Range && win.Range.prototype.createContextualFragment;
 
-        const nativePerformance    = win.performance;
-        const nativePerformanceNow = win.performance.now || win.Performance.prototype.now;
+        const nativePerformance = win.performance;
 
-        this.performanceNow = (...args) => nativePerformanceNow.apply(nativePerformance, args);
+        if (nativePerformance) {
+            const nativePerformanceNow = win.performance.now || win.Performance.prototype.now;
+
+            this.performanceNow = (...args) => nativePerformanceNow.apply(nativePerformance, args);
+        }
 
         // Fetch
         this.fetch   = win.fetch;
@@ -659,7 +662,7 @@ class NativeMethods {
         this.canvasContextDrawImage = win.CanvasRenderingContext2D && win.CanvasRenderingContext2D.prototype.drawImage;
 
         // FormData
-        this.formDataAppend = win.FormData.prototype.append;
+        this.formDataAppend = win.FormData && win.FormData.prototype.append;
 
         // DateTime
         this.date    = win.Date;
@@ -1039,7 +1042,7 @@ class NativeMethods {
         }
 
         this.crypto                = win.crypto || win.msCrypto;
-        this.cryptoGetRandomValues = this.crypto.getRandomValues;
+        this.cryptoGetRandomValues = this.crypto && this.crypto.getRandomValues;
 
         this.refreshClasses(win);
     }
