@@ -152,10 +152,6 @@ export default class RequestPipelineContext {
         return injectableUrls.map(url => this.resolveInjectableUrl(url));
     }
 
-    resolveInjectableUrl (url: string): string {
-        return this.serverInfo.domain + url;
-    }
-
     private _initRequestNatureInfo (): void {
         const acceptHeader = this.req.headers[BUILTIN_HEADERS.accept] as string;
 
@@ -353,7 +349,7 @@ export default class RequestPipelineContext {
     toProxyUrl (url: string, isCrossDomain: boolean, resourceType: string, charset?: string): string {
         const proxyHostname = this.serverInfo.hostname;
         const proxyProtocol = this.serverInfo.protocol;
-        const proxyPort     = isCrossDomain ? this.serverInfo.crossDomainPort : this.serverInfo.port;
+        const proxyPort     = isCrossDomain ? this.serverInfo.crossDomainPort.toString() : this.serverInfo.port.toString();
         const sessionId     = this.session.id;
         const windowId      = this.windowId;
 
@@ -411,5 +407,9 @@ export default class RequestPipelineContext {
 
     getOnResponseEventData ({ includeBody }: { includeBody: boolean }): OnResponseEventData[] {
         return this.onResponseEventData.filter(eventData => eventData.opts.includeBody === includeBody);
+    }
+
+    resolveInjectableUrl (url: string): string {
+        return this.serverInfo.domain + url;
     }
 }

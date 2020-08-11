@@ -2,8 +2,9 @@ import nativeMethods from '../../native-methods';
 
 const DEFAULT_TITLE_VALUE = '';
 
-// NOTE: All properties that can affect the real document.title are sandboxed.
-// Their values stored into the single internal property.
+// NOTE: Hammehead always add the <title> element for each test before test execution.
+// It's necessary to TestCafe can find the browser tab by page title.
+// This <title> element stores the sandboxed title value in the internal property.
 const INTERNAL_TITLE_PROP_NAME = 'hammerhead|document-title-storage|internal-prop-name'
 
 export default class DocumentTitleStorage {
@@ -13,20 +14,8 @@ export default class DocumentTitleStorage {
         this._document = document;
     }
 
-    private _ensureFirstTitleElementInHead (value: string): void {
-        const firstTitle = this._getFirstTitleElement();
-
-        if (firstTitle)
-            return;
-
-        const titleElement = this._document.createElement('title');
-
-        nativeMethods.titleElementTextSetter.call(titleElement, value);
-        document.head.appendChild(titleElement);
-    }
-
-    private _getValueFromFirstTitleElement (): string | undefined {
-        const firstTitle = this._getFirstTitleElement();
+    private _getValueFromFirstTitleElement (): string {
+        const firstTitle = this.getFirstTitleElement();
 
         if (!firstTitle)
             return DEFAULT_TITLE_VALUE;
@@ -34,22 +23,24 @@ export default class DocumentTitleStorage {
         return this.getTitleElementPropertyValue(firstTitle);
     }
 
-    public setValueForFirstTitleElementIfExists (value?: string): void {
-        const firstTitle = this._getFirstTitleElement();
-
-        if(!firstTitle)
-            return;
-
-        if(value === void 0)
-            value = nativeMethods.titleElementTextGetter.call(firstTitle);
+    private _setValueForFirstTitleElement (value: string): void {
+        const firstTitle = this.getFirstTitleElement() as HTMLTitleElement;
 
         this.setTitleElementPropertyValue(firstTitle, value);
     }
 
-    private _getFirstTitleElement (): HTMLTitleElement | undefined {
+    private _getTitleElement (index: number): HTMLTitleElement | undefined {
         return this._document &&
             this._document.head &&
-            nativeMethods.elementQuerySelector.call(this._document.head, 'title');
+            nativeMethods.elementQuerySelectorAll.call(this._document.head, 'title')[index];
+    }
+
+    public getFirstTitleElement (): HTMLTitleElement | undefined {
+        return this._getTitleElement(0);
+    }
+
+    public getSecondTitleElement (): HTMLTitleElement | undefined {
+        return this._getTitleElement(1);
     }
 
     getTitle (): string {
@@ -59,8 +50,7 @@ export default class DocumentTitleStorage {
     setTitle(value: string): void {
         value = String(value);
 
-        this._ensureFirstTitleElementInHead(value);
-        this.setValueForFirstTitleElementIfExists(value);
+        this._setValueForFirstTitleElement(value);
     }
 
     getTitleElementPropertyValue (element: HTMLTitleElement): string {
@@ -70,13 +60,25 @@ export default class DocumentTitleStorage {
     setTitleElementPropertyValue (element: HTMLTitleElement, value: string): void {
         value = String(value);
 
-        if (INTERNAL_TITLE_PROP_NAME in element)
+        if (this.isElementProcessed(element))
             element[INTERNAL_TITLE_PROP_NAME] = value;
         else
             nativeMethods.objectDefineProperty(element, INTERNAL_TITLE_PROP_NAME, {
                 value,
                 writable: true
             });
+    }
+
+    public getDocument () {
+        return this._document;
+    }
+
+    public isElementProcessed (titleElement: HTMLTitleElement): boolean {
+        return INTERNAL_TITLE_PROP_NAME in titleElement;
+    }
+
+    public static get DEFAULT_TITLE_VALUE (): string {
+        return DEFAULT_TITLE_VALUE;
     }
 }
 

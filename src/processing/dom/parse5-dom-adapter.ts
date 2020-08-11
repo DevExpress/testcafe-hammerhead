@@ -109,6 +109,6 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
         while (el.parentNode)
             el = el.parentNode;
 
-        return parse5Utils.findElement(el, e => this.getAttr(e, 'name') === target);
+        return !!parse5Utils.findElement(el, e => this.getAttr(e, 'name') === target);
     }
 }

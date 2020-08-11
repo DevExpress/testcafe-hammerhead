@@ -20,11 +20,11 @@ class Settings {
         };
     }
 
-    set (value: HammerheadInitSettings) {
+    set (value: HammerheadInitSettings): void {
         this._settings = value;
     }
 
-    get () {
+    get (): HammerheadInitSettings {
         return this._settings;
     }
 }

@@ -26,7 +26,7 @@ function parseAsJson (msg: Buffer): ServiceMessage | null {
     }
 }
 
-function createServerInfo (hostname: string, port: string, crossDomainPort: string, protocol: string): ServerInfo {
+function createServerInfo (hostname: string, port: number, crossDomainPort: number, protocol: string): ServerInfo {
     return {
         hostname:        hostname,
         port:            port,
@@ -51,7 +51,7 @@ export default class Proxy extends Router {
     // https://github.com/nodejs/node/commit/186035243fad247e3955fa0c202987cae99e82db#diff-1d0d420098503156cddb601e523b82e7R59
     public static MAX_REQUEST_HEADER_SIZE = 80 * 1024;
 
-    constructor (hostname: string, port1: string, port2: string, options: any = {}) {
+    constructor (hostname: string, port1: number, port2: number, options: any = {}) {
         super(options);
 
         const { ssl, developmentMode } = options;
@@ -223,7 +223,7 @@ export default class Proxy extends Router {
 
         return urlUtils.getProxyUrl(url, {
             proxyHostname: this.server1Info.hostname,
-            proxyPort:     this.server1Info.port,
+            proxyPort:     this.server1Info.port.toString(),
             proxyProtocol: this.server1Info.protocol,
             sessionId:     session.id,
             windowId:      session.windowId

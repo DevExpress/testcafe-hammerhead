@@ -1,7 +1,7 @@
 export interface ServerInfo {
     hostname: string;
-    port: string;
-    crossDomainPort: string;
+    port: number;
+    crossDomainPort: number;
     protocol: string;
     domain: string;
 }

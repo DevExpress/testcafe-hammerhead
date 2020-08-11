@@ -338,7 +338,6 @@ export function resolveUrlAsDest (url: string, getProxyUrlMeth: Function): strin
 export function formatUrl (parsedUrl: ParsedUrl): string {
     // NOTE: the URL is relative.
     if (parsedUrl.protocol !== 'file:' && !parsedUrl.host && (!parsedUrl.hostname || !parsedUrl.port))
-        //@ts-ignore
         return parsedUrl.partAfterHost;
 
     let url = parsedUrl.protocol || '';

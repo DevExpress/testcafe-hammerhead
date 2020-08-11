@@ -13,6 +13,7 @@ import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import { URL_ATTRS, ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../processing/dom/attributes';
 import createSelfRemovingScript from '../../utils/create-self-removing-script';
 import InsertPosition from './insert-position';
+import removeElement from '../utils/remove-element';
 
 interface ProcessHTMLOptions {
     parentTag?: any;
@@ -60,7 +61,7 @@ const HTML_PARSER_ELEMENT_FLAG                       = 'hammerhead|html-parser-e
 
 export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = createSelfRemovingScript(`
     var parentHammerhead = null;
-    
+
     if (!window["${ INTERNAL_PROPS.hammerhead }"])
         Object.defineProperty(window, "${ INTERNAL_PROPS.documentWasCleaned }", { value: true, configurable: true });
 
@@ -123,9 +124,7 @@ function processHtmlInternal (html, process) {
 
     let processedHtml = process(container) ? nativeMethods.elementInnerHTMLGetter.call(container) : html;
 
-    const containerParent = nativeMethods.nodeParentNodeGetter.call(container);
-
-    nativeMethods.removeChild.call(containerParent, container);
+    removeElement(container);
     processedHtml = unwrapHtmlText(processedHtml);
 
     // NOTE: hack for IE (GH-1083)

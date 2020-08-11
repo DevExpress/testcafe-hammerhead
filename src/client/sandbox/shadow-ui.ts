@@ -17,6 +17,7 @@ import NodeMutation from './node/mutation';
 import MessageSandbox from './event/message';
 import IframeSandbox from './iframe';
 import IEDebugSandbox from './ie-debug';
+import removeElement from '../utils/remove-element';
 
 const IS_NON_STATIC_POSITION_RE = /fixed|relative|absolute/;
 const CLASSNAME_RE              = /\.((?:\\.|[-\w]|[^\x00-\xa0])+)/g;
@@ -650,11 +651,8 @@ export default class ShadowUI extends SandboxBase {
             '.' + SHADOW_UI_CLASS_NAME.selfRemovingScript);
         const length              = nativeMethods.nodeListLengthGetter.call(selfRemovingScripts);
 
-        for (let i = 0; i < length; i++) {
-            const parent = nativeMethods.nodeParentNodeGetter.call(selfRemovingScripts[i]);
-
-            nativeMethods.removeChild.call(parent, selfRemovingScripts[i]);
-        }
+        for (let i = 0; i < length; i++)
+            removeElement(selfRemovingScripts[i]);
     }
 
     // API
