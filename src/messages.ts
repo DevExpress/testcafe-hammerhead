@@ -1,3 +1,5 @@
+import { Dictionary } from "./typings/common";
+
 export const MESSAGE = {
     destConnectionTerminated:         'Failed to perform a request to the resource at <a href="{url}">{url}</a> because of an error.\n{message}',
     cantResolveUrl:                   'Failed to find a DNS-record for the resource at <a href="{url}">{url}</a>.',
@@ -12,18 +14,11 @@ export const MESSAGE = {
     }
 };
 
-class MessageParameters {
-    url:                        string;
-    message?:                   string;
-    headersSize?:               string;
-    recommendedMaxHeadersSize?: string;
-}
-
-export function getText (template: string, parameters: MessageParameters): string {
+export function getText (template: string, parameters: Dictionary<unknown>): string {
     let errorStr = template;
 
     for (const [parameterName, parameterValue] of Object.entries(parameters)) {
-        errorStr = errorStr.replace(new RegExp(`{${parameterName}}`, 'g'), parameterValue);
+        errorStr = errorStr.replace(new RegExp(`{${parameterName}}`, 'g'), parameterValue as string);
     }
 
     return errorStr;

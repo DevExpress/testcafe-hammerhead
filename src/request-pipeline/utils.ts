@@ -52,8 +52,8 @@ export function sendRequest (ctx: RequestPipelineContext) {
                 error(ctx, getText(MESSAGE.destConnectionTerminated, {
                     url:                       ctx.dest.url,
                     message:                   MESSAGE.nodeError[err.code] || err.toString(),
-                    headersSize:               req instanceof DestinationRequest ? req.getHeadersSize().toString() : '',
-                    recommendedMaxHeadersSize: req instanceof DestinationRequest ? recommendMaxHeadersSize(req.getHeadersSize()).toString() : ''
+                    headersSize:               req instanceof DestinationRequest ? req.getHeadersSize() : null,
+                    recommendedMaxHeadersSize: req instanceof DestinationRequest ? recommendMaxHeadersSize(req.getHeadersSize()) : null
                 }));
 
             resolve();
