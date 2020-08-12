@@ -43,6 +43,8 @@ const getClientTestSettings = () => {
     };
 };
 
+const USE_STRICT_RE = /^(['"])use strict\1;?/;
+
 const CLIENT_TESTS_BROWSERS = [
     {
         platform:    'Windows 10',
@@ -154,7 +156,7 @@ gulp.step('client-scripts-bundle', () => {
         // HACK: babel-plugin-transform-es2015-modules-commonjs forces
         // 'use strict' insertion. We need to remove it manually because
         // of https://github.com/DevExpress/testcafe/issues/258
-        return { code: transformed.code.replace(/^(['"])use strict\1;?/, '') };
+        return { code: transformed.code.replace(USE_STRICT_RE, '') };
     };
 
     const hammerhead = gulp.src('./src/client/index.js')
