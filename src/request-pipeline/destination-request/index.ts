@@ -6,7 +6,6 @@ import { noop } from 'lodash';
 import semver from 'semver';
 import * as requestAgent from './agent';
 import { EventEmitter } from 'events';
-// @ts-ignore
 import { getAuthInfo, addCredentials, requiresResBody } from 'webauth';
 import connectionResetGuard from '../connection-reset-guard';
 import { MESSAGE, getText } from '../../messages';

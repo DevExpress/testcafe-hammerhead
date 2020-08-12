@@ -4,7 +4,6 @@ import EventEmitter from './utils/event-emitter';
 import XhrSandbox from './sandbox/xhr';
 import settings from './settings';
 import Transport from './transport';
-//@ts-ignore
 import * as JSON from 'json-hammerhead';
 import * as browserUtils from './utils/browser';
 import * as domUtils from './utils/dom';
@@ -53,7 +52,6 @@ class Hammerhead {
     utils: Dictionary<any>;
 
     constructor () {
-        //@ts-ignore
         this.win                 = null;
         this.transport           = new Transport();
         this.sandbox             = new Sandbox(this.transport);

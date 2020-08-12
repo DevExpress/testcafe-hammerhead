@@ -26,7 +26,6 @@ function findRecord (storage: SandboxBackupEntry[], iframe: Element | null) {
 export function create (window: Window, sandbox: Sandbox) {
     const topSameDomainWindow = getTopSameDomainWindow(window);
     const iframe              = window !== topSameDomainWindow ? getFrameElement(window) : null;
-    // @ts-ignore
     let storage               = topSameDomainWindow[SANDBOX_BACKUP];
 
     if (!storage) {
@@ -44,7 +43,6 @@ export function create (window: Window, sandbox: Sandbox) {
 
 export function get (window: Window) {
     const topSameDomainWindow = getTopSameDomainWindow(window);
-    //@ts-ignore
     const storage             = topSameDomainWindow[SANDBOX_BACKUP];
     const iframe              = window !== topSameDomainWindow ? window.frameElement : null;
 

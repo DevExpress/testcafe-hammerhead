@@ -89,7 +89,6 @@ export default class ShadowUI extends SandboxBase {
         };
 
         this.bodyContentChangedEventCallback = (body: HTMLBodyElement) => {
-            // @ts-ignore
             const elContextWindow = body[INTERNAL_PROPS.processedContext];
 
             if (elContextWindow !== window) {

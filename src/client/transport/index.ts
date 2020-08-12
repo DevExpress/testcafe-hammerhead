@@ -1,7 +1,6 @@
 import nativeMethods from '../sandbox/native-methods';
 import settings from '../settings';
 import { isWebKit, isFirefox } from '../utils/browser';
-// @ts-ignore
 import Promise from 'pinkie';
 import { isIframeWithoutSrc, getFrameElement } from '../utils/dom';
 import IntegerIdGenerator from '../utils/integer-id-generator';

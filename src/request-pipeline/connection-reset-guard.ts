@@ -1,5 +1,4 @@
 import domain from 'domain';
-// @ts-ignore
 import os from 'os-family';
 
 const connectionResetDomain = domain.create();

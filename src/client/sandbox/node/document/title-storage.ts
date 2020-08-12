@@ -1,6 +1,6 @@
 import nativeMethods from '../../native-methods';
 
-const DEFAULT_TITLE_VALUE      = '';
+const DEFAULT_TITLE_VALUE = '';
 
 // NOTE: All properties that can affect the real document.title are sandboxed.
 // Their values stored into the single internal property.
@@ -64,7 +64,7 @@ export default class DocumentTitleStorage {
     }
 
     getTitleElementPropertyValue (element: HTMLTitleElement): string {
-        return element[INTERNAL_TITLE_PROP_NAME] || DEFAULT_TITLE_VALUE;
+        return element[INTERNAL_TITLE_PROP_NAME] as string || DEFAULT_TITLE_VALUE;
     }
 
     setTitleElementPropertyValue (element: HTMLTitleElement, value: string): void {

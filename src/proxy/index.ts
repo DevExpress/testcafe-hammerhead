@@ -6,7 +6,6 @@ import { StaticContent, ServiceMessage, ServerInfo } from '../typings/proxy';
 import http from 'http';
 import https from 'https';
 import * as urlUtils from '../utils/url';
-// @ts-ignore
 import { readSync as read } from 'read-file-relative';
 import { respond500, respondWithJSON, fetchBody, addPreventCachingHeaders } from '../utils/http';
 import { run as runRequestPipeline } from '../request-pipeline';

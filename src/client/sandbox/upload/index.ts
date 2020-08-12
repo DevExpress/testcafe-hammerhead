@@ -30,7 +30,6 @@ export default class UploadSandbox extends SandboxBase {
     }
 
     static _getCurrentInfoManager (input: HTMLInputElement) {
-        // @ts-ignore
         const contextWindow = input[INTERNAL_PROPS.processedContext];
 
         return getSandboxBackup(contextWindow).upload.infoManager;

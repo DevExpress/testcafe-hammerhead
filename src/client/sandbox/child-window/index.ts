@@ -21,7 +21,6 @@ export default class ChildWindowSandbox extends SandboxBase {
     readonly WINDOW_OPENED_EVENT = 'hammerhead|event|window-opened';
     private _childWindows: Set<Window> | null;
 
-    // @ts-ignore
     constructor (private readonly _messageSandbox: MessageSandbox,
         private readonly _listeners: Listeners) {
         super();

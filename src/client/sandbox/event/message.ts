@@ -3,7 +3,6 @@ import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import * as destLocation from '../../utils/destination-location';
 import { formatUrl } from '../../utils/url';
-// @ts-ignore
 import { parse as parseJSON, stringify as stringifyJSON } from 'json-hammerhead';
 import { isCrossDomainWindows, getTopSameDomainWindow, isWindow, isMessageEvent } from '../../utils/dom';
 import { callEventListener } from '../../utils/event';

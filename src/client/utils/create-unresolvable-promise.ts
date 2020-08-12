@@ -1,5 +1,4 @@
 import noop from './noop';
-// @ts-ignore
 import Promise from 'pinkie';
 
 
