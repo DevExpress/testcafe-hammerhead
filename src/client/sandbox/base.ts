@@ -25,7 +25,6 @@ export default class SandboxBase extends EventEmitter {
             // eslint-disable-next-line no-unused-expressions
             this.document.body;
 
-            //@ts-ignore
             if (this.window[INTERNAL_PROPS.hammerhead]) {
                 const frameElement = getFrameElement(this.window as Window);
 

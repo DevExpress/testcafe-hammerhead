@@ -99,8 +99,7 @@ export default class Listeners extends EventEmitter {
 
         return function (e: Event) {
             const el                  = this as HTMLElement;
-            //@ts-ignore
-            const elWindow            = el[INTERNAL_PROPS.processedContext] || window;
+            const elWindow            = el[INTERNAL_PROPS.processedContext] as Window || window;
             let eventPrevented        = false;
             let handlersCancelled     = false;
             let stopPropagationCalled = false;
@@ -249,15 +248,13 @@ export default class Listeners extends EventEmitter {
     }
 
     static beforeDispatchEvent (el: HTMLElement) {
-        // @ts-ignore
-        const elWindow = el[INTERNAL_PROPS.processedContext] || window;
+        const elWindow = el[INTERNAL_PROPS.processedContext] as Window || window;
 
         elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG] = (elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG] || 0) + 1;
     }
 
     static afterDispatchEvent (el: HTMLElement) {
-        // @ts-ignore
-        const elWindow = el[INTERNAL_PROPS.processedContext] || window;
+        const elWindow = el[INTERNAL_PROPS.processedContext] as Window || window;
 
         elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG]--;
 

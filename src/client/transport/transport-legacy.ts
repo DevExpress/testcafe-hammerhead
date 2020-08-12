@@ -1,5 +1,4 @@
 import { ServiceMessage } from '../../typings/proxy';
-// @ts-ignore
 import Promise from 'pinkie';
 import nativeMethods from '../sandbox/native-methods';
 import settings from '../settings';

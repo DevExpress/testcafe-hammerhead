@@ -244,7 +244,7 @@ export default class ElementSandbox extends SandboxBase {
             }
 
             if (el[this._nodeSandbox.win.SANDBOX_DOM_TOKEN_LIST_UPDATE_FN])
-                el[this._nodeSandbox.win.SANDBOX_DOM_TOKEN_LIST_UPDATE_FN](value);
+                (el[this._nodeSandbox.win.SANDBOX_DOM_TOKEN_LIST_UPDATE_FN] as Function)(value);
         }
         // TODO: remove after https://github.com/DevExpress/testcafe-hammerhead/issues/244 implementation
         else if (tagName === 'meta' && attr === 'http-equiv') {

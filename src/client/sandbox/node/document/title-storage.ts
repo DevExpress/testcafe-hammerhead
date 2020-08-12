@@ -64,7 +64,7 @@ export default class DocumentTitleStorage {
     }
 
     getTitleElementPropertyValue (element: HTMLTitleElement): string {
-        return element[INTERNAL_TITLE_PROP_NAME] || DEFAULT_TITLE_VALUE;
+        return element[INTERNAL_TITLE_PROP_NAME] as string || DEFAULT_TITLE_VALUE;
     }
 
     setTitleElementPropertyValue (element: HTMLTitleElement, value: string): void {

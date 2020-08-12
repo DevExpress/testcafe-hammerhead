@@ -38,7 +38,6 @@ import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-called-without-new-keyword';
 import INSTRUCTION from '../../../processing/script/instruction';
-// @ts-ignore
 import Promise from 'pinkie';
 import getMimeType from '../../utils/get-mime-type';
 import { overrideDescriptor } from '../../utils/property-overriding';
