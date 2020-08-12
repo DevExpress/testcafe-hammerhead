@@ -5,7 +5,6 @@ import nativeMethods from '../sandbox/native-methods';
 import DomProcessor from '../../processing/dom';
 import { isShadowUIElement, isIframeWithoutSrc, getTagName } from '../utils/dom';
 import { isFirefox, isWebKit, isIE } from '../utils/browser';
-// @ts-ignore
 import * as JSON from 'json-hammerhead';
 import NodeMutation from './node/mutation';
 import CookieSandbox from './cookie';

@@ -10,9 +10,6 @@
     "strict": false,
     "newLine": "lf"
   },
-  "include": [
-      "src/typings/builtin-extensions.ts"
-  ],
   "exclude": [
     "node_modules"
   ]

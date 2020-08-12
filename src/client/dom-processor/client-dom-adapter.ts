@@ -78,7 +78,7 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     hasIframeParent (el: HTMLElement): boolean {
         try {
             if (el[INTERNAL_PROPS.processedContext])
-                return window.top !== el[INTERNAL_PROPS.processedContext] as Window;
+                return window.top !== el[INTERNAL_PROPS.processedContext];
 
             return window.top.document !== domUtils.findDocument(el);
         }
@@ -107,7 +107,7 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     }
 
     isTopParentIframe (el: HTMLElement): boolean {
-        const elWindow = el[INTERNAL_PROPS.processedContext] as Window;
+        const elWindow = el[INTERNAL_PROPS.processedContext];
 
         return elWindow && window.top === elWindow.parent;
     }

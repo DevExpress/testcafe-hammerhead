@@ -1,6 +1,6 @@
 import nativeMethods from '../../native-methods';
 
-const DEFAULT_TITLE_VALUE      = '';
+const DEFAULT_TITLE_VALUE = '';
 
 // NOTE: All properties that can affect the real document.title are sandboxed.
 // Their values stored into the single internal property.

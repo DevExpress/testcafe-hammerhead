@@ -34,7 +34,7 @@ export default class EventEmitter {
         }
     }
 
-    off (evt: string, listener) {
+    off (evt: string, listener?): void {
         const listeners = this.eventsListeners[evt];
 
         if (!listeners)

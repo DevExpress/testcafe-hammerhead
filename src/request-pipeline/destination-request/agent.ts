@@ -2,7 +2,6 @@ import RequestOptions from '../request-options';
 import http from 'http';
 import https from 'https';
 import LRUCache from 'lru-cache';
-// @ts-ignore
 import tunnel from 'tunnel-agent';
 
 const SSL3_HOST_CACHE_SIZE = 1000;

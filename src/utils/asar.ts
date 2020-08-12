@@ -1,5 +1,3 @@
-// NOTE: There is no @types/asar
-// @ts-ignore: Could not find a declaration file for module 'asar'
 import asar from 'asar';
 import { toReadableStream } from './buffer';
 import path from 'path';
