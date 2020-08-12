@@ -3,6 +3,7 @@ import * as domUtils from './dom';
 import * as urlResolver from './url-resolver';
 import settings from '../settings';
 import nativeMethods from '../sandbox/native-methods';
+import getGlobalContextInfo from './global-context-info';
 
 let forcedLocation = null;
 
@@ -12,7 +13,7 @@ export function getLocation (): string {
     if (forcedLocation)
         return forcedLocation;
 
-    const globalCtx    = typeof window !== 'undefined' ? window : self;
+    const globalCtx    = getGlobalContextInfo().global;
     const frameElement = domUtils.getFrameElement(globalCtx);
 
     // NOTE: Fallback to the owner page's URL if we are in an iframe without src.
