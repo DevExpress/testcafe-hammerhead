@@ -26,7 +26,7 @@ const HTTP_SEPARATOR = '\r\n\r\n';
 const HEADER_SIZE_MULTIPLIER = 2;
 const HEADER_SIZE_PRECISION  = 2;
 
-// Calculates the HTTP header size that customer should specify via the
+// Calculates the HTTP header size in bytes that a customer should specify via the
 // --max-http-header-size Node option so that the proxy can process the site
 // https://nodejs.org/api/cli.html#cli_max_http_header_size_size
 function recommendMaxHeaderSize (currentHeaderSize: number): number {
