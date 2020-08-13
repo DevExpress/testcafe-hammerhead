@@ -17,11 +17,20 @@ import { PassThrough } from 'stream';
 import { getText, MESSAGE } from '../messages';
 import logger from '../utils/logger';
 
-const NODE_MAX_HEADER_SIZE = 81920;
+// An empty line that indicates the end of the header section
+// https://tools.ietf.org/html/rfc7230#section-3
+const HTTP_SEPARATOR = '\r\n\r\n';
 
-function recommendMaxHeadersSize (currentHeaderSize: number, headerSizeMultiplier: number = 2, headerSizePrecision: number = 2): number {
-    // NOTE: Node limits max header size to 80KB
-    return Math.min(Number((currentHeaderSize * headerSizeMultiplier).toPrecision(headerSizePrecision)), NODE_MAX_HEADER_SIZE);
+// Used to calculate the recommended maximum header size
+// See recommendMaxHeaderSize() below
+const HEADER_SIZE_MULTIPLIER = 2;
+const HEADER_SIZE_PRECISION  = 2;
+
+// Calculates the HTTP header size that customer should specify via the
+// --max-http-header-size Node option so that the proxy can process the site
+// https://nodejs.org/api/cli.html#cli_max_http_header_size_size
+function recommendMaxHeaderSize (currentHeaderSize: number): number {
+    return Number((currentHeaderSize * HEADER_SIZE_MULTIPLIER).toPrecision(HEADER_SIZE_PRECISION));
 }
 
 export function sendRequest (ctx: RequestPipelineContext) {
@@ -48,13 +57,16 @@ export function sendRequest (ctx: RequestPipelineContext) {
         req.on('error', err => {
             // NOTE: Sometimes the underlying socket emits an error event. But if we have a response body,
             // we can still process such requests. (B234324)
-            if (!ctx.isDestResReadableEnded)
+            if (!ctx.isDestResReadableEnded) {
+                const headerSize = err.rawPacket ? err.rawPacket.asciiSlice().split(HTTP_SEPARATOR)[0].length : 0;
+
                 error(ctx, getText(MESSAGE.destConnectionTerminated, {
-                    url:                       ctx.dest.url,
-                    message:                   MESSAGE.nodeError[err.code] || err.toString(),
-                    headersSize:               req instanceof DestinationRequest ? req.getHeadersSize() : null,
-                    recommendedMaxHeadersSize: req instanceof DestinationRequest ? recommendMaxHeadersSize(req.getHeadersSize()) : null
+                    url:                      ctx.dest.url,
+                    message:                  MESSAGE.nodeError[err.code] || err.toString(),
+                    headerSize:               headerSize,
+                    recommendedMaxHeaderSize: recommendMaxHeaderSize(headerSize)
                 }));
+            }
 
             resolve();
         });

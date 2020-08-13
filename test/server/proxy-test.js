@@ -4140,7 +4140,7 @@ describe('Proxy', () => {
                     }
                 };
 
-                http.request = mockRequest(url, { code: 'HPE_HEADER_OVERFLOW' });
+                http.request = mockRequest(url, { code: 'HPE_HEADER_OVERFLOW', rawPacket: new Buffer('headers\r\n\r\nbody') });
 
                 return request(options)
                     .then(res => {
@@ -4148,13 +4148,13 @@ describe('Proxy', () => {
                         expect(res.body).eql('Failed to perform a request to the resource at ' +
                                              '<a href="http://127.0.0.1:2000/error-header-overflow">' +
                                              'http://127.0.0.1:2000/error-header-overflow</a> because of an error.\n' +
-                                             'The request header\'s size is 1200 bytes which exceeds ' +
+                                             'The request header\'s size is 7 bytes which exceeds ' +
                                              'the set limit.\nIt causes an internal Node.js error on parsing this header.\n' +
                                              'To fix the problem, you need to add the \'--max-http-header-size=...\' flag ' +
                                              'to the \'NODE_OPTIONS\' environment variable:\n\nmacOS, Linux (bash, zsh)\nexport ' +
-                                             'NODE_OPTIONS=\'--max-http-header-size=2400\'\n\nWindows (powershell)\n' +
-                                             '$env:NODE_OPTIONS=\'--max-http-header-size=2400\'\n\nWindows (cmd)\nset ' +
-                                             'NODE_OPTIONS=\'--max-http-header-size=2400\'\n\nand then start your tests.');
+                                             'NODE_OPTIONS=\'--max-http-header-size=14\'\n\nWindows (powershell)\n' +
+                                             '$env:NODE_OPTIONS=\'--max-http-header-size=14\'\n\nWindows (cmd)\nset ' +
+                                             'NODE_OPTIONS=\'--max-http-header-size=14\'\n\nand then start your tests.');
                     });
             });
 
