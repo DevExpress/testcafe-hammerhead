@@ -23,14 +23,14 @@ const HTTP_SEPARATOR = '\r\n\r\n';
 
 // Used to calculate the recommended maximum header size
 // See recommendMaxHeaderSize() below
-const HEADER_SIZE_MULTIPLIER = 2;
-const HEADER_SIZE_PRECISION  = 2;
+const HEADER_SIZE_MULTIPLIER            = 2;
+const HEADER_SIZE_CALCULATION_PRECISION = 2;
 
 // Calculates the HTTP header size in bytes that a customer should specify via the
 // --max-http-header-size Node option so that the proxy can process the site
 // https://nodejs.org/api/cli.html#cli_max_http_header_size_size
 function recommendMaxHeaderSize (currentHeaderSize: number): number {
-    return Number((currentHeaderSize * HEADER_SIZE_MULTIPLIER).toPrecision(HEADER_SIZE_PRECISION));
+    return Number((currentHeaderSize * HEADER_SIZE_MULTIPLIER).toPrecision(HEADER_SIZE_CALCULATION_PRECISION));
 }
 
 export function sendRequest (ctx: RequestPipelineContext) {
