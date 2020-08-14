@@ -86,6 +86,12 @@ module.exports = function (app) {
             .send(fs.readFileSync('./lib/client/transport-worker.js').toString().replace(patchRegExp, patchPattern));
     });
 
+    app.get('/worker-hammerhead.js', function (req, res) {
+        res
+            .set('content-type', 'application/javascript')
+            .send(fs.readFileSync('./lib/client/worker-hammerhead.js'));
+    });
+
     app.post('/service-msg', function (req, res) {
         fetchContent(req)
             .then(body => {

@@ -9,18 +9,15 @@ import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/sam
 import { overrideDescriptor } from '../utils/property-overriding';
 import * as browserUtils from '../utils/browser';
 import { transformHeaderNameToBuiltin, transformHeaderNameToInternal } from '../utils/headers';
+import CookieSandbox from './cookie';
 
-const DEFAULT_REQUEST_CREDENTIALS = nativeMethods.Request ? new nativeMethods.Request(window.location.toString()).credentials : void 0;
+const DEFAULT_REQUEST_CREDENTIALS = nativeMethods.Request ? new nativeMethods.Request(location.toString()).credentials : void 0;
 
 export default class FetchSandbox extends SandboxBase {
-    FETCH_REQUEST_SENT_EVENT = 'hammerhead|event|fetch-request-sent-event';
+    readonly FETCH_REQUEST_SENT_EVENT = 'hammerhead|event|fetch-request-sent-event';
 
-    cookieSandbox: any;
-
-    constructor (cookieSandbox) {
+    constructor (readonly cookieSandbox: CookieSandbox) {
         super();
-
-        this.cookieSandbox = cookieSandbox;
     }
 
     static _addSpecialHeadersToRequestInit (init) {

@@ -8,14 +8,9 @@ import DomProcessor from './index';
 import { ASTNode } from 'parse5';
 
 export default class Parse5DomAdapter extends BaseDomAdapter {
-    isIframe: boolean;
-    crossDomainPort: string;
-
-    constructor (isIframe: boolean, crossDomainPort: string) {
+    constructor (public readonly isIframe: boolean,
+        public readonly crossDomainPort: string) {
         super();
-
-        this.isIframe        = isIframe;
-        this.crossDomainPort = crossDomainPort;
     }
 
     removeAttr (el: ASTNode, attr: string): void {

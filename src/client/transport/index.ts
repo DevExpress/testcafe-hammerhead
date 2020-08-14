@@ -31,7 +31,7 @@ export default class Transport extends TransportLegacy {
                 serviceMsgUrl: settings.get().serviceMsgUrl
             } as InitialWorkerSettings);
 
-            this._transportWorker.addEventListener('message', (e: MessageEvent) => this._onWorkerMessage(e));
+            this._transportWorker.addEventListener('message', (e: Event) => this._onWorkerMessage(e as MessageEvent));
             this._processQueue();
         }
 

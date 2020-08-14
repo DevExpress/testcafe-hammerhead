@@ -149,7 +149,11 @@ export default class RequestPipelineContext {
     }
 
     private _resolveInjectableUrls (injectableUrls: string[]): string[] {
-        return injectableUrls.map(url => this.serverInfo.domain + url);
+        return injectableUrls.map(url => this.resolveInjectableUrl(url));
+    }
+
+    resolveInjectableUrl (url: string): string {
+        return this.serverInfo.domain + url;
     }
 
     private _initRequestNatureInfo (): void {

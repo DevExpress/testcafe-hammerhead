@@ -4,6 +4,7 @@ import * as destLocation from './destination-location';
 import * as urlResolver from './url-resolver';
 import settings from '../settings';
 import { ResourceType } from '../../typings/url';
+import getGlobalContextInfo from './global-context-info';
 
 const HASH_RE                          = /#[\S\s]*$/;
 const SUPPORTED_WEB_SOCKET_PROTOCOL_RE = /^wss?:/i;
@@ -12,7 +13,8 @@ const SUPPORTED_WEB_SOCKET_PROTOCOL_RE = /^wss?:/i;
 // therefore we need to find a window with src to get the proxy settings
 const DEFAULT_PROXY_SETTINGS = (function () {
     /*eslint-disable no-restricted-properties*/
-    let locationWindow = window;
+    const globalCtx    = getGlobalContextInfo();
+    let locationWindow = globalCtx.isInWorker ? { location: parseUrl(self.location.origin), parent: null } : window;
     let proxyLocation  = locationWindow.location;
 
     while (!proxyLocation.hostname) {

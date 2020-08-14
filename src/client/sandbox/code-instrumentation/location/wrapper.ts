@@ -17,7 +17,7 @@ import {
 } from '../../../../utils/url';
 import nativeMethods from '../../native-methods';
 import urlResolver from '../../../utils/url-resolver';
-import DomProcessor from '../../../../processing/dom/index';
+import DomProcessor from '../../../../processing/dom';
 import DOMStringListWrapper from './ancestor-origins-wrapper';
 import IntegerIdGenerator from '../../../utils/integer-id-generator';
 import { createOverriddenDescriptor } from '../../../utils/property-overriding';

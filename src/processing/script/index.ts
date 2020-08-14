@@ -163,7 +163,7 @@ export function isScriptProcessed (code: string): boolean {
     return PROCESSED_SCRIPT_RE.test(code);
 }
 
-export function processScript (src: string, withHeader: boolean = false, wrapLastExprWithProcessHtml: boolean = false, resolver?: Function): string {
+export function processScript (src: string, withHeader = false, wrapLastExprWithProcessHtml = false, resolver?: Function): string {
     const { bom, preprocessed } = preprocess(src);
     const withoutHtmlComments   = removeHtmlComments(preprocessed);
     const { ast, isObject }     = analyze(withoutHtmlComments);

@@ -1,4 +1,6 @@
 /*global Document, Window */
+import getGlobalContextInfo from '../utils/global-context-info';
+
 const NATIVE_CODE_RE = /\[native code]/;
 
 class NativeMethods {
@@ -333,9 +335,9 @@ class NativeMethods {
     Uint16Array: typeof Uint16Array;
     Uint32Array: typeof Uint32Array;
     DataView: any;
-    Blob: Window['Blob'];
+    Blob: typeof  Blob;
     File: any;
-    XMLHttpRequest: any;
+    XMLHttpRequest: typeof XMLHttpRequest;
     Image: any;
     Function: any;
     Error: any;
@@ -361,13 +363,20 @@ class NativeMethods {
     scrollTo: any;
     crypto: Crypto;
     cryptoGetRandomValues: Function;
+    URL: typeof URL;
 
     constructor (doc?: Document, win?: Window) {
-        win = win || window;
+        const globalCtx = getGlobalContextInfo();
+
+        win = win || globalCtx.global;
+
+        this.refreshWindowMeths(win, globalCtx.isInWorker);
+
+        if (globalCtx.isInWorker)
+            return;
 
         this.refreshDocumentMeths(doc, win);
         this.refreshElementMeths(doc, win);
-        this.refreshWindowMeths(win);
     }
 
     static _getDocumentPropOwnerName (docPrototype, propName: string) {
@@ -426,6 +435,7 @@ class NativeMethods {
             this.documentAddEventListener    = docPrototype.addEventListener;
             this.documentRemoveEventListener = docPrototype.removeEventListener;
         }
+
         this.documentCreateEvent     = docPrototype.createEvent;
         this.documentCreateTouch     = docPrototype.createTouch;
         this.documentCreateTouchList = docPrototype.createTouchList;
@@ -561,136 +571,84 @@ class NativeMethods {
         this.styleCssTextSetter = styleCssTextDescriptor.set;
     }
 
-    refreshWindowMeths (win) {
+    _refreshGettersAndSetters (win, isInWorker = false) {
         win = win || window;
 
         const winProto = win.constructor.prototype;
 
-        // Dom
-        this.eval                             = win.eval;
-        this.formSubmit                       = win.HTMLFormElement.prototype.submit;
-        this.documentFragmentQuerySelector    = win.DocumentFragment.prototype.querySelector;
-        this.documentFragmentQuerySelectorAll = win.DocumentFragment.prototype.querySelectorAll;
-        this.preventDefault                   = win.Event.prototype.preventDefault;
+        // NOTE: Event properties is located in window prototype only in IE11
+        this.isEventPropsLocatedInProto = winProto.hasOwnProperty('onerror');
 
-        this.historyPushState    = win.history.pushState;
-        this.historyReplaceState = win.history.replaceState;
-        this.postMessage         = win.postMessage || winProto.postMessage;
-        this.windowOpen          = win.open || winProto.open;
-        this.setTimeout          = win.setTimeout || winProto.setTimeout;
-        this.setInterval         = win.setInterval || winProto.setInterval;
-        this.clearTimeout        = win.clearTimeout || winProto.clearTimeout;
-        this.clearInterval       = win.clearInterval || winProto.clearInterval;
+        const eventPropsOwner = this.isEventPropsLocatedInProto ? winProto : win;
 
-        if (win.navigator.registerProtocolHandler)
-            this.registerProtocolHandler = win.navigator.registerProtocolHandler;
+        const winOnBeforeUnloadDescriptor = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onbeforeunload');
+        const winOnPageHideDescriptor     = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onpagehide');
+        const winOnMessageDescriptor      = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onmessage');
+        const winOnErrorDescriptor        = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onerror');
+        const winOnHashChangeDescriptor   = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onhashchange');
 
-        if (win.navigator.sendBeacon)
-            this.sendBeacon = win.navigator.sendBeacon;
+        this.winOnBeforeUnloadSetter = winOnBeforeUnloadDescriptor && winOnBeforeUnloadDescriptor.set;
+        this.winOnPageHideSetter     = winOnPageHideDescriptor && winOnPageHideDescriptor.set;
+        this.winOnMessageSetter      = winOnMessageDescriptor && winOnMessageDescriptor.set;
+        this.winOnErrorSetter        = winOnErrorDescriptor && winOnErrorDescriptor.set;
+        this.winOnHashChangeSetter   = winOnHashChangeDescriptor && winOnHashChangeDescriptor.set;
 
-        // XHR
-        this.xhrAbort                 = win.XMLHttpRequest.prototype.abort;
-        this.xhrOpen                  = win.XMLHttpRequest.prototype.open;
-        this.xhrSend                  = win.XMLHttpRequest.prototype.send;
-        // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
-        if (!win.EventTarget) {
-            this.xhrAddEventListener    = win.XMLHttpRequest.prototype.addEventListener;
-            this.xhrRemoveEventListener = win.XMLHttpRequest.prototype.removeEventListener;
-            this.xhrDispatchEvent       = win.XMLHttpRequest.prototype.dispatchEvent;
-        }
-        this.xhrGetResponseHeader     = win.XMLHttpRequest.prototype.getResponseHeader;
-        this.xhrGetAllResponseHeaders = win.XMLHttpRequest.prototype.getAllResponseHeaders;
-        this.xhrSetRequestHeader      = win.XMLHttpRequest.prototype.setRequestHeader;
-        this.xhrOverrideMimeType      = win.XMLHttpRequest.prototype.overrideMimeType;
+        const winOnUnhandledRejectionDescriptor = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onunhandledrejection');
 
-        try {
-            this.registerServiceWorker        = win.navigator.serviceWorker.register;
-            this.getRegistrationServiceWorker = win.navigator.serviceWorker.getRegistration;
-        }
-        catch (e) {
-            this.registerServiceWorker        = null;
-            this.getRegistrationServiceWorker = null;
+        if (winOnUnhandledRejectionDescriptor)
+            this.winOnUnhandledRejectionSetter = winOnUnhandledRejectionDescriptor.set;
+
+        // Getters
+        if (win.WebSocket) {
+            const urlPropDescriptor = win.Object.getOwnPropertyDescriptor(win.WebSocket.prototype, 'url');
+
+            if (urlPropDescriptor && urlPropDescriptor.get && urlPropDescriptor.configurable)
+                this.webSocketUrlGetter = urlPropDescriptor.get;
         }
 
-        this.createContextualFragment = win.Range.prototype.createContextualFragment;
+        this.messageEventOriginGetter = win.Object.getOwnPropertyDescriptor(win.MessageEvent.prototype, 'origin').get;
 
-        const nativePerformance    = win.performance;
-        const nativePerformanceNow = win.performance.now || win.Performance.prototype.now;
+        // NOTE: At present we proxy only the PerformanceNavigationTiming.
+        // Another types of the PerformanceEntry will be fixed later
+        // https://developer.mozilla.org/en-US/docs/Web/API/PerformanceEntry
+        if (win.PerformanceNavigationTiming)
+            this.performanceEntryNameGetter = win.Object.getOwnPropertyDescriptor(win.PerformanceEntry.prototype, 'name').get;
 
-        this.performanceNow = (...args) => nativePerformanceNow.apply(nativePerformance, args);
+        const dataPropDescriptor = win.Object.getOwnPropertyDescriptor(win.MessageEvent.prototype, 'data');
 
-        // Fetch
-        this.fetch   = win.fetch;
-        this.Request = win.Request;
+        // NOTE: This condition is used for the Android 6.0 browser
+        if (dataPropDescriptor)
+            this.messageEventDataGetter = dataPropDescriptor.get;
 
-        if (win.Headers) {
-            this.Headers        = win.Headers;
-            this.headersSet     = win.Headers.prototype.set;
-            this.headersGet     = win.Headers.prototype.get;
-            this.headersHas     = win.Headers.prototype.has;
-            this.headersDelete  = win.Headers.prototype.delete;
-            this.headersEntries = win.Headers.prototype.entries;
-            this.headersForEach = win.Headers.prototype.forEach;
+        if (win.fetch) {
+            this.responseStatusGetter = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'status').get;
+            this.responseTypeGetter   = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'type').get;
+            this.responseUrlGetter    = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'url').get;
         }
 
-        // Event
-        // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
-        if (!win.EventLisener) {
-            this.windowAddEventListener    = win.addEventListener || winProto.addEventListener;
-            this.windowRemoveEventListener = win.removeEventListener || winProto.removeEventListener;
-            this.windowDispatchEvent       = win.dispatchEvent;
+        if (win.XMLHttpRequest) {
+            const xhrResponseURLDescriptor = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'responseURL');
+
+            // NOTE: IE doesn't support the 'responseURL' property
+            if (xhrResponseURLDescriptor)
+                this.xhrResponseURLGetter = xhrResponseURLDescriptor.get;
+
+            this.xhrStatusGetter = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'status').get;
         }
-        this.WindowPointerEvent   = win.PointerEvent || winProto.PointerEvent;
-        this.WindowMSPointerEvent = win.MSPointerEvent || winProto.MSPointerEvent;
-        this.WindowTouch          = win.Touch || winProto.Touch;
-        this.WindowTouchEvent     = win.TouchEvent || winProto.TouchEvent;
-        this.WindowKeyboardEvent  = win.KeyboardEvent || winProto.KeyboardEvent;
-        this.WindowFocusEvent     = win.FocusEvent || winProto.FocusEvent;
-        this.WindowTextEvent      = win.TextEvent || winProto.TextEvent;
-        this.WindowInputEvent     = win.InputEvent || winProto.InputEvent;
-        this.WindowMouseEvent     = win.MouseEvent || winProto.MouseEvent;
 
-        this.canvasContextDrawImage = win.CanvasRenderingContext2D.prototype.drawImage;
+        // eslint-disable-next-line no-restricted-properties
+        if (win.Window) {
+            // NOTE: The 'localStorage' and 'sessionStorage' properties is located in window prototype only in IE11
+            this.isStoragePropsLocatedInProto = win.Window.prototype.hasOwnProperty('localStorage');
 
-        // FormData
-        this.formDataAppend = win.FormData.prototype.append;
+            const storagesPropsOwner = this.getStoragesPropsOwner(win);
 
-        // DateTime
-        this.date    = win.Date;
-        this.dateNow = win.Date.now;
+            this.winLocalStorageGetter   = win.Object.getOwnPropertyDescriptor(storagesPropsOwner, 'localStorage').get;
+            this.winSessionStorageGetter = win.Object.getOwnPropertyDescriptor(storagesPropsOwner, 'sessionStorage').get;
+        }
 
-        // Math
-        this.math       = win.Math;
-        this.mathRandom = win.Math.random;
-
-        // Object
-        this.objectToString                 = win.Object.prototype.toString;
-        this.objectAssign                   = win.Object.assign;
-        this.objectKeys                     = win.Object.keys;
-        this.objectDefineProperty           = win.Object.defineProperty;
-        this.objectDefineProperties         = win.Object.defineProperties;
-        this.objectCreate                   = win.Object.create;
-        this.objectIsExtensible             = win.Object.isExtensible;
-        this.objectIsFrozen                 = win.Object.isFrozen;
-        this.objectGetOwnPropertyDescriptor = win.Object.getOwnPropertyDescriptor;
-        this.objectHasOwnProperty           = win.Object.hasOwnProperty;
-        this.objectGetOwnPropertyNames      = win.Object.getOwnPropertyNames;
-        this.objectGetPrototypeOf           = win.Object.getPrototypeOf;
-        this.objectGetOwnPropertySymbols    = win.Object.getOwnPropertySymbols;
-
-        // Array
-        this.arraySlice   = win.Array.prototype.slice;
-        this.arrayConcat  = win.Array.prototype.concat;
-        this.arrayFilter  = win.Array.prototype.filter;
-        this.arrayMap     = win.Array.prototype.map;
-        this.arrayJoin    = win.Array.prototype.join;
-        this.arraySplice  = win.Array.prototype.splice;
-        this.arrayForEach = win.Array.prototype.forEach;
-        this.arrayFrom    = win.Array.from;
-
-        this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
-
-        this.arrayBufferIsView = win.ArrayBuffer.prototype.constructor.isView;
+        if (isInWorker)
+            return;
 
         const objectDataDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLObjectElement.prototype, 'data');
         const inputTypeDescriptor            = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'type');
@@ -816,42 +774,16 @@ class NativeMethods {
 
         this.titleElementTextSetter = titleElementTextDescriptor.set;
 
-        // NOTE: Event properties is located in window prototype only in IE11
-        this.isEventPropsLocatedInProto = win.Window.prototype.hasOwnProperty('onerror');
-
-        const eventPropsOwner = this.isEventPropsLocatedInProto ? win.Window.prototype : win;
-
-        this.winOnBeforeUnloadSetter = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onbeforeunload').set;
-        this.winOnPageHideSetter     = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onpagehide').set;
-        this.winOnMessageSetter      = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onmessage').set;
-        this.winOnErrorSetter        = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onerror').set;
-        this.winOnHashChangeSetter   = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onhashchange').set;
-
-        const winOnUnhandledRejectionDescriptor = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onunhandledrejection');
-
-        if (winOnUnhandledRejectionDescriptor)
-            this.winOnUnhandledRejectionSetter = winOnUnhandledRejectionDescriptor.set;
-
-        // Getters
-        if (win.WebSocket) {
-            const urlPropDescriptor = win.Object.getOwnPropertyDescriptor(win.WebSocket.prototype, 'url');
-
-            if (urlPropDescriptor && urlPropDescriptor.get && urlPropDescriptor.configurable)
-                this.webSocketUrlGetter = urlPropDescriptor.get;
-        }
-
         // NOTE: the classList property is located in HTMLElement prototype in IE11
         this.elementClassListPropOwnerName = win.Element.prototype.hasOwnProperty('classList') ? 'Element' : 'HTMLElement';
 
         this.elementClassListGetter = win.Object.getOwnPropertyDescriptor(win[this.elementClassListPropOwnerName].prototype, 'classList').get;
 
-        this.messageEventOriginGetter       = win.Object.getOwnPropertyDescriptor(win.MessageEvent.prototype, 'origin').get;
         this.htmlCollectionLengthGetter     = win.Object.getOwnPropertyDescriptor(win.HTMLCollection.prototype, 'length').get;
         this.nodeListLengthGetter           = win.Object.getOwnPropertyDescriptor(win.NodeList.prototype, 'length').get;
         this.elementChildElementCountGetter = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'childElementCount').get;
         this.inputFilesGetter               = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'files').get;
         this.styleSheetHrefGetter           = win.Object.getOwnPropertyDescriptor(win.StyleSheet.prototype, 'href').get;
-        this.xhrStatusGetter                = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'status').get;
         this.objectDataGetter               = objectDataDescriptor.get;
         this.inputTypeGetter                = inputTypeDescriptor.get;
         this.inputValueGetter               = inputValueDescriptor.get;
@@ -912,13 +844,13 @@ class NativeMethods {
         this.elementNextElementSiblingGetter = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'nextElementSibling').get;
         this.elementPrevElementSiblingGetter = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'previousElementSibling').get;
 
-        const anchorOriginDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'origin');
-
         // NOTE: Some browsers (for example, Edge, Internet Explorer 11, Safari) don't support the 'integrity' property.
         if (scriptIntegrityDescriptor && linkIntegrityDescriptor) {
             this.scriptIntegrityGetter = scriptIntegrityDescriptor.get;
             this.linkIntegrityGetter   = linkIntegrityDescriptor.get;
         }
+
+        const anchorOriginDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'origin');
 
         // NOTE: IE and Edge don't support origin property
         if (anchorOriginDescriptor)
@@ -941,18 +873,6 @@ class NativeMethods {
 
         this.elementAttributesGetter = win.Object.getOwnPropertyDescriptor(win[this.elementAttributesPropOwnerName].prototype, 'attributes').get;
 
-        // NOTE: At present we proxy only the PerformanceNavigationTiming.
-        // Another types of the PerformanceEntry will be fixed later
-        // https://developer.mozilla.org/en-US/docs/Web/API/PerformanceEntry
-        if (win.PerformanceNavigationTiming)
-            this.performanceEntryNameGetter = win.Object.getOwnPropertyDescriptor(win.PerformanceEntry.prototype, 'name').get;
-
-        const dataPropDescriptor = win.Object.getOwnPropertyDescriptor(win.MessageEvent.prototype, 'data');
-
-        // NOTE: This condition is used for the Android 6.0 browser
-        if (dataPropDescriptor)
-            this.messageEventDataGetter = dataPropDescriptor.get;
-
         const htmlManifestDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLHtmlElement.prototype, 'manifest');
 
         // NOTE: Only the Safari browser supports the 'manifest' property
@@ -963,40 +883,167 @@ class NativeMethods {
 
         this.titleElementTextGetter = titleElementTextDescriptor.get;
 
-        if (win.fetch) {
-            this.responseStatusGetter = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'status').get;
-            this.responseTypeGetter   = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'type').get;
-            this.responseUrlGetter    = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'url').get;
+        // MutationRecord
+        this.mutationRecordNextSiblingGetter = win.Object.getOwnPropertyDescriptor(win.MutationRecord.prototype, 'nextSibling').get;
+        this.mutationRecordPrevSiblingGetter = win.Object.getOwnPropertyDescriptor(win.MutationRecord.prototype, 'previousSibling').get;
+    }
+
+    refreshWindowMeths (win, isInWorker = false) {
+        win = win || window;
+
+        const winProto = win.constructor.prototype;
+
+        // Dom
+        this.eval                             = win.eval;
+        this.formSubmit                       = win.HTMLFormElement && win.HTMLFormElement.prototype.submit;
+        this.documentFragmentQuerySelector    = win.DocumentFragment && win.DocumentFragment.prototype.querySelector;
+        this.documentFragmentQuerySelectorAll = win.DocumentFragment && win.DocumentFragment.prototype.querySelectorAll;
+        this.preventDefault                   = win.Event.prototype.preventDefault;
+
+        this.historyPushState    = win.history && win.history.pushState;
+        this.historyReplaceState = win.history && win.history.replaceState;
+        this.postMessage         = win.postMessage || winProto.postMessage;
+        this.windowOpen          = win.open || winProto.open;
+        this.setTimeout          = win.setTimeout || winProto.setTimeout;
+        this.setInterval         = win.setInterval || winProto.setInterval;
+        this.clearTimeout        = win.clearTimeout || winProto.clearTimeout;
+        this.clearInterval       = win.clearInterval || winProto.clearInterval;
+
+        this.registerProtocolHandler = win.navigator.registerProtocolHandler;
+        this.sendBeacon              = win.navigator.sendBeacon;
+
+        if (win.XMLHttpRequest) {
+            // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
+            const xhrEventProto = (win.EventTarget || win.XMLHttpRequest).prototype;
+
+            this.xhrAbort                 = win.XMLHttpRequest.prototype.abort;
+            this.xhrOpen                  = win.XMLHttpRequest.prototype.open;
+            this.xhrSend                  = win.XMLHttpRequest.prototype.send;
+            this.xhrAddEventListener      = xhrEventProto.addEventListener;
+            this.xhrRemoveEventListener   = xhrEventProto.removeEventListener;
+            this.xhrDispatchEvent         = xhrEventProto.dispatchEvent;
+            this.xhrGetResponseHeader     = win.XMLHttpRequest.prototype.getResponseHeader;
+            this.xhrGetAllResponseHeaders = win.XMLHttpRequest.prototype.getAllResponseHeaders;
+            this.xhrSetRequestHeader      = win.XMLHttpRequest.prototype.setRequestHeader;
+            this.xhrOverrideMimeType      = win.XMLHttpRequest.prototype.overrideMimeType;
+        }
+
+        try {
+            this.registerServiceWorker        = win.navigator.serviceWorker.register;
+            this.getRegistrationServiceWorker = win.navigator.serviceWorker.getRegistration;
+        }
+        catch (e) {
+            this.registerServiceWorker        = null;
+            this.getRegistrationServiceWorker = null;
+        }
+
+        this.createContextualFragment = win.Range && win.Range.prototype.createContextualFragment;
+
+        const nativePerformance = win.performance;
+
+        if (nativePerformance) {
+            const nativePerformanceNow = win.performance.now || win.Performance.prototype.now;
+
+            this.performanceNow = (...args) => nativePerformanceNow.apply(nativePerformance, args);
+        }
+
+        // Fetch
+        this.fetch   = win.fetch;
+        this.Request = win.Request;
+
+        if (win.Headers) {
+            this.Headers        = win.Headers;
+            this.headersSet     = win.Headers.prototype.set;
+            this.headersGet     = win.Headers.prototype.get;
+            this.headersHas     = win.Headers.prototype.has;
+            this.headersDelete  = win.Headers.prototype.delete;
+            this.headersEntries = win.Headers.prototype.entries;
+            this.headersForEach = win.Headers.prototype.forEach;
+        }
+
+        // Event
+        // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
+        if (!win.EventLisener) {
+            this.windowAddEventListener    = win.addEventListener || winProto.addEventListener;
+            this.windowRemoveEventListener = win.removeEventListener || winProto.removeEventListener;
+            this.windowDispatchEvent       = win.dispatchEvent;
+        }
+
+        this.WindowPointerEvent   = win.PointerEvent || winProto.PointerEvent;
+        this.WindowMSPointerEvent = win.MSPointerEvent || winProto.MSPointerEvent;
+        this.WindowTouch          = win.Touch || winProto.Touch;
+        this.WindowTouchEvent     = win.TouchEvent || winProto.TouchEvent;
+        this.WindowKeyboardEvent  = win.KeyboardEvent || winProto.KeyboardEvent;
+        this.WindowFocusEvent     = win.FocusEvent || winProto.FocusEvent;
+        this.WindowTextEvent      = win.TextEvent || winProto.TextEvent;
+        this.WindowInputEvent     = win.InputEvent || winProto.InputEvent;
+        this.WindowMouseEvent     = win.MouseEvent || winProto.MouseEvent;
+
+        this.canvasContextDrawImage = win.CanvasRenderingContext2D && win.CanvasRenderingContext2D.prototype.drawImage;
+
+        // FormData
+        this.formDataAppend = win.FormData && win.FormData.prototype.append;
+
+        // DateTime
+        this.date    = win.Date;
+        this.dateNow = win.Date.now;
+
+        // Math
+        this.math       = win.Math;
+        this.mathRandom = win.Math.random;
+
+        // Object
+        this.objectToString                 = win.Object.prototype.toString;
+        this.objectAssign                   = win.Object.assign;
+        this.objectKeys                     = win.Object.keys;
+        this.objectDefineProperty           = win.Object.defineProperty;
+        this.objectDefineProperties         = win.Object.defineProperties;
+        this.objectCreate                   = win.Object.create;
+        this.objectIsExtensible             = win.Object.isExtensible;
+        this.objectIsFrozen                 = win.Object.isFrozen;
+        this.objectGetOwnPropertyDescriptor = win.Object.getOwnPropertyDescriptor;
+        this.objectHasOwnProperty           = win.Object.hasOwnProperty;
+        this.objectGetOwnPropertyNames      = win.Object.getOwnPropertyNames;
+        this.objectGetPrototypeOf           = win.Object.getPrototypeOf;
+        this.objectGetOwnPropertySymbols    = win.Object.getOwnPropertySymbols;
+
+        // Array
+        this.arraySlice   = win.Array.prototype.slice;
+        this.arrayConcat  = win.Array.prototype.concat;
+        this.arrayFilter  = win.Array.prototype.filter;
+        this.arrayMap     = win.Array.prototype.map;
+        this.arrayJoin    = win.Array.prototype.join;
+        this.arraySplice  = win.Array.prototype.splice;
+        this.arrayForEach = win.Array.prototype.forEach;
+        this.arrayFrom    = win.Array.from;
+
+        this.DOMParserParseFromString = win.DOMParser && win.DOMParser.prototype.parseFromString;
+
+        this.arrayBufferIsView = win.ArrayBuffer.prototype.constructor.isView;
+
+        // NOTE: this section relates to getting properties from DOM classes
+        if (!isInWorker) {
+            // DOMTokenList
+            this.tokenListAdd      = win.DOMTokenList.prototype.add;
+            this.tokenListRemove   = win.DOMTokenList.prototype.remove;
+            this.tokenListReplace  = win.DOMTokenList.prototype.replace;
+            this.tokenListSupports = win.DOMTokenList.prototype.supports;
+            this.tokenListToggle   = win.DOMTokenList.prototype.toggle;
+            this.tokenListContains = win.DOMTokenList.prototype.contains;
+
+            // Stylesheets
+            this.styleGetPropertyValue = win.CSSStyleDeclaration.prototype.getPropertyValue;
+            this.styleSetProperty      = win.CSSStyleDeclaration.prototype.setProperty;
+            this.styleRemoveProperty   = win.CSSStyleDeclaration.prototype.removeProperty;
+            this.styleInsertRule       = win.CSSStyleSheet.prototype.insertRule;
+
+            this.scrollTo = win.scrollTo;
         }
 
         if (win.Promise) {
             this.promiseThen   = win.Promise.prototype.then;
             this.promiseReject = win.Promise.reject;
         }
-
-        const xhrResponseURLDescriptor = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'responseURL');
-
-        // NOTE: IE doesn't support the 'responseURL' property
-        if (xhrResponseURLDescriptor)
-            this.xhrResponseURLGetter = xhrResponseURLDescriptor.get;
-
-        // NOTE: The 'localStorage' and 'sessionStorage' properties is located in window prototype only in IE11
-        this.isStoragePropsLocatedInProto = win.Window.prototype.hasOwnProperty('localStorage');
-
-        const storagesPropsOwner = this.getStoragesPropsOwner(win);
-
-        this.winLocalStorageGetter   = win.Object.getOwnPropertyDescriptor(storagesPropsOwner, 'localStorage').get;
-        this.winSessionStorageGetter = win.Object.getOwnPropertyDescriptor(storagesPropsOwner, 'sessionStorage').get;
-
-        // MutationRecord
-        this.mutationRecordNextSiblingGetter = win.Object.getOwnPropertyDescriptor(win.MutationRecord.prototype, 'nextSibling').get;
-        this.mutationRecordPrevSiblingGetter = win.Object.getOwnPropertyDescriptor(win.MutationRecord.prototype, 'previousSibling').get;
-
-        // Stylesheets
-        this.styleGetPropertyValue = win.CSSStyleDeclaration.prototype.getPropertyValue;
-        this.styleSetProperty      = win.CSSStyleDeclaration.prototype.setProperty;
-        this.styleRemoveProperty   = win.CSSStyleDeclaration.prototype.removeProperty;
-        this.styleInsertRule       = win.CSSStyleSheet.prototype.insertRule;
 
         // Console
         this.console = win.console;
@@ -1010,69 +1057,51 @@ class NativeMethods {
             };
         }
 
-        // DOMTokenList
-        this.tokenListAdd      = win.DOMTokenList.prototype.add;
-        this.tokenListRemove   = win.DOMTokenList.prototype.remove;
-        this.tokenListReplace  = win.DOMTokenList.prototype.replace;
-        this.tokenListSupports = win.DOMTokenList.prototype.supports;
-        this.tokenListToggle   = win.DOMTokenList.prototype.toggle;
-        this.tokenListContains = win.DOMTokenList.prototype.contains;
-
-        this.scrollTo = win.scrollTo;
-
         this.crypto                = win.crypto || win.msCrypto;
-        this.cryptoGetRandomValues = this.crypto.getRandomValues;
+        this.cryptoGetRandomValues = this.crypto && this.crypto.getRandomValues;
 
         this.refreshClasses(win);
+        this._refreshGettersAndSetters(win, isInWorker);
     }
 
     refreshClasses (win) {
-        this.windowClass      = win.Window;
-        this.documentClass    = win.Document;
-        this.locationClass    = win.Location;
-        this.elementClass     = win.Element;
-        this.svgElementClass  = win.SVGElement;
-        this.Worker           = win.Worker;
-        this.MessageChannel   = win.MessageChannel;
-        this.ArrayBuffer      = win.ArrayBuffer;
-        this.Uint8Array       = win.Uint8Array;
-        this.Uint16Array      = win.Uint16Array;
-        this.Uint32Array      = win.Uint32Array;
-        this.DataView         = win.DataView;
-        this.Blob             = win.Blob;
-        this.XMLHttpRequest   = win.XMLHttpRequest;
-        this.Image            = win.Image;
-        this.Function         = win.Function;
-        this.functionToString = win.Function.toString;
-        this.Error            = win.Error;
-        this.FontFace         = win.FontFace;
-        this.StorageEvent     = win.StorageEvent;
-        this.MutationObserver = win.MutationObserver;
-        this.EventSource      = win.EventSource;
-        this.Proxy            = win.Proxy;
-        this.WebSocket        = win.WebSocket;
-        this.HTMLCollection   = win.HTMLCollection;
-        this.NodeList         = win.NodeList;
-        this.Node             = win.Node;
+        this.windowClass          = win.Window;
+        this.documentClass        = win.Document;
+        this.locationClass        = win.Location;
+        this.elementClass         = win.Element;
+        this.svgElementClass      = win.SVGElement;
+        this.Worker               = win.Worker;
+        this.MessageChannel       = win.MessageChannel;
+        this.ArrayBuffer          = win.ArrayBuffer;
+        this.Uint8Array           = win.Uint8Array;
+        this.Uint16Array          = win.Uint16Array;
+        this.Uint32Array          = win.Uint32Array;
+        this.DataView             = win.DataView;
+        this.Blob                 = win.Blob;
+        this.XMLHttpRequest       = win.XMLHttpRequest;
+        this.Image                = win.Image;
+        this.Function             = win.Function;
+        this.functionToString     = win.Function.toString;
+        this.Error                = win.Error;
+        this.FontFace             = win.FontFace;
+        this.StorageEvent         = win.StorageEvent;
+        this.MutationObserver     = win.MutationObserver;
+        this.EventSource          = win.EventSource;
+        this.Proxy                = win.Proxy;
+        this.WebSocket            = win.WebSocket;
+        this.HTMLCollection       = win.HTMLCollection;
+        this.NodeList             = win.NodeList;
+        this.Node                 = win.Node;
+        this.URL                  = win.URL;
+        this.Proxy                = win.Proxy;
+        this.DataTransfer         = win.DataTransfer;
+        this.DataTransferItemList = win.DataTransferItemList;
+        this.DataTransferItem     = win.DataTransferItem;
+        this.FileList             = win.FileList;
 
         // NOTE: non-IE11 case. window.File in IE11 is not constructable.
         if (win.File && typeof win.File === 'function')
             this.File = win.File;
-
-        if (win.Proxy)
-            this.Proxy = win.Proxy;
-
-        if (win.DataTransfer)
-            this.DataTransfer = win.DataTransfer;
-
-        if (win.DataTransferItemList)
-            this.DataTransferItemList = win.DataTransferItemList;
-
-        if (win.DataTransferItem)
-            this.DataTransferItem = win.DataTransferItem;
-
-        if (win.FileList)
-            this.FileList = win.FileList;
     }
 
     refreshElectronMeths (vmModule): boolean {

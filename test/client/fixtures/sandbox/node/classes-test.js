@@ -306,16 +306,6 @@ if (isFileConstructable) {
         reader.readAsText(file);
     });
 
-    asyncTest('should try to process data as a script even if the content type is not passed', function () {
-        var script  = 'var obj = {}, prop = "prop"; obj[prop] = true; postMessage(true);';
-        var fileURL = URL.createObjectURL(new File([script], 'script.js'));
-
-        new Worker(fileURL).onmessage = function (e) {
-            ok(e.data);
-            start();
-        };
-    });
-
     if (canCreateBlobFromNumberBooleanArray) {
         test('should not process unprocessable File parts', function () {
             var unprocessableFileParts = [true, false, 1, 0];
@@ -383,88 +373,6 @@ test('should work with the operator "instanceof" (GH-690)', function () {
 
     ok(img instanceof Image);
 });
-
-module('Worker');
-
-if (window.Worker) {
-    test('window.Worker should be overridden', function () {
-        notEqual(window.Worker, nativeMethods.Worker);
-    });
-
-    test('throwing errors (GH-1132)', function () {
-        throws(function () {
-            window.Worker();
-        }, TypeError);
-
-        throws(function () {
-            // eslint-disable-next-line no-new
-            new Worker();
-        }, TypeError);
-    });
-
-    test('checking parameters (GH-1132)', function () {
-        var savedNativeWorker = nativeMethods.Worker;
-        var workerOptions     = { name: 'test' };
-        var resourceType      = urlUtils.stringifyResourceType({ isScript: true });
-
-        nativeMethods.Worker = function (scriptURL) {
-            strictEqual(arguments.length, 1);
-            strictEqual(scriptURL, urlUtils.getProxyUrl('/test', { resourceType: resourceType }));
-        };
-        // eslint-disable-next-line no-new
-        new Worker('/test');
-
-        nativeMethods.Worker = function (scriptURL, options) {
-            strictEqual(arguments.length, 2);
-            strictEqual(scriptURL, urlUtils.getProxyUrl('/test', { resourceType: resourceType }));
-            strictEqual(options, workerOptions);
-        };
-        /* eslint-disable no-new */
-        new Worker('/test', workerOptions);
-        /* eslint-enable no-new */
-
-        nativeMethods.Worker = savedNativeWorker;
-    });
-
-    test('should work with the operator "instanceof" (GH-690)', function () {
-        var blob   = new Blob(['if(true) {}'], { type: 'text/javascript' });
-        var url    = URL.createObjectURL(blob);
-        var worker = new Worker(url);
-
-        ok(worker instanceof Worker);
-    });
-
-    test('calling overridden window.Worker should not cause the "use the \'new\'..." error (GH-1970)', function () {
-        expect(0);
-
-        var SavedWindowWorker = window.Worker;
-
-        window.Worker = function (scriptURL) {
-            return new SavedWindowWorker(scriptURL);
-        };
-
-        try {
-            // eslint-disable-next-line no-new
-            new Worker('/test');
-        }
-        catch (e) {
-            ok(false);
-        }
-
-        window.Worker = SavedWindowWorker;
-    });
-
-    test('calling Worker without the "new" keyword (GH-1970)', function () {
-        expect(browserUtils.isIE11 || browserUtils.isMSEdge ? 0 : 1);
-
-        try {
-            Worker('/test');
-        }
-        catch (e) {
-            ok(true);
-        }
-    });
-}
 
 module('EventSource');
 
@@ -786,20 +694,6 @@ test('window.Image must be overriden (B234340)', function () {
     strictEqual(getOuterHTML.call(new Image(15, 15)), getOuterHTML.call(new NativeImage(15, 15)));
     strictEqual(getOuterHTML.call(new Image(void 0)), getOuterHTML.call(new NativeImage(void 0)));
     strictEqual(getOuterHTML.call(new Image(void 0, void 0)), getOuterHTML.call(new NativeImage(void 0, void 0)));
-});
-
-asyncTest('window.Blob with type=javascript must be overriden (T259367)', function () {
-    var script = ['self.onmessage = function() { var t = {};', '__set$(t, "blobTest", true); postMessage(t.blobTest); };'];
-    var blob   = new window.Blob(script, { type: 'texT/javascript' });
-    var url    = window.URL.createObjectURL(blob);
-    var worker = new window.Worker(url);
-
-    worker.onmessage = function (e) {
-        strictEqual(e.data, true);
-        start();
-    };
-
-    worker.postMessage('');
 });
 
 if (navigator.registerProtocolHandler) {

@@ -3,6 +3,7 @@ import * as domUtils from './dom';
 import * as urlResolver from './url-resolver';
 import settings from '../settings';
 import nativeMethods from '../sandbox/native-methods';
+import getGlobalContextInfo from './global-context-info';
 
 let forcedLocation = null;
 
@@ -12,13 +13,14 @@ export function getLocation (): string {
     if (forcedLocation)
         return forcedLocation;
 
-    const frameElement = domUtils.getFrameElement(window);
+    const globalCtx    = getGlobalContextInfo().global;
+    const frameElement = domUtils.getFrameElement(globalCtx);
 
     // NOTE: Fallback to the owner page's URL if we are in an iframe without src.
     if (frameElement && domUtils.isIframeWithoutSrc(frameElement))
         return settings.get().referer;
 
-    return window.location.toString();
+    return globalCtx.location.toString();
 }
 
 // NOTE: We need to be able to force the page location. During the test, Hammerhead should think that it is on the
@@ -46,8 +48,10 @@ export function resolveUrl (url: string, doc?: Document): string {
     else
         url = sharedUrlUtils.correctMultipleSlashes(url);
 
+    return typeof document !== 'undefined'
     // @ts-ignore
-    return urlResolver.resolve(url, doc || document);
+        ? urlResolver.resolve(url, doc || document)
+        : new nativeMethods.URL(url, get()).href; // eslint-disable-line no-restricted-properties
 }
 
 export function get (): string {
@@ -66,13 +70,12 @@ export function withHash (hash: string): string {
     return location + hash;
 }
 
-export function getParsed () {
+function parseLocationThroughAnchor (url: string) {
     // @ts-ignore
     const resolver = urlResolver.getResolverElement(document);
-    const dest     = get();
 
     // eslint-disable-next-line no-restricted-properties
-    const destPort = sharedUrlUtils.parseUrl(dest).port;
+    const destPort = sharedUrlUtils.parseUrl(url).port;
 
     // NOTE: IE browser adds the default port for the https protocol while resolving.
     nativeMethods.anchorHrefSetter.call(resolver, get());
@@ -96,6 +99,28 @@ export function getParsed () {
         hash:     resolver.hash,
         search:   nativeMethods.anchorSearchGetter.call(resolver)
     };
+}
+
+function parseLocationThroughURL (url: string) {
+    const parsedUrl = new nativeMethods.URL(url);
+
+    /* eslint-disable no-restricted-properties */
+    return {
+        protocol: parsedUrl.protocol,
+        port:     parsedUrl.port,
+        hostname: parsedUrl.hostname,
+        host:     parsedUrl.host,
+        pathname: parsedUrl.pathname,
+        hash:     parsedUrl.hash,
+        search:   parsedUrl.search
+    };
+    /* eslint-enable no-restricted-properties */
+}
+
+export function getParsed () {
+    const dest = get();
+
+    return typeof document !== 'undefined' ? parseLocationThroughAnchor(dest) : parseLocationThroughURL(dest);
 }
 
 export function getOriginHeader (): string {

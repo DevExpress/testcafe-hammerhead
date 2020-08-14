@@ -43,6 +43,8 @@ const getClientTestSettings = () => {
     };
 };
 
+const USE_STRICT_RE = /^(['"])use strict\1;?/;
+
 const CLIENT_TESTS_BROWSERS = [
     {
         platform:    'Windows 10',
@@ -130,7 +132,8 @@ gulp.step('client-scripts-transpile', () => {
         './src/typings/*.ts',
         './src/upload/*.ts',
         './src/utils/*.ts',
-        './src/session/*.ts'
+        './src/session/*.ts',
+        './src/proxy/service-routes.ts'
     ];
 
     return gulp.src(['./src/client/**/*.ts'].concat(sharedScripts))
@@ -153,7 +156,7 @@ gulp.step('client-scripts-bundle', () => {
         // HACK: babel-plugin-transform-es2015-modules-commonjs forces
         // 'use strict' insertion. We need to remove it manually because
         // of https://github.com/DevExpress/testcafe/issues/258
-        return { code: transformed.code.replace(/^('|")use strict('|");?/, '') };
+        return { code: transformed.code.replace(USE_STRICT_RE, '') };
     };
 
     const hammerhead = gulp.src('./src/client/index.js')
@@ -164,7 +167,11 @@ gulp.step('client-scripts-bundle', () => {
         .pipe(webmake({ sourceMap: false, transform }))
         .pipe(rename('transport-worker.js'));
 
-    return mergeStreams(hammerhead, transportWorker)
+    const workerHammerhead = gulp.src('./src/client/worker/index.js')
+        .pipe(webmake({ sourceMap: false, transform }))
+        .pipe(rename('worker-hammerhead.js'));
+
+    return mergeStreams(hammerhead, transportWorker, workerHammerhead)
         .pipe(gulp.dest('./lib/client'));
 });
 
@@ -181,7 +188,11 @@ gulp.step('client-scripts-processing', () => {
         .pipe(uglify())
         .pipe(rename('transport-worker.min.js'));
 
-    return mergeStreams(script, bundledScript, bundledTransportWorker)
+    const bundledWorkerHammerhead = gulp.src('./lib/client/worker-hammerhead.js')
+        .pipe(uglify())
+        .pipe(rename('worker-hammerhead.min.js'));
+
+    return mergeStreams(script, bundledScript, bundledTransportWorker, bundledWorkerHammerhead)
         .pipe(gulp.dest('./lib/client'));
 });
 

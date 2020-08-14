@@ -12,6 +12,8 @@ import trim from '../../utils/string-trim';
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
 import { XML_NAMESPACE } from './namespaces';
 import { URL_ATTR_TAGS, URL_ATTRS, TARGET_ATTR_TAGS, TARGET_ATTRS } from './attributes';
+import BaseDomAdapter from './base-dom-adapter';
+import { ASTNode } from 'parse5';
 
 const CDATA_REG_EX                       = /^(\s)*\/\/<!\[CDATA\[([\s\S]*)\/\/\]\]>(\s)*$/;
 const HTML_COMMENT_POSTFIX_REG_EX        = /(\/\/[^\n]*|\n\s*)-->[^\n]*([\n\s]*)?$/;
@@ -45,7 +47,6 @@ interface ElementProcessingPattern {
 }
 
 export default class DomProcessor {
-    adapter: any;
     SVG_XLINK_HREF_TAGS: string[] = SVG_XLINK_HREF_TAGS;
     AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER: string = AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
     PROCESSED_PRELOAD_LINK_CONTENT_TYPE: string = PROCESSED_PRELOAD_LINK_CONTENT_TYPE;
@@ -55,8 +56,7 @@ export default class DomProcessor {
     // Refactor this, see BaseDomAdapter;
     EVENTS: string[];
 
-    constructor (adapter: any) {
-        this.adapter = adapter;
+    constructor (public readonly adapter: BaseDomAdapter) {
         this.adapter.attachEventEmitter(this);
 
         this.EVENTS = this.adapter.EVENTS;
@@ -87,11 +87,10 @@ export default class DomProcessor {
         if (isJsProtocol)
             value = value.replace(JAVASCRIPT_PROTOCOL_REG_EX, '');
 
-        value = processScript(value, false, isJsProtocol && !isEventAttr);
+        value = processScript(value, false, isJsProtocol && !isEventAttr, void 0);
 
         if (isJsProtocol)
-            // eslint-disable-next-line no-script-url
-            value = 'javascript:' + value;
+            value = 'javascript:' + value; // eslint-disable-line no-script-url
 
         return value;
     }
@@ -108,7 +107,7 @@ export default class DomProcessor {
         return !!tagName && !!relAttr && tagName === 'link' && relAttr === 'import';
     }
 
-    _getRelAttribute (el: HTMLElement): string {
+    _getRelAttribute (el: HTMLElement | ASTNode): string {
         return String(this.adapter.getAttr(el, 'rel')).toLowerCase();
     }
 
@@ -307,7 +306,7 @@ export default class DomProcessor {
         return null;
     }
 
-    getTargetAttr (el: HTMLElement): string | null {
+    getTargetAttr (el: HTMLElement | ASTNode): string | null {
         const tagName = this.adapter.getTagName(el);
 
         for (const targetAttr of TARGET_ATTRS) {
@@ -319,7 +318,7 @@ export default class DomProcessor {
         return null;
     }
 
-    _isOpenLinkInIframe (el: HTMLElement): boolean {
+    _isOpenLinkInIframe (el: HTMLElement | ASTNode): boolean {
         const tagName    = this.adapter.getTagName(el);
         const targetAttr = this.getTargetAttr(el);
         const target     = this.adapter.getAttr(el, targetAttr);
