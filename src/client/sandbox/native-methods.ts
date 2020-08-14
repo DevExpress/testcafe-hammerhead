@@ -607,7 +607,6 @@ class NativeMethods {
         }
 
         this.messageEventOriginGetter = win.Object.getOwnPropertyDescriptor(win.MessageEvent.prototype, 'origin').get;
-        this.xhrStatusGetter          = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'status').get;
 
         // NOTE: At present we proxy only the PerformanceNavigationTiming.
         // Another types of the PerformanceEntry will be fixed later
@@ -627,11 +626,15 @@ class NativeMethods {
             this.responseUrlGetter    = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'url').get;
         }
 
-        const xhrResponseURLDescriptor = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'responseURL');
+        if (win.XMLHttpRequest) {
+            const xhrResponseURLDescriptor = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'responseURL');
 
-        // NOTE: IE doesn't support the 'responseURL' property
-        if (xhrResponseURLDescriptor)
-            this.xhrResponseURLGetter = xhrResponseURLDescriptor.get;
+            // NOTE: IE doesn't support the 'responseURL' property
+            if (xhrResponseURLDescriptor)
+                this.xhrResponseURLGetter = xhrResponseURLDescriptor.get;
+
+            this.xhrStatusGetter = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'status').get;
+        }
 
         // eslint-disable-next-line no-restricted-properties
         if (win.Window) {
@@ -909,20 +912,21 @@ class NativeMethods {
         this.registerProtocolHandler = win.navigator.registerProtocolHandler;
         this.sendBeacon              = win.navigator.sendBeacon;
 
-        // XHR
-        // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
-        const xhrEventProto = (win.EventTarget || win.XMLHttpRequest).prototype;
+        if (win.XMLHttpRequest) {
+            // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
+            const xhrEventProto = (win.EventTarget || win.XMLHttpRequest).prototype;
 
-        this.xhrAbort                 = win.XMLHttpRequest.prototype.abort;
-        this.xhrOpen                  = win.XMLHttpRequest.prototype.open;
-        this.xhrSend                  = win.XMLHttpRequest.prototype.send;
-        this.xhrAddEventListener      = xhrEventProto.addEventListener;
-        this.xhrRemoveEventListener   = xhrEventProto.removeEventListener;
-        this.xhrDispatchEvent         = xhrEventProto.dispatchEvent;
-        this.xhrGetResponseHeader     = win.XMLHttpRequest.prototype.getResponseHeader;
-        this.xhrGetAllResponseHeaders = win.XMLHttpRequest.prototype.getAllResponseHeaders;
-        this.xhrSetRequestHeader      = win.XMLHttpRequest.prototype.setRequestHeader;
-        this.xhrOverrideMimeType      = win.XMLHttpRequest.prototype.overrideMimeType;
+            this.xhrAbort                 = win.XMLHttpRequest.prototype.abort;
+            this.xhrOpen                  = win.XMLHttpRequest.prototype.open;
+            this.xhrSend                  = win.XMLHttpRequest.prototype.send;
+            this.xhrAddEventListener      = xhrEventProto.addEventListener;
+            this.xhrRemoveEventListener   = xhrEventProto.removeEventListener;
+            this.xhrDispatchEvent         = xhrEventProto.dispatchEvent;
+            this.xhrGetResponseHeader     = win.XMLHttpRequest.prototype.getResponseHeader;
+            this.xhrGetAllResponseHeaders = win.XMLHttpRequest.prototype.getAllResponseHeaders;
+            this.xhrSetRequestHeader      = win.XMLHttpRequest.prototype.setRequestHeader;
+            this.xhrOverrideMimeType      = win.XMLHttpRequest.prototype.overrideMimeType;
+        }
 
         try {
             this.registerServiceWorker        = win.navigator.serviceWorker.register;

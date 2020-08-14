@@ -306,16 +306,6 @@ if (isFileConstructable) {
         reader.readAsText(file);
     });
 
-    asyncTest('should try to process data as a script even if the content type is not passed', function () {
-        var script  = 'var obj = {}, prop = "prop"; obj[prop] = true; postMessage(true);';
-        var fileURL = URL.createObjectURL(new File([script], 'script.js'));
-
-        new Worker(fileURL).onmessage = function (e) {
-            ok(e.data);
-            start();
-        };
-    });
-
     if (canCreateBlobFromNumberBooleanArray) {
         test('should not process unprocessable File parts', function () {
             var unprocessableFileParts = [true, false, 1, 0];

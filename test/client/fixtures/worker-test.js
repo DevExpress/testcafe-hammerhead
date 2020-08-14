@@ -136,6 +136,16 @@ if (!browserUtils.isIE && !browserUtils.isSafari) {
 
         worker.postMessage('');
     });
+
+    asyncTest('should try to process data as a script even if the content type is not passed', function () {
+        var script  = 'var obj = {}, prop = "prop"; obj[prop] = true; postMessage(true);';
+        var fileURL = URL.createObjectURL(new File([script], 'script.js'));
+
+        new Worker(fileURL).onmessage = function (e) {
+            ok(e.data);
+            start();
+        };
+    });
 }
 
 module('Service Worker');

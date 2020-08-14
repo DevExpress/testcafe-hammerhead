@@ -18,11 +18,14 @@ class WorkerHammerhead {
 
         settings.set(currentSettings);
 
-        this.xhr   = new XhrSandbox(cookieSandboxMock);
         this.fetch = new FetchSandbox(cookieSandboxMock);
-
-        this.xhr.attach(self);
         this.fetch.attach(self);
+
+        // @ts-ignore
+        if (self.XMLHttpRequest) {
+            this.xhr = new XhrSandbox(cookieSandboxMock);
+            this.xhr.attach(self);
+        }
     }
 }
 
