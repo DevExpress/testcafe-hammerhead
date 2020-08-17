@@ -15,6 +15,6 @@ connectionResetDomain.on('error', err => {
     throw err;
 });
 
-export default function (fn: Function) {
+export default function (fn: (...args: any[]) => unknown) {
     connectionResetDomain.run(fn);
 }
