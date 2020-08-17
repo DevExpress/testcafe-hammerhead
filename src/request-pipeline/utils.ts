@@ -30,6 +30,8 @@ const HEADER_SIZE_CALCULATION_PRECISION = 2;
 // Calculates the HTTP header size in bytes that a customer should specify via the
 // --max-http-header-size Node option so that the proxy can process the site
 // https://nodejs.org/api/cli.html#cli_max_http_header_size_size
+// Example: 
+// (8211 * 2).toPrecision(2) -> 16 * 10^3 -> 16000
 function recommendMaxHeaderSize (currentHeaderSize: number): number {
     return Number((currentHeaderSize * HEADER_SIZE_MULTIPLIER).toPrecision(HEADER_SIZE_CALCULATION_PRECISION));
 }
