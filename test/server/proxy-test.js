@@ -4140,7 +4140,10 @@ describe('Proxy', () => {
                     }
                 };
 
-                http.request = mockRequest(url, { code: 'HPE_HEADER_OVERFLOW', rawPacket: new Buffer('headers\r\n\r\nbody') });
+                http.request = mockRequest(url, {
+                    code:      'HPE_HEADER_OVERFLOW',
+                    rawPacket: Buffer.from('info\r\nheaders\r\n\r\nbody')
+                });
 
                 return request(options)
                     .then(res => {
@@ -4166,7 +4169,21 @@ describe('Proxy', () => {
                     simple:                  false
                 };
 
-                http.request = mockRequest(url, { code: 'HPE_INVALID_HEADER_TOKEN' });
+                let allASCIIChars = '';
+
+                for (let i = 0; i < 128; i++)
+                    allASCIIChars += String.fromCharCode(i);
+
+                /*const headerName = allASCIIChars.splice(':'.charCodeAt(0), 1).join('');
+                const headerBody = allASCIIChars.join('');*/
+
+                const headerName = allASCIIChars.slice(0, ':'.charCodeAt(0)) + allASCIIChars.slice(':'.charCodeAt(0) + 1);
+                const headerBody = allASCIIChars;
+
+                http.request = mockRequest(url, {
+                    code:      'HPE_INVALID_HEADER_TOKEN',
+                    rawPacket: Buffer.from(`info\r\n${headerName}:${headerBody}\r\n\r\nbody`)
+                });
 
                 return request(options)
                     .then(res => {
@@ -4177,11 +4194,49 @@ describe('Proxy', () => {
                                              'The request contains a header that doesn\'t comply with the ' +
                                              'specification <a href="https://tools.ietf.org/html/rfc7230#section-3.2.4">' +
                                              'https://tools.ietf.org/html/rfc7230#section-3.2.4</a>.\nIt causes an internal ' +
-                                             'Node.js error on parsing this header.\nTo fix the problem, you need to add the ' +
-                                             '\'--insecure-http-parser\' flag to the \'NODE_OPTIONS\' environment variable:\n\n' +
-                                             'macOS, Linux (bash, zsh)\nexport NODE_OPTIONS=\'--insecure-http-parser\'\n\nWindows ' +
-                                             '(powershell)\n$env:NODE_OPTIONS=\'--insecure-http-parser\'\n\nWindows (cmd)\nset ' +
-                                             'NODE_OPTIONS=\'--insecure-http-parser\'\n\nand then start your tests.');
+                                             'Node.js error on parsing this header.\n\nInvalid characters:\n' +
+                                             `Character with code "0" in header "${headerName}" name at index 0\n` +
+                                             `Character with code "1" in header "${headerName}" name at index 1\n` +
+                                             `Character with code "2" in header "${headerName}" name at index 2\n` +
+                                             `Character with code "3" in header "${headerName}" name at index 3\n` +
+                                             `Character with code "4" in header "${headerName}" name at index 4\n` +
+                                             `Character with code "5" in header "${headerName}" name at index 5\n` +
+                                             `Character with code "6" in header "${headerName}" name at index 6\n` +
+                                             `Character with code "7" in header "${headerName}" name at index 7\n` +
+                                             `Character with code "8" in header "${headerName}" name at index 8\n` +
+                                             `Character with code "9" in header "${headerName}" name at index 9\n` +
+                                             `Character with code "10" in header "${headerName}" name at index 10\n` +
+                                             `Character with code "11" in header "${headerName}" name at index 11\n` +
+                                             `Character with code "12" in header "${headerName}" name at index 12\n` +
+                                             `Character with code "13" in header "${headerName}" name at index 13\n` +
+                                             `Character with code "14" in header "${headerName}" name at index 14\n` +
+                                             `Character with code "15" in header "${headerName}" name at index 15\n` +
+                                             `Character with code "16" in header "${headerName}" name at index 16\n` +
+                                             `Character with code "17" in header "${headerName}" name at index 17\n` +
+                                             `Character with code "18" in header "${headerName}" name at index 18\n` +
+                                             `Character with code "19" in header "${headerName}" name at index 19\n` +
+                                             `Character with code "20" in header "${headerName}" name at index 20\n` +
+                                             `Character with code "21" in header "${headerName}" name at index 21\n` +
+                                             `Character with code "22" in header "${headerName}" name at index 22\n` +
+                                             `Character with code "23" in header "${headerName}" name at index 23\n` +
+                                             `Character with code "24" in header "${headerName}" name at index 24\n` +
+                                             `Character with code "25" in header "${headerName}" name at index 25\n` +
+                                             `Character with code "26" in header "${headerName}" name at index 26\n` +
+                                             `Character with code "27" in header "${headerName}" name at index 27\n` +
+                                             `Character with code "28" in header "${headerName}" name at index 28\n` +
+                                             `Character with code "29" in header "${headerName}" name at index 29\n` +
+                                             `Character with code "30" in header "${headerName}" name at index 30\n` +
+                                             `Character with code "31" in header "${headerName}" name at index 31\n` +
+                                             `Character with code "32" in header "${headerName}" name at index 32\n` +
+                                             `Character with code "127" in header "${headerName}" name at index 126\n` +
+                                             `Character with code "10" in header "${headerName}" body at index 10\n` +
+                                             `Character with code "13" in header "${headerName}" body at index 13\n` +
+                                             '\nTo fix the problem, you can add the \'--insecure-http-parser\' flag ' +
+                                             'to the \'NODE_OPTIONS\' environment variable:\n\n' +
+                                             'macOS, Linux (bash, zsh)\nexport NODE_OPTIONS=\'--insecure-http-parser\'\n\n' +
+                                             'Windows (powershell)\n$env:NODE_OPTIONS=\'--insecure-http-parser\'\n\n' +
+                                             'Windows (cmd)\nset NODE_OPTIONS=\'--insecure-http-parser\'\n\n' +
+                                             'and then start your tests.');
                     });
             });
         });

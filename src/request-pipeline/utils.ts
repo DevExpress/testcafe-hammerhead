@@ -16,10 +16,11 @@ import { toReadableStream } from '../utils/buffer';
 import { PassThrough } from 'stream';
 import { getText, MESSAGE } from '../messages';
 import logger from '../utils/logger';
+import { getFormattedInvalidCharacters } from './http-header-parser';
 
 // An empty line that indicates the end of the header section
 // https://tools.ietf.org/html/rfc7230#section-3
-const HTTP_SEPARATOR = '\r\n\r\n';
+const HTTP_BODY_SEPARATOR = '\r\n\r\n';
 
 // Used to calculate the recommended maximum header size
 // See recommendMaxHeaderSize() below
@@ -58,13 +59,15 @@ export function sendRequest (ctx: RequestPipelineContext) {
             // NOTE: Sometimes the underlying socket emits an error event. But if we have a response body,
             // we can still process such requests. (B234324)
             if (!ctx.isDestResReadableEnded) {
-                const headerSize = err.rawPacket ? err.rawPacket.asciiSlice().split(HTTP_SEPARATOR)[0].length : 0;
+                const rawHeaders = err.rawPacket ? err.rawPacket.asciiSlice().split(HTTP_BODY_SEPARATOR)[0].split('\n').splice(1).join('\n') : '';
+                const headerSize = rawHeaders.length;
 
                 error(ctx, getText(MESSAGE.destConnectionTerminated, {
                     url:                      ctx.dest.url,
                     message:                  MESSAGE.nodeError[err.code] || err.toString(),
                     headerSize:               headerSize,
-                    recommendedMaxHeaderSize: recommendMaxHeaderSize(headerSize)
+                    recommendedMaxHeaderSize: recommendMaxHeaderSize(headerSize),
+                    invalidChars:             getFormattedInvalidCharacters(rawHeaders)
                 }));
             }
 
