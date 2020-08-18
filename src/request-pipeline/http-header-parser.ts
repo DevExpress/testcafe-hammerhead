@@ -31,10 +31,10 @@ function getInvalidCharacters (name: string, body: string): InvalidCharactersRec
     for (let i = 0; i < name.length; i++) {
         if (name[i].charCodeAt(0) < HEADER_NAME_VALID_CHAR_CODE_RANGE.min || name[i].charCodeAt(0) > HEADER_NAME_VALID_CHAR_CODE_RANGE.max) {
             invalidCharList.push({
-                name: name,
+                name:     name,
                 location: HEADER_INVALID_CHAR_LOCATIONS.name,
                 charCode: name[i].charCodeAt(0),
-                index: i
+                index:    i
             });
         }
     }
@@ -42,10 +42,10 @@ function getInvalidCharacters (name: string, body: string): InvalidCharactersRec
     for (let i = 0; i < body.length; i++) {
         if (HEADER_BODY_INVALID_CHARACTERS.includes(body[i])) {
             invalidCharList.push({
-                name: name,
+                name:     name,
                 location: HEADER_INVALID_CHAR_LOCATIONS.body,
                 charCode: body[i].charCodeAt(0),
-                index: i
+                index:    i
             });
         }
     }
