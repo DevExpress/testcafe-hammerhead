@@ -25,11 +25,19 @@ export function getFormattedInvalidCharacters (rawHeaders: string): string {
     return formatInvalidCharacters(invalidCharList);
 }
 
+function headerNameCharIsInvalid (char: string): boolean {
+    return char.charCodeAt(0) < HEADER_NAME_VALID_CHAR_CODE_RANGE.min || char.charCodeAt(0) > HEADER_NAME_VALID_CHAR_CODE_RANGE.max;
+}
+
+function headerBodyCharIsInvalid (char: string): boolean {
+    return HEADER_BODY_INVALID_CHARACTERS.includes(char);
+}
+
 function getInvalidCharacters (name: string, body: string): InvalidCharactersRecord[] {
     const invalidCharList = [];
 
     for (let i = 0; i < name.length; i++) {
-        if (name[i].charCodeAt(0) < HEADER_NAME_VALID_CHAR_CODE_RANGE.min || name[i].charCodeAt(0) > HEADER_NAME_VALID_CHAR_CODE_RANGE.max) {
+        if (headerNameCharIsInvalid(name[i])) {
             invalidCharList.push({
                 name:     name,
                 location: HEADER_INVALID_CHAR_LOCATIONS.name,
@@ -40,7 +48,7 @@ function getInvalidCharacters (name: string, body: string): InvalidCharactersRec
     }
 
     for (let i = 0; i < body.length; i++) {
-        if (HEADER_BODY_INVALID_CHARACTERS.includes(body[i])) {
+        if (headerBodyCharIsInvalid(body[i])) {
             invalidCharList.push({
                 name:     name,
                 location: HEADER_INVALID_CHAR_LOCATIONS.body,
@@ -54,11 +62,7 @@ function getInvalidCharacters (name: string, body: string): InvalidCharactersRec
 }
 
 function formatInvalidCharacters (invalidCharactersList: InvalidCharactersRecord[]): string {
-    const formattedInvalidCharacters = [];
-
-    for (const record of invalidCharactersList) {
-        formattedInvalidCharacters.push(getText(MESSAGE.invalidHeaderCharacter, record));
-    }
-
-    return formattedInvalidCharacters.join('\n');
+    return invalidCharactersList
+        .map(invalidCharacter => getText(MESSAGE.invalidHeaderCharacter, invalidCharacter ))
+        .join('\n');
 }
