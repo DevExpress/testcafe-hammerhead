@@ -126,6 +126,12 @@ if (window.fetch) {
             });
     });
 
+    test('request.url', function () {
+        var request = new Request('/xhr-test/100');
+
+        strictEqual(request.url, 'https://example.com/xhr-test/100');
+    });
+
     module('Response.type', function () {
         test('basic', function () {
             return fetch('/xhr-test/100')

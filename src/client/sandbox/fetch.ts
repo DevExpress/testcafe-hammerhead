@@ -70,7 +70,7 @@ export default class FetchSandbox extends SandboxBase {
         let requestMode = null;
 
         if (isFetchRequest(args[0])) {
-            url         = parseProxyUrl(args[0].url).destUrl;
+            url         = parseProxyUrl(nativeMethods.requestUrlGetter.call(args[0])).destUrl;
             requestMode = args[0].mode;
         }
         else {
@@ -170,6 +170,15 @@ export default class FetchSandbox extends SandboxBase {
             return request;
         };
         window.Request.prototype = nativeMethods.Request.prototype;
+
+        overrideDescriptor(window.Request.prototype, 'url', {
+            getter: function () {
+                const responseUrl       = nativeMethods.requestUrlGetter.call(this);
+                const parsedResponseUrl = responseUrl && parseProxyUrl(responseUrl);
+
+                return parsedResponseUrl ? parsedResponseUrl.destUrl : responseUrl;
+            }
+        });
 
         window.fetch = function (...args) {
             // NOTE: Safari processed the empty `fetch()` request without `Promise` rejection (GH-1613)
