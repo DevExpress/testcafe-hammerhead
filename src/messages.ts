@@ -1,4 +1,4 @@
-import { Dictionary } from "./typings/common";
+import { Dictionary } from './typings/common';
 
 export const MESSAGE = {
     destConnectionTerminated:         'Failed to perform a request to the resource at <a href="{url}">{url}</a> because of an error.\n{message}',
