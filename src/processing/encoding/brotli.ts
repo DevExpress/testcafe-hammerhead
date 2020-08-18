@@ -14,10 +14,10 @@ const builtInBrotliCompress = hasBuiltInBrotliSupport ? promisify(zlib.brotliCom
 // @ts-ignore
 const builtInBrotliDecompress = hasBuiltInBrotliSupport ? promisify(zlib.brotliDecompress): null;
 
-export function brotliCompress(data: zlib.InputType): Promise<Buffer> {
+export function brotliCompress(data: zlib.InputType): Promise<Buffer> | Buffer {
     return hasBuiltInBrotliSupport ? builtInBrotliCompress(data): Buffer.from(require('brotli').compress(data));
 }
 
-export function brotliDecompress(data: zlib.InputType): Promise<Buffer> {
+export function brotliDecompress(data: zlib.InputType): Promise<Buffer> | Buffer {
     return hasBuiltInBrotliSupport ? builtInBrotliDecompress(data): Buffer.from(require('brotli').decompress(data));
 }

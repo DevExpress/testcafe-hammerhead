@@ -44,23 +44,26 @@ export default class Proxy extends Router {
     private readonly server2: http.Server | https.Server;
     private readonly sockets: Set<net.Socket>;
 
+    // Max header size for incoming HTTP requests
+    // Set to 80 KB as it was the original limit:
+    // https://github.com/nodejs/node/blob/186035243fad247e3955fa0c202987cae99e82db/deps/http_parser/http_parser.h#L63
+    // Before the change to 8 KB:
+    // https://github.com/nodejs/node/commit/186035243fad247e3955fa0c202987cae99e82db#diff-1d0d420098503156cddb601e523b82e7R59
+    public static MAX_REQUEST_HEADER_SIZE = 80 * 1024;
+
     constructor (hostname: string, port1: string, port2: string, options: any = {}) {
         super(options);
 
         const { ssl, developmentMode } = options;
         const protocol                 = ssl ? 'https:' : 'http:';
+        const opts                     = this._getOpts(ssl);
+        const createServer             = this._getCreateServerMethod(ssl);
 
         this.server1Info = createServerInfo(hostname, port1, port2, protocol);
         this.server2Info = createServerInfo(hostname, port2, port1, protocol);
 
-        if (ssl) {
-            this.server1 = https.createServer(ssl, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server1Info));
-            this.server2 = https.createServer(ssl, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server2Info));
-        }
-        else {
-            this.server1 = http.createServer((req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server1Info));
-            this.server2 = http.createServer((req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server2Info));
-        }
+        this.server1 = createServer(opts, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server1Info));
+        this.server2 = createServer(opts, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server2Info));
 
         this.server1.on('upgrade', (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgradeRequest(req, socket, head, this.server1Info));
         this.server2.on('upgrade', (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgradeRequest(req, socket, head, this.server2Info));
@@ -73,6 +76,21 @@ export default class Proxy extends Router {
         // BUG: GH-89
         this._startSocketsCollecting();
         this._registerServiceRoutes(developmentMode);
+    }
+
+    _getOpts (ssl: {}): {} {
+        let opts: { maxHeaderSize?: number } = {};
+
+        if (ssl)
+            opts = ssl;
+
+        opts.maxHeaderSize = Proxy.MAX_REQUEST_HEADER_SIZE;
+
+        return opts;
+    }
+
+    _getCreateServerMethod (ssl: {}) {
+        return ssl ? https.createServer : http.createServer;
     }
 
     _closeSockets () {

@@ -4057,41 +4057,6 @@ describe('Proxy', () => {
             });
         });
 
-        it('Should respond with an error when destination server emits an error', () => {
-            const url               = 'http://127.0.0.1:2000/error-emulation';
-            const storedHttpRequest = http.request;
-            const options           = {
-                url:                     proxy.openSession(url, session),
-                resolveWithFullResponse: true,
-                simple:                  false
-            };
-
-            http.request = function (opts, callback) {
-                if (opts.url === url) {
-                    const mock = new EventEmitter();
-
-                    mock.setTimeout = mock.write = mock.end = noop;
-
-                    setTimeout(() => mock.emit('error', new Error('Emulation of error!')), 500);
-
-                    return mock;
-                }
-
-                return storedHttpRequest(opts, callback);
-            };
-
-            return request(options)
-                .then(res => {
-                    http.request = storedHttpRequest;
-
-                    expect(res.statusCode).eql(500);
-                    expect(res.body).eql('Failed to perform a request to the resource at ' +
-                                         '<a href="http://127.0.0.1:2000/error-emulation">' +
-                                         'http://127.0.0.1:2000/error-emulation</a> ' +
-                                         'because of an error.\nError: Emulation of error!');
-                });
-        });
-
         it('Should not emit error after a destination response is ended', () => {
             const nativeOnResponse = DestinationRequest.prototype._onResponse;
             let hasPageError       = false;
@@ -4115,6 +4080,162 @@ describe('Proxy', () => {
             return request(options)
                 .then(() => new Promise(resolve => setTimeout(resolve, 2000)))
                 .then(() => expect(hasPageError).to.be.false);
+        });
+
+        describe('Should respond with an error when destination server emits an error', () => {
+            let storedHttpRequest = null;
+
+            beforeEach(() => {
+                storedHttpRequest = http.request;
+            });
+
+            afterEach(() => {
+                http.request = storedHttpRequest;
+            });
+
+            function mockRequest (url, error) {
+                return function (opts, callback) {
+                    if (opts.url === url) {
+                        const mock = new EventEmitter();
+
+                        mock.setTimeout = mock.write = mock.end = noop;
+
+                        setTimeout(() => mock.emit('error', error.code ? error : new Error(error.message)), 500);
+
+                        return mock;
+                    }
+
+                    return storedHttpRequest(opts, callback);
+                };
+            }
+
+            it('Generic error', () => {
+                const url               = 'http://127.0.0.1:2000/error-emulation';
+                const options           = {
+                    url:                     proxy.openSession(url, session),
+                    resolveWithFullResponse: true,
+                    simple:                  false
+                };
+
+                http.request = mockRequest(url, { message: 'Emulation of error!' });
+
+                return request(options)
+                    .then(res => {
+                        expect(res.statusCode).eql(500);
+                        expect(res.body).eql('Failed to perform a request to the resource at ' +
+                                             '<a href="http://127.0.0.1:2000/error-emulation">' +
+                                             'http://127.0.0.1:2000/error-emulation</a> ' +
+                                             'because of an error.\nError: Emulation of error!');
+                    });
+            });
+
+            it('Header overflow error', () => {
+                const url               = 'http://127.0.0.1:2000/error-header-overflow';
+                const options           = {
+                    url:                     proxy.openSession(url, session),
+                    resolveWithFullResponse: true,
+                    simple:                  false,
+                    headers:                 {
+                        'header-name': 'header-value'
+                    }
+                };
+
+                http.request = mockRequest(url, {
+                    code:      'HPE_HEADER_OVERFLOW',
+                    rawPacket: Buffer.from('info\r\nheaders\r\n\r\nbody')
+                });
+
+                return request(options)
+                    .then(res => {
+                        expect(res.statusCode).eql(500);
+                        expect(res.body).eql('Failed to perform a request to the resource at ' +
+                                             '<a href="http://127.0.0.1:2000/error-header-overflow">' +
+                                             'http://127.0.0.1:2000/error-header-overflow</a> because of an error.\n' +
+                                             'The request header\'s size is 7 bytes which exceeds ' +
+                                             'the set limit.\nIt causes an internal Node.js error on parsing this header.\n' +
+                                             'To fix the problem, you need to add the \'--max-http-header-size=...\' flag ' +
+                                             'to the \'NODE_OPTIONS\' environment variable:\n\nmacOS, Linux (bash, zsh)\nexport ' +
+                                             'NODE_OPTIONS=\'--max-http-header-size=14\'\n\nWindows (powershell)\n' +
+                                             '$env:NODE_OPTIONS=\'--max-http-header-size=14\'\n\nWindows (cmd)\nset ' +
+                                             'NODE_OPTIONS=\'--max-http-header-size=14\'\n\nand then start your tests.');
+                    });
+            });
+
+            it('Invalid header char error', () => {
+                const url               = 'http://127.0.0.1:2000/error-invalid-char';
+                const options           = {
+                    url:                     proxy.openSession(url, session),
+                    resolveWithFullResponse: true,
+                    simple:                  false
+                };
+
+                let allASCIIChars = '';
+
+                for (let i = 0; i < 128; i++)
+                    allASCIIChars += String.fromCharCode(i);
+
+                const headerName = allASCIIChars.slice(0, ':'.charCodeAt(0)) + allASCIIChars.slice(':'.charCodeAt(0) + 1);
+                const headerBody = allASCIIChars;
+
+                http.request = mockRequest(url, {
+                    code:      'HPE_INVALID_HEADER_TOKEN',
+                    rawPacket: Buffer.from(`info\r\n${headerName}:${headerBody}\r\n\r\nbody`)
+                });
+
+                return request(options)
+                    .then(res => {
+                        expect(res.statusCode).eql(500);
+                        expect(res.body).eql('Failed to perform a request to the resource at ' +
+                                             '<a href="http://127.0.0.1:2000/error-invalid-char">' +
+                                             'http://127.0.0.1:2000/error-invalid-char</a> because of an error.\n' +
+                                             'The request contains a header that doesn\'t comply with the ' +
+                                             'specification <a href="https://tools.ietf.org/html/rfc7230#section-3.2.4">' +
+                                             'https://tools.ietf.org/html/rfc7230#section-3.2.4</a>.\nIt causes an internal ' +
+                                             'Node.js error on parsing this header.\n\nInvalid characters:\n' +
+                                             `Character with code "0" in header "${headerName}" name at index 0\n` +
+                                             `Character with code "1" in header "${headerName}" name at index 1\n` +
+                                             `Character with code "2" in header "${headerName}" name at index 2\n` +
+                                             `Character with code "3" in header "${headerName}" name at index 3\n` +
+                                             `Character with code "4" in header "${headerName}" name at index 4\n` +
+                                             `Character with code "5" in header "${headerName}" name at index 5\n` +
+                                             `Character with code "6" in header "${headerName}" name at index 6\n` +
+                                             `Character with code "7" in header "${headerName}" name at index 7\n` +
+                                             `Character with code "8" in header "${headerName}" name at index 8\n` +
+                                             `Character with code "9" in header "${headerName}" name at index 9\n` +
+                                             `Character with code "10" in header "${headerName}" name at index 10\n` +
+                                             `Character with code "11" in header "${headerName}" name at index 11\n` +
+                                             `Character with code "12" in header "${headerName}" name at index 12\n` +
+                                             `Character with code "13" in header "${headerName}" name at index 13\n` +
+                                             `Character with code "14" in header "${headerName}" name at index 14\n` +
+                                             `Character with code "15" in header "${headerName}" name at index 15\n` +
+                                             `Character with code "16" in header "${headerName}" name at index 16\n` +
+                                             `Character with code "17" in header "${headerName}" name at index 17\n` +
+                                             `Character with code "18" in header "${headerName}" name at index 18\n` +
+                                             `Character with code "19" in header "${headerName}" name at index 19\n` +
+                                             `Character with code "20" in header "${headerName}" name at index 20\n` +
+                                             `Character with code "21" in header "${headerName}" name at index 21\n` +
+                                             `Character with code "22" in header "${headerName}" name at index 22\n` +
+                                             `Character with code "23" in header "${headerName}" name at index 23\n` +
+                                             `Character with code "24" in header "${headerName}" name at index 24\n` +
+                                             `Character with code "25" in header "${headerName}" name at index 25\n` +
+                                             `Character with code "26" in header "${headerName}" name at index 26\n` +
+                                             `Character with code "27" in header "${headerName}" name at index 27\n` +
+                                             `Character with code "28" in header "${headerName}" name at index 28\n` +
+                                             `Character with code "29" in header "${headerName}" name at index 29\n` +
+                                             `Character with code "30" in header "${headerName}" name at index 30\n` +
+                                             `Character with code "31" in header "${headerName}" name at index 31\n` +
+                                             `Character with code "32" in header "${headerName}" name at index 32\n` +
+                                             `Character with code "127" in header "${headerName}" name at index 126\n` +
+                                             `Character with code "10" in header "${headerName}" body at index 10\n` +
+                                             `Character with code "13" in header "${headerName}" body at index 13\n` +
+                                             '\nTo fix the problem, you can add the \'--insecure-http-parser\' flag ' +
+                                             'to the \'NODE_OPTIONS\' environment variable:\n\n' +
+                                             'macOS, Linux (bash, zsh)\nexport NODE_OPTIONS=\'--insecure-http-parser\'\n\n' +
+                                             'Windows (powershell)\n$env:NODE_OPTIONS=\'--insecure-http-parser\'\n\n' +
+                                             'Windows (cmd)\nset NODE_OPTIONS=\'--insecure-http-parser\'\n\n' +
+                                             'and then start your tests.');
+                    });
+            });
         });
     });
 });
