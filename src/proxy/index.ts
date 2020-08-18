@@ -57,23 +57,14 @@ export default class Proxy extends Router {
 
         const { ssl, developmentMode } = options;
         const protocol                 = ssl ? 'https:' : 'http:';
-        
-        const opts = ssl;
-
-        if (opts)
-            opts.maxHeaderSize = Proxy.MAX_REQUEST_HEADER_SIZE;
+        const opts                     = this._getOpts(ssl);
+        const createServer             = this._getCreateServerMethod(ssl);
 
         this.server1Info = createServerInfo(hostname, port1, port2, protocol);
         this.server2Info = createServerInfo(hostname, port2, port1, protocol);
 
-        if (ssl) {
-            this.server1 = https.createServer(opts, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server1Info));
-            this.server2 = https.createServer(opts, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server2Info));
-        }
-        else {
-            this.server1 = http.createServer({ maxHeaderSize: Proxy.MAX_REQUEST_HEADER_SIZE }, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server1Info));
-            this.server2 = http.createServer({ maxHeaderSize: Proxy.MAX_REQUEST_HEADER_SIZE }, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server2Info));
-        }
+        this.server1 = createServer(opts, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server1Info));
+        this.server2 = createServer(opts, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server2Info));
 
         this.server1.on('upgrade', (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgradeRequest(req, socket, head, this.server1Info));
         this.server2.on('upgrade', (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgradeRequest(req, socket, head, this.server2Info));
@@ -86,6 +77,21 @@ export default class Proxy extends Router {
         // BUG: GH-89
         this._startSocketsCollecting();
         this._registerServiceRoutes(developmentMode);
+    }
+
+    _getOpts (ssl: {}): {} {
+        let opts: { maxHeaderSize?: number } = {};
+
+        if (ssl)
+            opts = ssl;
+
+        opts.maxHeaderSize = Proxy.MAX_REQUEST_HEADER_SIZE;
+
+        return opts;
+    }
+
+    _getCreateServerMethod (ssl: {}) {
+        return ssl ? https.createServer : http.createServer;
     }
 
     _closeSockets () {
