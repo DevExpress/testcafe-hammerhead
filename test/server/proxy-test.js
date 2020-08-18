@@ -4173,10 +4173,7 @@ describe('Proxy', () => {
 
                 for (let i = 0; i < 128; i++)
                     allASCIIChars += String.fromCharCode(i);
-
-                /*const headerName = allASCIIChars.splice(':'.charCodeAt(0), 1).join('');
-                const headerBody = allASCIIChars.join('');*/
-
+                
                 const headerName = allASCIIChars.slice(0, ':'.charCodeAt(0)) + allASCIIChars.slice(':'.charCodeAt(0) + 1);
                 const headerBody = allASCIIChars;
 
