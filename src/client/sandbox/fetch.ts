@@ -6,7 +6,7 @@ import { getProxyUrl, parseProxyUrl } from '../utils/url';
 import { getOriginHeader, sameOriginCheck, get as getDestLocation } from '../utils/destination-location';
 import { isFetchHeaders, isFetchRequest } from '../utils/dom';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
-import { overrideDescriptor } from '../utils/property-overriding';
+import { overrideDescriptor, overrideDescriptorExperimental } from '../utils/property-overriding';
 import * as browserUtils from '../utils/browser';
 import { transformHeaderNameToBuiltin, transformHeaderNameToInternal } from '../utils/headers';
 import CookieSandbox from './cookie';
@@ -65,19 +65,19 @@ export default class FetchSandbox extends SandboxBase {
             args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init);
     }
 
-    static _sameOriginCheck (args) {
+    static _sameOriginCheck ([input, opts]) {
         let url         = null;
         let requestMode = null;
 
-        if (isFetchRequest(args[0])) {
-            url         = parseProxyUrl(nativeMethods.requestUrlGetter.call(args[0])).destUrl;
-            requestMode = args[0].mode;
+        if (isFetchRequest(input)) {
+            url         = parseProxyUrl(input.__hhNative$url).destUrl;
+            requestMode = input.mode;
         }
         else {
-            const parsedProxyUrl = parseProxyUrl(args[0]);
+            const parsedProxyUrl = parseProxyUrl(input);
 
-            url         = parsedProxyUrl ? parsedProxyUrl.destUrl : args[0];
-            requestMode = (args[1] || {}).mode;
+            url         = parsedProxyUrl ? parsedProxyUrl.destUrl : input;
+            requestMode = opts && opts.mode;
         }
 
         if (requestMode === 'same-origin')
@@ -171,16 +171,16 @@ export default class FetchSandbox extends SandboxBase {
         };
         window.Request.prototype = nativeMethods.Request.prototype;
 
-        overrideDescriptor(window.Request.prototype, 'url', {
-            getter: function () {
-                const responseUrl       = nativeMethods.requestUrlGetter.call(this);
-                const parsedResponseUrl = responseUrl && parseProxyUrl(responseUrl);
+        overrideDescriptorExperimental(window.Request.prototype, 'url', {
+            getter: function (this: Request) {
+                const requestUrl       = this.__hhNative$url;
+                const parsedRequestUrl = requestUrl && parseProxyUrl(requestUrl);
 
-                return parsedResponseUrl ? parsedResponseUrl.destUrl : responseUrl;
+                return parsedRequestUrl ? parsedRequestUrl.destUrl : requestUrl;
             }
         });
 
-        window.fetch = function (...args) {
+        window.fetch = function (...args: [Request | string, any]) {
             // NOTE: Safari processed the empty `fetch()` request without `Promise` rejection (GH-1613)
             if (!args.length && !browserUtils.isSafari)
                 return nativeMethods.fetch.apply(this);
