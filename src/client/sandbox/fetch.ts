@@ -51,21 +51,19 @@ export default class FetchSandbox extends SandboxBase {
     }
 
     static _processArguments (args) {
-        const input               = args[0];
+        const [input, init]       = args;
         const inputIsString       = typeof input === 'string';
         const inputIsFetchRequest = isFetchRequest(input);
-        let init                  = args[1];
 
         if (!inputIsFetchRequest) {
             args[0] = getProxyUrl(inputIsString ? input : String(input));
-            init    = init || {};
-            args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init);
+            args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init || {});
         }
         else if (init && init.headers)
             args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init);
     }
 
-    static _sameOriginCheck ([input, opts]) {
+    static _sameOriginCheck ([input, init]) {
         let url         = null;
         let requestMode = null;
 
@@ -77,7 +75,7 @@ export default class FetchSandbox extends SandboxBase {
             const parsedProxyUrl = parseProxyUrl(input);
 
             url         = parsedProxyUrl ? parsedProxyUrl.destUrl : input;
-            requestMode = opts && opts.mode;
+            requestMode = init && init.mode;
         }
 
         if (requestMode === 'same-origin')
