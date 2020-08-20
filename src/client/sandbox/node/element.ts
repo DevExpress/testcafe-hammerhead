@@ -457,7 +457,8 @@ export default class ElementSandbox extends SandboxBase {
             appendData (...args) {
                 nativeMethods.nodeTextContentSetter.call(this, nativeMethods.nodeTextContentGetter.call(this) + args[0]);
 
-                ElementSandbox._processTextNodeContent(this, nativeMethods.nodeParentNodeGetter.call(this));
+                if (nativeMethods.nodeParentNodeGetter.call(this))
+                    ElementSandbox._processTextNodeContent(this, nativeMethods.nodeParentNodeGetter.call(this));
             },
             
             insertRow () {

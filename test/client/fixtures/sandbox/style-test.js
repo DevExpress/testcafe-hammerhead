@@ -153,3 +153,22 @@ test('the getAttribute function should return cleaned style (GH-1922)', function
         ? 'display: none; background-color: green;'
         : 'background-color: green; display: none;');
 });
+
+test('the appendData function should append processed text (TC-3830)', function () {
+    const style    = document.createElement('style');
+    const textNode = document.createTextNode('');
+
+    style.appendChild(textNode);
+
+    textNode.appendData('\n.class:hover{}\n');
+
+    strictEqual(textNode.data, '\n.class[data-hammerhead-hovered]{}\n');
+});
+
+test('the appendData function does not break if there is no parent element (TC-3830)', function () {
+    const textNode = document.createTextNode('');
+
+    textNode.appendData('\n.class:hover{}\n');
+
+    strictEqual(textNode.data, '\n.class:hover{}\n');
+});
