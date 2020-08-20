@@ -454,8 +454,8 @@ export default class ElementSandbox extends SandboxBase {
         const sandbox = this;
 
         this.overriddenMethods = {
-            appendData (...args) {
-                nativeMethods.nodeTextContentSetter.call(this, nativeMethods.nodeTextContentGetter.call(this) + args[0]);
+            appendData (text) {
+                nativeMethods.nodeTextContentSetter.call(this, nativeMethods.nodeTextContentGetter.call(this) + text);
 
                 if (nativeMethods.nodeParentNodeGetter.call(this))
                     ElementSandbox._processTextNodeContent(this, nativeMethods.nodeParentNodeGetter.call(this));
