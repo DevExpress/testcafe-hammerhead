@@ -454,6 +454,13 @@ export default class ElementSandbox extends SandboxBase {
         const sandbox = this;
 
         this.overriddenMethods = {
+            appendData (text) {
+                nativeMethods.nodeTextContentSetter.call(this, nativeMethods.nodeTextContentGetter.call(this) + text);
+
+                if (nativeMethods.nodeParentNodeGetter.call(this))
+                    ElementSandbox._processTextNodeContent(this, nativeMethods.nodeParentNodeGetter.call(this));
+            },
+            
             insertRow () {
                 const nativeMeth = domUtils.isTableElement(this)
                     ? nativeMethods.insertTableRow
@@ -815,6 +822,7 @@ export default class ElementSandbox extends SandboxBase {
         window.HTMLTableRowElement.prototype.insertCell    = this.overriddenMethods.insertCell;
         window.HTMLFormElement.prototype.submit            = this.overriddenMethods.formSubmit;
         window.HTMLAnchorElement.prototype.toString        = this.overriddenMethods.anchorToString;
+        window.CharacterData.prototype.appendData          = this.overriddenMethods.appendData;
 
         if (window.Document.prototype.registerElement)
             window.Document.prototype.registerElement = this.overriddenMethods.registerElement;
