@@ -98,6 +98,10 @@ export default class NodeSandbox extends SandboxBase {
         this._documentTitleStorageInitializer.onPageTitleLoaded();
     }
 
+    onInternalTitleValueSet (): void {
+        this._documentTitleStorageInitializer.processFirstTitleElement({ useDefaultValue: true });
+    }
+
     processNodes (el: HTMLElement, doc?: Document): void {
         if (!el) {
             doc = doc || this.document;

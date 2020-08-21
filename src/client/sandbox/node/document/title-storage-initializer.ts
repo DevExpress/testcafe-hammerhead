@@ -13,7 +13,7 @@ export default class DocumentTitleStorageInitializer {
         nativeMethods.documentTitleSetter.call(this._titleStorage.getDocument(), value);
     }
 
-    processFirstTitleElement (): boolean {
+    processFirstTitleElement ({ useDefaultValue } = { useDefaultValue: false }): boolean {
         const firstTitle = this._titleStorage.getFirstTitleElement();
 
         if (!firstTitle)
@@ -22,10 +22,12 @@ export default class DocumentTitleStorageInitializer {
         if (this._titleStorage.isElementProcessed(firstTitle))
             return false;
 
-        const value = nativeMethods.titleElementTextGetter.call(firstTitle);
+        const value = useDefaultValue ? DocumentTitleStorage.DEFAULT_TITLE_VALUE : nativeMethods.titleElementTextGetter.call(firstTitle);
 
         this._titleStorage.setTitleElementPropertyValue(firstTitle, value);
-        this._setProxiedTitleValue();
+
+        if (!useDefaultValue)
+            this._setProxiedTitleValue();
 
         return true;
     }
