@@ -93,13 +93,9 @@ export default class UploadSandbox extends SandboxBase {
         return UploadSandbox._getCurrentInfoManager(input).getValue(input);
     }
 
-    setUploadElementValue (input: HTMLInputElement, value: string) {
-        if (value === '') {
-            if (UploadSandbox._getCurrentInfoManager(input).clearUploadInfo(input) && isIE && browserVersion > 10)
-                this._riseChangeEvent(input);
-        }
-
-        return value;
+    setUploadElementValue (input: HTMLInputElement, value: string): void {
+        if (value === '' && UploadSandbox._getCurrentInfoManager(input).clearUploadInfo(input) && isIE && browserVersion > 10)
+            this._riseChangeEvent(input);
     }
 
     // GH-1844, GH-2007

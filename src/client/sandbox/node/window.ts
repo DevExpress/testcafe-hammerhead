@@ -931,17 +931,15 @@ export default class WindowSandbox extends SandboxBase {
                 return nativeMethods.inputValueGetter.call(this);
             },
             setter: function (value) {
-                if (this.type.toLowerCase() !== 'file') {
+                if (this.type.toLowerCase() === 'file')
+                    return windowSandbox.uploadSandbox.setUploadElementValue(this, value);
 
-                    nativeMethods.inputValueSetter.call(this, value);
+                nativeMethods.inputValueSetter.call(this, value);
 
-                    const valueChanged = value !== nativeMethods.inputValueGetter.call(this);
+                const valueChanged = value !== nativeMethods.inputValueGetter.call(this);
 
-                    if (valueChanged && !isShadowUIElement(this) && isTextEditableElementAndEditingAllowed(this))
-                        windowSandbox.elementEditingWatcher.restartWatchingElementEditing(this);
-                }
-                else
-                    windowSandbox.uploadSandbox.setUploadElementValue(this, value);
+                if (valueChanged && !isShadowUIElement(this) && isTextEditableElementAndEditingAllowed(this))
+                    windowSandbox.elementEditingWatcher.restartWatchingElementEditing(this);
             }
         });
 
@@ -951,11 +949,10 @@ export default class WindowSandbox extends SandboxBase {
                 getter: null,
                 setter: function (value) {
                     if (nativeMethods.documentActiveElementGetter.call(document) === this) {
-                        const savedValue = windowSandbox.elementEditingWatcher.getElementSavedValue(this);
+                        const savedValue   = ElementEditingWatcher.getElementPreviousValue(this);
                         const currentValue = nativeMethods.inputValueGetter.call(this);
-                        const ignoreChangeEvent = savedValue === void 0 && currentValue === '';
 
-                        if (!ignoreChangeEvent && currentValue !== savedValue)
+                        if (ElementEditingWatcher.isEditingObserved(this) && currentValue !== savedValue)
                             windowSandbox.eventSimulator.change(this);
 
                         windowSandbox.elementEditingWatcher.stopWatching(this);
