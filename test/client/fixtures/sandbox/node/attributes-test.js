@@ -7,12 +7,13 @@ var destLocation     = hammerhead.get('./utils/destination-location');
 var featureDetection = hammerhead.get('./utils/feature-detection');
 var processScript    = hammerhead.get('../processing/script').processScript;
 
-var nativeMethods = hammerhead.nativeMethods;
-var browserUtils  = hammerhead.utils.browser;
-var unloadSandbox = hammerhead.sandbox.event.unload;
+var elementEditingWatcher = hammerhead.sandbox.event.elementEditingWatcher;
+var nativeMethods         = hammerhead.nativeMethods;
+var browserUtils          = hammerhead.utils.browser;
+var unloadSandbox         = hammerhead.sandbox.event.unload;
 
 // NOTE: IE11 has a strange bug that does not allow this test to pass
-if (!browserUtils.isIE || browserUtils.version !== 11) {
+if (!browserUtils.isIE11) {
     test('onsubmit', function () {
         var etalon = nativeMethods.createElement.call(document, 'form');
         var form   = document.createElement('form');
@@ -555,19 +556,14 @@ if (browserUtils.isChrome) {
             inputChanged = false;
             input.value  = '';
 
+            elementEditingWatcher.stopWatching(input);
             nativeMethods.focus.call(document.body);
         }
 
         // NOTE: set 'disabled' on empty input should not raise 'change'
         nativeMethods.focus.call(input);
+        elementEditingWatcher.watchElementEditing(input);
 
-        input.disabled = true;
-
-        ok(!inputChanged);
-        reset();
-
-        // NOTE: set 'disabled' on not focused input should not raise 'change'
-        input.value    = '100';
         input.disabled = true;
 
         ok(!inputChanged);
@@ -575,6 +571,7 @@ if (browserUtils.isChrome) {
 
         // NOTE: set 'disabled' on focused input should raise 'change'
         nativeMethods.focus.call(input);
+        elementEditingWatcher.watchElementEditing(input);
 
         input.value    = '100';
         input.disabled = true;
@@ -1234,4 +1231,24 @@ if (nativeMethods.linkAsSetter) {
     });
 }
 
+if (browserUtils.isChrome) {
+    asyncTest('setting the "disabled" property of the "input" element should not raise the "Maximum call stack size exceeded" error (GH-24050)', function () {
+        var input = document.createElement('input');
 
+        input.type  = 'radio';
+        input.value = '1';
+
+        input.addEventListener('change', function () {
+            input.disabled = false;
+
+            document.body.removeChild(input);
+
+            ok(true);
+            start();
+        });
+
+        document.body.appendChild(input);
+        input.focus();
+        input.click();
+    });
+}
