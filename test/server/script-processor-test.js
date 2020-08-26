@@ -835,7 +835,7 @@ describe('Script processor', () => {
 
         it('object pattern assignment', () => {
             testProcessing([
-                { ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                {
                     src:      '({ location, href } = some);',
                     expected: 'var _hh$temp0;' +
                               '(_hh$temp0 = some,' +
