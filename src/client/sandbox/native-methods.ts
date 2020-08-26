@@ -116,6 +116,7 @@ class NativeMethods {
     performanceNow: any;
     fetch: Window['fetch'];
     Request: typeof Request;
+    requestUrlGetter: (this: Request) => Request['url'];
     Headers: Headers['constructor'];
     headersSet: Headers['set'];
     headersGet: Headers['get'];
@@ -625,6 +626,7 @@ class NativeMethods {
             this.responseStatusGetter = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'status').get;
             this.responseTypeGetter   = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'type').get;
             this.responseUrlGetter    = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'url').get;
+            this.requestUrlGetter     = win.Object.getOwnPropertyDescriptor(win.Request.prototype, 'url').get;
         }
 
         if (win.XMLHttpRequest) {

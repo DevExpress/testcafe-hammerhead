@@ -56,7 +56,7 @@ const lengthDescriptor = createOverriddenDescriptor(DOMStringList.prototype, 'le
 nativeMethods.objectDefineProperty(DOMStringListWrapper.prototype, 'length', lengthDescriptor);
 
 function updateOrigin (ancestorOrigins: DOMStringList, wrapper: DOMStringListWrapper, index: string, origin: string) {
-    const descriptor = createOverriddenDescriptor(ancestorOrigins, index, { value: origin });
+    const descriptor = createOverriddenDescriptor(ancestorOrigins, index as keyof DOMStringList, { value: origin });
 
     nativeMethods.objectDefineProperty(wrapper, index, descriptor);
 }

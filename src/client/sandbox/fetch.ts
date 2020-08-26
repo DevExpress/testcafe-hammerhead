@@ -6,7 +6,7 @@ import { getProxyUrl, parseProxyUrl } from '../utils/url';
 import { getOriginHeader, sameOriginCheck, get as getDestLocation } from '../utils/destination-location';
 import { isFetchHeaders, isFetchRequest } from '../utils/dom';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
-import { overrideDescriptor, overrideDescriptorExperimental } from '../utils/property-overriding';
+import { overrideDescriptor } from '../utils/property-overriding';
 import * as browserUtils from '../utils/browser';
 import { transformHeaderNameToBuiltin, transformHeaderNameToInternal } from '../utils/headers';
 import CookieSandbox from './cookie';
@@ -68,7 +68,7 @@ export default class FetchSandbox extends SandboxBase {
         let requestMode = null;
 
         if (isFetchRequest(input)) {
-            url         = parseProxyUrl(input.__hhNative$url).destUrl;
+            url         = parseProxyUrl(nativeMethods.requestUrlGetter.call(input)).destUrl;
             requestMode = input.mode;
         }
         else {
@@ -169,9 +169,9 @@ export default class FetchSandbox extends SandboxBase {
         };
         window.Request.prototype = nativeMethods.Request.prototype;
 
-        overrideDescriptorExperimental(window.Request.prototype, 'url', {
+        overrideDescriptor(window.Request.prototype, 'url', {
             getter: function (this: Request) {
-                const requestUrl       = this.__hhNative$url;
+                const requestUrl       = nativeMethods.requestUrlGetter.call(this);
                 const parsedRequestUrl = requestUrl && parseProxyUrl(requestUrl);
 
                 return parsedRequestUrl ? parsedRequestUrl.destUrl : requestUrl;
