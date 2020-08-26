@@ -53,6 +53,12 @@ declare module 'testcafe-hammerhead' {
         static isANY (instance: any): boolean;
     }
 
+    /** The StateSnapshot class is used to create page state snapshot **/
+    export class StateSnapshot {
+        /** Creates a empty page state snapshot **/
+        static empty (): StateSnapshot;
+    }
+
     /** Generates an URL friendly string identifier **/
     export function generateUniqueId(length?: number): string;
 
