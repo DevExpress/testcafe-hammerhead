@@ -776,3 +776,26 @@ test('set a relative url to a cross-domain location', function () {
             checkLocation(iframes[1].contentWindow.location);
         });
 });
+
+
+test('location.replace should not throw an error when called by iframe added dynamically (GH-2417)', function () {
+    const iframe = document.createElement('iframe');
+
+    iframe.id  = 'test001';
+
+    document.body.appendChild(iframe);
+
+    let err = null;
+
+    try {
+        eval(processScript('iframe.contentDocument.location.replace("./index.html");'));
+    }
+    catch (e) {
+        err = e;
+    }
+    finally {
+        ok(!err, err);
+
+        document.body.removeChild(iframe);
+    }
+});

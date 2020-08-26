@@ -14,6 +14,7 @@ import settings from '../../../settings';
 import { isIE } from '../../../utils/browser';
 import WindowSandbox from '../../node/window';
 import ShadowUISandbox from '../../shadow-ui';
+import noop from '../../../utils/noop';
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
     // NOTE: Isolate throw statements into a separate function because the
@@ -83,7 +84,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     const wnd = domUtils.isWindow(owner) ? owner : owner.defaultView;
 
-                    return new LocationWrapper(wnd);
+                    return new LocationWrapper(wnd, null, noop);
                 },
 
                 set: (owner: Window | Document, location: Location) => {
