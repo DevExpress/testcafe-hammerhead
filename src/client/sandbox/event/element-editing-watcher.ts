@@ -76,11 +76,11 @@ export default class ElementEditingWatcher {
         return false;
     }
 
-    static getElementPreviousValue (el: HTMLElement) {
+    getElementSavedValue (el: HTMLElement) {
         return el[PREVIOUS_VALUE_PROPERTY];
     }
 
-    static isEditingObserved (el: HTMLElement) {
+    isEditingObserved (el: HTMLElement) {
         return el[EDITING_OBSERVED_FLAG];
     }
 }

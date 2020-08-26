@@ -949,10 +949,10 @@ export default class WindowSandbox extends SandboxBase {
                 getter: null,
                 setter: function (value) {
                     if (nativeMethods.documentActiveElementGetter.call(document) === this) {
-                        const savedValue   = ElementEditingWatcher.getElementPreviousValue(this);
+                        const savedValue   = windowSandbox.elementEditingWatcher.getElementSavedValue(this);
                         const currentValue = nativeMethods.inputValueGetter.call(this);
 
-                        if (ElementEditingWatcher.isEditingObserved(this) && currentValue !== savedValue)
+                        if (windowSandbox.elementEditingWatcher.isEditingObserved(this) && currentValue !== savedValue)
                             windowSandbox.eventSimulator.change(this);
 
                         windowSandbox.elementEditingWatcher.stopWatching(this);
