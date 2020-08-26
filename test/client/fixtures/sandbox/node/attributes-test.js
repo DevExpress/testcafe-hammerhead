@@ -13,7 +13,7 @@ var browserUtils          = hammerhead.utils.browser;
 var unloadSandbox         = hammerhead.sandbox.event.unload;
 
 // NOTE: IE11 has a strange bug that does not allow this test to pass
-if (!browserUtils.isIE || browserUtils.version !== 11) {
+if (!browserUtils.isIE11) {
     test('onsubmit', function () {
         var etalon = nativeMethods.createElement.call(document, 'form');
         var form   = document.createElement('form');

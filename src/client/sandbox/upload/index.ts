@@ -2,7 +2,7 @@ import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import SandboxBase from '../base';
 import UploadInfoManager from './info-manager';
 import { isFileInput } from '../../utils/dom';
-import { isIE, isFirefox, isChrome, isMacPlatform, isSafari, version as browserVersion } from '../../utils/browser';
+import { isIE, isIE11, isFirefox, isChrome, isMacPlatform, isSafari } from '../../utils/browser';
 import { stopPropagation, preventDefault } from '../../utils/event';
 import { get as getSandboxBackup } from '../backup';
 import nativeMethods from '../native-methods';
@@ -94,7 +94,7 @@ export default class UploadSandbox extends SandboxBase {
     }
 
     setUploadElementValue (input: HTMLInputElement, value: string): void {
-        if (value === '' && UploadSandbox._getCurrentInfoManager(input).clearUploadInfo(input) && isIE && browserVersion > 10)
+        if (value === '' && UploadSandbox._getCurrentInfoManager(input).clearUploadInfo(input) && isIE11)
             this._riseChangeEvent(input);
     }
 
