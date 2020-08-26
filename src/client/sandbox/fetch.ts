@@ -51,33 +51,31 @@ export default class FetchSandbox extends SandboxBase {
     }
 
     static _processArguments (args) {
-        const input               = args[0];
+        const [input, init]       = args;
         const inputIsString       = typeof input === 'string';
         const inputIsFetchRequest = isFetchRequest(input);
-        let init                  = args[1];
 
         if (!inputIsFetchRequest) {
             args[0] = getProxyUrl(inputIsString ? input : String(input));
-            init    = init || {};
-            args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init);
+            args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init || {});
         }
         else if (init && init.headers)
             args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init);
     }
 
-    static _sameOriginCheck (args) {
+    static _sameOriginCheck ([input, init]) {
         let url         = null;
         let requestMode = null;
 
-        if (isFetchRequest(args[0])) {
-            url         = parseProxyUrl(args[0].url).destUrl;
-            requestMode = args[0].mode;
+        if (isFetchRequest(input)) {
+            url         = parseProxyUrl(nativeMethods.requestUrlGetter.call(input)).destUrl;
+            requestMode = input.mode;
         }
         else {
-            const parsedProxyUrl = parseProxyUrl(args[0]);
+            const parsedProxyUrl = parseProxyUrl(input);
 
-            url         = parsedProxyUrl ? parsedProxyUrl.destUrl : args[0];
-            requestMode = (args[1] || {}).mode;
+            url         = parsedProxyUrl ? parsedProxyUrl.destUrl : input;
+            requestMode = init && init.mode;
         }
 
         if (requestMode === 'same-origin')
@@ -171,7 +169,16 @@ export default class FetchSandbox extends SandboxBase {
         };
         window.Request.prototype = nativeMethods.Request.prototype;
 
-        window.fetch = function (...args) {
+        overrideDescriptor(window.Request.prototype, 'url', {
+            getter: function (this: Request) {
+                const requestUrl       = nativeMethods.requestUrlGetter.call(this);
+                const parsedRequestUrl = requestUrl && parseProxyUrl(requestUrl);
+
+                return parsedRequestUrl ? parsedRequestUrl.destUrl : requestUrl;
+            }
+        });
+
+        window.fetch = function (...args: [Request | string, any]) {
             // NOTE: Safari processed the empty `fetch()` request without `Promise` rejection (GH-1613)
             if (!args.length && !browserUtils.isSafari)
                 return nativeMethods.fetch.apply(this);

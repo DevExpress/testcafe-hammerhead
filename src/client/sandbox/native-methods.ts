@@ -114,8 +114,9 @@ class NativeMethods {
     getRegistrationServiceWorker: any;
     createContextualFragment: any;
     performanceNow: any;
-    fetch: any;
-    Request: any;
+    fetch: Window['fetch'];
+    Request: typeof Request;
+    requestUrlGetter: (this: Request) => Request['url'];
     Headers: Headers['constructor'];
     headersSet: Headers['set'];
     headersGet: Headers['get'];
@@ -142,18 +143,19 @@ class NativeMethods {
     dateNow: DateConstructor['now'];
     math: any;
     mathRandom: any;
-    objectToString: any;
-    objectAssign: any;
-    objectKeys: any;
-    objectDefineProperty: any;
-    objectDefineProperties: any;
-    objectCreate: any;
-    objectIsExtensible: any;
-    objectIsFrozen: any;
-    objectGetOwnPropertyDescriptor: any;
-    objectHasOwnProperty: any;
-    objectGetOwnPropertyNames: any;
-    objectGetPrototypeOf: any;
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    objectToString: Object['toString'];
+    objectAssign: ObjectConstructor['assign'];
+    objectKeys: ObjectConstructor['keys'];
+    objectDefineProperty: ObjectConstructor['defineProperty'];
+    objectDefineProperties: ObjectConstructor['defineProperties'];
+    objectCreate: ObjectConstructor['create'];
+    objectIsExtensible: ObjectConstructor['isExtensible'];
+    objectIsFrozen: ObjectConstructor['isFrozen'];
+    objectGetOwnPropertyDescriptor: ObjectConstructor['getOwnPropertyDescriptor'];
+    objectHasOwnProperty: ObjectConstructor['hasOwnProperty'];
+    objectGetOwnPropertyNames: ObjectConstructor['getOwnPropertyNames'];
+    objectGetPrototypeOf: ObjectConstructor['getPrototypeOf'];
     objectGetOwnPropertySymbols: ObjectConstructor['getOwnPropertySymbols'];
     arraySlice: any;
     arrayConcat: any;
@@ -624,6 +626,7 @@ class NativeMethods {
             this.responseStatusGetter = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'status').get;
             this.responseTypeGetter   = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'type').get;
             this.responseUrlGetter    = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'url').get;
+            this.requestUrlGetter     = win.Object.getOwnPropertyDescriptor(win.Request.prototype, 'url').get;
         }
 
         if (win.XMLHttpRequest) {

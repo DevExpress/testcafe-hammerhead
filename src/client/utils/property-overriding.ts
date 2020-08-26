@@ -1,5 +1,12 @@
 import nativeMethods from '../sandbox/native-methods';
 
+
+interface PropertySettings<T extends object, K extends keyof T> {
+    getter?: (() => T[K]) | null | undefined;
+    setter?: ((val: T[K]) => void) | null | undefined;
+    value?: any;
+}
+
 function replaceNativeAccessor (descriptor, accessorName: string, newAccessor) {
     if (newAccessor && descriptor[accessorName]) {
         const stringifiedNativeAccessor = descriptor[accessorName].toString();
@@ -10,7 +17,7 @@ function replaceNativeAccessor (descriptor, accessorName: string, newAccessor) {
     descriptor[accessorName] = newAccessor;
 }
 
-export function createOverriddenDescriptor (obj: any, prop: string, { getter, setter, value }: { getter?: any; setter?: any; value?: any }) {
+export function createOverriddenDescriptor<O extends object, K extends keyof O> (obj: O, prop: K, { getter, setter, value }: PropertySettings<O, K>) {
     const descriptor = nativeMethods.objectGetOwnPropertyDescriptor(obj, prop);
 
     if ((getter || setter) && value)
@@ -42,7 +49,7 @@ export function createOverriddenDescriptor (obj: any, prop: string, { getter, se
     return descriptor;
 }
 
-export function overrideDescriptor (obj, prop: string, propertyAccessors) {
+export function overrideDescriptor<O extends object, K extends keyof O> (obj: O, prop: K, propertyAccessors: PropertySettings<O, K>) {
     const descriptor = createOverriddenDescriptor(obj, prop, propertyAccessors);
 
     nativeMethods.objectDefineProperty(obj, prop, descriptor);
