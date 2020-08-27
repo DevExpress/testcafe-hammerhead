@@ -18,7 +18,7 @@ export interface CodeChange {
     start: number;
     end: number;
     node: Node;
-    parentType: string;
+    parentType: Node['type'];
 }
 
 class State {
@@ -51,7 +51,7 @@ class State {
 const objectToString = Object.prototype.toString;
 const objectKeys     = Object.keys;
 
-function getChange (node: Node, parentType: string): CodeChange {
+function getChange (node: Node, parentType: Node['type']): CodeChange {
     /*eslint-disable @typescript-eslint/no-non-null-assertion*/
     const start = node.originStart!;
     const end   = node.originEnd!;
@@ -61,6 +61,7 @@ function getChange (node: Node, parentType: string): CodeChange {
 }
 
 function transformChildNodes (node: Node, changes: CodeChange[], state: State, tempVars: TempVariables) {
+    // debugger;
     // @ts-ignore
     const nodeKeys: (keyof Node)[] = objectKeys(node);
 
@@ -89,7 +90,7 @@ function isNodeTransformed (node: Node): boolean {
     return node.originStart !== void 0 && node.originEnd !== void 0;
 }
 
-function addChangeForTransformedNode (state: State, changes: CodeChange[], replacement: Node, parentType?: string) {
+function addChangeForTransformedNode (state: State, changes: CodeChange[], replacement: Node, parentType: Node['type']) {
     const hasTransformedAncestor = state.hasTransformedAncestor ||
                                    state.newExpressionAncestor && isNodeTransformed(state.newExpressionAncestor);
 
@@ -98,13 +99,14 @@ function addChangeForTransformedNode (state: State, changes: CodeChange[], repla
 
     if (state.newExpressionAncestor) {
         replaceNode(state.newExpressionAncestor, state.newExpressionAncestor, state.newExpressionAncestorParent!, state.newExpressionAncestorKey!);
-        changes.push(getChange(state.newExpressionAncestor, parentType || ''));
+        changes.push(getChange(state.newExpressionAncestor, parentType));
     }
     else
-        changes.push(getChange(replacement, parentType || ''));
+        changes.push(getChange(replacement, parentType));
 }
 
-function addTempVarsDeclaration (node: BlockStatement | Program, changes: CodeChange[], state: State, tempVars: TempVariables) {
+function addTempVarsDeclaration (node: BlockStatement | Program, changes: CodeChange[], state: State, tempVars: TempVariables, parentType: Node['type']) {
+    debugger;
     const names = tempVars.get();
 
     if (!names.length)
@@ -113,7 +115,7 @@ function addTempVarsDeclaration (node: BlockStatement | Program, changes: CodeCh
     const declaration = createTempVarsDeclaration(names);
 
     replaceNode(null, declaration, node, 'body');
-    addChangeForTransformedNode(state, changes, declaration);
+    addChangeForTransformedNode(state, changes, declaration, parentType);
 }
 
 function beforeTransform (wrapLastExprWithProcessHtml: boolean = false, resolver?: Function) {
@@ -187,7 +189,7 @@ function transform<T extends Node> (node: Node, changes: CodeChange[], state: St
 
         if (nodeTransformed) {
             replaceNode(storedNode, replacement, parent, key);
-            addChangeForTransformedNode(state, changes, replacement, parent.type );
+            addChangeForTransformedNode(state, changes, replacement, parent.type);
         }
     }
 
@@ -196,7 +198,7 @@ function transform<T extends Node> (node: Node, changes: CodeChange[], state: St
     transformChildNodes(node, changes, state, tempVars);
 
     if (allowTempVarAdd)
-        addTempVarsDeclaration(node as BlockStatement, changes, state, tempVars);
+        addTempVarsDeclaration(node as BlockStatement, changes, state, tempVars, parent.type);
 }
 
 export default function transformProgram(node: Program, wrapLastExprWithProcessHtml: boolean = false, resolver?: Function): CodeChange[] {
@@ -207,7 +209,7 @@ export default function transformProgram(node: Program, wrapLastExprWithProcessH
     TempVariables.resetCounter();
     beforeTransform(wrapLastExprWithProcessHtml, resolver);
     transformChildNodes(node, changes, state, tempVars);
-    addTempVarsDeclaration(node, changes, state, tempVars);
+    addTempVarsDeclaration(node, changes, state, tempVars, node.type);
     afterTransform();
 
     return changes;
