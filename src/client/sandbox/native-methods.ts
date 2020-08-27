@@ -945,6 +945,7 @@ class NativeMethods {
         const nativePerformance = win.performance;
 
         if (nativePerformance) {
+            // eslint-disable-next-line no-restricted-properties
             const nativePerformanceNow = win.performance.now || win.Performance.prototype.now;
 
             this.performanceNow = (...args) => nativePerformanceNow.apply(nativePerformance, args);
@@ -989,7 +990,7 @@ class NativeMethods {
 
         // DateTime
         this.date    = win.Date;
-        this.dateNow = win.Date.now;
+        this.dateNow = win.Date.now; // eslint-disable-line no-restricted-properties
 
         // Math
         this.math       = win.Math;
