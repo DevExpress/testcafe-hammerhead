@@ -60,10 +60,6 @@ export default class NodeSandbox extends SandboxBase {
     private _onBodyCreated (): void {
         this._eventSandbox.listeners.initDocumentBodyListening(this.document);
         this.mutation.onBodyCreated(this.document.body as HTMLBodyElement);
-
-        // NOTE: This call updates the 'body' tag in the dom-mutation-tracker.
-        // We need it in case document.getElementsByTagName('body') was called before the body was created.
-        domMutationTracker.onElementChanged(this.document.body);
     }
 
     private _processElement (el: HTMLElement): void {
@@ -127,6 +123,7 @@ export default class NodeSandbox extends SandboxBase {
 
         super.attach(window, document);
         this._documentTitleStorage.setValueForFirstTitleElementIfExists();
+        this._createDocumentObserver();
 
         this.iframeSandbox.on(this.iframeSandbox.IFRAME_DOCUMENT_CREATED_EVENT, ({ iframe }) => {
             const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
@@ -173,6 +170,22 @@ export default class NodeSandbox extends SandboxBase {
         this.doc.attach(window, document);
         this.win.attach(window);
         this.element.attach(window);
+    }
+
+
+    // NOTE: _updateBodyMutationTracking updates the 'body' tag in the dom-mutation-tracker.
+    // We need it in case document.getElementsByTagName('body') was called before the body was created.
+    private _updateBodyMutationTracking (mutationsList) {
+        for (let mutation of mutationsList) {
+            if (mutation.addedNodes[0] && domUtils.isBodyElement(mutation.addedNodes[0]))
+                domMutationTracker.onElementChanged(mutation.addedNodes[0]);
+        }
+    }
+
+    private _createDocumentObserver () {
+        const domObserver = new MutationObserver(this._updateBodyMutationTracking);
+
+        domObserver.observe(document.documentElement, { childList: true });
     }
 
     private static _processAttributeSelector (selector: string): string {

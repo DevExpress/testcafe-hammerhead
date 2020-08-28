@@ -443,5 +443,17 @@ module('getElementsByTagName', function () {
 
             DOMMutationTrackerProto.getVersion = storedGetVersion;
         });
+
+        test('getElementsByTagName(\'body\') updates correctly GH-5322', function () {
+            return createTestIframe({ src: getSameDomainPageUrl('../../../data/live-node-list/getElementsByTagName.html') })
+                .then(function () {
+                    const assertions = [];
+
+                    assertions.push([Object.keys(window.top.resultWithoutBody).length === 0, true, 'getElementsByTagName(\'body\') returned an empty collection before the body was created']);
+                    assertions.push([Object.keys(window.top.resultWithBody).length === 1, true, 'getElementsByTagName(\'body\') returned a non-empty collection after the body was created']);
+
+                    checkAssertions(assertions);
+                });
+        });
     });
 });

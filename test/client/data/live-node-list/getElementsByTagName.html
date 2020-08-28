@@ -4,6 +4,22 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+    <script>
+        function findBody() {
+            return Object.assign({}, document.getElementsByTagName('body'));
+        }
+
+        const hammerhead = window['%hammerhead%'];
+
+        hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
+        hammerhead.start({ crossDomainProxyPort: 2000 });
+
+        window.top.resultWithoutBody = findBody();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.top.resultWithBody = findBody();
+        });
+    </script>
 </head>
 <body>
 <script>
@@ -14,11 +30,6 @@
     document.addEventListener('DOMContentLoaded', function () {
         domContentLoadedIsRaised = true;
     });
-
-    var hammerhead = window['%hammerhead%'];
-
-    hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
-    hammerhead.start({ crossDomainProxyPort: 2000 });
 
     var DOMMutationTrackerProto = Object.getPrototypeOf(hammerhead.get('./sandbox/node/live-node-list/dom-mutation-tracker'));
 
