@@ -19,6 +19,7 @@ import CookieSandbox from '../cookie';
 import * as browserUtils from '../../utils/browser';
 import ChildWindowSandbox from '../child-window';
 import DocumentTitleStorage from './document/title-storage';
+import domMutationTracker from './live-node-list/dom-mutation-tracker';
 
 const ATTRIBUTE_SELECTOR_REG_EX          = /\[([\w-]+)(\^?=.+?)]/g;
 const ATTRIBUTE_OPERATOR_WITH_HASH_VALUE = /^\W+\s*#/;
@@ -59,6 +60,10 @@ export default class NodeSandbox extends SandboxBase {
     private _onBodyCreated (): void {
         this._eventSandbox.listeners.initDocumentBodyListening(this.document);
         this.mutation.onBodyCreated(this.document.body as HTMLBodyElement);
+
+        // NOTE: This call updates the 'body' tag in the dom-mutation-tracker.
+        // We need it in case document.getElementsByTagName('body') was called before the body was created.
+        domMutationTracker.onElementChanged(this.document.body);
     }
 
     private _processElement (el: HTMLElement): void {
