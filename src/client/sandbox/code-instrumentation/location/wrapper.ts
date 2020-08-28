@@ -36,7 +36,7 @@ function getLocationUrl (window: Window): string | undefined {
 }
 
 export default class LocationWrapper {
-    constructor (window: Window, messageSandbox?: MessageSandbox, onChanged?: Function) {
+    constructor (window: Window, messageSandbox: MessageSandbox, onChanged: Function) {
         const parsedLocation         = parseProxyUrl(getLocationUrl(window) as string);
         const locationResourceType   = parsedLocation ? parsedLocation.resourceType : '';
         const parsedResourceType     = parseResourceType(locationResourceType);
