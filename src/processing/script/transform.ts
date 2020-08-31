@@ -61,7 +61,6 @@ function getChange (node: Node, parentType: Node['type']): CodeChange {
 }
 
 function transformChildNodes (node: Node, changes: CodeChange[], state: State, tempVars: TempVariables) {
-    // debugger;
     // @ts-ignore
     const nodeKeys: (keyof Node)[] = objectKeys(node);
 
@@ -105,8 +104,7 @@ function addChangeForTransformedNode (state: State, changes: CodeChange[], repla
         changes.push(getChange(replacement, parentType));
 }
 
-function addTempVarsDeclaration (node: BlockStatement | Program, changes: CodeChange[], state: State, tempVars: TempVariables, parentType: Node['type']) {
-    debugger;
+function addTempVarsDeclaration (node: BlockStatement | Program, changes: CodeChange[], state: State, tempVars: TempVariables) {
     const names = tempVars.get();
 
     if (!names.length)
@@ -115,7 +113,7 @@ function addTempVarsDeclaration (node: BlockStatement | Program, changes: CodeCh
     const declaration = createTempVarsDeclaration(names);
 
     replaceNode(null, declaration, node, 'body');
-    addChangeForTransformedNode(state, changes, declaration, parentType);
+    addChangeForTransformedNode(state, changes, declaration, node.type);
 }
 
 function beforeTransform (wrapLastExprWithProcessHtml: boolean = false, resolver?: Function) {
@@ -198,7 +196,7 @@ function transform<T extends Node> (node: Node, changes: CodeChange[], state: St
     transformChildNodes(node, changes, state, tempVars);
 
     if (allowTempVarAdd)
-        addTempVarsDeclaration(node as BlockStatement, changes, state, tempVars, parent.type);
+        addTempVarsDeclaration(node as BlockStatement, changes, state, tempVars);
 }
 
 export default function transformProgram(node: Program, wrapLastExprWithProcessHtml: boolean = false, resolver?: Function): CodeChange[] {
@@ -209,7 +207,7 @@ export default function transformProgram(node: Program, wrapLastExprWithProcessH
     TempVariables.resetCounter();
     beforeTransform(wrapLastExprWithProcessHtml, resolver);
     transformChildNodes(node, changes, state, tempVars);
-    addTempVarsDeclaration(node, changes, state, tempVars, node.type);
+    addTempVarsDeclaration(node, changes, state, tempVars);
     afterTransform();
 
     return changes;
