@@ -18,6 +18,7 @@ export interface CodeChange {
     start: number;
     end: number;
     node: Node;
+    parentType: Node['type'];
 }
 
 class State {
@@ -50,13 +51,13 @@ class State {
 const objectToString = Object.prototype.toString;
 const objectKeys     = Object.keys;
 
-function getChange (node: Node): CodeChange {
+function getChange (node: Node, parentType: Node['type']): CodeChange {
     /*eslint-disable @typescript-eslint/no-non-null-assertion*/
     const start = node.originStart!;
     const end   = node.originEnd!;
     /*eslint-disable @typescript-eslint/no-non-null-assertion*/
 
-    return { start, end, node };
+    return { start, end, node, parentType };
 }
 
 function transformChildNodes (node: Node, changes: CodeChange[], state: State, tempVars: TempVariables) {
@@ -88,7 +89,7 @@ function isNodeTransformed (node: Node): boolean {
     return node.originStart !== void 0 && node.originEnd !== void 0;
 }
 
-function addChangeForTransformedNode (state: State, changes: CodeChange[], replacement: Node) {
+function addChangeForTransformedNode (state: State, changes: CodeChange[], replacement: Node, parentType: Node['type']) {
     const hasTransformedAncestor = state.hasTransformedAncestor ||
                                    state.newExpressionAncestor && isNodeTransformed(state.newExpressionAncestor);
 
@@ -97,10 +98,10 @@ function addChangeForTransformedNode (state: State, changes: CodeChange[], repla
 
     if (state.newExpressionAncestor) {
         replaceNode(state.newExpressionAncestor, state.newExpressionAncestor, state.newExpressionAncestorParent!, state.newExpressionAncestorKey!);
-        changes.push(getChange(state.newExpressionAncestor));
+        changes.push(getChange(state.newExpressionAncestor, state.newExpressionAncestorParent.type));
     }
     else
-        changes.push(getChange(replacement));
+        changes.push(getChange(replacement, parentType));
 }
 
 function addTempVarsDeclaration (node: BlockStatement | Program, changes: CodeChange[], state: State, tempVars: TempVariables) {
@@ -112,7 +113,7 @@ function addTempVarsDeclaration (node: BlockStatement | Program, changes: CodeCh
     const declaration = createTempVarsDeclaration(names);
 
     replaceNode(null, declaration, node, 'body');
-    addChangeForTransformedNode(state, changes, declaration);
+    addChangeForTransformedNode(state, changes, declaration, node.type);
 }
 
 function beforeTransform (wrapLastExprWithProcessHtml: boolean = false, resolver?: Function) {
@@ -161,7 +162,7 @@ function transform<T extends Node> (node: Node, changes: CodeChange[], state: St
         tempVars = new TempVariables();
 
     if (!node.reTransform && isNodeTransformed(node)) {
-        addChangeForTransformedNode(state, changes, node);
+        addChangeForTransformedNode(state, changes, node, parent.type);
         nodeTransformed = true;
     }
     else {
@@ -186,7 +187,7 @@ function transform<T extends Node> (node: Node, changes: CodeChange[], state: St
 
         if (nodeTransformed) {
             replaceNode(storedNode, replacement, parent, key);
-            addChangeForTransformedNode(state, changes, replacement);
+            addChangeForTransformedNode(state, changes, replacement, parent.type);
         }
     }
 
