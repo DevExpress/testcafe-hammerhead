@@ -98,7 +98,7 @@ function addChangeForTransformedNode (state: State, changes: CodeChange[], repla
 
     if (state.newExpressionAncestor) {
         replaceNode(state.newExpressionAncestor, state.newExpressionAncestor, state.newExpressionAncestorParent!, state.newExpressionAncestorKey!);
-        changes.push(getChange(state.newExpressionAncestor, parentType));
+        changes.push(getChange(state.newExpressionAncestor, state.newExpressionAncestorParent.type));
     }
     else
         changes.push(getChange(replacement, parentType));
