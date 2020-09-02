@@ -1,4 +1,4 @@
-import { parseProxyUrl } from '../../../utils/url';
+import { getDestinationUrl } from '../../../utils/url';
 import nativeMethods from '../../native-methods';
 
 let anchor      = nativeMethods.createElement.call(document, 'a');
@@ -8,9 +8,7 @@ export function getAnchorProperty (el: HTMLElement, nativePropGetter: Function) 
     const href = nativeMethods.anchorHrefGetter.call(el);
 
     if (href) {
-        const parsedProxyUrl = parseProxyUrl(href);
-
-        nativeMethods.anchorHrefSetter.call(anchor, parsedProxyUrl ? parsedProxyUrl.destUrl : href);
+        nativeMethods.anchorHrefSetter.call(anchor, getDestinationUrl(href));
 
         return nativePropGetter.call(anchor);
     }
@@ -22,9 +20,7 @@ export function setAnchorProperty (el: HTMLElement, nativePropSetter: Function, 
     const href = nativeMethods.anchorHrefGetter.call(el);
 
     if (href) {
-        const parsedProxyUrl = parseProxyUrl(href);
-
-        nativeMethods.anchorHrefSetter.call(anchor, parsedProxyUrl ? parsedProxyUrl.destUrl : href);
+        nativeMethods.anchorHrefSetter.call(anchor, getDestinationUrl(href));
         nativePropSetter.call(anchor, value);
         el.setAttribute('href', nativeMethods.anchorHrefGetter.call(anchor));
     }

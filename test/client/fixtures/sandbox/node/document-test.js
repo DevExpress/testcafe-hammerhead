@@ -288,40 +288,46 @@ module('overridden descriptors');
 
 if (nativeMethods.documentDocumentURIGetter) {
     test('document.documentURI', function () {
-        var savedParseProxyUrl = urlUtils.parseProxyUrl;
+        var savedDocumentURIGetter = nativeMethods.documentDocumentURIGetter;
 
-        urlUtils.parseProxyUrl = function () {
-            return null;
+        nativeMethods.documentDocumentURIGetter = function () {
+            return 'http://example.com/';
         };
 
-        strictEqual(document.documentURI, nativeMethods.documentDocumentURIGetter.call(document));
+        strictEqual(document.documentURI, 'http://example.com/');
 
-        urlUtils.parseProxyUrl = function () {
-            return { destUrl: 'destUrl' };
+        nativeMethods.documentDocumentURIGetter = function () {
+            return urlUtils.getProxyUrl('http://example.com/');
         };
 
-        strictEqual(document.documentURI, 'destUrl');
+        strictEqual(document.documentURI, 'http://example.com/');
 
-        urlUtils.parseProxyUrl = savedParseProxyUrl;
+        nativeMethods.documentDocumentURIGetter = savedDocumentURIGetter;
     });
 }
 
 test('document.referrer', function () {
-    var savedParseProxyUrl = urlUtils.parseProxyUrl;
+    var savedDocumentReferrerGetter = nativeMethods.documentReferrerGetter;
 
-    urlUtils.parseProxyUrl = function () {
+    nativeMethods.documentReferrerGetter = function () {
         return null;
     };
 
-    strictEqual(document.referrer, '');
+    strictEqual(document.referrer, null);
 
-    urlUtils.parseProxyUrl = function () {
-        return { destUrl: '123' };
+    nativeMethods.documentReferrerGetter = function () {
+        return 'http://example.com/';
     };
 
-    strictEqual(document.referrer, '123');
+    strictEqual(document.referrer, 'http://example.com/');
 
-    urlUtils.parseProxyUrl = savedParseProxyUrl;
+    nativeMethods.parseProxyUrl = function () {
+        return urlUtils.getProxyUrl('http://example.com/');
+    };
+
+    strictEqual(document.referrer, 'http://example.com/');
+
+    nativeMethods.documentReferrerGetter = savedDocumentReferrerGetter;
 });
 
 test('document.URL', function () {
@@ -452,21 +458,21 @@ test('document.scripts', function () {
 
 if (nativeMethods.nodeBaseURIGetter) {
     test('document.baseURI (GH-920)', function () {
-        var storedGetProxyUrl = urlUtils.parseProxyUrl;
+        var savedNodeBaseURIGetter = nativeMethods.nodeBaseURIGetter;
 
-        urlUtils.parseProxyUrl = function () {
-            return { destUrl: 'destUrl' };
+        nativeMethods.nodeBaseURIGetter = function () {
+            return urlUtils.getProxyUrl('http://example.com/');
         };
 
-        strictEqual(document.baseURI, 'destUrl');
+        strictEqual(document.baseURI, 'http://example.com/');
 
-        urlUtils.parseProxyUrl = function () {
-            return null;
+        nativeMethods.nodeBaseURIGetter = function () {
+            return 'http://example.com/';
         };
 
-        strictEqual(document.baseURI, location.toString());
+        strictEqual(document.baseURI, 'http://example.com/');
 
-        urlUtils.parseProxyUrl = storedGetProxyUrl;
+        nativeMethods.nodeBaseURIGetter = savedNodeBaseURIGetter;
     });
 }
 

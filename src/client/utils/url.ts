@@ -267,3 +267,9 @@ export function isChangedOnlyHash (currentUrl: string, newUrl: string): boolean 
     // or relative. The getProxyUrl function solves all the corresponding problems.
     return getProxyUrl(currentUrl).replace(HASH_RE, '') === getProxyUrl(newUrl).replace(HASH_RE, '');
 }
+
+export function getDestinationUrl (proxyUrl: any) {
+    const parsedProxyUrl = parseProxyUrl(proxyUrl);
+
+    return parsedProxyUrl ? parsedProxyUrl.destUrl : proxyUrl;
+}

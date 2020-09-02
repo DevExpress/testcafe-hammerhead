@@ -31,6 +31,7 @@ import EventSandbox from '../event';
 import ChildWindowSandbox from '../child-window';
 import isKeywordTarget from '../../../utils/is-keyword-target';
 import BUILTIN_HEADERS from '../../../request-pipeline/builtin-header-names';
+import { getDestinationUrl } from '../../utils/url';
 
 const RESTRICTED_META_HTTP_EQUIV_VALUES = [BUILTIN_HEADERS.refresh, BUILTIN_HEADERS.contentSecurityPolicy];
 
@@ -460,7 +461,7 @@ export default class ElementSandbox extends SandboxBase {
                 if (nativeMethods.nodeParentNodeGetter.call(this))
                     ElementSandbox._processTextNodeContent(this, nativeMethods.nodeParentNodeGetter.call(this));
             },
-            
+
             insertRow () {
                 const nativeMeth = domUtils.isTableElement(this)
                     ? nativeMethods.insertTableRow
@@ -649,10 +650,7 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             anchorToString () {
-                const href            = nativeMethods.anchorToString.call(this);
-                const parsedProxyHref = urlUtils.parseProxyUrl(href);
-
-                return parsedProxyHref ? parsedProxyHref.destUrl : href;
+                return getDestinationUrl(nativeMethods.anchorToString.call(this));
             },
 
             registerElement (...args) {

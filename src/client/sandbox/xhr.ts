@@ -1,6 +1,6 @@
 import SandboxBase from './base';
 import nativeMethods from './native-methods';
-import { getProxyUrl, parseProxyUrl } from '../utils/url';
+import { getDestinationUrl, getProxyUrl } from '../utils/url';
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
 import INTERNAL_HEADERS from '../../request-pipeline/internal-header-names';
 import { transformHeaderNameToInternal } from '../utils/headers';
@@ -149,10 +149,7 @@ export default class XhrSandbox extends SandboxBase {
         if (nativeMethods.xhrResponseURLGetter) {
             overrideDescriptor(window.XMLHttpRequest.prototype, 'responseURL', {
                 getter: function () {
-                    const responseUrl    = nativeMethods.xhrResponseURLGetter.call(this);
-                    const parsedProxyUrl = responseUrl && parseProxyUrl(responseUrl);
-
-                    return parsedProxyUrl ? parsedProxyUrl.destUrl : responseUrl;
+                    return getDestinationUrl(nativeMethods.xhrResponseURLGetter.call(this));
                 }
             });
         }
