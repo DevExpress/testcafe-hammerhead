@@ -86,16 +86,17 @@ test('CSSStyleSheet.href', function () {
 
     document.body.appendChild(style);
 
+    var nativeGetterName          = browserUtils.isIE11 ? 'cssStyleSheetHrefGetter' : 'styleSheetHrefGetter';
     var styleSheet                = document.styleSheets[0];
-    var savedStyleSheetHrefGetter = nativeMethods.styleSheetHrefGetter;
+    var savedStyleSheetHrefGetter = nativeMethods[nativeGetterName];
 
-    nativeMethods.styleSheetHrefGetter = function () {
+    nativeMethods[nativeGetterName] = function () {
         return urlUtils.getProxyUrl('http://example.com/');
     };
 
     strictEqual(styleSheet.href, 'http://example.com/');
 
-    nativeMethods.styleSheetHrefGetter = savedStyleSheetHrefGetter;
+    nativeMethods[nativeGetterName] = savedStyleSheetHrefGetter;
     document.body.removeChild(style);
 });
 
