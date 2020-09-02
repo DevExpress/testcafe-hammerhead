@@ -449,8 +449,8 @@ module('getElementsByTagName', function () {
                 .then(function () {
                     const assertions = [];
 
-                    assertions.push([Object.keys(window.top.resultWithoutBody).length === 0, true, 'getElementsByTagName(\'body\') returned an empty collection before the body was created']);
-                    assertions.push([Object.keys(window.top.resultWithBody).length === 1, true, 'getElementsByTagName(\'body\') returned a non-empty collection after the body was created']);
+                    assertions.push([!window.top.bodyExistsBeforeAttachingBody, true, 'getElementsByTagName(\'body\') returned an empty collection before the body was created']);
+                    assertions.push([window.top.bodyExistsAfterAttachingBody, true, 'getElementsByTagName(\'body\') returned a non-empty collection after the body was created']);
 
                     checkAssertions(assertions);
                 });

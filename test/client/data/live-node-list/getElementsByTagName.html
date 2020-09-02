@@ -5,24 +5,22 @@
     <title>Title</title>
     <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
     <script>
-        function findBody() {
-            return Object.assign({}, document.getElementsByTagName('body'));
+        function bodyExists () {
+            return document.getElementsByTagName('body').length === 1;
         }
 
-        const hammerhead = window['%hammerhead%'];
+        window.top.hammerhead = window['%hammerhead%'];
 
-        hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
-        hammerhead.start({ crossDomainProxyPort: 2000 });
+        window.top.hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
+        window.top.hammerhead.start({ crossDomainProxyPort: 2000 });
 
-        window.top.resultWithoutBody = findBody();
-
-        document.addEventListener('DOMContentLoaded', () => {
-            window.top.resultWithBody = findBody();
-        });
+        window.top.bodyExistsBeforeAttachingBody = bodyExists();
     </script>
 </head>
 <body>
 <script>
+    window.top.bodyExistsAfterAttachingBody = bodyExists();
+    
     var domContentLoadedIsRaised = false;
     var refreshCollectionCount   = 0;
     var assertions               = [];
@@ -31,18 +29,18 @@
         domContentLoadedIsRaised = true;
     });
 
-    var DOMMutationTrackerProto = Object.getPrototypeOf(hammerhead.get('./sandbox/node/live-node-list/dom-mutation-tracker'));
+    var DOMMutationTrackerProto = Object.getPrototypeOf(window.top.hammerhead.get('./sandbox/node/live-node-list/dom-mutation-tracker'));
 
     var testDiv = document.createElement('div');
 
     document.body.appendChild(testDiv);
 
-    var root      = hammerhead.shadowUI.getRoot();
+    var root      = window.top.hammerhead.shadowUI.getRoot();
     var textarea1 = document.createElement('textarea');
     var textarea2 = document.createElement('textarea');
     var textarea3 = document.createElement('textarea');
 
-    hammerhead.shadowUI.addClass(textarea3, 'el');
+    window.top.hammerhead.shadowUI.addClass(textarea3, 'el');
     root.appendChild(textarea3);
     testDiv.appendChild(textarea1);
     testDiv.appendChild(textarea2);

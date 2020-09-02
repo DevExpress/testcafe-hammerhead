@@ -26,6 +26,9 @@ const ATTRIBUTE_OPERATOR_WITH_HASH_VALUE = /^\W+\s*#/;
 const PSEUDO_CLASS_FOCUS_REG_EX          = /\s*:focus\b/gi;
 const PSEUDO_CLASS_HOVER_REG_EX          = /:hover\b/gi;
 
+const MUTATION_ADDED_NODES_NAME = 'addedNodes';
+const DOCUMENT_ELEMENT_NAME     = 'documentElement';
+
 export default class NodeSandbox extends SandboxBase {
     raiseBodyCreatedEvent: Function;
     doc: DocumentSandbox;
@@ -55,6 +58,8 @@ export default class NodeSandbox extends SandboxBase {
         this.doc                   = new DocumentSandbox(this, this.shadowUI, this._cookieSandbox, this._documentTitleStorage);
         this.win                   = new WindowSandbox(this, this._eventSandbox, this._uploadSandbox, this.mutation, this._childWindowSandbox, this._documentTitleStorage);
         this.element               = new ElementSandbox(this, this._uploadSandbox, this.iframeSandbox, this.shadowUI, this._eventSandbox, this._childWindowSandbox);
+
+        this._createDocumentObserver();
     }
 
     private _onBodyCreated (): void {
@@ -123,7 +128,6 @@ export default class NodeSandbox extends SandboxBase {
 
         super.attach(window, document);
         this._documentTitleStorage.setValueForFirstTitleElementIfExists();
-        this._createDocumentObserver();
 
         this.iframeSandbox.on(this.iframeSandbox.IFRAME_DOCUMENT_CREATED_EVENT, ({ iframe }) => {
             const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
@@ -177,15 +181,16 @@ export default class NodeSandbox extends SandboxBase {
     // We need it in case document.getElementsByTagName('body') was called before the body was created.
     private _updateBodyMutationTracking (mutationsList) {
         for (let mutation of mutationsList) {
-            if (mutation.addedNodes[0] && domUtils.isBodyElement(mutation.addedNodes[0]))
-                domMutationTracker.onElementChanged(mutation.addedNodes[0]);
+            if (mutation[MUTATION_ADDED_NODES_NAME][0] && domUtils.isBodyElement(mutation[MUTATION_ADDED_NODES_NAME][0]))
+                domMutationTracker.onElementChanged(mutation[MUTATION_ADDED_NODES_NAME][0]);
         }
     }
 
     private _createDocumentObserver () {
         const domObserver = new MutationObserver(this._updateBodyMutationTracking);
 
-        domObserver.observe(document.documentElement, { childList: true });
+        if (document[DOCUMENT_ELEMENT_NAME])
+            domObserver.observe(document[DOCUMENT_ELEMENT_NAME], { childList: true });
     }
 
     private static _processAttributeSelector (selector: string): string {
