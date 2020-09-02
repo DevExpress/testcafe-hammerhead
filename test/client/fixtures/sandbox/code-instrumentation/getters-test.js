@@ -1,7 +1,7 @@
-var urlUtils                             = hammerhead.get('./utils/url');
-var destLocation                         = hammerhead.get('./utils/destination-location');
-var DomProcessor                         = hammerhead.get('../processing/dom');
-var urlResolver                          = hammerhead.get('./utils/url-resolver');
+var urlUtils       = hammerhead.get('./utils/url');
+var destLocation   = hammerhead.get('./utils/destination-location');
+var DomProcessor   = hammerhead.get('../processing/dom');
+var urlResolver    = hammerhead.get('./utils/url-resolver');
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -86,16 +86,16 @@ test('CSSStyleSheet.href', function () {
 
     document.body.appendChild(style);
 
-    var storedGetProxyUrl = urlUtils.parseProxyUrl;
-    var styleSheet        = document.styleSheets[0];
+    var styleSheet                = document.styleSheets[0];
+    var savedStyleSheetHrefGetter = nativeMethods.styleSheetHrefGetter;
 
-    urlUtils.parseProxyUrl = function () {
-        return { destUrl: 'expected-url' };
+    nativeMethods.styleSheetHrefGetter = function () {
+        return urlUtils.getProxyUrl('http://example.com/');
     };
 
-    strictEqual(styleSheet.href, 'expected-url');
+    strictEqual(styleSheet.href, 'http://example.com/');
 
-    urlUtils.parseProxyUrl = storedGetProxyUrl;
+    nativeMethods.styleSheetHrefGetter = savedStyleSheetHrefGetter;
     document.body.removeChild(style);
 });
 

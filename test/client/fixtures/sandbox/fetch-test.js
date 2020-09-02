@@ -757,6 +757,16 @@ if (window.fetch) {
                 });
         });
 
+        test('should not throw an error when a data-url is used in Request constructor (GH-2428)', function () {
+            return fetch(new Request('data:text/plain,foo'))
+                .then(function (res) {
+                    return res.text();
+                })
+                .then(function (body) {
+                    strictEqual(body, 'foo');
+                });
+        });
+
         test('should process headers passed as an array', function () {
             var headersArr = [
                 ['content-type', 'text/xml'],
@@ -793,5 +803,3 @@ if (window.fetch) {
         });
     });
 }
-
-

@@ -2,7 +2,7 @@ import SandboxBase from './base';
 import nativeMethods from './native-methods';
 import INTERNAL_HEADERS from '../../request-pipeline/internal-header-names';
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
-import { getProxyUrl, parseProxyUrl } from '../utils/url';
+import { getProxyUrl, getDestinationUrl } from '../utils/url';
 import { getOriginHeader, sameOriginCheck, get as getDestLocation } from '../utils/destination-location';
 import { isFetchHeaders, isFetchRequest } from '../utils/dom';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
@@ -68,13 +68,11 @@ export default class FetchSandbox extends SandboxBase {
         let requestMode = null;
 
         if (isFetchRequest(input)) {
-            url         = parseProxyUrl(nativeMethods.requestUrlGetter.call(input)).destUrl;
+            url         = getDestinationUrl(nativeMethods.requestUrlGetter.call(input));
             requestMode = input.mode;
         }
         else {
-            const parsedProxyUrl = parseProxyUrl(input);
-
-            url         = parsedProxyUrl ? parsedProxyUrl.destUrl : input;
+            url         = getDestinationUrl(input);
             requestMode = init && init.mode;
         }
 
@@ -93,10 +91,8 @@ export default class FetchSandbox extends SandboxBase {
     }
 
     static _getResponseType (response) {
-        const responseUrl       = nativeMethods.responseUrlGetter.call(response);
-        const parsedResponseUrl = parseProxyUrl(responseUrl);
-        const destUrl           = parsedResponseUrl && parsedResponseUrl.destUrl;
-        const isSameOrigin      = sameOriginCheck(getDestLocation(), destUrl);
+        const destUrl      = getDestinationUrl(nativeMethods.responseUrlGetter.call(response));
+        const isSameOrigin = sameOriginCheck(getDestLocation(), destUrl);
 
         if (isSameOrigin)
             return 'basic';
@@ -171,10 +167,7 @@ export default class FetchSandbox extends SandboxBase {
 
         overrideDescriptor(window.Request.prototype, 'url', {
             getter: function (this: Request) {
-                const requestUrl       = nativeMethods.requestUrlGetter.call(this);
-                const parsedRequestUrl = requestUrl && parseProxyUrl(requestUrl);
-
-                return parsedRequestUrl ? parsedRequestUrl.destUrl : requestUrl;
+                return getDestinationUrl(nativeMethods.requestUrlGetter.call(this));
             }
         });
 
@@ -230,10 +223,7 @@ export default class FetchSandbox extends SandboxBase {
 
         overrideDescriptor(window.Response.prototype, 'url', {
             getter: function () {
-                const responseUrl       = nativeMethods.responseUrlGetter.call(this);
-                const parsedResponseUrl = responseUrl && parseProxyUrl(responseUrl);
-
-                return parsedResponseUrl ? parsedResponseUrl.destUrl : responseUrl;
+                return getDestinationUrl(nativeMethods.responseUrlGetter.call(this));
             }
         });
 

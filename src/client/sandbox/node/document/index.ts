@@ -13,6 +13,7 @@ import LocationAccessorsInstrumentation from '../../code-instrumentation/locatio
 import { overrideDescriptor, createOverriddenDescriptor } from '../../../utils/property-overriding';
 import NodeSandbox from '../index';
 import DocumentTitleStorage from './title-storage';
+import { getDestinationUrl } from '../../../utils/url';
 
 export default class DocumentSandbox extends SandboxBase {
     documentWriter: DocumentWriter;
@@ -244,20 +245,14 @@ export default class DocumentSandbox extends SandboxBase {
         if (nativeMethods.documentDocumentURIGetter) {
             overrideDescriptor(docPrototype, 'documentURI', {
                 getter: function () {
-                    const documentURI    = nativeMethods.documentDocumentURIGetter.call(this);
-                    const parsedProxyUrl = urlUtils.parseProxyUrl(documentURI);
-
-                    return parsedProxyUrl ? parsedProxyUrl.destUrl : documentURI;
+                    return getDestinationUrl(nativeMethods.documentDocumentURIGetter.call(this));
                 }
             });
         }
 
         const referrerOverriddenDescriptor = createOverriddenDescriptor(docPrototype, 'referrer', {
             getter: function () {
-                const referrer       = nativeMethods.documentReferrerGetter.call(this);
-                const parsedProxyUrl = urlUtils.parseProxyUrl(referrer);
-
-                return parsedProxyUrl ? parsedProxyUrl.destUrl : '';
+                return getDestinationUrl(nativeMethods.documentReferrerGetter.call(this));
             }
         });
 
