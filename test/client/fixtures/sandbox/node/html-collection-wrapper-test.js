@@ -445,7 +445,7 @@ module('getElementsByTagName', function () {
         });
 
         test('getElementsByTagName(\'body\') updates correctly GH-5322', function () {
-            return createTestIframe({ src: getSameDomainPageUrl('../../../data/live-node-list/getElementsByTagName.html') })
+            return createTestIframe({ src: getSameDomainPageUrl('../../../data/live-node-list/getBodyByTagName.html') })
                 .then(function () {
                     const assertions = [];
 
