@@ -19,7 +19,7 @@ import CookieSandbox from '../cookie';
 import * as browserUtils from '../../utils/browser';
 import ChildWindowSandbox from '../child-window';
 import DocumentTitleStorage from './document/title-storage';
-import domMutationTracker from './live-node-list/dom-mutation-tracker';
+import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
 
 const ATTRIBUTE_SELECTOR_REG_EX          = /\[([\w-]+)(\^?=.+?)]/g;
 const ATTRIBUTE_OPERATOR_WITH_HASH_VALUE = /^\W+\s*#/;
@@ -182,7 +182,7 @@ export default class NodeSandbox extends SandboxBase {
     private _updateBodyMutationTracking (mutationsList) {
         for (let mutation of mutationsList) {
             if (mutation[MUTATION_ADDED_NODES_NAME][0] && domUtils.isBodyElement(mutation[MUTATION_ADDED_NODES_NAME][0]))
-                domMutationTracker.onElementChanged(mutation[MUTATION_ADDED_NODES_NAME][0]);
+                DOMMutationTracker.onElementChanged(mutation[MUTATION_ADDED_NODES_NAME][0]);
         }
     }
 
