@@ -1123,11 +1123,8 @@ export default class WindowSandbox extends SandboxBase {
             getter: function () {
                 let baseVal = nativeMethods.svgAnimStrBaseValGetter.call(this);
 
-                if (this[CONTEXT_SVG_IMAGE_ELEMENT]) {
-                    const parsedHref = parseProxyUrl(baseVal);
-
-                    baseVal = parsedHref ? parsedHref.destUrl : baseVal;
-                }
+                if (this[CONTEXT_SVG_IMAGE_ELEMENT])
+                    baseVal = getDestinationUrl(baseVal);
 
                 return baseVal;
             },
@@ -1149,11 +1146,8 @@ export default class WindowSandbox extends SandboxBase {
             getter: function () {
                 const animVal = nativeMethods.svgAnimStrAnimValGetter.call(this);
 
-                if (this[CONTEXT_SVG_IMAGE_ELEMENT]) {
-                    const parsedAnimVal = parseProxyUrl(animVal);
-
-                    return parsedAnimVal ? parsedAnimVal.destUrl : animVal;
-                }
+                if (this[CONTEXT_SVG_IMAGE_ELEMENT])
+                    return getDestinationUrl(animVal);
 
                 return animVal;
             }
@@ -1169,20 +1163,14 @@ export default class WindowSandbox extends SandboxBase {
 
         overrideDescriptor(window.StyleSheet.prototype, 'href', {
             getter: function () {
-                const href      = nativeMethods.styleSheetHrefGetter.call(this);
-                const parsedUrl = parseProxyUrl(href);
-
-                return parsedUrl ? parsedUrl.destUrl : href;
+                return getDestinationUrl(nativeMethods.styleSheetHrefGetter.call(this));
             }
         });
 
         if (nativeMethods.cssStyleSheetHrefGetter) {
             overrideDescriptor(window.CSSStyleSheet.prototype, 'href', {
                 getter: function () {
-                    const href      = nativeMethods.cssStyleSheetHrefGetter.call(this);
-                    const parsedUrl = parseProxyUrl(href);
-
-                    return parsedUrl ? parsedUrl.destUrl : href;
+                    return getDestinationUrl(nativeMethods.cssStyleSheetHrefGetter.call(this));
                 }
             });
         }
@@ -1190,10 +1178,7 @@ export default class WindowSandbox extends SandboxBase {
         if (nativeMethods.nodeBaseURIGetter) {
             overrideDescriptor(window.Node.prototype, 'baseURI', {
                 getter: function () {
-                    const baseURI   = nativeMethods.nodeBaseURIGetter.call(this);
-                    const parsedUrl = parseProxyUrl(baseURI);
-
-                    return parsedUrl ? parsedUrl.destUrl : baseURI;
+                    return getDestinationUrl(nativeMethods.nodeBaseURIGetter.call(this));
                 }
             });
         }
