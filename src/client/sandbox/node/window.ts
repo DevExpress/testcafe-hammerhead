@@ -51,7 +51,7 @@ import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-cal
 import INSTRUCTION from '../../../processing/script/instruction';
 import Promise from 'pinkie';
 import getMimeType from '../../utils/get-mime-type';
-import { overrideDescriptor } from '../../utils/property-overriding';
+import { overrideDescriptor, overrideStringRepresentation } from '../../utils/property-overriding';
 import { emptyActionAttrFallbacksToTheLocation } from '../../utils/feature-detection';
 import { HASH_RE, isValidUrl } from '../../../utils/url';
 import UploadSandbox from '../upload';
@@ -74,9 +74,7 @@ import DefaultTarget from '../child-window/default-target';
 import { getNativeQuerySelectorAll } from '../../utils/query-selector';
 import DocumentTitleStorageInitializer from './document/title-storage-initializer';
 
-const nativeFunctionToString = nativeMethods.Function.toString();
-
-const INSTRUCTION_VALUES = (() => {
+const INSTRUCTION_VALUES    = (() => {
     const values = [];
     const keys   = nativeMethods.objectKeys(INSTRUCTION);
 
@@ -704,6 +702,9 @@ export default class WindowSandbox extends SandboxBase {
 
             window.EventTarget.prototype.addEventListener    = overriddenMethods.addEventListener;
             window.EventTarget.prototype.removeEventListener = overriddenMethods.removeEventListener;
+
+            overrideStringRepresentation(window.EventTarget.prototype.addEventListener, nativeMethods.addEventListener);
+            overrideStringRepresentation(window.EventTarget.prototype.removeEventListener, nativeMethods.removeEventListener);
         }
 
         window.Image           = function () {
@@ -734,15 +735,22 @@ export default class WindowSandbox extends SandboxBase {
             return nativeMethods.Function.apply(this, args);
         };
 
+        overrideStringRepresentation(FunctionWrapper, nativeMethods.Function);
+
         window.Function                       = FunctionWrapper;
         window.Function.prototype             = nativeMethods.Function.prototype;
         window.Function.prototype.constructor = FunctionWrapper;
 
-        // NOTE: We need to create function which returns string without calling toString every time
-        // because if the Function.prototype.toString is overridden it can be the cause of recursion
-        window.Function.toString = function () {
-            return this === FunctionWrapper ? nativeFunctionToString : nativeMethods.functionToString.call(this);
+        const nativeFunctionPrototypeToString = nativeMethods.Function.prototype.toString;
+
+        window.Function.prototype.toString = function () {
+            if (nativeMethods.objectHasOwnProperty.call(this, INTERNAL_PROPS.nativeStringRepresentation))
+                return this[INTERNAL_PROPS.nativeStringRepresentation];
+
+            return nativeFunctionPrototypeToString.call(this);
         };
+
+        overrideStringRepresentation(window.Function.prototype.toString, nativeFunctionPrototypeToString);
 
         if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
             const createWrapperForHistoryStateManipulationFn = function (nativeFn) {
@@ -812,6 +820,8 @@ export default class WindowSandbox extends SandboxBase {
                 else
                     nativeMethods.formDataAppend.apply(this, arguments);
             };
+
+            overrideStringRepresentation(window.FormData.prototype.append, nativeMethods.formDataAppend);
         }
 
         if (window.WebSocket) {
@@ -1113,8 +1123,11 @@ export default class WindowSandbox extends SandboxBase {
             getter: function () {
                 let baseVal = nativeMethods.svgAnimStrBaseValGetter.call(this);
 
-                if (this[CONTEXT_SVG_IMAGE_ELEMENT])
-                    baseVal = getDestinationUrl(baseVal);
+                if (this[CONTEXT_SVG_IMAGE_ELEMENT]) {
+                    const parsedHref = parseProxyUrl(baseVal);
+
+                    baseVal = parsedHref ? parsedHref.destUrl : baseVal;
+                }
 
                 return baseVal;
             },
@@ -1136,8 +1149,11 @@ export default class WindowSandbox extends SandboxBase {
             getter: function () {
                 const animVal = nativeMethods.svgAnimStrAnimValGetter.call(this);
 
-                if (this[CONTEXT_SVG_IMAGE_ELEMENT])
-                    return getDestinationUrl(animVal);
+                if (this[CONTEXT_SVG_IMAGE_ELEMENT]) {
+                    const parsedAnimVal = parseProxyUrl(animVal);
+
+                    return parsedAnimVal ? parsedAnimVal.destUrl : animVal;
+                }
 
                 return animVal;
             }
@@ -1153,14 +1169,20 @@ export default class WindowSandbox extends SandboxBase {
 
         overrideDescriptor(window.StyleSheet.prototype, 'href', {
             getter: function () {
-                return getDestinationUrl(nativeMethods.styleSheetHrefGetter.call(this));
+                const href      = nativeMethods.styleSheetHrefGetter.call(this);
+                const parsedUrl = parseProxyUrl(href);
+
+                return parsedUrl ? parsedUrl.destUrl : href;
             }
         });
 
         if (nativeMethods.cssStyleSheetHrefGetter) {
             overrideDescriptor(window.CSSStyleSheet.prototype, 'href', {
                 getter: function () {
-                    return getDestinationUrl(nativeMethods.cssStyleSheetHrefGetter.call(this));
+                    const href      = nativeMethods.cssStyleSheetHrefGetter.call(this);
+                    const parsedUrl = parseProxyUrl(href);
+
+                    return parsedUrl ? parsedUrl.destUrl : href;
                 }
             });
         }
@@ -1168,7 +1190,10 @@ export default class WindowSandbox extends SandboxBase {
         if (nativeMethods.nodeBaseURIGetter) {
             overrideDescriptor(window.Node.prototype, 'baseURI', {
                 getter: function () {
-                    return getDestinationUrl(nativeMethods.nodeBaseURIGetter.call(this));
+                    const baseURI   = nativeMethods.nodeBaseURIGetter.call(this);
+                    const parsedUrl = parseProxyUrl(baseURI);
+
+                    return parsedUrl ? parsedUrl.destUrl : baseURI;
                 }
             });
         }

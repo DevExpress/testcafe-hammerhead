@@ -480,6 +480,18 @@ if (nativeMethods.windowOriginGetter) {
     });
 }
 
+module('wrappers of native functions should have correct string representations');
+
+test('addEventListener string representation should be correct', function () {
+    strictEqual(window.addEventListener.toString(), nativeMethods.addEventListener.toString());
+    strictEqual(Function.prototype.toString.call(window.addEventListener), nativeMethods.addEventListener.toString());
+});
+
+test('removeEventListener string representation should be correct', function () {
+    strictEqual(window.removeEventListener.toString(), nativeMethods.removeEventListener.toString());
+    strictEqual(Function.prototype.toString.call(window.removeEventListener), nativeMethods.removeEventListener.toString());
+});
+
 module('regression');
 
 if (window.navigator.sendBeacon) {

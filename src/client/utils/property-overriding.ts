@@ -1,4 +1,5 @@
 import nativeMethods from '../sandbox/native-methods';
+import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 
 
 interface PropertySettings<T extends object, K extends keyof T> {
@@ -53,4 +54,13 @@ export function overrideDescriptor<O extends object, K extends keyof O> (obj: O,
     const descriptor = createOverriddenDescriptor(obj, prop, propertyAccessors);
 
     nativeMethods.objectDefineProperty(obj, prop, descriptor);
+}
+
+export function overrideStringRepresentation (nativeFunctionWrapper: Function, nativeFunction: Function): void {
+    const nativeStringRepresentation = nativeMethods.Function.prototype.toString.call(nativeFunction);
+
+    nativeMethods.objectDefineProperty(nativeFunctionWrapper, INTERNAL_PROPS.nativeStringRepresentation, {
+        value: nativeStringRepresentation,
+        configurable: true
+    });
 }
