@@ -51,7 +51,7 @@ import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-cal
 import INSTRUCTION from '../../../processing/script/instruction';
 import Promise from 'pinkie';
 import getMimeType from '../../utils/get-mime-type';
-import { overrideDescriptor, overrideStringRepresentation } from '../../utils/property-overriding';
+import { overrideDescriptor, overrideFunction, overrideStringRepresentation } from '../../utils/property-overriding';
 import { emptyActionAttrFallbacksToTheLocation } from '../../utils/feature-detection';
 import { HASH_RE, isValidUrl } from '../../../utils/url';
 import UploadSandbox from '../upload';
@@ -700,11 +700,8 @@ export default class WindowSandbox extends SandboxBase {
         if (window.EventTarget) {
             const overriddenMethods = this.listenersSandbox.createOverriddenMethods();
 
-            window.EventTarget.prototype.addEventListener    = overriddenMethods.addEventListener;
-            window.EventTarget.prototype.removeEventListener = overriddenMethods.removeEventListener;
-
-            overrideStringRepresentation(window.EventTarget.prototype.addEventListener, nativeMethods.addEventListener);
-            overrideStringRepresentation(window.EventTarget.prototype.removeEventListener, nativeMethods.removeEventListener);
+            overrideFunction(window.EventTarget.prototype, 'addEventListener', overriddenMethods.addEventListener);
+            overrideFunction(window.EventTarget.prototype, 'removeEventListener', overriddenMethods.removeEventListener);
         }
 
         window.Image           = function () {
@@ -735,9 +732,8 @@ export default class WindowSandbox extends SandboxBase {
             return nativeMethods.Function.apply(this, args);
         };
 
-        overrideStringRepresentation(FunctionWrapper, nativeMethods.Function);
+        overrideFunction(window, 'Function', FunctionWrapper);
 
-        window.Function                       = FunctionWrapper;
         window.Function.prototype             = nativeMethods.Function.prototype;
         window.Function.prototype.constructor = FunctionWrapper;
 

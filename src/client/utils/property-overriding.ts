@@ -56,11 +56,28 @@ export function overrideDescriptor<O extends object, K extends keyof O> (obj: O,
     nativeMethods.objectDefineProperty(obj, prop, descriptor);
 }
 
-export function overrideStringRepresentation (nativeFunctionWrapper: Function, nativeFunction: Function): void {
-    const nativeStringRepresentation = nativeMethods.Function.prototype.toString.call(nativeFunction);
+export function overrideStringRepresentation (nativeFnWrapper: Function, nativeFn: Function): void {
+    const nativeStringRepresentation = nativeMethods.Function.prototype.toString.call(nativeFn);
 
-    nativeMethods.objectDefineProperty(nativeFunctionWrapper, INTERNAL_PROPS.nativeStringRepresentation, {
+    nativeMethods.objectDefineProperty(nativeFnWrapper, INTERNAL_PROPS.nativeStringRepresentation, {
         value: nativeStringRepresentation,
         configurable: true
     });
+}
+
+export function isNativeFunction (fn: Function): boolean {
+    return !nativeMethods.objectHasOwnProperty.call(fn, INTERNAL_PROPS.nativeStringRepresentation);
+}
+
+export function overrideFunction<O extends object, K extends keyof O> (obj: O, fnName: K, wrapper: Function): void {
+    const descriptor = nativeMethods.objectGetOwnPropertyDescriptor(obj, fnName);
+    const value      = descriptor.value; // eslint-disable-line no-restricted-properties
+
+    if (value && isNativeFunction(value)) {
+        overrideStringRepresentation(wrapper, value);
+        
+        nativeMethods.objectDefineProperty(obj, fnName, {
+            value: wrapper
+        });
+    }
 }
