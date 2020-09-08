@@ -1,5 +1,3 @@
-import { IncomingHttpHeaders } from 'http';
-
 interface StaticContent {
     content: string | Buffer,
     contentType: string,
@@ -19,6 +17,8 @@ interface Session {
 }
 
 declare module 'testcafe-hammerhead' {
+    import { IncomingHttpHeaders } from 'http';
+
     /** The Proxy class is used to create a web-proxy **/
     export class Proxy {
         /** Creates a web proxy instance **/
