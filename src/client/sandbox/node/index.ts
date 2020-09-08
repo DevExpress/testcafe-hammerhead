@@ -30,7 +30,7 @@ export default class NodeSandbox extends SandboxBase {
     doc: DocumentSandbox;
     win: WindowSandbox;
     element: ElementSandbox;
-    private readonly _documentTitleStorage: DocumentTitleStorage
+    private readonly _documentTitleStorage: DocumentTitleStorage;
 
     constructor (readonly mutation: NodeMutation,
         readonly iframeSandbox: IframeSandbox,

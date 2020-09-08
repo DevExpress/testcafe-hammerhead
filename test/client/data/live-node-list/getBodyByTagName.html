@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Title</title>
+        <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+        <script>
+            function bodyExists () {
+                return document.getElementsByTagName('body').length === 1;
+            }
+
+            const hammerhead = window['%hammerhead%'];
+
+            hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
+            hammerhead.start({ crossDomainProxyPort: 2000 });
+
+            window.bodyExistsBeforeAttachingBody = bodyExists();
+        </script>
+    </head>
+    <body>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                window.bodyExistsAfterAttachingBody = bodyExists();
+            });
+        </script>
+    </body>
+</html>

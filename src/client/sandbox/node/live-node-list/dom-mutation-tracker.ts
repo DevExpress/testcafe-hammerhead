@@ -12,6 +12,9 @@ class DOMMutationTracker {
         this._isDomContentLoaded = false;
 
         nativeMethods.addEventListener.call(document, 'DOMContentLoaded', () => {
+            for (const tagName of nativeMethods.objectKeys(this._mutations))
+                this._updateVersion(tagName);
+
             this._isDomContentLoaded = true;
         });
     }

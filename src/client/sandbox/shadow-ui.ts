@@ -177,6 +177,9 @@ export default class ShadowUI extends SandboxBase {
                         return nativeCollection;
 
                     if (!nativeCollection[HTML_COLLECTION_WRAPPER])
+                        // NOTE: This changes how the native method behaves. The returned collection will have this wrapper attached
+                        // if the method was called with the same tagName parameter.
+                        // This allows skipping the search if the DOM tree has not changed since the last call.
                         nativeCollection[HTML_COLLECTION_WRAPPER] = new HTMLCollectionWrapper(nativeCollection, tagName);
                     else
                         nativeCollection[HTML_COLLECTION_WRAPPER]._refreshCollection();

@@ -443,5 +443,13 @@ module('getElementsByTagName', function () {
 
             DOMMutationTrackerProto.getVersion = storedGetVersion;
         });
+
+        test('getElementsByTagName("body") updates correctly GH-5322', function () {
+            return createTestIframe({ src: getSameDomainPageUrl('../../../data/live-node-list/getBodyByTagName.html') })
+                .then(function (iframe) {
+                    ok(!iframe.contentWindow.bodyExistsBeforeAttachingBody);
+                    ok(iframe.contentWindow.bodyExistsAfterAttachingBody);
+                });
+        });
     });
 });
