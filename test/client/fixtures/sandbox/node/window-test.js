@@ -480,10 +480,23 @@ if (nativeMethods.windowOriginGetter) {
     });
 }
 
-module('wrappers of native functions should have correct string representations', function () {
+module('wrappers of native functions should return the correct string representations', function () {
     function checkStringRepresentation (wrappedFn, originalFn) {
-        strictEqual(wrappedFn.toString(), originalFn.toString());
-        strictEqual(Function.prototype.toString.call(wrappedFn), originalFn.toString());
+        strictEqual(
+            wrappedFn.toString(),
+            originalFn.toString(),
+            "the outputs of the 'toString()' method should be the same"
+        );
+        strictEqual(
+            Function.prototype.toString.call(wrappedFn),
+            nativeMethods.Function.prototype.toString.call(originalFn),
+            "the outputs of the 'Function.prototype.toString' function should be the same"
+        );
+        strictEqual(
+            wrappedFn.name,
+            originalFn.name,
+            'the function names should be the same'
+        );
     }
 
     test('CanvasRenderingContext2D.prototype.drawImage', function () {

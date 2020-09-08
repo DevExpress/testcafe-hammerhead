@@ -74,9 +74,31 @@ export function overrideFunction<O extends object, K extends keyof O> (obj: O, f
     const value      = descriptor.value; // eslint-disable-line no-restricted-properties
 
     if (value && isNativeFunction(value)) {
+        nativeMethods.objectDefineProperty(wrapper, 'name', {
+            value: fnName
+        });
+
         overrideStringRepresentation(wrapper, value);
         
         nativeMethods.objectDefineProperty(obj, fnName, {
+            value: wrapper
+        });
+    }
+}
+
+export function overrideConstructor<O extends object, K extends keyof O> (obj: O, fnName: K, wrapper: Function, overrideProtoConstructor?: false): void {
+    const prototypeDescriptor = nativeMethods.objectGetOwnPropertyDescriptor(obj[fnName], 'prototype');
+    const nativePrototype     = prototypeDescriptor.value; // eslint-disable-line no-restricted-properties
+
+    overrideFunction(obj, fnName, wrapper);
+
+    // NOTE: restore original prototype (to make `instanceof` work as expected)
+    nativeMethods.objectDefineProperty(obj[fnName], 'prototype', {
+        value: nativePrototype
+    });
+    
+    if (overrideProtoConstructor) {
+        nativeMethods.objectDefineProperty(obj[fnName], 'constructor', {
             value: wrapper
         });
     }
