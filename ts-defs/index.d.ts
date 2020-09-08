@@ -124,7 +124,7 @@ declare module 'testcafe-hammerhead' {
         requestId: string;
 
         /** The status code of the query **/
-        statusCode: string;
+        statusCode: number;
 
         /** The headers of the query response **/
         headers: IncomingHttpHeaders;
