@@ -71,6 +71,11 @@ interface TaskScriptOpts {
     windowId?: string;
 }
 
+interface SessionOptions {
+    disablePageCaching: boolean;
+    allowMultipleWindows: boolean;
+}
+
 export default abstract class Session extends EventEmitter {
     uploadStorage: UploadStorage;
     id: string = generateUniqueId();
@@ -82,15 +87,18 @@ export default abstract class Session extends EventEmitter {
     injectable: InjectableResources = { scripts: ['/hammerhead.js'], styles: [], userScripts: [] };
     requestEventListeners: Map<RequestFilterRule, RequestEventListenersData> = new Map();
     mocks: Map<RequestFilterRule, ResponseMock> = new Map();
-    disablePageCaching: boolean = false;
-    allowMultipleWindows: boolean = false;
     private _recordMode = false;
-    windowId: string = '';
+    readonly windowId: string;
+    readonly options: SessionOptions;
 
-    protected constructor (uploadRoots: string[]) {
+    protected constructor (uploadRoots: string[], options: SessionOptions = { disablePageCaching: false, allowMultipleWindows: false }) {
         super();
 
         this.uploadStorage = new UploadStorage(uploadRoots);
+        this.options       = options;
+
+        if (this.options.allowMultipleWindows)
+            this.windowId = generateUniqueId();
     }
 
     // State
@@ -147,7 +155,7 @@ export default abstract class Session extends EventEmitter {
             cookie:                   null,
             iframeTaskScriptTemplate: null,
             payloadScript:            await this.getIframePayloadScript(true),
-            allowMultipleWindows:     this.allowMultipleWindows,
+            allowMultipleWindows:     this.options.allowMultipleWindows,
             isRecordMode:             this._recordMode
         });
 
@@ -168,7 +176,7 @@ export default abstract class Session extends EventEmitter {
             cookie:                   cookies,
             iframeTaskScriptTemplate: await this.getIframeTaskScriptTemplate(serverInfo),
             payloadScript,
-            allowMultipleWindows:     this.allowMultipleWindows,
+            allowMultipleWindows:     this.options.allowMultipleWindows,
             isRecordMode:             this._recordMode,
             windowId
         });

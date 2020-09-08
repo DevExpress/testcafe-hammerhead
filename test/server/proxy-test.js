@@ -490,6 +490,8 @@ describe('Proxy', () => {
     beforeEach(() => {
         session = new Session();
 
+        // NOTE: 'windowId' parameter generates automatically.
+        // This code is necessary to perform a comparison with expected values.
         session.windowId = '12345';
 
         session.getAuthCredentials = () => null;
@@ -697,7 +699,7 @@ describe('Proxy', () => {
         });
 
         it('Should set up the prevent caching headers', () => {
-            session.disablePageCaching = true;
+            session.options.disablePageCaching = true;
 
             const options = {
                 headers: {
@@ -718,7 +720,7 @@ describe('Proxy', () => {
                     expect('etag' in res.headers).to.be.false;
                     expect('expires' in res.headers).to.be.false;
 
-                    session.disablePageCaching = false;
+                    session.options.disablePageCaching = false;
                 });
         });
 
