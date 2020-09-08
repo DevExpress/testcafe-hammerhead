@@ -14,13 +14,13 @@
             hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
             hammerhead.start({ crossDomainProxyPort: 2000 });
 
-            window.top.bodyExistsBeforeAttachingBody = bodyExists();
+            window.bodyExistsBeforeAttachingBody = bodyExists();
         </script>
     </head>
     <body>
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                window.top.bodyExistsAfterAttachingBody = bodyExists();
+                window.bodyExistsAfterAttachingBody = bodyExists();
             });
         </script>
     </body>

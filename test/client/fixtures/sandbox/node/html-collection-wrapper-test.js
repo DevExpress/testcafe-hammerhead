@@ -446,11 +446,11 @@ module('getElementsByTagName', function () {
 
         test('getElementsByTagName(\'body\') updates correctly GH-5322', function () {
             return createTestIframe({ src: getSameDomainPageUrl('../../../data/live-node-list/getBodyByTagName.html') })
-                .then(function () {
+                .then(function (iframe) {
                     const assertions = [];
 
-                    assertions.push([!window.top.bodyExistsBeforeAttachingBody, true, 'getElementsByTagName(\'body\') returned an empty collection before the body was created']);
-                    assertions.push([window.top.bodyExistsAfterAttachingBody, true, 'getElementsByTagName(\'body\') returned a non-empty collection after the body was created']);
+                    assertions.push([!iframe.contentWindow.bodyExistsBeforeAttachingBody, true, 'getElementsByTagName(\'body\') returned an empty collection before the body was created']);
+                    assertions.push([iframe.contentWindow.bodyExistsAfterAttachingBody, true, 'getElementsByTagName(\'body\') returned a non-empty collection after the body was created']);
 
                     checkAssertions(assertions);
                 });
