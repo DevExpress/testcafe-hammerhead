@@ -88,7 +88,7 @@ export default abstract class Session extends EventEmitter {
     requestEventListeners: Map<RequestFilterRule, RequestEventListenersData> = new Map();
     mocks: Map<RequestFilterRule, ResponseMock> = new Map();
     private _recordMode = false;
-    readonly windowId: string;
+    readonly windowId: string | null;
     readonly options: SessionOptions;
 
     protected constructor (uploadRoots: string[], options: SessionOptions = { disablePageCaching: false, allowMultipleWindows: false }) {
@@ -96,9 +96,7 @@ export default abstract class Session extends EventEmitter {
 
         this.uploadStorage = new UploadStorage(uploadRoots);
         this.options       = options;
-
-        if (this.options.allowMultipleWindows)
-            this.windowId = generateUniqueId();
+        this.windowId      = this.options.allowMultipleWindows ? generateUniqueId(): null;
     }
 
     // State
