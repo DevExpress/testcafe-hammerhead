@@ -522,6 +522,7 @@ module('wrappers of native functions should return the correct string representa
     if (window.Worker) {
         test('Worker', function () {
             checkStringRepresentation(window.Worker, nativeMethods.Worker);
+            checkStringRepresentation(window.Worker.prototype.constructor, nativeMethods.Worker.prototype.constructor);
         });
     }
 
@@ -607,6 +608,7 @@ module('wrappers of native functions should return the correct string representa
 
     test('Function', function () {
         checkStringRepresentation(window.Function, nativeMethods.Function);
+        checkStringRepresentation(window.Function.prototype.constructor, nativeMethods.Function.prototype.constructor);
     });
 
     if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
