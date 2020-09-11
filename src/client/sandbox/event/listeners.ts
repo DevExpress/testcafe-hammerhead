@@ -5,7 +5,7 @@ import * as listeningCtx from './listening-context';
 import { preventDefault, stopPropagation, DOM_EVENTS, isValidEventListener, callEventListener } from '../../utils/event';
 import { isWindow } from '../../utils/dom';
 import { isIE11 } from '../../utils/browser';
-import { overrideStringRepresentation } from '../../utils/property-overriding';
+import { overrideFunction } from '../../utils/property-overriding';
 
 const LISTENED_EVENTS = [
     'click', 'mousedown', 'mouseup', 'dblclick', 'contextmenu', 'mousemove', 'mouseover', 'mouseout',
@@ -211,12 +211,9 @@ export default class Listeners extends EventEmitter {
         if (isIE11) {
             if (!el.addEventListener || nativeMethods.isNativeCode(el.addEventListener)) {
                 const overriddenMethods = this.createOverriddenMethods();
-
-                el.addEventListener    = overriddenMethods.addEventListener;
-                el.removeEventListener = overriddenMethods.removeEventListener;
-
-                overrideStringRepresentation(el.addEventListener, nativeAddEventListener);
-                overrideStringRepresentation(el.removeEventListener, Listeners._getNativeRemoveEventListener(el));
+                
+                overrideFunction(el, 'addEventListener', overriddenMethods.addEventListener);
+                overrideFunction(el, 'removeEventListener', overriddenMethods.removeEventListener);
             }
         }
     }

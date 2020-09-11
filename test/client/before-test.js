@@ -199,6 +199,24 @@
     window.noop = function () {
     };
 
+    window.checkStringRepresentation = function (wrappedFn, originalFn) {
+        strictEqual(
+            wrappedFn.toString(),
+            originalFn.toString(),
+            'the outputs of the "toString()" method should be the same'
+        );
+        strictEqual(
+            Function.prototype.toString.call(wrappedFn),
+            nativeMethods.Function.prototype.toString.call(originalFn),
+            'the outputs of the "Function.prototype.toString" function should be the same'
+        );
+        strictEqual(
+            wrappedFn.name,
+            originalFn.name,
+            'the function names should be the same'
+        );
+    };
+
     QUnitGlobals.WAIT_FOR_IFRAME_TIMEOUT = 20000;
     QUnit.config.testTimeout             = window.QUnitGlobals.WAIT_FOR_IFRAME_TIMEOUT * 2 + 5000;
 

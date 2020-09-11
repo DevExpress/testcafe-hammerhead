@@ -8,6 +8,7 @@ class NativeMethods {
     createDocumentFragment: Document['createDocumentFragment'];
     createElement: Document['createElement'];
     createElementNS: Document['createElementNS'];
+    createTextNode: Document['createTextNode'];
     documentOpenPropOwnerName: string;
     documentClosePropOwnerName: string;
     documentWritePropOwnerName: string;
@@ -68,6 +69,7 @@ class NativeMethods {
     anchorToString: any;
     matches: any;
     closest: any;
+    appendData: any;
     addEventListener: any;
     removeEventListener: any;
     blur: any;
@@ -400,6 +402,7 @@ class NativeMethods {
         this.createDocumentFragment = docPrototype.createDocumentFragment;
         this.createElement          = docPrototype.createElement;
         this.createElementNS        = docPrototype.createElementNS;
+        this.createTextNode         = docPrototype.createTextNode;
 
         this.documentOpenPropOwnerName    = NativeMethods._getDocumentPropOwnerName(docPrototype, 'open');
         this.documentClosePropOwnerName   = NativeMethods._getDocumentPropOwnerName(docPrototype, 'close');
@@ -483,6 +486,9 @@ class NativeMethods {
         const createElement = tagName => this.createElement.call(doc || document, tagName);
         const nativeElement = createElement('div');
 
+        const createTextNode = data => this.createTextNode.call(doc || document, data);
+        const textNode       = createTextNode('text');
+
         // Dom
         this.appendChild                   = nativeElement.appendChild;
         this.replaceChild                  = nativeElement.replaceChild;
@@ -509,6 +515,9 @@ class NativeMethods {
         this.anchorToString                = win.HTMLAnchorElement.prototype.toString;
         this.matches                       = nativeElement.matches || nativeElement.msMatchesSelector;
         this.closest                       = nativeElement.closest;
+
+        // Text node
+        this.appendData = textNode.appendData;
 
         // TODO: remove this condition after the GH-1649 fix
         if (!this.isNativeCode(this.elementGetElementsByTagName)) {

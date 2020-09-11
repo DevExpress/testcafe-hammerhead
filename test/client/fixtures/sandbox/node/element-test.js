@@ -70,6 +70,125 @@ test('prevent form submit', function () {
     strictEqual(submitPrevented, true);
 });
 
+module('wrappers of native functions should return the correct string representations', function () {
+    test('Element.prototype.setAttribute', function () {
+        window.checkStringRepresentation(window.Element.prototype.setAttribute, nativeMethods.setAttribute);
+    });
+
+    test('Element.prototype.setAttributeNS', function () {
+        window.checkStringRepresentation(window.Element.prototype.setAttributeNS, nativeMethods.setAttributeNS);
+    });
+
+    test('Element.prototype.getAttribute', function () {
+        window.checkStringRepresentation(window.Element.prototype.getAttribute, nativeMethods.getAttribute);
+    });
+
+    test('Element.prototype.getAttributeNS', function () {
+        window.checkStringRepresentation(window.Element.prototype.getAttributeNS, nativeMethods.getAttributeNS);
+    });
+
+    test('Element.prototype.removeAttribute', function () {
+        window.checkStringRepresentation(window.Element.prototype.removeAttribute, nativeMethods.removeAttribute);
+    });
+
+    test('Element.prototype.removeAttributeNS', function () {
+        window.checkStringRepresentation(window.Element.prototype.removeAttributeNS, nativeMethods.removeAttributeNS);
+    });
+
+    test('Element.prototype.cloneNode', function () {
+        window.checkStringRepresentation(window.Element.prototype.cloneNode, nativeMethods.cloneNode);
+    });
+
+    test('Element.prototype.querySelector', function () {
+        window.checkStringRepresentation(window.Element.prototype.querySelector, nativeMethods.elementQuerySelector);
+    });
+
+    test('Element.prototype.querySelectorAll', function () {
+        window.checkStringRepresentation(window.Element.prototype.querySelectorAll, nativeMethods.elementQuerySelectorAll);
+    });
+
+    test('Element.prototype.hasAttribute', function () {
+        window.checkStringRepresentation(window.Element.prototype.hasAttribute, nativeMethods.hasAttribute);
+    });
+
+    test('Element.prototype.hasAttributeNS', function () {
+        window.checkStringRepresentation(window.Element.prototype.hasAttributeNS, nativeMethods.hasAttributeNS);
+    });
+
+    test('Element.prototype.hasAttributes', function () {
+        window.checkStringRepresentation(window.Element.prototype.hasAttributes, nativeMethods.hasAttributes);
+    });
+
+    test('Node.prototype.cloneNode', function () {
+        window.checkStringRepresentation(window.Node.prototype.cloneNode, nativeMethods.cloneNode);
+    });
+
+    test('Node.prototype.appendChild', function () {
+        window.checkStringRepresentation(window.Node.prototype.appendChild, nativeMethods.appendChild);
+    });
+
+    test('Node.prototype.removeChild', function () {
+        window.checkStringRepresentation(window.Node.prototype.removeChild, nativeMethods.removeChild);
+    });
+
+    test('Node.prototype.insertBefore', function () {
+        window.checkStringRepresentation(window.Node.prototype.insertBefore, nativeMethods.insertBefore);
+    });
+
+    test('Node.prototype.replaceChild', function () {
+        window.checkStringRepresentation(window.Node.prototype.replaceChild, nativeMethods.replaceChild);
+    });
+
+    test('DocumentFragment.prototype.querySelector', function () {
+        window.checkStringRepresentation(window.DocumentFragment.prototype.querySelector, nativeMethods.documentFragmentQuerySelector);
+    });
+
+    test('DocumentFragment.prototype.querySelectorAll', function () {
+        window.checkStringRepresentation(window.DocumentFragment.prototype.querySelectorAll, nativeMethods.documentFragmentQuerySelectorAll);
+    });
+
+    test('HTMLTableElement.prototype.insertRow', function () {
+        window.checkStringRepresentation(window.HTMLTableElement.prototype.insertRow, nativeMethods.insertTableRow);
+    });
+
+    test('HTMLTableSectionElement.prototype.insertRow', function () {
+        window.checkStringRepresentation(window.HTMLTableSectionElement.prototype.insertRow, nativeMethods.insertTableRow);
+    });
+
+    test('HTMLTableRowElement.prototype.insertCell', function () {
+        window.checkStringRepresentation(window.HTMLTableRowElement.prototype.insertCell, nativeMethods.insertCell);
+    });
+
+    test('HTMLFormElement.prototype.submit', function () {
+        window.checkStringRepresentation(window.HTMLFormElement.prototype.submit, nativeMethods.formSubmit);
+    });
+
+    test('HTMLAnchorElement.prototype.toString', function () {
+        window.checkStringRepresentation(window.HTMLAnchorElement.prototype.toString, nativeMethods.anchorToString);
+    });
+
+    test('CharacterData.prototype.appendData', function () {
+        window.checkStringRepresentation(window.CharacterData.prototype.appendData, nativeMethods.appendData);
+    });
+
+    if (window.Document.prototype.registerElement) {
+        test('Document.prototype.registerElement', function () {
+            window.checkStringRepresentation(window.Document.prototype.registerElement, nativeMethods.registerElement);
+        });
+    }
+
+    if (window.Element.prototype.insertAdjacentHTML) {
+        test('Element.prototype.insertAdjacentHTML', function () {
+            window.checkStringRepresentation(window.Element.prototype.insertAdjacentHTML, nativeMethods.insertAdjacentHTML);
+        });
+    }
+    else if (HTMLElement.prototype.insertAdjacentHTML) {
+        test('HTMLElement.prototype.insertAdjacentHTML', function () {
+            window.checkStringRepresentation(window.HTMLElement.prototype.insertAdjacentHTML, nativeMethods.insertAdjacentHTML);
+        });
+    }
+});
+
 module('regression');
 
 test('a document fragment should correctly process when it is appending to iframe (GH-912)', function () {
