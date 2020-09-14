@@ -11,7 +11,9 @@
 
     hammerhead.get('./settings').set({ CROSS_DOMAIN_PROXY_PORT: 2000 });
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/https://example.com');
-    hammerhead.start();
+    hammerhead.start({
+        'sessionId': 'sessionId'
+    });
 
     var messageSandbox = hammerhead.sandbox.event.message;
 

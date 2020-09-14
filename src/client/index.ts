@@ -184,7 +184,7 @@ class Hammerhead {
         }
     }
 
-    static _cleanLocalStorageServiceData (sessionId: string, window: Window) {
+    static _cleanLocalStorageServiceData (sessionId: string, window: Window): void {
         nativeMethods.winLocalStorageGetter.call(window).removeItem(sessionId);
     }
 
@@ -218,18 +218,16 @@ class Hammerhead {
         }
     }
 
-    start (initSettings: HammerheadInitSettings | null, win: Window): void {
+    start (initSettings: HammerheadInitSettings, win: Window): void {
         this.win = win || window;
 
-        if (initSettings) {
-            settings.set(initSettings);
+        settings.set(initSettings);
 
-            if (initSettings.isFirstPageLoad)
-                Hammerhead._cleanLocalStorageServiceData(initSettings.sessionId, this.win);
+        if (initSettings.isFirstPageLoad)
+            Hammerhead._cleanLocalStorageServiceData(initSettings.sessionId, this.win);
 
-            domProcessor.forceProxySrcForImage = initSettings.forceProxySrcForImage;
-            domProcessor.allowMultipleWindows  = initSettings.allowMultipleWindows;
-        }
+        domProcessor.forceProxySrcForImage = initSettings.forceProxySrcForImage;
+        domProcessor.allowMultipleWindows  = initSettings.allowMultipleWindows;
 
         this.transport.start(this.eventSandbox.message);
         this.sandbox.attach(this.win);

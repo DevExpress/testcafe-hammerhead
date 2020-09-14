@@ -637,20 +637,6 @@ test('<title> from another window', function () {
         });
 });
 
-test('create <title> element if it does not exists', function () {
-    var titles = document.getElementsByTagName('title');
-
-    for (var i = 0; i < titles.length; i++)
-        titles[0].parentNode.removeChild(titles[0]);
-
-    strictEqual(document.title, '');
-
-    document.title = 'Test title';
-
-    strictEqual(titles.length, 1);
-    strictEqual(titles[0].text, 'Test title');
-});
-
 test('creation via set "innerHTML" or "outerHTML"', function () {
     var div = document.createElement('div');
 
