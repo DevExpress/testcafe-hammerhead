@@ -1,6 +1,7 @@
 import SandboxBase from './base';
 import { processScript } from '../../processing/script';
 import * as destinationLocation from '../utils/destination-location';
+import { overrideFunction } from '../utils/property-overriding';
 
 export default class ElectronSandbox extends SandboxBase {
     static _createFnWrapper (vm, nativeFn) {
@@ -50,11 +51,11 @@ export default class ElectronSandbox extends SandboxBase {
         const nativeMethods = this.nativeMethods;
 
         if (nativeMethods.refreshElectronMeths(vm)) {
-            vm.createScript      = ElectronSandbox._createFnWrapper(vm, nativeMethods.createScript);
-            vm.runInDebugContext = ElectronSandbox._createFnWrapper(vm, nativeMethods.runInDebugContext);
-            vm.runInContext      = ElectronSandbox._createFnWrapper(vm, nativeMethods.runInContext);
-            vm.runInNewContext   = ElectronSandbox._createFnWrapper(vm, nativeMethods.runInNewContext);
-            vm.runInThisContext  = ElectronSandbox._createFnWrapper(vm, nativeMethods.runInThisContext);
+            overrideFunction(vm, 'createScript', ElectronSandbox._createFnWrapper(vm, nativeMethods.createScript));
+            overrideFunction(vm, 'runInDebugContext', ElectronSandbox._createFnWrapper(vm, nativeMethods.runInDebugContext));
+            overrideFunction(vm, 'runInContext', ElectronSandbox._createFnWrapper(vm, nativeMethods.runInContext));
+            overrideFunction(vm, 'runInNewContext', ElectronSandbox._createFnWrapper(vm, nativeMethods.runInNewContext));
+            overrideFunction(vm, 'runInThisContext', ElectronSandbox._createFnWrapper(vm, nativeMethods.runInThisContext));
 
             ElectronSandbox._overrideElectronModulePaths(window);
         }

@@ -1,5 +1,6 @@
 /*global Document, Window */
 import getGlobalContextInfo from '../utils/global-context-info';
+import { isNativeFunction } from '../utils/property-overriding';
 
 const NATIVE_CODE_RE = /\[native code]/;
 
@@ -1171,20 +1172,20 @@ class NativeMethods {
 
         const needToRefreshDocumentMethods = tryToExecuteCode(
             () => !doc.createElement ||
-                  this.createElement.toString() === document.createElement.toString()
+                  isNativeFunction(document.createElement)
         );
 
         const needToRefreshElementMethods = tryToExecuteCode(() => {
             const nativeElement = this.createElement.call(doc, 'div');
 
-            return nativeElement.getAttribute.toString() === this.getAttribute.toString();
+            return isNativeFunction(nativeElement.getAttribute);
         });
 
         const needToRefreshWindowMethods = tryToExecuteCode(() => {
             this.setTimeout.call(win, () => void 0, 0);
 
             //@ts-ignore
-            return win.XMLHttpRequest.prototype.open.toString() === this.xhrOpen.toString();
+            return isNativeFunction(win.XMLHttpRequest.prototype.open);
         });
 
         // NOTE: T173709

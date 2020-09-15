@@ -10,7 +10,7 @@ import DocumentWriter from './writer';
 import ShadowUI from './../../shadow-ui';
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import LocationAccessorsInstrumentation from '../../code-instrumentation/location';
-import { overrideDescriptor, createOverriddenDescriptor } from '../../../utils/property-overriding';
+import { overrideDescriptor, createOverriddenDescriptor, overrideFunction } from '../../../utils/property-overriding';
 import NodeSandbox from '../index';
 import { getDestinationUrl } from '../../../utils/url';
 import DocumentTitleStorageInitializer from './title-storage-initializer';
@@ -203,6 +203,11 @@ export default class DocumentSandbox extends SandboxBase {
         window[nativeMethods.documentWritePropOwnerName].prototype.write     = overridenMethods.write;
         window[nativeMethods.documentWriteLnPropOwnerName].prototype.writeln = overridenMethods.writeln;
 
+        // overrideFunction(window[nativeMethods.documentOpenPropOwnerName].prototype, 'open', overridenMethods.open);
+        // overrideFunction(window[nativeMethods.documentClosePropOwnerName].prototype, 'close', overridenMethods.close);
+        // overrideFunction(window[nativeMethods.documentWritePropOwnerName].prototype, 'write', overridenMethods.write);
+        // overrideFunction(window[nativeMethods.documentWriteLnPropOwnerName].prototype, 'writeln', overridenMethods.writeln);
+
         DocumentSandbox._ensureDocumentMethodOverride(document, overridenMethods, 'open');
         DocumentSandbox._ensureDocumentMethodOverride(document, overridenMethods, 'close');
         DocumentSandbox._ensureDocumentMethodOverride(document, overridenMethods, 'write');
@@ -210,8 +215,10 @@ export default class DocumentSandbox extends SandboxBase {
 
         if (document.open !== overridenMethods.open)
             document.open = overridenMethods.open;
-
-        docPrototype.createElement = function (...args) {
+        
+        // overrideFunction(document, 'open', overridenMethods.open);
+        
+        const createElementWrapper = function (...args) {
             const el = nativeMethods.createElement.apply(this, args);
 
             DocumentSandbox.forceProxySrcForImageIfNecessary(el);
@@ -221,6 +228,9 @@ export default class DocumentSandbox extends SandboxBase {
             return el;
         };
 
+        overrideFunction(docPrototype, 'createElement', createElementWrapper);
+
+        // const createElementNSWrapper = 
         docPrototype.createElementNS = function (...args) {
             const el = nativeMethods.createElementNS.apply(this, args);
 
@@ -231,6 +241,9 @@ export default class DocumentSandbox extends SandboxBase {
             return el;
         };
 
+        // overrideFunction(docPrototype, 'createElementNS', createElementNSWrapper);
+
+        // const createDocumentFragmentWrapper
         docPrototype.createDocumentFragment = function (...args) {
             const fragment = nativeMethods.createDocumentFragment.apply(this, args);
 
@@ -238,6 +251,8 @@ export default class DocumentSandbox extends SandboxBase {
 
             return fragment;
         };
+
+        // overrideFunction(docPrototype, 'createDocumentFragment', createDocumentFragmentWrapper);
 
         const htmlDocPrototype = window.HTMLDocument.prototype;
         let storedDomain       = '';

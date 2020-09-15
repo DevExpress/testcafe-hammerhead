@@ -1,4 +1,5 @@
 var settings = hammerhead.get('./settings');
+var propertyOverridingUtils = hammerhead.get('./utils/property-overriding');
 
 var iframeSandbox = hammerhead.sandbox.iframe;
 var cookieSandbox = hammerhead.sandbox.cookie;
@@ -143,13 +144,11 @@ test('native methods are properly initialized in an iframe without src (GH-279)'
             var iframeDocument         = iframe.contentDocument;
             var iframeWindow           = iframe.contentWindow;
             var iframeHammerhead       = iframeWindow['%hammerhead%'];
-            var nativeCreateElement    = iframeHammerhead.sandbox.nativeMethods.createElement.toString();
-            var nativeAppendChild      = iframeHammerhead.sandbox.nativeMethods.appendChild.toString();
-            var overridedCreateElement = iframeDocument.createElement.toString();
-            var overridedAppendChild   = iframeDocument.createElement('div').appendChild.toString();
+            var overridedCreateElement = iframeDocument.createElement;
+            var overridedAppendChild   = iframeDocument.createElement('div').appendChild;
 
-            ok(nativeCreateElement !== overridedCreateElement);
-            ok(nativeAppendChild !== overridedAppendChild);
+            ok(!propertyOverridingUtils.isNativeFunction(overridedCreateElement));
+            ok(!propertyOverridingUtils.isNativeFunction(overridedAppendChild));
 
             var nativeImage     = new iframeHammerhead.sandbox.nativeMethods.Image(10, 10);
             var overridedImage  = new iframeWindow.Image(10, 10);
