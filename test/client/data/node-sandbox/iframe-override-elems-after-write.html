@@ -20,7 +20,7 @@
 <script>
     var iframeSandbox = window['%hammerhead%'].sandbox.iframe;
     var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
-    // var isNativeFunction = hammerhead.get('../client/utils/property-overriding');
+    var propertyOverridingUtils = hammerhead.get('../client/utils/property-overriding');
     var hhPostMessage = hammerhead.sandbox.event.message.postMessage;
 
     iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, window.top.initIframeTestHandler);
@@ -39,8 +39,7 @@
         },
 
         {
-            success:     document.querySelector('iframe').contentDocument.write.toString() !==
-                         hammerhead.nativeMethods.documentWrite.toString(),
+            success:     !propertyOverridingUtils.isNativeFunction(document.querySelector('iframe').contentDocument.write),
             description: 'document.write function of element "iframe" is overridden'
         }
     ], '*']);

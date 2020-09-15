@@ -84,12 +84,8 @@ export default class XhrSandbox extends SandboxBase {
             });
         }
 
-        overrideConstructor(window, 'XMLHttpRequest', xmlHttpRequestWrapper);
-
         // NOTE: We cannot just assign constructor property in OS X 10.11 safari 9.0
-        nativeMethods.objectDefineProperty(xmlHttpRequestProto, 'constructor', {
-            value: xmlHttpRequestWrapper
-        });
+        overrideConstructor(window, 'XMLHttpRequest', xmlHttpRequestWrapper, true);
 
         const xmlHttpRequestProtoAbortWrapper = function () {
             nativeMethods.xhrAbort.apply(this, arguments);

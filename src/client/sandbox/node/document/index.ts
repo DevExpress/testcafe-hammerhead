@@ -115,11 +115,6 @@ export default class DocumentSandbox extends SandboxBase {
         return result;
     }
 
-    private static _ensureDocumentMethodOverride (document, overridenMethods, methodName) {
-        if (document[methodName] !== overridenMethods[methodName])
-            document[methodName] = overridenMethods[methodName];
-    }
-
     attach (window, document) {
         if (this._needToUpdateDocumentWriter(window, document)) {
             this.documentWriter = new DocumentWriter(window, document);
@@ -198,25 +193,18 @@ export default class DocumentSandbox extends SandboxBase {
             }
         };
 
-        window[nativeMethods.documentOpenPropOwnerName].prototype.open       = overridenMethods.open;
-        window[nativeMethods.documentClosePropOwnerName].prototype.close     = overridenMethods.close;
-        window[nativeMethods.documentWritePropOwnerName].prototype.write     = overridenMethods.write;
-        window[nativeMethods.documentWriteLnPropOwnerName].prototype.writeln = overridenMethods.writeln;
+        overrideFunction(window[nativeMethods.documentOpenPropOwnerName].prototype, 'open', overridenMethods.open);
+        overrideFunction(window[nativeMethods.documentClosePropOwnerName].prototype, 'close', overridenMethods.close);
+        overrideFunction(window[nativeMethods.documentWritePropOwnerName].prototype, 'write', overridenMethods.write);
+        overrideFunction(window[nativeMethods.documentWriteLnPropOwnerName].prototype, 'writeln', overridenMethods.writeln);
 
-        // overrideFunction(window[nativeMethods.documentOpenPropOwnerName].prototype, 'open', overridenMethods.open);
-        // overrideFunction(window[nativeMethods.documentClosePropOwnerName].prototype, 'close', overridenMethods.close);
-        // overrideFunction(window[nativeMethods.documentWritePropOwnerName].prototype, 'write', overridenMethods.write);
-        // overrideFunction(window[nativeMethods.documentWriteLnPropOwnerName].prototype, 'writeln', overridenMethods.writeln);
-
-        DocumentSandbox._ensureDocumentMethodOverride(document, overridenMethods, 'open');
-        DocumentSandbox._ensureDocumentMethodOverride(document, overridenMethods, 'close');
-        DocumentSandbox._ensureDocumentMethodOverride(document, overridenMethods, 'write');
-        DocumentSandbox._ensureDocumentMethodOverride(document, overridenMethods, 'writeln');
+        overrideFunction(document, 'open', overridenMethods.open);
+        overrideFunction(document, 'close', overridenMethods.close);
+        overrideFunction(document, 'write', overridenMethods.write);
+        overrideFunction(document, 'writeln', overridenMethods.writeln);
 
         if (document.open !== overridenMethods.open)
-            document.open = overridenMethods.open;
-        
-        // overrideFunction(document, 'open', overridenMethods.open);
+            overrideFunction(document, 'open', overridenMethods.open);
         
         const createElementWrapper = function (...args) {
             const el = nativeMethods.createElement.apply(this, args);
@@ -230,8 +218,7 @@ export default class DocumentSandbox extends SandboxBase {
 
         overrideFunction(docPrototype, 'createElement', createElementWrapper);
 
-        // const createElementNSWrapper = 
-        docPrototype.createElementNS = function (...args) {
+        const createElementNSWrapper = function (...args) {
             const el = nativeMethods.createElementNS.apply(this, args);
 
             DocumentSandbox.forceProxySrcForImageIfNecessary(el);
@@ -241,10 +228,9 @@ export default class DocumentSandbox extends SandboxBase {
             return el;
         };
 
-        // overrideFunction(docPrototype, 'createElementNS', createElementNSWrapper);
+        overrideFunction(docPrototype, 'createElementNS', createElementNSWrapper);
 
-        // const createDocumentFragmentWrapper
-        docPrototype.createDocumentFragment = function (...args) {
+        const createDocumentFragmentWrapper = function (...args) {
             const fragment = nativeMethods.createDocumentFragment.apply(this, args);
 
             documentSandbox._nodeSandbox.processNodes(fragment);
@@ -252,7 +238,7 @@ export default class DocumentSandbox extends SandboxBase {
             return fragment;
         };
 
-        // overrideFunction(docPrototype, 'createDocumentFragment', createDocumentFragmentWrapper);
+        overrideFunction(docPrototype, 'createDocumentFragment', createDocumentFragmentWrapper);
 
         const htmlDocPrototype = window.HTMLDocument.prototype;
         let storedDomain       = '';

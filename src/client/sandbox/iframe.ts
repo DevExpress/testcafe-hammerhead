@@ -8,6 +8,7 @@ import { isFirefox, isWebKit, isIE } from '../utils/browser';
 import * as JSON from 'json-hammerhead';
 import NodeMutation from './node/mutation';
 import CookieSandbox from './cookie';
+import { isNativeFunction } from '../utils/property-overriding';
 
 const IFRAME_WINDOW_INITED = 'hammerhead|iframe-window-inited';
 
@@ -98,7 +99,7 @@ export default class IframeSandbox extends SandboxBase {
             // NOTE: Even if iframe is not loaded (iframe.contentDocument.documentElement does not exist), we
             // still need to override the document.write method without initializing Hammerhead. This method can
             // be called before iframe is fully loaded, we should override it now.
-            if (contentDocument.write.toString() === this.nativeMethods.documentWrite.toString())
+            if (isNativeFunction(contentDocument.write))
                 this.emit(this.IFRAME_DOCUMENT_CREATED_EVENT, { iframe });
         }
         else if (!contentWindow[IFRAME_WINDOW_INITED] && !contentWindow[INTERNAL_PROPS.hammerhead]) {
