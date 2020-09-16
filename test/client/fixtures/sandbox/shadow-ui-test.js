@@ -1185,6 +1185,76 @@ test("do nothing if ShadowUIStylesheet doesn't exist", function () {
         });
 });
 
+module('wrappers of native functions should return the correct string representations', function () {
+    test('window.Document.prototype.elementFromPoint', function () {
+        window.checkStringRepresentation(window.Document.prototype.elementFromPoint, nativeMethods.elementFromPoint);
+    });
+
+    if (document.caretRangeFromPoint) {
+        test('window.Document.prototype.caretRangeFromPoint', function () {
+            window.checkStringRepresentation(window.Document.prototype.caretRangeFromPoint, nativeMethods.caretRangeFromPoint);
+        });
+    }
+
+    if (document.caretPositionFromPoint) {
+        test('window.setInterval', function () {
+            window.checkStringRepresentation(window.Document.prototype.caretPositionFromPoint, nativeMethods.caretPositionFromPoint);
+        });
+    }
+
+    test('window.Document.prototype.getElementById', function () {
+        window.checkStringRepresentation(window.Document.prototype.getElementById, nativeMethods.getElementById);
+    });
+
+    test('window.Document.prototype.getElementsByName', function () {
+        window.checkStringRepresentation(window.Document.prototype.getElementsByName, nativeMethods.getElementsByName);
+    });
+
+    test('window.Document.prototype.getElementsByClassName', function () {
+        window.checkStringRepresentation(window.Document.prototype.getElementsByClassName, nativeMethods.getElementsByClassName);
+    });
+
+    test('window.Document.prototype.getElementsByTagName', function () {
+        window.checkStringRepresentation(window.Document.prototype.getElementsByTagName, nativeMethods.getElementsByTagName);
+    });
+
+    test('window.Document.prototype.querySelector', function () {
+        window.checkStringRepresentation(window.Document.prototype.querySelector, nativeMethods.querySelector);
+    });
+
+    test('window.Document.prototype.querySelectorAll', function () {
+        window.checkStringRepresentation(window.Document.prototype.querySelectorAll, nativeMethods.querySelectorAll);
+    });
+
+    test('window.Element.prototype.getElementsByTagName', function () {
+        window.checkStringRepresentation(window.Element.prototype.getElementsByTagName, nativeMethods.elementGetElementsByTagName);
+    });
+
+    test('window.HTMLBodyElement.prototype.getElementsByClassName', function () {
+        window.checkStringRepresentation(window.HTMLBodyElement.prototype.getElementsByClassName, nativeMethods.elementGetElementsByClassName);
+    });
+
+    test('window.HTMLBodyElement.prototype.querySelector', function () {
+        window.checkStringRepresentation(window.HTMLBodyElement.prototype.querySelector, nativeMethods.elementQuerySelector);
+    });
+
+    test('window.HTMLBodyElement.prototype.querySelectorAll', function () {
+        window.checkStringRepresentation(window.HTMLBodyElement.prototype.querySelectorAll, nativeMethods.elementQuerySelectorAll);
+    });
+
+    test('window.HTMLHeadElement.prototype.getElementsByClassName', function () {
+        window.checkStringRepresentation(window.HTMLHeadElement.prototype.getElementsByClassName, nativeMethods.elementGetElementsByClassName);
+    });
+
+    test('window.HTMLHeadElement.prototype.querySelector', function () {
+        window.checkStringRepresentation(window.HTMLHeadElement.prototype.querySelector, nativeMethods.elementQuerySelector);
+    });
+
+    test('window.HTMLHeadElement.prototype.querySelectorAll', function () {
+        window.checkStringRepresentation(window.HTMLHeadElement.prototype.querySelectorAll, nativeMethods.elementQuerySelectorAll);
+    });
+});
+
 module('regression');
 
 test('SVG elements\' className is of the SVGAnimatedString type instead of string (GH-354)', function () {
