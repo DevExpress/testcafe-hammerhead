@@ -68,6 +68,68 @@ test('remove event listener in the context of optional parameters ("options" obj
     checkEventListenerRemoving(divEl);
 });
 
+module('wrappers of native functions should return the correct string representations', function () {
+    test('window.HTMLInputElement.prototype.setSelectionRange', function () {
+        window.checkStringRepresentation(window.HTMLInputElement.prototype.setSelectionRange, nativeMethods.setSelectionRange);
+    });
+
+    test('window.HTMLTextAreaElement.prototype.setSelectionRange', function () {
+        window.checkStringRepresentation(window.HTMLTextAreaElement.prototype.setSelectionRange, nativeMethods.textAreaSetSelectionRange);
+    });
+
+    if (window.EventTarget) {
+        test('window.EventTarget.prototype.dispatchEvent', function () {
+            window.checkStringRepresentation(window.EventTarget.prototype.dispatchEvent, nativeMethods.dispatchEvent);
+        });
+    }
+    else {
+        test('window.Window.prototype.dispatchEvent', function () {
+            window.checkStringRepresentation(window.Window.prototype.dispatchEvent, nativeMethods.dispatchEvent);
+        });
+
+        test('window.Document.prototype.dispatchEvent', function () {
+            window.checkStringRepresentation(window.Document.prototype.dispatchEvent, nativeMethods.dispatchEvent);
+        });
+
+        test('window.HTMLElement.prototype.dispatchEvent', function () {
+            window.checkStringRepresentation(window.HTMLElement.prototype.dispatchEvent, nativeMethods.dispatchEvent);
+        });
+
+        test('window.SVGElement.prototype.dispatchEvent', function () {
+            window.checkStringRepresentation(window.SVGElement.prototype.dispatchEvent, nativeMethods.dispatchEvent);
+        });
+    }
+
+    test('window.HTMLElement.prototype.focus', function () {
+        window.checkStringRepresentation(window.HTMLElement.prototype.focus, nativeMethods.focus);
+    });
+
+    test('window.HTMLElement.prototype.blur', function () {
+        window.checkStringRepresentation(window.HTMLElement.prototype.blur, nativeMethods.blur);
+    });
+
+    test('window.HTMLElement.prototype.click', function () {
+        window.checkStringRepresentation(window.HTMLElement.prototype.click, nativeMethods.click);
+    });
+
+    test('window.Window.focus', function () {
+        window.checkStringRepresentation(window.Window.focus, nativeMethods.focus);
+    });
+
+    test('window.Window.blur', function () {
+        window.checkStringRepresentation(window.Window.blur, nativeMethods.blur);
+    });
+
+    test('window.Event.prototype.preventDefault', function () {
+        window.checkStringRepresentation(window.Event.prototype.preventDefault, nativeMethods.preventDefault);
+    });
+
+    if (window.TextRange && window.TextRange.prototype.select) {
+        test('window.TextRange.prototype.select', function () {
+            window.checkStringRepresentation(window.TextRange.prototype.select, nativeMethods.select);
+        });
+    }
+});
 
 module('regression');
 

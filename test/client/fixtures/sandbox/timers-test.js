@@ -80,3 +80,13 @@ asyncTest('setTimeout method invocation by using ".apply"', function () {
     notEqual(nativeMethods.anchorHrefGetter.call(window.testAnchor), url);
     window.setTimeout.apply(window, ['strictEqual(window.testAnchor.href, "' + url + '"); start();', 0]);
 });
+
+module('wrappers of native functions should return the correct string representations', function () {
+    test('window.setTimeout', function () {
+        window.checkStringRepresentation(window.setTimeout, nativeMethods.setTimeout);
+    });
+
+    test('window.setInterval', function () {
+        window.checkStringRepresentation(window.setInterval, nativeMethods.setInterval);
+    });
+});

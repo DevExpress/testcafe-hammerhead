@@ -2,6 +2,7 @@ import SandboxBase from './base';
 import nativeMethods from './native-methods';
 import { processScript } from '../../processing/script';
 import { isIE, version as browserVersion } from '../utils/browser';
+import { overrideFunction } from '../utils/property-overriding';
 
 // NOTE: When you call the focus and blur function for some elements in IE, the event handlers  must be raised
 // asynchronously, but before executing functions that are called by using the window.setTimeout function. So,
@@ -75,13 +76,17 @@ export default class TimersSandbox extends SandboxBase {
 
         const timersSandbox = this;
 
-        window.setTimeout = function (...args) {
+        const setTimeoutWrapper = function (...args) {
             return nativeMethods.setTimeout.apply(window, timersSandbox._wrapTimeoutFunctionsArguments(args));
         };
 
-        window.setInterval = function (...args) {
+        overrideFunction(window, 'setTimeout', setTimeoutWrapper);
+
+        const setIntervalWrapper = function (...args) {
             return nativeMethods.setInterval.apply(window, timersSandbox._wrapTimeoutFunctionsArguments(args));
         };
+
+        overrideFunction(window, 'setInterval', setIntervalWrapper);
 
         // NOTE: We are saving the setTimeout wrapper for internal use in case the page-script replaces
         // it with an invalid value.
