@@ -127,6 +127,7 @@ class NativeMethods {
     headersDelete: Headers['delete'];
     headersEntries: Headers['entries'];
     headersForEach: Headers['forEach'];
+    headersValues: Headers['values'];
     windowAddEventListener: any;
     windowRemoveEventListener: any;
     WindowPointerEvent: any;
@@ -963,6 +964,7 @@ class NativeMethods {
             this.headersDelete  = win.Headers.prototype.delete;
             this.headersEntries = win.Headers.prototype.entries;
             this.headersForEach = win.Headers.prototype.forEach;
+            this.headersValues  = win.Headers.prototype.values;
         }
 
         // Event
@@ -1109,7 +1111,7 @@ class NativeMethods {
     }
 
     refreshElectronMeths (vmModule): boolean {
-        if (this.createScript && this.createScript.toString() !== vmModule.createScript.toString())
+        if (this.createScript && isNativeFunction(vmModule.createScript))
             return false;
 
         this.createScript      = vmModule.createScript;

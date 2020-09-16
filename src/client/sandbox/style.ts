@@ -1,5 +1,5 @@
 import SandboxBase from './base';
-import { overrideDescriptor } from './../utils/property-overriding';
+import { overrideDescriptor, overrideFunction } from './../utils/property-overriding';
 import styleProcessor from './../../processing/style';
 import { getProxyUrl, parseProxyUrl } from './../utils/url';
 
@@ -237,22 +237,23 @@ export default class StyleSandbox extends SandboxBase {
             }
         });
 
-        // @ts-ignore
-        window.CSSStyleSheet.prototype.insertRule = function (rule, index) {
+        const insertRuleWrapper = function (rule, index) {
             const newRule = styleProcessor.process(rule, getProxyUrl);
 
             return nativeMethods.styleInsertRule.call(this, newRule, index);
         };
 
-        // @ts-ignore
-        window.CSSStyleDeclaration.prototype.getPropertyValue = function (...args) {
+        overrideFunction((window as any).CSSStyleSheet.prototype, 'insertRule', insertRuleWrapper);
+
+        const getPropertyValueWrapper = function (...args) {
             const value = nativeMethods.styleGetPropertyValue.apply(this, args);
 
             return styleProcessor.cleanUp(value, parseProxyUrl);
         };
 
-        // @ts-ignore
-        window.CSSStyleDeclaration.prototype.setProperty = function (...args) {
+        overrideFunction((window as any).CSSStyleDeclaration.prototype, 'getPropertyValue', getPropertyValueWrapper);
+
+        const setPropertyWrapper = function (...args) {
             const value = args[1];
 
             if (typeof value === 'string')
@@ -261,12 +262,15 @@ export default class StyleSandbox extends SandboxBase {
             return nativeMethods.styleSetProperty.apply(this, args);
         };
 
-        // @ts-ignore
-        window.CSSStyleDeclaration.prototype.removeProperty = function (...args) {
+        overrideFunction((window as any).CSSStyleDeclaration.prototype, 'setProperty', setPropertyWrapper);
+
+        const removePropertyWrapper = function (...args) {
             const oldValue = nativeMethods.styleRemoveProperty.apply(this, args);
 
             return styleProcessor.cleanUp(oldValue, parseProxyUrl);
         };
+
+        overrideFunction((window as any).CSSStyleDeclaration.prototype, 'removeProperty', removePropertyWrapper);
 
         // NOTE: We need to override context of all functions from the CSSStyleDeclaration prototype if we use the Proxy feature.
         // Can only call CSSStyleDeclaration.<function name> on instances of CSSStyleDeclaration

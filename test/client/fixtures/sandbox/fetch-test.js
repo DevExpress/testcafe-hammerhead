@@ -530,6 +530,40 @@ if (window.fetch) {
         });
     });
 
+    module('wrappers of native functions should return the correct string representations', function () {
+        test('window.Request', function () {
+            window.checkStringRepresentation(window.Request, nativeMethods.Request);
+        });
+
+        test('window.fetch', function () {
+            window.checkStringRepresentation(window.fetch, nativeMethods.fetch);
+        });
+
+        test('window.Headers.prototype.entries', function () {
+            window.checkStringRepresentation(window.Headers.prototype.entries, nativeMethods.headersEntries);
+        });
+
+        test('window.Headers.prototype.values', function () {
+            window.checkStringRepresentation(window.Headers.prototype.values, nativeMethods.headersValues);
+        });
+
+        test('window.Headers.prototype.forEach', function () {
+            window.checkStringRepresentation(window.Headers.prototype.forEach, nativeMethods.headersForEach);
+        });
+
+        test('window.Headers.prototype.get', function () {
+            window.checkStringRepresentation(window.Headers.prototype.get, nativeMethods.headersGet);
+        });
+
+        test('window.Headers.prototype.set', function () {
+            window.checkStringRepresentation(window.Headers.prototype.set, nativeMethods.headersSet);
+        });
+
+        test('window.Headers.prototype.has', function () {
+            window.checkStringRepresentation(window.Headers.prototype.has, nativeMethods.headersHas);
+        });
+    });
+
     module('regression', function () {
         test('should emulate native browser behavior for fetch requests that end with an error or non-success status code (GH-1397)', function () {
             var performRequest = function (fetchFn, url) {

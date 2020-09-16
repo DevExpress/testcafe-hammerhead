@@ -134,6 +134,24 @@ test('getPropertyValue, setProperty, getPropertyValue (GH-1212)', function () {
     ok(!div.style.removeProperty('background'));
 });
 
+module('wrappers of native functions should return the correct string representations', function () {
+    test('window.CSSStyleSheet.prototype.insertRule', function () {
+        window.checkStringRepresentation(window.CSSStyleSheet.prototype.insertRule, nativeMethods.styleInsertRule);
+    });
+
+    test('window.CSSStyleDeclaration.prototype.getPropertyValue', function () {
+        window.checkStringRepresentation(window.CSSStyleDeclaration.prototype.getPropertyValue, nativeMethods.styleGetPropertyValue);
+    });
+
+    test('window.CSSStyleDeclaration.prototype.setProperty', function () {
+        window.checkStringRepresentation(window.CSSStyleDeclaration.prototype.setProperty, nativeMethods.styleSetProperty);
+    });
+
+    test('window.CSSStyleDeclaration.prototype.removeProperty', function () {
+        window.checkStringRepresentation(window.CSSStyleDeclaration.prototype.removeProperty, nativeMethods.styleRemoveProperty);
+    });
+});
+
 module('regression');
 
 test('the getAttribute function should return cleaned style (GH-1922)', function () {
