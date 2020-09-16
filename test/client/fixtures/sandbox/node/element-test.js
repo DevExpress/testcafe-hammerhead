@@ -187,6 +187,18 @@ module('wrappers of native functions should return the correct string representa
             window.checkStringRepresentation(window.HTMLElement.prototype.insertAdjacentHTML, nativeMethods.insertAdjacentHTML);
         });
     }
+
+    test('element.addEventListener', function () {
+        const someElement = document.createElement('div');
+
+        window.checkStringRepresentation(someElement.addEventListener, nativeMethods.addEventListener);
+    });
+
+    test('element.removeEventListener', function () {
+        const someElement = document.createElement('div');
+
+        window.checkStringRepresentation(someElement.removeEventListener, nativeMethods.removeEventListener);
+    });
 });
 
 module('regression');

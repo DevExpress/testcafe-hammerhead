@@ -1184,8 +1184,7 @@ class NativeMethods {
         const needToRefreshWindowMethods = tryToExecuteCode(() => {
             this.setTimeout.call(win, () => void 0, 0);
 
-            //@ts-ignore
-            return isNativeFunction(win.XMLHttpRequest.prototype.open);
+            return isNativeFunction((win as any).XMLHttpRequest.prototype.open);
         });
 
         // NOTE: T173709

@@ -573,13 +573,11 @@ module('wrappers of native functions should return the correct string representa
         });
     }
     else {
-        // // NOTE: it's temporarily
-        QUnit.skip('addEventListener', function () {
+        test('addEventListener', function () {
             window.checkStringRepresentation(window.addEventListener, nativeMethods.windowAddEventListener);
         });
 
-        // NOTE: it's temporarily
-        QUnit.skip('removeEventListener', function () {
+        test('removeEventListener', function () {
             window.checkStringRepresentation(window.removeEventListener, nativeMethods.windowRemoveEventListener);
         });
     }
