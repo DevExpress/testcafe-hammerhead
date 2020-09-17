@@ -1,5 +1,5 @@
 import SandboxBase from './base';
-import { overrideDescriptor, overrideFunction } from './../utils/property-overriding';
+import { overrideDescriptor, overrideFunction, overrideStringRepresentation } from './../utils/property-overriding';
 import styleProcessor from './../../processing/style';
 import { getProxyUrl, parseProxyUrl } from './../utils/url';
 
@@ -181,6 +181,8 @@ export default class StyleSandbox extends SandboxBase {
                 styleDeclarationProto[prop] = function () {
                     return nativeFn.apply(this[CSS_STYLE_PROXY_TARGET] || this, arguments);
                 };
+
+                overrideStringRepresentation(styleDeclarationProto[prop], nativeFn);
                 
                 // overrideFunction(styleDeclarationProto, prop, nativeFnWrapper);
             }
