@@ -38,6 +38,7 @@ interface DestInfo {
     isEventSource: boolean;
     isHtmlImport: boolean;
     isWebSocket: boolean;
+    isServiceWorker: boolean;
     charset: string;
     reqOrigin: string;
     referer?: string;
@@ -120,21 +121,22 @@ export default class RequestPipelineContext {
 
         const parsedResourceType = urlUtils.parseResourceType(parsed.resourceType);
         const dest               = {
-            url:           parsed.destUrl,
-            protocol:      parsed.destResourceInfo.protocol,
-            host:          parsed.destResourceInfo.host,
-            hostname:      parsed.destResourceInfo.hostname,
-            port:          parsed.destResourceInfo.port,
-            partAfterHost: parsed.destResourceInfo.partAfterHost,
-            auth:          parsed.destResourceInfo.auth,
-            isIframe:      parsedResourceType.isIframe,
-            isForm:        parsedResourceType.isForm,
-            isScript:      parsedResourceType.isScript,
-            isEventSource: parsedResourceType.isEventSource,
-            isHtmlImport:  parsedResourceType.isHtmlImport,
-            isWebSocket:   parsedResourceType.isWebSocket,
-            charset:       parsed.charset,
-            reqOrigin:     parsed.reqOrigin
+            url:             parsed.destUrl,
+            protocol:        parsed.destResourceInfo.protocol,
+            host:            parsed.destResourceInfo.host,
+            hostname:        parsed.destResourceInfo.hostname,
+            port:            parsed.destResourceInfo.port,
+            partAfterHost:   parsed.destResourceInfo.partAfterHost,
+            auth:            parsed.destResourceInfo.auth,
+            isIframe:        parsedResourceType.isIframe,
+            isForm:          parsedResourceType.isForm,
+            isScript:        parsedResourceType.isScript || parsedResourceType.isServiceWorker,
+            isEventSource:   parsedResourceType.isEventSource,
+            isHtmlImport:    parsedResourceType.isHtmlImport,
+            isWebSocket:     parsedResourceType.isWebSocket,
+            isServiceWorker: parsedResourceType.isServiceWorker,
+            charset:         parsed.charset,
+            reqOrigin:       parsed.reqOrigin
         };
 
         return { dest, sessionId: parsed.sessionId, windowId: parsed.windowId };

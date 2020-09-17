@@ -20,7 +20,7 @@ export default class FetchSandbox extends SandboxBase {
         super();
     }
 
-    static _addSpecialHeadersToRequestInit (init) {
+    private static _addSpecialHeadersToRequestInit (init) {
         const credentials = init.credentials || DEFAULT_REQUEST_CREDENTIALS;
         let headers       = init.headers;
 
@@ -50,7 +50,7 @@ export default class FetchSandbox extends SandboxBase {
         return init;
     }
 
-    static _processArguments (args) {
+    private static _processArguments (args) {
         const [input, init]       = args;
         const inputIsString       = typeof input === 'string';
         const inputIsFetchRequest = isFetchRequest(input);
@@ -59,22 +59,14 @@ export default class FetchSandbox extends SandboxBase {
             args[0] = getProxyUrl(inputIsString ? input : String(input));
             args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init || {});
         }
-        else if (init && init.headers)
+        else if (init && init.headers && input.destination !== 'worker')
             args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init);
     }
 
-    static _sameOriginCheck ([input, init]) {
-        let url         = null;
-        let requestMode = null;
-
-        if (isFetchRequest(input)) {
-            url         = getDestinationUrl(nativeMethods.requestUrlGetter.call(input));
-            requestMode = input.mode;
-        }
-        else {
-            url         = getDestinationUrl(input);
-            requestMode = init && init.mode;
-        }
+    private static _sameOriginCheck ([input, init]) {
+        const isRequest   = isFetchRequest(input);
+        const url         = isRequest ? getDestinationUrl(nativeMethods.requestUrlGetter.call(input)) : getDestinationUrl(input);
+        const requestMode = isRequest ? input.mode : init && init.mode;
 
         if (requestMode === 'same-origin')
             return sameOriginCheck(getDestLocation(), url);

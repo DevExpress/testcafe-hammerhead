@@ -39,22 +39,24 @@ const SPECIAL_PAGE_DEST_RESOURCE_INFO = {
 export function parseResourceType (resourceType: string): ResourceType {
     if (!resourceType) {
         return {
-            isIframe:      false,
-            isForm:        false,
-            isScript:      false,
-            isEventSource: false,
-            isHtmlImport:  false,
-            isWebSocket:   false
+            isIframe:        false,
+            isForm:          false,
+            isScript:        false,
+            isEventSource:   false,
+            isHtmlImport:    false,
+            isWebSocket:     false,
+            isServiceWorker: false
         };
     }
 
     return {
-        isIframe:      /i/.test(resourceType),
-        isForm:        /f/.test(resourceType),
-        isScript:      /s/.test(resourceType),
-        isEventSource: /e/.test(resourceType),
-        isHtmlImport:  /h/.test(resourceType),
-        isWebSocket:   /w/.test(resourceType)
+        isIframe:        /i/.test(resourceType),
+        isForm:          /f/.test(resourceType),
+        isScript:        /s/.test(resourceType),
+        isEventSource:   /e/.test(resourceType),
+        isHtmlImport:    /h/.test(resourceType),
+        isWebSocket:     /w/.test(resourceType),
+        isServiceWorker: /c/.test(resourceType)
     };
 }
 
@@ -67,7 +69,8 @@ export function getResourceTypeString (resourceType: ResourceType): string | nul
         !resourceType.isScript &&
         !resourceType.isEventSource &&
         !resourceType.isHtmlImport &&
-        !resourceType.isWebSocket)
+        !resourceType.isWebSocket &&
+        !resourceType.isServiceWorker)
         return null;
 
     return [
@@ -76,7 +79,8 @@ export function getResourceTypeString (resourceType: ResourceType): string | nul
         resourceType.isScript ? 's' : '',
         resourceType.isEventSource ? 'e' : '',
         resourceType.isHtmlImport ? 'h' : '',
-        resourceType.isWebSocket ? 'w' : ''
+        resourceType.isWebSocket ? 'w' : '',
+        resourceType.isServiceWorker ? 'c' : ''
     ].join('');
 }
 
@@ -174,11 +178,11 @@ function parseRequestDescriptor (desc: string): RequestDescriptor | null {
     if (!params.length)
         return null;
 
-    const sessionInfo                   = params[0].split(REQUEST_DESCRIPTOR_SESSION_INFO_VALUES_SEPARATOR);
-    const sessionId                     = sessionInfo[0];
-    const resourceType                  = params[1] || null;
-    const resourceData                  = params[2] || null;
-    const parsedDesc: RequestDescriptor = { sessionId, resourceType };
+    const sessionInfo  = params[0].split(REQUEST_DESCRIPTOR_SESSION_INFO_VALUES_SEPARATOR);
+    const sessionId    = sessionInfo[0];
+    const resourceType = params[1] || null;
+    const resourceData = params[2] || null;
+    const parsedDesc   = { sessionId, resourceType } as RequestDescriptor;
 
     if (sessionInfo[1])
         parsedDesc.windowId = sessionInfo[1];
@@ -186,7 +190,7 @@ function parseRequestDescriptor (desc: string): RequestDescriptor | null {
     if (resourceType && resourceData) {
         const parsedResourceType = parseResourceType(resourceType);
 
-        if (parsedResourceType.isScript)
+        if (parsedResourceType.isScript || parsedResourceType.isServiceWorker)
             parsedDesc.charset = resourceData;
         else if (parsedResourceType.isWebSocket)
             parsedDesc.reqOrigin = decodeURIComponent(resourceData);

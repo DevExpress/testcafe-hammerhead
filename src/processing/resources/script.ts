@@ -4,6 +4,7 @@ import { processScript } from '../script';
 import RequestPipelineContext from '../../request-pipeline/context';
 import Charset from '../encoding/charset';
 import { updateScriptImportUrls } from '../../utils/url';
+import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
 
 class ScriptResourceProcessor extends ResourceProcessorBase {
     jsCache: Lru<string, string>;
@@ -24,7 +25,8 @@ class ScriptResourceProcessor extends ResourceProcessorBase {
         let processedScript = this.jsCache.get(script);
 
         if (!processedScript) {
-            processedScript = processScript(script, true, false, urlReplacer);
+            processedScript = processScript(script, true, false, urlReplacer,
+                ctx.destRes.headers[BUILTIN_HEADERS.serviceWorkerAllowed] as string);
             this.jsCache.set(script, processedScript);
         }
         else

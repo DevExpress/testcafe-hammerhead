@@ -32,6 +32,8 @@ export default {
     contentEncoding:    'content-encoding',
     expires:            'expires',
 
+    serviceWorkerAllowed: 'service-worker-allowed',
+
     accessControlAllowOrigin:         'access-control-allow-origin',
     accessControlAllowCredentials:    'access-control-allow-credentials',
     contentSecurityPolicy:            'content-security-policy',

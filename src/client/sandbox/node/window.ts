@@ -15,7 +15,8 @@ import {
     convertToProxyUrl,
     stringifyResourceType,
     resolveUrlAsDest,
-    getDestinationUrl
+    getDestinationUrl,
+    DEFAULT_PROXY_SETTINGS
 } from '../../utils/url';
 
 import {
@@ -73,6 +74,7 @@ import settings from '../../settings';
 import DefaultTarget from '../child-window/default-target';
 import { getNativeQuerySelectorAll } from '../../utils/query-selector';
 import DocumentTitleStorageInitializer from './document/title-storage-initializer';
+import SET_SW_SETTINGS from '../../worker/set-sw-settings-command';
 
 const INSTRUCTION_VALUES    = (() => {
     const values = [];
@@ -628,7 +630,7 @@ export default class WindowSandbox extends SandboxBase {
 
         if (nativeMethods.registerServiceWorker) {
             overrideFunction(window.navigator.serviceWorker, 'register', (...args) => {
-                const url = args[0];
+                const [url, opts] = args;
 
                 if (typeof url === 'string') {
                     if (WindowSandbox._isSecureOrigin(url)) {
@@ -639,16 +641,30 @@ export default class WindowSandbox extends SandboxBase {
                             : new DOMException('Only secure origins are allowed.', 'SecurityError'));
                     }
 
-                    args[0] = getProxyUrl(url, { resourceType: stringifyResourceType({ isScript: true }) });
+                    args[0] = getProxyUrl(url, { resourceType: stringifyResourceType({ isServiceWorker: true }) });
                 }
 
-                if (args[1] && typeof args[1].scope === 'string') {
-                    args[1].scope = getProxyUrl(args[1].scope, {
-                        resourceType: stringifyResourceType({ isScript: true })
+                args[1] = { scope: '/' };
+
+                return nativeMethods.registerServiceWorker.apply(window.navigator.serviceWorker, args)
+                    .then((reg) => {
+                        try {
+                            const settingsEntry = settings.get();
+
+                            reg.active.postMessage({
+                                cmd:                  SET_SW_SETTINGS,
+                                scope:                opts && opts.scope,
+                                proxyProtocol:        DEFAULT_PROXY_SETTINGS.protocol, // eslint-disable-line no-restricted-properties
+                                proxyHostname:        DEFAULT_PROXY_SETTINGS.hostname, // eslint-disable-line no-restricted-properties
+                                proxyPort:            DEFAULT_PROXY_SETTINGS.port, // eslint-disable-line no-restricted-properties
+                                proxyCrossDomainPort: settingsEntry.crossDomainProxyPort,
+                                sessionId:            settingsEntry.sessionId
+                            });
+                        }
+                        catch { }
+
+                        return reg;
                     });
-                }
-
-                return nativeMethods.registerServiceWorker.apply(window.navigator.serviceWorker, args);
             });
         }
 

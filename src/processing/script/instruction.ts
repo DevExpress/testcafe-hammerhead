@@ -15,5 +15,7 @@ export default {
     getPostMessage: '__get$PostMessage',
     getProxyUrl:    '__get$ProxyUrl',
     restArray:      '__rest$Array',
-    restObject:     '__rest$Object'
+    restObject:     '__rest$Object',
+
+    swScopeHeaderValue: '__swScopeHeaderValue'
 };
