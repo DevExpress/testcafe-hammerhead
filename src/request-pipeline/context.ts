@@ -236,7 +236,7 @@ export default class RequestPipelineContext {
     buildContentInfo () {
         const contentType = this.destRes.headers[BUILTIN_HEADERS.contentType] as string || '';
         const accept      = this.req.headers[BUILTIN_HEADERS.accept] as string || '';
-        const encoding    = this.destRes.headers[BUILTIN_HEADERS.contentEncoding] as string;
+        const encoding    = (this.destRes.headers[BUILTIN_HEADERS.contentEncoding] as string || '').toLowerCase();
 
         if (this.isPage && contentType)
             this.isPage = !this.isAjax && contentTypeUtils.isPage(contentType);
