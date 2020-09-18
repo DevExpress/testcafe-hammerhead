@@ -31,6 +31,7 @@ const resourceProcessor                    = require('../../lib/processing/resou
 const { gzip }                             = require('../../lib/utils/promisified-functions');
 const urlUtils                             = require('../../lib/utils/url');
 const Asar                                 = require('../../lib/utils/asar');
+const processScript                        = require('../../lib/processing/script').processScript;
 
 const EMPTY_PAGE_MARKUP = '<html></html>';
 const TEST_OBJ          = {
@@ -477,6 +478,17 @@ describe('Proxy', () => {
         app.get('/link-prefetch-header', (req, res) => {
             res.setHeader('link', '<http://some.url.com>; rel=prefetch');
             res.end('42');
+        });
+
+        app.get('/content-encoding-upper-case', (req, res) => {
+            gzip('// Compressed GZIP')
+                .then(data => {
+                    res
+                        .status(200)
+                        .set('content-type', 'application/javascript')
+                        .set('content-encoding', 'GZIP')
+                        .end(data);
+                });
         });
 
         crossDomainServer = crossDomainApp.listen(2002);
@@ -1606,6 +1618,16 @@ describe('Proxy', () => {
                     const expected = fs.readFileSync('test/server/data/page-with-custom-client-script/expected.html').toString();
 
                     compareCode(body, expected);
+                });
+        });
+
+        it('Should process the `content-encoding` header case insensitive', () => {
+            return request({
+                url:  proxy.openSession('http://127.0.0.1:2000/content-encoding-upper-case', session),
+                gzip: true,
+            })
+                .then(body => {
+                    expect(body).eql(processScript('// Compressed GZIP', true));
                 });
         });
     });
