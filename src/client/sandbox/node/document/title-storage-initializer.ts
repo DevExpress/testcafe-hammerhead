@@ -4,44 +4,45 @@ import nativeMethods from '../../native-methods';
 import removeElement from '../../../utils/remove-element';
 
 export default class DocumentTitleStorageInitializer {
-    constructor(private readonly _titleStorage: DocumentTitleStorage){}
+    constructor(public readonly storage: DocumentTitleStorage){
+        this.storage.on('titleElementAdded', () => this._processFirstTitleElement());
+    }
 
     private _setProxiedTitleValue (): void {
         const { sessionId, windowId } = settings.get();
         const value                   = `${sessionId}*${windowId}`;
 
-        nativeMethods.documentTitleSetter.call(this._titleStorage.getDocument(), value);
+        nativeMethods.documentTitleSetter.call(this.storage.getDocument(), value);
     }
 
-    processFirstTitleElement ({ useDefaultValue } = { useDefaultValue: false }): boolean {
-        const firstTitle = this._titleStorage.getFirstTitleElement();
+    private _processFirstTitleElement (): boolean {
+        const firstTitle = this.storage.getFirstTitleElement();
 
         if (!firstTitle)
             return false;
 
-        if (this._titleStorage.isElementProcessed(firstTitle))
+        if (this.storage.isElementProcessed(firstTitle))
             return false;
 
-        const value = useDefaultValue ? DocumentTitleStorage.DEFAULT_TITLE_VALUE : nativeMethods.titleElementTextGetter.call(firstTitle);
+        const value = nativeMethods.titleElementTextGetter.call(firstTitle);
 
-        this._titleStorage.setTitleElementPropertyValue(firstTitle, value);
+        this.storage.setTitleElementPropertyValue(firstTitle, value);
 
-        if (!useDefaultValue)
-            this._setProxiedTitleValue();
+        this._setProxiedTitleValue();
 
         return true;
     }
 
     onAttach (): void {
-        this.processFirstTitleElement();
+        this._processFirstTitleElement();
     }
 
     onPageTitleLoaded (): void {
-        if (this.processFirstTitleElement())
+        if (this._processFirstTitleElement())
             return;
 
-        const firstTitle = this._titleStorage.getFirstTitleElement();
-        const secondTitle = this._titleStorage.getSecondTitleElement();
+        const firstTitle = this.storage.getFirstTitleElement();
+        const secondTitle = this.storage.getSecondTitleElement();
 
         if (!secondTitle)
             return;
@@ -55,6 +56,6 @@ export default class DocumentTitleStorageInitializer {
 
         nativeMethods.titleElementTextSetter.call(secondTitle, serviceValue);
         removeElement(firstTitle);
-        this._titleStorage.setTitleElementPropertyValue(secondTitle, pageOriginValue);
+        this.storage.setTitleElementPropertyValue(secondTitle, pageOriginValue);
     }
 }
