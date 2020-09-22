@@ -1,7 +1,7 @@
 import * as sharedUrlUtils from '../../utils/url';
 import * as domUtils from './dom';
 import * as urlResolver from './url-resolver';
-import settings from '../settings';
+import { SPECIAL_BLANK_PAGE } from '../../utils/url';
 import nativeMethods from '../sandbox/native-methods';
 import getGlobalContextInfo from './global-context-info';
 
@@ -18,7 +18,7 @@ export function getLocation (): string {
 
     // NOTE: Fallback to the owner page's URL if we are in an iframe without src.
     if (frameElement && domUtils.isIframeWithoutSrc(frameElement))
-        return settings.get().referer;
+        return SPECIAL_BLANK_PAGE;
 
     return globalCtx.location.toString();
 }
@@ -77,14 +77,16 @@ function parseLocationThroughAnchor (url: string) {
     // eslint-disable-next-line no-restricted-properties
     const destPort = sharedUrlUtils.parseUrl(url).port;
 
+    const hrefValue = get();
+
     // NOTE: IE browser adds the default port for the https protocol while resolving.
-    nativeMethods.anchorHrefSetter.call(resolver, get());
+    nativeMethods.anchorHrefSetter.call(resolver, hrefValue);
 
     const hostname = nativeMethods.anchorHostnameGetter.call(resolver);
     let pathname   = nativeMethods.anchorPathnameGetter.call(resolver);
 
     // NOTE: IE ignores the first '/' symbol in the pathname.
-    if (pathname.charAt(0) !== '/')
+    if (hrefValue !== SPECIAL_BLANK_PAGE && pathname.charAt(0) !== '/')
         pathname = '/' + pathname;
 
     // TODO: Describe default ports logic.
