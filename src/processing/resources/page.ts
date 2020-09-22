@@ -110,34 +110,31 @@ class PageProcessor extends ResourceProcessorBase {
         return injectedResources;
     }
 
+    private static _getTaskScriptNodeIndex (head: ASTNode, ctx: RequestPipelineContext): number {
+        const taskScriptUrl = ctx.resolveInjectableUrl(SERVICE_ROUTES.task);
+
+        return parse5Utils.findNodeIndex(head, node => {
+            return node.tagName === 'script' &&
+                !!node.attrs.find(attr => attr.name === 'class' && attr.value === SHADOW_UI_CLASSNAME.script) &&
+                !!node.attrs.find(attr => attr.name === 'src' && attr.value === taskScriptUrl);
+        });
+    }
+
     /**
      * Inject the service script after the first title element
      * or after injected resources,
      * if they are placed right after the <title> tag
      **/
-    private static _addPageOriginFirstTitleParsedScript (head: ASTNode, injectedResources: ASTNode[], ctx: RequestPipelineContext): void {
+    private static _addPageOriginFirstTitleParsedScript (head: ASTNode, ctx: RequestPipelineContext): void {
         const firstTitleNodeIndex = parse5Utils.findNodeIndex(head, node => node.tagName === 'title');
 
         if (firstTitleNodeIndex === -1)
             return;
 
-        const nextNode          = parse5Utils.findNextNonTextNode(head, firstTitleNodeIndex + 1);
-        const firstInjectedNode = injectedResources[0];
-        let insertIndex         = -1;
-
-        if (nextNode === firstInjectedNode) {
-            const taskScriptUrl = ctx.resolveInjectableUrl(SERVICE_ROUTES.task);
-
-            const taskScriptNodeIndex = parse5Utils.findNodeIndex(head, node => {
-                return node.tagName === 'script' &&
-                    !!node.attrs.find(attr => attr.name === 'class' && attr.value === SHADOW_UI_CLASSNAME.script) &&
-                    !!node.attrs.find(attr => attr.name === 'src' && attr.value === taskScriptUrl);
-            });
-
-            insertIndex = taskScriptNodeIndex + 1;
-        }
-        else
-            insertIndex = firstTitleNodeIndex + 1;
+        const taskScriptNodeIndex = PageProcessor._getTaskScriptNodeIndex(head, ctx);
+        const insertIndex         = taskScriptNodeIndex > firstTitleNodeIndex
+            ? taskScriptNodeIndex + 1
+            : firstTitleNodeIndex + 1;
 
         parse5Utils.appendNode(PARSED_ORIGIN_FIRST_TITLE_ELEMENT_LOADED_SCRIPT, head, insertIndex);
     }
@@ -212,9 +209,8 @@ class PageProcessor extends ResourceProcessorBase {
         parse5Utils.walkElements(root, el => domProcessor.processElement(el, replacer));
 
         if (!ctx.isHtmlImport) {
-            const injectedResources = PageProcessor._addPageResources(head, processingOpts);
-
-            PageProcessor._addPageOriginFirstTitleParsedScript(head, injectedResources, ctx);
+            PageProcessor._addPageResources(head, processingOpts);
+            PageProcessor._addPageOriginFirstTitleParsedScript(head, ctx);
             this._addBodyCreatedEventScript(body);
 
             if (ctx.restoringStorages && !processingOpts.isIframe)

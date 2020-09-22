@@ -1,17 +1,35 @@
 import nativeMethods from '../../native-methods';
+import EventEmitter from '../../../utils/event-emitter';
 
 const DEFAULT_TITLE_VALUE = '';
 
 // NOTE: Hammehead always add the <title> element for each test before test execution.
 // It's necessary to TestCafe can find the browser tab by page title.
 // This <title> element stores the sandboxed title value in the internal property.
-const INTERNAL_TITLE_PROP_NAME = 'hammerhead|document-title-storage|internal-prop-name'
+const INTERNAL_TITLE_PROP_NAME = 'hammerhead|document-title-storage|internal-prop-name';
 
-export default class DocumentTitleStorage {
+export default class DocumentTitleStorage extends EventEmitter {
     private readonly _document: Document;
 
     public constructor(document: Document) {
+        super();
+
         this._document = document;
+    }
+
+    private _ensureFirstTitleElement (): HTMLTitleElement {
+        let firstTitle = this.getFirstTitleElement();
+
+        if (firstTitle)
+            return firstTitle;
+
+        firstTitle = nativeMethods.createElement.call(this._document, 'title');
+
+        nativeMethods.appendChild.call(this._document.head, firstTitle);
+
+        this.emit('titleElementAdded');
+
+        return firstTitle;
     }
 
     private _getValueFromFirstTitleElement (): string {
@@ -24,7 +42,7 @@ export default class DocumentTitleStorage {
     }
 
     private _setValueForFirstTitleElement (value: string): void {
-        const firstTitle = this.getFirstTitleElement() as HTMLTitleElement;
+        const firstTitle = this._ensureFirstTitleElement();
 
         this.setTitleElementPropertyValue(firstTitle, value);
     }
