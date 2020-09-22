@@ -554,6 +554,12 @@ export function isShadowUIElement (element: any): boolean {
     return !!element[INTERNAL_PROPS.shadowUIElement];
 }
 
+export function isShadowUIDiv (element: any): boolean {
+    const tagName = getTagName(element);
+
+    return isShadowUIElement && tagName === 'div';
+}
+
 export function isWindow (instance: any): instance is Window {
     if (instance instanceof nativeMethods.windowClass)
         return true;

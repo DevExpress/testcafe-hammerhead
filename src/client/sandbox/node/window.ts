@@ -14,7 +14,7 @@ import {
     parseProxyUrl,
     convertToProxyUrl,
     stringifyResourceType,
-    resolveUrlAsDest, 
+    resolveUrlAsDest,
     getDestinationUrl
 } from '../../utils/url';
 import { isFirefox, isChrome, isIE, isAndroid, isMSEdge, version as browserVersion } from '../../utils/browser';

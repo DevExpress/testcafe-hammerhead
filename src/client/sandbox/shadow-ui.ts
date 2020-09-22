@@ -548,7 +548,7 @@ export default class ShadowUI extends SandboxBase {
     }
 
     // Utils
-    static _checkElementsPosition (collection, length) {
+    static checkElementsPosition (collection, length) {
         if (!length)
             return;
 
@@ -665,7 +665,7 @@ export default class ShadowUI extends SandboxBase {
         }
 
         if (shadowUIElementCount && !this._ieDebugSandbox.isDebuggerInitiator())
-            ShadowUI._checkElementsPosition(collection, length);
+            ShadowUI.checkElementsPosition(collection, length);
 
         return length - shadowUIElementCount;
     }
@@ -730,6 +730,14 @@ export default class ShadowUI extends SandboxBase {
     insertBeforeRoot (el) {
         const rootParent      = this.nativeMethods.nodeParentNodeGetter.call(this.getRoot());
         const lastParentChild = this.nativeMethods.nodeLastChildGetter.call(rootParent);
+
+        // GH-2418
+        if (!domUtils.isShadowUIDiv(lastParentChild)) {
+            const bodyChildNodes       = nativeMethods.nodeChildNodesGetter.call(rootParent);
+            const bodyChildNodesLength = nativeMethods.nodeListLengthGetter.call(bodyChildNodes);
+
+            ShadowUI.checkElementsPosition(bodyChildNodes, bodyChildNodesLength);
+        }
 
         return nativeMethods.insertBefore.call(rootParent, el, lastParentChild);
     }

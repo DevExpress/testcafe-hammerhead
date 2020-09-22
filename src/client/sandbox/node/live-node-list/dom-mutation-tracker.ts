@@ -1,7 +1,8 @@
 import nativeMethods from '../../native-methods';
-import { getTagName, isShadowUIElement } from '../../../utils/dom';
+import { getTagName, isShadowUIElement, isShadowUIDiv } from '../../../utils/dom';
 import { getNativeQuerySelectorAll } from '../../../utils/query-selector';
 import IntegerIdGenerator from '../../../utils/integer-id-generator';
+import ShadowUI from '../../shadow-ui';
 
 class DOMMutationTracker {
     _mutations: any;
@@ -10,12 +11,23 @@ class DOMMutationTracker {
     constructor () {
         this._mutations          = nativeMethods.objectCreate(null);
         this._isDomContentLoaded = false;
-
         nativeMethods.addEventListener.call(document, 'DOMContentLoaded', () => {
             for (const tagName of nativeMethods.objectKeys(this._mutations))
                 this._updateVersion(tagName);
 
             this._isDomContentLoaded = true;
+
+            const bodyChildNodes       = nativeMethods.nodeChildNodesGetter.call(document.body);
+            const bodyChildNodesLength = nativeMethods.nodeListLengthGetter.call(bodyChildNodes);
+
+            if (bodyChildNodesLength) {
+                const lastBodyChild               = nativeMethods.nodeLastChildGetter.call(document.body);
+                const lastBodyChildIsNotShadowDiv = ShadowUI.isShadowContainerCollection(bodyChildNodes) && !isShadowUIDiv(lastBodyChild);
+
+                // GH-2418
+                if (lastBodyChildIsNotShadowDiv)
+                    ShadowUI.checkElementsPosition(bodyChildNodes, bodyChildNodesLength);
+            }
         });
     }
 
