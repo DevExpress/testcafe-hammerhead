@@ -732,7 +732,7 @@ export default class ShadowUI extends SandboxBase {
         const lastParentChild = this.nativeMethods.nodeLastChildGetter.call(rootParent);
 
         // GH-2418
-        if (!domUtils.isShadowUIDiv(lastParentChild)) {
+        if (!domUtils.isShadowUIElement(lastParentChild)) {
             const bodyChildNodes       = nativeMethods.nodeChildNodesGetter.call(rootParent);
             const bodyChildNodesLength = nativeMethods.nodeListLengthGetter.call(bodyChildNodes);
 
