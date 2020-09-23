@@ -111,12 +111,15 @@ class PageProcessor extends ResourceProcessorBase {
     }
 
     private static _getTaskScriptNodeIndex (head: ASTNode, ctx: RequestPipelineContext): number {
-        const taskScriptUrl = ctx.resolveInjectableUrl(SERVICE_ROUTES.task);
+        const taskScriptUrls = [
+            ctx.resolveInjectableUrl(SERVICE_ROUTES.task),
+            ctx.resolveInjectableUrl(SERVICE_ROUTES.iframeTask)
+        ];
 
         return parse5Utils.findNodeIndex(head, node => {
             return node.tagName === 'script' &&
                 !!node.attrs.find(attr => attr.name === 'class' && attr.value === SHADOW_UI_CLASSNAME.script) &&
-                !!node.attrs.find(attr => attr.name === 'src' && attr.value === taskScriptUrl);
+                !!node.attrs.find(attr => attr.name === 'src' && taskScriptUrls.includes(attr.value));
         });
     }
 
