@@ -23,13 +23,13 @@ export default class MessageSandbox extends SandboxBase {
     readonly SERVICE_MSG_RECEIVED_EVENT = 'hammerhead|event|service-msg-received';
     readonly RECEIVE_MSG_FN = 'hammerhead|receive-msg-function';
 
-    topWindow: Window | null;
-    window: Window | null;
+    topWindow: Window & typeof globalThis | null;
+    window: Window & typeof globalThis | null;
 
     pingCallback: any;
     pingCmd: any;
 
-    storedOnMessageHandler: Function;
+    storedOnMessageHandler: (this: WindowEventHandlers, ev: MessageEvent) => any;
     isWindowUnloaded: boolean;
 
     iframeInternalMsgQueue: any[];
@@ -116,10 +116,10 @@ export default class MessageSandbox extends SandboxBase {
         return false;
     }
 
-    attach (window: Window): void {
+    attach (window: Window & typeof globalThis): void {
         super.attach(window);
         // NOTE: The window.top property may be changed after an iframe is removed from DOM in IE, so we save it.
-        this.topWindow        = window.top;
+        this.topWindow        = window.top as Window & typeof globalThis;
         this.isWindowUnloaded = false;
 
         this._unloadSandbox.on(this._unloadSandbox.UNLOAD_EVENT, () => {

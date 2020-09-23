@@ -42,6 +42,7 @@ export default class StorageWrapper {
     key: any;
     removeItem: any;
     setItem: any;
+    length: number;
 
     STORAGE_CHANGED_EVENT: string = 'hammerhead|event|storage-changed';
     EMPTY_OLD_VALUE_ARG: any;

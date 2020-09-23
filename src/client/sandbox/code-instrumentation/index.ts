@@ -25,7 +25,7 @@ export default class CodeInstrumentation extends SandboxBase {
         this._propertyAccessorsInstrumentation = new PropertyAccessorsInstrumentation();
     }
 
-    attach (window: Window) {
+    attach (window: Window & typeof globalThis) {
         super.attach(window);
 
         this._methodCallInstrumentation.attach(window);

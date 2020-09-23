@@ -136,7 +136,7 @@ export default class Sandbox extends SandboxBase {
         }
     }
 
-    reattach (window: Window, document: Document): void {
+    reattach (window: Window & typeof globalThis, document: Document): void {
         nativeMethods.objectDefineProperty(window, INTERNAL_PROPS.sandboxIsReattached, { value: true, configurable: false });
 
         // NOTE: Assign the existing sandbox to the cleared document.
@@ -154,7 +154,7 @@ export default class Sandbox extends SandboxBase {
         this.childWindow.attach(window);
     }
 
-    attach (window: Window): void {
+    attach (window: Window & typeof globalThis): void {
         super.attach(window);
 
         nativeMethods.objectDefineProperty(window, INTERNAL_PROPS.sandboxIsReattached, { value: true, configurable: false });

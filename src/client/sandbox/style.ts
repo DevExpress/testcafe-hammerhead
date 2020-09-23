@@ -185,7 +185,7 @@ export default class StyleSandbox extends SandboxBase {
         }
     }
 
-    attach (window: Window) {
+    attach (window: Window & typeof globalThis) {
         super.attach(window);
 
         const nativeMethods = this.nativeMethods;

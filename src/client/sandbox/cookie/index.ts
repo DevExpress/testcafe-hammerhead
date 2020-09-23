@@ -215,7 +215,7 @@ export default class CookieSandbox extends SandboxBase {
         return this._windowSync;
     }
 
-    attach (window: Window): void {
+    attach (window: Window & typeof globalThis): void {
         super.attach(window);
 
         this._windowSync.attach(window);

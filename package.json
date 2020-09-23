@@ -91,7 +91,7 @@
     "request": "^2.34.0",
     "request-promise-native": "^1.0.5",
     "tmp": "0.0.26",
-    "typescript": "3.3.3",
+    "typescript": "3.4.5",
     "ws": "^5.2.0"
   },
   "main": "lib/index",

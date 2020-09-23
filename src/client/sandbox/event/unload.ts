@@ -78,7 +78,7 @@ export default class UnloadSandbox extends SandboxBase {
         nativeAddEventListener.call(this.window, this.beforeUnloadEventName, this);
     }
 
-    attach (window: Window) {
+    attach (window: Window & typeof globalThis) {
         super.attach(window);
 
         this._listeners.setEventListenerWrapper(window, [this.beforeUnloadEventName], (e, listener) => this._onBeforeUnloadHandler(e, listener));
@@ -94,9 +94,9 @@ export default class UnloadSandbox extends SandboxBase {
                 this._reattachBeforeUnloadListener();
         });
 
-        // @ts-ignore
         const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;
 
+        // @ts-ignore
         overrideDescriptor(eventPropsOwner, 'on' + this.beforeUnloadEventName, {
             getter: () => this.storedBeforeUnloadHandler,
             setter: handler => this.setOnBeforeUnload(window, handler)

@@ -32,7 +32,7 @@ import { Dictionary } from '../typings/common';
 import ShadowUI from './sandbox/shadow-ui';
 
 class Hammerhead {
-    win: Window;
+    win: Window & typeof globalThis;
     sandbox: Sandbox;
     pageNavigationWatch: PageNavigationWatch;
     EVENTS: Dictionary<string>;
@@ -218,8 +218,8 @@ class Hammerhead {
         }
     }
 
-    start (initSettings: HammerheadInitSettings, win: Window): void {
-        this.win = win || window;
+    start (initSettings: HammerheadInitSettings, win: Window & typeof globalThis): void {
+        this.win = win || window as Window & typeof globalThis;
 
         settings.set(initSettings);
 

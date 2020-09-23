@@ -115,7 +115,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         }
     }
 
-    attach (window: Window) {
+    attach (window: Window & typeof globalThis) {
         super.attach(window);
 
         const accessors = this._createPropertyAccessors();
