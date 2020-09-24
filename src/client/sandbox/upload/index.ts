@@ -36,7 +36,7 @@ export default class UploadSandbox extends SandboxBase {
     }
 
     /*eslint-disable max-nested-callbacks */
-    attach (window: Window) {
+    attach (window: Window & typeof globalThis) {
         super.attach(window);
 
         this._listeners.addInternalEventListener(window, ['change'], (e, dispatched) => {

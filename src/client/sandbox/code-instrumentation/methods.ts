@@ -57,7 +57,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
         return fn && typeof fn.toString === 'function' && fn.toString() === win.postMessage.toString();
     }
 
-    attach (window: Window) {
+    attach (window: Window & typeof globalThis) {
         super.attach(window);
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.

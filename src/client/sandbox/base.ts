@@ -4,7 +4,7 @@ import { findDocument, isElementInDocument, getFrameElement } from '../utils/dom
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 
 export default class SandboxBase extends EventEmitter {
-    window: Window | null  = null;
+    window: Window & typeof globalThis | null  = null;
     nativeMethods = nativeMethods;
     document: Document | null = null;
 
@@ -27,7 +27,7 @@ export default class SandboxBase extends EventEmitter {
         return true;
     }
 
-    attach (window: Window, document?: Document): void {
+    attach (window: Window & typeof globalThis, document?: Document): void {
         this.window   = window;
         this.document = document || window.document;
     }

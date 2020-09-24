@@ -40,7 +40,7 @@ export default class LocationAccessorsInstrumentation extends SandboxBase {
         }
     }
 
-    attach (window: Window) {
+    attach (window: Window & typeof globalThis) {
         super.attach(window);
 
         const document        = window.document;

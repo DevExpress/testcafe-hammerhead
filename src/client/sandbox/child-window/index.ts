@@ -161,7 +161,7 @@ export default class ChildWindowSandbox extends SandboxBase {
         return childWindows;
     }
 
-    attach(window: Window): void {
+    attach(window: Window & typeof globalThis): void {
         super.attach(window, window.document);
         this._handleFormSubmitting(window);
         this._setupChildWindowCollecting(window);

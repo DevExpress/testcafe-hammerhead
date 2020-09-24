@@ -367,7 +367,7 @@ class NativeMethods {
     cryptoGetRandomValues: Function;
     URL: typeof URL;
 
-    constructor (doc?: Document, win?: Window) {
+    constructor (doc?: Document, win?: Window & typeof globalThis) {
         const globalCtx = getGlobalContextInfo();
 
         win = win || globalCtx.global;
@@ -385,14 +385,13 @@ class NativeMethods {
         return docPrototype.hasOwnProperty(propName) ? 'Document' : 'HTMLDocument';
     }
 
-    getStoragesPropsOwner (win: Window) {
-        // @ts-ignore
+    getStoragesPropsOwner (win: Window & typeof globalThis) {
         return this.isStoragePropsLocatedInProto ? win.Window.prototype : win;
     }
 
-    refreshDocumentMeths (doc: Document, win: Window) {
+    refreshDocumentMeths (doc: Document, win: Window & typeof globalThis) {
         doc = doc || document;
-        win = win || window;
+        win = win || window as Window & typeof globalThis;
 
         // @ts-ignore
         const docPrototype = win.Document.prototype;
@@ -423,16 +422,16 @@ class NativeMethods {
         this.querySelector        = docPrototype.querySelector;
         this.querySelectorAll     = docPrototype.querySelectorAll;
 
-        // @ts-ignore
         this.createHTMLDocument = win.DOMImplementation.prototype.createHTMLDocument;
 
         // @ts-ignore
-        if (doc.registerElement)
+        if (doc.registerElement) {
+            // @ts-ignore
             this.registerElement = docPrototype.registerElement;
+        }
 
         // Event
         // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
-        // @ts-ignore
         if (!win.EventTarget) {
             this.documentAddEventListener    = docPrototype.addEventListener;
             this.documentRemoveEventListener = docPrototype.removeEventListener;
@@ -446,7 +445,6 @@ class NativeMethods {
         this.documentCookiePropOwnerName  = NativeMethods._getDocumentPropOwnerName(docPrototype, 'cookie');
         this.documentScriptsPropOwnerName = NativeMethods._getDocumentPropOwnerName(docPrototype, 'scripts');
 
-        // @ts-ignore
         const documentCookieDescriptor = win.Object.getOwnPropertyDescriptor(win[this.documentCookiePropOwnerName].prototype, 'cookie');
 
         // TODO: remove this condition after the GH-1649 fix
@@ -458,37 +456,29 @@ class NativeMethods {
                 documentCookieDescriptor.get = parentNativeMethods.documentCookieGetter;
                 documentCookieDescriptor.set = parentNativeMethods.documentCookieSetter;
             }
-            // eslint-disable-next-line no-empty
-            catch (e) {
-            }
+            catch {} // eslint-disable-line no-empty
         }
 
-        // @ts-ignore
         this.documentReferrerGetter      = win.Object.getOwnPropertyDescriptor(docPrototype, 'referrer').get;
-        // @ts-ignore
         this.documentStyleSheetsGetter   = win.Object.getOwnPropertyDescriptor(docPrototype, 'styleSheets').get;
-        // @ts-ignore
         this.documentActiveElementGetter = win.Object.getOwnPropertyDescriptor(docPrototype, 'activeElement').get;
-        // @ts-ignore
         this.documentScriptsGetter       = win.Object.getOwnPropertyDescriptor(win[this.documentScriptsPropOwnerName].prototype, 'scripts').get;
         this.documentCookieGetter        = documentCookieDescriptor.get;
         this.documentCookieSetter        = documentCookieDescriptor.set;
 
-        // @ts-ignore
         const documentDocumentURIDescriptor = win.Object.getOwnPropertyDescriptor(docPrototype, 'documentURI');
 
         if (documentDocumentURIDescriptor)
             this.documentDocumentURIGetter = documentDocumentURIDescriptor.get;
 
-        // @ts-ignore
         const documentTitleDescriptor = win.Object.getOwnPropertyDescriptor(docPrototype, 'title');
 
         this.documentTitleGetter = documentTitleDescriptor.get;
         this.documentTitleSetter = documentTitleDescriptor.set;
     }
 
-    refreshElementMeths (doc, win) {
-        win = win || window;
+    refreshElementMeths (doc, win: Window & typeof globalThis) {
+        win = win || window as Window & typeof globalThis;
 
         const createElement = tagName => this.createElement.call(doc || document, tagName);
         const nativeElement = createElement('div');
@@ -1160,7 +1150,7 @@ class NativeMethods {
         NativeMethods._ensureDocumentMethodRestore(document, window[this.documentWriteLnPropOwnerName].prototype, 'writeln', this.documentWriteLn);
     }
 
-    refreshIfNecessary (doc: Document, win: Window) {
+    refreshIfNecessary (doc: Document, win: Window & typeof globalThis) {
         const tryToExecuteCode = (func: Function) => {
             try {
                 return func();

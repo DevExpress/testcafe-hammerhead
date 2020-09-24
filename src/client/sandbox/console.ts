@@ -44,7 +44,7 @@ export default class ConsoleSandbox extends SandboxBase {
         };
     }
 
-    attach (window: Window) {
+    attach (window: Window & typeof globalThis) {
         super.attach(window);
 
         this._proxyConsoleMeth('log');

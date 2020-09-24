@@ -3,6 +3,6 @@ export default function getGlobalContextInfo () {
 
     return {
         isInWorker,
-        global: isInWorker ? self : window
+        global: (isInWorker ? self : window) as Window & typeof globalThis
     };
 }

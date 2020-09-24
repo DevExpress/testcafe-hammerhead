@@ -168,43 +168,34 @@ export default class EventSandbox extends SandboxBase {
         });
     }
 
-    attach (window: Window): void {
+    attach (window: Window & typeof globalThis): void {
         super.attach(window);
 
-        //@ts-ignore
         window.HTMLInputElement.prototype.setSelectionRange    = this._overriddenMethods.setSelectionRange;
-        //@ts-ignore
         window.HTMLTextAreaElement.prototype.setSelectionRange = this._overriddenMethods.setSelectionRange;
+
         if (isIE11) {
-            //@ts-ignore
             window.Window.prototype.dispatchEvent      = this._overriddenMethods.dispatchEvent;
-            //@ts-ignore
             window.Document.prototype.dispatchEvent    = this._overriddenMethods.dispatchEvent;
-            //@ts-ignore
             window.HTMLElement.prototype.dispatchEvent = this._overriddenMethods.dispatchEvent;
-            //@ts-ignore
             window.SVGElement.prototype.dispatchEvent  = this._overriddenMethods.dispatchEvent;
         }
-        else {
-            //@ts-ignore
+        else
             window.EventTarget.prototype.dispatchEvent = this._overriddenMethods.dispatchEvent;
-        }
-        //@ts-ignore
-        window.HTMLElement.prototype.focus                     = this._overriddenMethods.focus;
-        //@ts-ignore
-        window.HTMLElement.prototype.blur                      = this._overriddenMethods.blur;
-        //@ts-ignore
-        window.HTMLElement.prototype.click                     = this._overriddenMethods.click;
-        //@ts-ignore
-        window.Window.focus                                    = this._overriddenMethods.focus;
-        //@ts-ignore
-        window.Window.blur                                     = this._overriddenMethods.blur;
-        //@ts-ignore
-        window.Event.prototype.preventDefault                  = this._overriddenMethods.preventDefault;
 
-        //@ts-ignore
+        window.HTMLElement.prototype.focus    = this._overriddenMethods.focus;
+        window.HTMLElement.prototype.blur     = this._overriddenMethods.blur;
+        window.HTMLElement.prototype.click    = this._overriddenMethods.click;
+        window.Event.prototype.preventDefault = this._overriddenMethods.preventDefault;
+
+        // @ts-ignore Window constructor has no the focus method
+        window.Window.focus = this._overriddenMethods.focus;
+        // @ts-ignore Window constructor has no the blur method
+        window.Window.blur  = this._overriddenMethods.blur;
+
+        // @ts-ignore TextRange exists only in IE
         if (window.TextRange && window.TextRange.prototype.select) {
-            //@ts-ignore
+            // @ts-ignore TextRange exists only in IE
             window.TextRange.prototype.select = this._overriddenMethods.select;
         }
 
