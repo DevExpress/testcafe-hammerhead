@@ -728,10 +728,15 @@ export default class ShadowUI extends SandboxBase {
     }
 
     insertBeforeRoot (el) {
-        const rootParent      = this.nativeMethods.nodeParentNodeGetter.call(this.getRoot());
+        const rootEl          = this.getRoot()
+        const rootParent      = this.nativeMethods.nodeParentNodeGetter.call(rootEl);
         const lastParentChild = this.nativeMethods.nodeLastChildGetter.call(rootParent);
 
-        return nativeMethods.insertBefore.call(rootParent, el, lastParentChild);
+        // GH-2418
+        if (lastParentChild != rootEl)
+            nativeMethods.appendChild.call(rootParent, rootEl);
+
+        return nativeMethods.insertBefore.call(rootParent, el, rootEl);
     }
 
     static markElementAsShadow (el) {

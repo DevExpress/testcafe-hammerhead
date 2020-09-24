@@ -1362,3 +1362,16 @@ test('the isBodyElementWithChildren method should use native length getter', fun
 
     Object.defineProperty(HTMLCollection.prototype, 'length', storedLengthDescriptor);
 });
+
+asyncTest('the shadow ui root element should not break the childNodes order (GH-2418)', function () {
+    window.addEventListener('message', function onMessageHandler (evt) {
+        if (evt.data.id === 'GH-2418') {
+            window.removeEventListener('message', onMessageHandler);
+
+            strictEqual(evt.data.lastChildId, 'div2');
+            start();
+        }
+    });
+
+    createTestIframe({ src: getSameDomainPageUrl('../../data/childNodes-order/iframe.html') });
+});

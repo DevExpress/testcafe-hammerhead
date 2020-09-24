@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+</head>
+<body>
+<script>
+    var hammerhead = window['%hammerhead%'];
+
+    hammerhead.start({ sessionId: 'sessionId' });
+
+    var div1 = document.createElement('div');
+
+    div1.id = 'div1';
+
+    document.body.appendChild(div1);
+
+    setTimeout(function () {
+        var div2 = document.createElement('div');
+
+        div2.id = 'div2';
+
+        document.body.appendChild(div2);
+
+        var hhPostMessage = hammerhead.sandbox.event.message.postMessage;
+        var lastChildId   = document.body.lastChild.id;
+
+        hhPostMessage(window.parent, [{ id: 'GH-2418', lastChildId: lastChildId}, '*']);
+    }, 200);
+</script>
+text
+</body>
+</html>
