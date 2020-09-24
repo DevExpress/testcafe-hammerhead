@@ -150,7 +150,7 @@ export default class FetchSandbox extends SandboxBase {
 
         const sandbox = this;
 
-        const requestWrapper = function (...args) {
+        overrideConstructor(window, 'Request', function (...args) {
             FetchSandbox._processArguments(args);
 
             window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = nativeMethods.headersEntries;
@@ -162,9 +162,7 @@ export default class FetchSandbox extends SandboxBase {
             window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = FetchSandbox._entriesWrapper;
 
             return request;
-        };
-
-        overrideConstructor(window, 'Request', requestWrapper);
+        });
 
         overrideDescriptor(window.Request.prototype, 'url', {
             getter: function (this: Request) {
@@ -172,7 +170,7 @@ export default class FetchSandbox extends SandboxBase {
             }
         });
 
-        const fetchWrapper = function (...args: [Request | string, any]) {
+        overrideFunction(window, 'fetch', function (...args: [Request | string, any]) {
             // NOTE: Safari processed the empty `fetch()` request without `Promise` rejection (GH-1613)
             if (!args.length && !browserUtils.isSafari)
                 return nativeMethods.fetch.apply(this);
@@ -201,9 +199,7 @@ export default class FetchSandbox extends SandboxBase {
 
                 return response;
             });
-        };
-
-        overrideFunction(window, 'fetch', fetchWrapper);
+        });
 
         overrideDescriptor(window.Response.prototype, 'type', {
             getter: function () {
@@ -230,10 +226,9 @@ export default class FetchSandbox extends SandboxBase {
         overrideFunction(window.Headers.prototype, 'entries', entriesWrapper);
         overrideFunction(window.Headers.prototype, Symbol.iterator, entriesWrapper);
 
-        const valuesWrapper = FetchSandbox._valuesWrapper;
-        overrideFunction(window.Headers.prototype, 'values', valuesWrapper);
+        overrideFunction(window.Headers.prototype, 'values', FetchSandbox._valuesWrapper);
 
-        const forEachWrapper = function (...args) {
+        overrideFunction(window.Headers.prototype, 'forEach', function (...args) {
             const callback = args[0];
 
             if (typeof callback === 'function') {
@@ -249,16 +244,10 @@ export default class FetchSandbox extends SandboxBase {
             }
 
             return nativeMethods.headersForEach.apply(this, args);
-        };
+        });
 
-        overrideFunction(window.Headers.prototype, 'forEach', forEachWrapper);
-
-        const getWrapper = FetchSandbox._createAccessorWrapper(nativeMethods.headersGet);
-        const setWrapper = FetchSandbox._createAccessorWrapper(nativeMethods.headersSet);
-        const hasWrapper = FetchSandbox._createAccessorWrapper(nativeMethods.headersHas);
-
-        overrideFunction(window.Headers.prototype, 'get', getWrapper);
-        overrideFunction(window.Headers.prototype, 'set', setWrapper);
-        overrideFunction(window.Headers.prototype, 'has', hasWrapper);
+        overrideFunction(window.Headers.prototype, 'get', FetchSandbox._createAccessorWrapper(nativeMethods.headersGet));
+        overrideFunction(window.Headers.prototype, 'set', FetchSandbox._createAccessorWrapper(nativeMethods.headersSet));
+        overrideFunction(window.Headers.prototype, 'has', FetchSandbox._createAccessorWrapper(nativeMethods.headersHas));
     }
 }

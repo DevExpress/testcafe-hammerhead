@@ -205,8 +205,8 @@ export default class DocumentSandbox extends SandboxBase {
 
         if (document.open !== overridenMethods.open)
             overrideFunction(document, 'open', overridenMethods.open);
-        
-        const createElementWrapper = function (...args) {
+
+        overrideFunction(docPrototype, 'createElement', function (...args) {
             const el = nativeMethods.createElement.apply(this, args);
 
             DocumentSandbox.forceProxySrcForImageIfNecessary(el);
@@ -214,11 +214,9 @@ export default class DocumentSandbox extends SandboxBase {
             documentSandbox._nodeSandbox.processNodes(el);
 
             return el;
-        };
+        });
 
-        overrideFunction(docPrototype, 'createElement', createElementWrapper);
-
-        const createElementNSWrapper = function (...args) {
+        overrideFunction(docPrototype, 'createElementNS', function (...args) {
             const el = nativeMethods.createElementNS.apply(this, args);
 
             DocumentSandbox.forceProxySrcForImageIfNecessary(el);
@@ -226,19 +224,15 @@ export default class DocumentSandbox extends SandboxBase {
             documentSandbox._nodeSandbox.processNodes(el);
 
             return el;
-        };
+        });
 
-        overrideFunction(docPrototype, 'createElementNS', createElementNSWrapper);
-
-        const createDocumentFragmentWrapper = function (...args) {
+        overrideFunction(docPrototype, 'createDocumentFragment', function (...args) {
             const fragment = nativeMethods.createDocumentFragment.apply(this, args);
 
             documentSandbox._nodeSandbox.processNodes(fragment);
 
             return fragment;
-        };
-
-        overrideFunction(docPrototype, 'createDocumentFragment', createDocumentFragmentWrapper);
+        });
 
         const htmlDocPrototype = window.HTMLDocument.prototype;
         let storedDomain       = '';

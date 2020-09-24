@@ -265,7 +265,7 @@ export default class ShadowUI extends SandboxBase {
         const shadowUI = this;
         const docProto = window.Document.prototype;
 
-        const docProtoElementFromPointWrapper = function (...args) {
+        overrideFunction(docProto, 'elementFromPoint', function (...args) {
             // NOTE: T212974
             shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
@@ -274,12 +274,10 @@ export default class ShadowUI extends SandboxBase {
             shadowUI.removeClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
             return res;
-        };
-
-        overrideFunction(docProto, 'elementFromPoint', docProtoElementFromPointWrapper);
+        });
 
         if (document.caretRangeFromPoint) {
-            const docProtoCaretRangeFromPointWrapper = function (...args) {
+            overrideFunction(docProto, 'caretRangeFromPoint', function (...args) {
                 shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
                 let res = nativeMethods.caretRangeFromPoint.apply(this, args);
@@ -290,13 +288,11 @@ export default class ShadowUI extends SandboxBase {
                 shadowUI.removeClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
                 return res;
-            };
-
-            overrideFunction(docProto, 'caretRangeFromPoint', docProtoCaretRangeFromPointWrapper);
+            });
         }
 
         if (document.caretPositionFromPoint) {
-            const docProtoCaretPositionFromPointWrapper = function (...args) {
+            overrideFunction(docProto, 'caretPositionFromPoint', function (...args) {
                 shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
                 let res = nativeMethods.caretPositionFromPoint.apply(this, args);
@@ -307,27 +303,21 @@ export default class ShadowUI extends SandboxBase {
                 shadowUI.removeClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
                 return res;
-            };
-
-            overrideFunction(docProto, 'caretPositionFromPoint', docProtoCaretPositionFromPointWrapper);
+            });
         }
 
-        const docProtoGetElementByIdWrapper = function (...args) {
+        overrideFunction(docProto, 'getElementById', function (...args) {
             return ShadowUI._filterElement(nativeMethods.getElementById.apply(this, args));
-        };
+        });
 
-        overrideFunction(docProto, 'getElementById', docProtoGetElementByIdWrapper);
-
-        const docProtoGetElementsByName = function (...args) {
+        overrideFunction(docProto, 'getElementsByName', function (...args) {
             const elements = nativeMethods.getElementsByName.apply(this, args);
             const length   = getElementsByNameReturnsHTMLCollection
                 ? nativeMethods.htmlCollectionLengthGetter.call(elements)
                 : nativeMethods.nodeListLengthGetter.call(elements);
 
             return shadowUI._filterNodeList(elements, length);
-        };
-
-        overrideFunction(docProto, 'getElementsByName', docProtoGetElementsByName);
+        });
 
         overrideFunction(docProto, 'getElementsByClassName', this.wrapperCreators.getElementsByClassName('getElementsByClassName'));
         overrideFunction(docProto, 'getElementsByTagName', this.wrapperCreators.getElementsByTagName('getElementsByTagName'));

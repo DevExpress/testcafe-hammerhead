@@ -75,17 +75,13 @@ export default class TimersSandbox extends SandboxBase {
 
         const timersSandbox = this;
 
-        const setTimeoutWrapper = function (...args) {
+        overrideFunction(window, 'setTimeout', function (...args) {
             return nativeMethods.setTimeout.apply(window, timersSandbox._wrapTimeoutFunctionsArguments(args));
-        };
+        });
 
-        overrideFunction(window, 'setTimeout', setTimeoutWrapper);
-
-        const setIntervalWrapper = function (...args) {
+        overrideFunction(window, 'setInterval', function (...args) {
             return nativeMethods.setInterval.apply(window, timersSandbox._wrapTimeoutFunctionsArguments(args));
-        };
-
-        overrideFunction(window, 'setInterval', setIntervalWrapper);
+        });
 
         // NOTE: We are saving the setTimeout wrapper for internal use in case the page-script replaces
         // it with an invalid value.

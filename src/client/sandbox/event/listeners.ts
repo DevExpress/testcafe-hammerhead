@@ -212,6 +212,8 @@ export default class Listeners extends EventEmitter {
             const overriddenMethods = this.createOverriddenMethods();
 
             if (!el.addEventListener) {
+                // NOTE:
+                // we cannot use 'overrideFunction' here since the functions may not exist
                 el.addEventListener    = overriddenMethods.addEventListener;
                 el.removeEventListener = overriddenMethods.removeEventListener;
 

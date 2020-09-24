@@ -172,7 +172,7 @@ export default class EventSandbox extends SandboxBase {
     attach (window: Window & typeof globalThis): void {
         super.attach(window);
 
-        overrideFunction(window.HTMLInputElement.prototype, 'setSelectionRange', this._overriddenMethods.setSelectionRange, );
+        overrideFunction(window.HTMLInputElement.prototype, 'setSelectionRange', this._overriddenMethods.setSelectionRange);
         overrideFunction(window.HTMLTextAreaElement.prototype, 'setSelectionRange', this._overriddenMethods.setSelectionRange);
 
         if (isIE11) {
@@ -193,11 +193,17 @@ export default class EventSandbox extends SandboxBase {
 
         // @ts-ignore Window constructor has no the focus method
         window.Window.focus = this._overriddenMethods.focus;
+
+        // NOTE:
+        // we cannot use 'overrideFunction' here since the focus method may not exist
         // @ts-ignore Window constructor has no the focus method
         overrideStringRepresentation(window.Window.focus, nativeMethods.focus);
 
         // @ts-ignore Window constructor has no the blur method
         window.Window.blur  = this._overriddenMethods.blur;
+
+        // NOTE:
+        // we cannot use 'overrideFunction' here since the blur method may not exist
         // @ts-ignore Window constructor has no the blur method
         overrideStringRepresentation(window.Window.blur, nativeMethods.blur);
 

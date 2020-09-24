@@ -28,7 +28,7 @@ export default class ConsoleSandbox extends SandboxBase {
     }
 
     private _proxyConsoleMeth (meth: keyof Console): void {
-        const consoleMethWrapper = (...args: any[]) => {
+        overrideFunction(this.window.console, meth, (...args: any[]) => {
             if (!isCrossDomainWindows(window, window.top)) {
                 const sendToTopWindow = window !== window.top;
                 const line            = nativeMethods.arrayMap.call(args, this._toString).join(' ');
@@ -42,9 +42,7 @@ export default class ConsoleSandbox extends SandboxBase {
             }
 
             this.nativeMethods.consoleMeths[meth].apply(this.nativeMethods.console, args);
-        };
-
-        overrideFunction(this.window.console, meth, consoleMethWrapper);
+        });
     }
 
     attach (window: Window & typeof globalThis) {

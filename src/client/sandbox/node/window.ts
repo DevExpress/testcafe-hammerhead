@@ -442,7 +442,7 @@ export default class WindowSandbox extends SandboxBase {
                 windowSandbox.emit(cmd, { msg, pageUrl, stack });
         });
 
-        const drawImageWrapper = function (...args) {
+        overrideFunction(window.CanvasRenderingContext2D.prototype, 'drawImage', function (...args) {
             let image = args[0];
 
             if (isImgElement(image) && !image[INTERNAL_PROPS.forceProxySrcForImage]) {
@@ -463,12 +463,10 @@ export default class WindowSandbox extends SandboxBase {
             }
 
             return nativeMethods.canvasContextDrawImage.apply(this, args);
-        };
-
-        overrideFunction(window.CanvasRenderingContext2D.prototype, 'drawImage', drawImageWrapper);
+        });
 
         if (nativeMethods.objectAssign) {
-            const objectAssignWrapper = function (target, ...sources) {
+            overrideFunction(window.Object, 'assign', function (target, ...sources) {
                 let args = [];
 
                 args.push(target);
@@ -498,28 +496,22 @@ export default class WindowSandbox extends SandboxBase {
                     args = nativeMethods.arrayConcat.call(args, sources);
 
                 return nativeMethods.objectAssign.apply(this, args);
-            };
-
-            overrideFunction(window.Object, 'assign', objectAssignWrapper);
+            });
         }
 
-        const openWrapper = function (...args) {
+        overrideFunction(window, 'open', function (...args) {
             args[0] = getProxyUrl(args[0]);
             args[1] = windowSandbox._getWindowOpenTarget(args[1]);
 
             return windowSandbox._childWindowSandbox.handleWindowOpen(window, args);
-        };
-
-        overrideFunction(window, 'open', openWrapper);
+        });
 
         if (window.FontFace) {
-            const FontFaceWrapper = (family, source, descriptors) => {
+            overrideConstructor(window, 'FontFace', (family, source, descriptors) => {
                 source = styleProcessor.process(source, convertToProxyUrl);
 
                 return new nativeMethods.FontFace(family, source, descriptors);
-            };
-
-            overrideConstructor(window, 'FontFace', FontFaceWrapper);
+            });
         }
 
         if (window.Worker) {
@@ -544,7 +536,7 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.Blob) {
-            const BlobWrapper = function (array, opts) {
+            overrideConstructor(window, 'Blob', function (array, opts) {
                 if (arguments.length === 0)
                     return new nativeMethods.Blob();
 
@@ -555,14 +547,12 @@ export default class WindowSandbox extends SandboxBase {
                 // If the overridden function is called with one parameter, we need to call the original function
                 // with one parameter as well.
                 return arguments.length === 1 ? new nativeMethods.Blob(array) : new nativeMethods.Blob(array, opts);
-            };
-            
-            overrideConstructor(window, 'Blob', BlobWrapper);
+            });
         }
 
         // NOTE: non-IE11 case. window.File in IE11 is not constructable.
         if (nativeMethods.File) {
-            const FileWrapper = function (array, fileName, opts) {
+            overrideConstructor(window, 'File', function (array, fileName, opts) {
                 if (arguments.length === 0)
                     return new nativeMethods.File();
 
@@ -570,13 +560,11 @@ export default class WindowSandbox extends SandboxBase {
                     array = [processScript(array.join(''), true, false, convertToProxyUrl)];
 
                 return new nativeMethods.File(array, fileName, opts);
-            };
-            
-            overrideConstructor(window, 'File', FileWrapper);
+            });
         }
 
         if (window.EventSource) {
-            const EventSourceWrapper = function (url, opts) {
+            overrideConstructor(window, 'EventSource', function (url, opts) {
                 if (arguments.length) {
                     const proxyUrl = getProxyUrl(url, { resourceType: stringifyResourceType({ isEventSource: true }) });
 
@@ -587,9 +575,7 @@ export default class WindowSandbox extends SandboxBase {
                 }
 
                 return new nativeMethods.EventSource();
-            };
-
-            overrideConstructor(window, 'EventSource', EventSourceWrapper);
+            });
 
             window.EventSource.CONNECTING = nativeMethods.EventSource.CONNECTING;
             window.EventSource.OPEN       = nativeMethods.EventSource.OPEN;
@@ -597,7 +583,7 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.MutationObserver) {
-            const MutationObserverWrapper = callback => {
+            overrideConstructor(window, 'MutationObserver', callback => {
                 const wrapper = function (mutations) {
                     const result = [];
 
@@ -611,16 +597,14 @@ export default class WindowSandbox extends SandboxBase {
                 };
 
                 return new nativeMethods.MutationObserver(wrapper);
-            };
-
-            overrideConstructor(window, 'MutationObserver', MutationObserverWrapper);
+            });
 
             if (window.WebKitMutationObserver)
                 window.WebKitMutationObserver = window.MutationObserver;
         }
 
         if (window.Proxy) {
-            const ProxyWrapper = function (target, handler) {
+            overrideConstructor(window, 'Proxy', function (target, handler) {
                 if (handler.get && !handler.get[PROXY_HANDLER_FLAG]) {
                     const storedGet = handler.get;
 
@@ -637,15 +621,13 @@ export default class WindowSandbox extends SandboxBase {
                 }
 
                 return new nativeMethods.Proxy(target, handler);
-            };
-
-            overrideConstructor(window, 'Proxy', ProxyWrapper);
+            });
 
             window.Proxy.revocable = nativeMethods.Proxy.revocable;
         }
 
         if (nativeMethods.registerServiceWorker) {
-            const registerServiceWorkerWrapper = (...args) => {
+            overrideFunction(window.navigator.serviceWorker, 'register', (...args) => {
                 const url = args[0];
 
                 if (typeof url === 'string') {
@@ -667,13 +649,11 @@ export default class WindowSandbox extends SandboxBase {
                 }
 
                 return nativeMethods.registerServiceWorker.apply(window.navigator.serviceWorker, args);
-            };
-
-            overrideFunction(window.navigator.serviceWorker, 'register', registerServiceWorkerWrapper);
+            });
         }
 
         if (nativeMethods.getRegistrationServiceWorker) {
-            const getRegistrationServiceWorkerWrapper = (...args) => {
+            overrideFunction(window.navigator.serviceWorker, 'getRegistration', (...args) => {
                 const scopeUrl = args[0];
 
                 if (typeof scopeUrl === 'string') {
@@ -683,13 +663,11 @@ export default class WindowSandbox extends SandboxBase {
                 }
 
                 return nativeMethods.getRegistrationServiceWorker.apply(window.navigator.serviceWorker, args);
-            };
-
-            overrideFunction(window.navigator.serviceWorker, 'getRegistration', getRegistrationServiceWorkerWrapper)
+            });
         }
 
         if (window.Range.prototype.createContextualFragment) {
-            const createContextualFragmentWrapper = function (...args) {
+            overrideFunction(window.Range.prototype, 'createContextualFragment', function (...args) {
                 const tagString = args[0];
 
                 if (typeof tagString === 'string') {
@@ -703,9 +681,7 @@ export default class WindowSandbox extends SandboxBase {
                 nodeSandbox.processNodes(fragment);
 
                 return fragment;
-            };
-
-            overrideFunction(window.Range.prototype, 'createContextualFragment', createContextualFragmentWrapper);
+            });
         }
 
         if (window.EventTarget) {
@@ -715,7 +691,7 @@ export default class WindowSandbox extends SandboxBase {
             overrideFunction(window.EventTarget.prototype, 'removeEventListener', overriddenMethods.removeEventListener);
         }
 
-        const ImageWrapper = function () {
+        overrideConstructor(window, 'Image', function () {
             let image = null;
 
             if (!arguments.length)
@@ -730,29 +706,23 @@ export default class WindowSandbox extends SandboxBase {
             nodeSandbox.processNodes(image);
 
             return image;
-        };
+        });
 
-        overrideConstructor(window, 'Image', ImageWrapper);
-
-        const FunctionWrapper = function (...args) {
+        overrideConstructor(window, 'Function', function (...args) {
             const functionBodyArgIndex = args.length - 1;
 
             if (typeof args[functionBodyArgIndex] === 'string')
                 args[functionBodyArgIndex] = processScript(args[functionBodyArgIndex], false, false, convertToProxyUrl);
 
             return nativeMethods.Function.apply(this, args);
-        };
+        }, true);
 
-        const funcToStringWrapper = function () {
+        overrideFunction(window.Function.prototype, 'toString', function () {
             if (nativeMethods.objectHasOwnProperty.call(this, INTERNAL_PROPS.nativeStringRepresentation))
                 return this[INTERNAL_PROPS.nativeStringRepresentation];
 
             return nativeMethods.funcProtoToString.call(this);
-        };
-
-        overrideFunction(window.Function.prototype, 'toString', funcToStringWrapper);
-
-        overrideConstructor(window, 'Function', FunctionWrapper, true);
+        });
 
         if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
             const createWrapperForHistoryStateManipulationFn = function (nativeFn) {
@@ -766,26 +736,21 @@ export default class WindowSandbox extends SandboxBase {
                 };
             };
 
-            const pushStateWrapper    = createWrapperForHistoryStateManipulationFn(nativeMethods.historyPushState);
-            const replaceStateWrapper = createWrapperForHistoryStateManipulationFn(nativeMethods.historyReplaceState);
-
-            overrideFunction(window.history, 'pushState',    pushStateWrapper);
-            overrideFunction(window.history, 'replaceState', replaceStateWrapper);
+            overrideFunction(window.history, 'pushState',    createWrapperForHistoryStateManipulationFn(nativeMethods.historyPushState));
+            overrideFunction(window.history, 'replaceState', createWrapperForHistoryStateManipulationFn(nativeMethods.historyReplaceState));
         }
 
         if (window.navigator.sendBeacon) {
-            const sendBeaconWrapper = function () {
+            overrideFunction(window.navigator, 'sendBeacon', function () {
                 if (typeof arguments[0] === 'string')
                     arguments[0] = getProxyUrl(arguments[0]);
 
                 return nativeMethods.sendBeacon.apply(this, arguments);
-            };
-
-            overrideFunction(window.navigator, 'sendBeacon', sendBeaconWrapper);
+            });
         }
 
         if (window.navigator.registerProtocolHandler) {
-            const registerProtocolHandlerWrapper = function (...args) {
+            overrideFunction(window.navigator, 'registerProtocolHandler', function (...args) {
                 const urlIndex = 1;
 
                 if (typeof args[urlIndex] === 'string') {
@@ -807,13 +772,11 @@ export default class WindowSandbox extends SandboxBase {
                 }
 
                 return nativeMethods.registerProtocolHandler.apply(navigator, args);
-            };
-
-            overrideFunction(window.navigator, 'registerProtocolHandler', registerProtocolHandlerWrapper);
+            });
         }
 
         if (window.FormData) {
-            const formDataAppend = function (name, value) {
+            overrideFunction(window.FormData.prototype, 'append', function (name, value) {
                 // NOTE: We should not send our hidden input's value along with the file info,
                 // because our input may have incorrect value if the input with the file has been removed from DOM.
                 if (name === INTERNAL_ATTRS.uploadInfoHiddenInputName)
@@ -828,13 +791,11 @@ export default class WindowSandbox extends SandboxBase {
                 }
                 else
                     nativeMethods.formDataAppend.apply(this, arguments);
-            };
-
-            overrideFunction(window.FormData.prototype, 'append', formDataAppend);
+            });
         }
 
         if (window.WebSocket) {
-            const WebSocketWrapper = function (url, protocols) {
+            overrideConstructor(window, 'WebSocket', function (url, protocols) {
                 if (arguments.length === 0)
                     return new nativeMethods.WebSocket();
 
@@ -846,9 +807,7 @@ export default class WindowSandbox extends SandboxBase {
                     return new nativeMethods.WebSocket(proxyUrl, protocols);
 
                 return new nativeMethods.WebSocket(proxyUrl, protocols, arguments[2]);
-            };
-
-            overrideConstructor(window, 'WebSocket', WebSocketWrapper);
+            });
 
             window.WebSocket.CONNECTING = nativeMethods.WebSocket.CONNECTING;
             window.WebSocket.OPEN       = nativeMethods.WebSocket.OPEN;
@@ -1192,7 +1151,7 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.DOMParser) {
-            const parseFromStringWrapper = function (...args) {
+            overrideFunction(window.DOMParser.prototype, 'parseFromString', function (...args) {
                 const str  = args[0];
                 const type = args[1];
                 let processedHtml;
@@ -1208,9 +1167,7 @@ export default class WindowSandbox extends SandboxBase {
                     ShadowUI.removeSelfRemovingScripts(document);
 
                 return document;
-            };
-
-            overrideFunction(window.DOMParser.prototype, 'parseFromString', parseFromStringWrapper);
+            });
         }
 
         overrideDescriptor(window.Node.prototype, 'firstChild', {
@@ -1481,22 +1438,15 @@ export default class WindowSandbox extends SandboxBase {
             }
         });
 
-        const tokenListAddWrapper    = this._createOverriddenDOMTokenListMethod(nativeMethods.tokenListAdd);
-        const tokenListRemoveWrapper = this._createOverriddenDOMTokenListMethod(nativeMethods.tokenListRemove);
-        const tokenListToggleWrapper = this._createOverriddenDOMTokenListMethod(nativeMethods.tokenListToggle);
+        overrideFunction(window.DOMTokenList.prototype, 'add', this._createOverriddenDOMTokenListMethod(nativeMethods.tokenListAdd));
+        overrideFunction(window.DOMTokenList.prototype, 'remove', this._createOverriddenDOMTokenListMethod(nativeMethods.tokenListRemove));
+        overrideFunction(window.DOMTokenList.prototype, 'toggle', this._createOverriddenDOMTokenListMethod(nativeMethods.tokenListToggle));
 
-        overrideFunction(window.DOMTokenList.prototype, 'add', tokenListAddWrapper);
-        overrideFunction(window.DOMTokenList.prototype, 'remove', tokenListRemoveWrapper);
-        overrideFunction(window.DOMTokenList.prototype, 'toggle', tokenListToggleWrapper);
-
-        if (nativeMethods.tokenListReplace) {
-            const tokenListReplaceWrapper = this._createOverriddenDOMTokenListMethod(nativeMethods.tokenListReplace);
-
-            overrideFunction(window.DOMTokenList.prototype, 'replace', tokenListReplaceWrapper)
-        }
+        if (nativeMethods.tokenListReplace)
+            overrideFunction(window.DOMTokenList.prototype, 'replace', this._createOverriddenDOMTokenListMethod(nativeMethods.tokenListReplace));
 
         if (nativeMethods.tokenListSupports) {
-            const tokenListSupportsWrapper = function () {
+            overrideFunction(window.DOMTokenList.prototype, 'supports', function () {
                 if (this[SANDBOX_DOM_TOKEN_LIST_OWNER]) {
                     const nativeTokenList = nativeMethods.iframeSandboxGetter.call(this[SANDBOX_DOM_TOKEN_LIST_OWNER]);
 
@@ -1504,20 +1454,16 @@ export default class WindowSandbox extends SandboxBase {
                 }
 
                 return nativeMethods.tokenListSupports.apply(this, arguments);
-            };
-
-            overrideFunction(window.DOMTokenList.prototype, 'supports', tokenListSupportsWrapper);
+            });
         }
 
-        const createHTMLDocumentWrapper = function (...args) {
+        overrideFunction(window.DOMImplementation.prototype, 'createHTMLDocument', function (...args) {
             const doc = nativeMethods.createHTMLDocument.apply(this, args);
 
             urlResolver.init(doc);
 
             return doc;
-        };
-
-        overrideFunction(window.DOMImplementation.prototype, 'createHTMLDocument', createHTMLDocumentWrapper);
+        });
 
         overrideDescriptor(window.MutationRecord.prototype, 'nextSibling', {
             getter: function () {

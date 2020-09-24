@@ -87,30 +87,26 @@ export default class XhrSandbox extends SandboxBase {
         // NOTE: We cannot just assign constructor property in OS X 10.11 safari 9.0
         overrideConstructor(window, 'XMLHttpRequest', xmlHttpRequestWrapper, true);
 
-        const xmlHttpRequestProtoAbortWrapper = function () {
+        overrideFunction(xmlHttpRequestProto, 'abort', function () {
             nativeMethods.xhrAbort.apply(this, arguments);
             xhrSandbox.emit(xhrSandbox.XHR_ERROR_EVENT, {
                 err: new Error('XHR aborted'),
                 xhr: this
             });
-        };
-
-        overrideFunction(xmlHttpRequestProto, 'abort', xmlHttpRequestProtoAbortWrapper);
+        });
 
         // NOTE: Redirect all requests to the Hammerhead proxy and ensure that requests don't
         // violate Same Origin Policy.
-        const xmlHttpRequestProtoOpenWrapper = function () {
+        overrideFunction(xmlHttpRequestProto, 'open', function () {
             const url         = arguments[1];
             const urlIsString = typeof url === 'string';
 
             arguments[1] = getProxyUrl(urlIsString ? url : String(url));
 
             nativeMethods.xhrOpen.apply(this, arguments);
-        };
+        });
 
-        overrideFunction(xmlHttpRequestProto, 'open', xmlHttpRequestProtoOpenWrapper);
-
-        const xmlHttpRequestProtoSendWrapper = function () {
+        overrideFunction(xmlHttpRequestProto, 'send', function () {
             xhrSandbox.emit(xhrSandbox.BEFORE_XHR_SEND_EVENT, { xhr: this });
 
             // NOTE: As all requests are passed to the proxy, we need to perform Same Origin Policy compliance checks on the
@@ -127,17 +123,13 @@ export default class XhrSandbox extends SandboxBase {
                 emitXhrCompletedEvent.call(this);
 
             syncCookieWithClientIfNecessary.call(this);
-        };
+        });
 
-        overrideFunction(xmlHttpRequestProto, 'send', xmlHttpRequestProtoSendWrapper);
-
-        const xmlHttpRequestProtoSetRequestHeaderWrapper = function (...args) {
+        overrideFunction(xmlHttpRequestProto, 'setRequestHeader', function (...args) {
             args[0] = transformHeaderNameToInternal(args[0]);
 
             return nativeMethods.xhrSetRequestHeader.apply(this, args);
-        };
-
-        overrideFunction(xmlHttpRequestProto, 'setRequestHeader', xmlHttpRequestProtoSetRequestHeaderWrapper);
+        });
 
         overrideDescriptor(window.XMLHttpRequest.prototype, 'status', {
             getter: function () {
@@ -155,22 +147,18 @@ export default class XhrSandbox extends SandboxBase {
             });
         }
 
-        const xmlHttpRequestProtoGetResponseHeaderWrapper = function (...args) {
+        overrideFunction(xmlHttpRequestProto, 'getResponseHeader', function (...args) {
             args[0] = transformHeaderNameToInternal(args[0]);
 
             return nativeMethods.xhrGetResponseHeader.apply(this, args);
-        };
+        });
 
-        overrideFunction(xmlHttpRequestProto, 'getResponseHeader', xmlHttpRequestProtoGetResponseHeaderWrapper);
-
-        const xmlHttpRequestProtoGetAllResponseHeadersWrapper = function () {
+        overrideFunction(xmlHttpRequestProto, 'getAllResponseHeaders', function () {
             const allHeaders = nativeMethods.xhrGetAllResponseHeaders.apply(this, arguments);
 
             return allHeaders
                 .replace(INTERNAL_HEADERS.wwwAuthenticate, BUILTIN_HEADERS.wwwAuthenticate)
                 .replace(INTERNAL_HEADERS.proxyAuthenticate, BUILTIN_HEADERS.proxyAuthenticate);
-        };
-
-        overrideFunction(xmlHttpRequestProto, 'getAllResponseHeaders', xmlHttpRequestProtoGetAllResponseHeadersWrapper);
+        });
     }
 }
