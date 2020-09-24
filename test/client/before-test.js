@@ -207,7 +207,7 @@
         );
         strictEqual(
             Function.prototype.toString.call(wrappedFn),
-            nativeMethods.Function.prototype.toString.call(originalFn),
+            nativeMethods.funcProtoToString.call(originalFn),
             'the outputs of the "Function.prototype.toString" function should be the same'
         );
         strictEqual(

@@ -140,7 +140,7 @@ module('wrappers of native functions should return the correct string representa
     if (window.XMLHttpRequest) {
         test('window.XMLHttpRequest', function () {
             window.checkStringRepresentation(window.XMLHttpRequest, nativeMethods.XMLHttpRequest);
-            window.checkStringRepresentation(window.XMLHttpRequest.prototype.constructor, nativeMethods.XMLHttpRequest.prototype.constructor);
+            window.checkStringRepresentation(window.XMLHttpRequest.prototype.constructor, nativeMethods.xmlHttpRequestProtoCtor);
         });
 
         test('window.XMLHttpRequest.prototype.abort', function () {

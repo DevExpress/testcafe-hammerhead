@@ -743,13 +743,11 @@ export default class WindowSandbox extends SandboxBase {
             return nativeMethods.Function.apply(this, args);
         };
 
-        const nativeFunctionPrototypeToString = nativeMethods.Function.prototype.toString;
-
         const funcToStringWrapper = function () {
             if (nativeMethods.objectHasOwnProperty.call(this, INTERNAL_PROPS.nativeStringRepresentation))
                 return this[INTERNAL_PROPS.nativeStringRepresentation];
 
-            return nativeFunctionPrototypeToString.call(this);
+            return nativeMethods.funcProtoToString.call(this);
         };
 
         overrideFunction(window.Function.prototype, 'toString', funcToStringWrapper);
