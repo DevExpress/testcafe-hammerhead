@@ -7,6 +7,10 @@
 </head>
 <body>
 <script>
+    var hammerhead = window['%hammerhead%'];
+
+    hammerhead.start({ sessionId: 'sessionId' });
+
     var div1 = document.createElement('div');
 
     div1.id = 'div1';
@@ -20,7 +24,6 @@
 
         document.body.appendChild(div2);
 
-        var hammerhead    = window['%hammerhead%'];
         var hhPostMessage = hammerhead.sandbox.event.message.postMessage;
         var lastChildId   = document.body.lastChild.id;
 
