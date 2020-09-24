@@ -30,7 +30,6 @@ export default class TimersSandbox extends SandboxBase {
             const fnToRun       = isScriptFirstArg ? () => {
                 // NOTE: We are switching eval to the global context with this assignment.
                 // Unlike eval, the setTimeout/setInterval functions always work in the global context.
-                // @ts-ignore
                 const ev = this.window.eval;
 
                 return ev(script);

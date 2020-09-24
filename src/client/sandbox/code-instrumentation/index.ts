@@ -37,7 +37,6 @@ export default class CodeInstrumentation extends SandboxBase {
         // NOTE: GH-260
         nativeMethods.objectDefineProperty(window, INSTRUCTION.getEval, {
             value: (evalFn: Function) => {
-                // @ts-ignore
                 if (evalFn !== window.eval)
                     return evalFn;
 

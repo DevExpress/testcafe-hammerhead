@@ -181,7 +181,6 @@ export default class FetchSandbox extends SandboxBase {
                 FetchSandbox._processArguments(args);
             }
             catch (e) {
-                // @ts-ignore
                 return nativeMethods.promiseReject.call(sandbox.window.Promise, e);
             }
 

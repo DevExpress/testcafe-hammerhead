@@ -397,7 +397,6 @@ class NativeMethods {
         doc = doc || document;
         win = win || window as Window & typeof globalThis;
 
-        // @ts-ignore
         const docPrototype = win.Document.prototype;
 
         // Dom
@@ -1186,7 +1185,7 @@ class NativeMethods {
         const needToRefreshWindowMethods = tryToExecuteCode(() => {
             this.setTimeout.call(win, () => void 0, 0);
 
-            return isNativeFunction((win as any).XMLHttpRequest.prototype.open);
+            return isNativeFunction(win.XMLHttpRequest.prototype.open);
         });
 
         // NOTE: T173709
