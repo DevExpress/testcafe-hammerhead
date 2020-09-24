@@ -56,24 +56,27 @@ export function overrideDescriptor<O extends object, K extends keyof O> (obj: O,
     nativeMethods.objectDefineProperty(obj, prop, descriptor);
 }
 
-// NOTE: saves the original string representation of a native function in its wrapper as an additional property
-export function overrideStringRepresentation (nativeFnWrapper: Function, nativeFn: Function): void {
-    // NOTE: we need to override the 'name' property of our wrapper 
-    // to be the same as the `name` property of a native function
-    nativeMethods.objectDefineProperty(nativeFnWrapper, 'name', {
-        value: nativeFn['name']
-    });
-    
-    const nativeStringRepresentation = nativeMethods.Function.prototype.toString.call(nativeFn);
+function overrideFunctionName (fn: Function, name: string) {
+    const wrapperNameDescriptor = nativeMethods.objectGetOwnPropertyDescriptor(fn, 'name');
 
-    nativeMethods.objectDefineProperty(nativeFnWrapper, INTERNAL_PROPS.nativeStringRepresentation, {
-        value: nativeStringRepresentation,
-        configurable: true
-    });
+    if (wrapperNameDescriptor) {
+        // eslint-disable-next-line no-restricted-properties
+        wrapperNameDescriptor.value = name;
+
+        nativeMethods.objectDefineProperty(fn, 'name', wrapperNameDescriptor);
+    }
+    else
+        nativeMethods.objectDefineProperty(fn, 'name', { value: name });
+}
+
+export function overrideStringRepresentation (nativeFnWrapper: Function, nativeFn: Function): void {
+    overrideFunctionName(nativeFnWrapper, nativeFn['name']);
+
+    nativeFnWrapper[INTERNAL_PROPS.nativeStrRepresentation] = nativeMethods.Function.prototype.toString.call(nativeFn);
 }
 
 export function isNativeFunction (fn: Function): boolean {
-    return !nativeMethods.objectHasOwnProperty.call(fn, INTERNAL_PROPS.nativeStringRepresentation);
+    return !nativeMethods.objectHasOwnProperty.call(fn, INTERNAL_PROPS.nativeStrRepresentation);
 }
 
 export function overrideFunction<O extends object, K extends keyof O> (obj: O, fnName: K, wrapper: Function): void {
@@ -82,9 +85,7 @@ export function overrideFunction<O extends object, K extends keyof O> (obj: O, f
     if (isNativeFunction(fn)) {
         overrideStringRepresentation(wrapper, fn);
         
-        nativeMethods.objectDefineProperty(obj, fnName, {
-            value: wrapper
-        });
+        (obj[fnName] as unknown as Function) = wrapper;
     }
 }
 
@@ -93,18 +94,11 @@ export function overrideConstructor<O extends object, K extends keyof O> (obj: O
     
     overrideFunction(obj, fnName, wrapper);
 
-    if (nativePrototype) {
-        // NOTE: restore native prototype (to make `instanceof` work as expected)
-        nativeMethods.objectDefineProperty(obj[fnName], 'prototype', {
-            value: nativePrototype
-        });
-        
-        // NOTE: we need to override the `constructor` property of a prototype 
-        // because sometimes native constructor can be retrieved from it
-        if (overrideProtoConstructor) {
-            nativeMethods.objectDefineProperty(nativePrototype, 'constructor', {
-                value: wrapper
-            });
-        }
-    }
+    // NOTE: restore native prototype (to make `instanceof` work as expected)
+    obj[fnName]['prototype'] = nativePrototype;
+
+    // NOTE: we need to override the `constructor` property of a prototype
+    // because sometimes native constructor can be retrieved from it
+    if (overrideProtoConstructor)
+        obj[fnName]['prototype']['constructor'] = wrapper;
 }

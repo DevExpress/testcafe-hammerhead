@@ -16,6 +16,5 @@ export default {
     skipNextLoadEventForImage: 'hammerhead|image|skip-next-load-event-flag',
     cachedImage:               'hammerhead|image|cached-image',
     sandboxIsReattached:       'hammerhead|sandbox-is-reattached',
-    
-    nativeStringRepresentation: 'hammerhead|nativeStringRepresentation'
+    nativeStrRepresentation:   'hammerhead|native-string-representation'
 };
