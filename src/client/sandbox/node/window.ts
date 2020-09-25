@@ -721,7 +721,7 @@ export default class WindowSandbox extends SandboxBase {
             if (nativeMethods.objectHasOwnProperty.call(this, INTERNAL_PROPS.nativeStrRepresentation))
                 return this[INTERNAL_PROPS.nativeStrRepresentation];
 
-            return nativeMethods.funcProtoToString.call(this);
+            return nativeMethods.functionToString.call(this);
         });
 
         if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {

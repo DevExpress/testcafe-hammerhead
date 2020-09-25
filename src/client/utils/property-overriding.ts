@@ -65,8 +65,6 @@ function overrideFunctionName (fn: Function, name: string) {
 
         nativeMethods.objectDefineProperty(fn, 'name', wrapperNameDescriptor);
     }
-    else
-        nativeMethods.objectDefineProperty(fn, 'name', { value: name });
 }
 
 export function overrideStringRepresentation (nativeFnWrapper: Function, nativeFn: Function): void {

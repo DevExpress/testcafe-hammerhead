@@ -347,7 +347,7 @@ class NativeMethods {
     Image: any;
     Function: any;
     Error: any;
-    funcProtoToString: Function;
+    functionToString: Function;
     FontFace: any;
     StorageEvent: any;
     MutationObserver: any;
@@ -370,9 +370,6 @@ class NativeMethods {
     crypto: Crypto;
     cryptoGetRandomValues: Function;
     URL: typeof URL;
-    workerProtoCtor: Function;
-    xmlHttpRequestProtoCtor: Function;
-    functionProtoCtor: Function;
 
     constructor (doc?: Document, win?: Window & typeof globalThis) {
         const globalCtx = getGlobalContextInfo();
@@ -1089,7 +1086,7 @@ class NativeMethods {
         this.XMLHttpRequest       = win.XMLHttpRequest;
         this.Image                = win.Image;
         this.Function             = win.Function;
-        this.funcProtoToString    = win.Function.prototype.toString;
+        this.functionToString     = win.Function.prototype.toString;
         this.Error                = win.Error;
         this.FontFace             = win.FontFace;
         this.StorageEvent         = win.StorageEvent;
@@ -1110,10 +1107,6 @@ class NativeMethods {
         // NOTE: non-IE11 case. window.File in IE11 is not constructable.
         if (win.File && typeof win.File === 'function')
             this.File = win.File;
-
-        this.workerProtoCtor         = win.Worker.prototype.constructor;
-        this.xmlHttpRequestProtoCtor = win.XMLHttpRequest.prototype.constructor;
-        this.functionProtoCtor       = win.Function.prototype.constructor;
     }
 
     refreshElectronMeths (vmModule): boolean {
