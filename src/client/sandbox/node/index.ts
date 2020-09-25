@@ -31,7 +31,7 @@ export default class NodeSandbox extends SandboxBase {
     doc: DocumentSandbox;
     win: WindowSandbox;
     element: ElementSandbox;
-    private readonly _documentTitleStorageInitializer: DocumentTitleStorageInitializer;
+    private readonly _documentTitleStorageInitializer: DocumentTitleStorageInitializer | null;
 
     constructor (readonly mutation: NodeMutation,
         readonly iframeSandbox: IframeSandbox,
@@ -51,12 +51,19 @@ export default class NodeSandbox extends SandboxBase {
             writable: true
         });
 
+        this._documentTitleStorageInitializer = NodeSandbox._createDocumentTitleStorageInitializer();
+        this.doc                              = new DocumentSandbox(this, this.shadowUI, this._cookieSandbox, this._documentTitleStorageInitializer);
+        this.win                              = new WindowSandbox(this, this._eventSandbox, this._uploadSandbox, this.mutation, this._childWindowSandbox, this._documentTitleStorageInitializer);
+        this.element                          = new ElementSandbox(this, this._uploadSandbox, this.iframeSandbox, this.shadowUI, this._eventSandbox, this._childWindowSandbox);
+    }
+
+    private static _createDocumentTitleStorageInitializer (): DocumentTitleStorageInitializer | null {
+        if (window !== window.top)
+            return null;
+
         const documentTitleStorage = new DocumentTitleStorage(document);
 
-        this._documentTitleStorageInitializer = new DocumentTitleStorageInitializer(documentTitleStorage);
-        this.doc                              = new DocumentSandbox(this, this.shadowUI, this._cookieSandbox, documentTitleStorage);
-        this.win                              = new WindowSandbox(this, this._eventSandbox, this._uploadSandbox, this.mutation, this._childWindowSandbox, documentTitleStorage);
-        this.element                          = new ElementSandbox(this, this._uploadSandbox, this.iframeSandbox, this.shadowUI, this._eventSandbox, this._childWindowSandbox);
+        return new DocumentTitleStorageInitializer(documentTitleStorage);
     }
 
     private _onBodyCreated (): void {
@@ -95,7 +102,8 @@ export default class NodeSandbox extends SandboxBase {
     }
 
     onOriginFirstTitleElementInHeadLoaded (): void {
-        this._documentTitleStorageInitializer.onPageTitleLoaded();
+        if(this._documentTitleStorageInitializer)
+            this._documentTitleStorageInitializer.onPageTitleLoaded();
     }
 
     processNodes (el: HTMLElement, doc?: Document): void {
@@ -124,7 +132,9 @@ export default class NodeSandbox extends SandboxBase {
         let domContentLoadedEventRaised = false;
 
         super.attach(window, document);
-        this._documentTitleStorageInitializer.onAttach();
+
+        if (this._documentTitleStorageInitializer)
+            this._documentTitleStorageInitializer.onAttach();
 
         this.iframeSandbox.on(this.iframeSandbox.IFRAME_DOCUMENT_CREATED_EVENT, ({ iframe }) => {
             const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
