@@ -199,22 +199,12 @@
     window.noop = function () {
     };
 
-    window.checkStringRepresentation = function (wrappedFn, originalFn) {
-        strictEqual(
-            wrappedFn.toString(),
-            originalFn.toString(),
-            'the outputs of the "toString()" method should be the same'
-        );
-        strictEqual(
-            Function.prototype.toString.call(wrappedFn),
-            nativeMethods.functionToString.call(originalFn),
-            'the outputs of the "Function.prototype.toString" function should be the same'
-        );
-        strictEqual(
-            wrappedFn.name,
-            originalFn.name,
-            'the function names should be the same'
-        );
+    window.checkStringRepresentation = function (wrappedFn, originalFn, fnName) {
+        strictEqual(wrappedFn.toString(), originalFn.toString(),
+            fnName + ': the outputs of the "toString()" method should be the same');
+        strictEqual(Function.prototype.toString.call(wrappedFn), nativeMethods.functionToString.call(originalFn),
+            fnName + ': the outputs of the "Function.prototype.toString" function should be the same');
+        strictEqual(wrappedFn.name, originalFn.name, fnName + ': the function names should be the same');
     };
 
     QUnitGlobals.WAIT_FOR_IFRAME_TIMEOUT = 20000;

@@ -136,38 +136,28 @@ test('throwing an error on invalid calling "open" method (GH-1613)', function ()
     }
 });
 
-module('wrappers of native functions should return the correct string representations', function () {
-    if (window.XMLHttpRequest) {
-        test('window.XMLHttpRequest', function () {
-            window.checkStringRepresentation(window.XMLHttpRequest, nativeMethods.XMLHttpRequest);
-            window.checkStringRepresentation(window.XMLHttpRequest.prototype.constructor, nativeMethods.XMLHttpRequest);
-        });
-
-        test('window.XMLHttpRequest.prototype.abort', function () {
-            window.checkStringRepresentation(window.XMLHttpRequest.prototype.abort, nativeMethods.xhrAbort);
-        });
-
-        test('window.XMLHttpRequest.prototype.open', function () {
-            window.checkStringRepresentation(window.XMLHttpRequest.prototype.open, nativeMethods.xhrOpen);
-        });
-
-        test('window.XMLHttpRequest.prototype.send', function () {
-            window.checkStringRepresentation(window.XMLHttpRequest.prototype.send, nativeMethods.xhrSend);
-        });
-
-        test('window.XMLHttpRequest.prototype.setRequestHeader', function () {
-            window.checkStringRepresentation(window.XMLHttpRequest.prototype.setRequestHeader, nativeMethods.xhrSetRequestHeader);
-        });
-
-        test('window.XMLHttpRequest.prototype.getResponseHeader', function () {
-            window.checkStringRepresentation(window.XMLHttpRequest.prototype.getResponseHeader, nativeMethods.xhrGetResponseHeader);
-        });
-
-        test('window.XMLHttpRequest.prototype.getAllResponseHeaders', function () {
-            window.checkStringRepresentation(window.XMLHttpRequest.prototype.getAllResponseHeaders, nativeMethods.xhrGetAllResponseHeaders);
-        });
-    }
-});
+if (window.XMLHttpRequest) {
+    test('wrappers of native functions should return the correct string representations', function () {
+        window.checkStringRepresentation(window.XMLHttpRequest, nativeMethods.XMLHttpRequest, 'XMLHttpRequest');
+        window.checkStringRepresentation(window.XMLHttpRequest.prototype.constructor, nativeMethods.XMLHttpRequest,
+            'XMLHttpRequest.prototype.constructor');
+        window.checkStringRepresentation(window.XMLHttpRequest.prototype.abort, nativeMethods.xhrAbort,
+            'XMLHttpRequest.prototype.abort');
+        window.checkStringRepresentation(window.XMLHttpRequest.prototype.open, nativeMethods.xhrOpen,
+            'XMLHttpRequest.prototype.open');
+        window.checkStringRepresentation(window.XMLHttpRequest.prototype.send, nativeMethods.xhrSend,
+            'XMLHttpRequest.prototype.send');
+        window.checkStringRepresentation(window.XMLHttpRequest.prototype.setRequestHeader,
+            nativeMethods.xhrSetRequestHeader,
+            'XMLHttpRequest.prototype.setRequestHeader');
+        window.checkStringRepresentation(window.XMLHttpRequest.prototype.getResponseHeader,
+            nativeMethods.xhrGetResponseHeader,
+            'XMLHttpRequest.prototype.getResponseHeader');
+        window.checkStringRepresentation(window.XMLHttpRequest.prototype.getAllResponseHeaders,
+            nativeMethods.xhrGetAllResponseHeaders,
+            'XMLHttpRequest.prototype.getAllResponseHeaders');
+    });
+}
 
 module('regression');
 

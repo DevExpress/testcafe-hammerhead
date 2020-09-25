@@ -27,6 +27,139 @@ test('window.onerror setter/getter', function () {
     window.onerror = storedOnErrorHandler;
 });
 
+test('wrappers of native functions should return the correct string representations', function () {
+    window.checkStringRepresentation(window.CanvasRenderingContext2D.prototype.drawImage,
+        nativeMethods.canvasContextDrawImage,
+        'CanvasRenderingContext2D.prototype.drawImage');
+
+    if (window.Object.assign)
+        window.checkStringRepresentation(window.Object.assign, nativeMethods.objectAssign, 'Object.assign');
+
+    window.checkStringRepresentation(window.open, nativeMethods.windowOpen, 'open');
+
+    if (window.FontFace)
+        window.checkStringRepresentation(window.FontFace, nativeMethods.FontFace, 'FontFace');
+
+    if (window.Worker) {
+        window.checkStringRepresentation(window.Worker, nativeMethods.Worker, 'Worker');
+        window.checkStringRepresentation(window.Worker.prototype.constructor, nativeMethods.Worker,
+            'Worker.prototype.constructor');
+    }
+
+    if (window.Blob)
+        window.checkStringRepresentation(window.Blob, nativeMethods.Blob, 'Blob');
+
+    // NOTE: File in IE11 is not constructable.
+    if (window.File && typeof window.File === 'function')
+        window.checkStringRepresentation(window.File, nativeMethods.File, 'File');
+
+    if (window.EventSource)
+        window.checkStringRepresentation(window.EventSource, nativeMethods.EventSource, 'EventSource');
+
+    if (window.MutationObserver)
+        window.checkStringRepresentation(window.MutationObserver, nativeMethods.MutationObserver, 'MutationObserver');
+
+    if (window.WebKitMutationObserver) {
+        window.checkStringRepresentation(window.WebKitMutationObserver, nativeMethods.MutationObserver,
+            'WebKitMutationObserver');
+    }
+
+    if (window.Proxy)
+        window.checkStringRepresentation(window.Proxy, nativeMethods.Proxy, 'Proxy');
+
+    if (window.registerServiceWorker) {
+        window.checkStringRepresentation(window.registerServiceWorker, nativeMethods.registerServiceWorker,
+            'registerServiceWorker');
+    }
+
+    if (window.getRegistrationServiceWorker) {
+        window.checkStringRepresentation(window.getRegistrationServiceWorker,
+            nativeMethods.getRegistrationServiceWorker,
+            'getRegistrationServiceWorker');
+    }
+
+    if (window.Range.prototype.createContextualFragment) {
+        window.checkStringRepresentation(window.Range.prototype.createContextualFragment,
+            nativeMethods.createContextualFragment,
+            'Range.prototype.createContextualFragment');
+    }
+
+    if (window.EventTarget) {
+        window.checkStringRepresentation(window.EventTarget.prototype.addEventListener,
+            nativeMethods.windowAddEventListener,
+            'EventTarget.prototype.addEventListener');
+        window.checkStringRepresentation(window.EventTarget.prototype.removeEventListener,
+            nativeMethods.windowRemoveEventListener,
+            'EventTarget.prototype.removeEventListener');
+    }
+    else {
+        window.checkStringRepresentation(window.addEventListener, nativeMethods.windowAddEventListener,
+            'addEventListener');
+        window.checkStringRepresentation(window.removeEventListener, nativeMethods.windowRemoveEventListener,
+            'removeEventListener');
+    }
+
+    if (window.Image)
+        window.checkStringRepresentation(window.Image, nativeMethods.Image, 'Image');
+
+    window.checkStringRepresentation(window.Function, nativeMethods.Function, 'Function');
+    window.checkStringRepresentation(window.Function.prototype.constructor, nativeMethods.Function,
+        'Function.prototype.constructor');
+
+    if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
+        window.checkStringRepresentation(window.history.pushState, nativeMethods.historyPushState,
+            'history.pushState');
+        window.checkStringRepresentation(window.history.replaceState, nativeMethods.historyReplaceState,
+            'history.replaceState');
+    }
+
+    if (window.navigator.sendBeacon)
+        window.checkStringRepresentation(window.navigator.sendBeacon, nativeMethods.sendBeacon);
+
+    if (window.navigator.registerProtocolHandler) {
+        window.checkStringRepresentation(window.navigator.registerProtocolHandler,
+            nativeMethods.registerProtocolHandler,
+            'navigator.registerProtocolHandler');
+    }
+
+    if (window.FormData) {
+        window.checkStringRepresentation(window.FormData.prototype.append, nativeMethods.formDataAppend,
+            'FormData.prototype.append');
+    }
+
+    if (window.WebSocket)
+        window.checkStringRepresentation(window.WebSocket, nativeMethods.WebSocket, 'WebSocket');
+
+    if (window.DOMParser) {
+        window.checkStringRepresentation(window.DOMParser.prototype.parseFromString,
+            nativeMethods.DOMParserParseFromString,
+            'DOMParser.prototype.parseFromString');
+    }
+
+    if (window.DOMTokenList) {
+        window.checkStringRepresentation(window.DOMTokenList.prototype.add, nativeMethods.tokenListAdd,
+            'DOMTokenList.prototype.add');
+        window.checkStringRepresentation(window.DOMTokenList.prototype.remove, nativeMethods.tokenListRemove,
+            'DOMTokenList.prototype.remove');
+        window.checkStringRepresentation(window.DOMTokenList.prototype.toggle, nativeMethods.tokenListToggle,
+            'DOMTokenList.prototype.toggle');
+
+        if (window.DOMTokenList.prototype.replace) {
+            window.checkStringRepresentation(window.DOMTokenList.prototype.replace, nativeMethods.tokenListReplace,
+                'DOMTokenList.prototype.replace');
+        }
+
+        if (window.DOMTokenList.prototype.supports) {
+            window.checkStringRepresentation(window.DOMTokenList.prototype.supports, nativeMethods.tokenListSupports,
+                'DOMTokenList.prototype.supports');
+        }
+    }
+
+    window.checkStringRepresentation(window.DOMImplementation.prototype.createHTMLDocument,
+        nativeMethods.createHTMLDocument,
+        'DOMImplementation.prototype.createHTMLDocument');
+});
+
 if (nativeMethods.winOnUnhandledRejectionSetter) {
     module('unhandledrejection event (GH-1247)', function () {
         asyncTest('window.onunhandledrejection should be instrumented', function () {
@@ -479,190 +612,6 @@ if (nativeMethods.windowOriginGetter) {
         strictEqual(window.origin, 2);
     });
 }
-
-module('wrappers of native functions should return the correct string representations', function () {
-    test('CanvasRenderingContext2D.prototype.drawImage', function () {
-        window.checkStringRepresentation(window.CanvasRenderingContext2D.prototype.drawImage, nativeMethods.canvasContextDrawImage);
-    });
-
-    if (window.Object.assign) {
-        test('Object.assign', function () {
-            window.checkStringRepresentation(window.Object.assign, nativeMethods.objectAssign);
-        });
-    }
-
-    test('open', function () {
-        window.checkStringRepresentation(window.open, nativeMethods.windowOpen);
-    });
-
-    if (window.FontFace) {
-        test('FontFace', function () {
-            window.checkStringRepresentation(window.FontFace, nativeMethods.FontFace);
-        });
-    }
-
-    if (window.Worker) {
-        test('Worker', function () {
-            window.checkStringRepresentation(window.Worker, nativeMethods.Worker);
-            window.checkStringRepresentation(window.Worker.prototype.constructor, nativeMethods.Worker);
-        });
-    }
-
-    if (window.Blob) {
-        test('Blob', function () {
-            window.checkStringRepresentation(window.Blob, nativeMethods.Blob);
-        });
-    }
-
-    // NOTE: File in IE11 is not constructable.
-    if (window.File && typeof window.File === 'function') {
-        test('File', function () {
-            window.checkStringRepresentation(window.File, nativeMethods.File);
-        });
-    }
-
-    if (window.EventSource) {
-        test('EventSource', function () {
-            window.checkStringRepresentation(window.EventSource, nativeMethods.EventSource);
-        });
-    }
-
-    if (window.MutationObserver) {
-        test('MutationObserver', function () {
-            window.checkStringRepresentation(window.MutationObserver, nativeMethods.MutationObserver);
-        });
-    }
-
-    if (window.WebKitMutationObserver) {
-        test('WebKitMutationObserver', function () {
-            window.checkStringRepresentation(window.WebKitMutationObserver, nativeMethods.MutationObserver);
-        });
-    }
-
-    if (window.Proxy) {
-        test('Proxy', function () {
-            window.checkStringRepresentation(window.Proxy, nativeMethods.Proxy);
-        });
-    }
-
-    if (window.registerServiceWorker) {
-        test('registerServiceWorker', function () {
-            window.checkStringRepresentation(window.registerServiceWorker, nativeMethods.registerServiceWorker);
-        });
-    }
-
-    if (window.getRegistrationServiceWorker) {
-        test('getRegistrationServiceWorker', function () {
-            window.checkStringRepresentation(window.getRegistrationServiceWorker, nativeMethods.getRegistrationServiceWorker);
-        });
-    }
-
-    if (window.Range.prototype.createContextualFragment) {
-        test('Range.prototype.createContextualFragment', function () {
-            window.checkStringRepresentation(window.Range.prototype.createContextualFragment, nativeMethods.createContextualFragment);
-        });
-    }
-
-    if (window.EventTarget) {
-        test('addEventListener', function () {
-            window.checkStringRepresentation(window.EventTarget.prototype.addEventListener, nativeMethods.windowAddEventListener);
-        });
-
-        test('removeEventListener', function () {
-            window.checkStringRepresentation(window.EventTarget.prototype.removeEventListener, nativeMethods.windowRemoveEventListener);
-        });
-    }
-    else {
-        test('addEventListener', function () {
-            window.checkStringRepresentation(window.addEventListener, nativeMethods.windowAddEventListener);
-        });
-
-        test('removeEventListener', function () {
-            window.checkStringRepresentation(window.removeEventListener, nativeMethods.windowRemoveEventListener);
-        });
-    }
-
-    if (window.Image) {
-        test('Image', function () {
-            window.checkStringRepresentation(window.Image, nativeMethods.Image);
-        });
-    }
-
-    test('Function', function () {
-        window.checkStringRepresentation(window.Function, nativeMethods.Function);
-        window.checkStringRepresentation(window.Function.prototype.constructor, nativeMethods.Function);
-    });
-
-    if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
-        test('history.pushState', function () {
-            window.checkStringRepresentation(window.history.pushState, nativeMethods.historyPushState);
-        });
-
-        test('history.replaceState', function () {
-            window.checkStringRepresentation(window.history.replaceState, nativeMethods.historyReplaceState);
-        });
-    }
-
-    if (window.navigator.sendBeacon) {
-        test('navigator.sendBeacon', function () {
-            window.checkStringRepresentation(window.navigator.sendBeacon, nativeMethods.sendBeacon);
-        });
-    }
-
-    if (window.navigator.registerProtocolHandler) {
-        test('navigator.registerProtocolHandler', function () {
-            window.checkStringRepresentation(window.navigator.registerProtocolHandler, nativeMethods.registerProtocolHandler);
-        });
-    }
-
-    if (window.FormData) {
-        test('FormData.prototype.append', function () {
-            window.checkStringRepresentation(window.FormData.prototype.append, nativeMethods.formDataAppend);
-        });
-    }
-
-    if (window.WebSocket) {
-        test('WebSocket', function () {
-            window.checkStringRepresentation(window.WebSocket, nativeMethods.WebSocket);
-        });
-    }
-
-    if (window.DOMParser) {
-        test('DOMParser.prototype.parseFromString', function () {
-            window.checkStringRepresentation(window.DOMParser.prototype.parseFromString, nativeMethods.DOMParserParseFromString);
-        });
-    }
-
-    if (window.DOMTokenList) {
-        test('DOMTokenList.prototype.add', function () {
-            window.checkStringRepresentation(window.DOMTokenList.prototype.add, nativeMethods.tokenListAdd);
-        });
-
-        test('DOMTokenList.prototype.remove', function () {
-            window.checkStringRepresentation(window.DOMTokenList.prototype.remove, nativeMethods.tokenListRemove);
-        });
-
-        test('DOMTokenList.prototype.toggle', function () {
-            window.checkStringRepresentation(window.DOMTokenList.prototype.toggle, nativeMethods.tokenListToggle);
-        });
-
-        if (window.DOMTokenList.prototype.replace) {
-            test('DOMTokenList.prototype.replace', function () {
-                window.checkStringRepresentation(window.DOMTokenList.prototype.replace, nativeMethods.tokenListReplace);
-            });
-        }
-
-        if (window.DOMTokenList.prototype.supports) {
-            test('DOMTokenList.prototype.supports', function () {
-                window.checkStringRepresentation(window.DOMTokenList.prototype.supports, nativeMethods.tokenListSupports);
-            });
-        }
-    }
-
-    test('DOMImplementation.prototype.createHTMLDocument', function () {
-        window.checkStringRepresentation(window.DOMImplementation.prototype.createHTMLDocument, nativeMethods.createHTMLDocument);
-    });
-});
 
 module('regression');
 

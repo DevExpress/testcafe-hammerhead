@@ -117,6 +117,32 @@ if (!browserUtils.isFirefox) {
     });
 }
 
+test('wrappers of native functions should return the correct string representations', function () {
+    window.checkStringRepresentation(window[nativeMethods.documentOpenPropOwnerName].prototype.open,
+        nativeMethods.documentOpen,
+        nativeMethods.documentOpenPropOwnerName + '.prototype.open');
+    window.checkStringRepresentation(window[nativeMethods.documentClosePropOwnerName].prototype.close,
+        nativeMethods.documentClose,
+        nativeMethods.documentClosePropOwnerName + '.prototype.close');
+    window.checkStringRepresentation(window[nativeMethods.documentWritePropOwnerName].prototype.write,
+        nativeMethods.documentWrite,
+        nativeMethods.documentWritePropOwnerName + '.prototype.write');
+    window.checkStringRepresentation(window[nativeMethods.documentWriteLnPropOwnerName].prototype.writeln,
+        nativeMethods.documentWriteLn,
+        nativeMethods.documentWriteLnPropOwnerName + '.prototype.writeln');
+    window.checkStringRepresentation(document.open, nativeMethods.documentOpen, 'document.open');
+    window.checkStringRepresentation(document.close, nativeMethods.documentClose, 'document.close');
+    window.checkStringRepresentation(document.write, nativeMethods.documentWrite, 'document.write');
+    window.checkStringRepresentation(document.writeln, nativeMethods.documentWriteLn, 'document.writeln');
+    window.checkStringRepresentation(window.Document.prototype.createElement, nativeMethods.createElement,
+        'Document.prototype.createElement');
+    window.checkStringRepresentation(window.Document.prototype.createElementNS, nativeMethods.createElementNS,
+        'Document.prototype.createElementNS');
+    window.checkStringRepresentation(window.Document.prototype.createDocumentFragment,
+        nativeMethods.createDocumentFragment,
+        'Document.prototype.createDocumentFragment');
+});
+
 module('querySelector, querySelectorAll (GH-340)');
 
 test('quote types in attribute selectors', function () {
@@ -673,52 +699,6 @@ test("SVG's <title> element (GH-2364)", function () {
     strictEqual(title.textContent, 'I am a circle');
 
     div.parentNode.removeChild(div);
-});
-
-module('wrappers of native functions should return the correct string representations', function () {
-    test('window.Document.prototype.open', function () {
-        window.checkStringRepresentation(window[nativeMethods.documentOpenPropOwnerName].prototype.open, nativeMethods.documentOpen);
-    });
-
-    test('window.Document.prototype.close', function () {
-        window.checkStringRepresentation(window[nativeMethods.documentClosePropOwnerName].prototype.close, nativeMethods.documentClose);
-    });
-
-    test('window.Document.prototype.write', function () {
-        window.checkStringRepresentation(window[nativeMethods.documentWritePropOwnerName].prototype.write, nativeMethods.documentWrite);
-    });
-
-    test('window.Document.prototype.writeln', function () {
-        window.checkStringRepresentation(window[nativeMethods.documentWriteLnPropOwnerName].prototype.writeln, nativeMethods.documentWriteLn);
-    });
-
-    test('open', function () {
-        window.checkStringRepresentation(document.open, nativeMethods.documentOpen);
-    });
-
-    test('close', function () {
-        window.checkStringRepresentation(document.close, nativeMethods.documentClose);
-    });
-
-    test('write', function () {
-        window.checkStringRepresentation(document.write, nativeMethods.documentWrite);
-    });
-
-    test('writeln', function () {
-        window.checkStringRepresentation(document.writeln, nativeMethods.documentWriteLn);
-    });
-
-    test('window.Document.prototype.createElement', function () {
-        window.checkStringRepresentation(window.Document.prototype.createElement, nativeMethods.createElement);
-    });
-
-    test('window.Document.prototype.createElementNS', function () {
-        window.checkStringRepresentation(window.Document.prototype.createElementNS, nativeMethods.createElementNS);
-    });
-
-    test('window.Document.prototype.createDocumentFragment', function () {
-        window.checkStringRepresentation(window.Document.prototype.createDocumentFragment, nativeMethods.createDocumentFragment);
-    });
 });
 
 module('regression');

@@ -70,135 +70,81 @@ test('prevent form submit', function () {
     strictEqual(submitPrevented, true);
 });
 
-module('wrappers of native functions should return the correct string representations', function () {
-    test('Element.prototype.setAttribute', function () {
-        window.checkStringRepresentation(window.Element.prototype.setAttribute, nativeMethods.setAttribute);
-    });
-
-    test('Element.prototype.setAttributeNS', function () {
-        window.checkStringRepresentation(window.Element.prototype.setAttributeNS, nativeMethods.setAttributeNS);
-    });
-
-    test('Element.prototype.getAttribute', function () {
-        window.checkStringRepresentation(window.Element.prototype.getAttribute, nativeMethods.getAttribute);
-    });
-
-    test('Element.prototype.getAttributeNS', function () {
-        window.checkStringRepresentation(window.Element.prototype.getAttributeNS, nativeMethods.getAttributeNS);
-    });
-
-    test('Element.prototype.removeAttribute', function () {
-        window.checkStringRepresentation(window.Element.prototype.removeAttribute, nativeMethods.removeAttribute);
-    });
-
-    test('Element.prototype.removeAttributeNS', function () {
-        window.checkStringRepresentation(window.Element.prototype.removeAttributeNS, nativeMethods.removeAttributeNS);
-    });
-
-    test('Element.prototype.cloneNode', function () {
-        window.checkStringRepresentation(window.Element.prototype.cloneNode, nativeMethods.cloneNode);
-    });
-
-    test('Element.prototype.querySelector', function () {
-        window.checkStringRepresentation(window.Element.prototype.querySelector, nativeMethods.elementQuerySelector);
-    });
-
-    test('Element.prototype.querySelectorAll', function () {
-        window.checkStringRepresentation(window.Element.prototype.querySelectorAll, nativeMethods.elementQuerySelectorAll);
-    });
-
-    test('Element.prototype.hasAttribute', function () {
-        window.checkStringRepresentation(window.Element.prototype.hasAttribute, nativeMethods.hasAttribute);
-    });
-
-    test('Element.prototype.hasAttributeNS', function () {
-        window.checkStringRepresentation(window.Element.prototype.hasAttributeNS, nativeMethods.hasAttributeNS);
-    });
-
-    test('Element.prototype.hasAttributes', function () {
-        window.checkStringRepresentation(window.Element.prototype.hasAttributes, nativeMethods.hasAttributes);
-    });
-
-    test('Node.prototype.cloneNode', function () {
-        window.checkStringRepresentation(window.Node.prototype.cloneNode, nativeMethods.cloneNode);
-    });
-
-    test('Node.prototype.appendChild', function () {
-        window.checkStringRepresentation(window.Node.prototype.appendChild, nativeMethods.appendChild);
-    });
-
-    test('Node.prototype.removeChild', function () {
-        window.checkStringRepresentation(window.Node.prototype.removeChild, nativeMethods.removeChild);
-    });
-
-    test('Node.prototype.insertBefore', function () {
-        window.checkStringRepresentation(window.Node.prototype.insertBefore, nativeMethods.insertBefore);
-    });
-
-    test('Node.prototype.replaceChild', function () {
-        window.checkStringRepresentation(window.Node.prototype.replaceChild, nativeMethods.replaceChild);
-    });
-
-    test('DocumentFragment.prototype.querySelector', function () {
-        window.checkStringRepresentation(window.DocumentFragment.prototype.querySelector, nativeMethods.documentFragmentQuerySelector);
-    });
-
-    test('DocumentFragment.prototype.querySelectorAll', function () {
-        window.checkStringRepresentation(window.DocumentFragment.prototype.querySelectorAll, nativeMethods.documentFragmentQuerySelectorAll);
-    });
-
-    test('HTMLTableElement.prototype.insertRow', function () {
-        window.checkStringRepresentation(window.HTMLTableElement.prototype.insertRow, nativeMethods.insertTableRow);
-    });
-
-    test('HTMLTableSectionElement.prototype.insertRow', function () {
-        window.checkStringRepresentation(window.HTMLTableSectionElement.prototype.insertRow, nativeMethods.insertTableRow);
-    });
-
-    test('HTMLTableRowElement.prototype.insertCell', function () {
-        window.checkStringRepresentation(window.HTMLTableRowElement.prototype.insertCell, nativeMethods.insertCell);
-    });
-
-    test('HTMLFormElement.prototype.submit', function () {
-        window.checkStringRepresentation(window.HTMLFormElement.prototype.submit, nativeMethods.formSubmit);
-    });
-
-    test('HTMLAnchorElement.prototype.toString', function () {
-        window.checkStringRepresentation(window.HTMLAnchorElement.prototype.toString, nativeMethods.anchorToString);
-    });
-
-    test('CharacterData.prototype.appendData', function () {
-        window.checkStringRepresentation(window.CharacterData.prototype.appendData, nativeMethods.appendData);
-    });
+test('wrappers of native functions should return the correct string representations', function () {
+    window.checkStringRepresentation(window.Element.prototype.setAttribute, nativeMethods.setAttribute,
+        'Element.prototype.setAttribute');
+    window.checkStringRepresentation(window.Element.prototype.setAttributeNS, nativeMethods.setAttributeNS,
+        'Element.prototype.setAttributeNS');
+    window.checkStringRepresentation(window.Element.prototype.getAttribute, nativeMethods.getAttribute,
+        'Element.prototype.getAttribute');
+    window.checkStringRepresentation(window.Element.prototype.getAttributeNS, nativeMethods.getAttributeNS,
+        'Element.prototype.getAttributeNS');
+    window.checkStringRepresentation(window.Element.prototype.removeAttribute, nativeMethods.removeAttribute,
+        'Element.prototype.removeAttribute');
+    window.checkStringRepresentation(window.Element.prototype.removeAttributeNS, nativeMethods.removeAttributeNS,
+        'Element.prototype.removeAttributeNS');
+    window.checkStringRepresentation(window.Element.prototype.cloneNode, nativeMethods.cloneNode,
+        'Element.prototype.cloneNode');
+    window.checkStringRepresentation(window.Element.prototype.querySelector, nativeMethods.elementQuerySelector,
+        'Element.prototype.querySelector');
+    window.checkStringRepresentation(window.Element.prototype.querySelectorAll, nativeMethods.elementQuerySelectorAll,
+        'Element.prototype.querySelectorAll');
+    window.checkStringRepresentation(window.Element.prototype.hasAttribute, nativeMethods.hasAttribute,
+        'Element.prototype.hasAttribute');
+    window.checkStringRepresentation(window.Element.prototype.hasAttributeNS, nativeMethods.hasAttributeNS,
+        'Element.prototype.hasAttributeNS');
+    window.checkStringRepresentation(window.Element.prototype.hasAttributes, nativeMethods.hasAttributes,
+        'Element.prototype.hasAttributes');
+    window.checkStringRepresentation(window.Node.prototype.cloneNode, nativeMethods.cloneNode,
+        'Node.prototype.cloneNode');
+    window.checkStringRepresentation(window.Node.prototype.appendChild, nativeMethods.appendChild,
+        'Node.prototype.appendChild');
+    window.checkStringRepresentation(window.Node.prototype.removeChild, nativeMethods.removeChild,
+        'Node.prototype.removeChild');
+    window.checkStringRepresentation(window.Node.prototype.insertBefore, nativeMethods.insertBefore,
+        'Node.prototype.insertBefore');
+    window.checkStringRepresentation(window.Node.prototype.replaceChild, nativeMethods.replaceChild,
+        'Node.prototype.replaceChild');
+    window.checkStringRepresentation(window.DocumentFragment.prototype.querySelector,
+        nativeMethods.documentFragmentQuerySelector,
+        'DocumentFragment.prototype.querySelector');
+    window.checkStringRepresentation(window.DocumentFragment.prototype.querySelectorAll,
+        nativeMethods.documentFragmentQuerySelectorAll,
+        'DocumentFragment.prototype.querySelectorAll');
+    window.checkStringRepresentation(window.HTMLTableElement.prototype.insertRow, nativeMethods.insertTableRow,
+        'HTMLTableElement.prototype.insertRow');
+    window.checkStringRepresentation(window.HTMLTableSectionElement.prototype.insertRow, nativeMethods.insertTableRow,
+        'HTMLTableSectionElement.prototype.insertRow');
+    window.checkStringRepresentation(window.HTMLTableRowElement.prototype.insertCell, nativeMethods.insertCell,
+        'HTMLTableRowElement.prototype.insertCell');
+    window.checkStringRepresentation(window.HTMLFormElement.prototype.submit, nativeMethods.formSubmit,
+        'HTMLFormElement.prototype.submit');
+    window.checkStringRepresentation(window.HTMLAnchorElement.prototype.toString, nativeMethods.anchorToString,
+        'HTMLAnchorElement.prototype.toString');
+    window.checkStringRepresentation(window.CharacterData.prototype.appendData, nativeMethods.appendData,
+        'CharacterData.prototype.appendData');
 
     if (window.Document.prototype.registerElement) {
-        test('Document.prototype.registerElement', function () {
-            window.checkStringRepresentation(window.Document.prototype.registerElement, nativeMethods.registerElement);
-        });
+        window.checkStringRepresentation(window.Document.prototype.registerElement, nativeMethods.registerElement,
+            'Document.prototype.registerElement');
     }
 
     if (window.Element.prototype.insertAdjacentHTML) {
-        test('Element.prototype.insertAdjacentHTML', function () {
-            window.checkStringRepresentation(window.Element.prototype.insertAdjacentHTML, nativeMethods.insertAdjacentHTML);
-        });
+        window.checkStringRepresentation(window.Element.prototype.insertAdjacentHTML, nativeMethods.insertAdjacentHTML,
+            'Element.prototype.insertAdjacentHTML');
     }
     else if (HTMLElement.prototype.insertAdjacentHTML) {
-        test('HTMLElement.prototype.insertAdjacentHTML', function () {
-            window.checkStringRepresentation(window.HTMLElement.prototype.insertAdjacentHTML, nativeMethods.insertAdjacentHTML);
-        });
+        window.checkStringRepresentation(window.HTMLElement.prototype.insertAdjacentHTML,
+            nativeMethods.insertAdjacentHTML,
+            'HTMLElement.prototype.insertAdjacentHTML');
     }
 
-    test('element.addEventListener', function () {
-        const someElement = document.createElement('div');
+    const someElement = document.createElement('div');
 
-        window.checkStringRepresentation(someElement.addEventListener, nativeMethods.addEventListener);
-    });
-
-    test('element.removeEventListener', function () {
-        const someElement = document.createElement('div');
-
-        window.checkStringRepresentation(someElement.removeEventListener, nativeMethods.removeEventListener);
-    });
+    window.checkStringRepresentation(someElement.addEventListener, nativeMethods.addEventListener,
+        'element.addEventListener');
+    window.checkStringRepresentation(someElement.removeEventListener, nativeMethods.removeEventListener,
+        'element.removeEventListener');
 });
 
 module('regression');

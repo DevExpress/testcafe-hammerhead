@@ -130,6 +130,53 @@ test('set innerHTML for root', function () {
     ok(domUtils.isShadowUIElement(root.childNodes[0]));
 });
 
+test('wrappers of native functions should return the correct string representations', function () {
+    window.checkStringRepresentation(window.Document.prototype.elementFromPoint, nativeMethods.elementFromPoint,
+        'Document.prototype.elementFromPoint');
+    if (document.caretRangeFromPoint) {
+        window.checkStringRepresentation(window.Document.prototype.caretRangeFromPoint,
+            nativeMethods.caretRangeFromPoint,
+            'Document.prototype.caretRangeFromPoint');
+    }
+    if (document.caretPositionFromPoint) {
+        window.checkStringRepresentation(window.Document.prototype.caretPositionFromPoint,
+            nativeMethods.caretPositionFromPoint,
+            'Document.prototype.caretPositionFromPoint');
+    }
+    window.checkStringRepresentation(window.Document.prototype.getElementById, nativeMethods.getElementById,
+        'Document.prototype.getElementById');
+    window.checkStringRepresentation(window.Document.prototype.getElementsByName, nativeMethods.getElementsByName,
+        'Document.prototype.getElementsByName');
+    window.checkStringRepresentation(window.Document.prototype.getElementsByClassName,
+        nativeMethods.getElementsByClassName,
+        'Document.prototype.getElementsByClassName');
+    window.checkStringRepresentation(window.Document.prototype.getElementsByTagName, nativeMethods.getElementsByTagName,
+        'Document.prototype.getElementsByTagName');
+    window.checkStringRepresentation(window.Document.prototype.querySelector, nativeMethods.querySelector,
+        'Document.prototype.querySelector');
+    window.checkStringRepresentation(window.Document.prototype.querySelectorAll, nativeMethods.querySelectorAll,
+        'Document.prototype.querySelectorAll');
+    window.checkStringRepresentation(window.Element.prototype.getElementsByTagName,
+        nativeMethods.elementGetElementsByTagName,
+        'Element.prototype.getElementsByTagName');
+    window.checkStringRepresentation(window.HTMLBodyElement.prototype.getElementsByClassName,
+        nativeMethods.elementGetElementsByClassName,
+        'HTMLBodyElement.prototype.getElementsByClassName');
+    window.checkStringRepresentation(window.HTMLBodyElement.prototype.querySelector, nativeMethods.elementQuerySelector,
+        'HTMLBodyElement.prototype.querySelector');
+    window.checkStringRepresentation(window.HTMLBodyElement.prototype.querySelectorAll,
+        nativeMethods.elementQuerySelectorAll,
+        'HTMLBodyElement.prototype.querySelectorAll');
+    window.checkStringRepresentation(window.HTMLHeadElement.prototype.getElementsByClassName,
+        nativeMethods.elementGetElementsByClassName,
+        'HTMLHeadElement.prototype.getElementsByClassName');
+    window.checkStringRepresentation(window.HTMLHeadElement.prototype.querySelector, nativeMethods.elementQuerySelector,
+        'HTMLHeadElement.prototype.querySelector');
+    window.checkStringRepresentation(window.HTMLHeadElement.prototype.querySelectorAll,
+        nativeMethods.elementQuerySelectorAll,
+        'HTMLHeadElement.prototype.querySelectorAll');
+});
+
 if (window.MutationObserver) {
     module('MutationObserver', function () {
         module('child list');
@@ -1183,76 +1230,6 @@ test("do nothing if ShadowUIStylesheet doesn't exist", function () {
 
             qUnitCssLink.className = SHADOW_UI_CLASSNAME.uiStylesheet;
         });
-});
-
-module('wrappers of native functions should return the correct string representations', function () {
-    test('window.Document.prototype.elementFromPoint', function () {
-        window.checkStringRepresentation(window.Document.prototype.elementFromPoint, nativeMethods.elementFromPoint);
-    });
-
-    if (document.caretRangeFromPoint) {
-        test('window.Document.prototype.caretRangeFromPoint', function () {
-            window.checkStringRepresentation(window.Document.prototype.caretRangeFromPoint, nativeMethods.caretRangeFromPoint);
-        });
-    }
-
-    if (document.caretPositionFromPoint) {
-        test('window.setInterval', function () {
-            window.checkStringRepresentation(window.Document.prototype.caretPositionFromPoint, nativeMethods.caretPositionFromPoint);
-        });
-    }
-
-    test('window.Document.prototype.getElementById', function () {
-        window.checkStringRepresentation(window.Document.prototype.getElementById, nativeMethods.getElementById);
-    });
-
-    test('window.Document.prototype.getElementsByName', function () {
-        window.checkStringRepresentation(window.Document.prototype.getElementsByName, nativeMethods.getElementsByName);
-    });
-
-    test('window.Document.prototype.getElementsByClassName', function () {
-        window.checkStringRepresentation(window.Document.prototype.getElementsByClassName, nativeMethods.getElementsByClassName);
-    });
-
-    test('window.Document.prototype.getElementsByTagName', function () {
-        window.checkStringRepresentation(window.Document.prototype.getElementsByTagName, nativeMethods.getElementsByTagName);
-    });
-
-    test('window.Document.prototype.querySelector', function () {
-        window.checkStringRepresentation(window.Document.prototype.querySelector, nativeMethods.querySelector);
-    });
-
-    test('window.Document.prototype.querySelectorAll', function () {
-        window.checkStringRepresentation(window.Document.prototype.querySelectorAll, nativeMethods.querySelectorAll);
-    });
-
-    test('window.Element.prototype.getElementsByTagName', function () {
-        window.checkStringRepresentation(window.Element.prototype.getElementsByTagName, nativeMethods.elementGetElementsByTagName);
-    });
-
-    test('window.HTMLBodyElement.prototype.getElementsByClassName', function () {
-        window.checkStringRepresentation(window.HTMLBodyElement.prototype.getElementsByClassName, nativeMethods.elementGetElementsByClassName);
-    });
-
-    test('window.HTMLBodyElement.prototype.querySelector', function () {
-        window.checkStringRepresentation(window.HTMLBodyElement.prototype.querySelector, nativeMethods.elementQuerySelector);
-    });
-
-    test('window.HTMLBodyElement.prototype.querySelectorAll', function () {
-        window.checkStringRepresentation(window.HTMLBodyElement.prototype.querySelectorAll, nativeMethods.elementQuerySelectorAll);
-    });
-
-    test('window.HTMLHeadElement.prototype.getElementsByClassName', function () {
-        window.checkStringRepresentation(window.HTMLHeadElement.prototype.getElementsByClassName, nativeMethods.elementGetElementsByClassName);
-    });
-
-    test('window.HTMLHeadElement.prototype.querySelector', function () {
-        window.checkStringRepresentation(window.HTMLHeadElement.prototype.querySelector, nativeMethods.elementQuerySelector);
-    });
-
-    test('window.HTMLHeadElement.prototype.querySelectorAll', function () {
-        window.checkStringRepresentation(window.HTMLHeadElement.prototype.querySelectorAll, nativeMethods.elementQuerySelectorAll);
-    });
 });
 
 module('regression');

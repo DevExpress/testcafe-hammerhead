@@ -134,22 +134,17 @@ test('getPropertyValue, setProperty, getPropertyValue (GH-1212)', function () {
     ok(!div.style.removeProperty('background'));
 });
 
-module('wrappers of native functions should return the correct string representations', function () {
-    test('window.CSSStyleSheet.prototype.insertRule', function () {
-        window.checkStringRepresentation(window.CSSStyleSheet.prototype.insertRule, nativeMethods.styleInsertRule);
-    });
-
-    test('window.CSSStyleDeclaration.prototype.getPropertyValue', function () {
-        window.checkStringRepresentation(window.CSSStyleDeclaration.prototype.getPropertyValue, nativeMethods.styleGetPropertyValue);
-    });
-
-    test('window.CSSStyleDeclaration.prototype.setProperty', function () {
-        window.checkStringRepresentation(window.CSSStyleDeclaration.prototype.setProperty, nativeMethods.styleSetProperty);
-    });
-
-    test('window.CSSStyleDeclaration.prototype.removeProperty', function () {
-        window.checkStringRepresentation(window.CSSStyleDeclaration.prototype.removeProperty, nativeMethods.styleRemoveProperty);
-    });
+test('wrappers of native functions should return the correct string representations', function () {
+    window.checkStringRepresentation(window.CSSStyleSheet.prototype.insertRule, nativeMethods.styleInsertRule,
+        'CSSStyleSheet.prototype.insertRule');
+    window.checkStringRepresentation(window.CSSStyleDeclaration.prototype.getPropertyValue,
+        nativeMethods.styleGetPropertyValue,
+        'CSSStyleDeclaration.prototype.getPropertyValue');
+    window.checkStringRepresentation(window.CSSStyleDeclaration.prototype.setProperty, nativeMethods.styleSetProperty,
+        'CSSStyleDeclaration.prototype.setProperty');
+    window.checkStringRepresentation(window.CSSStyleDeclaration.prototype.removeProperty,
+        nativeMethods.styleRemoveProperty,
+        'CSSStyleDeclaration.prototype.removeProperty');
 });
 
 module('regression');

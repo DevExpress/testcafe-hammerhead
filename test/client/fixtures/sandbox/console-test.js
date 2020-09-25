@@ -154,22 +154,11 @@ if (window.console && typeof window.console.log !== 'undefined') {
         });
     }
 
-    module('wrappers of native functions should return the correct string representations', function () {
-        test('console.log', function () {
-            window.checkStringRepresentation(window.console.log, nativeMethods.consoleMeths.log);
-        });
-
-        test('console.warn', function () {
-            window.checkStringRepresentation(window.console.warn, nativeMethods.consoleMeths.warn);
-        });
-
-        test('console.error', function () {
-            window.checkStringRepresentation(window.console.error, nativeMethods.consoleMeths.error);
-        });
-
-        test('console.info', function () {
-            window.checkStringRepresentation(window.console.info, nativeMethods.consoleMeths.info);
-        });
+    test('wrappers of native functions should return the correct string representations', function () {
+        window.checkStringRepresentation(window.console.log, nativeMethods.consoleMeths.log, 'console.log');
+        window.checkStringRepresentation(window.console.warn, nativeMethods.consoleMeths.warn, 'console.warn');
+        window.checkStringRepresentation(window.console.error, nativeMethods.consoleMeths.error, 'console.error');
+        window.checkStringRepresentation(window.console.info, nativeMethods.consoleMeths.info, 'console.info');
     });
 
     module('regression');
