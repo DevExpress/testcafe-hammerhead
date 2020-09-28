@@ -68,9 +68,14 @@ function overrideFunctionName (fn: Function, name: string) {
 }
 
 export function overrideStringRepresentation (nativeFnWrapper: Function, nativeFn: Function): void {
-    overrideFunctionName(nativeFnWrapper, nativeFn['name']);
+    overrideFunctionName(nativeFnWrapper, nativeFn.name);
 
-    nativeFnWrapper[INTERNAL_PROPS.nativeStrRepresentation] = nativeMethods.Function.prototype.toString.call(nativeFn);
+    // NOTE:
+    // `configurable`, `enumerable` and `writable` optional keys of the descriptor are set implicitly to false
+    // because we want to hide our internal property from the user code
+    nativeMethods.objectDefineProperty(nativeFnWrapper, INTERNAL_PROPS.nativeStrRepresentation, {
+        value: nativeMethods.Function.prototype.toString.call(nativeFn)
+    });
 }
 
 export function isNativeFunction (fn: Function): boolean {
