@@ -86,10 +86,10 @@ test('wrappers of native functions should return the correct string representati
 
     if (window.EventTarget) {
         window.checkStringRepresentation(window.EventTarget.prototype.addEventListener,
-            nativeMethods.windowAddEventListener,
+            nativeMethods.addEventListener,
             'EventTarget.prototype.addEventListener');
         window.checkStringRepresentation(window.EventTarget.prototype.removeEventListener,
-            nativeMethods.windowRemoveEventListener,
+            nativeMethods.removeEventListener,
             'EventTarget.prototype.removeEventListener');
     }
     else {

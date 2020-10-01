@@ -968,7 +968,7 @@ class NativeMethods {
 
         // Event
         // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
-        if (!win.EventLisener) {
+        if (!win.EventTarget) {
             this.windowAddEventListener    = win.addEventListener || winProto.addEventListener;
             this.windowRemoveEventListener = win.removeEventListener || winProto.removeEventListener;
             this.windowDispatchEvent       = win.dispatchEvent;
