@@ -274,3 +274,17 @@ export function getDestinationUrl (proxyUrl: any) {
 
     return parsedProxyUrl ? parsedProxyUrl.destUrl : proxyUrl;
 }
+
+export function getScope (url: string): string | null {
+    if (!isSupportedProtocol(url))
+        return null;
+
+    const parsedUrl = parseUrl(resolveUrlAsDest(url));
+
+    if (!parsedUrl)
+        return null;
+
+    return parsedUrl.partAfterHost
+        .replace(/\?[\S\s]*$/, '')
+        .replace(/\/[^/]*$/, '/');
+}

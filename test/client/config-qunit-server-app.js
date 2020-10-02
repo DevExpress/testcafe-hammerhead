@@ -39,6 +39,11 @@ function fetchContent (req) {
 }
 
 module.exports = function (app) {
+    app.use('/sessionId!c/*', function (req, res, next) {
+        res.setHeader('service-worker-allowed', '/');
+        next();
+    });
+
     app.use(urlRewriteProxyRequest);
 
     app.get('/' + unchangeableUrlSession + '!i/*', function (req, res) {

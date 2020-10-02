@@ -52,6 +52,8 @@ if (!browserUtils.isSafari) {
         var worker = new Worker(url);
 
         ok(worker instanceof Worker);
+
+        worker.terminate();
     });
 }
 
@@ -65,12 +67,13 @@ test('calling overridden window.Worker should not cause the "use the \'new\'..."
     };
 
     try {
-        // eslint-disable-next-line no-new
-        new Worker('/test');
+        var worker = new Worker('/test');
     }
     catch (e) {
         ok(false);
     }
+
+    worker.terminate();
 
     window.Worker = SavedWindowWorker;
 });
@@ -118,6 +121,8 @@ if (nativeMethods.fetch) {
             .then(function (headers) {
                 strictEqual(headers['x-hammerhead-credentials'], 'omit');
                 strictEqual(headers['x-hammerhead-origin'], 'https://example.com');
+
+                worker.terminate();
             });
     });
 }
@@ -131,6 +136,7 @@ if (!browserUtils.isIE && !browserUtils.isSafari) {
 
         worker.onmessage = function (e) {
             strictEqual(e.data, true);
+            worker.terminate();
             start();
         };
 
@@ -140,29 +146,62 @@ if (!browserUtils.isIE && !browserUtils.isSafari) {
     asyncTest('should try to process data as a script even if the content type is not passed', function () {
         var script  = 'var obj = {}, prop = "prop"; obj[prop] = true; postMessage(true);';
         var fileURL = URL.createObjectURL(new File([script], 'script.js'));
+        var worker  = new Worker(fileURL);
 
-        new Worker(fileURL).onmessage = function (e) {
+        worker.onmessage = function (e) {
             ok(e.data);
+
+            worker.terminate();
             start();
         };
     });
 }
 
-module('Service Worker');
+// NOTE: https://connect.microsoft.com/IE/feedback/details/801810/web-workers-from-blob-urls-in-ie-10-and-11
+var isWorkerFromBlobSupported = (function () {
+    try {
+        var worker = new Worker(URL.createObjectURL(new Blob(['var a = 42;'])));
+
+        worker.terminate();
+
+        return worker;
+    }
+    catch (e) {
+        return false;
+    }
+})();
+
+if (isWorkerFromBlobSupported) {
+    asyncTest('blob should try to process data as a script even if the content type is not passed (GH-231)', function () {
+        var script  = 'var obj = {}, prop = "prop"; obj[prop] = true; postMessage(true);';
+        var blobURL = URL.createObjectURL(new Blob([script]));
+        var worker  = new Worker(blobURL);
+
+        worker.onmessage = function (e) {
+            ok(e.data);
+            worker.terminate();
+            start();
+        };
+    });
+}
 
 if (window.navigator.serviceWorker) {
+    module('Service Worker');
+
     test('window.navigator.serviceWorker.register (GH-797)', function () {
         var storedNative = nativeMethods.registerServiceWorker;
         var scriptUrl    = '/serviceWorker.js';
-        var scopeUrl     = '/';
+        var scopeUrl     = '/path';
 
         nativeMethods.registerServiceWorker = function (url, options) {
-            var resourceType = urlUtils.stringifyResourceType({ isScript: true });
+            var resourceType = urlUtils.stringifyResourceType({ isServiceWorker: true });
 
             strictEqual(url, urlUtils.getProxyUrl(scriptUrl, { resourceType: resourceType }));
-            strictEqual(options.scope, urlUtils.getProxyUrl(scopeUrl, { resourceType: resourceType }));
+            strictEqual(options.scope, '/');
 
             nativeMethods.registerServiceWorker = storedNative;
+
+            return new Promise(function () {});
         };
 
         window.navigator.serviceWorker.register(scriptUrl, { scope: scopeUrl });
@@ -184,11 +223,13 @@ if (window.navigator.serviceWorker) {
     // This condition works only for running on the local machine only. On Saucelabs url with a domain name is opened.
     if (location.hostname === 'localhost') {
         test('should correctly process the "scope" option into the serviceWorker.register (GH-1233)', function () {
-            var scriptUrl = window.QUnitGlobals.getResourceUrl('../data/serviceWorker.js');
-            var scopeUrl  = '/';
+            var scriptUrl = window.QUnitGlobals.getResourceUrl('../data/service-worker/simple-service-worker.js');
 
-            return window.navigator.serviceWorker.register(scriptUrl, { scope: scopeUrl })
-                .then(function () {
+            return window.navigator.serviceWorker.register(scriptUrl, { scope: '/' })
+                .then(function (reg) {
+                    var worker = reg.installing || reg.waiting || reg.active;
+
+                    worker.postMessage('unregister');
                     ok(true);
                 })
                 .catch(function (err) {
@@ -196,21 +237,61 @@ if (window.navigator.serviceWorker) {
                 });
         });
 
-        test('window.navigator.serviceWorker.getReqistration (GH-1618)', function () {
+        test('window.navigator.serviceWorker.getRegistration (GH-1618)', function () {
             expect(1);
 
-            var scriptUrl = window.QUnitGlobals.getResourceUrl('../data/serviceWorker.js');
+            var scriptUrl = window.QUnitGlobals.getResourceUrl('../data/service-worker/simple-service-worker.js');
             var scopeUrl  = '/';
 
             return window.navigator.serviceWorker.register(scriptUrl, { scope: scopeUrl })
                 .then(function () {
                     window.navigator.serviceWorker.getRegistration(scopeUrl)
-                        .then(function (serviceWorkerRegistration) {
-                            ok(!!serviceWorkerRegistration);
+                        .then(function (reg) {
+                            ok(!!reg);
+
+                            var worker = reg.installing || reg.waiting || reg.active;
+
+                            worker.postMessage('unregister');
                         })
                         .catch(function (err) {
                             ok(false, err);
                         });
+                });
+        });
+
+        test('fetch event', function () {
+            var scriptUrl     = top.QUnitGlobals.getResourceUrl('../data/service-worker/fetch-event.js');
+            var serviceWorker = null;
+
+            return navigator.serviceWorker.register(scriptUrl, { scope: '/path/' })
+                .then(function (reg) {
+                    serviceWorker = reg.installing || reg.waiting || reg.active;
+
+                    return createTestIframe({ src: urlUtils.getProxyUrl('/path/iframe-created-from-service-worker.html') });
+                })
+                .then(function (iframe) {
+                    var p = iframe.contentDocument.querySelector('p');
+
+                    strictEqual(p.textContent, 'Hello from your friendly neighbourhood service worker!');
+                    serviceWorker.postMessage('unregister');
+                });
+        });
+
+        test('fetch event (incorrect scope)', function () {
+            var scriptUrl     = top.QUnitGlobals.getResourceUrl('../data/service-worker/fetch-event.js');
+            var serviceWorker = null;
+
+            return navigator.serviceWorker.register(scriptUrl, { scope: '/path/and/path/' })
+                .then(function (reg) {
+                    serviceWorker = reg.installing || reg.waiting || reg.active;
+
+                    return createTestIframe({ src: urlUtils.getProxyUrl('/path/iframe-created-from-service-worker.html') });
+                })
+                .then(function (iframe) {
+                    var p = iframe.contentDocument.querySelector('p');
+
+                    strictEqual(p, null);
+                    serviceWorker.postMessage('unregister');
                 });
         });
     }
@@ -238,26 +319,4 @@ if (window.navigator.serviceWorker) {
 
         document.body.appendChild(iframe);
     });
-
-    // NOTE: https://connect.microsoft.com/IE/feedback/details/801810/web-workers-from-blob-urls-in-ie-10-and-11
-    var isWorkerFromBlobSupported = (function () {
-        try {
-            return !!new Worker(URL.createObjectURL(new Blob(['var a = 42;'])));
-        }
-        catch (e) {
-            return false;
-        }
-    })();
-
-    if (isWorkerFromBlobSupported) {
-        asyncTest('blob should try to process data as a script even if the content type is not passed (GH-231)', function () {
-            var script  = 'var obj = {}, prop = "prop"; obj[prop] = true; postMessage(true);';
-            var blobURL = URL.createObjectURL(new Blob([script]));
-
-            new Worker(blobURL).onmessage = function (e) {
-                ok(e.data);
-                start();
-            };
-        });
-    }
 }

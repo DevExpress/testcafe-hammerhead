@@ -16,7 +16,7 @@ import {
     stringifyResourceType,
     resolveUrlAsDest,
     getDestinationUrl,
-    DEFAULT_PROXY_SETTINGS
+    getScope
 } from '../../utils/url';
 
 import {
@@ -647,21 +647,17 @@ export default class WindowSandbox extends SandboxBase {
                 args[1] = { scope: '/' };
 
                 return nativeMethods.registerServiceWorker.apply(window.navigator.serviceWorker, args)
-                    .then((reg) => {
-                        try {
-                            const settingsEntry = settings.get();
+                    .then(reg => {
+                        const parsedProxyUrl = parseProxyUrl(args[0]);
+                        const serviceWorker  = reg.installing || reg.waiting || reg.active;
 
-                            reg.active.postMessage({
-                                cmd:                  SET_SW_SETTINGS,
-                                scope:                opts && opts.scope,
-                                proxyProtocol:        DEFAULT_PROXY_SETTINGS.protocol, // eslint-disable-line no-restricted-properties
-                                proxyHostname:        DEFAULT_PROXY_SETTINGS.hostname, // eslint-disable-line no-restricted-properties
-                                proxyPort:            DEFAULT_PROXY_SETTINGS.port, // eslint-disable-line no-restricted-properties
-                                proxyCrossDomainPort: settingsEntry.crossDomainProxyPort,
-                                sessionId:            settingsEntry.sessionId
-                            });
-                        }
-                        catch { }
+                        serviceWorker.postMessage({
+                            cmd:          SET_SW_SETTINGS,
+                            currentScope: getScope(url),
+                            optsScope:    getScope(opts && opts.scope),
+                            protocol:     parsedProxyUrl.destResourceInfo.protocol, // eslint-disable-line no-restricted-properties
+                            host:         parsedProxyUrl.destResourceInfo.host // eslint-disable-line no-restricted-properties
+                        });
 
                         return reg;
                     });
@@ -670,13 +666,8 @@ export default class WindowSandbox extends SandboxBase {
 
         if (nativeMethods.getRegistrationServiceWorker) {
             overrideFunction(window.navigator.serviceWorker, 'getRegistration', (...args) => {
-                const scopeUrl = args[0];
-
-                if (typeof scopeUrl === 'string') {
-                    args[0] = getProxyUrl(scopeUrl, {
-                        resourceType: stringifyResourceType({ isScript: true })
-                    });
-                }
+                if (typeof args[0] === 'string')
+                    args[0] = '/';
 
                 return nativeMethods.getRegistrationServiceWorker.apply(window.navigator.serviceWorker, args);
             });
