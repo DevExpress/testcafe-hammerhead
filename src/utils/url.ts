@@ -24,6 +24,8 @@ export const TRAILING_SLASH_RE                                = /\/$/;
 export const SPECIAL_BLANK_PAGE                               = 'about:blank';
 export const SPECIAL_ERROR_PAGE                               = 'about:error';
 export const SPECIAL_PAGES                                    = [SPECIAL_BLANK_PAGE, SPECIAL_ERROR_PAGE];
+export const PATHNAME_IN_IFRAME_WITHOUT_SRC_IN_FIREFOX        = 'blank';
+export const ORIGIN_IN_IFRAME_WITHOUT_SRC                     = 'null';
 
 export const HTTP_DEFAULT_PORT  = '80';
 export const HTTPS_DEFAULT_PORT = '443';

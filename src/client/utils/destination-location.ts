@@ -1,9 +1,10 @@
 import * as sharedUrlUtils from '../../utils/url';
 import * as domUtils from './dom';
 import * as urlResolver from './url-resolver';
-import { SPECIAL_BLANK_PAGE } from '../../utils/url';
+import { PATHNAME_IN_IFRAME_WITHOUT_SRC_IN_FIREFOX, SPECIAL_BLANK_PAGE } from '../../utils/url';
 import nativeMethods from '../sandbox/native-methods';
 import getGlobalContextInfo from './global-context-info';
+import { isFirefox } from './browser';
 
 let forcedLocation = null;
 
@@ -88,6 +89,9 @@ function parseLocationThroughAnchor (url: string) {
     // NOTE: IE ignores the first '/' symbol in the pathname.
     if (hrefValue !== SPECIAL_BLANK_PAGE && pathname.charAt(0) !== '/')
         pathname = '/' + pathname;
+
+    if (hrefValue === SPECIAL_BLANK_PAGE && isFirefox)
+        pathname = PATHNAME_IN_IFRAME_WITHOUT_SRC_IN_FIREFOX;
 
     // TODO: Describe default ports logic.
     return {

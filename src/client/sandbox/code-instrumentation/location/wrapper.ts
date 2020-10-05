@@ -13,7 +13,8 @@ import {
     sameOriginCheck,
     ensureTrailingSlash,
     prepareUrl,
-    SPECIAL_BLANK_PAGE
+    SPECIAL_BLANK_PAGE,
+    ORIGIN_IN_IFRAME_WITHOUT_SRC
 } from '../../../../utils/url';
 import nativeMethods from '../../native-methods';
 import urlResolver from '../../../utils/url-resolver';
@@ -131,7 +132,14 @@ export default class LocationWrapper {
 
         // eslint-disable-next-line no-restricted-properties
         locationProps.origin = createOverriddenDescriptor(locationPropsOwner, 'origin', {
-            getter: () => getDomain(getParsedDestLocation()),
+            getter: () => {
+                const origin = getDomain(getParsedDestLocation());
+
+                if (origin)
+                    return origin;
+                else
+                    return ORIGIN_IN_IFRAME_WITHOUT_SRC;
+            },
             setter: origin => origin
         });
 

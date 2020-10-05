@@ -183,14 +183,11 @@ test('location object of iframe with empty src should have properties with corre
             nativeIframe.contentDocument.location.search,
             'search property in iframe with "' + iframeSrcAttribute + '" src attribute'
         );
-        /*
-        NOTE: it's temporary disabled
         strictEqual(
             eval(processScript('iframe.contentDocument.location.origin')),
             nativeIframe.contentDocument.location.origin,
             'origin property in iframe with "' + iframeSrcAttribute + '" src attribute'
         );
-        */
     }
 
     return createTestIframe()
