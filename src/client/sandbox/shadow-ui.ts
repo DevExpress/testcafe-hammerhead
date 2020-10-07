@@ -416,6 +416,10 @@ export default class ShadowUI extends SandboxBase {
                 nativeMethods.appendChild.call(this.document.body, this.root);
         }
 
+        // GH-2418
+        if (!ShadowUI.isShadowContainer(this.document.body))
+            this._markShadowUIContainerAndCollections(this.document.body);
+
         return this.root;
     }
 
