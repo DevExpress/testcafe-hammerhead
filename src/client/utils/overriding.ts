@@ -56,26 +56,32 @@ export function overrideDescriptor<O extends object, K extends keyof O> (obj: O,
     nativeMethods.objectDefineProperty(obj, prop, descriptor);
 }
 
-function overrideFunctionName (fn: Function, name: string) {
-    const wrapperNameDescriptor = nativeMethods.objectGetOwnPropertyDescriptor(fn, 'name');
+function overrideFunctionName (fn: Function, name: string): void {
+    const nameDescriptor = nativeMethods.objectGetOwnPropertyDescriptor(fn, 'name');
 
-    if (wrapperNameDescriptor) {
-        // eslint-disable-next-line no-restricted-properties
-        wrapperNameDescriptor.value = name;
+    if (!nameDescriptor)
+        return;
 
-        nativeMethods.objectDefineProperty(fn, 'name', wrapperNameDescriptor);
-    }
+    nameDescriptor.value = name; // eslint-disable-line no-restricted-properties
+
+    nativeMethods.objectDefineProperty(fn, 'name', nameDescriptor);
 }
 
-export function overrideStringRepresentation (nativeFnWrapper: Function, nativeFn: Function): void {
-    overrideFunctionName(nativeFnWrapper, nativeFn.name);
-
+function overrideToString (nativeFnWrapper: Function, nativeFn: Function): void {
     // NOTE:
     // `configurable`, `enumerable` and `writable` optional keys of the descriptor are set implicitly to false
     // because we want to hide our internal property from the user code
     nativeMethods.objectDefineProperty(nativeFnWrapper, INTERNAL_PROPS.nativeStrRepresentation, {
         value: nativeMethods.Function.prototype.toString.call(nativeFn)
     });
+}
+
+// TODO:
+// this function should not be used outside this file
+// for now it's used to flag cases in which we assign our wrapper to a native function when it is missing
+export function overrideStringRepresentation (nativeFnWrapper: Function, nativeFn: Function): void {
+    overrideFunctionName(nativeFnWrapper, nativeFn.name);
+    overrideToString(nativeFnWrapper, nativeFn);
 }
 
 export function isNativeFunction (fn: Function): boolean {

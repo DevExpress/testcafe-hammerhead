@@ -1,7 +1,7 @@
 import SandboxBase from './base';
 import { processScript } from '../../processing/script';
 import * as destinationLocation from '../utils/destination-location';
-import { overrideFunction } from '../utils/property-overriding';
+import { overrideFunction } from '../utils/overriding';
 
 export default class ElectronSandbox extends SandboxBase {
     static _createFnWrapper (vm, nativeFn) {

@@ -20,7 +20,7 @@ import urlResolver from '../../../utils/url-resolver';
 import DomProcessor from '../../../../processing/dom';
 import DOMStringListWrapper from './ancestor-origins-wrapper';
 import IntegerIdGenerator from '../../../utils/integer-id-generator';
-import { createOverriddenDescriptor } from '../../../utils/property-overriding';
+import { createOverriddenDescriptor } from '../../../utils/overriding';
 import MessageSandbox from '../../event/message';
 
 const GET_ORIGIN_CMD      = 'hammerhead|command|get-origin';

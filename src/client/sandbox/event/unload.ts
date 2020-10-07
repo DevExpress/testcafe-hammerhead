@@ -2,7 +2,7 @@ import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import createPropertyDesc from '../../utils/create-property-desc.js';
 import { isFirefox, isIOS } from '../../utils/browser';
-import { overrideDescriptor } from '../../utils/property-overriding';
+import { overrideDescriptor } from '../../utils/overriding';
 import Listeners from './listeners';
 
 export default class UnloadSandbox extends SandboxBase {

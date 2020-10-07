@@ -5,7 +5,7 @@ import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
 import INTERNAL_HEADERS from '../../request-pipeline/internal-header-names';
 import { transformHeaderNameToInternal } from '../utils/headers';
 import { getOriginHeader } from '../utils/destination-location';
-import { overrideConstructor, overrideDescriptor, overrideFunction } from '../utils/property-overriding';
+import { overrideConstructor, overrideDescriptor, overrideFunction } from '../utils/overriding';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
 import CookieSandbox from './cookie';
 

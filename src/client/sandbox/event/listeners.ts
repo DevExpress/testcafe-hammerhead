@@ -5,7 +5,7 @@ import * as listeningCtx from './listening-context';
 import { preventDefault, stopPropagation, DOM_EVENTS, isValidEventListener, callEventListener } from '../../utils/event';
 import { isWindow } from '../../utils/dom';
 import { isIE11 } from '../../utils/browser';
-import { isNativeFunction, overrideFunction, overrideStringRepresentation } from '../../utils/property-overriding';
+import { isNativeFunction, overrideFunction, overrideStringRepresentation } from '../../utils/overriding';
 
 const LISTENED_EVENTS = [
     'click', 'mousedown', 'mouseup', 'dblclick', 'contextmenu', 'mousemove', 'mouseover', 'mouseout',

@@ -15,7 +15,7 @@ import UnloadSandbox from './unload';
 import MessageSandbox from './message';
 import ShadowUI from '../shadow-ui';
 import TimersSandbox from '../timers';
-import { overrideFunction, overrideStringRepresentation } from '../../utils/property-overriding';
+import { overrideFunction, overrideStringRepresentation } from '../../utils/overriding';
 
 export default class EventSandbox extends SandboxBase {
     EVENT_PREVENTED_EVENT: string = 'hammerhead|event|event-prevented';

@@ -2,7 +2,7 @@ import SandboxBase from './base';
 import nativeMethods from './native-methods';
 import { processScript } from '../../processing/script';
 import { isIE, version as browserVersion } from '../utils/browser';
-import { overrideFunction } from '../utils/property-overriding';
+import { overrideFunction } from '../utils/overriding';
 
 // NOTE: When you call the focus and blur function for some elements in IE, the event handlers  must be raised
 // asynchronously, but before executing functions that are called by using the window.setTimeout function. So,

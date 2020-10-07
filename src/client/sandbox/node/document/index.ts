@@ -10,7 +10,7 @@ import DocumentWriter from './writer';
 import ShadowUI from './../../shadow-ui';
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import LocationAccessorsInstrumentation from '../../code-instrumentation/location';
-import { overrideDescriptor, createOverriddenDescriptor, overrideFunction } from '../../../utils/property-overriding';
+import { overrideDescriptor, createOverriddenDescriptor, overrideFunction } from '../../../utils/overriding';
 import NodeSandbox from '../index';
 import { getDestinationUrl } from '../../../utils/url';
 import DocumentTitleStorageInitializer from './title-storage-initializer';

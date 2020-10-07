@@ -8,7 +8,7 @@ import { isFirefox, isWebKit, isIE } from '../utils/browser';
 import * as JSON from 'json-hammerhead';
 import NodeMutation from './node/mutation';
 import CookieSandbox from './cookie';
-import { isNativeFunction } from '../utils/property-overriding';
+import { isNativeFunction } from '../utils/overriding';
 
 const IFRAME_WINDOW_INITED = 'hammerhead|iframe-window-inited';
 

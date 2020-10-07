@@ -1,6 +1,6 @@
 /*global Document, Window */
 import getGlobalContextInfo from '../utils/global-context-info';
-import { isNativeFunction } from '../utils/property-overriding';
+import { isNativeFunction } from '../utils/overriding';
 
 const NATIVE_CODE_RE = /\[native code]/;
 

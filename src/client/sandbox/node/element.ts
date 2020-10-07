@@ -22,7 +22,7 @@ import ShadowUI from '../shadow-ui';
 import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
 import { ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../../processing/dom/attributes';
 import settings from '../../settings';
-import { overrideDescriptor, overrideFunction } from '../../utils/property-overriding';
+import { overrideDescriptor, overrideFunction } from '../../utils/overriding';
 import InsertPosition from '../../utils/insert-position';
 import { isFirefox } from '../../utils/browser';
 import UploadSandbox from '../upload';

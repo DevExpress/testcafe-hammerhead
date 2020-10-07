@@ -3,7 +3,7 @@ var SHADOW_UI_CLASSNAME     = hammerhead.get('../shadow-ui/class-name');
 var INTERNAL_PROPS          = hammerhead.get('../processing/dom/internal-properties');
 var urlUtils                = hammerhead.get('./utils/url');
 var destLocation            = hammerhead.get('./utils/destination-location');
-var propertyOverridingUtils = hammerhead.get('./utils/property-overriding');
+var overriding              = hammerhead.get('./utils/overriding');
 var settings                = hammerhead.get('./settings');
 
 var browserUtils  = hammerhead.utils.browser;
@@ -19,7 +19,7 @@ test('document.write for iframe.src with javascript protocol', function () {
     var $iframe = $('<iframe id="test4" src="javascript:&quot;<html><body><a id=\'link\' href=\'http://google.com/\'></body></html>&quot;"></iframe>"');
 
     $div[0].appendChild($iframe[0]);
-    ok(!propertyOverridingUtils.isNativeFunction($iframe[0].contentDocument.write), 'iframe.contentDocument.write should be overridden');
+    ok(!overriding.isNativeFunction($iframe[0].contentDocument.write), 'iframe.contentDocument.write should be overridden');
 
     $iframe.remove();
 });
@@ -36,7 +36,7 @@ asyncTest('document.write for iframe with empty url', function () {
         var document = $iframe[0].contentDocument;
 
         if (document)
-            ok(!propertyOverridingUtils.isNativeFunction(document.write), 'document.write should be overridden');
+            ok(!overriding.isNativeFunction(document.write), 'document.write should be overridden');
     };
 
     check();
@@ -72,7 +72,7 @@ if (!browserUtils.isFirefox) {
             var result   = true;
 
             if (document) {
-                if (propertyOverridingUtils.isNativeFunction(document.write))
+                if (overriding.isNativeFunction(document.write))
                     result = false;
             }
 

@@ -18,7 +18,7 @@ import MessageSandbox from './event/message';
 import IframeSandbox from './iframe';
 import IEDebugSandbox from './ie-debug';
 import removeElement from '../utils/remove-element';
-import { overrideFunction } from '../utils/property-overriding';
+import { overrideFunction } from '../utils/overriding';
 
 const IS_NON_STATIC_POSITION_RE = /fixed|relative|absolute/;
 const CLASSNAME_RE              = /\.((?:\\.|[-\w]|[^\x00-\xa0])+)/g;
