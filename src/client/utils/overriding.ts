@@ -68,16 +68,12 @@ function overrideFunctionName (fn: Function, name: string): void {
 }
 
 function overrideToString (nativeFnWrapper: Function, nativeFn: Function): void {
-    // NOTE:
-    // `configurable`, `enumerable` and `writable` optional keys of the descriptor are set implicitly to false
-    // because we want to hide our internal property from the user code
     nativeMethods.objectDefineProperty(nativeFnWrapper, INTERNAL_PROPS.nativeStrRepresentation, {
         value: nativeMethods.Function.prototype.toString.call(nativeFn)
     });
 }
 
-// TODO:
-// this function should not be used outside this file
+// TODO: this function should not be used outside this file
 // for now it's used to flag cases in which we assign our wrapper to a native function when it is missing
 export function overrideStringRepresentation (nativeFnWrapper: Function, nativeFn: Function): void {
     overrideFunctionName(nativeFnWrapper, nativeFn.name);

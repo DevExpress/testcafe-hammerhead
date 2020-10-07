@@ -180,8 +180,7 @@ export default class StyleSandbox extends SandboxBase {
                     return nativeFn.apply(this[CSS_STYLE_PROXY_TARGET] || this, arguments);
                 };
 
-                // NOTE:
-                // we cannot use 'overrideFunction' here since the function may not exist
+                // NOTE: we cannot use 'overrideFunction' here since the function may not exist
                 overrideStringRepresentation(styleDeclarationProto[prop] as unknown as Function, nativeFn);
             }
         }

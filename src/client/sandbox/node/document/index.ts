@@ -129,7 +129,7 @@ export default class DocumentSandbox extends SandboxBase {
         const documentSandbox = this;
         const docPrototype    = window.Document.prototype;
 
-        const overridenMethods = {
+        const overriddenMethods = {
             open: function (...args) {
                 const isUninitializedIframe = documentSandbox._isUninitializedIframeWithoutSrc(window);
 
@@ -193,18 +193,18 @@ export default class DocumentSandbox extends SandboxBase {
             }
         };
 
-        overrideFunction(window[nativeMethods.documentOpenPropOwnerName].prototype, 'open', overridenMethods.open);
-        overrideFunction(window[nativeMethods.documentClosePropOwnerName].prototype, 'close', overridenMethods.close);
-        overrideFunction(window[nativeMethods.documentWritePropOwnerName].prototype, 'write', overridenMethods.write);
-        overrideFunction(window[nativeMethods.documentWriteLnPropOwnerName].prototype, 'writeln', overridenMethods.writeln);
+        overrideFunction(window[nativeMethods.documentOpenPropOwnerName].prototype, 'open', overriddenMethods.open);
+        overrideFunction(window[nativeMethods.documentClosePropOwnerName].prototype, 'close', overriddenMethods.close);
+        overrideFunction(window[nativeMethods.documentWritePropOwnerName].prototype, 'write', overriddenMethods.write);
+        overrideFunction(window[nativeMethods.documentWriteLnPropOwnerName].prototype, 'writeln', overriddenMethods.writeln);
 
-        overrideFunction(document, 'open', overridenMethods.open);
-        overrideFunction(document, 'close', overridenMethods.close);
-        overrideFunction(document, 'write', overridenMethods.write);
-        overrideFunction(document, 'writeln', overridenMethods.writeln);
+        overrideFunction(document, 'open', overriddenMethods.open);
+        overrideFunction(document, 'close', overriddenMethods.close);
+        overrideFunction(document, 'write', overriddenMethods.write);
+        overrideFunction(document, 'writeln', overriddenMethods.writeln);
 
-        if (document.open !== overridenMethods.open)
-            overrideFunction(document, 'open', overridenMethods.open);
+        if (document.open !== overriddenMethods.open)
+            overrideFunction(document, 'open', overriddenMethods.open);
 
         overrideFunction(docPrototype, 'createElement', function (...args) {
             const el = nativeMethods.createElement.apply(this, args);
