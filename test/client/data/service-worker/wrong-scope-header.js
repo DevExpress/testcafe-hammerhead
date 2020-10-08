@@ -1,5 +1,5 @@
 /*hammerhead|script|start*/
-var __swScopeHeaderValue = "/";
+var __swScopeHeaderValue = "/some/";
 if (typeof window !== 'undefined' && window) {
     window['hammerhead|process-dom-method'] && window['hammerhead|process-dom-method']();
     if (window.__get$ && typeof __get$ === 'undefined') var __get$Loc = window.__get$Loc, __set$Loc = window.__set$Loc,
@@ -44,10 +44,5 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
 
-});
-
-self.addEventListener('message', function (e) {
-    if (e.data === 'unregister')
-        self.registration.unregister();
 });
 /*hammerhead|script|end*/

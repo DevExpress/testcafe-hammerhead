@@ -8,6 +8,7 @@ import getGlobalContextInfo from './global-context-info';
 
 const HASH_RE                          = /#[\S\s]*$/;
 const SUPPORTED_WEB_SOCKET_PROTOCOL_RE = /^wss?:/i;
+const SCOPE_RE                         = /\/[^/]*$/;
 
 // NOTE: The window.location equals 'about:blank' in iframes without src
 // therefore we need to find a window with src to get the proxy settings
@@ -284,7 +285,5 @@ export function getScope (url: string): string | null {
     if (!parsedUrl)
         return null;
 
-    return parsedUrl.partAfterHost
-        .replace(/\?[\S\s]*$/, '')
-        .replace(/\/[^/]*$/, '/');
+    return parsedUrl.partAfterHost.replace(SCOPE_RE, '/') || '/';
 }

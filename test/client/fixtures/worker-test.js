@@ -157,34 +157,6 @@ if (!browserUtils.isIE && !browserUtils.isSafari) {
     });
 }
 
-// NOTE: https://connect.microsoft.com/IE/feedback/details/801810/web-workers-from-blob-urls-in-ie-10-and-11
-var isWorkerFromBlobSupported = (function () {
-    try {
-        var worker = new Worker(URL.createObjectURL(new Blob(['var a = 42;'])));
-
-        worker.terminate();
-
-        return worker;
-    }
-    catch (e) {
-        return false;
-    }
-})();
-
-if (isWorkerFromBlobSupported) {
-    asyncTest('blob should try to process data as a script even if the content type is not passed (GH-231)', function () {
-        var script  = 'var obj = {}, prop = "prop"; obj[prop] = true; postMessage(true);';
-        var blobURL = URL.createObjectURL(new Blob([script]));
-        var worker  = new Worker(blobURL);
-
-        worker.onmessage = function (e) {
-            ok(e.data);
-            worker.terminate();
-            start();
-        };
-    });
-}
-
 if (window.navigator.serviceWorker) {
     module('Service Worker');
 
@@ -259,6 +231,36 @@ if (window.navigator.serviceWorker) {
                 });
         });
 
+        test('wrong scope', function () {
+            var scriptUrl         = window.QUnitGlobals.getResourceUrl('../data/service-worker/wrong-scope.js');
+            var storedPostMessage = ServiceWorker.prototype.postMessage;
+
+            ServiceWorker.prototype.postMessage = function (msg, ports) {
+                msg.currentScope = '/wrong/';
+
+                storedPostMessage.call(this, msg, ports);
+            };
+
+            return window.navigator.serviceWorker.register(scriptUrl, { scope: '/' })
+                .catch(function (err) {
+                    strictEqual(err.message, 'The path of the provided scope (\'/\') is not under the max scope ' +
+                        'allowed (\'/wrong/\'). Adjust the scope, move the Service Worker script, or use the ' +
+                        'Service-Worker-Allowed HTTP header to allow the scope.');
+                    ServiceWorker.prototype.postMessage = storedPostMessage;
+                });
+        });
+
+        test('wrong scope header', function () {
+            var scriptUrl = window.QUnitGlobals.getResourceUrl('../data/service-worker/wrong-scope-header.js');
+
+            return window.navigator.serviceWorker.register(scriptUrl, { scope: '/' })
+                .catch(function (err) {
+                    strictEqual(err.message, 'The path of the provided scope (\'/\') is not under the max scope ' +
+                        'allowed (set by Service-Worker-Allowed: \'/some/\'). Adjust the scope, move the Service ' +
+                        'Worker script, or use the Service-Worker-Allowed HTTP header to allow the scope.');
+                });
+        });
+
         test('fetch event', function () {
             var scriptUrl     = top.QUnitGlobals.getResourceUrl('../data/service-worker/fetch-event.js');
             var serviceWorker = null;
@@ -319,4 +321,32 @@ if (window.navigator.serviceWorker) {
 
         document.body.appendChild(iframe);
     });
+
+    // NOTE: https://connect.microsoft.com/IE/feedback/details/801810/web-workers-from-blob-urls-in-ie-10-and-11
+    var isWorkerFromBlobSupported = (function () {
+        try {
+            var worker = new Worker(URL.createObjectURL(new Blob(['var a = 42;'])));
+
+            worker.terminate();
+
+            return worker;
+        }
+        catch (e) {
+            return false;
+        }
+    })();
+
+    if (isWorkerFromBlobSupported) {
+        asyncTest('blob should try to process data as a script even if the content type is not passed (GH-231)', function () {
+            var script  = 'var obj = {}, prop = "prop"; obj[prop] = true; postMessage(true);';
+            var blobURL = URL.createObjectURL(new Blob([script]));
+            var worker  = new Worker(blobURL);
+
+            worker.onmessage = function (e) {
+                ok(e.data);
+                worker.terminate();
+                start();
+            };
+        });
+    }
 }

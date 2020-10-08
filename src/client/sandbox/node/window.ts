@@ -74,7 +74,7 @@ import settings from '../../settings';
 import DefaultTarget from '../child-window/default-target';
 import { getNativeQuerySelectorAll } from '../../utils/query-selector';
 import DocumentTitleStorageInitializer from './document/title-storage-initializer';
-import SET_SW_SETTINGS from '../../worker/set-sw-settings-command';
+import SET_SERVICE_WORKER_SETTINGS from '../../worker/set-settings-command';
 
 const INSTRUCTION_VALUES    = (() => {
     const values = [];
@@ -648,18 +648,28 @@ export default class WindowSandbox extends SandboxBase {
 
                 return nativeMethods.registerServiceWorker.apply(window.navigator.serviceWorker, args)
                     .then(reg => {
-                        const parsedProxyUrl = parseProxyUrl(args[0]);
-                        const serviceWorker  = reg.installing || reg.waiting || reg.active;
+                        return new Promise(function (resolve, reject) {
+                            const parsedProxyUrl = parseProxyUrl(args[0]);
+                            const serviceWorker  = reg.installing || reg.waiting || reg.active;
+                            const channel        = new nativeMethods.MessageChannel();
 
-                        serviceWorker.postMessage({
-                            cmd:          SET_SW_SETTINGS,
-                            currentScope: getScope(url),
-                            optsScope:    getScope(opts && opts.scope),
-                            protocol:     parsedProxyUrl.destResourceInfo.protocol, // eslint-disable-line no-restricted-properties
-                            host:         parsedProxyUrl.destResourceInfo.host // eslint-disable-line no-restricted-properties
+                            serviceWorker.postMessage({
+                                cmd:          SET_SERVICE_WORKER_SETTINGS,
+                                currentScope: getScope(url),
+                                optsScope:    getScope(opts && opts.scope),
+                                protocol:     parsedProxyUrl.destResourceInfo.protocol, // eslint-disable-line no-restricted-properties
+                                host:         parsedProxyUrl.destResourceInfo.host // eslint-disable-line no-restricted-properties
+                            }, [channel.port1]);
+
+                            channel.port2.onmessage = (e) => {
+                                const data = nativeMethods.messageEventDataGetter.call(e);
+
+                                if (data.error)
+                                    reject(new Error(data.error));
+                                else
+                                    resolve(reg);
+                            };
                         });
-
-                        return reg;
                     });
             });
         }

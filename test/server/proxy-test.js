@@ -221,6 +221,19 @@ describe('Proxy', () => {
             res.end(fs.readFileSync('test/server/data/script/src.js').toString());
         });
 
+        app.get('/service-worker', (req, res) => {
+            res
+                .set('content-type', 'application/javascript; charset=utf-8')
+                .end(fs.readFileSync('test/server/data/service-worker/src.js').toString());
+        });
+
+        app.get('/service-worker-allowed', (req, res) => {
+            res
+                .set('content-type', 'application/javascript; charset=utf-8')
+                .set('service-worker-allowed', '/path/')
+                .end(fs.readFileSync('test/server/data/service-worker/src-with-header.js').toString());
+        });
+
         app.get('/stylesheet', (req, res) => {
             res.end(fs.readFileSync('test/server/data/stylesheet/src.css').toString());
         });
@@ -1628,6 +1641,44 @@ describe('Proxy', () => {
             })
                 .then(body => {
                     expect(body).eql(processScript('// Compressed GZIP', true));
+                });
+        });
+
+        it('Should process service worker without the Service-Worker-Allowed header', () => {
+            const proxyUrl = urlUtils.getProxyUrl('http://127.0.0.1:2000/service-worker', {
+                proxyHostname: PROXY_HOSTNAME,
+                proxyPort:     1836,
+                sessionId:     session.id,
+                resourceType:  urlUtils.getResourceTypeString({ isServiceWorker: true })
+            });
+
+            proxy.openSession('http://127.0.0.1:2000/', session);
+
+            return request({ url: proxyUrl, resolveWithFullResponse: true })
+                .then(res => {
+                    const expected = fs.readFileSync('test/server/data/service-worker/expected.js').toString();
+
+                    expect(normalizeNewLine(res.body)).eql(normalizeNewLine(expected));
+                    expect(res.headers['service-worker-allowed']).eql('/');
+                });
+        });
+
+        it('Should process service worker with the Service-Worker-Allowed header', () => {
+            const proxyUrl = urlUtils.getProxyUrl('http://127.0.0.1:2000/service-worker-allowed', {
+                proxyHostname: PROXY_HOSTNAME,
+                proxyPort:     1836,
+                sessionId:     session.id,
+                resourceType:  urlUtils.getResourceTypeString({ isServiceWorker: true })
+            });
+
+            proxy.openSession('http://127.0.0.1:2000/', session);
+
+            return request({ url: proxyUrl, resolveWithFullResponse: true })
+                .then(res => {
+                    const expected = fs.readFileSync('test/server/data/service-worker/expected-with-header.js').toString();
+
+                    expect(normalizeNewLine(res.body)).eql(normalizeNewLine(expected));
+                    expect(res.headers['service-worker-allowed']).eql('/');
                 });
         });
     });

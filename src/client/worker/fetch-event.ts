@@ -1,9 +1,8 @@
-//import { overrideDescriptor } from '../utils/property-overriding';
 import nativeMethods from '../sandbox/native-methods';
 import { stopPropagation } from '../utils/event';
 import { parseProxyUrl } from '../utils/url';
 import { ParsedUrl } from '../../typings/url';
-import SET_SW_SETTINGS from './set-sw-settings-command';
+import SET_SERVICE_WORKER_SETTINGS from './set-settings-command';
 import INSTRUCTION from '../../processing/script/instruction';
 
 /*eslint-disable*/
@@ -22,25 +21,35 @@ function isCorrectScope (parsedUrl: ParsedUrl): boolean {
 
 export default function overrideFetchEvent () {
     let waitSettingsPromise = new Promise((resolve, reject) => {
-        nativeMethods.windowAddEventListener.call(self, 'message', function onMessage (e: MessageEvent) {
+        nativeMethods.windowAddEventListener.call(self, 'message', function onMessage (e: any/*ExtendableMessageEvent*/) {
             const data = e.data;
 
-            if (data.cmd !== SET_SW_SETTINGS)
+            if (data.cmd !== SET_SERVICE_WORKER_SETTINGS)
                 return;
 
-            const curentScope = self[INSTRUCTION.swScopeHeaderValue] !== void 0
-                ? self[INSTRUCTION.swScopeHeaderValue]
-                : data.currentScope;
+            const swScopeHeaderExists = self[INSTRUCTION.swScopeHeaderValue] !== void 0;
+            const currentScope        = swScopeHeaderExists ? self[INSTRUCTION.swScopeHeaderValue] : data.currentScope;
 
             let scope = data.optsScope;
 
             if (!scope)
-                scope = curentScope;
-            else if (!scope.startsWith(curentScope)) {
+                scope = currentScope;
+            else if (!scope.startsWith(currentScope)) {
                 // @ts-ignore
                 self.registration.unregister();
-                reject(new Error('Wrong scope!'));
+
+                const errorMessage = `The path of the provided scope ('${data.optsScope}') is not under the max ` +
+                                     `scope allowed (${swScopeHeaderExists ? 'set by Service-Worker-Allowed: ' : ''}'` +
+                                     `${currentScope}'). Adjust the scope, move the Service Worker script, ` +
+                                     'or use the Service-Worker-Allowed HTTP header to allow the scope.';
+
+                e.ports[0].postMessage({ error: errorMessage });
+                reject(new Error(errorMessage));
+
+                return;
             }
+
+            e.ports[0].postMessage({});
 
             swFetchCheckSettings.protocol = data.protocol;
             swFetchCheckSettings.host     = data.host;
@@ -54,30 +63,25 @@ export default function overrideFetchEvent () {
         });
     });
 
-    nativeMethods.windowAddEventListener.call(self, 'fetch', (e: Event) => {
-        // @ts-ignore
-        const request        = e.request as Request;
-        const proxyUrl       = nativeMethods.requestUrlGetter.call(request);
-        const parsedProxyUrl = parseProxyUrl(proxyUrl);
+    nativeMethods.windowAddEventListener.call(self, 'fetch', (e: any/*FetchEvent*/) => {
+        const request           = e.request as Request;
+        const proxyUrl          = nativeMethods.requestUrlGetter.call(request);
+        const parsedProxyUrl    = parseProxyUrl(proxyUrl);
+        const isInternalRequest = !parsedProxyUrl;
 
-        // NOTE: It is internal request
-        if (!parsedProxyUrl) {
-            // @ts-ignore
+        if (isInternalRequest) {
             e.respondWith(nativeMethods.fetch.call(self, request));
             stopPropagation(e);
 
             return;
         }
-        // NOTE: Settings is not initialized
+        // NOTE: Settings is not initialized yet
         else if (waitSettingsPromise) {
             stopPropagation(e);
 
-            // @ts-ignore
             waitSettingsPromise.then(() => {
-                if (!isCorrectScope(parsedProxyUrl.destResourceInfo)) {
-                    // @ts-ignore
+                if (!isCorrectScope(parsedProxyUrl.destResourceInfo))
                     e.respondWith(nativeMethods.fetch.call(self, request));
-                }
                 else
                     nativeMethods.dispatchEvent.call(self, e);
             });
@@ -86,7 +90,6 @@ export default function overrideFetchEvent () {
         }
         // NOTE: This request should not have gotten into this service worker
         else if (!isCorrectScope(parsedProxyUrl.destResourceInfo)) {
-            // @ts-ignore
             e.respondWith(nativeMethods.fetch.call(self, request));
             stopPropagation(e);
 

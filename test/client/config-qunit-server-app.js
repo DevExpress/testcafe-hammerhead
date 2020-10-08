@@ -35,7 +35,7 @@ function fetchContent (req) {
 
         req.on('data', chunk => chunks.push(chunk));
         req.on('end', () => resolve(Buffer.concat(chunks).toString()));
-    });
+    });ServiceWorker.prototype.postMessage
 }
 
 module.exports = function (app) {
