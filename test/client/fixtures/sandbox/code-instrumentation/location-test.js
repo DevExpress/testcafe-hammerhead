@@ -190,7 +190,7 @@ test('location object of iframe with empty src should have properties with corre
                     nativeIframe.contentDocument.location.origin,
                     'origin property in iframe with "' + iframeSrcAttribute + '" src attribute'
                 );
-        });
+            });
     }
 
     return createTestIframe()
