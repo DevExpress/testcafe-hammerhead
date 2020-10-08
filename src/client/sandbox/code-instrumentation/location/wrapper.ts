@@ -14,7 +14,8 @@ import {
     ensureTrailingSlash,
     prepareUrl,
     SPECIAL_BLANK_PAGE,
-    ORIGIN_IN_IFRAME_WITHOUT_SRC
+    ORIGIN_IN_IFRAME_WITHOUT_SRC,
+    ORIGIN_IN_IFRAME_WITHOUT_SRC_IN_IE
 } from '../../../../utils/url';
 import nativeMethods from '../../native-methods';
 import urlResolver from '../../../utils/url-resolver';
@@ -23,6 +24,7 @@ import DOMStringListWrapper from './ancestor-origins-wrapper';
 import IntegerIdGenerator from '../../../utils/integer-id-generator';
 import { createOverriddenDescriptor } from '../../../utils/property-overriding';
 import MessageSandbox from '../../event/message';
+import { isIE } from '../../../utils/browser';
 
 const GET_ORIGIN_CMD      = 'hammerhead|command|get-origin';
 const ORIGIN_RECEIVED_CMD = 'hammerhead|command|origin-received';
@@ -138,7 +140,7 @@ export default class LocationWrapper {
                 if (origin)
                     return origin;
                 else
-                    return ORIGIN_IN_IFRAME_WITHOUT_SRC;
+                    return isIE ? ORIGIN_IN_IFRAME_WITHOUT_SRC_IN_IE : ORIGIN_IN_IFRAME_WITHOUT_SRC;
             },
             setter: origin => origin
         });
