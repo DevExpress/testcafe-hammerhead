@@ -146,48 +146,51 @@ test('location object of iframe with empty src should have properties with corre
         nativeMethods.setAttribute.call(nativeIframe, 'src', iframeSrcAttribute);
         nativeMethods.appendChild.call(iframe.contentDocument.body, nativeIframe);
 
-        iframe.contentWindow.eval('window["%hammerhead%"].get("./utils/destination-location").forceLocation(null);');
+        return window.QUnitGlobals.waitForIframe(nativeIframe)
+            .then(function () {
+                iframe.contentWindow.eval('window["%hammerhead%"].get("./utils/destination-location").forceLocation(null);');
 
-        strictEqual(
-            eval(processScript('iframe.contentDocument.location.protocol')),
-            nativeIframe.contentDocument.location.protocol,
-            'protocol property in iframe with "' + iframeSrcAttribute + '" src attribute'
-        );
-        strictEqual(
-            eval(processScript('iframe.contentDocument.location.port')),
-            nativeIframe.contentDocument.location.port,
-            'port property in iframe with "' + iframeSrcAttribute + '" src attribute'
-        );
-        strictEqual(
-            eval(processScript('iframe.contentDocument.location.host')),
-            nativeIframe.contentDocument.location.host,
-            'host property in iframe with "' + iframeSrcAttribute + '" src attribute'
-        );
-        strictEqual(
-            eval(processScript('iframe.contentDocument.location.hostname')),
-            nativeIframe.contentDocument.location.hostname,
-            'hostname property in iframe with "' + iframeSrcAttribute + '" src attribute'
-        );
-        strictEqual(
-            eval(processScript('iframe.contentDocument.location.pathname')),
-            nativeIframe.contentDocument.location.pathname,
-            'pathname property in iframe with "' + iframeSrcAttribute + '" src attribute'
-        );
-        strictEqual(
-            eval(processScript('iframe.contentDocument.location.hash')),
-            nativeIframe.contentDocument.location.hash,
-            'hash property in iframe with "' + iframeSrcAttribute + '" src attribute'
-        );
-        strictEqual(
-            eval(processScript('iframe.contentDocument.location.search')),
-            nativeIframe.contentDocument.location.search,
-            'search property in iframe with "' + iframeSrcAttribute + '" src attribute'
-        );
-        strictEqual(
-            eval(processScript('iframe.contentDocument.location.origin')),
-            nativeIframe.contentDocument.location.origin,
-            'origin property in iframe with "' + iframeSrcAttribute + '" src attribute'
-        );
+                strictEqual(
+                    eval(processScript('iframe.contentDocument.location.protocol')),
+                    nativeIframe.contentDocument.location.protocol,
+                    'protocol property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                );
+                strictEqual(
+                    eval(processScript('iframe.contentDocument.location.port')),
+                    nativeIframe.contentDocument.location.port,
+                    'port property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                );
+                strictEqual(
+                    eval(processScript('iframe.contentDocument.location.host')),
+                    nativeIframe.contentDocument.location.host,
+                    'host property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                );
+                strictEqual(
+                    eval(processScript('iframe.contentDocument.location.hostname')),
+                    nativeIframe.contentDocument.location.hostname,
+                    'hostname property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                );
+                strictEqual(
+                    eval(processScript('iframe.contentDocument.location.pathname')),
+                    nativeIframe.contentDocument.location.pathname,
+                    'pathname property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                );
+                strictEqual(
+                    eval(processScript('iframe.contentDocument.location.hash')),
+                    nativeIframe.contentDocument.location.hash,
+                    'hash property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                );
+                strictEqual(
+                    eval(processScript('iframe.contentDocument.location.search')),
+                    nativeIframe.contentDocument.location.search,
+                    'search property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                );
+                strictEqual(
+                    eval(processScript('iframe.contentDocument.location.origin')),
+                    nativeIframe.contentDocument.location.origin,
+                    'origin property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                );
+        });
     }
 
     return createTestIframe()
