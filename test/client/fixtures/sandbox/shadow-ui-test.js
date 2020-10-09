@@ -130,6 +130,53 @@ test('set innerHTML for root', function () {
     ok(domUtils.isShadowUIElement(root.childNodes[0]));
 });
 
+test('wrappers of native functions should return the correct string representations', function () {
+    window.checkStringRepresentation(window.Document.prototype.elementFromPoint, nativeMethods.elementFromPoint,
+        'Document.prototype.elementFromPoint');
+    if (document.caretRangeFromPoint) {
+        window.checkStringRepresentation(window.Document.prototype.caretRangeFromPoint,
+            nativeMethods.caretRangeFromPoint,
+            'Document.prototype.caretRangeFromPoint');
+    }
+    if (document.caretPositionFromPoint) {
+        window.checkStringRepresentation(window.Document.prototype.caretPositionFromPoint,
+            nativeMethods.caretPositionFromPoint,
+            'Document.prototype.caretPositionFromPoint');
+    }
+    window.checkStringRepresentation(window.Document.prototype.getElementById, nativeMethods.getElementById,
+        'Document.prototype.getElementById');
+    window.checkStringRepresentation(window.Document.prototype.getElementsByName, nativeMethods.getElementsByName,
+        'Document.prototype.getElementsByName');
+    window.checkStringRepresentation(window.Document.prototype.getElementsByClassName,
+        nativeMethods.getElementsByClassName,
+        'Document.prototype.getElementsByClassName');
+    window.checkStringRepresentation(window.Document.prototype.getElementsByTagName, nativeMethods.getElementsByTagName,
+        'Document.prototype.getElementsByTagName');
+    window.checkStringRepresentation(window.Document.prototype.querySelector, nativeMethods.querySelector,
+        'Document.prototype.querySelector');
+    window.checkStringRepresentation(window.Document.prototype.querySelectorAll, nativeMethods.querySelectorAll,
+        'Document.prototype.querySelectorAll');
+    window.checkStringRepresentation(window.Element.prototype.getElementsByTagName,
+        nativeMethods.elementGetElementsByTagName,
+        'Element.prototype.getElementsByTagName');
+    window.checkStringRepresentation(window.HTMLBodyElement.prototype.getElementsByClassName,
+        nativeMethods.elementGetElementsByClassName,
+        'HTMLBodyElement.prototype.getElementsByClassName');
+    window.checkStringRepresentation(window.HTMLBodyElement.prototype.querySelector, nativeMethods.elementQuerySelector,
+        'HTMLBodyElement.prototype.querySelector');
+    window.checkStringRepresentation(window.HTMLBodyElement.prototype.querySelectorAll,
+        nativeMethods.elementQuerySelectorAll,
+        'HTMLBodyElement.prototype.querySelectorAll');
+    window.checkStringRepresentation(window.HTMLHeadElement.prototype.getElementsByClassName,
+        nativeMethods.elementGetElementsByClassName,
+        'HTMLHeadElement.prototype.getElementsByClassName');
+    window.checkStringRepresentation(window.HTMLHeadElement.prototype.querySelector, nativeMethods.elementQuerySelector,
+        'HTMLHeadElement.prototype.querySelector');
+    window.checkStringRepresentation(window.HTMLHeadElement.prototype.querySelectorAll,
+        nativeMethods.elementQuerySelectorAll,
+        'HTMLHeadElement.prototype.querySelectorAll');
+});
+
 if (window.MutationObserver) {
     module('MutationObserver', function () {
         module('child list');

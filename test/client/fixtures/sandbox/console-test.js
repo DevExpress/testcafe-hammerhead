@@ -154,6 +154,13 @@ if (window.console && typeof window.console.log !== 'undefined') {
         });
     }
 
+    test('wrappers of native functions should return the correct string representations', function () {
+        window.checkStringRepresentation(window.console.log, nativeMethods.consoleMeths.log, 'console.log');
+        window.checkStringRepresentation(window.console.warn, nativeMethods.consoleMeths.warn, 'console.warn');
+        window.checkStringRepresentation(window.console.error, nativeMethods.consoleMeths.error, 'console.error');
+        window.checkStringRepresentation(window.console.info, nativeMethods.consoleMeths.info, 'console.info');
+    });
+
     module('regression');
 
     test('console message with circular structure object from iframe (GH-1546)', function () {

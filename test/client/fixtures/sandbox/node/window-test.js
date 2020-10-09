@@ -27,6 +27,139 @@ test('window.onerror setter/getter', function () {
     window.onerror = storedOnErrorHandler;
 });
 
+test('wrappers of native functions should return the correct string representations', function () {
+    window.checkStringRepresentation(window.CanvasRenderingContext2D.prototype.drawImage,
+        nativeMethods.canvasContextDrawImage,
+        'CanvasRenderingContext2D.prototype.drawImage');
+
+    if (window.Object.assign)
+        window.checkStringRepresentation(window.Object.assign, nativeMethods.objectAssign, 'Object.assign');
+
+    window.checkStringRepresentation(window.open, nativeMethods.windowOpen, 'open');
+
+    if (window.FontFace)
+        window.checkStringRepresentation(window.FontFace, nativeMethods.FontFace, 'FontFace');
+
+    if (window.Worker) {
+        window.checkStringRepresentation(window.Worker, nativeMethods.Worker, 'Worker');
+        window.checkStringRepresentation(window.Worker.prototype.constructor, nativeMethods.Worker,
+            'Worker.prototype.constructor');
+    }
+
+    if (window.Blob)
+        window.checkStringRepresentation(window.Blob, nativeMethods.Blob, 'Blob');
+
+    // NOTE: File in IE11 is not constructable.
+    if (window.File && typeof window.File === 'function')
+        window.checkStringRepresentation(window.File, nativeMethods.File, 'File');
+
+    if (window.EventSource)
+        window.checkStringRepresentation(window.EventSource, nativeMethods.EventSource, 'EventSource');
+
+    if (window.MutationObserver)
+        window.checkStringRepresentation(window.MutationObserver, nativeMethods.MutationObserver, 'MutationObserver');
+
+    if (window.WebKitMutationObserver) {
+        window.checkStringRepresentation(window.WebKitMutationObserver, nativeMethods.MutationObserver,
+            'WebKitMutationObserver');
+    }
+
+    if (window.Proxy)
+        window.checkStringRepresentation(window.Proxy, nativeMethods.Proxy, 'Proxy');
+
+    if (window.registerServiceWorker) {
+        window.checkStringRepresentation(window.registerServiceWorker, nativeMethods.registerServiceWorker,
+            'registerServiceWorker');
+    }
+
+    if (window.getRegistrationServiceWorker) {
+        window.checkStringRepresentation(window.getRegistrationServiceWorker,
+            nativeMethods.getRegistrationServiceWorker,
+            'getRegistrationServiceWorker');
+    }
+
+    if (window.Range.prototype.createContextualFragment) {
+        window.checkStringRepresentation(window.Range.prototype.createContextualFragment,
+            nativeMethods.createContextualFragment,
+            'Range.prototype.createContextualFragment');
+    }
+
+    if (window.EventTarget) {
+        window.checkStringRepresentation(window.EventTarget.prototype.addEventListener,
+            nativeMethods.addEventListener,
+            'EventTarget.prototype.addEventListener');
+        window.checkStringRepresentation(window.EventTarget.prototype.removeEventListener,
+            nativeMethods.removeEventListener,
+            'EventTarget.prototype.removeEventListener');
+    }
+    else {
+        window.checkStringRepresentation(window.addEventListener, nativeMethods.windowAddEventListener,
+            'addEventListener');
+        window.checkStringRepresentation(window.removeEventListener, nativeMethods.windowRemoveEventListener,
+            'removeEventListener');
+    }
+
+    if (window.Image)
+        window.checkStringRepresentation(window.Image, nativeMethods.Image, 'Image');
+
+    window.checkStringRepresentation(window.Function, nativeMethods.Function, 'Function');
+    window.checkStringRepresentation(window.Function.prototype.constructor, nativeMethods.Function,
+        'Function.prototype.constructor');
+
+    if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
+        window.checkStringRepresentation(window.history.pushState, nativeMethods.historyPushState,
+            'history.pushState');
+        window.checkStringRepresentation(window.history.replaceState, nativeMethods.historyReplaceState,
+            'history.replaceState');
+    }
+
+    if (window.navigator.sendBeacon)
+        window.checkStringRepresentation(window.navigator.sendBeacon, nativeMethods.sendBeacon);
+
+    if (window.navigator.registerProtocolHandler) {
+        window.checkStringRepresentation(window.navigator.registerProtocolHandler,
+            nativeMethods.registerProtocolHandler,
+            'navigator.registerProtocolHandler');
+    }
+
+    if (window.FormData) {
+        window.checkStringRepresentation(window.FormData.prototype.append, nativeMethods.formDataAppend,
+            'FormData.prototype.append');
+    }
+
+    if (window.WebSocket)
+        window.checkStringRepresentation(window.WebSocket, nativeMethods.WebSocket, 'WebSocket');
+
+    if (window.DOMParser) {
+        window.checkStringRepresentation(window.DOMParser.prototype.parseFromString,
+            nativeMethods.DOMParserParseFromString,
+            'DOMParser.prototype.parseFromString');
+    }
+
+    if (window.DOMTokenList) {
+        window.checkStringRepresentation(window.DOMTokenList.prototype.add, nativeMethods.tokenListAdd,
+            'DOMTokenList.prototype.add');
+        window.checkStringRepresentation(window.DOMTokenList.prototype.remove, nativeMethods.tokenListRemove,
+            'DOMTokenList.prototype.remove');
+        window.checkStringRepresentation(window.DOMTokenList.prototype.toggle, nativeMethods.tokenListToggle,
+            'DOMTokenList.prototype.toggle');
+
+        if (window.DOMTokenList.prototype.replace) {
+            window.checkStringRepresentation(window.DOMTokenList.prototype.replace, nativeMethods.tokenListReplace,
+                'DOMTokenList.prototype.replace');
+        }
+
+        if (window.DOMTokenList.prototype.supports) {
+            window.checkStringRepresentation(window.DOMTokenList.prototype.supports, nativeMethods.tokenListSupports,
+                'DOMTokenList.prototype.supports');
+        }
+    }
+
+    window.checkStringRepresentation(window.DOMImplementation.prototype.createHTMLDocument,
+        nativeMethods.createHTMLDocument,
+        'DOMImplementation.prototype.createHTMLDocument');
+});
+
 if (nativeMethods.winOnUnhandledRejectionSetter) {
     module('unhandledrejection event (GH-1247)', function () {
         asyncTest('window.onunhandledrejection should be instrumented', function () {

@@ -70,6 +70,83 @@ test('prevent form submit', function () {
     strictEqual(submitPrevented, true);
 });
 
+test('wrappers of native functions should return the correct string representations', function () {
+    window.checkStringRepresentation(window.Element.prototype.setAttribute, nativeMethods.setAttribute,
+        'Element.prototype.setAttribute');
+    window.checkStringRepresentation(window.Element.prototype.setAttributeNS, nativeMethods.setAttributeNS,
+        'Element.prototype.setAttributeNS');
+    window.checkStringRepresentation(window.Element.prototype.getAttribute, nativeMethods.getAttribute,
+        'Element.prototype.getAttribute');
+    window.checkStringRepresentation(window.Element.prototype.getAttributeNS, nativeMethods.getAttributeNS,
+        'Element.prototype.getAttributeNS');
+    window.checkStringRepresentation(window.Element.prototype.removeAttribute, nativeMethods.removeAttribute,
+        'Element.prototype.removeAttribute');
+    window.checkStringRepresentation(window.Element.prototype.removeAttributeNS, nativeMethods.removeAttributeNS,
+        'Element.prototype.removeAttributeNS');
+    window.checkStringRepresentation(window.Element.prototype.cloneNode, nativeMethods.cloneNode,
+        'Element.prototype.cloneNode');
+    window.checkStringRepresentation(window.Element.prototype.querySelector, nativeMethods.elementQuerySelector,
+        'Element.prototype.querySelector');
+    window.checkStringRepresentation(window.Element.prototype.querySelectorAll, nativeMethods.elementQuerySelectorAll,
+        'Element.prototype.querySelectorAll');
+    window.checkStringRepresentation(window.Element.prototype.hasAttribute, nativeMethods.hasAttribute,
+        'Element.prototype.hasAttribute');
+    window.checkStringRepresentation(window.Element.prototype.hasAttributeNS, nativeMethods.hasAttributeNS,
+        'Element.prototype.hasAttributeNS');
+    window.checkStringRepresentation(window.Element.prototype.hasAttributes, nativeMethods.hasAttributes,
+        'Element.prototype.hasAttributes');
+    window.checkStringRepresentation(window.Node.prototype.cloneNode, nativeMethods.cloneNode,
+        'Node.prototype.cloneNode');
+    window.checkStringRepresentation(window.Node.prototype.appendChild, nativeMethods.appendChild,
+        'Node.prototype.appendChild');
+    window.checkStringRepresentation(window.Node.prototype.removeChild, nativeMethods.removeChild,
+        'Node.prototype.removeChild');
+    window.checkStringRepresentation(window.Node.prototype.insertBefore, nativeMethods.insertBefore,
+        'Node.prototype.insertBefore');
+    window.checkStringRepresentation(window.Node.prototype.replaceChild, nativeMethods.replaceChild,
+        'Node.prototype.replaceChild');
+    window.checkStringRepresentation(window.DocumentFragment.prototype.querySelector,
+        nativeMethods.documentFragmentQuerySelector,
+        'DocumentFragment.prototype.querySelector');
+    window.checkStringRepresentation(window.DocumentFragment.prototype.querySelectorAll,
+        nativeMethods.documentFragmentQuerySelectorAll,
+        'DocumentFragment.prototype.querySelectorAll');
+    window.checkStringRepresentation(window.HTMLTableElement.prototype.insertRow, nativeMethods.insertTableRow,
+        'HTMLTableElement.prototype.insertRow');
+    window.checkStringRepresentation(window.HTMLTableSectionElement.prototype.insertRow, nativeMethods.insertTableRow,
+        'HTMLTableSectionElement.prototype.insertRow');
+    window.checkStringRepresentation(window.HTMLTableRowElement.prototype.insertCell, nativeMethods.insertCell,
+        'HTMLTableRowElement.prototype.insertCell');
+    window.checkStringRepresentation(window.HTMLFormElement.prototype.submit, nativeMethods.formSubmit,
+        'HTMLFormElement.prototype.submit');
+    window.checkStringRepresentation(window.HTMLAnchorElement.prototype.toString, nativeMethods.anchorToString,
+        'HTMLAnchorElement.prototype.toString');
+    window.checkStringRepresentation(window.CharacterData.prototype.appendData, nativeMethods.appendData,
+        'CharacterData.prototype.appendData');
+
+    if (window.Document.prototype.registerElement) {
+        window.checkStringRepresentation(window.Document.prototype.registerElement, nativeMethods.registerElement,
+            'Document.prototype.registerElement');
+    }
+
+    if (window.Element.prototype.insertAdjacentHTML) {
+        window.checkStringRepresentation(window.Element.prototype.insertAdjacentHTML, nativeMethods.insertAdjacentHTML,
+            'Element.prototype.insertAdjacentHTML');
+    }
+    else if (HTMLElement.prototype.insertAdjacentHTML) {
+        window.checkStringRepresentation(window.HTMLElement.prototype.insertAdjacentHTML,
+            nativeMethods.insertAdjacentHTML,
+            'HTMLElement.prototype.insertAdjacentHTML');
+    }
+
+    const someElement = document.createElement('div');
+
+    window.checkStringRepresentation(someElement.addEventListener, nativeMethods.addEventListener,
+        'element.addEventListener');
+    window.checkStringRepresentation(someElement.removeEventListener, nativeMethods.removeEventListener,
+        'element.removeEventListener');
+});
+
 module('regression');
 
 test('a document fragment should correctly process when it is appending to iframe (GH-912)', function () {

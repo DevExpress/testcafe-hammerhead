@@ -68,6 +68,45 @@ test('remove event listener in the context of optional parameters ("options" obj
     checkEventListenerRemoving(divEl);
 });
 
+test('wrappers of native functions should return the correct string representations', function () {
+    window.checkStringRepresentation(window.HTMLInputElement.prototype.setSelectionRange,
+        nativeMethods.setSelectionRange,
+        'HTMLInputElement.prototype.setSelectionRange');
+    window.checkStringRepresentation(window.HTMLTextAreaElement.prototype.setSelectionRange,
+        nativeMethods.textAreaSetSelectionRange,
+        'HTMLTextAreaElement.prototype.setSelectionRange');
+
+    if (window.EventTarget) {
+        window.checkStringRepresentation(window.EventTarget.prototype.dispatchEvent, nativeMethods.dispatchEvent,
+            'EventTarget.prototype.dispatchEvent');
+    }
+    else {
+        window.checkStringRepresentation(window.Window.prototype.dispatchEvent, nativeMethods.dispatchEvent,
+            'Window.prototype.dispatchEvent');
+        window.checkStringRepresentation(window.Document.prototype.dispatchEvent, nativeMethods.dispatchEvent,
+            'Document.prototype.dispatchEvent');
+        window.checkStringRepresentation(window.HTMLElement.prototype.dispatchEvent, nativeMethods.dispatchEvent,
+            'HTMLElement.prototype.dispatchEvent');
+        window.checkStringRepresentation(window.SVGElement.prototype.dispatchEvent, nativeMethods.dispatchEvent,
+            'SVGElement.prototype.dispatchEvent');
+    }
+
+    window.checkStringRepresentation(window.HTMLElement.prototype.focus, nativeMethods.focus,
+        'HTMLElement.prototype.focus');
+    window.checkStringRepresentation(window.HTMLElement.prototype.blur, nativeMethods.blur,
+        'HTMLElement.prototype.blur');
+    window.checkStringRepresentation(window.HTMLElement.prototype.click, nativeMethods.click,
+        'HTMLElement.prototype.click');
+    window.checkStringRepresentation(window.Window.focus, nativeMethods.focus, 'Window.focus');
+    window.checkStringRepresentation(window.Window.blur, nativeMethods.blur, 'Window.blur');
+    window.checkStringRepresentation(window.Event.prototype.preventDefault, nativeMethods.preventDefault,
+        'Event.prototype.preventDefault');
+
+    if (window.TextRange && window.TextRange.prototype.select) {
+        window.checkStringRepresentation(window.TextRange.prototype.select, nativeMethods.select,
+            'TextRange.prototype.select');
+    }
+});
 
 module('regression');
 

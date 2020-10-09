@@ -136,6 +136,29 @@ test('throwing an error on invalid calling "open" method (GH-1613)', function ()
     }
 });
 
+if (window.XMLHttpRequest) {
+    test('wrappers of native functions should return the correct string representations', function () {
+        window.checkStringRepresentation(window.XMLHttpRequest, nativeMethods.XMLHttpRequest, 'XMLHttpRequest');
+        window.checkStringRepresentation(window.XMLHttpRequest.prototype.constructor, nativeMethods.XMLHttpRequest,
+            'XMLHttpRequest.prototype.constructor');
+        window.checkStringRepresentation(window.XMLHttpRequest.prototype.abort, nativeMethods.xhrAbort,
+            'XMLHttpRequest.prototype.abort');
+        window.checkStringRepresentation(window.XMLHttpRequest.prototype.open, nativeMethods.xhrOpen,
+            'XMLHttpRequest.prototype.open');
+        window.checkStringRepresentation(window.XMLHttpRequest.prototype.send, nativeMethods.xhrSend,
+            'XMLHttpRequest.prototype.send');
+        window.checkStringRepresentation(window.XMLHttpRequest.prototype.setRequestHeader,
+            nativeMethods.xhrSetRequestHeader,
+            'XMLHttpRequest.prototype.setRequestHeader');
+        window.checkStringRepresentation(window.XMLHttpRequest.prototype.getResponseHeader,
+            nativeMethods.xhrGetResponseHeader,
+            'XMLHttpRequest.prototype.getResponseHeader');
+        window.checkStringRepresentation(window.XMLHttpRequest.prototype.getAllResponseHeaders,
+            nativeMethods.xhrGetAllResponseHeaders,
+            'XMLHttpRequest.prototype.getAllResponseHeaders');
+    });
+}
+
 module('regression');
 
 asyncTest('unexpected text modifying during typing text in the search input on the http://www.google.co.uk (B238528)', function () {

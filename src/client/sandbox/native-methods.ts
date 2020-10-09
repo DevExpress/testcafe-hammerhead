@@ -1,5 +1,6 @@
 /*global Document, Window */
 import getGlobalContextInfo from '../utils/global-context-info';
+import { isNativeFunction } from '../utils/overriding';
 
 const NATIVE_CODE_RE = /\[native code]/;
 
@@ -8,6 +9,7 @@ class NativeMethods {
     createDocumentFragment: Document['createDocumentFragment'];
     createElement: Document['createElement'];
     createElementNS: Document['createElementNS'];
+    createTextNode: Document['createTextNode'];
     documentOpenPropOwnerName: string;
     documentClosePropOwnerName: string;
     documentWritePropOwnerName: string;
@@ -68,6 +70,7 @@ class NativeMethods {
     anchorToString: any;
     matches: any;
     closest: any;
+    appendData: any;
     addEventListener: any;
     removeEventListener: any;
     blur: any;
@@ -124,6 +127,7 @@ class NativeMethods {
     headersDelete: Headers['delete'];
     headersEntries: Headers['entries'];
     headersForEach: Headers['forEach'];
+    headersValues: Headers['values'];
     windowAddEventListener: any;
     windowRemoveEventListener: any;
     WindowPointerEvent: any;
@@ -343,7 +347,7 @@ class NativeMethods {
     Image: any;
     Function: any;
     Error: any;
-    functionToString: any;
+    functionToString: Function;
     FontFace: any;
     StorageEvent: any;
     MutationObserver: any;
@@ -393,13 +397,13 @@ class NativeMethods {
         doc = doc || document;
         win = win || window as Window & typeof globalThis;
 
-        // @ts-ignore
         const docPrototype = win.Document.prototype;
 
         // Dom
         this.createDocumentFragment = docPrototype.createDocumentFragment;
         this.createElement          = docPrototype.createElement;
         this.createElementNS        = docPrototype.createElementNS;
+        this.createTextNode         = docPrototype.createTextNode;
 
         this.documentOpenPropOwnerName    = NativeMethods._getDocumentPropOwnerName(docPrototype, 'open');
         this.documentClosePropOwnerName   = NativeMethods._getDocumentPropOwnerName(docPrototype, 'close');
@@ -483,6 +487,9 @@ class NativeMethods {
         const createElement = tagName => this.createElement.call(doc || document, tagName);
         const nativeElement = createElement('div');
 
+        const createTextNode = data => this.createTextNode.call(doc || document, data);
+        const textNode       = createTextNode('text');
+
         // Dom
         this.appendChild                   = nativeElement.appendChild;
         this.replaceChild                  = nativeElement.replaceChild;
@@ -509,6 +516,9 @@ class NativeMethods {
         this.anchorToString                = win.HTMLAnchorElement.prototype.toString;
         this.matches                       = nativeElement.matches || nativeElement.msMatchesSelector;
         this.closest                       = nativeElement.closest;
+
+        // Text node
+        this.appendData = textNode.appendData;
 
         // TODO: remove this condition after the GH-1649 fix
         if (!this.isNativeCode(this.elementGetElementsByTagName)) {
@@ -953,11 +963,12 @@ class NativeMethods {
             this.headersDelete  = win.Headers.prototype.delete;
             this.headersEntries = win.Headers.prototype.entries;
             this.headersForEach = win.Headers.prototype.forEach;
+            this.headersValues  = win.Headers.prototype.values;
         }
 
         // Event
         // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
-        if (!win.EventLisener) {
+        if (!win.EventTarget) {
             this.windowAddEventListener    = win.addEventListener || winProto.addEventListener;
             this.windowRemoveEventListener = win.removeEventListener || winProto.removeEventListener;
             this.windowDispatchEvent       = win.dispatchEvent;
@@ -1075,7 +1086,7 @@ class NativeMethods {
         this.XMLHttpRequest       = win.XMLHttpRequest;
         this.Image                = win.Image;
         this.Function             = win.Function;
-        this.functionToString     = win.Function.toString;
+        this.functionToString     = win.Function.prototype.toString;
         this.Error                = win.Error;
         this.FontFace             = win.FontFace;
         this.StorageEvent         = win.StorageEvent;
@@ -1099,7 +1110,7 @@ class NativeMethods {
     }
 
     refreshElectronMeths (vmModule): boolean {
-        if (this.createScript && this.createScript.toString() !== vmModule.createScript.toString())
+        if (this.createScript && isNativeFunction(vmModule.createScript))
             return false;
 
         this.createScript      = vmModule.createScript;
@@ -1162,20 +1173,19 @@ class NativeMethods {
 
         const needToRefreshDocumentMethods = tryToExecuteCode(
             () => !doc.createElement ||
-                  this.createElement.toString() === document.createElement.toString()
+                  isNativeFunction(document.createElement)
         );
 
         const needToRefreshElementMethods = tryToExecuteCode(() => {
             const nativeElement = this.createElement.call(doc, 'div');
 
-            return nativeElement.getAttribute.toString() === this.getAttribute.toString();
+            return isNativeFunction(nativeElement.getAttribute);
         });
 
         const needToRefreshWindowMethods = tryToExecuteCode(() => {
             this.setTimeout.call(win, () => void 0, 0);
 
-            //@ts-ignore
-            return win.XMLHttpRequest.prototype.open.toString() === this.xhrOpen.toString();
+            return isNativeFunction(win.XMLHttpRequest.prototype.open);
         });
 
         // NOTE: T173709

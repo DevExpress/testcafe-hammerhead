@@ -18,6 +18,7 @@ import MessageSandbox from './event/message';
 import IframeSandbox from './iframe';
 import IEDebugSandbox from './ie-debug';
 import removeElement from '../utils/remove-element';
+import { overrideFunction } from '../utils/overriding';
 
 const IS_NON_STATIC_POSITION_RE = /fixed|relative|absolute/;
 const CLASSNAME_RE              = /\.((?:\\.|[-\w]|[^\x00-\xa0])+)/g;
@@ -264,7 +265,7 @@ export default class ShadowUI extends SandboxBase {
         const shadowUI = this;
         const docProto = window.Document.prototype;
 
-        docProto.elementFromPoint = function (...args) {
+        overrideFunction(docProto, 'elementFromPoint', function (...args) {
             // NOTE: T212974
             shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
@@ -273,10 +274,10 @@ export default class ShadowUI extends SandboxBase {
             shadowUI.removeClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
             return res;
-        };
+        });
 
         if (document.caretRangeFromPoint) {
-            docProto.caretRangeFromPoint = function (...args) {
+            overrideFunction(docProto, 'caretRangeFromPoint', function (...args) {
                 shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
                 let res = nativeMethods.caretRangeFromPoint.apply(this, args);
@@ -287,11 +288,11 @@ export default class ShadowUI extends SandboxBase {
                 shadowUI.removeClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
                 return res;
-            };
+            });
         }
 
         if (document.caretPositionFromPoint) {
-            docProto.caretPositionFromPoint = function (...args) {
+            overrideFunction(docProto, 'caretPositionFromPoint', function (...args) {
                 shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
                 let res = nativeMethods.caretPositionFromPoint.apply(this, args);
@@ -302,30 +303,26 @@ export default class ShadowUI extends SandboxBase {
                 shadowUI.removeClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
                 return res;
-            };
+            });
         }
 
-        docProto.getElementById = function (...args) {
+        overrideFunction(docProto, 'getElementById', function (...args) {
             return ShadowUI._filterElement(nativeMethods.getElementById.apply(this, args));
-        };
+        });
 
-        docProto.getElementsByName = function (...args) {
+        overrideFunction(docProto, 'getElementsByName', function (...args) {
             const elements = nativeMethods.getElementsByName.apply(this, args);
             const length   = getElementsByNameReturnsHTMLCollection
                 ? nativeMethods.htmlCollectionLengthGetter.call(elements)
                 : nativeMethods.nodeListLengthGetter.call(elements);
 
             return shadowUI._filterNodeList(elements, length);
-        };
+        });
 
-        docProto.getElementsByClassName = this.wrapperCreators.getElementsByClassName('getElementsByClassName');
-        docProto.getElementsByTagName   = this.wrapperCreators.getElementsByTagName('getElementsByTagName');
-        docProto.querySelector          = this.wrapperCreators.querySelector('querySelector', 'querySelectorAll');
-        docProto.querySelectorAll       = this.wrapperCreators.querySelectorAll('querySelectorAll');
-
-        // NOTE: T195358
-        docProto.querySelectorAll.toString       = () => nativeMethods.querySelectorAll.toString();
-        docProto.getElementsByClassName.toString = () => nativeMethods.getElementsByClassName.toString();
+        overrideFunction(docProto, 'getElementsByClassName', this.wrapperCreators.getElementsByClassName('getElementsByClassName'));
+        overrideFunction(docProto, 'getElementsByTagName', this.wrapperCreators.getElementsByTagName('getElementsByTagName'));
+        overrideFunction(docProto, 'querySelector', this.wrapperCreators.querySelector('querySelector', 'querySelectorAll'));
+        overrideFunction(docProto, 'querySelectorAll', this.wrapperCreators.querySelectorAll('querySelectorAll'));
     }
 
     _overrideElementMethods (window) {
@@ -333,15 +330,15 @@ export default class ShadowUI extends SandboxBase {
         const bodyProto    = window.HTMLBodyElement.prototype;
         const headProto    = window.HTMLHeadElement.prototype;
 
-        elementProto.getElementsByTagName = this.wrapperCreators.getElementsByTagName('elementGetElementsByTagName');
+        overrideFunction(elementProto, 'getElementsByTagName', this.wrapperCreators.getElementsByTagName('elementGetElementsByTagName'));
 
-        bodyProto.getElementsByClassName = this.wrapperCreators.getElementsByClassName('elementGetElementsByClassName');
-        bodyProto.querySelector          = this.wrapperCreators.querySelector('elementQuerySelector', 'elementQuerySelectorAll');
-        bodyProto.querySelectorAll       = this.wrapperCreators.querySelectorAll('elementQuerySelectorAll');
+        overrideFunction(bodyProto, 'getElementsByClassName', this.wrapperCreators.getElementsByClassName('elementGetElementsByClassName'));
+        overrideFunction(bodyProto, 'querySelector', this.wrapperCreators.querySelector('elementQuerySelector', 'elementQuerySelectorAll'));
+        overrideFunction(bodyProto, 'querySelectorAll', this.wrapperCreators.querySelectorAll('elementQuerySelectorAll'));
 
-        headProto.getElementsByClassName = bodyProto.getElementsByClassName;
-        headProto.querySelector          = bodyProto.querySelector;
-        headProto.querySelectorAll       = bodyProto.querySelectorAll;
+        overrideFunction(headProto, 'getElementsByClassName', bodyProto.getElementsByClassName);
+        overrideFunction(headProto, 'querySelector', bodyProto.querySelector);
+        overrideFunction(headProto, 'querySelectorAll', bodyProto.querySelectorAll);
     }
 
     _getUIStyleSheetsHtml () {

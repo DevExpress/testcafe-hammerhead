@@ -1,5 +1,5 @@
 import SandboxBase from './base';
-import { overrideDescriptor } from './../utils/property-overriding';
+import { overrideDescriptor, overrideFunction, overrideStringRepresentation } from '../utils/overriding';
 import styleProcessor from './../../processing/style';
 import { getProxyUrl, parseProxyUrl } from './../utils/url';
 
@@ -168,19 +168,20 @@ export default class StyleSandbox extends SandboxBase {
         return proxyObject;
     }
 
-    _overrideCSSStyleDeclarationFunctionsCtx (window: Window) {
-        // @ts-ignore
+    _overrideCSSStyleDeclarationFunctionsCtx (window: Window & typeof globalThis) {
         const styleDeclarationProto = window.CSSStyleDeclaration.prototype;
 
         for (const prop in styleDeclarationProto) {
-            // @ts-ignore
             const nativeFn = this.nativeMethods.objectGetOwnPropertyDescriptor.call(window.Object, styleDeclarationProto, prop).value;// eslint-disable-line no-restricted-properties
 
             if (this.nativeMethods.objectHasOwnProperty.call(styleDeclarationProto, prop) &&
                 typeof nativeFn === 'function') {
-                styleDeclarationProto[prop] = function () {
+                (styleDeclarationProto[prop] as unknown as Function) = function () {
                     return nativeFn.apply(this[CSS_STYLE_PROXY_TARGET] || this, arguments);
                 };
+
+                // NOTE: we cannot use 'overrideFunction' here since the function may not exist
+                overrideStringRepresentation(styleDeclarationProto[prop] as unknown as Function, nativeFn);
             }
         }
     }
@@ -218,11 +219,9 @@ export default class StyleSandbox extends SandboxBase {
         }
         else if (this.FEATURES.protoContainsUrlProps) {
             for (const prop of this.URL_PROPS)
-                // @ts-ignore
                 this._overrideStyleProp(window.CSSStyleDeclaration.prototype, prop);
         }
 
-        // @ts-ignore
         overrideDescriptor(window.CSSStyleDeclaration.prototype, 'cssText', {
             getter: function () {
                 const cssText = nativeMethods.styleCssTextGetter.call(this);
@@ -237,36 +236,32 @@ export default class StyleSandbox extends SandboxBase {
             }
         });
 
-        // @ts-ignore
-        window.CSSStyleSheet.prototype.insertRule = function (rule, index) {
+        overrideFunction(window.CSSStyleSheet.prototype, 'insertRule', function (rule, index) {
             const newRule = styleProcessor.process(rule, getProxyUrl);
 
             return nativeMethods.styleInsertRule.call(this, newRule, index);
-        };
+        });
 
-        // @ts-ignore
-        window.CSSStyleDeclaration.prototype.getPropertyValue = function (...args) {
+        overrideFunction(window.CSSStyleDeclaration.prototype, 'getPropertyValue', function (...args) {
             const value = nativeMethods.styleGetPropertyValue.apply(this, args);
 
             return styleProcessor.cleanUp(value, parseProxyUrl);
-        };
+        });
 
-        // @ts-ignore
-        window.CSSStyleDeclaration.prototype.setProperty = function (...args) {
+        overrideFunction(window.CSSStyleDeclaration.prototype, 'setProperty', function (...args) {
             const value = args[1];
 
             if (typeof value === 'string')
                 args[1] = styleProcessor.process(value, getProxyUrl);
 
             return nativeMethods.styleSetProperty.apply(this, args);
-        };
+        });
 
-        // @ts-ignore
-        window.CSSStyleDeclaration.prototype.removeProperty = function (...args) {
+        overrideFunction(window.CSSStyleDeclaration.prototype, 'removeProperty', function (...args) {
             const oldValue = nativeMethods.styleRemoveProperty.apply(this, args);
 
             return styleProcessor.cleanUp(oldValue, parseProxyUrl);
-        };
+        });
 
         // NOTE: We need to override context of all functions from the CSSStyleDeclaration prototype if we use the Proxy feature.
         // Can only call CSSStyleDeclaration.<function name> on instances of CSSStyleDeclaration

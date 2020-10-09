@@ -6,7 +6,7 @@ import { getTopSameDomainWindow } from '../../utils/dom';
 import getStorageKey from '../../../utils/get-storage-key';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import * as JSON from 'json-hammerhead';
-import { createOverriddenDescriptor } from '../../utils/property-overriding';
+import { createOverriddenDescriptor } from '../../utils/overriding';
 import hammerhead from '../../index';
 import Listeners from '../event/listeners';
 import UnloadSandbox from '../event/unload';

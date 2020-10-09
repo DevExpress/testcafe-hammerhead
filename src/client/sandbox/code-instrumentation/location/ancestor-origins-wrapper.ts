@@ -1,6 +1,6 @@
 import nativeMethods from '../../native-methods';
 import LocationAccessorsInstrumentation from './index';
-import { createOverriddenDescriptor } from '../../../utils/property-overriding';
+import { createOverriddenDescriptor } from '../../../utils/overriding';
 
 const lengthWeakMap = new WeakMap<DOMStringListWrapper, number>();
 

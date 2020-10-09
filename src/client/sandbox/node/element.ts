@@ -22,7 +22,7 @@ import ShadowUI from '../shadow-ui';
 import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
 import { ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../../processing/dom/attributes';
 import settings from '../../settings';
-import { overrideDescriptor } from '../../utils/property-overriding';
+import { overrideDescriptor, overrideFunction } from '../../utils/overriding';
 import InsertPosition from '../../utils/insert-position';
 import { isFirefox } from '../../utils/browser';
 import UploadSandbox from '../upload';
@@ -795,41 +795,49 @@ export default class ElementSandbox extends SandboxBase {
         super.attach(window);
 
         this._createOverriddenMethods();
+        
+        overrideFunction(window.Element.prototype, 'setAttribute', this.overriddenMethods.setAttribute);
+        overrideFunction(window.Element.prototype, 'setAttributeNS', this.overriddenMethods.setAttributeNS);
+        overrideFunction(window.Element.prototype, 'getAttribute', this.overriddenMethods.getAttribute);
+        overrideFunction(window.Element.prototype, 'getAttributeNS', this.overriddenMethods.getAttributeNS);
+        overrideFunction(window.Element.prototype, 'removeAttribute', this.overriddenMethods.removeAttribute);
+        overrideFunction(window.Element.prototype, 'removeAttributeNS', this.overriddenMethods.removeAttributeNS);
+        overrideFunction(window.Element.prototype, 'cloneNode', this.overriddenMethods.cloneNode);
+        overrideFunction(window.Element.prototype, 'querySelector', this.overriddenMethods.querySelector);
+        overrideFunction(window.Element.prototype, 'querySelectorAll', this.overriddenMethods.querySelectorAll);
+        overrideFunction(window.Element.prototype, 'hasAttribute', this.overriddenMethods.hasAttribute);
+        overrideFunction(window.Element.prototype, 'hasAttributeNS', this.overriddenMethods.hasAttributeNS);
+        overrideFunction(window.Element.prototype, 'hasAttributes', this.overriddenMethods.hasAttributes);
 
-        window.Element.prototype.setAttribute              = this.overriddenMethods.setAttribute;
-        window.Element.prototype.setAttributeNS            = this.overriddenMethods.setAttributeNS;
-        window.Element.prototype.getAttribute              = this.overriddenMethods.getAttribute;
-        window.Element.prototype.getAttributeNS            = this.overriddenMethods.getAttributeNS;
-        window.Element.prototype.removeAttribute           = this.overriddenMethods.removeAttribute;
-        window.Element.prototype.removeAttributeNS         = this.overriddenMethods.removeAttributeNS;
-        window.Element.prototype.cloneNode                 = this.overriddenMethods.cloneNode;
-        window.Element.prototype.querySelector             = this.overriddenMethods.querySelector;
-        window.Element.prototype.querySelectorAll          = this.overriddenMethods.querySelectorAll;
-        window.Element.prototype.hasAttribute              = this.overriddenMethods.hasAttribute;
-        window.Element.prototype.hasAttributeNS            = this.overriddenMethods.hasAttributeNS;
-        window.Element.prototype.hasAttributes             = this.overriddenMethods.hasAttributes;
-        window.Node.prototype.cloneNode                    = this.overriddenMethods.cloneNode;
-        window.Node.prototype.appendChild                  = this.overriddenMethods.appendChild;
-        window.Node.prototype.removeChild                  = this.overriddenMethods.removeChild;
-        window.Node.prototype.insertBefore                 = this.overriddenMethods.insertBefore;
-        window.Node.prototype.replaceChild                 = this.overriddenMethods.replaceChild;
-        window.DocumentFragment.prototype.querySelector    = this.overriddenMethods.querySelector;
-        window.DocumentFragment.prototype.querySelectorAll = this.overriddenMethods.querySelectorAll;
-        window.HTMLTableElement.prototype.insertRow        = this.overriddenMethods.insertRow;
-        window.HTMLTableSectionElement.prototype.insertRow = this.overriddenMethods.insertRow;
-        window.HTMLTableRowElement.prototype.insertCell    = this.overriddenMethods.insertCell;
-        window.HTMLFormElement.prototype.submit            = this.overriddenMethods.formSubmit;
-        window.HTMLAnchorElement.prototype.toString        = this.overriddenMethods.anchorToString;
-        window.CharacterData.prototype.appendData          = this.overriddenMethods.appendData;
+        overrideFunction(window.Node.prototype, 'cloneNode', this.overriddenMethods.cloneNode);
+        overrideFunction(window.Node.prototype, 'appendChild', this.overriddenMethods.appendChild);
+        overrideFunction(window.Node.prototype, 'removeChild', this.overriddenMethods.removeChild);
+        overrideFunction(window.Node.prototype, 'insertBefore', this.overriddenMethods.insertBefore);
+        overrideFunction(window.Node.prototype, 'replaceChild', this.overriddenMethods.replaceChild);
+
+        overrideFunction(window.DocumentFragment.prototype, 'querySelector', this.overriddenMethods.querySelector);
+        overrideFunction(window.DocumentFragment.prototype, 'querySelectorAll', this.overriddenMethods.querySelectorAll);
+
+        overrideFunction(window.HTMLTableElement.prototype, 'insertRow', this.overriddenMethods.insertRow);
+
+        overrideFunction(window.HTMLTableSectionElement.prototype, 'insertRow', this.overriddenMethods.insertRow);
+
+        overrideFunction(window.HTMLTableRowElement.prototype, 'insertCell', this.overriddenMethods.insertCell);
+
+        overrideFunction(window.HTMLFormElement.prototype, 'submit', this.overriddenMethods.formSubmit);
+
+        overrideFunction(window.HTMLAnchorElement.prototype, 'toString', this.overriddenMethods.anchorToString);
+
+        overrideFunction(window.CharacterData.prototype, 'appendData', this.overriddenMethods.appendData);
 
         if (window.Document.prototype.registerElement)
-            window.Document.prototype.registerElement = this.overriddenMethods.registerElement;
+            overrideFunction(window.Document.prototype, 'registerElement', this.overriddenMethods.registerElement);
 
         if (window.Element.prototype.insertAdjacentHTML)
-            window.Element.prototype.insertAdjacentHTML = this.overriddenMethods.insertAdjacentHTML;
+            overrideFunction(window.Element.prototype, 'insertAdjacentHTML', this.overriddenMethods.insertAdjacentHTML);
         else if (window.HTMLElement.prototype.insertAdjacentHTML)
-            window.HTMLElement.prototype.insertAdjacentHTML = this.overriddenMethods.insertAdjacentHTML;
-
+            overrideFunction(window.HTMLElement.prototype, 'insertAdjacentHTML', this.overriddenMethods.insertAdjacentHTML);
+        
         this._setValidBrowsingContextOnElementClick(window);
 
         // NOTE: Cookie can be set up for the page by using the request initiated by img.

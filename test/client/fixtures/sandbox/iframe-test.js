@@ -1,4 +1,5 @@
-var settings = hammerhead.get('./settings');
+var settings   = hammerhead.get('./settings');
+var overriding = hammerhead.get('./utils/overriding');
 
 var iframeSandbox = hammerhead.sandbox.iframe;
 var cookieSandbox = hammerhead.sandbox.cookie;
@@ -140,16 +141,14 @@ test('the AMD module loader disturbs proxying an iframe without src (GH-127)', f
 test('native methods are properly initialized in an iframe without src (GH-279)', function () {
     return createTestIframe()
         .then(function (iframe) {
-            var iframeDocument         = iframe.contentDocument;
-            var iframeWindow           = iframe.contentWindow;
-            var iframeHammerhead       = iframeWindow['%hammerhead%'];
-            var nativeCreateElement    = iframeHammerhead.sandbox.nativeMethods.createElement.toString();
-            var nativeAppendChild      = iframeHammerhead.sandbox.nativeMethods.appendChild.toString();
-            var overridedCreateElement = iframeDocument.createElement.toString();
-            var overridedAppendChild   = iframeDocument.createElement('div').appendChild.toString();
+            var iframeDocument          = iframe.contentDocument;
+            var iframeWindow            = iframe.contentWindow;
+            var iframeHammerhead        = iframeWindow['%hammerhead%'];
+            var overriddenCreateElement = iframeDocument.createElement;
+            var overriddenAppendChild   = iframeDocument.createElement('div').appendChild;
 
-            ok(nativeCreateElement !== overridedCreateElement);
-            ok(nativeAppendChild !== overridedAppendChild);
+            ok(!overriding.isNativeFunction(overriddenCreateElement));
+            ok(!overriding.isNativeFunction(overriddenAppendChild));
 
             var nativeImage     = new iframeHammerhead.sandbox.nativeMethods.Image(10, 10);
             var overridedImage  = new iframeWindow.Image(10, 10);
