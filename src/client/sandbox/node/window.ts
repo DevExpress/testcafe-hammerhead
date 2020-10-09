@@ -647,30 +647,28 @@ export default class WindowSandbox extends SandboxBase {
                 args[1] = { scope: '/' };
 
                 return nativeMethods.registerServiceWorker.apply(window.navigator.serviceWorker, args)
-                    .then(reg => {
-                        return new Promise(function (resolve, reject) {
-                            const parsedProxyUrl = parseProxyUrl(args[0]);
-                            const serviceWorker  = reg.installing || reg.waiting || reg.active;
-                            const channel        = new nativeMethods.MessageChannel();
+                    .then(reg => new Promise(function (resolve, reject) {
+                        const parsedProxyUrl = parseProxyUrl(args[0]);
+                        const serviceWorker  = reg.installing || reg.waiting || reg.active;
+                        const channel        = new nativeMethods.MessageChannel();
 
-                            serviceWorker.postMessage({
-                                cmd:          SET_SERVICE_WORKER_SETTINGS,
-                                currentScope: getScope(url),
-                                optsScope:    getScope(opts && opts.scope),
-                                protocol:     parsedProxyUrl.destResourceInfo.protocol, // eslint-disable-line no-restricted-properties
-                                host:         parsedProxyUrl.destResourceInfo.host // eslint-disable-line no-restricted-properties
-                            }, [channel.port1]);
+                        serviceWorker.postMessage({
+                            cmd:          SET_SERVICE_WORKER_SETTINGS,
+                            currentScope: getScope(url),
+                            optsScope:    getScope(opts && opts.scope),
+                            protocol:     parsedProxyUrl.destResourceInfo.protocol, // eslint-disable-line no-restricted-properties
+                            host:         parsedProxyUrl.destResourceInfo.host // eslint-disable-line no-restricted-properties
+                        }, [channel.port1]);
 
-                            channel.port2.onmessage = (e) => {
-                                const data = nativeMethods.messageEventDataGetter.call(e);
+                        channel.port2.onmessage = (e) => {
+                            const data = nativeMethods.messageEventDataGetter.call(e);
 
-                                if (data.error)
-                                    reject(new Error(data.error));
-                                else
-                                    resolve(reg);
-                            };
-                        });
-                    });
+                            if (data.error)
+                                reject(new Error(data.error));
+                            else
+                                resolve(reg);
+                        };
+                    }));
             });
         }
 
