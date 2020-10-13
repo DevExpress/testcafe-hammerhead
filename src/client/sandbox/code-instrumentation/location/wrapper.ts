@@ -1,4 +1,8 @@
-import { get as getDestLocation, getParsed as getParsedDestLocation } from '../../../utils/destination-location';
+import {
+    get as getDestLocation,
+    getParsed as getParsedDestLocation,
+    inIframeWithourSrc
+} from '../../../utils/destination-location';
 import {
     getProxyUrl,
     changeDestUrlPart,
@@ -14,7 +18,6 @@ import {
     ensureTrailingSlash,
     prepareUrl,
     SPECIAL_BLANK_PAGE,
-    ORIGIN_IN_IFRAME_WITHOUT_SRC,
     ORIGIN_IN_IFRAME_WITHOUT_SRC_IN_IE
 } from '../../../../utils/url';
 import nativeMethods from '../../native-methods';
@@ -135,12 +138,15 @@ export default class LocationWrapper {
         // eslint-disable-next-line no-restricted-properties
         locationProps.origin = createOverriddenDescriptor(locationPropsOwner, 'origin', {
             getter: () => {
-                const origin = getDomain(getParsedDestLocation());
+                if (inIframeWithourSrc() && isIE)
+                    return ORIGIN_IN_IFRAME_WITHOUT_SRC_IN_IE;
 
-                if (origin)
-                    return origin;
-                else
-                    return isIE ? ORIGIN_IN_IFRAME_WITHOUT_SRC_IN_IE : ORIGIN_IN_IFRAME_WITHOUT_SRC;
+                const parsedDestLocation = getParsedDestLocation();
+
+                if (parsedDestLocation.origin) // eslint-disable-line no-restricted-properties
+                    return parsedDestLocation.origin; // eslint-disable-line no-restricted-properties
+
+                return getDomain(parsedDestLocation);
             },
             setter: origin => origin
         });

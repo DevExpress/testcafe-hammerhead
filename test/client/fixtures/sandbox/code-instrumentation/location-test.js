@@ -143,12 +143,14 @@ test('location object of iframe with empty src should have properties with corre
 
         const nativeIframe = nativeMethods.createElement.call(iframe.contentDocument, 'iframe');
 
-        nativeMethods.setAttribute.call(nativeIframe, 'src', iframeSrcAttribute);
+        if (iframeSrcAttribute)
+            nativeMethods.setAttribute.call(nativeIframe, 'src', iframeSrcAttribute);
+
         nativeMethods.appendChild.call(iframe.contentDocument.body, nativeIframe);
 
         return window.QUnitGlobals.waitForIframe(nativeIframe)
             .then(function () {
-                iframe.contentWindow.eval('window["%hammerhead%"].get("./utils/destination-location").forceLocation(null);');
+                iframe.contentWindow['%hammerhead%'].get('./utils/destination-location').forceLocation(null);
 
                 strictEqual(
                     eval(processScript('iframe.contentDocument.location.protocol')),

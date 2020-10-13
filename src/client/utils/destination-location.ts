@@ -8,17 +8,22 @@ import { isFirefox } from './browser';
 
 let forcedLocation = null;
 
+export function inIframeWithourSrc (): boolean {
+    const globalCtx    = getGlobalContextInfo().global;
+    const frameElement = domUtils.getFrameElement(globalCtx);
+
+    return frameElement && domUtils.isIframeWithoutSrc(frameElement);
+}
+
 // NOTE: exposed only for tests
 export function getLocation (): string {
     // NOTE: Used for testing. Unfortunately, we cannot override the 'getLocation' method in a test.
     if (forcedLocation)
         return forcedLocation;
 
-    const globalCtx    = getGlobalContextInfo().global;
-    const frameElement = domUtils.getFrameElement(globalCtx);
+    const globalCtx = getGlobalContextInfo().global;
 
-    // NOTE: Fallback to the owner page's URL if we are in an iframe without src.
-    if (frameElement && domUtils.isIframeWithoutSrc(frameElement))
+    if (inIframeWithourSrc())
         return SPECIAL_BLANK_PAGE;
 
     return globalCtx.location.toString();
@@ -103,7 +108,8 @@ function parseLocationThroughAnchor (url: string) {
         host:     destPort ? nativeMethods.anchorHostGetter.call(resolver) : hostname,
         pathname: pathname,
         hash:     resolver.hash,
-        search:   nativeMethods.anchorSearchGetter.call(resolver)
+        search:   nativeMethods.anchorSearchGetter.call(resolver),
+        origin:   nativeMethods.anchorOriginGetter ? nativeMethods.anchorOriginGetter.call(resolver) : null
     };
 }
 
@@ -118,7 +124,8 @@ function parseLocationThroughURL (url: string) {
         host:     parsedUrl.host,
         pathname: parsedUrl.pathname,
         hash:     parsedUrl.hash,
-        search:   parsedUrl.search
+        search:   parsedUrl.search,
+        origin:   parsedUrl.origin
     };
     /* eslint-enable no-restricted-properties */
 }
