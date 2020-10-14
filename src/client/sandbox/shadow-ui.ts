@@ -11,7 +11,7 @@ import { stopPropagation } from '../utils/event';
 import { getNativeQuerySelectorAll } from '../utils/query-selector';
 import HTMLCollectionWrapper from './node/live-node-list/html-collection-wrapper';
 import { getElementsByNameReturnsHTMLCollection } from '../utils/feature-detection';
-import { isIE } from '../utils/browser';
+import { isIE, isChrome } from '../utils/browser';
 import { DocumentCleanedEvent } from '../../typings/client';
 import NodeMutation from './node/mutation';
 import MessageSandbox from './event/message';
@@ -391,6 +391,10 @@ export default class ShadowUI extends SandboxBase {
     }
 
     getRoot () {
+        // GH-2418
+        if (isChrome && !ShadowUI.isShadowContainer(this.document.body))
+            this._markShadowUIContainerAndCollections(this.document.body);
+
         if (!this.root || /* NOTE: T225944 */ !this.document.body.contains(this.root)) {
             if (!this.root) {
                 // NOTE: B254893
@@ -415,10 +419,6 @@ export default class ShadowUI extends SandboxBase {
             else
                 nativeMethods.appendChild.call(this.document.body, this.root);
         }
-
-        // GH-2418
-        if (!ShadowUI.isShadowContainer(this.document.body))
-            this._markShadowUIContainerAndCollections(this.document.body);
 
         return this.root;
     }
