@@ -137,6 +137,76 @@ test('iframe with empty src', function () {
         .then(assert);
 });
 
+test('location object of iframe with empty src should have properties with correct values', function () {
+    function assert (iframe) {
+        const iframeSrcAttribute = iframe.getAttribute('src');
+
+        const nativeIframe = nativeMethods.createElement.call(iframe.contentDocument, 'iframe');
+
+        if (iframeSrcAttribute)
+            nativeMethods.setAttribute.call(nativeIframe, 'src', iframeSrcAttribute);
+
+        nativeMethods.appendChild.call(iframe.contentDocument.body, nativeIframe);
+
+        return window.QUnitGlobals.waitForIframe(nativeIframe)
+            .then(function () {
+                iframe.contentWindow['%hammerhead%'].get('./utils/destination-location').forceLocation(null);
+
+                strictEqual(
+                    eval(processScript('iframe.contentDocument.location.protocol')),
+                    nativeIframe.contentDocument.location.protocol,
+                    'protocol property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                );
+                strictEqual(
+                    eval(processScript('iframe.contentDocument.location.port')),
+                    nativeIframe.contentDocument.location.port,
+                    'port property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                );
+                strictEqual(
+                    eval(processScript('iframe.contentDocument.location.host')),
+                    nativeIframe.contentDocument.location.host,
+                    'host property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                );
+                strictEqual(
+                    eval(processScript('iframe.contentDocument.location.hostname')),
+                    nativeIframe.contentDocument.location.hostname,
+                    'hostname property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                );
+                strictEqual(
+                    eval(processScript('iframe.contentDocument.location.pathname')),
+                    nativeIframe.contentDocument.location.pathname,
+                    'pathname property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                );
+                strictEqual(
+                    eval(processScript('iframe.contentDocument.location.hash')),
+                    nativeIframe.contentDocument.location.hash,
+                    'hash property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                );
+                strictEqual(
+                    eval(processScript('iframe.contentDocument.location.search')),
+                    nativeIframe.contentDocument.location.search,
+                    'search property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                );
+                strictEqual(
+                    eval(processScript('iframe.contentDocument.location.origin')),
+                    nativeIframe.contentDocument.location.origin,
+                    'origin property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                );
+            });
+    }
+
+    return createTestIframe()
+        .then(assert)
+        .then(function () {
+            return createTestIframe({ src: '' });
+        })
+        .then(assert)
+        .then(function () {
+            return createTestIframe({ src: 'about:blank' });
+        })
+        .then(assert);
+});
+
 // NOTE: Only Chrome raises the 'load' event for iframes with 'javascript:' src and creates a window instance.
 if (browserUtils.isWebKit) {
     test('iframe with "javascript:" src', function () {

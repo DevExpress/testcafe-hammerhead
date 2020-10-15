@@ -1,4 +1,8 @@
-import { get as getDestLocation, getParsed as getParsedDestLocation } from '../../../utils/destination-location';
+import {
+    get as getDestLocation,
+    getParsed as getParsedDestLocation,
+    inIframeWithourSrc
+} from '../../../utils/destination-location';
 import {
     getProxyUrl,
     changeDestUrlPart,
@@ -13,7 +17,8 @@ import {
     sameOriginCheck,
     ensureTrailingSlash,
     prepareUrl,
-    SPECIAL_BLANK_PAGE
+    SPECIAL_BLANK_PAGE,
+    ORIGIN_IN_IFRAME_WITHOUT_SRC_IN_IE
 } from '../../../../utils/url';
 import nativeMethods from '../../native-methods';
 import urlResolver from '../../../utils/url-resolver';
@@ -22,6 +27,7 @@ import DOMStringListWrapper from './ancestor-origins-wrapper';
 import IntegerIdGenerator from '../../../utils/integer-id-generator';
 import { createOverriddenDescriptor } from '../../../utils/overriding';
 import MessageSandbox from '../../event/message';
+import { isIE } from '../../../utils/browser';
 
 const GET_ORIGIN_CMD      = 'hammerhead|command|get-origin';
 const ORIGIN_RECEIVED_CMD = 'hammerhead|command|origin-received';
@@ -131,7 +137,17 @@ export default class LocationWrapper {
 
         // eslint-disable-next-line no-restricted-properties
         locationProps.origin = createOverriddenDescriptor(locationPropsOwner, 'origin', {
-            getter: () => getDomain(getParsedDestLocation()),
+            getter: () => {
+                if (inIframeWithourSrc() && isIE)
+                    return ORIGIN_IN_IFRAME_WITHOUT_SRC_IN_IE;
+
+                const parsedDestLocation = getParsedDestLocation();
+
+                if (parsedDestLocation.origin) // eslint-disable-line no-restricted-properties
+                    return parsedDestLocation.origin; // eslint-disable-line no-restricted-properties
+
+                return getDomain(parsedDestLocation);
+            },
             setter: origin => origin
         });
 
