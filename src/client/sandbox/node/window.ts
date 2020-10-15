@@ -649,8 +649,15 @@ export default class WindowSandbox extends SandboxBase {
                 return nativeMethods.registerServiceWorker.apply(window.navigator.serviceWorker, args)
                     .then(reg => new Promise(function (resolve, reject) {
                         const parsedProxyUrl = parseProxyUrl(args[0]);
-                        const serviceWorker  = reg.installing || reg.waiting || reg.active;
-                        const channel        = new nativeMethods.MessageChannel();
+                        const serviceWorker  = reg.installing;
+
+                        if (!serviceWorker) {
+                            resolve(reg);
+
+                            return;
+                        }
+
+                        const channel = new nativeMethods.MessageChannel();
 
                         serviceWorker.postMessage({
                             cmd:          SET_SERVICE_WORKER_SETTINGS,

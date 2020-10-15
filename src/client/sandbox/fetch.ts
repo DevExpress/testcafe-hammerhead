@@ -162,6 +162,12 @@ export default class FetchSandbox extends SandboxBase {
             }
         });
 
+        overrideDescriptor(window.Request.prototype, 'referrer', {
+            getter: function (this: Request) {
+                return getDestinationUrl(nativeMethods.requestReferrerGetter.call(this));
+            }
+        });
+
         overrideFunction(window, 'fetch', function (...args: [Request | string, any]) {
             // NOTE: Safari processed the empty `fetch()` request without `Promise` rejection (GH-1613)
             if (!args.length && !browserUtils.isSafari)
@@ -214,7 +220,7 @@ export default class FetchSandbox extends SandboxBase {
         });
 
         const entriesWrapper = FetchSandbox._entriesWrapper;
-        
+
         overrideFunction(window.Headers.prototype, 'entries', entriesWrapper);
         overrideFunction(window.Headers.prototype, Symbol.iterator, entriesWrapper);
 

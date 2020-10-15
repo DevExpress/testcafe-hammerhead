@@ -63,37 +63,19 @@ export default function overrideFetchEvent () {
         });
     });
 
+    self.addEventListener('install', (e: any/*InstallEvent*/) => e.waitUntil(waitSettingsPromise));
+
     nativeMethods.windowAddEventListener.call(self, 'fetch', (e: any/*FetchEvent*/) => {
         const request           = e.request as Request;
         const proxyUrl          = nativeMethods.requestUrlGetter.call(request);
         const parsedProxyUrl    = parseProxyUrl(proxyUrl);
         const isInternalRequest = !parsedProxyUrl;
 
-        if (isInternalRequest) {
+        if (isInternalRequest ||
+            // NOTE: This request should not have gotten into this service worker
+            !isCorrectScope(parsedProxyUrl.destResourceInfo)) {
             e.respondWith(nativeMethods.fetch.call(self, request));
             stopPropagation(e);
-
-            return;
-        }
-        // NOTE: Settings is not initialized yet
-        else if (waitSettingsPromise) {
-            stopPropagation(e);
-
-            waitSettingsPromise.then(() => {
-                if (!isCorrectScope(parsedProxyUrl.destResourceInfo))
-                    e.respondWith(nativeMethods.fetch.call(self, request));
-                else
-                    nativeMethods.dispatchEvent.call(self, e);
-            });
-
-            return;
-        }
-        // NOTE: This request should not have gotten into this service worker
-        else if (!isCorrectScope(parsedProxyUrl.destResourceInfo)) {
-            e.respondWith(nativeMethods.fetch.call(self, request));
-            stopPropagation(e);
-
-            return;
         }
     });
 }
