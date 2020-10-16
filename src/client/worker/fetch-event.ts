@@ -71,11 +71,25 @@ export default function overrideFetchEvent () {
         const parsedProxyUrl    = parseProxyUrl(proxyUrl);
         const isInternalRequest = !parsedProxyUrl;
 
-        if (isInternalRequest ||
-            // NOTE: This request should not have gotten into this service worker
-            !isCorrectScope(parsedProxyUrl.destResourceInfo)) {
-            e.respondWith(nativeMethods.fetch.call(self, request));
-            stopPropagation(e);
+        if (!isInternalRequest) {
+            // @ts-ignore Chrome has a non-standard the "iframe" destination
+            const isPage = request.destination === 'document' || request.destination === 'iframe';
+
+            if (isPage) {
+                if (isCorrectScope(parsedProxyUrl.destResourceInfo))
+                    return;
+            }
+            else {
+                const proxyReferrer       = nativeMethods.requestReferrerGetter.call(request);
+                const parsedProxyReferrer = parseProxyUrl(proxyReferrer);
+
+                if (isCorrectScope(parsedProxyReferrer.destResourceInfo))
+                    return;
+            }
         }
+
+        // NOTE: This request should not have gotten into this service worker
+        e.respondWith(nativeMethods.fetch.call(self, request));
+        stopPropagation(e);
     });
 }

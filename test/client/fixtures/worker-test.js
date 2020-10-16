@@ -296,6 +296,27 @@ if (window.navigator.serviceWorker) {
                     serviceWorker.postMessage('unregister');
                 });
         });
+
+        test('fetch event (other hostname)', function () {
+            var scriptUrl = top.QUnitGlobals.getResourceUrl('../data/service-worker/fetch-event-other-host.js');
+
+            return navigator.serviceWorker.register(scriptUrl, { scope: '/path/' })
+                .then(function (reg) {
+                    var serviceWorker  = reg.installing || reg.waiting || reg.active;
+                    var messageChannel = new MessageChannel();
+
+                    serviceWorker.postMessage('callback', [messageChannel.port1]);
+
+                    return new Promise(function (resolve) {
+                        createTestIframe({ src: urlUtils.getProxyUrl('/path/iframe-created-from-service-worker.html') });
+
+                        messageChannel.port2.onmessage = resolve;
+                    });
+                })
+                .then(function (e) {
+                    strictEqual(e.data, 'image requested');
+                });
+        });
     }
 
     asyncTest('navigator.serviceWorker in the iframe is not available (GH-277)', function () {
