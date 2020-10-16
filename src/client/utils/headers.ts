@@ -15,21 +15,15 @@ INTERNAL_TO_BUILTIN_HEADERS_MAP.set(INTERNAL_HEADERS.wwwAuthenticate, BUILTIN_HE
 INTERNAL_TO_BUILTIN_HEADERS_MAP.set(INTERNAL_HEADERS.proxyAuthenticate, BUILTIN_HEADERS.proxyAuthenticate);
 
 export function transformHeaderNameToBuiltin (headerName: any) {
-    if (typeof headerName === 'string') {
-        headerName = headerName.toLowerCase();
-
-        return INTERNAL_TO_BUILTIN_HEADERS_MAP.get(headerName) || headerName;
-    }
+    if (typeof headerName === 'string')
+        return INTERNAL_TO_BUILTIN_HEADERS_MAP.get(headerName.toLowerCase()) || headerName;
 
     return headerName;
 }
 
 export function transformHeaderNameToInternal (headerName: any) {
-    if (typeof headerName === 'string') {
-        headerName = headerName.toLowerCase();
-
-        return BUILTIN_TO_INTERNAL_HEADERS_MAP.get(headerName) || headerName;
-    }
+    if (typeof headerName === 'string')
+        return BUILTIN_TO_INTERNAL_HEADERS_MAP.get(headerName.toLowerCase()) || headerName;
 
     return headerName;
 }
