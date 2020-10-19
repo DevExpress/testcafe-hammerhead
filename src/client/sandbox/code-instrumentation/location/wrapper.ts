@@ -135,16 +135,7 @@ export default class LocationWrapper {
 
         // eslint-disable-next-line no-restricted-properties
         locationProps.origin = createOverriddenDescriptor(locationPropsOwner, 'origin', {
-            getter: () => {
-                const frameElement = domUtils.getFrameElement(window);
-
-                if (frameElement && domUtils.isIframeWithoutSrc(frameElement))
-                    return nativeMethods.contentDocumentGetter.call(frameElement).location.origin; // eslint-disable-line no-restricted-properties
-
-                const parsedDestLocation = getParsedDestLocation();
-
-                return getDomain(parsedDestLocation);
-            },
+            getter: () => getDomain(getParsedDestLocation()),
             setter: origin => origin
         });
 

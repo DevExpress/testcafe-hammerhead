@@ -17,7 +17,7 @@ export default function DOMStringListWrapper (window: Window, getCrossDomainOrig
         const isCrossDomainParent   = parentLocationWrapper === parentWindow.location;
 
         // @ts-ignore
-        updateOrigin(nativeOrigins, this, i.toString(), isCrossDomainParent ? '' : parentWindow.origin); // eslint-disable-line no-restricted-properties
+        updateOrigin(nativeOrigins, this, i.toString(), isCrossDomainParent ? '' : parentLocationWrapper.origin); // eslint-disable-line no-restricted-properties
 
         if (isCrossDomainParent && getCrossDomainOrigin)
             //@ts-ignore

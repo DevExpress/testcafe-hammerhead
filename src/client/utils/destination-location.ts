@@ -13,7 +13,7 @@ export function getLocation (): string {
     if (forcedLocation)
         return forcedLocation;
 
-    const globalCtx = getGlobalContextInfo().global;
+    const globalCtx    = getGlobalContextInfo().global;
     const frameElement = domUtils.getFrameElement(globalCtx);
 
     // NOTE: Fallback to the owner page's URL if we are in an iframe without src.
