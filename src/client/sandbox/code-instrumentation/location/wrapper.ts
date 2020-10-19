@@ -1,7 +1,6 @@
 import {
     get as getDestLocation,
-    getParsed as getParsedDestLocation,
-    inIframeWithourSrc
+    getParsed as getParsedDestLocation
 } from '../../../utils/destination-location';
 import {
     getProxyUrl,
@@ -17,9 +16,9 @@ import {
     sameOriginCheck,
     ensureTrailingSlash,
     prepareUrl,
-    SPECIAL_BLANK_PAGE,
-    ORIGIN_IN_IFRAME_WITHOUT_SRC_IN_IE
+    SPECIAL_BLANK_PAGE
 } from '../../../../utils/url';
+import * as domUtils from '../../../utils/dom';
 import nativeMethods from '../../native-methods';
 import urlResolver from '../../../utils/url-resolver';
 import DomProcessor from '../../../../processing/dom';
@@ -27,7 +26,6 @@ import DOMStringListWrapper from './ancestor-origins-wrapper';
 import IntegerIdGenerator from '../../../utils/integer-id-generator';
 import { createOverriddenDescriptor } from '../../../utils/overriding';
 import MessageSandbox from '../../event/message';
-import { isIE } from '../../../utils/browser';
 
 const GET_ORIGIN_CMD      = 'hammerhead|command|get-origin';
 const ORIGIN_RECEIVED_CMD = 'hammerhead|command|origin-received';
@@ -138,13 +136,12 @@ export default class LocationWrapper {
         // eslint-disable-next-line no-restricted-properties
         locationProps.origin = createOverriddenDescriptor(locationPropsOwner, 'origin', {
             getter: () => {
-                if (inIframeWithourSrc() && isIE)
-                    return ORIGIN_IN_IFRAME_WITHOUT_SRC_IN_IE;
+                const frameElement = domUtils.getFrameElement(window);
+
+                if (frameElement && domUtils.isIframeWithoutSrc(frameElement))
+                    return nativeMethods.contentDocumentGetter.call(frameElement).location.origin; // eslint-disable-line no-restricted-properties
 
                 const parsedDestLocation = getParsedDestLocation();
-
-                if (parsedDestLocation.origin) // eslint-disable-line no-restricted-properties
-                    return parsedDestLocation.origin; // eslint-disable-line no-restricted-properties
 
                 return getDomain(parsedDestLocation);
             },
@@ -196,7 +193,14 @@ export default class LocationWrapper {
 
         const createLocationPropertyDesc = (property, nativePropSetter) => {
             locationProps[property] = createOverriddenDescriptor(locationPropsOwner, property, {
-                getter: () => getParsedDestLocation()[property],
+                getter: () => {
+                    const frameElement = domUtils.getFrameElement(window);
+
+                    if (frameElement && domUtils.isIframeWithoutSrc(frameElement))
+                        return nativeMethods.contentDocumentGetter.call(frameElement).location[property]; // eslint-disable-line no-restricted-properties
+
+                    return getParsedDestLocation()[property];
+                },
                 setter: value => {
                     const newLocation = changeDestUrlPart(window.location.toString(), nativePropSetter, value, resourceType);
 

@@ -1,19 +1,11 @@
 import * as sharedUrlUtils from '../../utils/url';
 import * as domUtils from './dom';
 import * as urlResolver from './url-resolver';
-import { PATHNAME_IN_IFRAME_WITHOUT_SRC_IN_FIREFOX, SPECIAL_BLANK_PAGE } from '../../utils/url';
+import settings from '../settings';
 import nativeMethods from '../sandbox/native-methods';
 import getGlobalContextInfo from './global-context-info';
-import { isFirefox } from './browser';
 
 let forcedLocation = null;
-
-export function inIframeWithourSrc (): boolean {
-    const globalCtx    = getGlobalContextInfo().global;
-    const frameElement = domUtils.getFrameElement(globalCtx);
-
-    return frameElement && domUtils.isIframeWithoutSrc(frameElement);
-}
 
 // NOTE: exposed only for tests
 export function getLocation (): string {
@@ -22,9 +14,11 @@ export function getLocation (): string {
         return forcedLocation;
 
     const globalCtx = getGlobalContextInfo().global;
+    const frameElement = domUtils.getFrameElement(globalCtx);
 
-    if (inIframeWithourSrc())
-        return SPECIAL_BLANK_PAGE;
+    // NOTE: Fallback to the owner page's URL if we are in an iframe without src.
+    if (frameElement && domUtils.isIframeWithoutSrc(frameElement))
+        return settings.get().referer;
 
     return globalCtx.location.toString();
 }
@@ -83,20 +77,15 @@ function parseLocationThroughAnchor (url: string) {
     // eslint-disable-next-line no-restricted-properties
     const destPort = sharedUrlUtils.parseUrl(url).port;
 
-    const hrefValue = get();
-
     // NOTE: IE browser adds the default port for the https protocol while resolving.
-    nativeMethods.anchorHrefSetter.call(resolver, hrefValue);
+    nativeMethods.anchorHrefSetter.call(resolver, get());
 
     const hostname = nativeMethods.anchorHostnameGetter.call(resolver);
     let pathname   = nativeMethods.anchorPathnameGetter.call(resolver);
 
     // NOTE: IE ignores the first '/' symbol in the pathname.
-    if (hrefValue !== SPECIAL_BLANK_PAGE && pathname.charAt(0) !== '/')
+    if (pathname.charAt(0) !== '/')
         pathname = '/' + pathname;
-
-    if (hrefValue === SPECIAL_BLANK_PAGE && isFirefox)
-        pathname = PATHNAME_IN_IFRAME_WITHOUT_SRC_IN_FIREFOX;
 
     // TODO: Describe default ports logic.
     return {
@@ -108,8 +97,7 @@ function parseLocationThroughAnchor (url: string) {
         host:     destPort ? nativeMethods.anchorHostGetter.call(resolver) : hostname,
         pathname: pathname,
         hash:     resolver.hash,
-        search:   nativeMethods.anchorSearchGetter.call(resolver),
-        origin:   nativeMethods.anchorOriginGetter ? nativeMethods.anchorOriginGetter.call(resolver) : null
+        search:   nativeMethods.anchorSearchGetter.call(resolver)
     };
 }
 
@@ -124,8 +112,7 @@ function parseLocationThroughURL (url: string) {
         host:     parsedUrl.host,
         pathname: parsedUrl.pathname,
         hash:     parsedUrl.hash,
-        search:   parsedUrl.search,
-        origin:   parsedUrl.origin
+        search:   parsedUrl.search
     };
     /* eslint-enable no-restricted-properties */
 }
