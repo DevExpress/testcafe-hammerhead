@@ -14,16 +14,17 @@ INTERNAL_TO_BUILTIN_HEADERS_MAP.set(INTERNAL_HEADERS.proxyAuthorization, BUILTIN
 INTERNAL_TO_BUILTIN_HEADERS_MAP.set(INTERNAL_HEADERS.wwwAuthenticate, BUILTIN_HEADERS.wwwAuthenticate);
 INTERNAL_TO_BUILTIN_HEADERS_MAP.set(INTERNAL_HEADERS.proxyAuthenticate, BUILTIN_HEADERS.proxyAuthenticate);
 
-export function transformHeaderNameToBuiltin (headerName: any) {
+function transformHeaderName (headerName: any, replacements: Map<string, string>) {
     if (typeof headerName === 'string')
-        return INTERNAL_TO_BUILTIN_HEADERS_MAP.get(headerName.toLowerCase()) || headerName;
+        return replacements.get(headerName.toLowerCase()) || headerName;
 
     return headerName;
 }
 
-export function transformHeaderNameToInternal (headerName: any) {
-    if (typeof headerName === 'string')
-        return BUILTIN_TO_INTERNAL_HEADERS_MAP.get(headerName.toLowerCase()) || headerName;
+export function transformHeaderNameToBuiltin (headerName: any) {
+    return transformHeaderName(headerName, INTERNAL_TO_BUILTIN_HEADERS_MAP);
+}
 
-    return headerName;
+export function transformHeaderNameToInternal (headerName: any) {
+    return transformHeaderName(headerName, BUILTIN_TO_INTERNAL_HEADERS_MAP);
 }
