@@ -15,7 +15,8 @@ import {
     convertToProxyUrl,
     stringifyResourceType,
     resolveUrlAsDest,
-    getDestinationUrl
+    getDestinationUrl,
+    getScope
 } from '../../utils/url';
 
 import {
@@ -73,6 +74,7 @@ import settings from '../../settings';
 import DefaultTarget from '../child-window/default-target';
 import { getNativeQuerySelectorAll } from '../../utils/query-selector';
 import DocumentTitleStorageInitializer from './document/title-storage-initializer';
+import SET_SERVICE_WORKER_SETTINGS from '../../worker/set-settings-command';
 
 const INSTRUCTION_VALUES    = (() => {
     const values = [];
@@ -628,7 +630,7 @@ export default class WindowSandbox extends SandboxBase {
 
         if (nativeMethods.registerServiceWorker) {
             overrideFunction(window.navigator.serviceWorker, 'register', (...args) => {
-                const url = args[0];
+                const [url, opts] = args;
 
                 if (typeof url === 'string') {
                     if (WindowSandbox._isSecureOrigin(url)) {
@@ -639,28 +641,48 @@ export default class WindowSandbox extends SandboxBase {
                             : new DOMException('Only secure origins are allowed.', 'SecurityError'));
                     }
 
-                    args[0] = getProxyUrl(url, { resourceType: stringifyResourceType({ isScript: true }) });
+                    args[0] = getProxyUrl(url, { resourceType: stringifyResourceType({ isServiceWorker: true }) });
                 }
 
-                if (args[1] && typeof args[1].scope === 'string') {
-                    args[1].scope = getProxyUrl(args[1].scope, {
-                        resourceType: stringifyResourceType({ isScript: true })
-                    });
-                }
+                args[1] = { scope: '/' };
 
-                return nativeMethods.registerServiceWorker.apply(window.navigator.serviceWorker, args);
+                return nativeMethods.registerServiceWorker.apply(window.navigator.serviceWorker, args)
+                    .then(reg => new Promise(function (resolve, reject) {
+                        const parsedProxyUrl = parseProxyUrl(args[0]);
+                        const serviceWorker  = reg.installing;
+
+                        if (!serviceWorker) {
+                            resolve(reg);
+
+                            return;
+                        }
+
+                        const channel = new nativeMethods.MessageChannel();
+
+                        serviceWorker.postMessage({
+                            cmd:          SET_SERVICE_WORKER_SETTINGS,
+                            currentScope: getScope(url),
+                            optsScope:    getScope(opts && opts.scope),
+                            protocol:     parsedProxyUrl.destResourceInfo.protocol, // eslint-disable-line no-restricted-properties
+                            host:         parsedProxyUrl.destResourceInfo.host // eslint-disable-line no-restricted-properties
+                        }, [channel.port1]);
+
+                        channel.port2.onmessage = (e) => {
+                            const data = nativeMethods.messageEventDataGetter.call(e);
+
+                            if (data.error)
+                                reject(new Error(data.error));
+                            else
+                                resolve(reg);
+                        };
+                    }));
             });
         }
 
         if (nativeMethods.getRegistrationServiceWorker) {
             overrideFunction(window.navigator.serviceWorker, 'getRegistration', (...args) => {
-                const scopeUrl = args[0];
-
-                if (typeof scopeUrl === 'string') {
-                    args[0] = getProxyUrl(scopeUrl, {
-                        resourceType: stringifyResourceType({ isScript: true })
-                    });
-                }
+                if (typeof args[0] === 'string')
+                    args[0] = '/';
 
                 return nativeMethods.getRegistrationServiceWorker.apply(window.navigator.serviceWorker, args);
             });

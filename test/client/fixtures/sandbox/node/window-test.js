@@ -351,10 +351,6 @@ test('parameters passed to the native function in its original form', function (
     nativeMethods.xhrOpen.call(xhr, 'GET', '/path', true);
     checkNativeFunctionArgs('send', 'xhrSend', xhr);
 
-    // registerServiceWorker
-    if (nativeMethods.registerServiceWorker)
-        checkNativeFunctionArgs('register', 'registerServiceWorker', window.navigator.serviceWorker);
-
     // Event
     checkNativeFunctionArgs('addEventListener', browserUtils.isIE11 ? 'windowAddEventListener' : 'addEventListener', window);
     checkNativeFunctionArgs('removeEventListener', browserUtils.isIE11 ? 'windowRemoveEventListener' : 'removeEventListener', window);

@@ -4,11 +4,7 @@ import INTERNAL_HEADERS from '../internal-header-names';
 import * as urlUtils from '../../utils/url';
 import { parse as parseUrl, resolve as resolveUrl } from 'url';
 import { shouldOmitCredentials } from '../xhr/same-origin-policy';
-import {
-    formatSyncCookie,
-    generateDeleteSyncCookieStr,
-    isOutdatedSyncCookie
-} from '../../utils/cookie';
+import { formatSyncCookie, generateDeleteSyncCookieStr, isOutdatedSyncCookie } from '../../utils/cookie';
 
 function skip (): undefined {
     return void 0;
@@ -189,5 +185,7 @@ export const forcedResponseTransforms = {
         ctx.destRes.headers[BUILTIN_HEADERS.wwwAuthenticate],
 
     [INTERNAL_HEADERS.proxyAuthenticate]: (_src: string, ctx: RequestPipelineContext) =>
-        ctx.destRes.headers[BUILTIN_HEADERS.proxyAuthenticate]
+        ctx.destRes.headers[BUILTIN_HEADERS.proxyAuthenticate],
+
+    [BUILTIN_HEADERS.serviceWorkerAllowed]: (_src: string, ctx: RequestPipelineContext) => ctx.dest.isServiceWorker ? '/' : void 0
 };

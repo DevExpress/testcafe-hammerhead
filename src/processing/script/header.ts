@@ -13,10 +13,12 @@ export const SCRIPT_PROCESSING_END_COMMENT        = '/*hammerhead|script|end*/';
 export const SCRIPT_PROCESSING_END_HEADER_COMMENT = '/*hammerhead|script|processing-header-end*/';
 
 const STRICT_MODE_PLACEHOLDER = '{strict-placeholder}';
+const SW_SCOPE_HEADER_VALUE   = '{sw-scope-header-value}';
 
 const HEADER: string = `
     ${SCRIPT_PROCESSING_START_COMMENT}
     ${STRICT_MODE_PLACEHOLDER}
+    ${SW_SCOPE_HEADER_VALUE}
 
     if (typeof window !== 'undefined' && window){
         window['${INTERNAL_PROPS.processDomMethodName}'] && window['${INTERNAL_PROPS.processDomMethodName}']();
@@ -66,9 +68,10 @@ export function remove (code: string): string {
         .replace(PROCESSING_END_COMMENT_RE, '');
 }
 
-export function add (code: string, isStrictMode: boolean): string {
+export function add (code: string, isStrictMode: boolean, swScopeHeaderValue?: string): string {
     const header = HEADER
-        .replace(STRICT_MODE_PLACEHOLDER, isStrictMode ? '"use strict";' : '');
+        .replace(STRICT_MODE_PLACEHOLDER, isStrictMode ? '"use strict";' : '')
+        .replace(SW_SCOPE_HEADER_VALUE, swScopeHeaderValue ? `var ${INSTRUCTION.swScopeHeaderValue} = ${JSON.stringify(swScopeHeaderValue)};` : '');
 
     return header + code + '\n' + SCRIPT_PROCESSING_END_COMMENT;
 }

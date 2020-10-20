@@ -8,10 +8,11 @@ import getGlobalContextInfo from './global-context-info';
 
 const HASH_RE                          = /#[\S\s]*$/;
 const SUPPORTED_WEB_SOCKET_PROTOCOL_RE = /^wss?:/i;
+const SCOPE_RE                         = /\/[^/]*$/;
 
 // NOTE: The window.location equals 'about:blank' in iframes without src
 // therefore we need to find a window with src to get the proxy settings
-const DEFAULT_PROXY_SETTINGS = (function () {
+export const DEFAULT_PROXY_SETTINGS = (function () {
     /*eslint-disable no-restricted-properties*/
     const globalCtx    = getGlobalContextInfo();
     let locationWindow = globalCtx.isInWorker ? { location: parseUrl(self.location.origin), parent: null } : window;
@@ -94,7 +95,8 @@ export function getProxyUrl (url: string, opts?): string {
 
     const parsedUrl = sharedUrlUtils.parseUrl(resolvedUrl);
 
-    charset = charset || parsedResourceType.isScript && document[INTERNAL_PROPS.documentCharset];
+    charset = charset || (parsedResourceType.isScript || parsedResourceType.isServiceWorker) &&
+        document[INTERNAL_PROPS.documentCharset];
 
     // NOTE: It seems that the relative URL had the leading slash or dots, so that the proxy info path part was
     // removed by the resolver and we have an origin URL with the incorrect host and protocol.
@@ -272,4 +274,16 @@ export function getDestinationUrl (proxyUrl: any) {
     const parsedProxyUrl = parseProxyUrl(proxyUrl);
 
     return parsedProxyUrl ? parsedProxyUrl.destUrl : proxyUrl;
+}
+
+export function getScope (url: string): string | null {
+    if (!isSupportedProtocol(url))
+        return null;
+
+    const parsedUrl = parseUrl(resolveUrlAsDest(url));
+
+    if (!parsedUrl)
+        return null;
+
+    return parsedUrl.partAfterHost.replace(SCOPE_RE, '/') || '/';
 }

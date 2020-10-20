@@ -120,6 +120,7 @@ class NativeMethods {
     fetch: Window['fetch'];
     Request: typeof Request;
     requestUrlGetter: (this: Request) => Request['url'];
+    requestReferrerGetter: (this: Request) => Request['referrer'];
     Headers: Headers['constructor'];
     headersSet: Headers['set'];
     headersGet: Headers['get'];
@@ -623,10 +624,11 @@ class NativeMethods {
             this.messageEventDataGetter = dataPropDescriptor.get;
 
         if (win.fetch) {
-            this.responseStatusGetter = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'status').get;
-            this.responseTypeGetter   = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'type').get;
-            this.responseUrlGetter    = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'url').get;
-            this.requestUrlGetter     = win.Object.getOwnPropertyDescriptor(win.Request.prototype, 'url').get;
+            this.responseStatusGetter  = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'status').get;
+            this.responseTypeGetter    = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'type').get;
+            this.responseUrlGetter     = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'url').get;
+            this.requestUrlGetter      = win.Object.getOwnPropertyDescriptor(win.Request.prototype, 'url').get;
+            this.requestReferrerGetter = win.Object.getOwnPropertyDescriptor(win.Request.prototype, 'referrer').get;
         }
 
         if (win.XMLHttpRequest) {
@@ -967,12 +969,9 @@ class NativeMethods {
         }
 
         // Event
-        // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
-        if (!win.EventTarget) {
-            this.windowAddEventListener    = win.addEventListener || winProto.addEventListener;
-            this.windowRemoveEventListener = win.removeEventListener || winProto.removeEventListener;
-            this.windowDispatchEvent       = win.dispatchEvent;
-        }
+        this.windowAddEventListener    = win.addEventListener || winProto.addEventListener;
+        this.windowRemoveEventListener = win.removeEventListener || winProto.removeEventListener;
+        this.windowDispatchEvent       = win.dispatchEvent;
 
         this.WindowPointerEvent   = win.PointerEvent || winProto.PointerEvent;
         this.WindowMSPointerEvent = win.MSPointerEvent || winProto.MSPointerEvent;

@@ -158,6 +158,17 @@ test('auth', function () {
     strictEqual(urlUtils.parseUrl('http://example.com').auth, void 0);
 });
 
+test('scope', function () {
+    strictEqual(urlUtils.getScope('http://example.com'), '/');
+    strictEqual(urlUtils.getScope('http://example.com/'), '/');
+    strictEqual(urlUtils.getScope('http://example.com/img.gif'), '/');
+    strictEqual(urlUtils.getScope('http://example.com/path/to/ws.js'), '/path/to/');
+    strictEqual(urlUtils.getScope('http://example.com/path/?z=9'), '/path/');
+    strictEqual(urlUtils.getScope('http://example.com/path?z=9'), '/');
+    strictEqual(urlUtils.getScope('/path/?z=9'), '/path/');
+    strictEqual(urlUtils.getScope('../path/sw.js'), '/path/');
+});
+
 module('get proxy url');
 
 test('already proxied', function () {

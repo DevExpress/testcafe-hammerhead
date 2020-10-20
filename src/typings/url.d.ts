@@ -5,6 +5,7 @@ export interface ResourceType {
     isEventSource?: boolean;
     isHtmlImport?: boolean;
     isWebSocket?: boolean;
+    isServiceWorker?: boolean;
 }
 
 export interface ParsedUrl {
