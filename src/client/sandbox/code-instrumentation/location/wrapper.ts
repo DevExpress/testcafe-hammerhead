@@ -185,12 +185,11 @@ export default class LocationWrapper {
         const createLocationPropertyDesc = (property, nativePropSetter) => {
             locationProps[property] = createOverriddenDescriptor(locationPropsOwner, property, {
                 getter: () => {
-                    const frameElement = domUtils.getFrameElement(window);
+                    const frameElement       = domUtils.getFrameElement(window);
+                    const inIframeWithoutSrc = frameElement && domUtils.isIframeWithoutSrc(frameElement);
+                    const parsedDestLocation = inIframeWithoutSrc ? window.location : getParsedDestLocation();
 
-                    if (frameElement && domUtils.isIframeWithoutSrc(frameElement))
-                        return nativeMethods.contentDocumentGetter.call(frameElement).location[property]; // eslint-disable-line no-restricted-properties
-
-                    return getParsedDestLocation()[property];
+                    return parsedDestLocation[property];
                 },
                 setter: value => {
                     const newLocation = changeDestUrlPart(window.location.toString(), nativePropSetter, value, resourceType);
