@@ -69,7 +69,8 @@ function overrideFunctionName (fn: Function, name: string): void {
 
 function overrideToString (nativeFnWrapper: Function, nativeFn: Function): void {
     nativeMethods.objectDefineProperty(nativeFnWrapper, INTERNAL_PROPS.nativeStrRepresentation, {
-        value: nativeMethods.Function.prototype.toString.call(nativeFn)
+        value: nativeMethods.Function.prototype.toString.call(nativeFn),
+        configurable: true
     });
 }
 
