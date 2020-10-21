@@ -4230,7 +4230,7 @@ describe('Proxy', () => {
                                              'to the \'NODE_OPTIONS\' environment variable:\n\nmacOS, Linux (bash, zsh)\nexport ' +
                                              'NODE_OPTIONS=\'--max-http-header-size=14\'\n\nWindows (powershell)\n' +
                                              '$env:NODE_OPTIONS=\'--max-http-header-size=14\'\n\nWindows (cmd)\nset ' +
-                                             'NODE_OPTIONS=\'--max-http-header-size=14\'\n\nand then start your tests.');
+                                             'NODE_OPTIONS=\"--max-http-header-size=14\"\n\nand then start your tests.');
                     });
             });
 
