@@ -28,12 +28,12 @@ export default class DocumentSandbox extends SandboxBase {
         this.documentWriter = null;
     }
 
-    static forceProxySrcForImageIfNecessary (element) {
+    static forceProxySrcForImageIfNecessary (element: HTMLElement): void {
         if (isImgElement(element) && settings.get().forceProxySrcForImage)
             element[INTERNAL_PROPS.forceProxySrcForImage] = true;
     }
 
-    private static _isDocumentInDesignMode (doc) {
+    private static _isDocumentInDesignMode (doc: HTMLDocument): boolean {
         return doc.designMode === 'on';
     }
 
@@ -115,7 +115,7 @@ export default class DocumentSandbox extends SandboxBase {
         return result;
     }
 
-    attach (window, document) {
+    attach (window, document, partialInitializationForNotLoadedIframe = false) {
         if (this._needToUpdateDocumentWriter(window, document)) {
             this.documentWriter = new DocumentWriter(window, document);
 
@@ -315,7 +315,7 @@ export default class DocumentSandbox extends SandboxBase {
             }
         });
 
-        if (this._documentTitleStorageInitializer) {
+        if (this._documentTitleStorageInitializer && !partialInitializationForNotLoadedIframe) {
             overrideDescriptor(docPrototype, 'title', {
                 getter: function () {
                     return documentSandbox._documentTitleStorageInitializer.storage.getTitle();
