@@ -148,7 +148,7 @@ export default class NodeSandbox extends SandboxBase {
             contentWindow[INTERNAL_PROPS.iframeNativeMethods] = iframeNativeMethods;
 
             // NOTE: Override only the document (in fact, we only need the 'write' and 'writeln' methods).
-            this.doc.attach(contentWindow, contentDocument);
+            this.doc.attach(contentWindow, contentDocument, true);
         });
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.

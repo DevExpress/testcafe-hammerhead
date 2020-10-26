@@ -31,7 +31,7 @@ export default class IframeSandbox extends SandboxBase {
         this.iframeNativeMethodsBackup = null;
     }
 
-    private _shouldSaveIframeNativeMethods (iframe: HTMLIFrameElement | HTMLFrameElement) {
+    private _shouldSaveIframeNativeMethods (iframe: HTMLIFrameElement | HTMLFrameElement): boolean {
         if (!isWebKit)
             return false;
 
