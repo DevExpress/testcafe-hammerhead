@@ -74,14 +74,6 @@ export default class FetchSandbox extends SandboxBase {
         return true;
     }
 
-    private static _createAccessorWrapper(nativeFn: Function) {
-        return function (...args) {
-            args[0] = transformHeaderNameToInternal(args[0]);
-
-            return nativeFn.apply(this, args);
-        }
-    }
-
     static _getResponseType (response) {
         const destUrl      = getDestinationUrl(nativeMethods.responseUrlGetter.call(response));
         const isSameOrigin = sameOriginCheck(getDestLocation(), destUrl);
@@ -219,10 +211,8 @@ export default class FetchSandbox extends SandboxBase {
             }
         });
 
-        const entriesWrapper = FetchSandbox._entriesWrapper;
-
-        overrideFunction(window.Headers.prototype, 'entries', entriesWrapper);
-        overrideFunction(window.Headers.prototype, Symbol.iterator, entriesWrapper);
+        overrideFunction(window.Headers.prototype, 'entries', FetchSandbox._entriesWrapper);
+        overrideFunction(window.Headers.prototype, Symbol.iterator, FetchSandbox._entriesWrapper);
 
         overrideFunction(window.Headers.prototype, 'values', FetchSandbox._valuesWrapper);
 
@@ -244,8 +234,42 @@ export default class FetchSandbox extends SandboxBase {
             return nativeMethods.headersForEach.apply(this, args);
         });
 
-        overrideFunction(window.Headers.prototype, 'get', FetchSandbox._createAccessorWrapper(nativeMethods.headersGet));
-        overrideFunction(window.Headers.prototype, 'set', FetchSandbox._createAccessorWrapper(nativeMethods.headersSet));
-        overrideFunction(window.Headers.prototype, 'has', FetchSandbox._createAccessorWrapper(nativeMethods.headersHas));
+        overrideFunction(window.Headers.prototype, 'get', function (...args) {
+            const [headerName] = args;
+
+            args[0] = transformHeaderNameToInternal(headerName);
+
+            const result = nativeMethods.headersGet.apply(this, args);
+
+            if (result === null) {
+                args[0] = headerName;
+
+                return nativeMethods.headersGet.apply(this, args);
+            }
+
+            return result;
+        });
+
+        overrideFunction(window.Headers.prototype, 'has', function (...args) {
+            const [headerName] = args;
+
+            args[0] = transformHeaderNameToInternal(headerName);
+
+            const result = nativeMethods.headersHas.apply(this, args);
+
+            if (!result) {
+                args[0] = headerName;
+
+                return nativeMethods.headersHas.apply(this, args);
+            }
+
+            return result;
+        });
+
+        overrideFunction(window.Headers.prototype, 'set', function (...args) {
+            args[0] = transformHeaderNameToInternal(args[0]);
+
+            return nativeMethods.headersSet.apply(this, args);
+        });
     }
 }

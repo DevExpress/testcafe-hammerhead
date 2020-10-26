@@ -336,7 +336,7 @@ if (window.fetch) {
         test('set header functionality', function () {
             var headers = new Headers();
 
-            headers.set(INTERNAL_HEADERS.authorization, 'Basic');
+            headers.set('authorization', 'Basic');
 
             strictEqual(nativeMethods.headersHas.call(headers, INTERNAL_HEADERS.authorization), true);
             strictEqual(nativeMethods.headersHas.call(headers, 'authorization'), false);
@@ -816,6 +816,19 @@ if (window.fetch) {
                 .then(function (headers) {
                     strictEqual(headers[INTERNAL_HEADERS.authorization], '123', 'Authorization');
                     strictEqual(headers['content-type'], 'charset=utf-8', 'Content-Type');
+                });
+        });
+
+        test('the authorization header should be available by getting it from response.headers (GH-2334)', function () {
+            var headers = { 'authorization': '123' };
+
+            return fetch('/echo-request-body-in-response-headers', { method: 'post', body: JSON.stringify(headers) })
+                .then(function (res) {
+                    strictEqual(res.headers.get('authorization'), '123');
+                    strictEqual(nativeMethods.headersGet.call(res.headers, 'authorization'), '123');
+
+                    strictEqual(res.headers.has('authorization'), true);
+                    strictEqual(nativeMethods.headersHas.call(res.headers, 'authorization'), true);
                 });
         });
     });
