@@ -336,7 +336,7 @@ if (window.fetch) {
         test('set header functionality', function () {
             var headers = new Headers();
 
-            headers.set(INTERNAL_HEADERS.authorization, 'Basic');
+            headers.set('authorization', 'Basic');
 
             strictEqual(nativeMethods.headersHas.call(headers, INTERNAL_HEADERS.authorization), true);
             strictEqual(nativeMethods.headersHas.call(headers, 'authorization'), false);

@@ -266,12 +266,10 @@ export default class FetchSandbox extends SandboxBase {
             return result;
         });
 
-        overrideFunction(window.Headers.prototype, 'has', function (...args) {
+        overrideFunction(window.Headers.prototype, 'set', function (...args) {
             args[0] = transformHeaderNameToInternal(args[0]);
 
             return nativeMethods.headersSet.apply(this, args);
         });
-
-
     }
 }
