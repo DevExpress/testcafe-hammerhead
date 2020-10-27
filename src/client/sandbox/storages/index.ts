@@ -12,6 +12,8 @@ import Listeners from '../event/listeners';
 import UnloadSandbox from '../event/unload';
 import EventSimulator from '../event/simulator';
 
+const UNLOAD_EVENT_NAME = 'unload';
+
 export default class StorageSandbox extends SandboxBase {
     localStorageWrapper: StorageWrapper;
     sessionStorageWrapper: StorageWrapper;
@@ -112,6 +114,13 @@ export default class StorageSandbox extends SandboxBase {
         window.StorageEvent.toString = () => this.nativeMethods.StorageEvent.toString();
     }
 
+    _updateNativeStorages () {
+        if (window === window.top) {
+            this.sessionStorageWrapper.saveToNativeStorage();
+            this.localStorageWrapper.saveToNativeStorage();
+        }
+    }
+
     clear () {
         this.nativeMethods.winLocalStorageGetter.call(this.window).removeItem(this.localStorageWrapper.nativeStorageKey);
         this.nativeMethods.winSessionStorageGetter.call(this.window).removeItem(this.sessionStorageWrapper.nativeStorageKey);
@@ -142,6 +151,8 @@ export default class StorageSandbox extends SandboxBase {
             e => this._simulateStorageEventIfNecessary(e, this.localStorageWrapper));
         this.onSessionStorageListener     = this.sessionStorageWrapper.on(this.sessionStorageWrapper.STORAGE_CHANGED_EVENT,
             e => this._simulateStorageEventIfNecessary(e, this.sessionStorageWrapper));
+
+        window.addEventListener(UNLOAD_EVENT_NAME, this._updateNativeStorages);
 
         this._listeners.initElementListening(window, ['storage']);
         this._listeners.addInternalEventListener(window, ['storage'], (_e, dispatched, preventEvent) => {
@@ -183,6 +194,8 @@ export default class StorageSandbox extends SandboxBase {
     dispose () {
         this.localStorageWrapper.off(this.localStorageWrapper.STORAGE_CHANGED_EVENT, this.onLocalStorageChangeListener);
         this.sessionStorageWrapper.off(this.sessionStorageWrapper.STORAGE_CHANGED_EVENT, this.onSessionStorageListener);
+
+        window.removeEventListener(UNLOAD_EVENT_NAME, this._updateNativeStorages);
 
         const topSameDomainWindow = getTopSameDomainWindow(this.window);
 
