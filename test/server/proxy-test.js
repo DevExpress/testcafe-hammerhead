@@ -4305,7 +4305,7 @@ describe('Proxy', () => {
                                              'to the \'NODE_OPTIONS\' environment variable:\n\n' +
                                              'macOS, Linux (bash, zsh)\nexport NODE_OPTIONS=\'--insecure-http-parser\'\n\n' +
                                              'Windows (powershell)\n$env:NODE_OPTIONS=\'--insecure-http-parser\'\n\n' +
-                                             'Windows (cmd)\nset NODE_OPTIONS=\'--insecure-http-parser\'\n\n' +
+                                             'Windows (cmd)\nset NODE_OPTIONS="--insecure-http-parser"\n\n' +
                                              'and then start your tests.');
                     });
             });
