@@ -1,5 +1,5 @@
 import Proxy from '../proxy';
-import { ServerInfo, ServiceMessage } from '../typings/proxy';
+import { RequestTimeout, ServerInfo, ServiceMessage } from '../typings/proxy';
 import RequestPipelineContext from '../request-pipeline/context';
 import RequestFilterRule from '../request-pipeline/request-hooks/request-filter-rule';
 import ResponseMock from '../request-pipeline/request-hooks/response-mock';
@@ -25,6 +25,7 @@ import UploadStorage from '../upload/storage';
 import COMMAND from './command';
 import generateUniqueId from '../utils/generate-unique-id';
 import SERVICE_ROUTES from '../proxy/service-routes';
+import DEFAULT_REQUEST_TIMEOUT from '../request-pipeline/destination-request/default-request-timeout';
 
 const TASK_TEMPLATE: string = read('../client/task.js.mustache');
 
@@ -71,6 +72,13 @@ interface TaskScriptOpts {
     windowId?: string;
 }
 
+interface SessionOptions {
+    disablePageCaching: boolean;
+    allowMultipleWindows: boolean;
+    windowId: string;
+    requestTimeout: RequestTimeout;
+}
+
 export default abstract class Session extends EventEmitter {
     uploadStorage: UploadStorage;
     id: string = generateUniqueId();
@@ -82,15 +90,28 @@ export default abstract class Session extends EventEmitter {
     injectable: InjectableResources = { scripts: ['/hammerhead.js'], styles: [], userScripts: [] };
     requestEventListeners: Map<RequestFilterRule, RequestEventListenersData> = new Map();
     mocks: Map<RequestFilterRule, ResponseMock> = new Map();
-    disablePageCaching = false;
-    allowMultipleWindows = false;
     private _recordMode = false;
-    windowId = '';
+    options: SessionOptions;
 
-    protected constructor (uploadRoots: string[]) {
+    protected constructor (uploadRoots: string[], options: Partial<SessionOptions>) {
         super();
 
         this.uploadStorage = new UploadStorage(uploadRoots);
+        this.options       = this._getOptions(options);
+    }
+
+    private _getOptions (options: Partial<SessionOptions>): SessionOptions {
+        const requestTimeout = Object.assign({}, DEFAULT_REQUEST_TIMEOUT, (options || {}).requestTimeout);
+
+        if (options && options.requestTimeout)
+            delete options.requestTimeout;
+
+        return Object.assign({
+            disablePageCaching:   false,
+            allowMultipleWindows: false,
+            windowId:             '',
+            requestTimeout
+        }, options);
     }
 
     // State
@@ -147,7 +168,7 @@ export default abstract class Session extends EventEmitter {
             cookie:                   null,
             iframeTaskScriptTemplate: null,
             payloadScript:            await this.getIframePayloadScript(true),
-            allowMultipleWindows:     this.allowMultipleWindows,
+            allowMultipleWindows:     this.options.allowMultipleWindows,
             isRecordMode:             this._recordMode
         });
 
@@ -168,7 +189,7 @@ export default abstract class Session extends EventEmitter {
             cookie:                   cookies,
             iframeTaskScriptTemplate: await this.getIframeTaskScriptTemplate(serverInfo),
             payloadScript,
-            allowMultipleWindows:     this.allowMultipleWindows,
+            allowMultipleWindows:     this.options.allowMultipleWindows,
             isRecordMode:             this._recordMode,
             windowId
         });
@@ -225,7 +246,7 @@ export default abstract class Session extends EventEmitter {
         return !!this.requestEventListeners.size;
     }
 
-    addRequestEventListeners (requestFilterRule: RequestFilterRule, listeners: RequestEventListeners, errorHandler: (event: RequestEventListenerError) => void) {
+    addRequestEventListeners (requestFilterRule: RequestFilterRule, listeners: RequestEventListeners, errorHandler: (event: RequestEventListenerError) => void): void {
         const listenersData = {
             listeners,
             errorHandler
@@ -234,7 +255,7 @@ export default abstract class Session extends EventEmitter {
         this.requestEventListeners.set(requestFilterRule, listenersData);
     }
 
-    removeRequestEventListeners (requestFilterRule: RequestFilterRule) {
+    removeRequestEventListeners (requestFilterRule: RequestFilterRule): void {
         this.requestEventListeners.delete(requestFilterRule);
     }
 
@@ -276,7 +297,7 @@ export default abstract class Session extends EventEmitter {
         }
     }
 
-    setMock (requestFilterRule: RequestFilterRule, mock: ResponseMock) {
+    setMock (requestFilterRule: RequestFilterRule, mock: ResponseMock): void {
         this.mocks.set(requestFilterRule, mock);
     }
 
@@ -284,8 +305,12 @@ export default abstract class Session extends EventEmitter {
         return this.mocks.get(requestFilterRule);
     }
 
-    setRecordMode() {
+    setRecordMode(): void {
         this._recordMode = true;
+    }
+
+    setRequestTimeout (requestTimeout: RequestTimeout): void {
+        this.options.requestTimeout = requestTimeout;
     }
 
     abstract async getIframePayloadScript (iframeWithoutSrc: boolean): Promise<string>;

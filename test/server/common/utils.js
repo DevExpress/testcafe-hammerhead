@@ -9,10 +9,11 @@ const Proxy              = require('../../../lib/proxy');
 const {
     PROXY_HOSTNAME,
     PROXY_PORT_1,
-    PROXY_PORT_2
+    PROXY_PORT_2,
+    SAME_DOMAIN_SERVER_PORT
 } = require('./constants');
 
-exports.createDestinationServer = function (port) {
+exports.createDestinationServer = function (port = SAME_DOMAIN_SERVER_PORT) {
     const app    = express();
     const server = app.listen(port);
 
@@ -24,11 +25,7 @@ exports.createSession = function (parameters) {
         windowId: '12345'
     };
 
-    const session = new Session();
-
-    Object.entries(parameters).forEach(([key, value]) => {
-        session[key] = value;
-    });
+    const session = new Session('/test-upload-root', parameters);
 
     session.getAuthCredentials = () => null;
     session.handleFileDownload = () => void 0;
@@ -66,7 +63,7 @@ exports.getProxyUrl = function (url, resourceType, reqOrigin, isCrossDomain = fa
         proxyHostname: PROXY_HOSTNAME,
         proxyPort:     isCrossDomain ? PROXY_PORT_2 : PROXY_PORT_1,
         sessionId:     urlSession.id,
-        windowId:      urlSession.windowId,
+        windowId:      urlSession.options.windowId,
 
         resourceType, reqOrigin
     });

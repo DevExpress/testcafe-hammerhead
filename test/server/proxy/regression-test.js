@@ -23,19 +23,18 @@ const {
     compareCode,
     getProxyUrl: getBasicProxyUrl,
     createDestinationServer
-} = require('./utils');
+} = require('../common/utils');
 
 const {
     PAGE_ACCEPT_HEADER,
     PROXY_HOSTNAME,
-    SAME_DOMAIN_SERVER_PORT,
     CROSS_DOMAIN_SERVER_PORT,
     EMPTY_PAGE_MARKUP
-} = require('./constants');
+} = require('../common/constants');
 
 let longResponseSocket = null;
 
-describe.only('Regression', () => {
+describe('Regression', () => {
     let session           = null;
     let proxy             = null;
     let destServer        = null;
@@ -46,7 +45,7 @@ describe.only('Regression', () => {
     }
 
     function setupSameDomainServer () {
-        const sameDomainDestinationServer = createDestinationServer(SAME_DOMAIN_SERVER_PORT);
+        const sameDomainDestinationServer = createDestinationServer();
         const { app }                     = sameDomainDestinationServer;
 
         destServer = sameDomainDestinationServer.server;
@@ -303,18 +302,22 @@ describe.only('Regression', () => {
     });
 
     it('Should raise error on request timeout (T224541)', done => {
-        const savedReqTimeout = DestinationRequest.TIMEOUT;
+        const savedReqTimeout = session.options.requestTimeout.page;
 
-        DestinationRequest.TIMEOUT = 200;
+        session.options.requestTimeout.page = 200;
 
         session.handlePageError = (ctx, err) => {
             expect(err).eql('Failed to complete a request to <a href="http://127.0.0.1:2000/T224541/hang-forever">' +
                 'http://127.0.0.1:2000/T224541/hang-forever</a> within the timeout period. ' +
                 'The problem may be related to local machine\'s network or firewall settings, server outage, ' +
                 'or network problems that make the server inaccessible.');
+
             ctx.res.end();
-            DestinationRequest.TIMEOUT = savedReqTimeout;
+
+            session.options.requestTimeout.page = savedReqTimeout;
+
             done();
+
             return true;
         };
 
@@ -329,11 +332,11 @@ describe.only('Regression', () => {
     });
 
     it('Should use a special timeout for xhr requests (GH-347)', () => {
-        const savedReqTimeout    = DestinationRequest.TIMEOUT;
-        const savedXhrReqTimeout = DestinationRequest.AJAX_TIMEOUT;
+        const savedReqTimeout    = session.options.requestTimeout.page;
+        const savedXhrReqTimeout = session.options.requestTimeout.ajax;
 
-        DestinationRequest.TIMEOUT     = 100;
-        DestinationRequest.AJAX_TIMEOUT = 200;
+        session.options.requestTimeout.page = 100;
+        session.options.requestTimeout.ajax = 200;
 
         const options = {
             url:     proxy.openSession('http://127.0.0.1:2000/T224541/hang-forever', session),
@@ -353,10 +356,10 @@ describe.only('Regression', () => {
                 const responseTime = Date.now();
 
                 expect(err.toString()).include('socket hang up');
-                expect(responseTime - requestTime).above(DestinationRequest.AJAX_TIMEOUT);
+                expect(responseTime - requestTime).above(session.options.requestTimeout.ajax);
 
-                DestinationRequest.TIMEOUT      = savedReqTimeout;
-                DestinationRequest.AJAX_TIMEOUT = savedXhrReqTimeout;
+                session.options.requestTimeout.page = savedReqTimeout;
+                session.options.requestTimeout.ajax = savedXhrReqTimeout;
             });
     });
 
@@ -728,27 +731,26 @@ describe.only('Regression', () => {
     });
 
     it('Should abort destination request after fatal error (GH-937)', done => {
-        const savedReqTimeout    = DestinationRequest.TIMEOUT;
         let fatalErrorEventCount = 0;
 
-        DestinationRequest.TIMEOUT = 100;
+        session.options.requestTimeout.page = 100;
 
         const destReq = new DestinationRequest({
-            url:        'http://127.0.0.1:2000/wait/150',
-            protocol:   'http:',
-            hostname:   PROXY_HOSTNAME,
-            host:       '127.0.0.1:2000',
-            port:       2000,
-            path:       '/wait/150',
-            method:     'GET',
-            body:       Buffer.alloc(0),
-            isAjax:     false,
-            headers:    {},
-            rawHeaders: []
+            url:            'http://127.0.0.1:2000/wait/150',
+            protocol:       'http:',
+            hostname:       PROXY_HOSTNAME,
+            host:           '127.0.0.1:2000',
+            port:           2000,
+            path:           '/wait/150',
+            method:         'GET',
+            body:           Buffer.alloc(0),
+            isAjax:         false,
+            headers:        {},
+            rawHeaders:     [],
+            requestTimeout: { page: 100 }
         });
 
-        destReq.on('error', () => {
-        });
+        destReq.on('error', () => noop);
         destReq.on('fatalError', () => {
             fatalErrorEventCount++;
         });
@@ -758,9 +760,8 @@ describe.only('Regression', () => {
         }, 50);
 
         setTimeout(() => {
-            DestinationRequest.TIMEOUT = savedReqTimeout;
-
             expect(fatalErrorEventCount).eql(1);
+
             done();
         }, 150);
     });

@@ -4,6 +4,7 @@ const SAME_DOMAIN_SERVER_PORT   = 2000;
 const CROSS_DOMAIN_SERVER_PORT  = 2002;
 const PROXY_PORT_1              = 1836;
 const PROXY_PORT_2              = 1837;
+const SAME_DOMAIN_SERVER_HOST   = `${PROXY_HOSTNAME}:${SAME_DOMAIN_SERVER_PORT}`;
 
 const TEST_OBJ = {
     prop1: 'value1',
@@ -20,6 +21,7 @@ module.exports = {
     SAME_DOMAIN_SERVER_PORT,
     CROSS_DOMAIN_SERVER_PORT,
     TEST_OBJ,
-    EMPTY_PAGE_MARKUP
+    EMPTY_PAGE_MARKUP,
+    SAME_DOMAIN_SERVER_HOST
 };
 

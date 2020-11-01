@@ -8,14 +8,14 @@ const {
     getProxyUrl: getBasicProxyUrl,
     createSession,
     createProxy
-} = require('./utils');
+} = require('../common/utils');
 
-const promisifyEvent              = require('promisify-event');
-const { expect }                  = require('chai');
-const { SAME_DOMAIN_SERVER_PORT } = require('./constants');
+const promisifyEvent = require('promisify-event');
+const { expect }     = require('chai');
 
 describe('WebSocket', () => {
     let session     = null;
+    let destServer  = null;
     let proxy       = null;
     let httpsServer = null;
     let wsServer    = null;
@@ -26,14 +26,16 @@ describe('WebSocket', () => {
     }
 
     before(() => {
-        const sameDomainDestinationServer = createDestinationServer(SAME_DOMAIN_SERVER_PORT);
+        const sameDomainDestinationServer = createDestinationServer();
+
+        destServer = sameDomainDestinationServer.server;
 
         httpsServer = https.createServer({
             key:  selfSignedCertificate.key,
             cert: selfSignedCertificate.cert
         }, () => void 0).listen(2001);
         wsServer    = new WebSocket.Server({
-            server: sameDomainDestinationServer.server,
+            server: destServer,
             path:   '/web-socket'
         });
         wssServer   = new WebSocket.Server({
@@ -57,6 +59,7 @@ describe('WebSocket', () => {
     });
 
     after(() => {
+        destServer.close();
         wsServer.close();
         wssServer.close();
         httpsServer.close();

@@ -12,6 +12,8 @@ const RequestFilterRule                    = require('../../../lib/request-pipel
 const { gzip }                             = require('../../../lib/utils/promisified-functions');
 const urlUtils                             = require('../../../lib/utils/url');
 const { processScript }                    = require('../../../lib/processing/script');
+const Session                              = require('../../../lib/session');
+
 const {
     createDestinationServer,
     createSession,
@@ -21,14 +23,13 @@ const {
     getProxyUrl: getBasicProxyUrl,
     normalizeNewLine,
     replaceLastAccessedTime
-} = require('./utils');
+} = require('../common/utils');
 
 const {
     PAGE_ACCEPT_HEADER,
-    SAME_DOMAIN_SERVER_PORT,
     CROSS_DOMAIN_SERVER_PORT,
     EMPTY_PAGE_MARKUP
-} = require('./constants');
+} = require('../common/constants');
 
 const ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
     {
@@ -76,7 +77,7 @@ describe('Proxy', () => {
     }
 
     function setupSameDomainServer () {
-        const sameDomainDestinationServer = createDestinationServer(SAME_DOMAIN_SERVER_PORT);
+        const sameDomainDestinationServer = createDestinationServer();
         const { app }                     = sameDomainDestinationServer;
 
         destServer = sameDomainDestinationServer.server;
@@ -347,7 +348,7 @@ describe('Proxy', () => {
             }
 
             function testAddingTrailingSlash (testCases) {
-                testCases.forEach(function (testCase) {
+                testCases.forEach(testCase => {
                     const actualUrl = proxy.openSession(testCase.url, session);
 
                     expect(actualUrl).eql(getExpectedProxyUrl(testCase));
@@ -477,9 +478,13 @@ describe('Proxy', () => {
             });
 
             it('Error', () => {
+                const sessionMock = {
+                    options: { windowId: 'dummy' }
+                };
+
                 const options = {
                     headers: {
-                        referer: proxy.openSession('http://example.com', {})
+                        referer: proxy.openSession('http://example.com', sessionMock)
                     },
 
                     url: 'http://localhost:1836/task.js',
@@ -523,7 +528,7 @@ describe('Proxy', () => {
         });
 
         it('Should set up the prevent caching headers', () => {
-            session.disablePageCaching = true;
+            session.options.disablePageCaching = true;
 
             const options = {
                 headers: {
@@ -544,17 +549,16 @@ describe('Proxy', () => {
                     expect('etag' in res.headers).to.be.false;
                     expect('expires' in res.headers).to.be.false;
 
-                    session.disablePageCaching = false;
+                    session.options.disablePageCaching = false;
                 });
         });
 
         it('Should correctly cache scripts that contain session id in the import statement', () => {
             const getUrlFromBodyReqExp = /[\S\s]+import m from\s+"([^"]+)[\S\s]+/g;
 
-            const someSession = createSession({
-                id:       'dIonisses',
-                windowId: '54321'
-            });
+            const someSession = createSession({ windowId: '54321' });
+
+            someSession.id = 'dIonisses';
 
             let scriptProxyUrl = getProxyUrl('http://localhost:2000/script-with-import-statement',
                 { isScript: true }, void 0, false, someSession);
@@ -581,6 +585,32 @@ describe('Proxy', () => {
 
                     expect(importUrl).eql('http://127.0.0.1:1836/sessionId*12345!s!utf-8/http://localhost:2000/module-name');
                 });
+        });
+
+        it('Should calculate the effective request timeouts', () => {
+            const sessionWithDefaultParameters = new Session();
+
+            expect(sessionWithDefaultParameters.options.requestTimeout.page).eql(25000);
+            expect(sessionWithDefaultParameters.options.requestTimeout.ajax).eql(120000);
+
+            sessionWithDefaultParameters.setRequestTimeout({ page: 1, ajax: 2 });
+
+            expect(sessionWithDefaultParameters.options.requestTimeout.page).eql(1);
+            expect(sessionWithDefaultParameters.options.requestTimeout.ajax).eql(2);
+
+            const sessionWithSpecifiedPageTimeout = new Session('/upload-root-folder', {
+                requestTimeout: { page: 100 }
+            });
+
+            expect(sessionWithSpecifiedPageTimeout.options.requestTimeout.page).eql(100);
+            expect(sessionWithSpecifiedPageTimeout.options.requestTimeout.ajax).eql(120000);
+
+            const sessionWithSpecifiedBothTimeouts = new Session('/upload-root-folder', {
+                requestTimeout: { page: 100, ajax: 200 }
+            });
+
+            expect(sessionWithSpecifiedBothTimeouts.options.requestTimeout.page).eql(100);
+            expect(sessionWithSpecifiedBothTimeouts.options.requestTimeout.ajax).eql(200);
         });
     });
 
@@ -1190,12 +1220,11 @@ describe('Proxy', () => {
         });
 
         it('Should process html import pages', () => {
-            session.id       = 'sessionId';
-            session.windowId = null;
-            session.injectable.scripts.push('/script1.js');
-            session.injectable.scripts.push('/script2.js');
-            session.injectable.styles.push('/styles1.css');
-            session.injectable.styles.push('/styles2.css');
+            session.id               = 'sessionId';
+            session.options.windowId = '';
+
+            session.injectable.scripts.push('/script1.js', '/script2.js');
+            session.injectable.styles.push('/styles1.css', '/styles2.css');
 
             proxy.openSession('http://127.0.0.1:2000/', session);
 
@@ -1216,8 +1245,8 @@ describe('Proxy', () => {
         });
 
         it('Should process html import pages in iframe', () => {
-            session.id       = 'sessionId';
-            session.windowId = null;
+            session.id               = 'sessionId';
+            session.options.windowId = '';
 
             proxy.openSession('http://127.0.0.1:2000/', session);
 

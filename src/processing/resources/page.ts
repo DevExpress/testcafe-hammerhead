@@ -202,7 +202,7 @@ class PageProcessor extends ResourceProcessorBase {
             urlReplacer(resourceUrl, resourceType, charsetAttrValue, baseUrl, isCrossDomain);
 
         domProcessor.forceProxySrcForImage = ctx.session.hasRequestEventListeners();
-        domProcessor.allowMultipleWindows  = ctx.session.allowMultipleWindows;
+        domProcessor.allowMultipleWindows  = ctx.session.options.allowMultipleWindows;
 
         parse5Utils.walkElements(root, el => domProcessor.processElement(el, replacer));
 

@@ -2,7 +2,13 @@ import net from 'net';
 import Session from '../session';
 import { ExternalProxySettingsRaw } from '../typings/session';
 import Router from './router';
-import { StaticContent, ServiceMessage, ServerInfo } from '../typings/proxy';
+import {
+    StaticContent,
+    ServiceMessage,
+    ServerInfo,
+    ProxyOptions
+} from '../typings/proxy';
+
 import http from 'http';
 import https from 'https';
 import * as urlUtils from '../utils/url';
@@ -51,7 +57,7 @@ export default class Proxy extends Router {
     // https://github.com/nodejs/node/commit/186035243fad247e3955fa0c202987cae99e82db#diff-1d0d420098503156cddb601e523b82e7R59
     public static MAX_REQUEST_HEADER_SIZE = 80 * 1024;
 
-    constructor (hostname: string, port1: number, port2: number, options: any = {}) {
+    constructor (hostname: string, port1: number, port2: number, options: ProxyOptions = {}) {
         super(options);
 
         const { ssl, developmentMode } = options;
@@ -226,7 +232,7 @@ export default class Proxy extends Router {
             proxyPort:     this.server1Info.port.toString(),
             proxyProtocol: this.server1Info.protocol,
             sessionId:     session.id,
-            windowId:      session.windowId
+            windowId:      session.options.windowId
         });
     }
 

@@ -20,3 +20,17 @@ export interface StaticContent {
     etag?: string;
     isShadowUIStylesheet?: boolean;
 }
+
+interface RouterOptions {
+    staticContentCaching?: object;
+}
+
+interface RequestTimeout {
+    page?: number;
+    ajax?: number;
+}
+
+interface ProxyOptions extends RouterOptions {
+    ssl?: object;
+    developmentMode?: boolean;
+}
