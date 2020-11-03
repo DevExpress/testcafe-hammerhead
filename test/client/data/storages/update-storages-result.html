@@ -13,7 +13,7 @@
     var INSTRUCTION    = hammerhead.get('../processing/script/instruction');
     var getPostMessage = window[INSTRUCTION.getPostMessage];
 
-    const loadStorage = (storage) => {
+    const loadStorage = function (storage) {
         const KEY_IDX       = 0;
         const VALUE_IDX     = 1;
         const parsedStorage = JSON.parse(storage.nativeStorage['hammerhead|storage-wrapper|undefined|example.com'] || '[[],[]]');

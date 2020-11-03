@@ -14,7 +14,7 @@
         window.sessionStorage.setItem('item', 'value');
         window.localStorage.setItem('item', 'value');
 
-        window.addEventListener('unload', () => {
+        window.addEventListener('unload', function () {
             window.sessionStorage.removeItem('item');
             window.localStorage.removeItem('item');
         });
