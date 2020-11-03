@@ -1,5 +1,7 @@
-var settings   = hammerhead.get('./settings');
-var overriding = hammerhead.get('./utils/overriding');
+var settings     = hammerhead.get('./settings');
+var overriding   = hammerhead.get('./utils/overriding');
+var DomProcessor = hammerhead.get('../processing/dom');
+var htmlUtils    = hammerhead.get('./utils/html');
 
 var iframeSandbox = hammerhead.sandbox.iframe;
 var cookieSandbox = hammerhead.sandbox.cookie;
@@ -7,6 +9,7 @@ var browserUtils  = hammerhead.utils.browser;
 var domUtils      = hammerhead.utils.dom;
 var shadowUI      = hammerhead.sandbox.shadowUI;
 var Promise       = hammerhead.Promise;
+var nativeMethods = hammerhead.nativeMethods;
 
 test('should not miss the Hammerhead instance after the iframe.contentDocument.close function calling (GH-1821)', function () {
     function checkIframe (iframe) {
@@ -77,6 +80,67 @@ test('document.write', function () {
 
     iframe.parentNode.removeChild(iframe);
 });
+
+if (nativeMethods.iframeSrcdocGetter) {
+    module('srcdoc');
+
+    test('process html with iframe with srcdoc', function () {
+        document.body.insertAdjacentHTML('beforeend', '<iframe id="test' + Date.now() + '" srcdoc="<a href=\'http://domain.com/\'>Link</a>"></iframe>');
+
+        var iframe = document.body.lastChild;
+
+        return window.QUnitGlobals.wait(function () {
+            return true;
+        })
+            .then(function () {
+                return window.QUnitGlobals.waitForIframe(iframe);
+            })
+            .then(function () {
+                var anchor = iframe.contentDocument.querySelector('a');
+
+                strictEqual(nativeMethods.anchorHrefGetter.call(anchor), 'http://' + location.host + '/sessionId!i/http://domain.com/');
+                strictEqual(nativeMethods.getAttribute.call(anchor, DomProcessor.getStoredAttrName('href')), 'http://domain.com/');
+                strictEqual(anchor.href, 'http://domain.com/');
+                strictEqual(anchor.getAttribute('href'), 'http://domain.com/');
+
+                document.body.removeChild(iframe);
+            });
+    });
+
+    test('the srcdoc property', function () {
+        var iframe = document.createElement('iframe');
+        var html   = '<body><script>document.write(location.href)<' + '/script>';
+
+        iframe.srcdoc = html;
+        iframe.id     = 'test' + Date.now();
+
+        document.body.appendChild(iframe);
+
+        return window.QUnitGlobals.wait(function () {
+            return true;
+        })
+            .then(function () {
+                return window.QUnitGlobals.waitForIframe(iframe);
+            })
+            .then(function () {
+                strictEqual(iframe.srcdoc, html);
+                ok(nativeMethods.iframeSrcdocGetter.call(iframe).indexOf('__get$Loc') > -1);
+                strictEqual(iframe.contentDocument.body.lastChild.textContent, 'https://example.com/');
+
+                document.body.removeChild(iframe);
+            });
+    });
+
+    test('the srcdoc attribute', function () {
+        var iframe = document.createElement('iframe');
+        var html   = '<a href="123"></a>';
+
+        iframe.setAttribute('srcdoc', html);
+
+        strictEqual(iframe.getAttribute('srcdoc'), html);
+        strictEqual(nativeMethods.getAttribute.call(iframe, 'srcdoc'), htmlUtils.processHtml(html).replace(/(sessionId)/, '$1!i'));
+    });
+}
 
 module('regression');
 

@@ -113,28 +113,21 @@ export default class ElementSandbox extends SandboxBase {
             else if (el.hasAttribute(storedAttrName))
                 args[isNs ? 1 : 0] = storedAttrName;
         }
-        // NOTE: We simply remove the 'integrity' attribute because its value will not be relevant after the script
-        // content changes (http://www.w3.org/TR/SRI/). If this causes problems in the future, we will need to generate
-        // the correct SHA for the changed script. (GH-235)
-        else if (!isNs && loweredAttr === 'integrity' && DomProcessor.isTagWithIntegrityAttr(tagName)) {
-            const storedIntegrityAttr = DomProcessor.getStoredAttrName(attr);
+        else if (!isNs && (
+            // NOTE: We simply remove the 'integrity' attribute because its value will not be relevant after the script
+            // content changes (http://www.w3.org/TR/SRI/). If this causes problems in the future, we will need to generate
+            // the correct SHA for the changed script. (GH-235)
+            loweredAttr === 'integrity' && DomProcessor.isTagWithIntegrityAttr(tagName) ||
+            // NOTE: We simply remove the 'rel' attribute if rel='prefetch' and use stored 'rel' attribute, because the prefetch
+            // resource type is unknown. https://github.com/DevExpress/testcafe/issues/2528
+            loweredAttr === 'rel' && tagName === 'link' ||
+            loweredAttr === 'required' && domUtils.isFileInput(el) ||
+            loweredAttr === 'srcdoc' && tagName === 'iframe'
+        )) {
+            const storedAttr = DomProcessor.getStoredAttrName(attr);
 
-            if (nativeMethods.hasAttribute.call(el, storedIntegrityAttr))
-                args[0] = storedIntegrityAttr;
-        }
-        // NOTE: We simply remove the 'rel' attribute if rel='prefetch' and use stored 'rel' attribute, because the prefetch
-        // resource type is unknown. https://github.com/DevExpress/testcafe/issues/2528
-        else if (!isNs && loweredAttr === 'rel' && tagName === 'link') {
-            const storedRelAttr = DomProcessor.getStoredAttrName(attr);
-
-            if (nativeMethods.hasAttribute.call(el, storedRelAttr))
-                args[0] = storedRelAttr;
-        }
-        else if (!isNs && loweredAttr === 'required' && domUtils.isFileInput(el)) {
-            const storedRequiredAttr = DomProcessor.getStoredAttrName(attr);
-
-            if (nativeMethods.hasAttribute.call(el, storedRequiredAttr))
-                args[0] = storedRequiredAttr;
+            if (nativeMethods.hasAttribute.call(el, storedAttr))
+                args[0] = storedAttr;
         }
 
         return getAttrMeth.apply(el, args);
@@ -308,6 +301,13 @@ export default class ElementSandbox extends SandboxBase {
                     nativeMethods.removeAttribute.call(el, storedRequiredAttr);
                 }
             }
+        }
+        else if (!isNs && loweredAttr === 'srcdoc' && tagName === 'iframe') {
+            const storedAttr = DomProcessor.getStoredAttrName(attr);
+
+            setAttrMeth.apply(el, [storedAttr, value]);
+
+            args[valueIndex] = domProcessor.adapter.processSrcdocAttr(value);
         }
 
         const result = setAttrMeth.apply(el, args);
@@ -795,7 +795,7 @@ export default class ElementSandbox extends SandboxBase {
         super.attach(window);
 
         this._createOverriddenMethods();
-        
+
         overrideFunction(window.Element.prototype, 'setAttribute', this.overriddenMethods.setAttribute);
         overrideFunction(window.Element.prototype, 'setAttributeNS', this.overriddenMethods.setAttributeNS);
         overrideFunction(window.Element.prototype, 'getAttribute', this.overriddenMethods.getAttribute);
@@ -837,7 +837,7 @@ export default class ElementSandbox extends SandboxBase {
             overrideFunction(window.Element.prototype, 'insertAdjacentHTML', this.overriddenMethods.insertAdjacentHTML);
         else if (window.HTMLElement.prototype.insertAdjacentHTML)
             overrideFunction(window.HTMLElement.prototype, 'insertAdjacentHTML', this.overriddenMethods.insertAdjacentHTML);
-        
+
         this._setValidBrowsingContextOnElementClick(window);
 
         // NOTE: Cookie can be set up for the page by using the request initiated by img.

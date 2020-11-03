@@ -173,7 +173,7 @@ class PageProcessor extends ResourceProcessorBase {
         parse5Utils.insertBeforeFirstScript(restoreStoragesScript, head);
     }
 
-    private _addBodyCreatedEventScript (body: ASTNode): void {
+    private static _addBodyCreatedEventScript (body: ASTNode): void {
         parse5Utils.unshiftElement(PARSED_BODY_CREATED_EVENT_SCRIPT, body);
     }
 
@@ -184,16 +184,19 @@ class PageProcessor extends ResourceProcessorBase {
                !ctx.contentInfo.isFileDownload;
     }
 
-    processResource (html: string, ctx: RequestPipelineContext, charset: Charset, urlReplacer: Function): string | symbol {
+    processResource (html: string, ctx: RequestPipelineContext, charset: Charset, urlReplacer: Function, isSrcdoc = false): string | symbol {
         const processingOpts = PageProcessor._getPageProcessingOptions(ctx, urlReplacer);
         const bom            = getBOM(html);
+
+        if (isSrcdoc)
+            processingOpts.isIframe = true;
 
         html = bom ? html.replace(bom, '') : html;
 
         PageProcessor._prepareHtml(html, processingOpts);
 
         const root       = parse5.parse(html);
-        const domAdapter = new DomAdapter(processingOpts.isIframe, processingOpts.crossDomainProxyPort.toString());
+        const domAdapter = new DomAdapter(processingOpts.isIframe, processingOpts.crossDomainProxyPort.toString(), ctx, charset, urlReplacer);
         const elements   = parse5Utils.findElementsByTagNames(root, ['base', 'meta', 'head', 'body', 'frameset']);
         const base       = elements.base ? elements.base[0] : null;
         const baseUrl    = base ? domAdapter.getAttr(base, 'href') : '';
@@ -201,7 +204,7 @@ class PageProcessor extends ResourceProcessorBase {
         const head       = elements.head[0];
         const body       = elements.body ? elements.body[0] : elements.frameset[0];
 
-        if (metas && charset.fromMeta(PageProcessor._getPageMetas(metas, domAdapter)))
+        if (!isSrcdoc && metas && charset.fromMeta(PageProcessor._getPageMetas(metas, domAdapter)))
             return this.RESTART_PROCESSING;
 
         const domProcessor = new DomProcessor(domAdapter);
@@ -209,12 +212,13 @@ class PageProcessor extends ResourceProcessorBase {
 
         domProcessor.forceProxySrcForImage = ctx.session.hasRequestEventListeners();
         domProcessor.allowMultipleWindows  = ctx.session.allowMultipleWindows;
+
         parse5Utils.walkElements(root, el => domProcessor.processElement(el, replacer));
 
-        if (!ctx.isHtmlImport) {
+        if (!ctx.isHtmlImport && !isSrcdoc) {
             PageProcessor._addPageResources(head, processingOpts);
             PageProcessor._addPageOriginFirstTitleParsedScript(head, ctx);
-            this._addBodyCreatedEventScript(body);
+            PageProcessor._addBodyCreatedEventScript(body);
 
             if (ctx.restoringStorages && !processingOpts.isIframe)
                 this._addRestoreStoragesScript(ctx, head);

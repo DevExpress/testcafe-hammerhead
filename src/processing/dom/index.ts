@@ -47,6 +47,7 @@ interface ElementProcessingPattern {
 }
 
 export default class DomProcessor {
+    readonly HTML_PROCESSING_REQUIRED_EVENT = 'hammerhead|event|html-processing-required';
     SVG_XLINK_HREF_TAGS: string[] = SVG_XLINK_HREF_TAGS;
     AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER: string = AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
     PROCESSED_PRELOAD_LINK_CONTENT_TYPE: string = PROCESSED_PRELOAD_LINK_CONTENT_TYPE;
@@ -57,8 +58,6 @@ export default class DomProcessor {
     EVENTS: string[];
 
     constructor (public readonly adapter: BaseDomAdapter) {
-        this.adapter.attachEventEmitter(this);
-
         this.EVENTS = this.adapter.EVENTS;
         this.elementProcessorPatterns = this._createProcessorPatterns(this.adapter);
     }
@@ -132,6 +131,12 @@ export default class DomProcessor {
             HAS_MANIFEST_ATTR: (el: HTMLElement) => this.isUrlAttr(el, 'manifest'),
 
             HAS_DATA_ATTR: (el: HTMLElement) => this.isUrlAttr(el, 'data'),
+
+            HAS_SRCDOC_ATTR: (el: HTMLElement) => {
+                const tagName = this.adapter.getTagName(el);
+
+                return (tagName === 'iframe' || tagName === 'frame') && adapter.hasAttr(el, 'srcdoc');
+            },
 
             HTTP_EQUIV_META: (el: HTMLElement) => {
                 const tagName = adapter.getTagName(el);
@@ -211,6 +216,10 @@ export default class DomProcessor {
                 selector:          selectors.HAS_DATA_ATTR,
                 urlAttr:           'data',
                 elementProcessors: [this._processUrlAttrs, this._processUrlJsAttr]
+            },
+            {
+                selector:          selectors.HAS_SRCDOC_ATTR,
+                elementProcessors: [this._processSrcdocAttr]
             },
             {
                 selector:          selectors.HTTP_EQUIV_META,
@@ -418,7 +427,6 @@ export default class DomProcessor {
 
         if (attrValue !== processedValue) {
             this.adapter.setAttr(el, storedUrlAttr, attrValue);
-
             this.adapter.setAttr(el, attrName, processedValue);
         }
     }
@@ -608,7 +616,6 @@ export default class DomProcessor {
                                 resourceType: iframeResourceType
                             }) : '';
                         }
-
                     }
 
                     if (isSpecialPage && !isAnchor)
@@ -630,6 +637,15 @@ export default class DomProcessor {
                 }
             }
         }
+    }
+
+    _processSrcdocAttr (el: HTMLElement) {
+        const storedAttr    = DomProcessor.getStoredAttrName('srcdoc');
+        const html          = this.adapter.getAttr(el, 'srcdoc');
+        const processedHtml = this.adapter.processSrcdocAttr(html);
+
+        this.adapter.setAttr(el, storedAttr, html);
+        this.adapter.setAttr(el, 'srcdoc', processedHtml);
     }
 
     _processUrlJsAttr (el: HTMLElement, _urlReplacer: object, pattern: ElementProcessingPattern): void {
