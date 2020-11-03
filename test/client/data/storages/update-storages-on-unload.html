@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+    <script type="text/javascript">
+        var hammerhead  = window['%hammerhead%'];
+
+        // NOTE: clear the native storages before hammerhead is initialized
+        sessionStorage.clear();
+        localStorage.clear();
+
+        hammerhead.start({});
+
+        window.sessionStorage.setItem('item', 'value');
+        window.localStorage.setItem('item', 'value');
+
+        window.addEventListener('unload', () => {
+            window.sessionStorage.removeItem('item');
+            window.localStorage.removeItem('item');
+        });
+    </script>
+</body>
+</html>

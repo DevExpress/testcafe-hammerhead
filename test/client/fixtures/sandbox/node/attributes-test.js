@@ -583,7 +583,7 @@ if (browserUtils.isChrome) {
 }
 
 test('window.onbeforeunload', function () {
-    var evName = 'on' + unloadSandbox.beforeUnloadEventName;
+    var evName = 'on' + unloadSandbox.beforeUnloadProperties.nativeEventName;
 
     strictEqual(window[evName], null);
 

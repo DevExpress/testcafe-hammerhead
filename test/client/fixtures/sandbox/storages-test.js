@@ -248,7 +248,7 @@ test('storages save their state on the beforeunload event', function () {
     ok(!nativeSessionStorage[storageWrapperKey]);
 
     // NOTE: Simulate page leaving
-    hammerhead.sandbox.event.unload._emitBeforeUnloadEvent();
+    hammerhead.sandbox.event.unload._emitEvent(hammerhead.sandbox.event.unload.beforeUnloadProperties);
 
     strictEqual(nativeLocalStorage[storageWrapperKey], JSON.stringify([['key1'], ['value1']]));
     strictEqual(nativeSessionStorage[storageWrapperKey], JSON.stringify([['key2'], ['value2']]));
@@ -399,5 +399,29 @@ test('localStorage should be saved after location.replace (GH-1999)', function (
         })
         .then(function () {
             strictEqual(event.data, 'data');
+        });
+});
+
+test('Storages are saved on the unload event (GH-4834)', function () {
+    var event = null;
+
+    window.addEventListener('message', function (e) {
+        event = e;
+    });
+
+    return createTestIframe({ src: getSameDomainPageUrl('../../data/storages/update-storages-on-unload.html') })
+        .then(function () {
+            strictEqual(this[0].sessionStorage.getItem('item'), 'value');
+            strictEqual(this[0].localStorage.getItem('item'), 'value');
+
+            this[0].location.href = getSameDomainPageUrl('../../data/storages/update-storages-result.html');
+
+            return window.QUnitGlobals.wait(function () {
+                return event !== null;
+            });
+        })
+        .then(function () {
+            strictEqual(this[0].sessionStorage.getItem('item'), null);
+            strictEqual(this[0].localStorage.getItem('item'), null);
         });
 });

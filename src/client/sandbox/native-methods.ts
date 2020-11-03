@@ -222,6 +222,7 @@ class NativeMethods {
     linkIntegritySetter: any;
     isEventPropsLocatedInProto: boolean;
     winOnBeforeUnloadSetter: any;
+    winOnUnloadSetter: any;
     winOnPageHideSetter: any;
     winOnMessageSetter: any;
     winOnErrorSetter: any;
@@ -585,12 +586,14 @@ class NativeMethods {
         const eventPropsOwner = this.isEventPropsLocatedInProto ? winProto : win;
 
         const winOnBeforeUnloadDescriptor = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onbeforeunload');
+        const winOnUnloadDescriptor       = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onunload');
         const winOnPageHideDescriptor     = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onpagehide');
         const winOnMessageDescriptor      = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onmessage');
         const winOnErrorDescriptor        = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onerror');
         const winOnHashChangeDescriptor   = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onhashchange');
 
         this.winOnBeforeUnloadSetter = winOnBeforeUnloadDescriptor && winOnBeforeUnloadDescriptor.set;
+        this.winOnUnloadSetter       = winOnUnloadDescriptor && winOnUnloadDescriptor.set;
         this.winOnPageHideSetter     = winOnPageHideDescriptor && winOnPageHideDescriptor.set;
         this.winOnMessageSetter      = winOnMessageDescriptor && winOnMessageDescriptor.set;
         this.winOnErrorSetter        = winOnErrorDescriptor && winOnErrorDescriptor.set;

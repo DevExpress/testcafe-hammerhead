@@ -12,7 +12,7 @@ import Listeners from '../event/listeners';
 import UnloadSandbox from '../event/unload';
 import EventSimulator from '../event/simulator';
 
-const UNLOAD_EVENT_NAME = 'unload';
+const STORAGE_ACCESS_DENIED_ERROR_CODE = 18;
 
 export default class StorageSandbox extends SandboxBase {
     localStorageWrapper: StorageWrapper;
@@ -67,13 +67,21 @@ export default class StorageSandbox extends SandboxBase {
             this.sessionStorageWrapper = new StorageWrapper(this.window, this.nativeMethods.winSessionStorageGetter.call(this.window), storageKey);
 
             const saveToNativeStorages = () => {
-                if (!this.isLocked) {
-                    this.localStorageWrapper.saveToNativeStorage();
-                    this.sessionStorageWrapper.saveToNativeStorage();
+                try {
+                    if (!this.isLocked) {
+                        this.localStorageWrapper.saveToNativeStorage();
+                        this.sessionStorageWrapper.saveToNativeStorage();
+                    }
+                }
+                catch (e) {
+                    if (e.code !== STORAGE_ACCESS_DENIED_ERROR_CODE)
+                        throw e;
                 }
             };
 
             this._unloadSandbox.on(this._unloadSandbox.BEFORE_UNLOAD_EVENT, saveToNativeStorages);
+            this._unloadSandbox.on(this._unloadSandbox.UNLOAD_EVENT, saveToNativeStorages);
+
             // NOTE: In some case, a browser does not emit the onBeforeUnload event and we need manually watch navigation (GH-1999).
             // Also, on iOS devices, we realize the BEFORE_UNLOAD_EVENT through the onPageHide event that browser emits too late
             // and we do not have time to save the localStorage wrapper to the native localStorage (GH-1507).
@@ -114,13 +122,6 @@ export default class StorageSandbox extends SandboxBase {
         window.StorageEvent.toString = () => this.nativeMethods.StorageEvent.toString();
     }
 
-    _updateNativeStorages () {
-        if (window === window.top) {
-            this.sessionStorageWrapper.saveToNativeStorage();
-            this.localStorageWrapper.saveToNativeStorage();
-        }
-    }
-
     clear () {
         this.nativeMethods.winLocalStorageGetter.call(this.window).removeItem(this.localStorageWrapper.nativeStorageKey);
         this.nativeMethods.winSessionStorageGetter.call(this.window).removeItem(this.sessionStorageWrapper.nativeStorageKey);
@@ -151,8 +152,6 @@ export default class StorageSandbox extends SandboxBase {
             e => this._simulateStorageEventIfNecessary(e, this.localStorageWrapper));
         this.onSessionStorageListener     = this.sessionStorageWrapper.on(this.sessionStorageWrapper.STORAGE_CHANGED_EVENT,
             e => this._simulateStorageEventIfNecessary(e, this.sessionStorageWrapper));
-
-        window.addEventListener(UNLOAD_EVENT_NAME, this._updateNativeStorages);
 
         this._listeners.initElementListening(window, ['storage']);
         this._listeners.addInternalEventListener(window, ['storage'], (_e, dispatched, preventEvent) => {
@@ -194,8 +193,6 @@ export default class StorageSandbox extends SandboxBase {
     dispose () {
         this.localStorageWrapper.off(this.localStorageWrapper.STORAGE_CHANGED_EVENT, this.onLocalStorageChangeListener);
         this.sessionStorageWrapper.off(this.sessionStorageWrapper.STORAGE_CHANGED_EVENT, this.onSessionStorageListener);
-
-        window.removeEventListener(UNLOAD_EVENT_NAME, this._updateNativeStorages);
 
         const topSameDomainWindow = getTopSameDomainWindow(this.window);
 

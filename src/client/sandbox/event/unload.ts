@@ -5,23 +5,44 @@ import { isFirefox, isIOS } from '../../utils/browser';
 import { overrideDescriptor } from '../../utils/overriding';
 import Listeners from './listeners';
 
+interface EventProperties {
+    storedReturnValue: string;
+    prevented:         boolean;
+    storedHandler:     any;
+    nativeEventName:   string;
+    eventName:         string;
+    eventPropSetter:   any;
+};
+
 export default class UnloadSandbox extends SandboxBase {
     BEFORE_UNLOAD_EVENT: string = 'hammerhead|event|before-unload';
     BEFORE_BEFORE_UNLOAD_EVENT: string = 'hammerhead|event|before-before-unload';
     UNLOAD_EVENT: string = 'hammerhead|event|unload';
+    NATIVE_UNLOAD_EVENT: string = 'unload';
 
-    storedBeforeUnloadReturnValue: string;
-    prevented: boolean;
-    storedBeforeUnloadHandler: any;
-    beforeUnloadEventName: string;
+    beforeUnloadProperties: EventProperties;
+    unloadProperties: EventProperties;
 
     constructor (private readonly _listeners: Listeners) { //eslint-disable-line no-unused-vars
         super();
 
-        this.storedBeforeUnloadReturnValue = '';
-        this.prevented                     = false;
-        this.storedBeforeUnloadHandler     = null;
-        this.beforeUnloadEventName         = UnloadSandbox._getBeforeUnloadEventName();
+        this.beforeUnloadProperties = {
+            storedReturnValue: '',
+            prevented:         false,
+            storedHandler:     null,
+            nativeEventName:   UnloadSandbox._getBeforeUnloadEventName(),
+            eventName:         this.BEFORE_UNLOAD_EVENT,
+            eventPropSetter:   UnloadSandbox._getBeforeUnloadPropSetter()
+        };
+
+        this.unloadProperties = {
+            storedReturnValue: '',
+            prevented:         false,
+            storedHandler:     null,
+            nativeEventName:   this.NATIVE_UNLOAD_EVENT,
+            eventName:         this.UNLOAD_EVENT,
+            eventPropSetter:   nativeMethods.winOnUnloadSetter
+        };
     }
 
     private static _getBeforeUnloadEventName (): string {
@@ -30,99 +51,124 @@ export default class UnloadSandbox extends SandboxBase {
         return isIOS ? 'pagehide' : 'beforeunload';
     }
 
+    private static _getBeforeUnloadPropSetter (): any {
+        // NOTE: the ios devices do not support beforeunload event
+        // https://developer.apple.com/library/ios/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html#//apple_ref/doc/uid/TP40006511-SW5
+        return isIOS ? nativeMethods.winOnPageHideSetter : nativeMethods.winOnBeforeUnloadSetter;
+    }
+
     // NOTE: This handler has to be called after others.
-    private _emitBeforeUnloadEvent (): void {
-        this.emit(this.BEFORE_UNLOAD_EVENT, {
-            returnValue: this.storedBeforeUnloadReturnValue,
-            prevented:   this.prevented
+    private _emitEvent (eventProperties: EventProperties): void {
+        this.emit(eventProperties.eventName, {
+            returnValue: eventProperties.storedReturnValue,
+            prevented:   eventProperties.prevented
         });
     }
 
-    private _onBeforeUnloadHandler (e, originListener): void {
-        // NOTE: Overriding the returnValue property to prevent a native dialog.
-        nativeMethods.objectDefineProperty(e, 'returnValue', createPropertyDesc({
-            get: () => this.storedBeforeUnloadReturnValue,
-            set: value => {
-                // NOTE: In all browsers, if the property is set to any value, unload is prevented. In FireFox,
-                // only if a value is set to an empty string, the unload operation is prevented.
-                this.storedBeforeUnloadReturnValue = value;
+    private _createEventHandler (eventProperties: EventProperties): Function {
+        return function (e, originListener): void {
+            // NOTE: Overriding the returnValue property to prevent a native dialog.
+            nativeMethods.objectDefineProperty(e, 'returnValue', createPropertyDesc({
+                get: () => eventProperties.storedReturnValue,
+                set: value => {
+                    // NOTE: In all browsers, if the property is set to any value, unload is prevented. In FireFox,
+                    // only if a value is set to an empty string, the unload operation is prevented.
+                    eventProperties.storedReturnValue = value;
 
-                this.prevented = isFirefox ? value !== '' : true;
+                    eventProperties.prevented = isFirefox ? value !== '' : true;
+                }
+            }));
+
+            nativeMethods.objectDefineProperty(e, 'preventDefault', createPropertyDesc({
+                get: () => () => {
+                    eventProperties.prevented = true;
+
+                    return true;
+                },
+
+                set: () => void 0
+            }));
+
+            const res = originListener(e);
+
+            if (res !== void 0) {
+                eventProperties.storedReturnValue = res;
+                eventProperties.prevented         = true;
             }
-        }));
-
-        nativeMethods.objectDefineProperty(e, 'preventDefault', createPropertyDesc({
-            get: () => () => {
-                this.prevented = true;
-
-                return true;
-            },
-
-            set: () => void 0
-        }));
-
-        const res = originListener(e);
-
-        if (res !== void 0) {
-            this.storedBeforeUnloadReturnValue = res;
-            this.prevented                     = true;
         }
     }
 
-    private _reattachBeforeUnloadListener () {
+    private _reattachListener (eventProperties: EventProperties) {
         const nativeAddEventListener    = nativeMethods.windowAddEventListener || nativeMethods.addEventListener;
         const nativeRemoveEventListener = nativeMethods.windowRemoveEventListener || nativeMethods.removeEventListener;
 
         // NOTE: reattach the Listener, it'll be the last in the queue.
-        nativeRemoveEventListener.call(this.window, this.beforeUnloadEventName, this);
-        nativeAddEventListener.call(this.window, this.beforeUnloadEventName, this);
+        nativeRemoveEventListener.call(this.window, eventProperties.nativeEventName, this);
+        nativeAddEventListener.call(this.window, eventProperties.nativeEventName, this);
+    }
+
+    private _setEventListenerWrapper (eventProperties: EventProperties) {
+        this._listeners.setEventListenerWrapper(window, [eventProperties.nativeEventName], (e, listener) => {
+            this._createEventHandler(eventProperties)(e, listener)
+        });
+    }
+
+    private _addEventListener (eventProperties: EventProperties) {
+        const nativeAddEventListener = nativeMethods.windowAddEventListener || nativeMethods.addEventListener;
+
+        nativeAddEventListener.call(window, eventProperties.nativeEventName, this);
+
+        this._listeners.on(this._listeners.EVENT_LISTENER_ATTACHED_EVENT, e => {
+            if (e.el === window && e.eventType === eventProperties.nativeEventName)
+                this._reattachListener(eventProperties);
+        });
+    }
+
+    private _overrideEventDescriptor (eventProperties: EventProperties) {
+        // @ts-ignore
+        const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;
+
+        // @ts-ignore
+        overrideDescriptor(eventPropsOwner, 'on' + eventProperties.nativeEventName, {
+            getter: () => eventProperties.storedHandler,
+            setter: handler => this.setOnEvent(eventProperties, window, handler)
+        });
+    }
+
+    private _attachEvent (eventProperties: EventProperties) {
+        this._setEventListenerWrapper(eventProperties);
+        this._addEventListener(eventProperties);
+        this._overrideEventDescriptor(eventProperties);
     }
 
     attach (window: Window & typeof globalThis) {
         super.attach(window);
 
-        this._listeners.setEventListenerWrapper(window, [this.beforeUnloadEventName], (e, listener) => this._onBeforeUnloadHandler(e, listener));
-        this._listeners.addInternalEventListener(window, ['unload'], () => this.emit(this.UNLOAD_EVENT));
+        this._attachEvent(this.beforeUnloadProperties);
+        this._attachEvent(this.unloadProperties);
 
-        const nativeAddEventListener = nativeMethods.windowAddEventListener || nativeMethods.addEventListener;
-
-        nativeAddEventListener.call(window, this.beforeUnloadEventName, this);
-
-        this._listeners.addInternalEventListener(window, [this.beforeUnloadEventName], () => this.emit(this.BEFORE_BEFORE_UNLOAD_EVENT));
-        this._listeners.on(this._listeners.EVENT_LISTENER_ATTACHED_EVENT, e => {
-            if (e.el === window && e.eventType === this.beforeUnloadEventName)
-                this._reattachBeforeUnloadListener();
-        });
-
-        const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;
-
-        // @ts-ignore
-        overrideDescriptor(eventPropsOwner, 'on' + this.beforeUnloadEventName, {
-            getter: () => this.storedBeforeUnloadHandler,
-            setter: handler => this.setOnBeforeUnload(window, handler)
-        });
+        this._listeners.addInternalEventListener(window, [this.beforeUnloadProperties.nativeEventName], () => this.emit(this.BEFORE_BEFORE_UNLOAD_EVENT));
     }
 
-    setOnBeforeUnload (window: Window, handler) {
-        const beforeUnloadEventPropSetter = isIOS
-            ? nativeMethods.winOnPageHideSetter
-            : nativeMethods.winOnBeforeUnloadSetter;
-
+    setOnEvent (eventProperties: EventProperties, window: Window, handler) {
         if (typeof handler === 'function') {
-            this.storedBeforeUnloadHandler = handler;
+            eventProperties.storedHandler = handler;
 
-            beforeUnloadEventPropSetter.call(window, e => this._onBeforeUnloadHandler(e, handler));
+            eventProperties.eventPropSetter.call(window, e => this._createEventHandler(eventProperties)(e, handler));
 
-            this._reattachBeforeUnloadListener();
+            this._reattachListener(eventProperties);
         }
         else {
-            this.storedBeforeUnloadHandler = null;
+            eventProperties.storedHandler = null;
 
-            beforeUnloadEventPropSetter.call(window, null);
+            eventProperties.eventPropSetter.call(window, null);
         }
     }
 
-    handleEvent () {
-        this._emitBeforeUnloadEvent();
+    handleEvent (e) {
+        if (e.type === this.beforeUnloadProperties.nativeEventName)
+            this._emitEvent(this.beforeUnloadProperties);
+        else if (e.type === this.unloadProperties.nativeEventName)
+            this._emitEvent(this.unloadProperties);
     }
 }
