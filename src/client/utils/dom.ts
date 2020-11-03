@@ -397,6 +397,10 @@ export function isIframeWithoutSrc (iframe: HTMLIFrameElement | HTMLFrameElement
     return !iframeDocumentLocationHaveSupportedProtocol;
 }
 
+export function isIframeWithSrcdoc (iframe: HTMLIFrameElement | HTMLFrameElement) {
+    return nativeMethods.iframeSrcdocGetter && nativeMethods.hasAttribute.call(iframe, 'srcdoc');
+}
+
 export function isImgElement (el: any): el is HTMLImageElement {
     return instanceToString(el) === '[object HTMLImageElement]';
 }

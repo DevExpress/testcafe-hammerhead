@@ -29,7 +29,6 @@ export default abstract class BaseDomAdapter {
     abstract setStyleContent (el: HTMLElement | ASTNode, content: string): void;
     abstract needToProcessContent (el: HTMLElement | ASTNode): boolean;
     abstract needToProcessUrl (tagName: string, target: string): boolean;
-    abstract attachEventEmitter (domProcessor: any): void;
     abstract hasIframeParent (el: HTMLElement | ASTNode): boolean;
     abstract getCrossDomainPort (): string;
     abstract getProxyUrl (resourceUrl: string, opts: object): string;
@@ -37,4 +36,5 @@ export default abstract class BaseDomAdapter {
     abstract sameOriginCheck (destUrl: string, resourceUrl: string): boolean;
     abstract getClassName (el: HTMLElement | ASTNode): string;
     abstract isExistingTarget (target: string, el?: HTMLElement | ASTNode): boolean;
+    abstract processSrcdocAttr (string: string): string;
 }

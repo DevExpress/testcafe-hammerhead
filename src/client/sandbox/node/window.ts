@@ -1086,6 +1086,17 @@ export default class WindowSandbox extends SandboxBase {
             }
         });
 
+        if (nativeMethods.iframeSrcdocGetter) {
+            overrideDescriptor(window.HTMLIFrameElement.prototype, 'srcdoc', {
+                getter: function () {
+                    return windowSandbox.nodeSandbox.element.getAttributeCore(this, ['srcdoc']) || '';
+                },
+                setter: function (value) {
+                    windowSandbox.nodeSandbox.element.setAttributeCore(this, ['srcdoc', value]);
+                }
+            });
+        }
+
         this._overrideUrlPropDescriptor('port', nativeMethods.anchorPortGetter, nativeMethods.anchorPortSetter);
         this._overrideUrlPropDescriptor('host', nativeMethods.anchorHostGetter, nativeMethods.anchorHostSetter);
         this._overrideUrlPropDescriptor('hostname', nativeMethods.anchorHostnameGetter, nativeMethods.anchorHostnameSetter);

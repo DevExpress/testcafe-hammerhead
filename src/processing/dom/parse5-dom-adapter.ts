@@ -1,15 +1,20 @@
 /* eslint hammerhead/proto-methods: 0 */
 import BaseDomAdapter from './base-dom-adapter';
-import events from 'events';
 import * as urlUtils from '../../utils/url';
 import * as parse5Utils from '../../utils/parse5';
 import { SVG_NAMESPACE } from './namespaces';
 import DomProcessor from './index';
 import { ASTNode } from 'parse5';
+import pageProcessor from '../resources/page';
+import Charset from '../encoding/charset';
+import RequestPipelineContext from '../../request-pipeline/context';
 
 export default class Parse5DomAdapter extends BaseDomAdapter {
     constructor (public readonly isIframe: boolean,
-        public readonly crossDomainPort: string) {
+        public readonly crossDomainPort: string,
+        private ctx: RequestPipelineContext,
+        private charset: Charset,
+        private urlReplacer: Function) {
         super();
     }
 
@@ -71,18 +76,7 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
     }
 
     needToProcessUrl (tagName: string, target: string): boolean {
-        if (DomProcessor.isIframeFlagTag(tagName) && target === '_parent')
-            return false;
-
-        return true;
-    }
-
-    attachEventEmitter (domProcessor): void {
-        const eventEmitter = new events.EventEmitter();
-
-        domProcessor.on   = eventEmitter.on.bind(eventEmitter);
-        domProcessor.off  = eventEmitter.removeListener.bind(eventEmitter);
-        domProcessor.emit = eventEmitter.emit.bind(eventEmitter);
+        return !DomProcessor.isIframeFlagTag(tagName) || target !== '_parent';
     }
 
     hasIframeParent (): boolean {
@@ -110,5 +104,9 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
             el = el.parentNode;
 
         return !!parse5Utils.findElement(el, e => this.getAttr(e, 'name') === target);
+    }
+
+    processSrcdocAttr (html: string): string {
+        return pageProcessor.processResource(html, this.ctx, this.charset, this.urlReplacer, true) as string;
     }
 }

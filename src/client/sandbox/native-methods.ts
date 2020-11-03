@@ -187,6 +187,7 @@ class NativeMethods {
     inputSrcSetter: any;
     frameSrcSetter: any;
     iframeSrcSetter: any;
+    iframeSrcdocSetter: (this: HTMLIFrameElement, val: HTMLIFrameElement['srcdoc']) => void;
     anchorHrefSetter: any;
     linkHrefSetter: any;
     linkRelSetter: any;
@@ -253,6 +254,7 @@ class NativeMethods {
     inputSrcGetter: any;
     frameSrcGetter: any;
     iframeSrcGetter: any;
+    iframeSrcdocGetter: (this: HTMLIFrameElement) => HTMLIFrameElement['srcdoc'];
     anchorHrefGetter: any;
     linkHrefGetter: any;
     linkRelGetter: any;
@@ -860,6 +862,14 @@ class NativeMethods {
         // NOTE: IE and Edge don't support origin property
         if (anchorOriginDescriptor)
             this.anchorOriginGetter = anchorOriginDescriptor.get;
+
+        const iframeSrcdocDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'srcdoc');
+
+        // NOTE: IE11 doesn't support the 'srcdoc' property
+        if (iframeSrcdocDescriptor) {
+            this.iframeSrcdocGetter = iframeSrcdocDescriptor.get;
+            this.iframeSrcdocSetter = iframeSrcdocDescriptor.set;
+        }
 
         const cssStyleSheetHrefDescriptor = win.Object.getOwnPropertyDescriptor(win.CSSStyleSheet.prototype, 'href');
 
