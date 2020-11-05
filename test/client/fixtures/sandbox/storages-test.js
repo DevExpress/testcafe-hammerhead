@@ -403,25 +403,28 @@ test('localStorage should be saved after location.replace (GH-1999)', function (
 });
 
 test('Storages are saved on the unload event (GH-4834)', function () {
-    var event = null;
+    var event        = null;
+    var iframeWindow = null;
 
     window.addEventListener('message', function (e) {
         event = e;
     });
 
     return createTestIframe({ src: getSameDomainPageUrl('../../data/storages/update-storages-on-unload.html') })
-        .then(function () {
-            strictEqual(this[0].sessionStorage.getItem('item'), 'value');
-            strictEqual(this[0].localStorage.getItem('item'), 'value');
+        .then(function (iframe) {
+            iframeWindow = iframe.contentWindow;
 
-            this[0].location.href = getSameDomainPageUrl('../../data/storages/update-storages-result.html');
+            strictEqual(iframeWindow.sessionStorage.getItem('item'), 'value');
+            strictEqual(iframeWindow.localStorage.getItem('item'), 'value');
+
+            iframeWindow.location.href = getSameDomainPageUrl('../../data/storages/update-storages-result.html');
 
             return window.QUnitGlobals.wait(function () {
                 return event !== null;
             });
         })
         .then(function () {
-            strictEqual(this[0].sessionStorage.getItem('item'), null);
-            strictEqual(this[0].localStorage.getItem('item'), null);
+            strictEqual(iframeWindow.sessionStorage.getItem('item'), null);
+            strictEqual(iframeWindow.localStorage.getItem('item'), null);
         });
 });
