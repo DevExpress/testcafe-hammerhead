@@ -56,6 +56,7 @@ interface ContentInfo {
     encoding: string;
     contentTypeUrlToken: string;
     isFileDownload: boolean;
+    isNotModified: boolean;
     isRedirect: boolean;
 }
 
@@ -69,9 +70,6 @@ const REDIRECT_STATUS_CODES                  = [301, 302, 303, 307, 308];
 const CANNOT_BE_USED_WITH_WEB_SOCKET_ERR_MSG = 'The function cannot be used with a WebSocket request.';
 
 export default class RequestPipelineContext {
-    readonly serverInfo: ServerInfo;
-    readonly req: http.IncomingMessage;
-    readonly res: http.ServerResponse | net.Socket;
     session: Session = null;
     reqBody: Buffer = null;
     dest: DestInfo = null;
@@ -86,7 +84,6 @@ export default class RequestPipelineContext {
     isIframe = false;
     isSpecialPage = false;
     isWebSocketConnectionReset = false;
-    isNotModified = false;
     contentInfo: ContentInfo = null;
     restoringStorages: StoragesSnapshot = null;
     requestId: string = generateUniqueId();
@@ -98,18 +95,16 @@ export default class RequestPipelineContext {
     nonProcessedDestResBody: Buffer = null;
     goToNextStage: boolean = true;
     mock: ResponseMock;
-    isSameOriginPolicyFailed: boolean = false;
+    isSameOriginPolicyFailed = false;
     windowId?: string;
 
-    constructor (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo) {
-        this.serverInfo = serverInfo;
-        this.req = req;
-        this.res = res;
-
+    constructor (readonly req: http.IncomingMessage,
+        readonly res: http.ServerResponse | net.Socket,
+        readonly serverInfo: ServerInfo) {
         const acceptHeader = req.headers[BUILTIN_HEADERS.accept] as string;
 
         this.isAjax = typeof req.headers[INTERNAL_HEADERS.credentials] === 'string';
-        this.isPage  = !this.isAjax && !!acceptHeader && contentTypeUtils.isPage(acceptHeader);
+        this.isPage = !this.isAjax && !!acceptHeader && contentTypeUtils.isPage(acceptHeader);
 
         this.parsedClientSyncCookie = req.headers.cookie && parseClientSyncCookieStr(req.headers.cookie);
     }
@@ -252,8 +247,11 @@ export default class RequestPipelineContext {
         const isRedirect              = this.destRes.headers[BUILTIN_HEADERS.location] &&
                                         REDIRECT_STATUS_CODES.includes(this.destRes.statusCode);
         const requireAssetsProcessing = (isCSS || isScript || isManifest) && this.destRes.statusCode !== 204;
+        const isNotModified           = this.req.method === 'GET' && this.destRes.statusCode === 304 &&
+                                        !!(this.req.headers[BUILTIN_HEADERS.ifModifiedSince] ||
+                                           this.req.headers[BUILTIN_HEADERS.ifNoneMatch]);
         const requireProcessing       = !this.isAjax && !isFormWithEmptyResponse && !isRedirect &&
-                                        !this.isNotModified && (this.isPage || this.isIframe || requireAssetsProcessing);
+                                        !isNotModified && (this.isPage || this.isIframe || requireAssetsProcessing);
         const isFileDownload          = this._isFileDownload() && !this.dest.isScript;
         const isIframeWithImageSrc    = this.isIframe && !this.isPage && /^\s*image\//.test(contentType);
 
@@ -285,16 +283,11 @@ export default class RequestPipelineContext {
             encoding,
             contentTypeUrlToken,
             isFileDownload,
+            isNotModified,
             isRedirect
         };
 
         logger.proxy('Proxy resource content info %s %i', this.requestId, this);
-    }
-
-    calculateNotModifiedStatus () {
-        this.isNotModified = this.req.method === 'GET' && this.destRes.statusCode === 304 &&
-                             !!(this.req.headers[BUILTIN_HEADERS.ifModifiedSince] ||
-                                this.req.headers[BUILTIN_HEADERS.ifNoneMatch])
     }
 
     private _getInjectableUserScripts () {
@@ -369,7 +362,7 @@ export default class RequestPipelineContext {
     }
 
     isPassSameOriginPolicy (): boolean {
-        const shouldPerformCORSCheck = this.isAjax && !this.isNotModified;
+        const shouldPerformCORSCheck = this.isAjax && !this.contentInfo.isNotModified;
 
         return !shouldPerformCORSCheck || checkSameOriginPolicy(this);
     }
@@ -400,6 +393,8 @@ export default class RequestPipelineContext {
         this.mock.setRequestOptions(this.reqOpts);
 
         this.destRes = await this.mock.getResponse();
+
+        this.buildContentInfo();
     }
 
     setupMockIfNecessary (rule: RequestFilterRule): void {

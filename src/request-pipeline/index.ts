@@ -63,6 +63,8 @@ const stages = [
 
         if (ctx.isSpecialPage) {
             ctx.destRes = createSpecialPageResponse();
+
+            ctx.buildContentInfo();
             return;
         }
 
@@ -83,8 +85,6 @@ const stages = [
     },
 
     async function checkSameOriginPolicyCompliance (ctx: RequestPipelineContext) {
-        ctx.buildContentInfo();
-
         if (ctx.isPassSameOriginPolicy())
             return;
 
@@ -123,7 +123,7 @@ const stages = [
             await callOnConfigureResponseEventForNonProcessedRequest(ctx);
             ctx.sendResponseHeaders();
 
-            if (ctx.isNotModified)
+            if (ctx.contentInfo.isNotModified)
                 return await callOnResponseEventCallbackForMotModifiedResource(ctx);
 
             const onResponseEventDataWithBody    = ctx.getOnResponseEventData({ includeBody: true });

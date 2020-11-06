@@ -52,9 +52,9 @@ export function sendRequest (ctx: RequestPipelineContext) {
             ctx.destRes       = res;
             ctx.goToNextStage = true;
 
-            ctx.calculateNotModifiedStatus();
+            ctx.buildContentInfo();
 
-            if (!ctx.isNotModified) {
+            if (!ctx.contentInfo.isNotModified && !ctx.contentInfo.isRedirect) {
                 res.once('end', () => {
                     ctx.isDestResReadableEnded = true;
                 });
