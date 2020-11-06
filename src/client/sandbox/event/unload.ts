@@ -107,9 +107,7 @@ export default class UnloadSandbox extends SandboxBase {
     }
 
     private _setEventListenerWrapper (eventProperties: EventProperties) {
-        this._listeners.setEventListenerWrapper(window, [eventProperties.nativeEventName], (e, listener) => {
-            this._createEventHandler(eventProperties)(e, listener)
-        });
+        this._listeners.setEventListenerWrapper(window, [eventProperties.nativeEventName], this._createEventHandler(eventProperties));
     }
 
     private _addEventListener (eventProperties: EventProperties) {
