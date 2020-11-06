@@ -9,6 +9,7 @@
         sessionStorage.clear();
         localStorage.clear();
 
+        hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
         hammerhead.start({});
 
         window.sessionStorage.setItem('item', 'value');

@@ -8,22 +8,11 @@
 <script type="text/javascript">
     var hammerhead = window['%hammerhead%'];
 
+    hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
     hammerhead.start({});
 
     var INSTRUCTION    = hammerhead.get('../processing/script/instruction');
     var getPostMessage = window[INSTRUCTION.getPostMessage];
-
-    const loadStorage = function (storage) {
-        const KEY_IDX       = 0;
-        const VALUE_IDX     = 1;
-        const parsedStorage = JSON.parse(storage.nativeStorage['hammerhead|storage-wrapper|undefined|example.com'] || '[[],[]]');
-
-        for (let i = 0; i < parsedStorage[KEY_IDX].length; i++)
-            storage[parsedStorage[KEY_IDX][i]] = parsedStorage[VALUE_IDX][i];
-    };
-
-    loadStorage(sessionStorage);
-    loadStorage(localStorage);
 
     getPostMessage(top).call(top, '.', '.');
 </script>

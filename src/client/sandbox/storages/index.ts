@@ -12,8 +12,6 @@ import Listeners from '../event/listeners';
 import UnloadSandbox from '../event/unload';
 import EventSimulator from '../event/simulator';
 
-const STORAGE_ACCESS_DENIED_ERROR_CODE = 18;
-
 export default class StorageSandbox extends SandboxBase {
     localStorageWrapper: StorageWrapper;
     sessionStorageWrapper: StorageWrapper;
@@ -67,15 +65,9 @@ export default class StorageSandbox extends SandboxBase {
             this.sessionStorageWrapper = new StorageWrapper(this.window, this.nativeMethods.winSessionStorageGetter.call(this.window), storageKey);
 
             const saveToNativeStorages = () => {
-                try {
-                    if (!this.isLocked) {
-                        this.localStorageWrapper.saveToNativeStorage();
-                        this.sessionStorageWrapper.saveToNativeStorage();
-                    }
-                }
-                catch (e) {
-                    if (e.code !== STORAGE_ACCESS_DENIED_ERROR_CODE)
-                        throw e;
+                if (!this.isLocked) {
+                    this.localStorageWrapper.saveToNativeStorage();
+                    this.sessionStorageWrapper.saveToNativeStorage();
                 }
             };
 
