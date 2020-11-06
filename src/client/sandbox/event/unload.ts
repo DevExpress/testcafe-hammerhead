@@ -18,7 +18,6 @@ export default class UnloadSandbox extends SandboxBase {
     BEFORE_UNLOAD_EVENT: string = 'hammerhead|event|before-unload';
     BEFORE_BEFORE_UNLOAD_EVENT: string = 'hammerhead|event|before-before-unload';
     UNLOAD_EVENT: string = 'hammerhead|event|unload';
-    NATIVE_UNLOAD_EVENT: string = 'unload';
 
     beforeUnloadProperties: EventProperties;
     unloadProperties: EventProperties;
@@ -39,7 +38,7 @@ export default class UnloadSandbox extends SandboxBase {
             storedReturnValue: '',
             prevented:         false,
             storedHandler:     null,
-            nativeEventName:   this.NATIVE_UNLOAD_EVENT,
+            nativeEventName:   'unload',
             eventName:         this.UNLOAD_EVENT,
             eventPropSetter:   nativeMethods.winOnUnloadSetter
         };

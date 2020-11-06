@@ -17,13 +17,11 @@ asyncTest('UNLOAD_EVENT must be called last (GH-400)', function () {
                 }, 0);
             });
 
-            iframeWindow.addEventListener(unloadSandbox.NATIVE_UNLOAD_EVENT, function () {
+            iframeWindow.addEventListener('unload', function () {
                 uploadEventCounter++;
             });
 
-            var unloadEventName = 'on' + unloadSandbox.NATIVE_UNLOAD_EVENT;
-
-            iframeWindow[unloadEventName] = function () {
+            iframeWindow['onunload'] = function () {
                 uploadEventCounter++;
             };
 
