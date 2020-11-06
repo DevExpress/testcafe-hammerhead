@@ -29,7 +29,7 @@ debug.formatters.i = (ctx: RequestPipelineContext): string => {
     if (contentInfo.isFileDownload)
         stringifiedInfoArr.push('isFileDownload');
 
-    if (contentInfo.isNotModified)
+    if (ctx.isNotModified)
         stringifiedInfoArr.push('isNotModified');
 
     if (contentInfo.isRedirect)

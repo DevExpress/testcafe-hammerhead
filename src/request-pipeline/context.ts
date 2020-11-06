@@ -56,7 +56,6 @@ interface ContentInfo {
     encoding: string;
     contentTypeUrlToken: string;
     isFileDownload: boolean;
-    isNotModified: boolean;
     isRedirect: boolean;
 }
 
@@ -79,14 +78,15 @@ export default class RequestPipelineContext {
     destRes: http.IncomingMessage | FileStream | IncomingMessageMock = null;
     isDestResReadableEnded = false;
     destResBody: Buffer = null;
-    isAjax: boolean = false;
-    isPage: boolean = false;
-    isHTMLPage: boolean = false;
-    isHtmlImport: boolean = false;
-    isWebSocket: boolean = false;
-    isIframe: boolean = false;
-    isSpecialPage: boolean = false;
-    isWebSocketConnectionReset: boolean = false;
+    isAjax = false;
+    isPage = false;
+    isHTMLPage = false;
+    isHtmlImport = false;
+    isWebSocket = false;
+    isIframe = false;
+    isSpecialPage = false;
+    isWebSocketConnectionReset = false;
+    isNotModified = false;
     contentInfo: ContentInfo = null;
     restoringStorages: StoragesSnapshot = null;
     requestId: string = generateUniqueId();
@@ -252,11 +252,8 @@ export default class RequestPipelineContext {
         const isRedirect              = this.destRes.headers[BUILTIN_HEADERS.location] &&
                                         REDIRECT_STATUS_CODES.includes(this.destRes.statusCode);
         const requireAssetsProcessing = (isCSS || isScript || isManifest) && this.destRes.statusCode !== 204;
-        const isNotModified           = this.req.method === 'GET' && this.destRes.statusCode === 304 &&
-                                        !!(this.req.headers[BUILTIN_HEADERS.ifModifiedSince] ||
-                                           this.req.headers[BUILTIN_HEADERS.ifNoneMatch]);
         const requireProcessing       = !this.isAjax && !isFormWithEmptyResponse && !isRedirect &&
-                                        !isNotModified && (this.isPage || this.isIframe || requireAssetsProcessing);
+                                        !this.isNotModified && (this.isPage || this.isIframe || requireAssetsProcessing);
         const isFileDownload          = this._isFileDownload() && !this.dest.isScript;
         const isIframeWithImageSrc    = this.isIframe && !this.isPage && /^\s*image\//.test(contentType);
 
@@ -288,11 +285,16 @@ export default class RequestPipelineContext {
             encoding,
             contentTypeUrlToken,
             isFileDownload,
-            isNotModified,
             isRedirect
         };
 
         logger.proxy('Proxy resource content info %s %i', this.requestId, this);
+    }
+
+    calculateNotModifiedStatus () {
+        this.isNotModified = this.req.method === 'GET' && this.destRes.statusCode === 304 &&
+                             !!(this.req.headers[BUILTIN_HEADERS.ifModifiedSince] ||
+                                this.req.headers[BUILTIN_HEADERS.ifNoneMatch])
     }
 
     private _getInjectableUserScripts () {
@@ -367,7 +369,7 @@ export default class RequestPipelineContext {
     }
 
     isPassSameOriginPolicy (): boolean {
-        const shouldPerformCORSCheck = this.isAjax && !this.contentInfo.isNotModified;
+        const shouldPerformCORSCheck = this.isAjax && !this.isNotModified;
 
         return !shouldPerformCORSCheck || checkSameOriginPolicy(this);
     }

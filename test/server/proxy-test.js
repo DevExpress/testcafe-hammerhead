@@ -4130,7 +4130,7 @@ describe('Proxy', () => {
             });
         });
 
-        it('Should not emit error after a destination response is ended', () => {
+        it('Should not emit error after a destination response is ended (GH-2315)', () => {
             const nativeOnResponse = DestinationRequest.prototype._onResponse;
             let hasPageError       = false;
 
@@ -4151,6 +4151,40 @@ describe('Proxy', () => {
             };
 
             return request(options)
+                .then(() => new Promise(resolve => setTimeout(resolve, 2000)))
+                .then(() => expect(hasPageError).to.be.false);
+        });
+
+        it('Should not emit error after a destination response is ended (304 status case) (GH-2315)', () => {
+            const nativeOnResponse = DestinationRequest.prototype._onResponse;
+            let hasPageError       = false;
+
+            DestinationRequest.prototype._onResponse = function () {
+                nativeOnResponse.apply(this, arguments);
+                this._onError(new Error());
+                DestinationRequest.prototype._onResponse = nativeOnResponse;
+            };
+
+            const options = {
+                url:                     proxy.openSession('http://127.0.0.1:2000/304', session),
+                resolveWithFullResponse: true,
+                headers:                 {
+                    'if-modified-since': 'Thu, 01 Aug 2013 18:31:48 GMT',
+                    accept:              PAGE_ACCEPT_HEADER
+                }
+            };
+
+            session.handlePageError = () => {
+                hasPageError = true;
+            };
+
+            return request(options)
+                .then(() => {
+                    expect.fail('Request should raise an "304" error');
+                })
+                .catch(err => {
+                    expect(err.statusCode).eql(304);
+                })
                 .then(() => new Promise(resolve => setTimeout(resolve, 2000)))
                 .then(() => expect(hasPageError).to.be.false);
         });
