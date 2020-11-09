@@ -70,23 +70,20 @@ const REDIRECT_STATUS_CODES                  = [301, 302, 303, 307, 308];
 const CANNOT_BE_USED_WITH_WEB_SOCKET_ERR_MSG = 'The function cannot be used with a WebSocket request.';
 
 export default class RequestPipelineContext {
-    readonly serverInfo: ServerInfo;
-    readonly req: http.IncomingMessage;
-    readonly res: http.ServerResponse | net.Socket;
     session: Session = null;
     reqBody: Buffer = null;
     dest: DestInfo = null;
     destRes: http.IncomingMessage | FileStream | IncomingMessageMock = null;
     isDestResReadableEnded = false;
     destResBody: Buffer = null;
-    isAjax: boolean = false;
-    isPage: boolean = false;
-    isHTMLPage: boolean = false;
-    isHtmlImport: boolean = false;
-    isWebSocket: boolean = false;
-    isIframe: boolean = false;
-    isSpecialPage: boolean = false;
-    isWebSocketConnectionReset: boolean = false;
+    isAjax = false;
+    isPage = false;
+    isHTMLPage = false;
+    isHtmlImport = false;
+    isWebSocket = false;
+    isIframe = false;
+    isSpecialPage = false;
+    isWebSocketConnectionReset = false;
     contentInfo: ContentInfo = null;
     restoringStorages: StoragesSnapshot = null;
     requestId: string = generateUniqueId();
@@ -98,18 +95,16 @@ export default class RequestPipelineContext {
     nonProcessedDestResBody: Buffer = null;
     goToNextStage: boolean = true;
     mock: ResponseMock;
-    isSameOriginPolicyFailed: boolean = false;
+    isSameOriginPolicyFailed = false;
     windowId?: string;
 
-    constructor (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo) {
-        this.serverInfo = serverInfo;
-        this.req = req;
-        this.res = res;
-
+    constructor (readonly req: http.IncomingMessage,
+        readonly res: http.ServerResponse | net.Socket,
+        readonly serverInfo: ServerInfo) {
         const acceptHeader = req.headers[BUILTIN_HEADERS.accept] as string;
 
         this.isAjax = typeof req.headers[INTERNAL_HEADERS.credentials] === 'string';
-        this.isPage  = !this.isAjax && !!acceptHeader && contentTypeUtils.isPage(acceptHeader);
+        this.isPage = !this.isAjax && !!acceptHeader && contentTypeUtils.isPage(acceptHeader);
 
         this.parsedClientSyncCookie = req.headers.cookie && parseClientSyncCookieStr(req.headers.cookie);
     }
@@ -303,6 +298,16 @@ export default class RequestPipelineContext {
             .map(userScript => userScript.url);
     }
 
+    calculateIsDestResReadableEnded () {
+        if (!this.contentInfo.isNotModified && !this.contentInfo.isRedirect) {
+            this.destRes.once('end', () => {
+                this.isDestResReadableEnded = true;
+            });
+        }
+        else
+            this.isDestResReadableEnded = true;
+    }
+
     getInjectableScripts (): string[] {
         const taskScript = this.isIframe ? SERVICE_ROUTES.iframeTask : SERVICE_ROUTES.task;
         const scripts    = this.session.injectable.scripts.concat(taskScript, this._getInjectableUserScripts());
@@ -398,6 +403,8 @@ export default class RequestPipelineContext {
         this.mock.setRequestOptions(this.reqOpts);
 
         this.destRes = await this.mock.getResponse();
+
+        this.buildContentInfo();
     }
 
     setupMockIfNecessary (rule: RequestFilterRule): void {

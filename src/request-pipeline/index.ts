@@ -63,6 +63,8 @@ const stages = [
 
         if (ctx.isSpecialPage) {
             ctx.destRes = createSpecialPageResponse();
+
+            ctx.buildContentInfo();
             return;
         }
 
@@ -83,8 +85,6 @@ const stages = [
     },
 
     async function checkSameOriginPolicyCompliance (ctx: RequestPipelineContext) {
-        ctx.buildContentInfo();
-
         if (ctx.isPassSameOriginPolicy())
             return;
 
@@ -103,54 +103,49 @@ const stages = [
     async function decideOnProcessingStrategy (ctx: RequestPipelineContext) {
         ctx.goToNextStage = false;
 
-        if (ctx.isWebSocket) {
+        if (ctx.isWebSocket)
             respondOnWebSocket(ctx);
 
-            return;
+        else if (ctx.contentInfo.requireProcessing) {
+            if (ctx.destRes.statusCode === 204)
+                ctx.destRes.statusCode = 200;
+
+            ctx.goToNextStage = true;
         }
 
-        if (ctx.contentInfo.requireProcessing && ctx.destRes.statusCode === 204)
-            ctx.destRes.statusCode = 200;
+        else if (ctx.isSpecialPage) {
+            ctx.sendResponseHeaders();
+            ctx.res.end();
+        }
 
         // NOTE: Just pipe the content body to the browser if we don't need to process it.
-        else if (!ctx.contentInfo.requireProcessing) {
-            if (!ctx.isSpecialPage) {
-                await callOnConfigureResponseEventForNonProcessedRequest(ctx);
-                ctx.sendResponseHeaders();
+        else {
+            await callOnConfigureResponseEventForNonProcessedRequest(ctx);
+            ctx.sendResponseHeaders();
 
-                if (ctx.contentInfo.isNotModified)
-                    await callOnResponseEventCallbackForMotModifiedResource(ctx);
-                else {
-                    const onResponseEventDataWithBody    = ctx.getOnResponseEventData({ includeBody: true });
-                    const onResponseEventDataWithoutBody = ctx.getOnResponseEventData({ includeBody: false });
+            if (ctx.contentInfo.isNotModified)
+                return await callOnResponseEventCallbackForMotModifiedResource(ctx);
 
-                    if (onResponseEventDataWithBody.length)
-                        await callOnResponseEventCallbackWithBodyForNonProcessedRequest(ctx, onResponseEventDataWithBody);
-                    else if (onResponseEventDataWithoutBody.length)
-                        await callOnResponseEventCallbackWithoutBodyForNonProcessedResource(ctx, onResponseEventDataWithoutBody);
-                    else if (ctx.req.socket.destroyed && !ctx.isDestResReadableEnded)
-                        ctx.destRes.destroy();
-                    else {
-                        ctx.res.once('close', () => !ctx.isDestResReadableEnded && ctx.destRes.destroy());
-                        ctx.destRes.pipe(ctx.res);
-                    }
-                }
+            const onResponseEventDataWithBody    = ctx.getOnResponseEventData({ includeBody: true });
+            const onResponseEventDataWithoutBody = ctx.getOnResponseEventData({ includeBody: false });
 
-                // NOTE: sets 60 minutes timeout for the "event source" requests instead of 2 minutes by default
-                if (ctx.dest.isEventSource) {
-                    ctx.req.setTimeout(EVENT_SOURCE_REQUEST_TIMEOUT, noop);
-                    ctx.req.on('close', () => ctx.destRes.destroy());
-                }
-            }
+            if (onResponseEventDataWithBody.length)
+                await callOnResponseEventCallbackWithBodyForNonProcessedRequest(ctx, onResponseEventDataWithBody);
+            else if (onResponseEventDataWithoutBody.length)
+                await callOnResponseEventCallbackWithoutBodyForNonProcessedResource(ctx, onResponseEventDataWithoutBody);
+            else if (ctx.req.socket.destroyed && !ctx.isDestResReadableEnded)
+                ctx.destRes.destroy();
             else {
-                ctx.sendResponseHeaders();
-                ctx.res.end();
+                ctx.res.once('close', () => !ctx.isDestResReadableEnded && ctx.destRes.destroy());
+                ctx.destRes.pipe(ctx.res);
             }
 
-            return;
+            // NOTE: sets 60 minutes timeout for the "event source" requests instead of 2 minutes by default
+            if (ctx.dest.isEventSource) {
+                ctx.req.setTimeout(EVENT_SOURCE_REQUEST_TIMEOUT, noop);
+                ctx.req.on('close', () => ctx.destRes.destroy());
+            }
         }
-
-        ctx.goToNextStage = true;
     },
 
     async function fetchContent (ctx: RequestPipelineContext) {
