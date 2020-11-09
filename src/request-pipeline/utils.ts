@@ -53,14 +53,7 @@ export function sendRequest (ctx: RequestPipelineContext) {
             ctx.goToNextStage = true;
 
             ctx.buildContentInfo();
-
-            if (!ctx.contentInfo.isNotModified && !ctx.contentInfo.isRedirect) {
-                res.once('end', () => {
-                    ctx.isDestResReadableEnded = true;
-                });
-            }
-            else
-                ctx.isDestResReadableEnded = true;
+            ctx.calculateIsDestResReadableEnded();
 
             resolve();
         });

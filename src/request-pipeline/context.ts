@@ -298,6 +298,16 @@ export default class RequestPipelineContext {
             .map(userScript => userScript.url);
     }
 
+    calculateIsDestResReadableEnded () {
+        if (!this.contentInfo.isNotModified && !this.contentInfo.isRedirect) {
+            this.destRes.once('end', () => {
+                this.isDestResReadableEnded = true;
+            });
+        }
+        else
+            this.isDestResReadableEnded = true;
+    }
+
     getInjectableScripts (): string[] {
         const taskScript = this.isIframe ? SERVICE_ROUTES.iframeTask : SERVICE_ROUTES.task;
         const scripts    = this.session.injectable.scripts.concat(taskScript, this._getInjectableUserScripts());
