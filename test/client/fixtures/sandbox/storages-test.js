@@ -11,6 +11,10 @@ var storageWrapperKey = 'hammerhead|storage-wrapper|' + settings.get().sessionId
 var nativeLocalStorage   = nativeMethods.winLocalStorageGetter.call(window);
 var nativeSessionStorage = nativeMethods.winSessionStorageGetter.call(window);
 
+// NOTE: Removes the last 'hammerhead|event|unload' listener (() => dispose())
+// so that tests don't crash when 'hammerhead|event|unload' is emitted
+storageSandbox._unloadSandbox.eventsListeners[storageSandbox._unloadSandbox.UNLOAD_EVENT].pop();
+
 QUnit.testStart(function () {
     // NOTE: Clean up storage wrappers
     nativeLocalStorage.clear();
@@ -46,7 +50,7 @@ test('clear', function () {
     strictEqual(nativeLocalStorage.getItem(localStorage.nativeStorageKey), null);
     strictEqual(nativeSessionStorage.getItem(sessionStorage.nativeStorageKey), null);
 
-    storageSandbox._unloadSandbox.emit(storageSandbox._unloadSandbox.BEFORE_UNLOAD_EVENT);
+    storageSandbox._unloadSandbox.emit(storageSandbox._unloadSandbox.UNLOAD_EVENT);
 
     strictEqual(nativeLocalStorage.getItem(localStorage.nativeStorageKey), '[["key11"],["value1"]]');
     strictEqual(nativeSessionStorage.getItem(sessionStorage.nativeStorageKey), '[["key12"],["value2"]]');
@@ -69,7 +73,7 @@ test('lock', function () {
     strictEqual(nativeSessionStorage.getItem(sessionStorage.nativeStorageKey), null);
 
     storageSandbox.lock();
-    storageSandbox._unloadSandbox.emit(storageSandbox._unloadSandbox.BEFORE_UNLOAD_EVENT);
+    storageSandbox._unloadSandbox.emit(storageSandbox._unloadSandbox.UNLOAD_EVENT);
 
     strictEqual(nativeLocalStorage.getItem(localStorage.nativeStorageKey), null);
     strictEqual(nativeSessionStorage.getItem(sessionStorage.nativeStorageKey), null);
@@ -240,7 +244,7 @@ test('storages load their state from native', function () {
     strictEqual(sessionSandboxWrapper.key2, 'value2');
 });
 
-test('storages save their state on the beforeunload event', function () {
+test('storages save their state on the unload event', function () {
     localStorage.key1   = 'value1';
     sessionStorage.key2 = 'value2';
 
@@ -248,7 +252,7 @@ test('storages save their state on the beforeunload event', function () {
     ok(!nativeSessionStorage[storageWrapperKey]);
 
     // NOTE: Simulate page leaving
-    hammerhead.sandbox.event.unload._emitBeforeUnloadEvent();
+    hammerhead.sandbox.event.unload._emitEvent(hammerhead.sandbox.event.unload.unloadProperties);
 
     strictEqual(nativeLocalStorage[storageWrapperKey], JSON.stringify([['key1'], ['value1']]));
     strictEqual(nativeSessionStorage[storageWrapperKey], JSON.stringify([['key2'], ['value2']]));
@@ -399,5 +403,32 @@ test('localStorage should be saved after location.replace (GH-1999)', function (
         })
         .then(function () {
             strictEqual(event.data, 'data');
+        });
+});
+
+test('Storages are saved on the unload event (GH-4834)', function () {
+    var event        = null;
+    var iframeWindow = null;
+
+    window.addEventListener('message', function (e) {
+        event = e;
+    });
+
+    return createTestIframe({ src: getSameDomainPageUrl('../../data/storages/update-storages-on-unload.html') })
+        .then(function (iframe) {
+            iframeWindow = iframe.contentWindow;
+
+            strictEqual(iframeWindow.sessionStorage.getItem('item'), 'value');
+            strictEqual(iframeWindow.localStorage.getItem('item'), 'value');
+
+            iframeWindow.location.href = getSameDomainPageUrl('../../data/storages/update-storages-result.html');
+
+            return window.QUnitGlobals.wait(function () {
+                return event !== null;
+            });
+        })
+        .then(function () {
+            strictEqual(iframeWindow.sessionStorage.getItem('item'), null);
+            strictEqual(iframeWindow.localStorage.getItem('item'), null);
         });
 });

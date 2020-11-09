@@ -71,7 +71,8 @@ export default class StorageSandbox extends SandboxBase {
                 }
             };
 
-            this._unloadSandbox.on(this._unloadSandbox.BEFORE_UNLOAD_EVENT, saveToNativeStorages);
+            this._unloadSandbox.on(this._unloadSandbox.UNLOAD_EVENT, saveToNativeStorages);
+
             // NOTE: In some case, a browser does not emit the onBeforeUnload event and we need manually watch navigation (GH-1999).
             // Also, on iOS devices, we realize the BEFORE_UNLOAD_EVENT through the onPageHide event that browser emits too late
             // and we do not have time to save the localStorage wrapper to the native localStorage (GH-1507).

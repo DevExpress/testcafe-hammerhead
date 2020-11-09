@@ -1,13 +1,13 @@
 var browserUtils = hammerhead.utils.browser;
 
-asyncTest('BEFORE_UNLOAD_EVENT must be called last (GH-400)', function () {
+asyncTest('UNLOAD_EVENT must be called last (GH-400)', function () {
     createTestIframe({ src: getSameDomainPageUrl('../../../data/unload/iframe.html') })
         .then(function (iframe) {
             var iframeWindow       = iframe.contentWindow;
             var unloadSandbox      = iframeWindow['%hammerhead%'].sandbox.event.unload;
             var uploadEventCounter = 0;
 
-            unloadSandbox.on(unloadSandbox.BEFORE_UNLOAD_EVENT, function () {
+            unloadSandbox.on(unloadSandbox.UNLOAD_EVENT, function () {
                 // NOTE: Removing an iframe on executing the beforeUnload
                 // handler occasionally causes problems with SourceLab
                 window.setTimeout(function () {
@@ -17,13 +17,11 @@ asyncTest('BEFORE_UNLOAD_EVENT must be called last (GH-400)', function () {
                 }, 0);
             });
 
-            iframeWindow.addEventListener(unloadSandbox.beforeUnloadEventName, function () {
+            iframeWindow.addEventListener('unload', function () {
                 uploadEventCounter++;
             });
 
-            var beforeUnloadEventName = 'on' + unloadSandbox.beforeUnloadEventName;
-
-            iframeWindow[beforeUnloadEventName] = function () {
+            iframeWindow['onunload'] = function () {
                 uploadEventCounter++;
             };
 

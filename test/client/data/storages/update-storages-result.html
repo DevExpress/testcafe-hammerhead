@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+</head>
+<body>
+<script type="text/javascript">
+    var hammerhead = window['%hammerhead%'];
+
+    hammerhead.start({});
+
+    var INSTRUCTION    = hammerhead.get('../processing/script/instruction');
+    var getPostMessage = window[INSTRUCTION.getPostMessage];
+
+    getPostMessage(top).call(top, '.', '.');
+</script>
+</body>
+</html>
