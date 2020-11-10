@@ -12,12 +12,12 @@ interface EventProperties {
     nativeEventName:   string;
     eventName:         string;
     eventPropSetter:   any;
-};
+}
 
 export default class UnloadSandbox extends SandboxBase {
-    BEFORE_UNLOAD_EVENT: string = 'hammerhead|event|before-unload';
-    BEFORE_BEFORE_UNLOAD_EVENT: string = 'hammerhead|event|before-before-unload';
-    UNLOAD_EVENT: string = 'hammerhead|event|unload';
+    BEFORE_UNLOAD_EVENT = 'hammerhead|event|before-unload';
+    BEFORE_BEFORE_UNLOAD_EVENT = 'hammerhead|event|before-before-unload';
+    UNLOAD_EVENT = 'hammerhead|event|unload';
 
     beforeUnloadProperties: EventProperties;
     unloadProperties: EventProperties;

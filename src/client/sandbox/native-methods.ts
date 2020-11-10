@@ -446,7 +446,9 @@ class NativeMethods {
         }
 
         this.documentCreateEvent     = docPrototype.createEvent;
+        // @ts-ignore Deprecated
         this.documentCreateTouch     = docPrototype.createTouch;
+        // @ts-ignore Deprecated
         this.documentCreateTouchList = docPrototype.createTouchList;
 
         // getters/setters

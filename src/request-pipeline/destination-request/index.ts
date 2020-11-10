@@ -33,9 +33,9 @@ interface DestinationRequestEvents {
 
 export default class DestinationRequest extends EventEmitter implements DestinationRequestEvents {
     private req: http.ClientRequest;
-    private hasResponse: boolean = false;
-    private credentialsSent: boolean = false;
-    private aborted: boolean = false;
+    private hasResponse = false;
+    private credentialsSent = false;
+    private aborted = false;
     private readonly opts: RequestOptions;
     private readonly isHttps: boolean;
     private readonly protocolInterface: any;

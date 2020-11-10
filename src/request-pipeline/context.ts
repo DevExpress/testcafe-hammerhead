@@ -93,7 +93,7 @@ export default class RequestPipelineContext {
     parsedClientSyncCookie: ParsedClientSyncCookie;
     isFileProtocol: boolean;
     nonProcessedDestResBody: Buffer = null;
-    goToNextStage: boolean = true;
+    goToNextStage = true;
     mock: ResponseMock;
     isSameOriginPolicyFailed = false;
     windowId?: string;

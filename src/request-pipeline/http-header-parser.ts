@@ -1,4 +1,5 @@
 import { MESSAGE, getText } from '../messages';
+import { Dictionary } from '../typings/common';
 
 const HEADER_LINE_SEPARATOR             = '\r\n';
 const HEADER_BODY_SEPARATOR             = ':';
@@ -6,10 +7,10 @@ const HEADER_BODY_INVALID_CHARACTERS    = [ '\n', '\r' ];
 const HEADER_NAME_VALID_CHAR_CODE_RANGE = { min: 33, max: 126 };
 const HEADER_INVALID_CHAR_LOCATIONS     = { name: 'name', body: 'body' };
 
-interface InvalidCharactersRecord {
+interface InvalidCharactersRecord extends Dictionary<string> {
     name:  string;
     body?: string;
-    index: number;
+    index: string;
 }
 
 export function getFormattedInvalidCharacters (rawHeaders: string): string {
@@ -42,7 +43,7 @@ function getInvalidCharacters (name: string, body: string): InvalidCharactersRec
                 name:     name,
                 location: HEADER_INVALID_CHAR_LOCATIONS.name,
                 charCode: name[i].charCodeAt(0),
-                index:    i
+                index:    i.toString()
             });
         }
     }
@@ -53,7 +54,7 @@ function getInvalidCharacters (name: string, body: string): InvalidCharactersRec
                 name:     name,
                 location: HEADER_INVALID_CHAR_LOCATIONS.body,
                 charCode: body[i].charCodeAt(0),
-                index:    i
+                index:    i.toString()
             });
         }
     }
@@ -63,6 +64,6 @@ function getInvalidCharacters (name: string, body: string): InvalidCharactersRec
 
 function formatInvalidCharacters (invalidCharactersList: InvalidCharactersRecord[]): string {
     return invalidCharactersList
-        .map(invalidCharacter => getText(MESSAGE.invalidHeaderCharacter, invalidCharacter ))
+        .map(invalidCharacter => getText(MESSAGE.invalidHeaderCharacter, invalidCharacter))
         .join('\n');
 }

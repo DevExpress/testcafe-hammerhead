@@ -22,7 +22,7 @@ export interface CodeChange {
 }
 
 class State {
-    hasTransformedAncestor: boolean = false;
+    hasTransformedAncestor = false;
     newExpressionAncestor?: Node;
     newExpressionAncestorParent?: Node;
     newExpressionAncestorKey?: keyof this['newExpressionAncestorParent'];
@@ -31,7 +31,7 @@ class State {
     // to `new __get$(a, 'src').b()`, which is wrong. The correct result is `new (__get$(a, 'src')).b()`.
     // To solve this problem, we add a 'state' entity. This entity stores the "new" expression, so that
     // we can add it to the changes when the transformation is found.
-    static create<T extends Node> (currState: State, node: Node, parent?: T, key?: keyof T, hasTransformedAncestor: boolean = false): State {
+    static create<T extends Node> (currState: State, node: Node, parent?: T, key?: keyof T, hasTransformedAncestor = false): State {
         const isNewExpression         = node.type === Syntax.NewExpression;
         const isNewExpressionAncestor = isNewExpression && !currState.newExpressionAncestor;
         const newState                = new State();
@@ -116,7 +116,7 @@ function addTempVarsDeclaration (node: BlockStatement | Program, changes: CodeCh
     addChangeForTransformedNode(state, changes, declaration, node.type);
 }
 
-function beforeTransform (wrapLastExprWithProcessHtml: boolean = false, resolver?: Function) {
+function beforeTransform (wrapLastExprWithProcessHtml = false, resolver?: Function) {
     jsProtocolLastExpression.wrapLastExpr = wrapLastExprWithProcessHtml;
     staticImportTransformer.resolver = resolver;
 
@@ -166,9 +166,9 @@ function transform<T extends Node> (node: Node, changes: CodeChange[], state: St
         nodeTransformed = true;
     }
     else {
-        let storedNode  = node;
-        let transformer = findTransformer(node, parent);
-        let replacement = null;
+        const storedNode = node;
+        let transformer  = findTransformer(node, parent);
+        let replacement  = null;
 
         while (transformer) {
             replacement = transformer.run(replacement || node, parent, key, tempVars);
@@ -199,7 +199,7 @@ function transform<T extends Node> (node: Node, changes: CodeChange[], state: St
         addTempVarsDeclaration(node as BlockStatement, changes, state, tempVars);
 }
 
-export default function transformProgram(node: Program, wrapLastExprWithProcessHtml: boolean = false, resolver?: Function): CodeChange[] {
+export default function transformProgram(node: Program, wrapLastExprWithProcessHtml = false, resolver?: Function): CodeChange[] {
     const changes  = [] as CodeChange[];
     const state    = new State();
     const tempVars = new TempVariables();

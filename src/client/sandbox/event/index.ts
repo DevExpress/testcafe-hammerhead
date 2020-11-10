@@ -18,7 +18,7 @@ import TimersSandbox from '../timers';
 import { overrideFunction, overrideStringRepresentation } from '../../utils/overriding';
 
 export default class EventSandbox extends SandboxBase {
-    EVENT_PREVENTED_EVENT: string = 'hammerhead|event|event-prevented';
+    EVENT_PREVENTED_EVENT = 'hammerhead|event|event-prevented';
 
     listeners: Listeners;
     elementEditingWatcher: ElementEditingWatcher;

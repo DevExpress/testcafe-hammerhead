@@ -9,7 +9,7 @@ import MessageSandbox from '../../event/message';
 const LOCATION_WRAPPER = 'hammerhead|location-wrapper';
 
 export default class LocationAccessorsInstrumentation extends SandboxBase {
-    LOCATION_CHANGED_EVENT: string = 'hammerhead|event|location-changed';
+    LOCATION_CHANGED_EVENT = 'hammerhead|event|location-changed';
 
     _locationChangedEventCallback: any;
 

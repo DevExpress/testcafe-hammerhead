@@ -1,7 +1,4 @@
 {
-  "plugins": [
-    "eslint-plugin-hammerhead"
-  ],
   "extends": "plugin:hammerhead/recommended",
   "rules": {
     "hammerhead/proto-methods": 2,

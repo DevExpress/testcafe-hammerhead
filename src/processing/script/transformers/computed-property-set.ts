@@ -2,10 +2,9 @@
 // WARNING: this file is used by both the client and the server.
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
-/*eslint-disable no-unused-vars*/
+
 import { AssignmentExpression, MemberExpression, Expression } from 'estree';
 import { Transformer } from './index';
-/*eslint-enable no-unused-vars*/
 import { createComputedPropertySetWrapper } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
 import { shouldInstrumentProperty } from '../instrumented';

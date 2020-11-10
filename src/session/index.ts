@@ -77,15 +77,15 @@ export default abstract class Session extends EventEmitter {
     cookies: Cookies = new Cookies();
     proxy: Proxy | null = null;
     externalProxySettings: ExternalProxySettings | null = null;
-    pageLoadCount: number = 0;
+    pageLoadCount = 0;
     pendingStateSnapshot: StateSnapshot | null = null;
     injectable: InjectableResources = { scripts: ['/hammerhead.js'], styles: [], userScripts: [] };
     requestEventListeners: Map<RequestFilterRule, RequestEventListenersData> = new Map();
     mocks: Map<RequestFilterRule, ResponseMock> = new Map();
-    disablePageCaching: boolean = false;
-    allowMultipleWindows: boolean = false;
+    disablePageCaching = false;
+    allowMultipleWindows = false;
     private _recordMode = false;
-    windowId: string = '';
+    windowId = '';
 
     protected constructor (uploadRoots: string[]) {
         super();

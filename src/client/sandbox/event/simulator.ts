@@ -58,7 +58,7 @@ const DISABLEABLE_HTML_ELEMENT_TYPE_CHECKERS = [
 ];
 
 export default class EventSimulator {
-    DISPATCHED_EVENT_FLAG: string = 'hammerhead|dispatched-event';
+    DISPATCHED_EVENT_FLAG = 'hammerhead|dispatched-event';
 
     touchIdentifier: any;
     savedWindowEvents: any[];

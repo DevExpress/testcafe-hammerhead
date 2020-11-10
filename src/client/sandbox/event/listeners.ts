@@ -19,8 +19,8 @@ const LISTENED_EVENTS = [
 const EVENT_SANDBOX_DISPATCH_EVENT_FLAG = 'hammerhead|event-sandbox-dispatch-event-flag';
 
 export default class Listeners extends EventEmitter {
-    EVENT_LISTENER_ATTACHED_EVENT: string = 'hammerhead|event|event-listener-attached';
-    EVENT_LISTENER_DETACHED_EVENT: string = 'hammerhead|event|event-listener-detached';
+    EVENT_LISTENER_ATTACHED_EVENT = 'hammerhead|event|event-listener-attached';
+    EVENT_LISTENER_DETACHED_EVENT = 'hammerhead|event|event-listener-detached';
 
     listeningCtx: any;
 

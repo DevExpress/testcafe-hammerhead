@@ -15,12 +15,11 @@ export const MESSAGE = {
     invalidHeaderCharacter:           'Character with code "{charCode}" in header "{name}" {location} at index {index}'
 };
 
-export function getText (template: string, parameters: Dictionary<unknown>): string {
+export function getText (template: string, parameters: Dictionary<string>): string {
     let errorStr = template;
 
-    for (const [parameterName, parameterValue] of Object.entries(parameters)) {
-        errorStr = errorStr.replace(new RegExp(`{${parameterName}}`, 'g'), parameterValue as string);
-    }
+    for (const [parameterName, parameterValue] of Object.entries(parameters))
+        errorStr = errorStr.replace(new RegExp(`{${parameterName}}`, 'g'), parameterValue);
 
     return errorStr;
 }

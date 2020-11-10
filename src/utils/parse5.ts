@@ -113,7 +113,7 @@ export function findElement (el: ASTNode, predicate: (el: ASTNode) => boolean): 
     if (!el.childNodes)
         return null;
 
-    for (let child of el.childNodes) {
+    for (const child of el.childNodes) {
         const result = findElement(child, predicate);
 
         if (result)

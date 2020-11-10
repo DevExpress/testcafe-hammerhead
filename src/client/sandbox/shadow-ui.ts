@@ -28,12 +28,12 @@ const IS_SHADOW_CONTAINER_COLLECTION_FLAG = 'hammerhead|shadow-ui|container-coll
 const HTML_COLLECTION_WRAPPER             = 'hammerhead|shadow-ui|html-collection-wrapper';
 
 export default class ShadowUI extends SandboxBase {
-    BODY_CONTENT_CHANGED_COMMAND: string = 'hammerhead|command|body-content-changed';
+    BODY_CONTENT_CHANGED_COMMAND = 'hammerhead|command|body-content-changed';
 
-    ROOT_CLASS: string = 'root';
-    ROOT_ID: string = 'root';
-    HIDDEN_CLASS: string = 'hidden';
-    BLIND_CLASS: string = 'blind';
+    ROOT_CLASS = 'root';
+    ROOT_ID = 'root';
+    HIDDEN_CLASS = 'hidden';
+    BLIND_CLASS = 'blind';
 
     root: any;
     lastActiveElement: any;

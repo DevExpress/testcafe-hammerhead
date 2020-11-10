@@ -44,7 +44,7 @@ export default class StorageWrapper {
     setItem: any;
     length: number;
 
-    STORAGE_CHANGED_EVENT: string = 'hammerhead|event|storage-changed';
+    STORAGE_CHANGED_EVENT = 'hammerhead|event|storage-changed';
     EMPTY_OLD_VALUE_ARG: any;
 
     constructor (window, nativeStorage, nativeStorageKey) {

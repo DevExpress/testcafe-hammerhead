@@ -38,8 +38,8 @@ const RESTRICTED_META_HTTP_EQUIV_VALUES = [BUILTIN_HEADERS.refresh, BUILTIN_HEAD
 export default class ElementSandbox extends SandboxBase {
     overriddenMethods: any;
 
-    BEFORE_FORM_SUBMIT_EVENT: string = 'hammerhead|event|before-form-submit';
-    SCRIPT_ELEMENT_ADDED_EVENT: string = 'hammerhead|event|script-added';
+    BEFORE_FORM_SUBMIT_EVENT = 'hammerhead|event|before-form-submit';
+    SCRIPT_ELEMENT_ADDED_EVENT = 'hammerhead|event|script-added';
 
     constructor (private readonly _nodeSandbox: NodeSandbox,
         private readonly _uploadSandbox: UploadSandbox,

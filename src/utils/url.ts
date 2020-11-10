@@ -368,7 +368,7 @@ export function formatUrl (parsedUrl: ParsedUrl): string {
     return url;
 }
 
-export function correctMultipleSlashes (url: string, pageProtocol: string = ''): string {
+export function correctMultipleSlashes (url: string, pageProtocol = ''): string {
     // NOTE: Remove unnecessary slashes from the beginning of the url and after scheme.
     // For example:
     // "//////example.com" -> "//example.com" (scheme-less HTTP(S) URL)

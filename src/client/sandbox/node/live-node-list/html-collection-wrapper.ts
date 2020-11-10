@@ -8,51 +8,62 @@ const ELEMENTS_WITH_NAME_ATTRIBUTE     = ['button', 'fieldset', 'form', 'iframe'
 const COLLECTION_PROTO_GETTERS_RESERVE = 10;
 let collectionProtoGettersCount        = 0;
 
-export default function HTMLCollectionWrapper (collection: HTMLCollection, tagName: string) {
-    tagName = tagName.toLowerCase();
+class Temp {}
 
-    nativeMethods.objectDefineProperties(this, {
-        _collection:         { value: collection },
-        _filteredCollection: { value: [] },
-        _tagName:            { value: tagName },
-        _version:            { value: -Infinity, writable: true },
-        _namedProps:         { value: ELEMENTS_WITH_NAME_ATTRIBUTE.indexOf(tagName) !== -1 ? [] : null },
-        _lastNativeLength:   { value: 0, writable: true }
-    });
+Temp.prototype = HTMLCollection.prototype;
 
-    this._refreshCollection();
-}
+export default class HTMLCollectionWrapper extends Temp {
+    _collection: HTMLCollection;
+    _filteredCollection: HTMLElement[];
+    _tagName: HTMLElement['tagName'];
+    _version: number;
+    _namedProps: string[];
+    _lastNativeLength: number;
 
-HTMLCollectionWrapper.prototype = nativeMethods.objectCreate.call(Object, HTMLCollection.prototype);
+    constructor (collection: HTMLCollection, tagName: string) {
+        super();
 
-HTMLCollectionWrapper.prototype.item = function (index: number) {
-    this._refreshCollection();
+        tagName = tagName.toLowerCase();
 
-    return this._filteredCollection[index];
-};
+        nativeMethods.objectDefineProperties(this, {
+            _collection:         { value: collection },
+            _filteredCollection: { value: [] },
+            _tagName:            { value: tagName },
+            _version:            { value: -Infinity, writable: true },
+            _namedProps:         { value: ELEMENTS_WITH_NAME_ATTRIBUTE.indexOf(tagName) !== -1 ? [] : null },
+            _lastNativeLength:   { value: 0, writable: true }
+        });
 
-if (HTMLCollection.prototype.namedItem) {
-    HTMLCollectionWrapper.prototype.namedItem = function (...args) {
+        this._refreshCollection();
+    }
+
+    item (index: number) {
         this._refreshCollection();
 
-        const namedItem = this._collection.namedItem.apply(this._collection, args);
+        return this._filteredCollection[index];
+    }
 
-        return namedItem && isShadowUIElement(namedItem) ? null : namedItem;
-    };
+    get length () {
+        this._refreshCollection();
+
+        return this._filteredCollection.length;
+    }
+
+    _refreshCollection() {
+        /* temp */
+    }
 }
 
-nativeMethods.objectDefineProperties(HTMLCollectionWrapper.prototype, {
-    length: {
+const additionalProtoMethods = {
+    constructor: {
+        value:        HTMLCollectionWrapper.constructor,
         configurable: true,
-        enumerable:   true,
-        get:          function () {
-            this._refreshCollection();
-
-            return this._filteredCollection.length;
-        }
+        enumerable:   false,
+        writable:     true
     },
+
     _refreshCollection: {
-        value: function () {
+        value:      function (this: HTMLCollectionWrapper) {
             const storedNativeCollectionLength = this._lastNativeLength;
             const nativeCollectionLength       = nativeMethods.htmlCollectionLengthGetter.call(this._collection);
 
@@ -72,7 +83,24 @@ nativeMethods.objectDefineProperties(HTMLCollectionWrapper.prototype, {
         },
         enumerable: false
     }
-});
+} as PropertyDescriptorMap;
+
+if (HTMLCollection.prototype.namedItem) {
+    additionalProtoMethods.namedItem = {
+        value:        function (this: HTMLCollectionWrapper, ...args) {
+            this._refreshCollection();
+
+            const namedItem = this._collection.namedItem.apply(this._collection, args);
+
+            return namedItem && isShadowUIElement(namedItem) ? null : namedItem;
+        },
+        enumerable:   true,
+        configurable: true,
+        writable:     true
+    };
+}
+
+nativeMethods.objectDefineProperties(HTMLCollectionWrapper.prototype, additionalProtoMethods);
 
 addShadowGetters(COLLECTION_PROTO_GETTERS_RESERVE);
 
@@ -143,7 +171,7 @@ function filterCollection (wrapper: HTMLCollectionWrapper, nativeCollectionLengt
     filteredCollection.length = 0;
 
     for (let i = 0; i < nativeCollectionLength; i++) {
-        const el = nativeCollection[i];
+        const el = nativeCollection[i] as HTMLElement;
 
         if (isShadowUIElement(el))
             continue;

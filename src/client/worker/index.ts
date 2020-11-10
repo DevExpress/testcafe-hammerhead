@@ -5,6 +5,7 @@ import CookieSandbox from '../sandbox/cookie';
 import settings from '../settings';
 import overrideFetchEvent from './fetch-event';
 import getGlobalContextInfo from '../utils/global-context-info';
+import noop from '../utils/noop';
 
 class WorkerHammerhead {
     readonly xhr: XhrSandbox;
@@ -13,7 +14,7 @@ class WorkerHammerhead {
     constructor () {
         const parsedLocation    = sharedUrlUtils.parseProxyUrl(location.toString());
         const currentSettings   = settings.get();
-        const cookieSandboxMock = { syncCookie: () => {} } as CookieSandbox;
+        const cookieSandboxMock = { syncCookie: noop } as CookieSandbox;
 
         currentSettings.sessionId = parsedLocation && parsedLocation.sessionId;
         currentSettings.windowId  = parsedLocation && parsedLocation.windowId;
