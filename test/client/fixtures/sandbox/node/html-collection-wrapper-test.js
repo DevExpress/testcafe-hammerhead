@@ -1,8 +1,9 @@
 /*eslint-disable no-unused-expressions*/
-var DOMMutationTracker    = hammerhead.get('./sandbox/node/live-node-list/dom-mutation-tracker');
+var DOMMutationTracker = hammerhead.get('./sandbox/node/live-node-list/dom-mutation-tracker');
 
 var shadowUI      = hammerhead.sandbox.shadowUI;
 var nativeMethods = hammerhead.nativeMethods;
+var browserUtils  = hammerhead.utils.browser;
 
 var DOMMutationTrackerProto = Object.getPrototypeOf(DOMMutationTracker);
 
@@ -95,14 +96,18 @@ module('getElementsByTagName', function () {
         document.body.appendChild(input2);
         document.body.appendChild(input3);
 
-        var collection = document.getElementsByTagName('input');
+        var collection    = document.getElementsByTagName('input');
         var elementsCount = 0;
+        var expectedProps = ['item', 'namedItem', 'length'];
+
+        if (browserUtils.isMacPlatform && browserUtils.isSafari)
+            expectedProps.push('constructor');
 
         for (var idx in collection) {
             if (collection.hasOwnProperty(idx))
                 elementsCount++;
             else
-                ok(['item', 'namedItem', 'length'].indexOf(idx) !== -1);
+                ok(expectedProps.indexOf(idx) !== -1);
         }
 
         strictEqual(elementsCount, 2);
