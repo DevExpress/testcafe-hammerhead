@@ -196,7 +196,7 @@ class PageProcessor extends ResourceProcessorBase {
         PageProcessor._prepareHtml(html, processingOpts);
 
         const root       = parse5.parse(html);
-        const domAdapter = new DomAdapter(processingOpts.isIframe, processingOpts.crossDomainProxyPort.toString(), ctx, charset, urlReplacer);
+        const domAdapter = new DomAdapter(processingOpts.isIframe, ctx, charset, urlReplacer);
         const elements   = parse5Utils.findElementsByTagNames(root, ['base', 'meta', 'head', 'body', 'frameset']);
         const base       = elements.base ? elements.base[0] : null;
         const baseUrl    = base ? domAdapter.getAttr(base, 'href') : '';
@@ -208,7 +208,8 @@ class PageProcessor extends ResourceProcessorBase {
             return this.RESTART_PROCESSING;
 
         const domProcessor = new DomProcessor(domAdapter);
-        const replacer     = (resourceUrl, resourceType, charsetAttrValue) => urlReplacer(resourceUrl, resourceType, charsetAttrValue, baseUrl);
+        const replacer     = (resourceUrl, resourceType, charsetAttrValue, isCrossDomain = false) =>
+            urlReplacer(resourceUrl, resourceType, charsetAttrValue, baseUrl, isCrossDomain);
 
         domProcessor.forceProxySrcForImage = ctx.session.hasRequestEventListeners();
         domProcessor.allowMultipleWindows  = ctx.session.allowMultipleWindows;

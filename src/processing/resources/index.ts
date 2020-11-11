@@ -13,7 +13,7 @@ const DISK_RE     = /^[A-Za-z]:/;
 const RESOURCE_PROCESSORS = [pageProcessor, manifestProcessor, scriptProcessor, stylesheetProcessor];
 
 function getResourceUrlReplacer (ctx: RequestPipelineContext): Function {
-    return function (resourceUrl: string, resourceType: string, charsetAttrValue, baseUrl: string) {
+    return function (resourceUrl: string, resourceType: string, charsetAttrValue, baseUrl: string, isCrossDomain: boolean) {
         if (!urlUtil.isSupportedProtocol(resourceUrl) && !urlUtil.isSpecialPage(resourceUrl))
             return resourceUrl;
 
@@ -38,7 +38,7 @@ function getResourceUrlReplacer (ctx: RequestPipelineContext): Function {
         if (!urlUtil.isValidUrl(resolvedUrl))
             return resolvedUrl;
 
-        return ctx.toProxyUrl(resolvedUrl, false, resourceType, charsetStr);
+        return ctx.toProxyUrl(resolvedUrl, isCrossDomain, resourceType, charsetStr);
     };
 }
 

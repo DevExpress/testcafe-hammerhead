@@ -30,7 +30,6 @@ export default abstract class BaseDomAdapter {
     abstract needToProcessContent (el: HTMLElement | ASTNode): boolean;
     abstract needToProcessUrl (tagName: string, target: string): boolean;
     abstract hasIframeParent (el: HTMLElement | ASTNode): boolean;
-    abstract getCrossDomainPort (): string;
     abstract getProxyUrl (resourceUrl: string, opts: object): string;
     abstract isTopParentIframe (el: HTMLElement | ASTNode): boolean;
     abstract sameOriginCheck (destUrl: string, resourceUrl: string): boolean;

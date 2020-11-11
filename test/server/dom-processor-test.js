@@ -1,12 +1,13 @@
 const expect        = require('chai').expect;
 const parse5        = require('parse5');
+const urlLib        = require('url');
 const DomProcessor  = require('../../lib/processing/dom');
 const processScript = require('../../lib/processing/script').processScript;
 const DomAdapter    = require('../../lib/processing/dom/parse5-dom-adapter');
 const urlUtils      = require('../../lib/utils/url');
 const parse5Utils   = require('../../lib/utils/parse5');
 
-const domAdapter   = new DomAdapter();
+const domAdapter = new DomAdapter();
 
 const testCrossDomainPort = 1338;
 const testProxyHostName   = 'localhost';
@@ -16,17 +17,12 @@ const testProxyPort       = 80;
 function process (html, isIframe) {
     const root             = parse5.parse(html);
     const testDomProcessor = new DomProcessor(new DomAdapter(isIframe, testCrossDomainPort));
-    const urlReplacer      = (url, resourceType) => {
-        if (url.indexOf('//') === 0)
-            url = 'http:' + url;
-        else if (url.indexOf('/') === 0)
-            url = 'http://example.com' + url;
-        else if (url === './')
-            url = 'http://example.com/';
+    const urlReplacer      = (resourceUrl, resourceType, charsetAttrValue, isCrossDomain = false) => {
+        resourceUrl = urlLib.resolve('http://example.com/', resourceUrl);
 
-        return urlUtils.getProxyUrl(url, {
-            proxyHostname: 'localhost',
-            proxyPort:     '80',
+        return urlUtils.getProxyUrl(resourceUrl, {
+            proxyHostname: testProxyHostName,
+            proxyPort:     (isCrossDomain ? testCrossDomainPort : testProxyPort).toString(),
             sessionId:     'sessionId',
             resourceType:  resourceType
         });
@@ -115,33 +111,6 @@ describe('DOM processor', () => {
 
         expect(domAdapter.getAttr(img, 'src')).eql('about:blank');
         expect(domAdapter.getAttr(img, DomProcessor.getStoredAttrName('src'))).eql('about:blank');
-    });
-
-    it.skip('Should process <iframe> with src', () => {
-        // TODO: Rewrite moving url replacer to the page processor.
-        //var $iframe                            = whacko.load('<iframe src="http://cross.domain.com/"></iframe>'),
-        //    expectedHtml                       = '<iframe src="http://proxy.cross.domain.com/" src' +
-        //                                         sharedConst.DOM_SANDBOX_STORED_ATTR_POSTFIX +
-        //                                         '="http://cross.domain.com/"></iframe>',
-        //
-        //    storedGetCrossDomainIframeProxyUrl = urlUtil.getCrossDomainIframeProxyUrl,
-        //    storedGetProxyUrl                  = urlUtil.getProxyUrl;
-        //
-        //urlUtil.getCrossDomainIframeProxyUrl = function () {
-        //    return 'http://proxy.cross.domain.com/';
-        //};
-        //
-        //urlUtil.getProxyUrl = function () {
-        //    return 'http://proxy.com/-!id-ow!-/http://host';
-        //};
-        //
-        //domProcessor.processPage($iframe, urlUtil.getProxyUrl);
-        //
-        //urlUtil.getCrossDomainIframeProxyUrl = storedGetCrossDomainIframeProxyUrl;
-        //urlUtil.getProxyUrl                  = storedGetProxyUrl;
-        //
-        //t.ok($iframe.html().indexOf(expectedHtml) !== -1);
-        //t.done();
     });
 
     it('Should process target attribute for the elements in <iframe>', () => {
