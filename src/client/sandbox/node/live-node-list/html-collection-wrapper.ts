@@ -8,11 +8,11 @@ const ELEMENTS_WITH_NAME_ATTRIBUTE     = ['button', 'fieldset', 'form', 'iframe'
 const COLLECTION_PROTO_GETTERS_RESERVE = 10;
 let collectionProtoGettersCount        = 0;
 
-class Temp {}
+class HTMLCollectionInheritor {}
 
-Temp.prototype = HTMLCollection.prototype;
+HTMLCollectionInheritor.prototype = HTMLCollection.prototype;
 
-export default class HTMLCollectionWrapper extends Temp {
+export default class HTMLCollectionWrapper extends HTMLCollectionInheritor {
     _collection: HTMLCollection;
     _filteredCollection: HTMLElement[];
     _tagName: HTMLElement['tagName'];
@@ -50,7 +50,22 @@ export default class HTMLCollectionWrapper extends Temp {
     }
 
     _refreshCollection() {
-        /* temp */
+        const storedNativeCollectionLength = this._lastNativeLength;
+        const nativeCollectionLength       = nativeMethods.htmlCollectionLengthGetter.call(this._collection);
+
+        this._lastNativeLength = nativeCollectionLength;
+
+        if (!DOMMutationTracker.isOutdated(this._tagName, this._version) &&
+            (DOMMutationTracker.isDomContentLoaded() || storedNativeCollectionLength === nativeCollectionLength))
+            return;
+
+        const storedFilteredCollectionLength = this._filteredCollection.length;
+        const currentNamedProps              = filterCollection(this, nativeCollectionLength);
+
+        this._version = DOMMutationTracker.getVersion(this._tagName);
+
+        updateCollectionIndexGetters(this, storedFilteredCollectionLength, this._filteredCollection.length);
+        updateNamedProps(this, this._namedProps, currentNamedProps);
     }
 }
 
@@ -63,24 +78,7 @@ const additionalProtoMethods = {
     },
 
     _refreshCollection: {
-        value:      function (this: HTMLCollectionWrapper) {
-            const storedNativeCollectionLength = this._lastNativeLength;
-            const nativeCollectionLength       = nativeMethods.htmlCollectionLengthGetter.call(this._collection);
-
-            this._lastNativeLength = nativeCollectionLength;
-
-            if (!DOMMutationTracker.isOutdated(this._tagName, this._version) &&
-                (DOMMutationTracker.isDomContentLoaded() || storedNativeCollectionLength === nativeCollectionLength))
-                return;
-
-            const storedFilteredCollectionLength = this._filteredCollection.length;
-            const currentNamedProps              = filterCollection(this, nativeCollectionLength);
-
-            this._version = DOMMutationTracker.getVersion(this._tagName);
-
-            updateCollectionIndexGetters(this, storedFilteredCollectionLength, this._filteredCollection.length);
-            updateNamedProps(this, this._namedProps, currentNamedProps);
-        },
+        value:      HTMLCollectionWrapper.prototype._refreshCollection,
         enumerable: false
     }
 } as PropertyDescriptorMap;

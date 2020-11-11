@@ -10,11 +10,11 @@ function updateOrigin (ancestorOrigins: DOMStringList, wrapper: DOMStringListWra
     nativeMethods.objectDefineProperty(wrapper, index, descriptor);
 }
 
-class Temp {}
+class DOMStringListInheritor {}
 
-Temp.prototype = DOMStringList.prototype;
+DOMStringListInheritor.prototype = DOMStringList.prototype;
 
-export default class DOMStringListWrapper extends Temp {
+export default class DOMStringListWrapper extends DOMStringListInheritor {
     constructor (window: Window, getCrossDomainOrigin?: Function) {
         super();
 
