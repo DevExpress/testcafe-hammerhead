@@ -100,25 +100,29 @@ export function sameOriginCheck (location: string, checkedUrl: string): boolean 
     if (!checkedUrl)
         return true;
 
-    const parsedLocation      = parseUrl(location);
-    const parsedCheckedUrl    = parseUrl(checkedUrl);
-    const parsedProxyLocation = parseProxyUrl(location);
-    const parsedDestUrl       = parsedProxyLocation ? parsedProxyLocation.destResourceInfo : parsedLocation;
-    const isRelative          = !parsedCheckedUrl.host;
+    const parsedCheckedUrl = parseUrl(checkedUrl);
+    const isRelative       = !parsedCheckedUrl.host;
 
-    if (isRelative ||
-        parsedCheckedUrl.host === parsedLocation.host && parsedCheckedUrl.protocol === parsedLocation.protocol)
+    if (isRelative)
         return true;
 
-    if (parsedDestUrl) {
-        const portsEq = !parsedDestUrl.port && !parsedCheckedUrl.port ||
-                        parsedDestUrl.port && parsedDestUrl.port.toString() === parsedCheckedUrl.port;
+    const parsedLocation      = parseUrl(location);
+    const parsedProxyLocation = parseProxyUrl(location);
 
-        return parsedDestUrl.protocol === parsedCheckedUrl.protocol && !!portsEq &&
-               parsedDestUrl.hostname === parsedCheckedUrl.hostname;
-    }
+    if (parsedCheckedUrl.host === parsedLocation.host && parsedCheckedUrl.protocol === parsedLocation.protocol)
+        return true;
 
-    return false;
+    const parsedDestUrl = parsedProxyLocation ? parsedProxyLocation.destResourceInfo : parsedLocation;
+
+    if (!parsedDestUrl)
+        return false;
+
+    const isSameProtocol = !parsedCheckedUrl.protocol || parsedCheckedUrl.protocol === parsedDestUrl.protocol;
+
+    const portsEq = !parsedDestUrl.port && !parsedCheckedUrl.port ||
+                    parsedDestUrl.port && parsedDestUrl.port.toString() === parsedCheckedUrl.port;
+
+    return isSameProtocol && !!portsEq && parsedDestUrl.hostname === parsedCheckedUrl.hostname;
 }
 
 // NOTE: Convert the destination protocol and hostname to the lower case. (GH-1)

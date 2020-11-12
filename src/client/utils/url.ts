@@ -211,8 +211,12 @@ export function parseUrl (url: string) {
     return sharedUrlUtils.parseUrl(url);
 }
 
-export function convertToProxyUrl (url: string, resourceType, charset) {
-    return getProxyUrl(url, { resourceType, charset });
+export function convertToProxyUrl (url: string, resourceType, charset, isCrossDomain = false) {
+    return getProxyUrl(url, {
+        resourceType, charset,
+        // eslint-disable-next-line no-restricted-properties
+        proxyPort: isCrossDomain ? settings.get().crossDomainProxyPort : DEFAULT_PROXY_SETTINGS.port
+    });
 }
 
 export function changeDestUrlPart (proxyUrl: string, nativePropSetter, value, resourceType) {

@@ -11,7 +11,6 @@ import RequestPipelineContext from '../../request-pipeline/context';
 
 export default class Parse5DomAdapter extends BaseDomAdapter {
     constructor (public readonly isIframe: boolean,
-        public readonly crossDomainPort: string,
         private ctx: RequestPipelineContext,
         private charset: Charset,
         private urlReplacer: Function) {
@@ -81,10 +80,6 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
 
     hasIframeParent (): boolean {
         return this.isIframe;
-    }
-
-    getCrossDomainPort (): string {
-        return this.crossDomainPort;
     }
 
     getProxyUrl (): string {

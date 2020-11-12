@@ -1,7 +1,6 @@
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import BaseDomAdapter from '../../processing/dom/base-dom-adapter';
 import nativeMethods from '../sandbox/native-methods';
-import settings from '../settings';
 import { sameOriginCheck } from '../utils/destination-location';
 import { getProxyUrl } from '../utils/url';
 import * as domUtils from '../utils/dom';
@@ -88,10 +87,6 @@ export default class ClientDomAdapter extends BaseDomAdapter {
         catch (e) {
             return true;
         }
-    }
-
-    getCrossDomainPort (): string {
-        return settings.get().crossDomainProxyPort;
     }
 
     getProxyUrl (): string {

@@ -3,6 +3,8 @@ var destLocation = hammerhead.get('./utils/destination-location');
 test('sameOriginCheck', function () {
     ok(destLocation.sameOriginCheck('http://proxy/token!uid/http://origin.com:111/index.html', 'http://origin.com:111/index.php'));
     ok(destLocation.sameOriginCheck('http://proxy/token!uid/http://sub.origin.com:111/index.html', 'http://proxy/index.php'));
+    ok(destLocation.sameOriginCheck('http://proxy/token!uid/https://origin.com:111/index.html', '//origin.com:111/index.php'));
+    ok(destLocation.sameOriginCheck('http://sub.origin.com/index.html', 'http://sub.origin.com/'));
     ok(!destLocation.sameOriginCheck('http://proxy/token!uid/http://origin.com:111/index.html', 'http://sub.origin.com:111/index.php'));
     ok(!destLocation.sameOriginCheck('http://proxy/token!uid/http://origin.com:111/index.html', 'http://sub1.sub2.origin.com:111/index.php'));
     ok(!destLocation.sameOriginCheck('http://proxy/token!uid/http://sub.origin.com:111/index.html', 'http://origin.com:111/index.php'));
