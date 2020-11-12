@@ -90,14 +90,14 @@ export function overrideFunction<O extends object, K extends keyof O> (obj: O, f
 
     if (isNativeFunction(fn)) {
         overrideStringRepresentation(wrapper, fn);
-        
+
         (obj[fnName] as unknown as Function) = wrapper;
     }
 }
 
-export function overrideConstructor<O extends object, K extends keyof O> (obj: O, fnName: K, wrapper: Function, overrideProtoConstructor: boolean = false): void {
+export function overrideConstructor<O extends object, K extends keyof O> (obj: O, fnName: K, wrapper: Function, overrideProtoConstructor = false): void {
     const nativePrototype = obj[fnName]['prototype'];
-    
+
     overrideFunction(obj, fnName, wrapper);
 
     // NOTE: restore native prototype (to make `instanceof` work as expected)

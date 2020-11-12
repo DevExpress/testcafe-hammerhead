@@ -9,8 +9,8 @@ const HEADER_RE     = /^(.+?):\s*(.*)$/;
 export default class FormDataEntry {
     private _headers: Map<string, { rawName: string; value: string }> = new Map();
     body: Buffer[] = [];
-    name: string = '';
-    fileName: string = '';
+    name = '';
+    fileName = '';
 
     private _parseContentDisposition (contentDisposition: string) {
         const inputNameMatch = contentDisposition.match(INPUT_NAME_RE);

@@ -6,7 +6,7 @@ interface InitOptions {
     trailers: { [key: string]: string | undefined };
     statusCode: number;
     _body: object|string|Buffer|null;
-};
+}
 
 export default class IncomingMessageMock extends Readable {
     private _body: Buffer|null;

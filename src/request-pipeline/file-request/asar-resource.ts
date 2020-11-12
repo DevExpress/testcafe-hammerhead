@@ -5,8 +5,8 @@ import path from 'path';
 const asar = new Asar();
 
 export default class AsarResource extends BaseResource {
-    private _archive: string = '';
-    private _fileName: string = '';
+    private _archive = '';
+    private _fileName = '';
 
     constructor (resourcePath: string) {
         // NOTE: use a normalized path (GH-2101 PR)

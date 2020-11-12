@@ -7,7 +7,7 @@ import * as browserUtils from '../../utils/browser';
 import Listeners from './listeners';
 
 export default class HoverSandbox extends SandboxBase {
-    private _hoverElementFixed: boolean = false;
+    private _hoverElementFixed = false;
     private _lastHoveredElement: any = null;
 
     constructor (private readonly _listeners: Listeners) { //eslint-disable-line no-unused-vars

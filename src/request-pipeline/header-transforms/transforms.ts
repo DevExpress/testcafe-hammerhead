@@ -75,7 +75,7 @@ function transformRefreshHeader (src: string, ctx: RequestPipelineContext) {
 }
 
 export function processSetCookieHeader (src: string | string[], ctx: RequestPipelineContext) {
-    let parsedCookies = src && !shouldOmitCredentials(ctx) ? ctx.session.cookies.setByServer(ctx.dest.url, src) : [];
+    const parsedCookies = src && !shouldOmitCredentials(ctx) ? ctx.session.cookies.setByServer(ctx.dest.url, src) : [];
 
     return generateSyncCookie(ctx, parsedCookies);
 }

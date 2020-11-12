@@ -69,7 +69,7 @@ export function sendRequest (ctx: RequestPipelineContext) {
                     url:                      ctx.dest.url,
                     message:                  MESSAGE.nodeError[err.code] || err.toString(),
                     headerSize:               headerSize,
-                    recommendedMaxHeaderSize: getRecommendedMaxHeaderSize(headerSize),
+                    recommendedMaxHeaderSize: getRecommendedMaxHeaderSize(headerSize).toString(),
                     invalidChars:             getFormattedInvalidCharacters(rawHeadersStr)
                 }));
             }

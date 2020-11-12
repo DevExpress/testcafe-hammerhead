@@ -3,10 +3,8 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-/*eslint-disable no-unused-vars*/
 import { Transformer } from './index';
 import { Literal } from 'estree';
-/*eslint-enable no-unused-vars*/
 import { getProxyUrlLiteral } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
 

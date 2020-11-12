@@ -12,9 +12,9 @@ import CookieSandbox from './cookie';
 const XHR_READY_STATES = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
 
 export default class XhrSandbox extends SandboxBase {
-    XHR_COMPLETED_EVENT: string = 'hammerhead|event|xhr-completed';
-    XHR_ERROR_EVENT: string = 'hammerhead|event|xhr-error';
-    BEFORE_XHR_SEND_EVENT: string = 'hammerhead|event|before-xhr-send';
+    XHR_COMPLETED_EVENT = 'hammerhead|event|xhr-completed';
+    XHR_ERROR_EVENT = 'hammerhead|event|xhr-error';
+    BEFORE_XHR_SEND_EVENT = 'hammerhead|event|before-xhr-send';
 
     constructor (private readonly _cookieSandbox: CookieSandbox) { //eslint-disable-line no-unused-vars
         super();

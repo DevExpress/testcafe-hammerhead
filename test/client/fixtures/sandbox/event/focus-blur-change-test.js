@@ -36,7 +36,7 @@ function setDoubleTimeout (timeout) {
 
 function logMessage (text) {
     if (enableLogging)
-        ok(true, (new Date()).getSeconds() + ':' + (new Date()).getMilliseconds().toString() + ' ' + text);
+        ok(true, new Date().getSeconds() + ':' + new Date().getMilliseconds().toString() + ' ' + text);
 }
 
 function startNext () {

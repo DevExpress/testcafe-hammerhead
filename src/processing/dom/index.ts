@@ -52,8 +52,8 @@ export default class DomProcessor {
     AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER: string = AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
     PROCESSED_PRELOAD_LINK_CONTENT_TYPE: string = PROCESSED_PRELOAD_LINK_CONTENT_TYPE;
     private readonly elementProcessorPatterns: ElementProcessingPattern[];
-    forceProxySrcForImage: boolean = false;
-    allowMultipleWindows: boolean = false;
+    forceProxySrcForImage = false;
+    allowMultipleWindows = false;
     // Refactor this, see BaseDomAdapter;
     EVENTS: string[];
 

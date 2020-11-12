@@ -3,10 +3,8 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-/*eslint-disable no-unused-vars*/
 import { Identifier } from 'estree';
 import { Transformer } from './index';
-/*eslint-enable no-unused-vars*/
 import { createLocationGetWrapper } from '../node-builder';
 import INSTRUCTION from '../instruction';
 import { Syntax } from 'esotope-hammerhead';

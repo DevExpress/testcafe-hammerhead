@@ -3,10 +3,8 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-/*eslint-disable no-unused-vars*/
 import { CallExpression, Identifier, MemberExpression } from 'estree';
 import { Transformer } from './index';
-/*eslint-enable no-unused-vars*/
 import { createProcessScriptMethodCall } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
 import replaceNode from './replace-node';

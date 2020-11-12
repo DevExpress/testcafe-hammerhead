@@ -121,9 +121,9 @@ export default class WindowSandbox extends SandboxBase {
     shadowUI: ShadowUI;
     nodeMutation: NodeMutation;
 
-    UNCAUGHT_JS_ERROR_EVENT: string = 'hammerhead|event|uncaught-js-error';
-    UNHANDLED_REJECTION_EVENT: string = 'hammerhead|event|unhandled-rejection';
-    HASH_CHANGE_EVENT: string = 'hammerhead|event|hashchange-event';
+    UNCAUGHT_JS_ERROR_EVENT = 'hammerhead|event|uncaught-js-error';
+    UNHANDLED_REJECTION_EVENT = 'hammerhead|event|unhandled-rejection';
+    HASH_CHANGE_EVENT = 'hammerhead|event|hashchange-event';
 
     SANDBOX_DOM_TOKEN_LIST_UPDATE_FN: any;
 

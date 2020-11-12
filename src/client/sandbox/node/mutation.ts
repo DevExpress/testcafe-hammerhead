@@ -1,12 +1,12 @@
 import EventEmitter from '../../utils/event-emitter';
 
 export default class NodeMutation extends EventEmitter {
-    BEFORE_DOCUMENT_CLEANED_EVENT: string = 'hammerhead|event|before-document-cleaned';
-    DOCUMENT_CLEANED_EVENT: string = 'hammerhead|event|document-cleaned';
-    DOCUMENT_CLOSED_EVENT: string = 'hammerhead|event|document-closed';
-    BODY_CONTENT_CHANGED_EVENT: string = 'hammerhead|event|body-content-changed';
-    BODY_CREATED_EVENT: string = 'hammerhead|event|body-created';
-    IFRAME_ADDED_TO_DOM_EVENT: string = 'hammerhead|event|iframe-added-to-dom';
+    BEFORE_DOCUMENT_CLEANED_EVENT = 'hammerhead|event|before-document-cleaned';
+    DOCUMENT_CLEANED_EVENT = 'hammerhead|event|document-cleaned';
+    DOCUMENT_CLOSED_EVENT = 'hammerhead|event|document-closed';
+    BODY_CONTENT_CHANGED_EVENT = 'hammerhead|event|body-content-changed';
+    BODY_CREATED_EVENT = 'hammerhead|event|body-created';
+    IFRAME_ADDED_TO_DOM_EVENT = 'hammerhead|event|iframe-added-to-dom';
 
     onIframeAddedToDOM (iframe: HTMLIFrameElement | HTMLFrameElement) {
         this.emit(this.IFRAME_ADDED_TO_DOM_EVENT, iframe);
