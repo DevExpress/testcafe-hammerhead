@@ -153,7 +153,7 @@ export default class Proxy extends Router {
             catch (err) {
                 logger.serviceMsg('Service message %j, error %o', msg, err);
 
-                respond500(res, err.toString());
+                respond500(res, (err && err.toString) ? err.toString() : "");
             }
         }
         else
