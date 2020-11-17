@@ -37,21 +37,28 @@ export function sameOriginCheck (location: string, checkedUrl: string): boolean 
 }
 
 export function resolveUrl (url: string, doc?: Document): string {
-    url = sharedUrlUtils.getURLString(url);
+    const globalCtx     = getGlobalContextInfo();
+    let preProcessedUrl = sharedUrlUtils.getURLString(url);
 
-    if (url && url.indexOf('//') === 0) {
+    if (preProcessedUrl && preProcessedUrl.indexOf('//') === 0) {
         // eslint-disable-next-line no-restricted-properties
         const pageProtocol = getParsed().protocol;
 
-        url = pageProtocol + sharedUrlUtils.correctMultipleSlashes(url, pageProtocol);
+        preProcessedUrl = pageProtocol + sharedUrlUtils.correctMultipleSlashes(preProcessedUrl, pageProtocol);
     }
     else
-        url = sharedUrlUtils.correctMultipleSlashes(url);
+        preProcessedUrl = sharedUrlUtils.correctMultipleSlashes(preProcessedUrl);
 
-    return typeof document !== 'undefined'
-    // @ts-ignore
-        ? urlResolver.resolve(url, doc || document)
-        : new nativeMethods.URL(url, get()).href; // eslint-disable-line no-restricted-properties
+    if (globalCtx.isInWorker) {
+        if (self.location.protocol !== 'blob:') // eslint-disable-line no-restricted-properties
+            return new nativeMethods.URL(preProcessedUrl, get()).href; // eslint-disable-line no-restricted-properties
+        else
+            return url;
+    }
+    else {
+        // @ts-ignore
+        return urlResolver.resolve(preProcessedUrl, doc || document);
+    }
 }
 
 export function get (): string {

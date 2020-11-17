@@ -2,7 +2,7 @@ import nativeMethods from '../sandbox/native-methods';
 import { stopPropagation } from '../utils/event';
 import { parseProxyUrl } from '../utils/url';
 import { ParsedUrl } from '../../typings/url';
-import SET_SERVICE_WORKER_SETTINGS from './set-settings-command';
+import { SET_SERVICE_WORKER_SETTINGS } from './set-settings-command';
 import INSTRUCTION from '../../processing/script/instruction';
 
 /*eslint-disable*/

@@ -95,6 +95,9 @@ export function getProxyUrl (url: string, opts?): string {
 
     const parsedUrl = sharedUrlUtils.parseUrl(resolvedUrl);
 
+    if (!parsedUrl.protocol) // eslint-disable-line no-restricted-properties
+        return url;
+
     charset = charset || (parsedResourceType.isScript || parsedResourceType.isServiceWorker) &&
         document[INTERNAL_PROPS.documentCharset];
 
