@@ -58,7 +58,7 @@ export default class ChildWindowSandbox extends SandboxBase {
             return;
 
         this._listeners.initElementListening(el, ['click']);
-        this._listeners.addInternalEventListener(el, ['click'], (_e, _dispatched, preventEvent, _cancelHandlers, stopEventPropagation) => {
+        this._listeners.addInternalEventListener(el, ['click'], (_e, _dispatched, preventEvent) => {
             if (!ChildWindowSandbox._shouldOpenInNewWindow(el.target, DefaultTarget.linkOrArea))
                 return;
 
@@ -67,8 +67,7 @@ export default class ChildWindowSandbox extends SandboxBase {
 
             this._openUrlInNewWindow(url);
 
-            preventEvent();
-            stopEventPropagation();
+            preventEvent(true);
         });
     }
 

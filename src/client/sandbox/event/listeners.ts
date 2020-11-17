@@ -113,9 +113,9 @@ export default class Listeners extends EventEmitter {
 
             eventCtx.cancelOuterHandlers = false;
 
-            const preventEvent = () => {
+            const preventEvent = (allowBubbling?: boolean) => {
                 eventPrevented = true;
-                preventDefault(e);
+                preventDefault(e, allowBubbling);
             };
 
             const cancelHandlers = () => {
