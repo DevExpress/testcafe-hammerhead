@@ -16,7 +16,7 @@ export default class SandboxBaseWithDelayedSettings extends SandboxBase {
         return !!this._waitHammerheadSettings;
     }
 
-    delayUntilGetSettings (action) {
+    delayUntilGetSettings (action): Promise<void> {
         return this._waitHammerheadSettings.then(action);
     }
 }

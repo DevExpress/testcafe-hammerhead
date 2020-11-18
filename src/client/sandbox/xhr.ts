@@ -1,5 +1,5 @@
 import Promise from 'pinkie';
-import SandboxBaseWithDelayedSettings from '../worker/base-with-delayed-settings';
+import SandboxBaseWithDelayedSettings from '../worker/sandbox-base-with-delayed-settings';
 import nativeMethods from './native-methods';
 import { getDestinationUrl, getProxyUrl } from '../utils/url';
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
