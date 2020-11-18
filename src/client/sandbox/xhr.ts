@@ -1,5 +1,5 @@
 import Promise from 'pinkie';
-import SandboxBase from './base';
+import SandboxBaseWithDelayedSettings from '../worker/base-with-delayed-settings';
 import nativeMethods from './native-methods';
 import { getDestinationUrl, getProxyUrl } from '../utils/url';
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
@@ -12,20 +12,13 @@ import CookieSandbox from './cookie';
 
 const XHR_READY_STATES = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
 
-export default class XhrSandbox extends SandboxBase {
+export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
     readonly XHR_COMPLETED_EVENT = 'hammerhead|event|xhr-completed';
     readonly XHR_ERROR_EVENT = 'hammerhead|event|xhr-error';
     readonly BEFORE_XHR_SEND_EVENT = 'hammerhead|event|before-xhr-send';
 
-    constructor (private readonly _cookieSandbox: CookieSandbox,
-                 private _waitHammerheadSettings: Promise<void> = null) {
-        super();
-
-        if (_waitHammerheadSettings) {
-            _waitHammerheadSettings.then(() => {
-                this._waitHammerheadSettings = null;
-            });
-        }
+    constructor (private readonly _cookieSandbox: CookieSandbox, waitHammerheadSettings?: Promise<void>) {
+        super(waitHammerheadSettings);
     }
 
     static createNativeXHR () {
@@ -100,8 +93,8 @@ export default class XhrSandbox extends SandboxBase {
         });
 
         overrideFunction(xmlHttpRequestProto, 'abort', function () {
-            if (xhrSandbox._waitHammerheadSettings) {
-                xhrSandbox._waitHammerheadSettings.then(() => this.abort.apply(this, arguments));
+            if (xhrSandbox.gettingSettingInProgress()) {
+                xhrSandbox.delayUntilGetSettings(() => this.abort.apply(this, arguments));
 
                 return;
             }
@@ -124,8 +117,8 @@ export default class XhrSandbox extends SandboxBase {
                 return;
             }
 
-            if (xhrSandbox._waitHammerheadSettings) {
-                xhrSandbox._waitHammerheadSettings.then(() => this.open.apply(this, arguments));
+            if (xhrSandbox.gettingSettingInProgress()) {
+                xhrSandbox.delayUntilGetSettings(() => this.open.apply(this, arguments));
 
                 return;
             }
@@ -138,8 +131,8 @@ export default class XhrSandbox extends SandboxBase {
         });
 
         overrideFunction(xmlHttpRequestProto, 'send', function () {
-            if (xhrSandbox._waitHammerheadSettings) {
-                xhrSandbox._waitHammerheadSettings.then(() => this.send.apply(this, arguments));
+            if (xhrSandbox.gettingSettingInProgress()) {
+                xhrSandbox.delayUntilGetSettings(() => this.send.apply(this, arguments));
 
                 return;
             }
