@@ -348,11 +348,17 @@ test('document.referrer', function () {
 
     strictEqual(document.referrer, 'http://example.com/');
 
-    nativeMethods.parseProxyUrl = function () {
+    nativeMethods.documentReferrerGetter = function () {
         return urlUtils.getProxyUrl('http://example.com/');
     };
 
     strictEqual(document.referrer, 'http://example.com/');
+
+    nativeMethods.documentReferrerGetter = function () {
+        return urlUtils.getProxyUrl('about:blank');
+    };
+
+    strictEqual(document.referrer, '');
 
     nativeMethods.documentReferrerGetter = savedDocumentReferrerGetter;
 });
