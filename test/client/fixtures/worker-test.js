@@ -4,6 +4,11 @@ var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var Promise       = hammerhead.Promise;
 
+var workerMock = {
+    postMessage: function () {
+    }
+};
+
 module('Web Worker');
 
 test('window.Worker should be overridden', function () {
@@ -29,6 +34,8 @@ test('checking parameters (GH-1132)', function () {
     nativeMethods.Worker = function (scriptURL) {
         strictEqual(arguments.length, 1);
         strictEqual(scriptURL, urlUtils.getProxyUrl('/test', { resourceType: resourceType }));
+
+        return workerMock;
     };
     // eslint-disable-next-line no-new
     new Worker('/test');
@@ -37,10 +44,11 @@ test('checking parameters (GH-1132)', function () {
         strictEqual(arguments.length, 2);
         strictEqual(scriptURL, urlUtils.getProxyUrl('/test', { resourceType: resourceType }));
         strictEqual(options, workerOptions);
+
+        return workerMock;
     };
-    /* eslint-disable no-new */
+    // eslint-disable-next-line no-new
     new Worker('/test', workerOptions);
-    /* eslint-enable no-new */
 
     nativeMethods.Worker = savedNativeWorker;
 });
@@ -103,6 +111,8 @@ if (!browserUtils.isIE) {
             .then(function (headers) {
                 strictEqual(headers['x-hammerhead-credentials'], 'same-origin');
                 strictEqual(headers['x-hammerhead-origin'], 'https://example.com');
+
+                worker.terminate();
             });
     });
 }
@@ -154,6 +164,92 @@ if (!browserUtils.isIE && !browserUtils.isSafari) {
             worker.terminate();
             start();
         };
+    });
+
+    test('send request with relative url from worker with object url', function () {
+        var scriptWithRelativeUrl        = [
+            'var xhr = new XMLHttpRequest();',
+            'try {',
+            '    xhr.open("post", "/echo-request-headers/");',
+            '}',
+            'catch (e) {',
+            '    postMessage(e.toString());',
+            '}'
+        ].join('\n');
+        var scriptWithUrlWithoutProtocol = scriptWithRelativeUrl.replace('/echo-request-headers/', '//example.com/echo-request-headers/');
+        var runBlob                      = function (blob) {
+            return new Promise(function (resolve) {
+                var fileURL = URL.createObjectURL(blob);
+                var worker  = new Worker(fileURL);
+
+                worker.onmessage = function (e) {
+                    worker.terminate();
+                    resolve(e.data);
+                };
+            });
+        };
+
+        return Promise.all([
+            runBlob(new nativeMethods.Blob([scriptWithRelativeUrl])),
+            runBlob(new Blob([scriptWithRelativeUrl])),
+            runBlob(new nativeMethods.Blob([scriptWithUrlWithoutProtocol])),
+            runBlob(new Blob([scriptWithUrlWithoutProtocol]))
+        ])
+            .then(function (errors) {
+                strictEqual(errors[0], errors[1]);
+                strictEqual(errors[2], errors[3]);
+            });
+    });
+
+    test('send xhr from worker with object url', function () {
+        var script  = [
+            'var xhr = new XMLHttpRequest();',
+            'xhr.open("post", "http://example.com/echo-request-headers/");',
+            'xhr.addEventListener("load", function () {',
+            '    postMessage(xhr.responseText);',
+            '});',
+            'xhr.send();'
+        ].join('\n');
+        var fileURL = URL.createObjectURL(new File([script], 'script.js'));
+        var worker  = new Worker(fileURL);
+
+        return new Promise(function (resolve) {
+            worker.onmessage = function (e) {
+                worker.onmessage = void 0;
+
+                resolve(JSON.parse(e.data));
+            };
+        })
+            .then(function (headers) {
+                strictEqual(headers['x-hammerhead-credentials'], 'same-origin');
+                strictEqual(headers['x-hammerhead-origin'], 'https://example.com');
+
+                worker.terminate();
+            });
+    });
+
+    test('send fetch from worker with object url', function () {
+        var script  = [
+            'fetch("http://example.com/echo-request-headers/", { method: "post", credentials: "omit" })',
+            '    .then(res => res.json())' +
+            '    .then(json => postMessage(json));'
+        ].join('\n');
+        var fileURL = URL.createObjectURL(new File([script], 'script.js'));
+        var worker  = new Worker(fileURL);
+
+        return new Promise(function (resolve) {
+            worker.onmessage = function (e) {
+                worker.onmessage = void 0;
+
+                resolve(e.data);
+            };
+        })
+            .then(function (headers) {
+                strictEqual(headers['x-hammerhead-credentials'], 'omit');
+                strictEqual(headers['x-hammerhead-origin'], 'https://example.com');
+
+                worker.terminate();
+            });
     });
 }
 

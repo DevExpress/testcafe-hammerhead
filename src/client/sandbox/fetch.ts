@@ -1,4 +1,5 @@
-import SandboxBase from './base';
+import Promise from 'pinkie';
+import SandboxBaseWithDelayedSettings from '../worker/sandbox-base-with-delayed-settings';
 import nativeMethods from './native-methods';
 import INTERNAL_HEADERS from '../../request-pipeline/internal-header-names';
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
@@ -13,11 +14,11 @@ import CookieSandbox from './cookie';
 
 const DEFAULT_REQUEST_CREDENTIALS = nativeMethods.Request ? new nativeMethods.Request(location.toString()).credentials : void 0;
 
-export default class FetchSandbox extends SandboxBase {
+export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
     readonly FETCH_REQUEST_SENT_EVENT = 'hammerhead|event|fetch-request-sent-event';
 
-    constructor (readonly cookieSandbox: CookieSandbox) {
-        super();
+    constructor (readonly cookieSandbox: CookieSandbox, waitHammerheadSettings?: Promise<void>) {
+        super(waitHammerheadSettings);
     }
 
     private static _addSpecialHeadersToRequestInit (init) {
@@ -161,6 +162,9 @@ export default class FetchSandbox extends SandboxBase {
         });
 
         overrideFunction(window, 'fetch', function (...args: [Request | string, any]) {
+            if (sandbox.gettingSettingInProgress())
+                return sandbox.delayUntilGetSettings(() => this.fetch.apply(this, args));
+
             // NOTE: Safari processed the empty `fetch()` request without `Promise` rejection (GH-1613)
             if (!args.length && !browserUtils.isSafari)
                 return nativeMethods.fetch.apply(this);

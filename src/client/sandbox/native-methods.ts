@@ -306,7 +306,7 @@ class NativeMethods {
     elementAttributesPropOwnerName: string;
     elementAttributesGetter: any;
     performanceEntryNameGetter: any;
-    messageEventDataGetter: any;
+    messageEventDataGetter: (this: MessageEvent) => MessageEvent['data'];
     htmlManifestGetter: any;
     htmlManifestSetter: any;
     titleElementTextGetter: Function;

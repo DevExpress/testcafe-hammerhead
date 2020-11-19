@@ -74,9 +74,10 @@ import settings from '../../settings';
 import DefaultTarget from '../child-window/default-target';
 import { getNativeQuerySelectorAll } from '../../utils/query-selector';
 import DocumentTitleStorageInitializer from './document/title-storage-initializer';
-import SET_SERVICE_WORKER_SETTINGS from '../../worker/set-settings-command';
+import { SET_BLOB_WORKER_SETTINGS, SET_SERVICE_WORKER_SETTINGS } from '../../worker/set-settings-command';
+import { getOriginHeader } from '../../utils/destination-location';
 
-const INSTRUCTION_VALUES    = (() => {
+const INSTRUCTION_VALUES = (() => {
     const values = [];
     const keys   = nativeMethods.objectKeys(INSTRUCTION);
 
@@ -517,11 +518,11 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.Worker) {
-            const WorkerWrapper = function (scriptURL, options) {
+            overrideConstructor(window, 'Worker', function WorkerWrapper (scriptURL, options) {
                 const isCalledWithoutNewKeyword = constructorIsCalledWithoutNewKeyword(this, WorkerWrapper);
 
                 if (arguments.length === 0)
-                    // @ts-ignore
+                // @ts-ignore
                     return isCalledWithoutNewKeyword ? nativeMethods.Worker() : new nativeMethods.Worker();
 
                 if (typeof scriptURL === 'string')
@@ -531,10 +532,17 @@ export default class WindowSandbox extends SandboxBase {
                     return nativeMethods.Worker.apply(this, arguments);
 
                 // @ts-ignore
-                return arguments.length === 1 ? new nativeMethods.Worker(scriptURL) : new nativeMethods.Worker(scriptURL, options);
-            };
+                const worker = arguments.length === 1 ? new nativeMethods.Worker(scriptURL) : new nativeMethods.Worker(scriptURL, options);
 
-            overrideConstructor(window, 'Worker', WorkerWrapper, true);
+                worker.postMessage({
+                    cmd:       SET_BLOB_WORKER_SETTINGS,
+                    sessionId: settings.get().sessionId,
+                    windowId:  settings.get().windowId,
+                    origin:    getOriginHeader()
+                });
+
+                return worker;
+            }, true);
         }
 
         if (window.Blob) {

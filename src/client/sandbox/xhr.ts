@@ -1,4 +1,5 @@
-import SandboxBase from './base';
+import Promise from 'pinkie';
+import SandboxBaseWithDelayedSettings from '../worker/sandbox-base-with-delayed-settings';
 import nativeMethods from './native-methods';
 import { getDestinationUrl, getProxyUrl } from '../utils/url';
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
@@ -11,13 +12,13 @@ import CookieSandbox from './cookie';
 
 const XHR_READY_STATES = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
 
-export default class XhrSandbox extends SandboxBase {
-    XHR_COMPLETED_EVENT = 'hammerhead|event|xhr-completed';
-    XHR_ERROR_EVENT = 'hammerhead|event|xhr-error';
-    BEFORE_XHR_SEND_EVENT = 'hammerhead|event|before-xhr-send';
+export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
+    readonly XHR_COMPLETED_EVENT = 'hammerhead|event|xhr-completed';
+    readonly XHR_ERROR_EVENT = 'hammerhead|event|xhr-error';
+    readonly BEFORE_XHR_SEND_EVENT = 'hammerhead|event|before-xhr-send';
 
-    constructor (private readonly _cookieSandbox: CookieSandbox) { //eslint-disable-line no-unused-vars
-        super();
+    constructor (private readonly _cookieSandbox: CookieSandbox, waitHammerheadSettings?: Promise<void>) {
+        super(waitHammerheadSettings);
     }
 
     static createNativeXHR () {
@@ -92,6 +93,12 @@ export default class XhrSandbox extends SandboxBase {
         });
 
         overrideFunction(xmlHttpRequestProto, 'abort', function () {
+            if (xhrSandbox.gettingSettingInProgress()) {
+                xhrSandbox.delayUntilGetSettings(() => this.abort.apply(this, arguments));
+
+                return;
+            }
+
             nativeMethods.xhrAbort.apply(this, arguments);
             xhrSandbox.emit(xhrSandbox.XHR_ERROR_EVENT, {
                 err: new Error('XHR aborted'),
@@ -102,7 +109,20 @@ export default class XhrSandbox extends SandboxBase {
         // NOTE: Redirect all requests to the Hammerhead proxy and ensure that requests don't
         // violate Same Origin Policy.
         overrideFunction(xmlHttpRequestProto, 'open', function () {
-            const url         = arguments[1];
+            const url = arguments[1];
+
+            if (getProxyUrl(url) === url) {
+                nativeMethods.xhrOpen.apply(this, arguments);
+
+                return;
+            }
+
+            if (xhrSandbox.gettingSettingInProgress()) {
+                xhrSandbox.delayUntilGetSettings(() => this.open.apply(this, arguments));
+
+                return;
+            }
+
             const urlIsString = typeof url === 'string';
 
             arguments[1] = getProxyUrl(urlIsString ? url : String(url));
@@ -111,6 +131,12 @@ export default class XhrSandbox extends SandboxBase {
         });
 
         overrideFunction(xmlHttpRequestProto, 'send', function () {
+            if (xhrSandbox.gettingSettingInProgress()) {
+                xhrSandbox.delayUntilGetSettings(() => this.send.apply(this, arguments));
+
+                return;
+            }
+
             xhrSandbox.emit(xhrSandbox.BEFORE_XHR_SEND_EVENT, { xhr: this });
 
             // NOTE: As all requests are passed to the proxy, we need to perform Same Origin Policy compliance checks on the
