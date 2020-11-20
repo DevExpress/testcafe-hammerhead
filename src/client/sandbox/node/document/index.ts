@@ -247,13 +247,9 @@ export default class DocumentSandbox extends SandboxBase {
 
         const referrerOverriddenDescriptor = createOverriddenDescriptor(docPrototype, 'referrer', {
             getter: function () {
-                const nativeReferrer = nativeMethods.documentReferrerGetter.call(this);
-                const referrer       = getDestinationUrl(nativeReferrer);
+                const referrer = getDestinationUrl(nativeMethods.documentReferrerGetter.call(this));
 
-                if (referrer !== nativeReferrer && isSpecialPage(referrer))
-                    return '';
-
-                return referrer;
+                return isSpecialPage(referrer) ? '' : referrer;
             }
         });
 

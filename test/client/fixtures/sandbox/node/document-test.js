@@ -337,16 +337,10 @@ test('document.referrer', function () {
     var savedDocumentReferrerGetter = nativeMethods.documentReferrerGetter;
 
     nativeMethods.documentReferrerGetter = function () {
-        return null;
+        return '';
     };
 
     strictEqual(document.referrer, null);
-
-    nativeMethods.documentReferrerGetter = function () {
-        return 'http://example.com/';
-    };
-
-    strictEqual(document.referrer, 'http://example.com/');
 
     nativeMethods.documentReferrerGetter = function () {
         return urlUtils.getProxyUrl('http://example.com/');
