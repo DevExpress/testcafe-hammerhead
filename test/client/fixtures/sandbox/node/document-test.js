@@ -340,7 +340,7 @@ test('document.referrer', function () {
         return '';
     };
 
-    strictEqual(document.referrer, null);
+    strictEqual(document.referrer, '');
 
     nativeMethods.documentReferrerGetter = function () {
         return urlUtils.getProxyUrl('http://example.com/');
