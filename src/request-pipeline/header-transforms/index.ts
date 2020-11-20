@@ -39,7 +39,7 @@ export function forResponse (ctx: RequestPipelineContext): OutgoingHttpHeaders {
     return transformHeaders(ctx.destRes.headers, ctx, responseTransforms, forcedResponseTransforms);
 }
 
-export function transformHeadersCaseToRaw (headers: OutgoingHttpHeaders, rawHeaders) {
+export function transformHeadersCaseToRaw (headers: OutgoingHttpHeaders, rawHeaders: string[]) {
     const processedHeaders = {};
     const headersNames     = Object.keys(headers);
 
@@ -52,6 +52,13 @@ export function transformHeadersCaseToRaw (headers: OutgoingHttpHeaders, rawHead
             processedHeaders[rawHeaderName] = headers[headerName];
             headersNames[headerIndex]       = void 0;
         }
+    }
+
+    // NOTE: We doesn't send a cross-domain client request as cross-domain.
+    // Therefore, the origin header can be absent and we cannot decide its case. GH-2382
+    if (headers.hasOwnProperty('origin') && processedHeaders.hasOwnProperty('Referer')) {
+        processedHeaders['Origin']                   = headers['origin'];
+        headersNames[headersNames.indexOf('origin')] = void 0;
     }
 
     for (const headerName of headersNames) {
