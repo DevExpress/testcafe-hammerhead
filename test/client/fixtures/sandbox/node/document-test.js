@@ -337,22 +337,22 @@ test('document.referrer', function () {
     var savedDocumentReferrerGetter = nativeMethods.documentReferrerGetter;
 
     nativeMethods.documentReferrerGetter = function () {
-        return null;
+        return '';
     };
 
-    strictEqual(document.referrer, null);
+    strictEqual(document.referrer, '');
 
     nativeMethods.documentReferrerGetter = function () {
-        return 'http://example.com/';
-    };
-
-    strictEqual(document.referrer, 'http://example.com/');
-
-    nativeMethods.parseProxyUrl = function () {
         return urlUtils.getProxyUrl('http://example.com/');
     };
 
     strictEqual(document.referrer, 'http://example.com/');
+
+    nativeMethods.documentReferrerGetter = function () {
+        return urlUtils.getProxyUrl('about:blank');
+    };
+
+    strictEqual(document.referrer, '');
 
     nativeMethods.documentReferrerGetter = savedDocumentReferrerGetter;
 });

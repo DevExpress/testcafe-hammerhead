@@ -12,7 +12,7 @@ import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import LocationAccessorsInstrumentation from '../../code-instrumentation/location';
 import { overrideDescriptor, createOverriddenDescriptor, overrideFunction } from '../../../utils/overriding';
 import NodeSandbox from '../index';
-import { getDestinationUrl } from '../../../utils/url';
+import { getDestinationUrl, isSpecialPage } from '../../../utils/url';
 import DocumentTitleStorageInitializer from './title-storage-initializer';
 
 export default class DocumentSandbox extends SandboxBase {
@@ -247,7 +247,9 @@ export default class DocumentSandbox extends SandboxBase {
 
         const referrerOverriddenDescriptor = createOverriddenDescriptor(docPrototype, 'referrer', {
             getter: function () {
-                return getDestinationUrl(nativeMethods.documentReferrerGetter.call(this));
+                const referrer = getDestinationUrl(nativeMethods.documentReferrerGetter.call(this));
+
+                return isSpecialPage(referrer) ? '' : referrer;
             }
         });
 
