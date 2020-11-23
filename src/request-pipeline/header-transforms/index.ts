@@ -1,6 +1,7 @@
 import { IncomingHttpHeaders, OutgoingHttpHeaders } from 'http';
 import RequestPipelineContext from '../context';
 import BUILTIN_HEADERS from '../builtin-header-names';
+import { PREVENT_CACHING_HEADERS } from '../../utils/http';
 import {
     requestTransforms,
     forcedRequestTransforms,
@@ -8,7 +9,17 @@ import {
     forcedResponseTransforms
 } from './transforms';
 
-import { PREVENT_CACHING_HEADERS } from '../../utils/http';
+
+const FORCED_REQ_HEADERS_BROWSER_CASES = [
+    {
+        lowerCase:   BUILTIN_HEADERS.cookie,
+        browserCase: 'Cookie'
+    },
+    {
+        lowerCase:   BUILTIN_HEADERS.origin,
+        browserCase: 'Origin'
+    }
+];
 
 function transformHeaders (srcHeaders, ctx: RequestPipelineContext, transformList, forcedTransforms) {
     const destHeaders = {};
@@ -39,6 +50,20 @@ export function forResponse (ctx: RequestPipelineContext): OutgoingHttpHeaders {
     return transformHeaders(ctx.destRes.headers, ctx, responseTransforms, forcedResponseTransforms);
 }
 
+// NOTE: We doesn't send a cross-domain client request as cross-domain.
+// Therefore, the "origin" header can be absent and we cannot decide its case. GH-2382
+// The similar situation also occurs with the forced "cookie" header.
+function calculateForcedHeadersCase (headers: OutgoingHttpHeaders, processedHeaders: object, headersNames: (string | void)[]) {
+    const isBrowserRefererStartsWithUpperChar = processedHeaders.hasOwnProperty('Referer');
+
+    for (const { lowerCase, browserCase } of FORCED_REQ_HEADERS_BROWSER_CASES) {
+        if (isBrowserRefererStartsWithUpperChar && headers.hasOwnProperty(lowerCase)) {
+            processedHeaders[browserCase]                 = headers[lowerCase];
+            headersNames[headersNames.indexOf(lowerCase)] = void 0;
+        }
+    }
+}
+
 export function transformHeadersCaseToRaw (headers: OutgoingHttpHeaders, rawHeaders: string[]) {
     const processedHeaders = {};
     const headersNames     = Object.keys(headers);
@@ -54,12 +79,7 @@ export function transformHeadersCaseToRaw (headers: OutgoingHttpHeaders, rawHead
         }
     }
 
-    // NOTE: We doesn't send a cross-domain client request as cross-domain.
-    // Therefore, the origin header can be absent and we cannot decide its case. GH-2382
-    if (headers.hasOwnProperty('origin') && processedHeaders.hasOwnProperty('Referer')) {
-        processedHeaders['Origin']                   = headers['origin'];
-        headersNames[headersNames.indexOf('origin')] = void 0;
-    }
+    calculateForcedHeadersCase(headers, processedHeaders, headersNames);
 
     for (const headerName of headersNames) {
         if (headerName !== void 0)

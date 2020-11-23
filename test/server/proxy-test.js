@@ -506,6 +506,7 @@ describe('Proxy', () => {
             const rawHeadersNames = req.rawHeaders.filter((str, index) => !(index & 1));
 
             res.setHeader('access-control-allow-origin', 'http://127.0.0.1:2000');
+            res.setHeader('access-control-allow-credentials', 'true');
 
             res.end(JSON.stringify(rawHeadersNames));
         });
@@ -3962,27 +3963,29 @@ describe('Proxy', () => {
                 });
         });
 
-        it('Should not change the Origin request header to lowercase (GH-2382)', () => {
+        it('Should not change the Origin and Cookie request headers to lowercase (GH-2382)', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2002/echo-raw-headers-names', session),
                 json:    true,
                 headers: {
-                    [INTERNAL_HEADERS.credentials]: 'omit',
+                    [INTERNAL_HEADERS.credentials]: 'include',
                     [INTERNAL_HEADERS.origin]:      'http://127.0.0.1:2000',
                     'Referer':                      getProxyUrl('http://127.0.0.1:2000/')
                 }
             };
 
+            session.cookies.setByServer('http://127.0.0.1:2002/', ['test=test']);
+
             return request(options)
                 .then(rawHeadersNames => {
-                    expect(rawHeadersNames).to.include.members(['Referer', 'Origin']);
+                    expect(rawHeadersNames).to.include.members(['Referer', 'Origin', 'Cookie']);
 
                     delete options.headers.Referer;
                     options.headers.referer = getProxyUrl('http://127.0.0.1:2000/');
 
                     return request(options);
                 })
-                .then(rawHeadersNames => expect(rawHeadersNames).to.include.members(['referer', 'origin']));
+                .then(rawHeadersNames => expect(rawHeadersNames).to.include.members(['referer', 'origin', 'cookie']));
         });
 
         it('Should skip the "x-frame-options" header if request has the CSP header and it contains "frame-ancestors" option (GH-1666)', () => {

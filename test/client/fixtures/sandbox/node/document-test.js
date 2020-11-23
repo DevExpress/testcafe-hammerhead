@@ -30,7 +30,7 @@ asyncTest('document.write for iframe with empty url', function () {
 
     processDomMeth($div[0]);
 
-    var $iframe = $('<iframe id="test3" src="about:blank">"');
+    var $iframe = $('<iframe id="test3" src="about:blank">');
 
     var check = function () {
         var document = $iframe[0].contentDocument;
