@@ -1352,5 +1352,15 @@ describe('Script processor', () => {
                 }
             ]);
         });
+
+        it('Should not lose parentheses inside the computed property (GH-2442)', () => {
+            testProcessing([
+                {
+                    src: 'Object.assign({}, { [(a, b)]: c } )',
+
+                    expected: '__call$(Object, "assign", [{}, { [(a, b)]: c }])'
+                }
+            ]);
+        });
     });
 });
