@@ -252,6 +252,15 @@ describe('Proxy', () => {
             res.end(fs.readFileSync('test/server/data/stylesheet/src.css').toString());
         });
 
+        app.get('/stylesheet-with-many-spaces', (req, res) => {
+            let cssWithManySpaces = '.c{border:1px solid #ffffff;color:#000000}';
+
+            cssWithManySpaces += ' '.repeat(400000);
+            cssWithManySpaces += '.c1{border:1px solid #ffffff;color:#000000}';
+
+            res.end(cssWithManySpaces);
+        });
+
         app.get('/manifest', (req, res) => {
             res.setHeader('content-type', 'text/cache-manifest');
             res.end(fs.readFileSync('test/server/data/manifest/src.manifest')).toString();
@@ -1525,6 +1534,22 @@ describe('Proxy', () => {
                     compareCode(body, expected);
                 });
         });
+
+        it('Should process stylesheets with many spaces in a reasonable time frame (GH-2475)', () => {
+            session.id = 'sessionId';
+
+            const options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/stylesheet-with-many-spaces', session),
+                headers: {
+                    accept: 'text/css'
+                }
+            };
+
+            return request(options)
+                .then(() => {
+                    expect(true).eql(true);
+                });
+        }).timeout(1000);
 
         it('Should process upload info', () => {
             const src      = newLineReplacer(fs.readFileSync('test/server/data/upload/src.formdata'));
