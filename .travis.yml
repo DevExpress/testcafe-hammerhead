@@ -22,3 +22,8 @@ jobs:
 
 notifications:
   email: false
+  webhooks: 
+    urls: 
+      - secure: "XdIonSlL75MahjV6InDfoCeSq7MtO+/Sx17pnZYJzYmrO1Xqf1iar+voB/DLCkRXMigDg8xygGJkR2703tz4YuDjMNMVo/6+oAWNN9dEtFoMSDtDxRUoFHo0SpLQ7rLET24Kq6VvWzvPM5gsC7PN4p49NXEP1rF0BpwIZIlnp+Jo0Xkq1ZsMQCp12i3d5wRV7HLy6Y4zaRlRczAkijCtNUJeEfVgDUHPMV4c5FDR7tttT6auA2QRqDnTPXVYJBO7Zb7ndrNGRYofvuZmFAjlBFHjcMoDRaf16dwsrpuFq2cqKiaZbkh853JfrQ9QmoOyL/5vQFHZUkLbvBEYOEPSUy6rcC/8Y5vHRFk3njLRrv9sH/D9AbO1xPigcYBc+EUGckLi9evKQmL+VPEPxI2HeqrjyrU2gMKa1wZaHvzwqvHYpB19lt/cmNd63OQntuJpMrU1zUdhv6hwH2oAeVEgrhwUh2O1IG0AtRGDmId8DmpeW08zBnl8ilNYMkYBON+pot0dCYpoF/AFqEZk1LGEyzB4D1OOwj42CDJkzoaqfEip8glh35ixva2vz3H1aF2VSSUI0V4JZvFbRJDMupYpZozCQ2XHvCj57CKhqEsJzCVqGuBR2mpzj96Crw0cX722hAya8HziHfWr0UqPo8ZfkkE8vU1Zzno5VugCiNFl18o="
+    on_start: always
+    
