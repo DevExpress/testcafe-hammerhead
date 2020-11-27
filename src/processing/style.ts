@@ -22,12 +22,9 @@ class StyleProcessor {
     STYLESHEET_PROCESSING_START_COMMENT: string = STYLESHEET_PROCESSING_START_COMMENT;
     STYLESHEET_PROCESSING_END_COMMENT: string = STYLESHEET_PROCESSING_END_COMMENT;
 
-    process (css: string, urlReplacer: Function, shouldIncludeProcessingComment?: boolean): string {
-        if (!css || typeof css !== 'string' || shouldIncludeProcessingComment && IS_STYLE_SHEET_PROCESSED_RE.test(css))
+    process (css: string, urlReplacer: Function, shouldIncludeProcessingComments?: boolean): string {
+        if (!css || typeof css !== 'string' || shouldIncludeProcessingComments && IS_STYLE_SHEET_PROCESSED_RE.test(css))
             return css;
-
-        const prefix  = shouldIncludeProcessingComment ? STYLESHEET_PROCESSING_START_COMMENT + '\n' : '';
-        const postfix = shouldIncludeProcessingComment ? '\n' + STYLESHEET_PROCESSING_END_COMMENT : '';
 
         // NOTE: Replace the :hover pseudo-class.
         css = css.replace(HOVER_PSEUDO_CLASS_RE, '[' + INTERNAL_ATTRS.hoverPseudoClass + ']$1');
@@ -36,7 +33,12 @@ class StyleProcessor {
         css = css.replace(SOURCE_MAP_RE, '');
 
         // NOTE: Replace URLs in CSS rules with proxy URLs.
-        return prefix + this._replaceStylsheetUrls(css, urlReplacer) + postfix;
+        css = this._replaceStylsheetUrls(css, urlReplacer);
+
+        if (shouldIncludeProcessingComments)
+            css = `${STYLESHEET_PROCESSING_START_COMMENT}\n${css}\n${STYLESHEET_PROCESSING_END_COMMENT}`;
+
+        return css;
     }
 
     cleanUp (css: string, parseProxyUrl: Function): string {
