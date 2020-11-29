@@ -139,7 +139,7 @@ export default class DocumentSandbox extends SandboxBase {
                 if (isIE)
                     return window.parent[INTERNAL_PROPS.hammerhead].sandbox.node.doc.iframeDocumentOpen(window, this, args);
 
-                const result = nativeMethods.documentOpen.apply(this, args);
+                const result = nativeMethods.documentOpen.apply(this, args as [string?, string?, string?, boolean?]);
 
                 // NOTE: Chrome does not remove the "%hammerhead%" property from window
                 // after document.open call
@@ -170,7 +170,7 @@ export default class DocumentSandbox extends SandboxBase {
                 if (DocumentSandbox._isDocumentInDesignMode(this))
                     ShadowUI.removeSelfRemovingScripts(this);
 
-                const result = nativeMethods.documentClose.apply(this, args);
+                const result = nativeMethods.documentClose.apply(this, args as []);
 
                 if (!documentSandbox._isUninitializedIframeWithoutSrc(window))
                     documentSandbox._onDocumentClosed();
@@ -207,7 +207,7 @@ export default class DocumentSandbox extends SandboxBase {
             overrideFunction(document, 'open', overriddenMethods.open);
 
         overrideFunction(docPrototype, 'createElement', function (...args) {
-            const el = nativeMethods.createElement.apply(this, args);
+            const el = nativeMethods.createElement.apply(this, args as [string, ElementCreationOptions?]);
 
             DocumentSandbox.forceProxySrcForImageIfNecessary(el);
             domProcessor.processElement(el, urlUtils.convertToProxyUrl);
@@ -217,17 +217,19 @@ export default class DocumentSandbox extends SandboxBase {
         });
 
         overrideFunction(docPrototype, 'createElementNS', function (...args) {
-            const el = nativeMethods.createElementNS.apply(this, args);
+            const el = nativeMethods.createElementNS.apply(this, args as [string, string, (string | ElementCreationOptions)?]);
 
-            DocumentSandbox.forceProxySrcForImageIfNecessary(el);
-            domProcessor.processElement(el, urlUtils.convertToProxyUrl);
-            documentSandbox._nodeSandbox.processNodes(el);
+            if (el instanceof HTMLElement) {
+                DocumentSandbox.forceProxySrcForImageIfNecessary(el);
+                domProcessor.processElement(el, urlUtils.convertToProxyUrl);
+                documentSandbox._nodeSandbox.processNodes(el);
+            }
 
             return el;
         });
 
         overrideFunction(docPrototype, 'createDocumentFragment', function (...args) {
-            const fragment = nativeMethods.createDocumentFragment.apply(this, args);
+            const fragment = nativeMethods.createDocumentFragment.apply(this, args as []);
 
             documentSandbox._nodeSandbox.processNodes(fragment);
 

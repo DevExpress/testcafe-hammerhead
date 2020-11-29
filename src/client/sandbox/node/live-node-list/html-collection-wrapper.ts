@@ -88,7 +88,7 @@ if (HTMLCollection.prototype.namedItem) {
         value:        function (this: HTMLCollectionWrapper, ...args) {
             this._refreshCollection();
 
-            const namedItem = this._collection.namedItem.apply(this._collection, args);
+            const namedItem = this._collection.namedItem.apply(this._collection, args as [string]);
 
             return namedItem && isShadowUIElement(namedItem) ? null : namedItem;
         },

@@ -1,14 +1,22 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "moduleResolution": "node",
+    "target": "es2017",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "checkJs": false,
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "types": ["node"],
+    "strict": false,
+    "newLine": "lf",
     "allowSyntheticDefaultImports": true,
+    "alwaysStrict": true,
+    "strictBindCallApply": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "strictFunctionTypes": true,
-    "strict": false,
-    "newLine": "lf"
   },
   "exclude": [
     "node_modules"

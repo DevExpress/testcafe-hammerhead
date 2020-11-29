@@ -103,7 +103,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
     }
 
     static _entriesWrapper (...args) {
-        const iterator   = nativeMethods.headersEntries.apply(this, args);
+        const iterator   = nativeMethods.headersEntries.apply(this, args as []);
         const nativeNext = iterator.next;
 
         iterator.next = () => FetchSandbox._entriesFilteredNext(iterator, nativeNext);
@@ -112,7 +112,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
     }
 
     static _valuesWrapper (...args) {
-        const iterator   = nativeMethods.headersEntries.apply(this, args);
+        const iterator   = nativeMethods.headersEntries.apply(this, args as []);
         const nativeNext = iterator.next;
 
         iterator.next = () => {
@@ -166,8 +166,9 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
                 return sandbox.delayUntilGetSettings(() => this.fetch.apply(this, args));
 
             // NOTE: Safari processed the empty `fetch()` request without `Promise` rejection (GH-1613)
-            if (!args.length && !browserUtils.isSafari)
-                return nativeMethods.fetch.apply(this);
+            if (!args.length && !browserUtils.isSafari) {
+                return nativeMethods.fetch.apply(this, [] as unknown as [RequestInfo, RequestInit?]);
+            }
 
             try {
                 FetchSandbox._processArguments(args);
@@ -235,7 +236,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
                 };
             }
 
-            return nativeMethods.headersForEach.apply(this, args);
+            return nativeMethods.headersForEach.apply(this, args as [() => void, any?]);
         });
 
         overrideFunction(window.Headers.prototype, 'get', function (...args) {
@@ -243,12 +244,12 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
 
             args[0] = transformHeaderNameToInternal(headerName);
 
-            const result = nativeMethods.headersGet.apply(this, args);
+            const result = nativeMethods.headersGet.apply(this, args as [string]);
 
             if (result === null) {
                 args[0] = headerName;
 
-                return nativeMethods.headersGet.apply(this, args);
+                return nativeMethods.headersGet.apply(this, args as [string]);
             }
 
             return result;
@@ -259,12 +260,12 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
 
             args[0] = transformHeaderNameToInternal(headerName);
 
-            const result = nativeMethods.headersHas.apply(this, args);
+            const result = nativeMethods.headersHas.apply(this, args as [string]);
 
             if (!result) {
                 args[0] = headerName;
 
-                return nativeMethods.headersHas.apply(this, args);
+                return nativeMethods.headersHas.apply(this, args as [string]);
             }
 
             return result;
@@ -273,7 +274,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         overrideFunction(window.Headers.prototype, 'set', function (...args) {
             args[0] = transformHeaderNameToInternal(args[0]);
 
-            return nativeMethods.headersSet.apply(this, args);
+            return nativeMethods.headersSet.apply(this, args as [string, string]);
         });
     }
 }

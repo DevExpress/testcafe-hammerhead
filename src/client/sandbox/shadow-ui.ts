@@ -269,7 +269,7 @@ export default class ShadowUI extends SandboxBase {
             // NOTE: T212974
             shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
-            const res = ShadowUI._filterElement(nativeMethods.elementFromPoint.apply(this, args));
+            const res = ShadowUI._filterElement(nativeMethods.elementFromPoint.apply(this, args as [number, number]));
 
             shadowUI.removeClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
@@ -307,11 +307,11 @@ export default class ShadowUI extends SandboxBase {
         }
 
         overrideFunction(docProto, 'getElementById', function (...args) {
-            return ShadowUI._filterElement(nativeMethods.getElementById.apply(this, args));
+            return ShadowUI._filterElement(nativeMethods.getElementById.apply(this, args as [string]));
         });
 
         overrideFunction(docProto, 'getElementsByName', function (...args) {
-            const elements = nativeMethods.getElementsByName.apply(this, args);
+            const elements = nativeMethods.getElementsByName.apply(this, args as [string]);
             const length   = getElementsByNameReturnsHTMLCollection
                 ? nativeMethods.htmlCollectionLengthGetter.call(elements)
                 : nativeMethods.nodeListLengthGetter.call(elements);

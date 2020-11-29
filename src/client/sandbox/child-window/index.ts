@@ -80,7 +80,7 @@ export default class ChildWindowSandbox extends SandboxBase {
             return openedWindowInfo.wnd;
         }
 
-        return nativeMethods.windowOpen.apply(window, args);
+        return nativeMethods.windowOpen.apply(window, args as [string?, string?, string?, boolean?]);
     }
 
     _handleFormSubmitting (window: Window): void {

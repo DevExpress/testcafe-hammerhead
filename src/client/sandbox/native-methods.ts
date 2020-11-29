@@ -4,6 +4,10 @@ import { isNativeFunction } from '../utils/overriding';
 
 const NATIVE_CODE_RE = /\[native code]/;
 
+interface IEHTMLElement extends HTMLElement {
+    msMatchesSelector: Function;
+}
+
 class NativeMethods {
     isStoragePropsLocatedInProto: boolean;
     createDocumentFragment: Document['createDocumentFragment'];
@@ -490,8 +494,16 @@ class NativeMethods {
     refreshElementMeths (doc, win: Window & typeof globalThis) {
         win = win || window as Window & typeof globalThis;
 
-        const createElement = tagName => this.createElement.call(doc || document, tagName);
-        const nativeElement = createElement('div');
+        const createElement   = tagName => this.createElement.call(doc || document, tagName);
+        const nativeElement   = createElement('div');
+        const nativeIEElement = nativeElement as IEHTMLElement;
+
+        const tableRowElement     = createElement('tr') as HTMLTableRowElement;
+        const tableElement        = createElement('table') as HTMLTableElement;
+        const tableSectionElement = createElement('tbody') as HTMLTableSectionElement;
+
+        const inputElement    = createElement('input') as HTMLInputElement;
+        const textareaElement = createElement('textarea') as HTMLTextAreaElement;
 
         const createTextNode = data => this.createTextNode.call(doc || document, data);
         const textNode       = createTextNode('text');
@@ -508,9 +520,9 @@ class NativeMethods {
         this.getAttributeNS                = nativeElement.getAttributeNS;
         this.insertAdjacentHTML            = nativeElement.insertAdjacentHTML;
         this.insertBefore                  = nativeElement.insertBefore;
-        this.insertCell                    = createElement('tr').insertCell;
-        this.insertTableRow                = createElement('table').insertRow;
-        this.insertTBodyRow                = createElement('tbody').insertRow;
+        this.insertCell                    = tableRowElement.insertCell;
+        this.insertTableRow                = tableElement.insertRow;
+        this.insertTBodyRow                = tableSectionElement.insertRow;
         this.removeAttribute               = nativeElement.removeAttribute;
         this.removeAttributeNS             = nativeElement.removeAttributeNS;
         this.removeChild                   = nativeElement.removeChild;
@@ -520,7 +532,7 @@ class NativeMethods {
         this.hasAttributeNS                = nativeElement.hasAttributeNS;
         this.hasAttributes                 = nativeElement.hasAttributes;
         this.anchorToString                = win.HTMLAnchorElement.prototype.toString;
-        this.matches                       = nativeElement.matches || nativeElement.msMatchesSelector;
+        this.matches                       = nativeElement.matches || nativeIEElement.msMatchesSelector;
         this.closest                       = nativeElement.closest;
 
         // Text node
@@ -555,8 +567,8 @@ class NativeMethods {
         this.focus                     = nativeElement.focus;
         // @ts-ignore
         this.select                    = window.TextRange ? createElement('body').createTextRange().select : null;
-        this.setSelectionRange         = createElement('input').setSelectionRange;
-        this.textAreaSetSelectionRange = createElement('textarea').setSelectionRange;
+        this.setSelectionRange         = inputElement.setSelectionRange;
+        this.textAreaSetSelectionRange = textareaElement.setSelectionRange;
 
         this.svgFocus = win.SVGElement ? win.SVGElement.prototype.focus : this.focus;
         this.svgBlur  = win.SVGElement ? win.SVGElement.prototype.blur : this.blur;

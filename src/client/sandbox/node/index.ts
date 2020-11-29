@@ -106,14 +106,14 @@ export default class NodeSandbox extends SandboxBase {
             this._documentTitleStorageInitializer.onPageTitleLoaded();
     }
 
-    processNodes (el: HTMLElement, doc?: Document): void {
+    processNodes (el: Node, doc?: Document): void {
         if (!el) {
             doc = doc || this.document;
 
             if (doc.documentElement)
                 this.processNodes(doc.documentElement);
         }
-        else if (el.querySelectorAll) {
+        else if (el instanceof HTMLElement && el.querySelectorAll) {
             this._processElement(el);
 
             const children = getNativeQuerySelectorAll(el).call(el, '*');

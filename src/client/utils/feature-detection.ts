@@ -36,7 +36,7 @@ if (nativeMethods.createElement) {
     // NOTE: In the Edge 17, the getNamedItem method of attributes object is not enumerable
     attrGetNamedItemIsNotEnumerable = nativeMethods.objectGetOwnPropertyDescriptor
     // @ts-ignore
-        .call(window.Object, NamedNodeMap.prototype, 'getNamedItem');
+        .call(window.Object, NamedNodeMap.prototype, 'getNamedItem') as boolean;
 
     // Both IE and Edge return an HTMLCollection, not a NodeList
     // @ts-ignore

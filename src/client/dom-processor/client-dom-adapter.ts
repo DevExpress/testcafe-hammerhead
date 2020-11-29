@@ -89,8 +89,8 @@ export default class ClientDomAdapter extends BaseDomAdapter {
         }
     }
 
-    getProxyUrl (): string {
-        return getProxyUrl.apply(null, arguments);
+    getProxyUrl (...args): string {
+        return getProxyUrl.apply(null, args as [string, any?]);
     }
 
     isTopParentIframe (el: HTMLElement): boolean {

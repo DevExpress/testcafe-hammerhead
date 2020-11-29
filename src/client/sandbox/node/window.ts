@@ -498,7 +498,7 @@ export default class WindowSandbox extends SandboxBase {
                 else
                     args = nativeMethods.arrayConcat.call(args, sources);
 
-                return nativeMethods.objectAssign.apply(this, args);
+                return nativeMethods.objectAssign.apply(this, args as [object, any[]]);
             });
         }
 
@@ -529,7 +529,7 @@ export default class WindowSandbox extends SandboxBase {
                     scriptURL = getProxyUrl(scriptURL, { resourceType: stringifyResourceType({ isScript: true }) });
 
                 if (isCalledWithoutNewKeyword)
-                    return nativeMethods.Worker.apply(this, arguments);
+                    return nativeMethods.Worker.apply(this, arguments as unknown as [string | URL, WorkerOptions?]);
 
                 const worker = arguments.length === 1
                     ? new nativeMethods.Worker(scriptURL)
@@ -824,7 +824,7 @@ export default class WindowSandbox extends SandboxBase {
                     nativeMethods.formDataAppend.call(this, name, value, value.name);
                 }
                 else
-                    nativeMethods.formDataAppend.apply(this, arguments);
+                    nativeMethods.formDataAppend.apply(this, arguments as unknown as [string, string | Blob, string?]);
             });
         }
 
@@ -1544,7 +1544,7 @@ export default class WindowSandbox extends SandboxBase {
                 },
 
                 setter: function (value) {
-                    return nativeMethods.windowOriginSetter.call(this, value);
+                    return nativeMethods.windowOriginSetter.apply(this, [value] as unknown as []);
                 }
             });
         }
