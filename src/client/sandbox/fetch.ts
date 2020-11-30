@@ -166,9 +166,8 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
                 return sandbox.delayUntilGetSettings(() => this.fetch.apply(this, args));
 
             // NOTE: Safari processed the empty `fetch()` request without `Promise` rejection (GH-1613)
-            if (!args.length && !browserUtils.isSafari) {
+            if (!args.length && !browserUtils.isSafari)
                 return nativeMethods.fetch.apply(this, [] as unknown as [RequestInfo, RequestInit?]);
-            }
 
             try {
                 FetchSandbox._processArguments(args);
