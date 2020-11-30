@@ -494,16 +494,8 @@ class NativeMethods {
     refreshElementMeths (doc, win: Window & typeof globalThis) {
         win = win || window as Window & typeof globalThis;
 
-        const createElement   = tagName => this.createElement.call(doc || document, tagName);
-        const nativeElement   = createElement('div');
-        const nativeIEElement = nativeElement as IEHTMLElement;
-
-        const tableRowElement     = createElement('tr') as HTMLTableRowElement;
-        const tableElement        = createElement('table') as HTMLTableElement;
-        const tableSectionElement = createElement('tbody') as HTMLTableSectionElement;
-
-        const inputElement    = createElement('input') as HTMLInputElement;
-        const textareaElement = createElement('textarea') as HTMLTextAreaElement;
+        const createElement = tagName => this.createElement.call(doc || document, tagName);
+        const nativeElement = createElement('div');
 
         const createTextNode = data => this.createTextNode.call(doc || document, data);
         const textNode       = createTextNode('text');
@@ -520,9 +512,9 @@ class NativeMethods {
         this.getAttributeNS                = nativeElement.getAttributeNS;
         this.insertAdjacentHTML            = nativeElement.insertAdjacentHTML;
         this.insertBefore                  = nativeElement.insertBefore;
-        this.insertCell                    = tableRowElement.insertCell;
-        this.insertTableRow                = tableElement.insertRow;
-        this.insertTBodyRow                = tableSectionElement.insertRow;
+        this.insertCell                    = (<HTMLTableRowElement>createElement('tr')).insertCell;
+        this.insertTableRow                = (<HTMLTableElement>createElement('table')).insertRow;
+        this.insertTBodyRow                = (<HTMLTableSectionElement>createElement('tbody')).insertRow;
         this.removeAttribute               = nativeElement.removeAttribute;
         this.removeAttributeNS             = nativeElement.removeAttributeNS;
         this.removeChild                   = nativeElement.removeChild;
@@ -532,7 +524,7 @@ class NativeMethods {
         this.hasAttributeNS                = nativeElement.hasAttributeNS;
         this.hasAttributes                 = nativeElement.hasAttributes;
         this.anchorToString                = win.HTMLAnchorElement.prototype.toString;
-        this.matches                       = nativeElement.matches || nativeIEElement.msMatchesSelector;
+        this.matches                       = nativeElement.matches || (<IEHTMLElement>nativeElement).msMatchesSelector;
         this.closest                       = nativeElement.closest;
 
         // Text node
@@ -567,8 +559,8 @@ class NativeMethods {
         this.focus                     = nativeElement.focus;
         // @ts-ignore
         this.select                    = window.TextRange ? createElement('body').createTextRange().select : null;
-        this.setSelectionRange         = inputElement.setSelectionRange;
-        this.textAreaSetSelectionRange = textareaElement.setSelectionRange;
+        this.setSelectionRange         = (<HTMLInputElement>createElement('input')).setSelectionRange;
+        this.textAreaSetSelectionRange = (<HTMLTextAreaElement>createElement('textarea')).setSelectionRange;
 
         this.svgFocus = win.SVGElement ? win.SVGElement.prototype.focus : this.focus;
         this.svgBlur  = win.SVGElement ? win.SVGElement.prototype.blur : this.blur;
