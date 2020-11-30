@@ -231,7 +231,7 @@ export default class DocumentSandbox extends SandboxBase {
         overrideFunction(docPrototype, 'createDocumentFragment', function (...args) {
             const fragment = nativeMethods.createDocumentFragment.apply(this, args as []);
 
-            documentSandbox._nodeSandbox.processNodes(fragment);
+            documentSandbox._nodeSandbox.processNodes(fragment as unknown as HTMLElement);
 
             return fragment;
         });
