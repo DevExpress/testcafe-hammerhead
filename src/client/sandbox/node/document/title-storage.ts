@@ -23,7 +23,7 @@ export default class DocumentTitleStorage extends EventEmitter {
         if (firstTitle)
             return firstTitle;
 
-        firstTitle = nativeMethods.createElement.call(this._document, 'title') as HTMLTitleElement;
+        firstTitle = <HTMLTitleElement>nativeMethods.createElement.call(this._document, 'title');
 
         nativeMethods.appendChild.call(this._document.head, firstTitle);
 
