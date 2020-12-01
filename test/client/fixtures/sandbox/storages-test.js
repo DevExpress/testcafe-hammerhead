@@ -212,6 +212,18 @@ test('getter', function () {
     strictEqual(localStorage.null, void 0);
 });
 
+if (window.Proxy) {
+    test('convert value type on setter', function () {
+        sessionStorage.key1 = 111;
+        strictEqual(sessionStorage.getItem('key1'), '111');
+        strictEqual(sessionStorage.length, 1);
+
+        sessionStorage.key1 = 222;
+        strictEqual(sessionStorage.getItem('key1'), '222');
+        strictEqual(sessionStorage.length, 1);
+    });
+}
+
 module('area of visibility');
 
 test('iframe with empty src', function () {

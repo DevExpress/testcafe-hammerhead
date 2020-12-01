@@ -47,7 +47,7 @@ export default class StorageWrapper {
     STORAGE_CHANGED_EVENT = 'hammerhead|event|storage-changed';
     EMPTY_OLD_VALUE_ARG: any;
 
-    constructor (window, nativeStorage, nativeStorageKey) {
+    protected constructor (window, nativeStorage, nativeStorageKey) {
         this.eventEmitter      = new EventEmitter();
         this.on                = (ev, handler) => this.eventEmitter.on(ev, handler);
         this.off               = (ev, handler) => this.eventEmitter.off(ev, handler);
@@ -255,6 +255,26 @@ export default class StorageWrapper {
         this.wrapperMethods = getWrapperMethods();
 
         init();
+    }
+
+    public static create (window, nativeStorage, nativeStorageKey) {
+        const storageWrapper = new StorageWrapper(window, nativeStorage, nativeStorageKey);
+
+        if (!window.Proxy)
+            return storageWrapper;
+
+        return new nativeMethods.Proxy(storageWrapper, {
+            set: (target, property, value) => {
+                const isInitialProperty = target.initialProperties.includes(property);
+
+                if (!isInitialProperty)
+                    target.setItem(property, value);
+                else
+                    target[property] = value;
+
+                return true;
+            }
+        });
     }
 }
 
