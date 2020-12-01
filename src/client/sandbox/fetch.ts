@@ -161,7 +161,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             }
         });
 
-        overrideFunction(window, 'fetch', function (...args: [RequestInfo, RequestInit]) {
+        overrideFunction(window, 'fetch', function (this: Window, ...args: [RequestInfo, RequestInit]) {
             if (sandbox.gettingSettingInProgress())
                 return sandbox.delayUntilGetSettings(() => this.fetch.apply(this, args));
 
@@ -220,7 +220,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
 
         overrideFunction(window.Headers.prototype, 'values', FetchSandbox._valuesWrapper);
 
-        overrideFunction(window.Headers.prototype, 'forEach', function (...args: [(value: string, key: string, parent: Headers) => void, any?]) {
+        overrideFunction(window.Headers.prototype, 'forEach', function (this: Headers, ...args: [(value: string, key: string, parent: Headers) => void, any?]) {
             const callback = args[0];
 
             if (typeof callback === 'function') {
@@ -238,7 +238,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             return nativeMethods.headersForEach.apply(this, args);
         });
 
-        overrideFunction(window.Headers.prototype, 'get', function (...args: [string]) {
+        overrideFunction(window.Headers.prototype, 'get', function (this: Headers, ...args: [string]) {
             const [headerName] = args;
 
             args[0] = transformHeaderNameToInternal(headerName);
@@ -254,7 +254,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             return result;
         });
 
-        overrideFunction(window.Headers.prototype, 'has', function (...args: [string]) {
+        overrideFunction(window.Headers.prototype, 'has', function (this: Headers, ...args: [string]) {
             const [headerName] = args;
 
             args[0] = transformHeaderNameToInternal(headerName);
@@ -270,7 +270,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             return result;
         });
 
-        overrideFunction(window.Headers.prototype, 'set', function (...args: [string, string]) {
+        overrideFunction(window.Headers.prototype, 'set', function (this: Headers, ...args: [string, string]) {
             args[0] = transformHeaderNameToInternal(args[0]);
 
             return nativeMethods.headersSet.apply(this, args);

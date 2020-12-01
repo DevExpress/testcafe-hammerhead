@@ -86,7 +86,7 @@ export default class StorageSandbox extends SandboxBase {
 
     _overrideStorageEvent () {
         // @ts-ignore
-        this.window.StorageEvent = function (type, opts) {
+        this.window.StorageEvent = function (this: Window, type, opts) {
             if (arguments.length === 0)
                 throw new TypeError();
 
@@ -95,10 +95,10 @@ export default class StorageSandbox extends SandboxBase {
             if (storedArea)
                 delete opts.storageArea;
 
-            const event = new this.nativeMethods.StorageEvent(type, opts);
+            const event = new this['nativeMethods'].StorageEvent(type, opts);
 
             if (storedArea) {
-                this.nativeMethods.objectDefineProperty(event, 'storageArea', {
+                this['nativeMethods'].objectDefineProperty(event, 'storageArea', {
                     get: () => storedArea,
                     set: () => void 0
                 });

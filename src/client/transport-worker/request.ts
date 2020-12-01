@@ -38,7 +38,7 @@ function handleReject (ctx: RequestContext, e: ProgressEvent) {
     }
 }
 
-function handleEvent (e: ProgressEvent) {
+function handleEvent (this: unknown, e: ProgressEvent) {
     const ctx = this as RequestContext;
 
     if (e.type === 'load')

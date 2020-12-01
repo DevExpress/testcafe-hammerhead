@@ -49,14 +49,14 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         const xhrSandbox             = this;
         const xmlHttpRequestProto    = window.XMLHttpRequest.prototype;
 
-        const emitXhrCompletedEvent = function () {
+        const emitXhrCompletedEvent = function (this: XMLHttpRequest) {
             const nativeRemoveEventListener = nativeMethods.xhrRemoveEventListener || nativeMethods.removeEventListener;
 
             xhrSandbox.emit(xhrSandbox.XHR_COMPLETED_EVENT, { xhr: this });
             nativeRemoveEventListener.call(this, 'loadend', emitXhrCompletedEvent);
         };
 
-        const syncCookieWithClientIfNecessary = function () {
+        const syncCookieWithClientIfNecessary = function (this: XMLHttpRequest) {
             if (this.readyState < this.HEADERS_RECEIVED)
                 return;
 
@@ -92,9 +92,9 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             value: xmlHttpRequestWrapper
         });
 
-        overrideFunction(xmlHttpRequestProto, 'abort', function () {
+        overrideFunction(xmlHttpRequestProto, 'abort', function (this: XMLHttpRequest, ...args) {
             if (xhrSandbox.gettingSettingInProgress()) {
-                xhrSandbox.delayUntilGetSettings(() => this.abort.apply(this, arguments));
+                xhrSandbox.delayUntilGetSettings(() => this.abort.apply(this, args as unknown as []));
 
                 return;
             }
@@ -108,7 +108,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
 
         // NOTE: Redirect all requests to the Hammerhead proxy and ensure that requests don't
         // violate Same Origin Policy.
-        overrideFunction(xmlHttpRequestProto, 'open', function () {
+        overrideFunction(xmlHttpRequestProto, 'open', function (this: XMLHttpRequest, ...args) {
             const url = arguments[1];
 
             if (getProxyUrl(url) === url) {
@@ -118,7 +118,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             }
 
             if (xhrSandbox.gettingSettingInProgress()) {
-                xhrSandbox.delayUntilGetSettings(() => this.open.apply(this, arguments));
+                xhrSandbox.delayUntilGetSettings(() => this.open.apply(this, args as [string, string, boolean, string?, string?]));
 
                 return;
             }
@@ -130,9 +130,9 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             nativeMethods.xhrOpen.apply(this, arguments);
         });
 
-        overrideFunction(xmlHttpRequestProto, 'send', function () {
+        overrideFunction(xmlHttpRequestProto, 'send', function (this: XMLHttpRequest, ...args) {
             if (xhrSandbox.gettingSettingInProgress()) {
-                xhrSandbox.delayUntilGetSettings(() => this.send.apply(this, arguments));
+                xhrSandbox.delayUntilGetSettings(() => this.send.apply(this, args as [(string | Document | Blob | ArrayBufferView | ArrayBuffer | FormData | URLSearchParams | ReadableStream<Uint8Array>)?]));
 
                 return;
             }
@@ -155,7 +155,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             syncCookieWithClientIfNecessary.call(this);
         });
 
-        overrideFunction(xmlHttpRequestProto, 'setRequestHeader', function (...args) {
+        overrideFunction(xmlHttpRequestProto, 'setRequestHeader', function (this: XMLHttpRequest, ...args) {
             args[0] = transformHeaderNameToInternal(args[0]);
 
             return nativeMethods.xhrSetRequestHeader.apply(this, args);
@@ -177,13 +177,13 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             });
         }
 
-        overrideFunction(xmlHttpRequestProto, 'getResponseHeader', function (...args) {
+        overrideFunction(xmlHttpRequestProto, 'getResponseHeader', function (this: XMLHttpRequest, ...args) {
             args[0] = transformHeaderNameToInternal(args[0]);
 
             return nativeMethods.xhrGetResponseHeader.apply(this, args);
         });
 
-        overrideFunction(xmlHttpRequestProto, 'getAllResponseHeaders', function () {
+        overrideFunction(xmlHttpRequestProto, 'getAllResponseHeaders', function (this: XMLHttpRequest) {
             const allHeaders = nativeMethods.xhrGetAllResponseHeaders.apply(this, arguments);
 
             return allHeaders

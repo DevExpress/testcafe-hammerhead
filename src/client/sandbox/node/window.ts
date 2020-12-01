@@ -294,10 +294,10 @@ export default class WindowSandbox extends SandboxBase {
 
         for (const constructor of elementConstructors) {
             overrideDescriptor(constructor.prototype, attr, {
-                getter: function () {
+                getter: function (this: HTMLElement) {
                     return WindowSandbox._getUrlAttr(this, attr);
                 },
-                setter: function (value) {
+                setter: function (this: HTMLElement, value) {
                     windowSandbox.nodeSandbox.element.setAttributeCore(this, [attr, value]);
                 }
             });
@@ -309,10 +309,10 @@ export default class WindowSandbox extends SandboxBase {
 
         for (const constructor of elementConstructors) {
             overrideDescriptor(constructor.prototype, attr, {
-                getter: function () {
+                getter: function (this: HTMLElement) {
                     return windowSandbox.nodeSandbox.element.getAttributeCore(this, [attr]) || '';
                 },
-                setter: function (value) {
+                setter: function (this: HTMLElement, value) {
                     windowSandbox.nodeSandbox.element.setAttributeCore(this, [attr, value]);
                 }
             });
@@ -322,10 +322,10 @@ export default class WindowSandbox extends SandboxBase {
     _overrideUrlPropDescriptor (prop, nativePropGetter, nativePropSetter): void {
         // @ts-ignore
         overrideDescriptor(window.HTMLAnchorElement.prototype, prop, {
-            getter: function () {
+            getter: function (this: HTMLElement) {
                 return getAnchorProperty(this, nativePropGetter);
             },
-            setter: function (value) {
+            setter: function (this: HTMLElement, value) {
                 setAnchorProperty(this, nativePropSetter, value);
             }
         });
@@ -352,7 +352,7 @@ export default class WindowSandbox extends SandboxBase {
     _createOverriddenDOMTokenListMethod (nativeMethod): Function {
         const windowSandbox = this;
 
-        return function () {
+        return function (this: unknown) {
             const executionResult = nativeMethod.apply(this, arguments);
             const tokenListOwner  = this[SANDBOX_DOM_TOKEN_LIST_OWNER];
 
@@ -445,7 +445,7 @@ export default class WindowSandbox extends SandboxBase {
                 windowSandbox.emit(cmd, { msg, pageUrl, stack });
         });
 
-        overrideFunction(window.CanvasRenderingContext2D.prototype, 'drawImage', function (...args) {
+        overrideFunction(window.CanvasRenderingContext2D.prototype, 'drawImage', function (this: CanvasRenderingContext2D, ...args) {
             let image = args[0];
 
             if (isImgElement(image) && !image[INTERNAL_PROPS.forceProxySrcForImage]) {
@@ -469,7 +469,7 @@ export default class WindowSandbox extends SandboxBase {
         });
 
         if (nativeMethods.objectAssign) {
-            overrideFunction(window.Object, 'assign', function (target: object, ...sources: any[]) {
+            overrideFunction(window.Object, 'assign', function (this: Object, target: object, ...sources: any[]) {
                 let args         = [target] as [object, ...any[]];
                 const targetType = typeof target;
 
@@ -515,7 +515,7 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.Worker) {
-            overrideConstructor(window, 'Worker', function WorkerWrapper (...args: [string | URL, WorkerOptions?]) {
+            overrideConstructor(window, 'Worker', function WorkerWrapper (this: Worker, ...args: [string | URL, WorkerOptions?]) {
                 const isCalledWithoutNewKeyword = constructorIsCalledWithoutNewKeyword(this, WorkerWrapper);
 
                 if (arguments.length === 0)
@@ -597,7 +597,7 @@ export default class WindowSandbox extends SandboxBase {
 
         if (window.MutationObserver) {
             overrideConstructor(window, 'MutationObserver', callback => {
-                const wrapper = function (mutations) {
+                const wrapper = function (this: MutationObserver, mutations) {
                     const result = [];
 
                     for (const mutation of mutations) {
@@ -700,7 +700,7 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.Range.prototype.createContextualFragment) {
-            overrideFunction(window.Range.prototype, 'createContextualFragment', function (...args) {
+            overrideFunction(window.Range.prototype, 'createContextualFragment', function (this: Range, ...args) {
                 const tagString = args[0];
 
                 if (typeof tagString === 'string') {
@@ -741,7 +741,7 @@ export default class WindowSandbox extends SandboxBase {
             return image;
         });
 
-        overrideConstructor(window, 'Function', function (...args) {
+        overrideConstructor(window, 'Function', function (this: Function, ...args) {
             const functionBodyArgIndex = args.length - 1;
 
             if (typeof args[functionBodyArgIndex] === 'string')
@@ -750,7 +750,7 @@ export default class WindowSandbox extends SandboxBase {
             return nativeMethods.Function.apply(this, args);
         }, true);
 
-        overrideFunction(window.Function.prototype, 'toString', function () {
+        overrideFunction(window.Function.prototype, 'toString', function (this: Function) {
             if (nativeMethods.objectHasOwnProperty.call(this, INTERNAL_PROPS.nativeStrRepresentation))
                 return this[INTERNAL_PROPS.nativeStrRepresentation];
 
@@ -759,7 +759,7 @@ export default class WindowSandbox extends SandboxBase {
 
         if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
             const createWrapperForHistoryStateManipulationFn = function (nativeFn) {
-                return function (...args) {
+                return function (this: History, ...args) {
                     const url = args[2];
 
                     if (args.length > 2 && (url !== null && (isIE || url !== void 0)))
@@ -774,7 +774,7 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.navigator.sendBeacon) {
-            overrideFunction(window.navigator, 'sendBeacon', function () {
+            overrideFunction(window.navigator, 'sendBeacon', function (this: Navigator) {
                 if (typeof arguments[0] === 'string')
                     arguments[0] = getProxyUrl(arguments[0]);
 
@@ -809,9 +809,8 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.FormData) {
-            overrideFunction(window.FormData.prototype, 'append', function (...args: [string, string | Blob, string?]) {
+            overrideFunction(window.FormData.prototype, 'append', function (this: FormData, ...args: [string, string | Blob, string?]) {
                 const [name, value] = args;
-            
                 // NOTE: We should not send our hidden input's value along with the file info,
                 // because our input may have incorrect value if the input with the file has been removed from DOM.
                 if (name === INTERNAL_ATTRS.uploadInfoHiddenInputName)
@@ -863,7 +862,7 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         overrideDescriptor(window.MessageEvent.prototype, 'origin', {
-            getter: function () {
+            getter: function (this: MessageEvent) {
                 const target = this.target;
                 const origin = nativeMethods.messageEventOriginGetter.call(this);
 
@@ -908,7 +907,7 @@ export default class WindowSandbox extends SandboxBase {
         });
 
         overrideDescriptor(window.Element.prototype, 'childElementCount', {
-            getter: function () {
+            getter: function (this: Element) {
                 if (ShadowUI.isShadowContainer(this)) {
                     const childrenLength = nativeMethods.htmlCollectionLengthGetter.call(this.children);
 
@@ -937,7 +936,7 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         overrideDescriptor(window.HTMLInputElement.prototype, 'files', {
-            getter: function () {
+            getter: function (this: HTMLInputElement) {
                 if (this.type.toLowerCase() === 'file')
                     return UploadSandbox.getFiles(this);
 
@@ -946,13 +945,13 @@ export default class WindowSandbox extends SandboxBase {
         });
 
         overrideDescriptor(window.HTMLInputElement.prototype, 'value', {
-            getter: function () {
+            getter: function (this: HTMLInputElement) {
                 if (this.type.toLowerCase() === 'file')
                     return UploadSandbox.getUploadElementValue(this);
 
                 return nativeMethods.inputValueGetter.call(this);
             },
-            setter: function (value) {
+            setter: function (this: HTMLInputElement, value) {
                 if (this.type.toLowerCase() === 'file')
                     return windowSandbox.uploadSandbox.setUploadElementValue(this, value);
 
@@ -969,7 +968,7 @@ export default class WindowSandbox extends SandboxBase {
         if (isChrome) {
             overrideDescriptor(window.HTMLInputElement.prototype, 'disabled', {
                 getter: null,
-                setter: function (value) {
+                setter: function (this: HTMLInputElement, value) {
                     if (nativeMethods.documentActiveElementGetter.call(document) === this) {
                         const savedValue   = windowSandbox.elementEditingWatcher.getElementSavedValue(this);
                         const currentValue = nativeMethods.inputValueGetter.call(this);
@@ -986,10 +985,10 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         overrideDescriptor(window.HTMLInputElement.prototype, 'required', {
-            getter: function () {
+            getter: function (this: HTMLInputElement) {
                 return windowSandbox.nodeSandbox.element.getAttributeCore(this, ['required']) !== null;
             },
-            setter: function (value) {
+            setter: function (this: HTMLInputElement, value) {
                 if (this.type.toLowerCase() !== 'file')
                     nativeMethods.inputRequiredSetter.call(this, value);
                 else if (value)
@@ -1001,7 +1000,7 @@ export default class WindowSandbox extends SandboxBase {
 
         overrideDescriptor(window.HTMLTextAreaElement.prototype, 'value', {
             getter: null,
-            setter: function (value) {
+            setter: function (this: HTMLTextAreaElement, value) {
                 nativeMethods.textAreaValueSetter.call(this, value);
 
                 if (!isShadowUIElement(this) && isTextEditableElementAndEditingAllowed(this))
@@ -1063,13 +1062,13 @@ export default class WindowSandbox extends SandboxBase {
 
         overrideDescriptor(window.HTMLInputElement.prototype, 'type', {
             getter: null,
-            setter: function (value) {
+            setter: function (this: HTMLInputElement, value) {
                 windowSandbox.nodeSandbox.element.setAttributeCore(this, ['type', value]);
             }
         });
 
         overrideDescriptor(window.HTMLIFrameElement.prototype, 'sandbox', {
-            getter: function () {
+            getter: function (this: HTMLIFrameElement) {
                 let domTokenList = this[SANDBOX_DOM_TOKEN_LIST];
 
                 if (!domTokenList) {
@@ -1089,7 +1088,7 @@ export default class WindowSandbox extends SandboxBase {
 
                 return domTokenList;
             },
-            setter: function (value) {
+            setter: function (this: HTMLIFrameElement, value) {
                 windowSandbox.nodeSandbox.element.setAttributeCore(this, ['sandbox', value]);
 
                 if (this[SANDBOX_DOM_TOKEN_LIST_UPDATE_FN])
@@ -1099,10 +1098,10 @@ export default class WindowSandbox extends SandboxBase {
 
         if (nativeMethods.iframeSrcdocGetter) {
             overrideDescriptor(window.HTMLIFrameElement.prototype, 'srcdoc', {
-                getter: function () {
+                getter: function (this: HTMLIFrameElement) {
                     return windowSandbox.nodeSandbox.element.getAttributeCore(this, ['srcdoc']) || '';
                 },
-                setter: function (value) {
+                setter: function (this: HTMLIFrameElement, value) {
                     windowSandbox.nodeSandbox.element.setAttributeCore(this, ['srcdoc', value]);
                 }
             });
@@ -1166,7 +1165,7 @@ export default class WindowSandbox extends SandboxBase {
 
         if (nativeMethods.anchorOriginGetter) {
             overrideDescriptor(window.HTMLAnchorElement.prototype, 'origin', {
-                getter: function () {
+                getter: function (this: HTMLAnchorElement) {
                     return getAnchorProperty(this, nativeMethods.anchorOriginGetter);
                 }
             });
@@ -1195,7 +1194,7 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.DOMParser) {
-            overrideFunction(window.DOMParser.prototype, 'parseFromString', function (...args) {
+            overrideFunction(window.DOMParser.prototype, 'parseFromString', function (this: DOMParser, ...args) {
                 const str  = args[0];
                 const type = args[1];
                 let processedHtml;
@@ -1275,7 +1274,7 @@ export default class WindowSandbox extends SandboxBase {
         });
 
         overrideDescriptor(window[nativeMethods.elementHTMLPropOwnerName].prototype, 'innerHTML', {
-            getter: function () {
+            getter: function (this: HTMLElement) {
                 if (windowSandbox._documentTitleStorageInitializer && isTitleElement(this))
                     return windowSandbox._documentTitleStorageInitializer.storage.getTitleElementPropertyValue(this);
 
@@ -1288,7 +1287,7 @@ export default class WindowSandbox extends SandboxBase {
 
                 return cleanUpHtml(innerHTML);
             },
-            setter: function (value) {
+            setter: function (this: HTMLElement, value) {
                 if (windowSandbox._documentTitleStorageInitializer && isTitleElement(this)) {
                     windowSandbox._documentTitleStorageInitializer.storage.setTitleElementPropertyValue(this, value);
 
@@ -1401,7 +1400,7 @@ export default class WindowSandbox extends SandboxBase {
         });
 
         overrideDescriptor(window.HTMLElement.prototype, 'innerText', {
-            getter: function () {
+            getter: function (this: HTMLElement) {
                 if (windowSandbox._documentTitleStorageInitializer && isTitleElement(this))
                     return windowSandbox._documentTitleStorageInitializer.storage.getTitleElementPropertyValue(this);
 
@@ -1409,7 +1408,7 @@ export default class WindowSandbox extends SandboxBase {
 
                 return WindowSandbox._removeProcessingInstructions(textContent);
             },
-            setter: function (value) {
+            setter: function (this: HTMLElement, value) {
                 if (windowSandbox._documentTitleStorageInitializer && isTitleElement(this)){
                     windowSandbox._documentTitleStorageInitializer.storage.setTitleElementPropertyValue(this, value);
 
@@ -1438,12 +1437,12 @@ export default class WindowSandbox extends SandboxBase {
         });
 
         overrideDescriptor(window.HTMLAnchorElement.prototype, 'text', {
-            getter: function () {
+            getter: function (this: HTMLAnchorElement) {
                 const textContent = nativeMethods.anchorTextGetter.call(this);
 
                 return WindowSandbox._removeProcessingInstructions(textContent);
             },
-            setter: function (value) {
+            setter: function (this: HTMLAnchorElement, value) {
                 const processedValue = WindowSandbox._processTextPropValue(this, value);
 
                 DOMMutationTracker.onChildrenChanged(this);
@@ -1453,7 +1452,7 @@ export default class WindowSandbox extends SandboxBase {
         });
 
         overrideDescriptor(window.Node.prototype, 'textContent', {
-            getter: function () {
+            getter: function (this: HTMLElement) {
                 if (windowSandbox._documentTitleStorageInitializer && isTitleElement(this))
                     return windowSandbox._documentTitleStorageInitializer.storage.getTitleElementPropertyValue(this);
 
@@ -1461,7 +1460,7 @@ export default class WindowSandbox extends SandboxBase {
 
                 return WindowSandbox._removeProcessingInstructions(textContent);
             },
-            setter: function (value) {
+            setter: function (this: HTMLElement, value) {
                 if (windowSandbox._documentTitleStorageInitializer && isTitleElement(this)) {
                     windowSandbox._documentTitleStorageInitializer.storage.setTitleElementPropertyValue(this, value);
 
@@ -1490,7 +1489,7 @@ export default class WindowSandbox extends SandboxBase {
             overrideFunction(window.DOMTokenList.prototype, 'replace', this._createOverriddenDOMTokenListMethod(nativeMethods.tokenListReplace));
 
         if (nativeMethods.tokenListSupports) {
-            overrideFunction(window.DOMTokenList.prototype, 'supports', function () {
+            overrideFunction(window.DOMTokenList.prototype, 'supports', function (this: DOMTokenList) {
                 if (this[SANDBOX_DOM_TOKEN_LIST_OWNER]) {
                     const nativeTokenList = nativeMethods.iframeSandboxGetter.call(this[SANDBOX_DOM_TOKEN_LIST_OWNER]);
 
@@ -1501,7 +1500,7 @@ export default class WindowSandbox extends SandboxBase {
             });
         }
 
-        overrideFunction(window.DOMImplementation.prototype, 'createHTMLDocument', function (...args) {
+        overrideFunction(window.DOMImplementation.prototype, 'createHTMLDocument', function (this: DOMImplementation, ...args) {
             const doc = nativeMethods.createHTMLDocument.apply(this, args);
 
             urlResolver.init(doc);
@@ -1542,7 +1541,7 @@ export default class WindowSandbox extends SandboxBase {
                     return destLocation.getOriginHeader();
                 },
 
-                setter: function (value) {
+                setter: function (this: Window, value) {
                     return nativeMethods.windowOriginSetter.call(this, value);
                 }
             });
@@ -1551,7 +1550,7 @@ export default class WindowSandbox extends SandboxBase {
         if (nativeMethods.linkAsSetter) {
             overrideDescriptor(window.HTMLLinkElement.prototype, 'as', {
                 getter: null,
-                setter: function (value) {
+                setter: function (this: HTMLLinkElement, value) {
                     const currentValue         = this.as;
                     const shouldRecalculateUrl = value !== currentValue &&
                         (value === domProcessor.PROCESSED_PRELOAD_LINK_CONTENT_TYPE || currentValue === domProcessor.PROCESSED_PRELOAD_LINK_CONTENT_TYPE);
@@ -1568,10 +1567,10 @@ export default class WindowSandbox extends SandboxBase {
 
         if (this._documentTitleStorageInitializer) {
             overrideDescriptor(window.HTMLTitleElement.prototype, 'text', {
-                getter: function () {
+                getter: function (this: HTMLTitleElement) {
                     return windowSandbox._documentTitleStorageInitializer.storage.getTitleElementPropertyValue(this);
                 },
-                setter: function (value) {
+                setter: function (this: HTMLTitleElement, value) {
                     windowSandbox._documentTitleStorageInitializer.storage.setTitleElementPropertyValue(this, value);
                 }
             });

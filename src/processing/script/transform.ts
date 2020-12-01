@@ -116,7 +116,7 @@ function addTempVarsDeclaration (node: BlockStatement | Program, changes: CodeCh
     addChangeForTransformedNode(state, changes, declaration, node.type);
 }
 
-function beforeTransform (wrapLastExprWithProcessHtml = false, resolver?: Function) {
+function beforeTransform (this: unknown, wrapLastExprWithProcessHtml = false, resolver?: Function) {
     jsProtocolLastExpression.wrapLastExpr = wrapLastExprWithProcessHtml;
     staticImportTransformer.resolver = resolver;
 

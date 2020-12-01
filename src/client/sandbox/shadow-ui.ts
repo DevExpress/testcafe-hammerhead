@@ -161,7 +161,7 @@ export default class ShadowUI extends SandboxBase {
 
         return {
             getElementsByClassName (nativeGetElementsByClassNameFnName) {
-                return function (...args) {
+                return function (this: HTMLElement, ...args) {
                     const elements = nativeMethods[nativeGetElementsByClassNameFnName].apply(this, args);
                     const length   = nativeMethods.htmlCollectionLengthGetter.call(elements);
 
@@ -170,7 +170,7 @@ export default class ShadowUI extends SandboxBase {
             },
 
             getElementsByTagName (nativeGetElementsByTagNameFnName) {
-                return function (...args) {
+                return function (this: HTMLElement, ...args) {
                     const nativeCollection = nativeMethods[nativeGetElementsByTagNameFnName].apply(this, args);
                     const tagName          = args[0];
 
@@ -191,7 +191,7 @@ export default class ShadowUI extends SandboxBase {
             },
 
             querySelector (nativeQuerySelectorFnName, nativeQuerySelectorAllFnName) {
-                return function (...args) {
+                return function (this: HTMLElement, ...args) {
                     if (typeof args[0] === 'string')
                         args[0] = NodeSandbox.processSelector(args[0]);
 
@@ -206,7 +206,7 @@ export default class ShadowUI extends SandboxBase {
             },
 
             querySelectorAll (nativeQuerySelectorAllFnName) {
-                return function (...args) {
+                return function (this: HTMLElement, ...args) {
                     if (typeof args[0] === 'string')
                         args[0] = NodeSandbox.processSelector(args[0]);
 
@@ -265,7 +265,7 @@ export default class ShadowUI extends SandboxBase {
         const shadowUI = this;
         const docProto = window.Document.prototype;
 
-        overrideFunction(docProto, 'elementFromPoint', function (...args: [number, number]) {
+        overrideFunction(docProto, 'elementFromPoint', function (this: Document, ...args: [number, number]) {
             // NOTE: T212974
             shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
@@ -277,7 +277,7 @@ export default class ShadowUI extends SandboxBase {
         });
 
         if (document.caretRangeFromPoint) {
-            overrideFunction(docProto, 'caretRangeFromPoint', function (...args) {
+            overrideFunction(docProto, 'caretRangeFromPoint', function (this: Document, ...args) {
                 shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
                 let res = nativeMethods.caretRangeFromPoint.apply(this, args);
@@ -292,7 +292,7 @@ export default class ShadowUI extends SandboxBase {
         }
 
         if (document.caretPositionFromPoint) {
-            overrideFunction(docProto, 'caretPositionFromPoint', function (...args) {
+            overrideFunction(docProto, 'caretPositionFromPoint', function (this: Document, ...args) {
                 shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
                 let res = nativeMethods.caretPositionFromPoint.apply(this, args);
@@ -306,11 +306,11 @@ export default class ShadowUI extends SandboxBase {
             });
         }
 
-        overrideFunction(docProto, 'getElementById', function (...args: [string]) {
+        overrideFunction(docProto, 'getElementById', function (this: Document, ...args: [string]) {
             return ShadowUI._filterElement(nativeMethods.getElementById.apply(this, args));
         });
 
-        overrideFunction(docProto, 'getElementsByName', function (...args: [string]) {
+        overrideFunction(docProto, 'getElementsByName', function (this: Document, ...args: [string]) {
             const elements = nativeMethods.getElementsByName.apply(this, args);
             const length   = getElementsByNameReturnsHTMLCollection
                 ? nativeMethods.htmlCollectionLengthGetter.call(elements)
