@@ -1,8 +1,9 @@
 import { isRegExp, isString } from 'lodash';
 import { ensureOriginTrailingSlash } from '../../utils/url';
 import { RequestInfo } from '../../session/events/info';
+import { Options, Predicate } from '../../typings/request-filter-rule';
 
-const DEFAULT_OPTIONS = {
+const DEFAULT_OPTIONS: Options = {
     url:    void 0,
     method: void 0,
     isAjax: void 0
@@ -13,26 +14,27 @@ const MATCH_ANY_REQUEST_REG_EX = /.*/;
 const STRINGIFIED_FUNCTION_OPTIONS = '{ <predicate> }';
 
 export default class RequestFilterRule {
-    private readonly options: any;
+    private readonly options: Options | Predicate;
 
-    constructor (options: any) {
+    constructor (options: string | RegExp | Predicate | Options) {
         this.options = this._initializeOptions(options);
     }
 
-    _initializeOptions (options: any) {
-        let tmpOptions: any = Object.assign({}, DEFAULT_OPTIONS);
+    _initializeOptions (options: string | RegExp | Predicate | Options) {
+        let tmpOptions: Options | Predicate = Object.assign({}, DEFAULT_OPTIONS);
 
         if (typeof options === 'string' || isRegExp(options))
             tmpOptions.url = options;
         else if (typeof options === 'function')
             tmpOptions = options;
-        else if (typeof options === 'object')
+        else if (typeof options === 'object') {
             tmpOptions = Object.assign(tmpOptions, options);
+
+            if (typeof tmpOptions.method === 'string')
+                tmpOptions.method = tmpOptions.method.toLowerCase();
+        }
         else
             throw new TypeError('Wrong options have been passed to a request filter.');
-
-        if (typeof tmpOptions.method === 'string')
-            tmpOptions.method = tmpOptions.method.toLowerCase();
 
         return tmpOptions;
     }
@@ -74,20 +76,26 @@ export default class RequestFilterRule {
     }
 
     _matchUsingObjectOptions (requestInfo: RequestInfo) {
-        return this._matchUrl(this.options.url, requestInfo.url) &&
-               this._matchMethod(this.options.method, requestInfo.method) &&
-               this._matchIsAjax(this.options.isAjax, requestInfo.isAjax);
+        const { url, method, isAjax } = this.options as Options;
+
+        return this._matchUrl(url, requestInfo.url) &&
+               this._matchMethod(method, requestInfo.method) &&
+               this._matchIsAjax(isAjax, requestInfo.isAjax);
     }
 
     async _matchUsingFunctionOptions (requestInfo: RequestInfo): Promise<boolean> {
-        return !!await this.options.call(this, requestInfo);
+        const predicate = this.options as Predicate;
+
+        return !!predicate.call(this, requestInfo);
     }
 
     _stringifyObjectOptions () {
+        const { url, method, isAjax } = this.options as Options;
+
         const stringifiedOptions = [
-            { name: 'url', value: this.options.url },
-            { name: 'method', value: this.options.method },
-            { name: 'isAjax', value: this.options.isAjax }
+            { name: 'url', value: url },
+            { name: 'method', value: method },
+            { name: 'isAjax', value: isAjax }
         ];
 
         const msg = stringifiedOptions.filter(option => !!option.value)
