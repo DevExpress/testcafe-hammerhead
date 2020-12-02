@@ -6,6 +6,8 @@ var processScript  = hammerhead.get('../processing/script').processScript;
 var urlUtils       = hammerhead.get('./utils/url');
 var urlResolver    = hammerhead.get('./utils/url-resolver');
 
+var INIT_SCRIPT_FOR_IFRAME_TEMPLATE = hammerhead.get('../utils/init-script-for-iframe-template');
+
 var nativeMethods = hammerhead.nativeMethods;
 var shadowUI      = hammerhead.sandbox.shadowUI;
 var browserUtils  = hammerhead.utils.browser;
@@ -244,7 +246,7 @@ test('partial page html', function () {
 test('init script for iframe template', function () {
     var check = function (template) {
         var html                  = template.replace(/\{0\}/g, '');
-        var expectedProcessedHtml = template.replace(/\{0\}/g, htmlUtils.INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
+        var expectedProcessedHtml = template.replace(/\{0\}/g, INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
         var processedHtml         = htmlUtils.processHtml(html);
 
         strictEqual(processedHtml, expectedProcessedHtml);

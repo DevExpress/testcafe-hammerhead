@@ -12,6 +12,7 @@ import RequestPipelineContext from '../../request-pipeline/context';
 import Charset from '../encoding/charset';
 import BaseDomAdapter from '../dom/base-dom-adapter';
 import SERVICE_ROUTES from '../../proxy/service-routes';
+import INIT_SCRIPT_FOR_IFRAME_TEMPLATE from '../../utils/init-script-for-iframe-template';
 
 const BODY_CREATED_EVENT_SCRIPT = createSelfRemovingScript(`
     if (window["${ INTERNAL_PROPS.hammerhead }"])
@@ -24,6 +25,7 @@ const ORIGIN_FIRST_TITLE_ELEMENT_LOADED_SCRIPT = createSelfRemovingScript(`
 
 const PARSED_BODY_CREATED_EVENT_SCRIPT                = parse5.parseFragment(BODY_CREATED_EVENT_SCRIPT).childNodes[0];
 const PARSED_ORIGIN_FIRST_TITLE_ELEMENT_LOADED_SCRIPT = parse5.parseFragment(ORIGIN_FIRST_TITLE_ELEMENT_LOADED_SCRIPT).childNodes[0];
+const PARSED_INIT_SCRIPT_FOR_IFRAME_TEMPLATE          = parse5.parseFragment(INIT_SCRIPT_FOR_IFRAME_TEMPLATE).childNodes[0];
 
 interface PageProcessingOptions {
     crossDomainProxyPort: number;
@@ -216,7 +218,9 @@ class PageProcessor extends ResourceProcessorBase {
 
         parse5Utils.walkElements(root, el => domProcessor.processElement(el, replacer));
 
-        if (!ctx.isHtmlImport && !isSrcdoc) {
+        if (isSrcdoc)
+            parse5Utils.unshiftElement(PARSED_INIT_SCRIPT_FOR_IFRAME_TEMPLATE, head);
+        else if (!ctx.isHtmlImport) {
             PageProcessor._addPageResources(head, processingOpts);
             PageProcessor._addPageOriginFirstTitleParsedScript(head, ctx);
             PageProcessor._addBodyCreatedEventScript(body);

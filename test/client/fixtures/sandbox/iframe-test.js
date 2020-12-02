@@ -85,7 +85,8 @@ if (nativeMethods.iframeSrcdocGetter) {
     module('srcdoc');
 
     test('process html with iframe with srcdoc', function () {
-        document.body.insertAdjacentHTML('beforeend', '<iframe id="test' + Date.now() + '" srcdoc="<a href=\'http://domain.com/\'>Link</a>"></iframe>');
+        document.body.insertAdjacentHTML('beforeend', '<iframe id="test' + Date.now() + '" srcdoc="' +
+            '<a href=\'http://domain.com/\'>Link</a><script>document.write(location.href)<' + '/script>"></iframe>');
 
         var iframe = document.body.lastChild;
 
@@ -102,6 +103,10 @@ if (nativeMethods.iframeSrcdocGetter) {
                 strictEqual(nativeMethods.getAttribute.call(anchor, DomProcessor.getStoredAttrName('href')), 'http://domain.com/');
                 strictEqual(anchor.href, 'http://domain.com/');
                 strictEqual(anchor.getAttribute('href'), 'http://domain.com/');
+
+                iframe.contentDocument.body.removeChild(anchor);
+
+                strictEqual(iframe.contentDocument.body.lastChild.textContent, 'https://example.com/');
 
                 document.body.removeChild(iframe);
             });
@@ -138,7 +143,7 @@ if (nativeMethods.iframeSrcdocGetter) {
         iframe.setAttribute('srcdoc', html);
 
         strictEqual(iframe.getAttribute('srcdoc'), html);
-        strictEqual(nativeMethods.getAttribute.call(iframe, 'srcdoc'), htmlUtils.processHtml(html).replace(/(sessionId)/, '$1!i'));
+        strictEqual(nativeMethods.getAttribute.call(iframe, 'srcdoc'), htmlUtils.processHtml(html, { isPage: true }).replace(/(sessionId)/, '$1!i'));
     });
 }
 

@@ -7,6 +7,7 @@ import styleProcessor from '../../../../processing/style';
 import { getProxyUrl, convertToProxyUrl } from '../../../utils/url';
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import createSelfRemovingScript from '../../../../utils/create-self-removing-script';
+import INIT_SCRIPT_FOR_IFRAME_TEMPLATE from '../../../../utils/init-script-for-iframe-template';
 
 const BEGIN_MARKER_TAG_NAME = 'hammerhead_write_marker_begin';
 const END_MARKER_TAG_NAME   = 'hammerhead_write_marker_end';
@@ -293,7 +294,7 @@ export default class DocumentWriter {
 
         // NOTE: Firefox and IE recreate a window instance during the document.write function execution (T213930).
         if (htmlChunk && this.isBeginMarkerInDOM && (isFirefox || isIE) && !htmlUtils.isPageHtml(htmlChunk))
-            htmlChunk = htmlUtils.INIT_SCRIPT_FOR_IFRAME_TEMPLATE + htmlChunk;
+            htmlChunk = INIT_SCRIPT_FOR_IFRAME_TEMPLATE + htmlChunk;
 
         return htmlChunk;
     }

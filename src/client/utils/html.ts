@@ -11,7 +11,7 @@ import { isIE, isMSEdge } from './browser';
 import * as urlResolver from './url-resolver';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import { URL_ATTRS, ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../processing/dom/attributes';
-import createSelfRemovingScript from '../../utils/create-self-removing-script';
+import INIT_SCRIPT_FOR_IFRAME_TEMPLATE from '../../utils/init-script-for-iframe-template';
 import InsertPosition from './insert-position';
 import removeElement from '../utils/remove-element';
 
@@ -19,6 +19,7 @@ interface ProcessHTMLOptions {
     parentTag?: any;
     prepareDom?: any;
     processedContext?: any;
+    isPage?: boolean;
 }
 
 const FAKE_TAG_NAME_PREFIX    = 'hh_fake_tag_name_';
@@ -58,22 +59,7 @@ const SHADOW_UI_ELEMENTS_SELECTOR                    = `[class*="${SHADOW_UI_CLA
 const HOVER_AND_FOCUS_PSEUDO_CLASS_ELEMENTS_SELECTOR = `[${INTERNAL_ATTRS.hoverPseudoClass}],[${INTERNAL_ATTRS.focusPseudoClass}]`;
 const FAKE_ELEMENTS_SELECTOR                         = `${FAKE_HEAD_TAG_NAME}, ${FAKE_BODY_TAG_NAME}`;
 const HTML_PARSER_ELEMENT_FLAG                       = 'hammerhead|html-parser-element-flag';
-
-export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = createSelfRemovingScript(`
-    var parentHammerhead = null;
-
-    if (!window["${ INTERNAL_PROPS.hammerhead }"])
-        Object.defineProperty(window, "${ INTERNAL_PROPS.documentWasCleaned }", { value: true, configurable: true });
-
-    try {
-        parentHammerhead = window.parent["${ INTERNAL_PROPS.hammerhead }"];
-    } catch(e) {}
-
-    if (parentHammerhead)
-        parentHammerhead.sandbox.onIframeDocumentRecreated(window.frameElement);
-`);
-
-const SCRIPT_AND_STYLE_SELECTOR = 'script,link[rel="stylesheet"]';
+const SCRIPT_AND_STYLE_SELECTOR                      = 'script,link[rel="stylesheet"]';
 
 let htmlDocument = nativeMethods.createHTMLDocument.call(document.implementation, 'title');
 let htmlParser   = nativeMethods.createDocumentFragment.call(htmlDocument);
@@ -271,7 +257,7 @@ export function cleanUpHtml (html) {
 }
 
 export function processHtml (html, options: ProcessHTMLOptions = {}) {
-    const { parentTag, prepareDom, processedContext } = options;
+    const { parentTag, prepareDom, processedContext, isPage } = options;
 
     return processHtmlInternal(html, container => {
         let doctypeElement  = null;
@@ -328,6 +314,8 @@ export function processHtml (html, options: ProcessHTMLOptions = {}) {
             }
             else if (doctypeElement && isIE)
                 nativeMethods.insertAdjacentHTML.call(doctypeElement, InsertPosition.afterEnd, INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
+            else if (isPage)
+                nativeMethods.insertAdjacentHTML.call(container, InsertPosition.afterBegin, INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
         }
 
         // @ts-ignore
