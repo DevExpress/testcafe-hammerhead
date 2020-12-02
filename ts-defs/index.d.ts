@@ -16,6 +16,14 @@ interface Session {
     handleFileDownload (): void;
 }
 
+type Predicate = (requestInfo: RequestInfo) => boolean;
+
+type ObjectInitializer = {
+    url?: string | RegExp;
+    method?: string;
+    isAjax?: boolean;
+};
+
 declare module 'testcafe-hammerhead' {
     import { IncomingHttpHeaders } from 'http';
 
@@ -46,7 +54,7 @@ declare module 'testcafe-hammerhead' {
     /** The RequestFilterRule class is used to create URL filtering rules for request hook **/
     export class RequestFilterRule {
         /** Creates a request filter rule instance **/
-        constructor (options: any);
+        constructor (options: string | RegExp | Predicate | ObjectInitializer);
 
         /** Returns the value that accepts any request  **/
         static ANY: RequestFilterRule;
