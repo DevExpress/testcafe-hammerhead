@@ -575,3 +575,22 @@ test('a self-removing script should not stop the parsing stream (GH-2000)', func
                 browserUtils.isChrome || browserUtils.isSafari ? null : iframeDoc.body.children[1]);
         });
 });
+
+test('the internal anchor element should be restored after the reusing hammerhead in iframe (GH-2461)', function () {
+    var iframe;
+
+    return createTestIframe({ src: 'javascript:"<p></p>"' })
+        .then(function (createdIframe) {
+            iframe = createdIframe;
+            iframe.src = getSameDomainPageUrl('../../data/iframe/simple-iframe.html');
+
+            return window.QUnitGlobals.waitForIframe(iframe);
+        })
+        .then(function () {
+            var anchor = iframe.contentDocument.createElement('a');
+
+            anchor.href = 'http://example.com/';
+
+            strictEqual(anchor.hostname, 'example.com');
+        });
+});
