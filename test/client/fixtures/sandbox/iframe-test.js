@@ -586,6 +586,6 @@ test('the internal anchor element should be restored after the reusing hammerhea
 
             anchor.href = 'http://example.com/';
 
-            strictEqual(anchor.host, 'example.com');
+            strictEqual(anchor.hostname, 'example.com');
         });
 });
