@@ -11,7 +11,7 @@ import { isIE, isMSEdge } from './browser';
 import * as urlResolver from './url-resolver';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import { URL_ATTRS, ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../processing/dom/attributes';
-import INIT_SCRIPT_FOR_IFRAME_TEMPLATE from '../../utils/init-script-for-iframe-template';
+import SELF_REMOVING_SCRIPTS from '../../utils/self-removing-scripts';
 import InsertPosition from './insert-position';
 import removeElement from '../utils/remove-element';
 
@@ -245,8 +245,8 @@ export function cleanUpHtml (html) {
         find(container, FAKE_ELEMENTS_SELECTOR, el => {
             const innerHtml = nativeMethods.elementInnerHTMLGetter.call(el);
 
-            if (innerHtml.indexOf(INIT_SCRIPT_FOR_IFRAME_TEMPLATE) !== -1) {
-                nativeMethods.elementInnerHTMLSetter.call(el, innerHtml.replace(INIT_SCRIPT_FOR_IFRAME_TEMPLATE, ''));
+            if (innerHtml.indexOf(SELF_REMOVING_SCRIPTS.iframeInit) !== -1) {
+                nativeMethods.elementInnerHTMLSetter.call(el, innerHtml.replace(SELF_REMOVING_SCRIPTS.iframeInit, ''));
 
                 changed = true;
             }
@@ -307,15 +307,15 @@ export function processHtml (html, options: ProcessHTMLOptions = {}) {
                     const firstScriptOrStyle = nativeMethods.elementQuerySelector.call(htmlElement, SCRIPT_AND_STYLE_SELECTOR);
 
                     if (firstScriptOrStyle)
-                        nativeMethods.insertAdjacentHTML.call(firstScriptOrStyle, InsertPosition.beforeBegin, INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
+                        nativeMethods.insertAdjacentHTML.call(firstScriptOrStyle, InsertPosition.beforeBegin, SELF_REMOVING_SCRIPTS.iframeInit);
                     else
-                        nativeMethods.insertAdjacentHTML.call(htmlElement, InsertPosition.beforeEnd, INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
+                        nativeMethods.insertAdjacentHTML.call(htmlElement, InsertPosition.beforeEnd, SELF_REMOVING_SCRIPTS.iframeInit);
                 }
             }
             else if (doctypeElement && isIE)
-                nativeMethods.insertAdjacentHTML.call(doctypeElement, InsertPosition.afterEnd, INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
+                nativeMethods.insertAdjacentHTML.call(doctypeElement, InsertPosition.afterEnd, SELF_REMOVING_SCRIPTS.iframeInit);
             else if (isPage)
-                nativeMethods.insertAdjacentHTML.call(container, InsertPosition.afterBegin, INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
+                nativeMethods.insertAdjacentHTML.call(container, InsertPosition.afterBegin, SELF_REMOVING_SCRIPTS.iframeInit);
         }
 
         // @ts-ignore

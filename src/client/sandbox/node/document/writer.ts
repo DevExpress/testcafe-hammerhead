@@ -5,9 +5,7 @@ import { isFirefox, isIE } from '../../../utils/browser';
 import { processScript } from '../../../../processing/script';
 import styleProcessor from '../../../../processing/style';
 import { getProxyUrl, convertToProxyUrl } from '../../../utils/url';
-import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
-import createSelfRemovingScript from '../../../../utils/create-self-removing-script';
-import INIT_SCRIPT_FOR_IFRAME_TEMPLATE from '../../../../utils/init-script-for-iframe-template';
+import SELF_REMOVING_SCRIPTS from '../../../../utils/self-removing-scripts';
 
 const BEGIN_MARKER_TAG_NAME = 'hammerhead_write_marker_begin';
 const END_MARKER_TAG_NAME   = 'hammerhead_write_marker_end';
@@ -19,26 +17,6 @@ const REMOVE_OPENING_TAG_RE = /^<[^>]+>/g;
 const REMOVE_CLOSING_TAG_RE = /<\/[^<>]+>$/g;
 const PENDING_RE            = /<\/?(?:[A-Za-z][^>]*)?$/g;
 const UNCLOSED_ELEMENT_FLAG = 'hammerhead|unclosed-element-flag';
-
-const ON_WINDOW_RECREATION_SCRIPT_TEMPLATE = createSelfRemovingScript(`
-    var hammerhead = window["${ INTERNAL_PROPS.hammerhead }"];
-    var sandbox    = hammerhead && hammerhead.sandbox;
-
-    if (!sandbox) {
-        try {
-            sandbox = window.parent["${ INTERNAL_PROPS.hammerhead }"].get('./sandbox/backup').get(window);
-        } catch(e) {}
-    }
-
-    if (sandbox) {
-        Object.defineProperty(window, "${ INTERNAL_PROPS.documentWasCleaned }", { value: true, configurable: true });
-        
-        sandbox.node.mutation.onDocumentCleaned(window, document);
-
-        /* NOTE: B234357 */
-        sandbox.node.processNodes(null, document);
-    }
-`);
 
 export default class DocumentWriter {
     window: any;
@@ -254,7 +232,7 @@ export default class DocumentWriter {
         const endMarkerParent = nativeMethods.nodeParentNodeGetter.call(endMarker);
 
         nativeMethods.insertBefore.call(endMarkerParent, span, endMarker);
-        nativeMethods.elementOuterHTMLSetter.call(span, ON_WINDOW_RECREATION_SCRIPT_TEMPLATE);
+        nativeMethods.elementOuterHTMLSetter.call(span, SELF_REMOVING_SCRIPTS.onWindowRecreation);
     }
 
     _prepareDom (container, isDocumentCleaned) {
@@ -294,7 +272,7 @@ export default class DocumentWriter {
 
         // NOTE: Firefox and IE recreate a window instance during the document.write function execution (T213930).
         if (htmlChunk && this.isBeginMarkerInDOM && (isFirefox || isIE) && !htmlUtils.isPageHtml(htmlChunk))
-            htmlChunk = INIT_SCRIPT_FOR_IFRAME_TEMPLATE + htmlChunk;
+            htmlChunk = SELF_REMOVING_SCRIPTS.iframeInit + htmlChunk;
 
         return htmlChunk;
     }
