@@ -276,8 +276,10 @@ export default class StorageWrapper {
             },
 
             deleteProperty: (target, key) => {
-                if (getAddedProperties(target).includes(key))
-                    target.removeItem(key);
+                if (!getAddedProperties(target).includes(key))
+                    return false;
+
+                target.removeItem(key);
 
                 return true;
             }
