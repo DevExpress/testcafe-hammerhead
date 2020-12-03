@@ -18,6 +18,21 @@ function getWrapperMethods () {
     return methods;
 }
 
+const getAddedProperties = (storageWrapper: StorageWrapper) => {
+    // NOTE: The standard doesn't regulate the order in which properties are enumerated.
+    // But we rely on the fact that they are enumerated in the order they were created in all the supported browsers.
+    // In this case we cannot use Object.getOwnPropertyNames
+    // because the enumeration order in Android 6.0 is different from all other browsers.
+    const properties = [];
+
+    for (const property in storageWrapper) {
+        if (nativeMethods.objectHasOwnProperty.call(storageWrapper, property) && storageWrapper.initialProperties.indexOf(property) === -1)
+            properties.push(property);
+    }
+
+    return properties;
+};
+
 export default class StorageWrapper {
     eventEmitter: any;
     on: any;
@@ -63,23 +78,8 @@ export default class StorageWrapper {
 
         this.EMPTY_OLD_VALUE_ARG   = isIE ? '' : null;
 
-        const getAddedProperties = () => {
-            // NOTE: The standard doesn't regulate the order in which properties are enumerated.
-            // But we rely on the fact that they are enumerated in the order they were created in all the supported browsers.
-            // In this case we cannot use Object.getOwnPropertyNames
-            // because the enumeration order in Android 6.0 is different from all other browsers.
-            const properties = [];
-
-            for (const property in this) {
-                if (nativeMethods.objectHasOwnProperty.call(this, property) && this.initialProperties.indexOf(property) === -1)
-                    properties.push(property);
-            }
-
-            return properties;
-        };
-
         nativeMethods.objectDefineProperty(this, 'length', {
-            get: () => getAddedProperties().length,
+            get: () => getAddedProperties(this).length,
             set: () => void 0
         });
 
@@ -136,7 +136,7 @@ export default class StorageWrapper {
         };
 
         const clearStorage = () => {
-            const addedProperties = getAddedProperties();
+            const addedProperties = getAddedProperties(this);
             let changed           = false;
 
             for (const addedProperty of addedProperties) {
@@ -168,7 +168,7 @@ export default class StorageWrapper {
         };
 
         this.getCurrentState = () => {
-            const addedProperties = getAddedProperties();
+            const addedProperties = getAddedProperties(this);
             const state           = [[], []];
 
             for (const addedProperty of addedProperties) {
@@ -223,7 +223,7 @@ export default class StorageWrapper {
             // NOTE: http://w3c-test.org/webstorage/storage_key.html
             keyNum %= 0x100000000;
 
-            const addedProperties = getAddedProperties();
+            const addedProperties = getAddedProperties(this);
 
             return keyNum >= 0 && keyNum < addedProperties.length ? addedProperties[keyNum] : null;
         };
@@ -271,6 +271,13 @@ export default class StorageWrapper {
                     target.setItem(property, value);
                 else
                     target[property] = value;
+
+                return true;
+            },
+
+            deleteProperty: (target, key) => {
+                if (getAddedProperties(target).includes(key))
+                    target.removeItem(key);
 
                 return true;
             }

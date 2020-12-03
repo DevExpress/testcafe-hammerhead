@@ -222,6 +222,29 @@ if (window.Proxy) {
         strictEqual(sessionStorage.getItem('key1'), '222');
         strictEqual(sessionStorage.length, 1);
     });
+
+    test('clear storage via delete properties', function () {
+        sessionStorage.key1 = 'value1';
+        strictEqual(sessionStorage.getItem('key1'), 'value1');
+        strictEqual(sessionStorage.length, 1);
+
+        sessionStorage.key2 = 'value2';
+        strictEqual(sessionStorage.getItem('key2'), 'value2');
+        strictEqual(sessionStorage.length, 2);
+
+        var previousKeyCount = Object.keys(sessionStorage).length;
+
+        for (var key in sessionStorage)
+            delete sessionStorage[key];
+
+        var currentKeyCount = Object.keys(sessionStorage).length;
+        var deletedKeyCount = 2;
+
+        strictEqual(currentKeyCount, previousKeyCount - deletedKeyCount);
+        strictEqual(sessionStorage.getItem('key1'), null);
+        strictEqual(sessionStorage.getItem('key2'), null);
+        strictEqual(sessionStorage.length, 0);
+    });
 }
 
 module('area of visibility');
