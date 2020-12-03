@@ -221,6 +221,9 @@ if (window.Proxy) {
         sessionStorage.key1 = 222;
         strictEqual(sessionStorage.getItem('key1'), '222');
         strictEqual(sessionStorage.length, 1);
+
+        sessionStorage.length = 3;
+        strictEqual(sessionStorage.length, 1);
     });
 
     test('clear storage via delete properties', function () {
