@@ -185,7 +185,7 @@ describe('RequestFilterRule', () => {
         const filterFn = () => false;
 
         hook = new RequestFilterRule(filterFn);
-        expect(hook.options).eql(filterFn);
+        expect(hook.options.predicate).eql(filterFn);
         expect(hook.toString()).eql('{ <predicate> }');
     });
 
