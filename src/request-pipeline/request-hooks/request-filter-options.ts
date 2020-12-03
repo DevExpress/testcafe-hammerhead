@@ -92,16 +92,18 @@ export class ObjectOptions implements RequestFilterRuleOptions {
 
 const STRINGIFIED_FUNCTION_OPTIONS = '{ <predicate> }';
 
-const predicatePrototype: RequestFilterRuleOptions = {
-    match: async function (requestInfo: RequestInfo, rule: RequestFilterRule) {
-        return !!await (this as unknown as Predicate).call(rule, requestInfo);
-    },
+export class PredicateOptions implements RequestFilterRuleOptions {
+    private predicate: Predicate;
+
+    constructor (predicate: Predicate) {
+        this.predicate = predicate;
+    }
+
+    async match (requestInfo: RequestInfo, rule: RequestFilterRule) {
+        return !!this.predicate.call(rule, requestInfo);
+    }
 
     toString () {
         return STRINGIFIED_FUNCTION_OPTIONS;
     }
-}
-
-export function PredicateOptions (predicate: Predicate): RequestFilterRuleOptions {
-    return Object.assign(predicate, predicatePrototype);
 }

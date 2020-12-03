@@ -9,7 +9,7 @@ export default class RequestFilterRule {
 
     constructor (options: string | RegExp | Predicate | ObjectInitializer) {
         this.options = typeof options === 'function' ?
-            PredicateOptions(options) :
+            new PredicateOptions(options) :
             new ObjectOptions(options);
     }
 
