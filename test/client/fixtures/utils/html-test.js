@@ -6,6 +6,8 @@ var processScript  = hammerhead.get('../processing/script').processScript;
 var urlUtils       = hammerhead.get('./utils/url');
 var urlResolver    = hammerhead.get('./utils/url-resolver');
 
+var SELF_REMOVING_SCRIPTS = hammerhead.get('../utils/self-removing-scripts');
+
 var nativeMethods = hammerhead.nativeMethods;
 var shadowUI      = hammerhead.sandbox.shadowUI;
 var browserUtils  = hammerhead.utils.browser;
@@ -244,7 +246,7 @@ test('partial page html', function () {
 test('init script for iframe template', function () {
     var check = function (template) {
         var html                  = template.replace(/\{0\}/g, '');
-        var expectedProcessedHtml = template.replace(/\{0\}/g, htmlUtils.INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
+        var expectedProcessedHtml = template.replace(/\{0\}/g, SELF_REMOVING_SCRIPTS.iframeInit);
         var processedHtml         = htmlUtils.processHtml(html);
 
         strictEqual(processedHtml, expectedProcessedHtml);
@@ -368,7 +370,7 @@ test('should not throw an error if the innerHTML property is defined on Node.pro
 if (browserUtils.isIE) {
     test('must add init script for iframe template after doctype declaration if the markup does not have head and body tags (https://github.com/DevExpress/testcafe/issues/2639)', function () {
         var htmlSrc      = '<!doctype html><div>x</div>';
-        var htmlExpected = '<!doctype html>' + htmlUtils.INIT_SCRIPT_FOR_IFRAME_TEMPLATE + '<div>x</div>';
+        var htmlExpected = '<!doctype html>' + SELF_REMOVING_SCRIPTS.iframeInit + '<div>x</div>';
 
         strictEqual(htmlUtils.processHtml(htmlSrc), htmlExpected);
     });
