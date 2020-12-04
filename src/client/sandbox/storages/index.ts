@@ -59,10 +59,8 @@ export default class StorageSandbox extends SandboxBase {
         }
         // NOTE: Or create new.
         else {
-            // @ts-ignore
-            this.localStorageWrapper   = new StorageWrapper(this.window, this.nativeMethods.winLocalStorageGetter.call(this.window), storageKey);
-            // @ts-ignore
-            this.sessionStorageWrapper = new StorageWrapper(this.window, this.nativeMethods.winSessionStorageGetter.call(this.window), storageKey);
+            this.localStorageWrapper   = StorageWrapper.create(this.window, this.nativeMethods.winLocalStorageGetter.call(this.window), storageKey);
+            this.sessionStorageWrapper = StorageWrapper.create(this.window, this.nativeMethods.winSessionStorageGetter.call(this.window), storageKey);
 
             const saveToNativeStorages = () => {
                 if (!this.isLocked) {
