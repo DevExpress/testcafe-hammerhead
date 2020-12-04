@@ -52,7 +52,11 @@ export default class ElectronSandbox extends SandboxBase {
 
         if (nativeMethods.refreshElectronMeths(vm)) {
             overrideFunction(vm, 'createScript', ElectronSandbox._createFnWrapper(vm, nativeMethods.createScript));
-            overrideFunction(vm, 'runInDebugContext', ElectronSandbox._createFnWrapper(vm, nativeMethods.runInDebugContext));
+
+            // NOTE: DebugContext has been removed in V8 and is not available in Node.js 10+
+            if (vm.runInDebugContext)
+                overrideFunction(vm, 'runInDebugContext', ElectronSandbox._createFnWrapper(vm, nativeMethods.runInDebugContext));
+
             overrideFunction(vm, 'runInContext', ElectronSandbox._createFnWrapper(vm, nativeMethods.runInContext));
             overrideFunction(vm, 'runInNewContext', ElectronSandbox._createFnWrapper(vm, nativeMethods.runInNewContext));
             overrideFunction(vm, 'runInThisContext', ElectronSandbox._createFnWrapper(vm, nativeMethods.runInThisContext));
