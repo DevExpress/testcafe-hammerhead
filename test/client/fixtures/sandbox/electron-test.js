@@ -1,10 +1,10 @@
-const ElectronSandbox = hammerhead.get('./sandbox/electron');
-const overriding      = hammerhead.get('./utils/overriding');
+var ElectronSandbox = hammerhead.get('./sandbox/electron');
+var overriding      = hammerhead.get('./utils/overriding');
 
-const nativeEval = window.eval;
+var nativeEval = window.eval;
 
 QUnit.testStart(function () {
-    const vmMock = {
+    window.vmMock = {
         createScript:      window.noop,
         runInContext:      window.noop,
         runInNewContext:   window.noop,
@@ -14,7 +14,7 @@ QUnit.testStart(function () {
 
     window.windowMock = {
         require: function () {
-            return vmMock;
+            return window.vmMock;
         }
     };
 
@@ -30,6 +30,7 @@ QUnit.testStart(function () {
 });
 
 QUnit.testDone(function () {
+    delete window.vmMock;
     delete window.windowMock;
     delete window.nativeMethodsMock;
 
@@ -39,29 +40,25 @@ QUnit.testDone(function () {
 module('vm.runInDebugContext');
 
 test('should not be overwritten if it doesn\'t exist', function () {
-    const vmMock = window.windowMock.require('vm');
+    delete window.vmMock.runInDebugContext;
 
-    delete vmMock.runInDebugContext;
-
-    const electronSandbox = new ElectronSandbox();
+    var electronSandbox = new ElectronSandbox();
 
     electronSandbox.nativeMethods = window.nativeMethodsMock;
     electronSandbox.attach(window.windowMock);
 
-    notOk(vmMock.runInDebugContext);
+    notOk(window.vmMock.runInDebugContext);
 });
 
 test('should be overwritten if it exists', function () {
-    const vmMock = window.windowMock.require('vm');
-
-    const electronSandbox = new ElectronSandbox();
+    var electronSandbox = new ElectronSandbox();
 
     electronSandbox.nativeMethods = window.nativeMethodsMock;
 
-    ok(overriding.isNativeFunction(vmMock.runInDebugContext), 'should be native before overriding');
+    ok(overriding.isNativeFunction(window.vmMock.runInDebugContext), 'should be native before overriding');
 
     electronSandbox.attach(window.windowMock);
 
-    ok(vmMock.runInDebugContext, 'should exist');
-    notOk(overriding.isNativeFunction(vmMock.runInDebugContext), 'should be overwritten');
+    ok(window.vmMock.runInDebugContext, 'should exist');
+    notOk(overriding.isNativeFunction(window.vmMock.runInDebugContext), 'should be overwritten');
 });
