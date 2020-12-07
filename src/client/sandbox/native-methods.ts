@@ -512,9 +512,9 @@ class NativeMethods {
         this.getAttributeNS                = nativeElement.getAttributeNS;
         this.insertAdjacentHTML            = nativeElement.insertAdjacentHTML;
         this.insertBefore                  = nativeElement.insertBefore;
-        this.insertCell                    = (<HTMLTableRowElement>createElement('tr')).insertCell;
-        this.insertTableRow                = (<HTMLTableElement>createElement('table')).insertRow;
-        this.insertTBodyRow                = (<HTMLTableSectionElement>createElement('tbody')).insertRow;
+        this.insertCell                    = (createElement('tr') as HTMLTableRowElement).insertCell;
+        this.insertTableRow                = (createElement('table') as HTMLTableElement).insertRow;
+        this.insertTBodyRow                = (createElement('tbody') as HTMLTableSectionElement).insertRow;
         this.removeAttribute               = nativeElement.removeAttribute;
         this.removeAttributeNS             = nativeElement.removeAttributeNS;
         this.removeChild                   = nativeElement.removeChild;
@@ -524,7 +524,7 @@ class NativeMethods {
         this.hasAttributeNS                = nativeElement.hasAttributeNS;
         this.hasAttributes                 = nativeElement.hasAttributes;
         this.anchorToString                = win.HTMLAnchorElement.prototype.toString;
-        this.matches                       = nativeElement.matches || (<IEHTMLElement>nativeElement).msMatchesSelector;
+        this.matches                       = nativeElement.matches || (nativeElement as IEHTMLElement).msMatchesSelector;
         this.closest                       = nativeElement.closest;
 
         // Text node
@@ -559,8 +559,8 @@ class NativeMethods {
         this.focus                     = nativeElement.focus;
         // @ts-ignore
         this.select                    = window.TextRange ? createElement('body').createTextRange().select : null;
-        this.setSelectionRange         = (<HTMLInputElement>createElement('input')).setSelectionRange;
-        this.textAreaSetSelectionRange = (<HTMLTextAreaElement>createElement('textarea')).setSelectionRange;
+        this.setSelectionRange         = (createElement('input') as HTMLInputElement).setSelectionRange;
+        this.textAreaSetSelectionRange = (createElement('textarea') as HTMLTextAreaElement).setSelectionRange;
 
         this.svgFocus = win.SVGElement ? win.SVGElement.prototype.focus : this.focus;
         this.svgBlur  = win.SVGElement ? win.SVGElement.prototype.blur : this.blur;
