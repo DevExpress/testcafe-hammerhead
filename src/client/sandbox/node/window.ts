@@ -522,7 +522,7 @@ export default class WindowSandbox extends SandboxBase {
                 const isCalledWithoutNewKeyword = constructorIsCalledWithoutNewKeyword(this, WorkerWrapper);
 
                 if (arguments.length === 0)
-                // @ts-ignore
+                    // @ts-ignore
                     return isCalledWithoutNewKeyword ? nativeMethods.Worker() : new nativeMethods.Worker();
 
                 if (typeof scriptURL === 'string')
@@ -531,15 +531,19 @@ export default class WindowSandbox extends SandboxBase {
                 if (isCalledWithoutNewKeyword)
                     return nativeMethods.Worker.apply(this, arguments);
 
-                // @ts-ignore
-                const worker = arguments.length === 1 ? new nativeMethods.Worker(scriptURL) : new nativeMethods.Worker(scriptURL, options);
+                const worker = arguments.length === 1
+                    ? new nativeMethods.Worker(scriptURL)
+                    : new nativeMethods.Worker(scriptURL, options);
 
-                worker.postMessage({
-                    cmd:       SET_BLOB_WORKER_SETTINGS,
-                    sessionId: settings.get().sessionId,
-                    windowId:  settings.get().windowId,
-                    origin:    getOriginHeader()
-                });
+                // eslint-disable-next-line no-restricted-properties
+                if (parseUrl(scriptURL).protocol == 'blob:') {
+                    worker.postMessage({
+                        cmd:       SET_BLOB_WORKER_SETTINGS,
+                        sessionId: settings.get().sessionId,
+                        windowId:  settings.get().windowId,
+                        origin:    getOriginHeader()
+                    });
+                }
 
                 return worker;
             }, true);

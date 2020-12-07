@@ -4,10 +4,6 @@ var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var Promise       = hammerhead.Promise;
 
-var workerMock = {
-    postMessage: function () {
-    }
-};
 
 module('Web Worker');
 
@@ -34,8 +30,6 @@ test('checking parameters (GH-1132)', function () {
     nativeMethods.Worker = function (scriptURL) {
         strictEqual(arguments.length, 1);
         strictEqual(scriptURL, urlUtils.getProxyUrl('/test', { resourceType: resourceType }));
-
-        return workerMock;
     };
     // eslint-disable-next-line no-new
     new Worker('/test');
@@ -44,8 +38,6 @@ test('checking parameters (GH-1132)', function () {
         strictEqual(arguments.length, 2);
         strictEqual(scriptURL, urlUtils.getProxyUrl('/test', { resourceType: resourceType }));
         strictEqual(options, workerOptions);
-
-        return workerMock;
     };
     // eslint-disable-next-line no-new
     new Worker('/test', workerOptions);
