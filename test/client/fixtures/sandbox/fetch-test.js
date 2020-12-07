@@ -112,10 +112,10 @@ if (window.fetch) {
         return Promise.all(testCases.map(createTestCasePromise));
     });
 
-    test('the internal 222 status code should be replaced with 0 on the client side', function () {
-        return fetch('/xhr-222/')
-            .then(function (response) {
-                strictEqual(response.status, 0);
+    test('the failed cors request should emit an error', function () {
+        return fetch('/xhr-cors-failed/')
+            .catch(function (err) {
+                ok(err);
             });
     });
 
@@ -132,22 +132,25 @@ if (window.fetch) {
         strictEqual(request.url, 'https://example.com/xhr-test/100');
     });
 
-    module('Response.type', function () {
+    module('Response.type and Response.status', function () {
         test('basic', function () {
             return fetch('/xhr-test/100')
                 .then(function (response) {
+                    strictEqual(response.status, 200);
                     strictEqual(response.type, 'basic');
                 });
         });
         test('cors', function () {
             return fetch(window.QUnitGlobals.crossDomainHostname + '/xhr-test/100')
                 .then(function (response) {
+                    strictEqual(response.status, 200);
                     strictEqual(response.type, 'cors');
                 });
         });
         test('opaque', function () {
-            return fetch(window.QUnitGlobals.crossDomainHostname + '/xhr-222/')
+            return fetch(window.QUnitGlobals.crossDomainHostname + '/xhr-test/100', { mode: 'no-cors' })
                 .then(function (response) {
+                    strictEqual(response.status, 0);
                     strictEqual(response.type, 'opaque');
                 });
         });
@@ -156,13 +159,22 @@ if (window.fetch) {
     module('request modes', function () {
         module('no-cors');
 
+
+        test('same-domain', function () {
+            return fetch('/xhr-test/100', { mode: 'no-cors' })
+                .then(function (response) {
+                    strictEqual(response.status, 200);
+                    strictEqual(response.type, 'basic');
+                });
+        });
+
         // NOTE: not supported scenario
         // It is impossible to add custom headers to the fetch request
         // with the 'no-cors' mode
         // see https://fetch.spec.whatwg.org/#concept-headers-guard
         // https://fetch.spec.whatwg.org/#cors-safelisted-request-header
-        QUnit.skip('same-domain', function () {
-            return fetch('/xhr-test/100', { mode: 'no-cors' })
+        QUnit.skip('cross-domain', function () {
+            return fetch('https://sub-domain.example.com', { mode: 'no-cors' })
                 .then(function (response) {
                     strictEqual(response.status, 0);
                     strictEqual(response.type, 'opaque');

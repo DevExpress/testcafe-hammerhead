@@ -3,7 +3,7 @@ import BUILTIN_HEADERS from '../builtin-header-names';
 import INTERNAL_HEADERS from '../internal-header-names';
 import * as urlUtils from '../../utils/url';
 import { parse as parseUrl, resolve as resolveUrl } from 'url';
-import { shouldOmitCredentials } from '../xhr/same-origin-policy';
+import { shouldOmitCredentials } from '../same-origin-policy';
 import { formatSyncCookie, generateDeleteSyncCookieStr, isOutdatedSyncCookie } from '../../utils/cookie';
 
 function skip (): undefined {

@@ -1,29 +1,31 @@
-const fs                                   = require('fs');
-const http                                 = require('http');
-const semver                               = require('semver');
-const { EventEmitter }                     = require('events');
-const { expect }                           = require('chai');
-const urlLib                               = require('url');
-const net                                  = require('net');
-const { noop }                             = require('lodash');
-const { getFreePort }                      = require('endpoint-utils');
-const request                              = require('request-promise-native');
-const INTERNAL_HEADERS                     = require('../../../lib/request-pipeline/internal-header-names');
-const DestinationRequest                   = require('../../../lib/request-pipeline/destination-request');
-const RequestPipelineContext               = require('../../../lib/request-pipeline/context');
-const scriptHeader                         = require('../../../lib/processing/script/header');
-const resourceProcessor                    = require('../../../lib/processing/resources');
-const SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = require('../../../lib/request-pipeline/xhr/same-origin-check-failed-status-code');
-const { gzip }                             = require('../../../lib/utils/promisified-functions');
-const urlUtils                             = require('../../../lib/utils/url');
+const fs                     = require('fs');
+const http                   = require('http');
+const semver                 = require('semver');
+const { EventEmitter }       = require('events');
+const { expect }             = require('chai');
+const urlLib                 = require('url');
+const net                    = require('net');
+const { noop }               = require('lodash');
+const { getFreePort }        = require('endpoint-utils');
+const request                = require('request-promise-native');
+const INTERNAL_HEADERS       = require('../../../lib/request-pipeline/internal-header-names');
+const DestinationRequest     = require('../../../lib/request-pipeline/destination-request');
+const RequestPipelineContext = require('../../../lib/request-pipeline/context');
+const scriptHeader           = require('../../../lib/processing/script/header');
+const resourceProcessor      = require('../../../lib/processing/resources');
+const BUILTIN_HEADERS        = require('../../lib/request-pipeline/builtin-header-names');
+const { gzip }               = require('../../../lib/utils/promisified-functions');
+const urlUtils               = require('../../../lib/utils/url');
 
 const {
     createSession,
     createProxy,
     compareCode,
-    getProxyUrl: getBasicProxyUrl,
+    getBasicProxyUrl,
     createDestinationServer
 } = require('../common/utils');
+
+const Credentials = urlUtils.Credentials;
 
 const {
     PAGE_ACCEPT_HEADER,
@@ -197,13 +199,6 @@ describe('Regression', () => {
                 .set('location', 'http://localhost/')
                 .end();
         });
-
-        app.get('/echo-raw-headers-names', (req, res) => {
-            const rawHeadersNames = req.rawHeaders.filter((str, index) => !(index & 1));
-
-            res.end(JSON.stringify(rawHeadersNames));
-        });
-
     }
 
     function setupCrossDomainServer () {
@@ -259,36 +254,6 @@ describe('Regression', () => {
         proxy.close();
     });
 
-    it('Should force "Origin" header for the same-domain requests (B234325)', () => {
-        const options = {
-            url:     proxy.openSession('http://127.0.0.1:2000/B234325,GH-284/reply-with-origin', session),
-            headers: {
-                referer:                        proxy.openSession('http://example.com', session),
-                [INTERNAL_HEADERS.credentials]: 'same-origin'
-            }
-        };
-
-        return request(options)
-            .then(body => {
-                expect(body).eql('http://example.com');
-            });
-    });
-
-    it('Should force "Origin" header for the cross-domain "fetch" requests (GH-1059)', () => {
-        const options = {
-            url:     proxy.openSession('http://127.0.0.1:2000/GH-1059/reply-with-origin', session),
-            headers: {
-                referer:                        proxy.openSession('http://example.com', session),
-                [INTERNAL_HEADERS.credentials]: 'include'
-            }
-        };
-
-        return request(options)
-            .then(body => {
-                expect(body).eql('http://example.com');
-            });
-    });
-
     it('Should not send "Cookie" header if there are no cookies for the given URL (T232505)', () => {
         const options = {
             url:  proxy.openSession('http://127.0.0.1:2000/T232505/is-cookie-header-sent', session),
@@ -339,12 +304,12 @@ describe('Regression', () => {
         session.options.requestTimeout.ajax = 200;
 
         const options = {
-            url:     proxy.openSession('http://127.0.0.1:2000/T224541/hang-forever', session),
-            headers: {
-                accept:                         'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                [INTERNAL_HEADERS.credentials]: 'same-origin'
-            }
+            url: getProxyUrl('http://127.0.0.1:2000/T224541/hang-forever',
+                { isAjax: true }, void 0, Credentials.sameOrigin),
+            headers: { accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' }
         };
+
+        proxy.openSession('http://127.0.0.1:2000/', session);
 
         const requestTime = Date.now();
 
@@ -442,13 +407,12 @@ describe('Regression', () => {
 
     it('Should transform the "Origin" header for requests without the "Referer" header correctly (GH-284)', () => {
         const options = {
-            url:     proxy.openSession('http://127.0.0.1:2000/B234325,GH-284/reply-with-origin', session),
-            headers: {
-                origin:                         'http://127.0.0.1:1836',
-                [INTERNAL_HEADERS.origin]:      'http://example.com',
-                [INTERNAL_HEADERS.credentials]: 'same-origin'
-            }
+            url: getProxyUrl('http://127.0.0.1:2000/B234325,GH-284/reply-with-origin',
+                { isAjax: true }, 'http://example.com', Credentials.sameOrigin, true),
+            headers: { origin: 'http://127.0.0.1:1836' }
         };
+
+        proxy.openSession('http://127.0.0.1:2000', session);
 
         return request(options)
             .then(body => {
@@ -534,17 +498,18 @@ describe('Regression', () => {
 
     it('Should close with error if destination server doesn`t provide Access-Control-Allow-Origin header for cross-domain requests', () => {
         const options = {
-            url:                     proxy.openSession('http://127.0.0.1:2002/without-access-control-allow-origin-header', session),
-            resolveWithFullResponse: true,
-            headers:                 {
-                referer:                        proxy.openSession('http://example.com', session),
-                [INTERNAL_HEADERS.credentials]: 'same-origin'
-            }
+            url: getProxyUrl('http://127.0.0.1:2002/without-access-control-allow-origin-header',
+                { isAjax: true }, 'http://example.com', Credentials.sameOrigin, true),
+
+            resolveWithFullResponse: true
         };
+
+        proxy.openSession('http://example.com', session);
 
         return request(options)
             .then(res => {
-                expect(res.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
+                expect(res.statusCode).eql(200);
+                expect(res.headers[BUILTIN_HEADERS.accessControlAllowOrigin]).to.be.empty;
             });
     });
 
@@ -552,15 +517,16 @@ describe('Regression', () => {
         session.cookies.setByServer('http://example.com', 'key=value');
 
         const options = {
-            url:     proxy.openSession('http://127.0.0.1:2002/echo-headers', session),
+            url: getProxyUrl('http://127.0.0.1:2002/echo-headers', { isAjax: true },
+                'http://example.com', Credentials.sameOrigin, true),
             json:    true,
             headers: {
-                referer:                        proxy.openSession('http://example.com', session),
-                authorization:                  'value',
-                'proxy-authorization':          'value',
-                [INTERNAL_HEADERS.credentials]: 'same-origin'
+                authorization:         'value',
+                'proxy-authorization': 'value'
             }
         };
+
+        proxy.openSession('http://example.com', session);
 
         return request(options)
             .then(parsedBody => {
@@ -570,30 +536,8 @@ describe('Regression', () => {
             });
     });
 
-    it('Should remove hammerhead xhr headers before sending a request to the destination server', () => {
-        const options = {
-            url:     proxy.openSession('http://127.0.0.1:2002/echo-headers-with-credentials', session),
-            json:    true,
-            headers: {
-                referer:                        proxy.openSession('http://127.0.0.1:2000', session),
-                [INTERNAL_HEADERS.credentials]: 'include',
-                [INTERNAL_HEADERS.origin]:      'origin_value'
-            }
-        };
-
-        return request(options)
-            .then(parsedBody => {
-                expect(parsedBody[INTERNAL_HEADERS.credentials]).to.be.undefined;
-                expect(parsedBody[INTERNAL_HEADERS.origin]).to.be.undefined;
-            });
-    });
-
     it('Should add a leading slash to the pathname part of url (GH-608)', () => {
-        const options = {
-            url: proxy.openSession('http://127.0.0.1:2000?key=value', session)
-        };
-
-        return request(options)
+        return request(proxy.openSession('http://127.0.0.1:2000?key=value', session))
             .then(body => {
                 expect(body).eql('/?key=value');
             });
@@ -856,7 +800,7 @@ describe('Regression', () => {
 
     it('Should process "x-frame-options" header (GH-1017)', () => {
         const getIframeProxyUrl            = url => getProxyUrl(url, { isIframe: true });
-        const getCrossDomainIframeProxyUrl = url => getProxyUrl(url, { isIframe: true }, void 0, true);
+        const getCrossDomainIframeProxyUrl = url => getProxyUrl(url, { isIframe: true }, void 0, void 0, true);
 
         proxy.openSession('http://127.0.0.1:2000/', session);
 
@@ -1272,36 +1216,35 @@ describe('Regression', () => {
             });
     });
 
-    it('Should not change the Origin and Cookie request headers to lowercase (GH-2382)', () => {
+    it('Should not change the Cookie request headers to lowercase (GH-2382)', () => {
         const options = {
-            url:     proxy.openSession('http://127.0.0.1:2002/echo-raw-headers-names', session),
+            url: getProxyUrl('http://127.0.0.1:2000/echo-raw-headers-names',
+                { isAjax: true }, void 0, Credentials.sameOrigin),
             json:    true,
-            headers: {
-                [INTERNAL_HEADERS.credentials]: 'include',
-                [INTERNAL_HEADERS.origin]:      'http://127.0.0.1:2000',
-                'Referer':                      getProxyUrl('http://127.0.0.1:2000/')
-            }
+            headers: { Referer: getProxyUrl('http://127.0.0.1:2000/') }
         };
 
+        proxy.openSession('http://127.0.0.1:2002/', session);
         session.cookies.setByServer('http://127.0.0.1:2002/', ['test=test']);
 
         return request(options)
             .then(rawHeadersNames => {
-                expect(rawHeadersNames).to.include.members(['Referer', 'Origin', 'Cookie']);
+                expect(rawHeadersNames).to.include.members(['Referer', 'Cookie']);
 
                 delete options.headers.Referer;
                 options.headers.referer = getProxyUrl('http://127.0.0.1:2000/');
 
                 return request(options);
             })
-            .then(rawHeadersNames => expect(rawHeadersNames).to.include.members(['referer', 'origin', 'cookie']));
+            .then(rawHeadersNames => expect(rawHeadersNames).to.include.members(['referer', 'cookie']));
     });
 
     it('Should skip the "x-frame-options" header if request has the CSP header and it contains "frame-ancestors" option (GH-1666)', () => {
         const options = {
-            url:                     proxy.openSession('http://127.0.0.1:2000/GH-1666', session),
-            resolveWithFullResponse: true,
-            simple:                  false
+            url:    proxy.openSession('http://127.0.0.1:2000/GH-1666', session),
+            simple: false,
+
+            resolveWithFullResponse: true
         };
 
         return request(options)

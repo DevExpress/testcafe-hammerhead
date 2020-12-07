@@ -200,14 +200,21 @@ asyncTest('parameters must pass correctly in xhr event handlers (T239198)', func
     request.send(null);
 });
 
-test('the internal 222 status code should be replaced with 0 on the client side', function () {
-    var xhr = new XMLHttpRequest();
+test('the failed cors request should emit an error', function () {
+    return new Promise(function (resolve, reject) {
+        var xhr = new XMLHttpRequest();
 
-    xhr.open('GET', '/xhr-222/', false);
-    xhr.send();
+        xhr.open('GET', '/xhr-cors-failed/', true);
+        xhr.addEventListener('load', reject);
+        xhr.addEventListener('error', resolve);
+        xhr.send();
+    })
+        .then(function (err) {
+            var xhr = err.target;
 
-    strictEqual(xhr.response || xhr.responseText, 'true');
-    strictEqual(xhr.status, 0);
+            strictEqual(xhr.response || xhr.responseText, '');
+            strictEqual(xhr.status, 0);
+        });
 });
 
 asyncTest('xhr.responseURL', function () {

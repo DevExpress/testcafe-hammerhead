@@ -240,7 +240,6 @@ class NativeMethods {
     elementChildElementCountGetter: any;
     inputFilesGetter: any;
     styleSheetHrefGetter: any;
-    xhrStatusGetter: any;
     objectDataGetter: any;
     inputTypeGetter: any;
     inputValueGetter: any;
@@ -644,8 +643,6 @@ class NativeMethods {
             // NOTE: IE doesn't support the 'responseURL' property
             if (xhrResponseURLDescriptor)
                 this.xhrResponseURLGetter = xhrResponseURLDescriptor.get;
-
-            this.xhrStatusGetter = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'status').get;
         }
 
         // eslint-disable-next-line no-restricted-properties

@@ -7,7 +7,6 @@ import INTERNAL_HEADERS from '../../request-pipeline/internal-header-names';
 import { transformHeaderNameToInternal } from '../utils/headers';
 import { getOriginHeader } from '../utils/destination-location';
 import { overrideConstructor, overrideDescriptor, overrideFunction } from '../utils/overriding';
-import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
 import CookieSandbox from './cookie';
 
 const XHR_READY_STATES = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
@@ -159,14 +158,6 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             args[0] = transformHeaderNameToInternal(args[0]);
 
             return nativeMethods.xhrSetRequestHeader.apply(this, args);
-        });
-
-        overrideDescriptor(window.XMLHttpRequest.prototype, 'status', {
-            getter: function () {
-                const status = nativeMethods.xhrStatusGetter.call(this);
-
-                return status === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : status;
-            }
         });
 
         if (nativeMethods.xhrResponseURLGetter) {

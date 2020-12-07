@@ -131,9 +131,8 @@ module.exports = function (app) {
         res.send();
     });
 
-    app.get('/xhr-222/', function (req, res) {
-        res.statusCode = 222;
-        res.send('true');
+    app.get('/xhr-cors-failed/', function (req, res) {
+        req.destroy('123');
     });
 
     app.get('/redirect/', function (req, res) {

@@ -1,6 +1,6 @@
-import RequestPipelineContext from '../context';
-import BUILTIN_HEADERS from '../builtin-header-names';
-import INTERNAL_HEADERS from '../internal-header-names';
+import RequestPipelineContext from './context';
+import BUILTIN_HEADERS from './builtin-header-names';
+import INTERNAL_HEADERS from './internal-header-names';
 import { castArray } from 'lodash';
 
 // NOTE: https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS

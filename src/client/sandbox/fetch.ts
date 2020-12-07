@@ -6,13 +6,13 @@ import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
 import { getProxyUrl, getDestinationUrl } from '../utils/url';
 import { getOriginHeader, sameOriginCheck, get as getDestLocation } from '../utils/destination-location';
 import { isFetchHeaders, isFetchRequest } from '../utils/dom';
-import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
 import { overrideConstructor, overrideDescriptor, overrideFunction } from '../utils/overriding';
 import * as browserUtils from '../utils/browser';
 import { transformHeaderNameToBuiltin, transformHeaderNameToInternal } from '../utils/headers';
 import CookieSandbox from './cookie';
 
 const DEFAULT_REQUEST_CREDENTIALS = nativeMethods.Request ? new nativeMethods.Request(location.toString()).credentials : void 0;
+const ADDITIONAL_CORS_RES_INFO    = 'hammerhead|additional-cors-res-info';
 
 export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
     readonly FETCH_REQUEST_SENT_EVENT = 'hammerhead|event|fetch-request-sent-event';
@@ -62,27 +62,6 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         }
         else if (init && init.headers && input.destination !== 'worker')
             args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init);
-    }
-
-    private static _sameOriginCheck ([input, init]) {
-        const isRequest   = isFetchRequest(input);
-        const url         = isRequest ? getDestinationUrl(nativeMethods.requestUrlGetter.call(input)) : getDestinationUrl(input);
-        const requestMode = isRequest ? input.mode : init && init.mode;
-
-        if (requestMode === 'same-origin')
-            return sameOriginCheck(getDestLocation(), url);
-
-        return true;
-    }
-
-    static _getResponseType (response) {
-        const destUrl      = getDestinationUrl(nativeMethods.responseUrlGetter.call(response));
-        const isSameOrigin = sameOriginCheck(getDestLocation(), destUrl);
-
-        if (isSameOrigin)
-            return 'basic';
-
-        return response.status === 0 ? 'opaque' : 'cors';
     }
 
     static _entriesFilteredNext (iterator, nativeNext) {
@@ -176,8 +155,13 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
                 return nativeMethods.promiseReject.call(sandbox.window.Promise, e);
             }
 
-            if (!FetchSandbox._sameOriginCheck(args))
-                // @ts-ignore
+            const [input, init] = args;
+            const isRequest     = isFetchRequest(input);
+            const url           = getDestinationUrl(isRequest ? nativeMethods.requestUrlGetter.call(input) : input);
+            const requestMode   = isRequest ? (input as Request).mode : init && init.mode;
+            const isSameOrigin  = sameOriginCheck(getDestLocation(), url);
+
+            if (requestMode === 'same-origin' && !isSameOrigin)
                 return nativeMethods.promiseReject.call(sandbox.window.Promise, new TypeError());
 
             window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = nativeMethods.headersEntries;
@@ -191,21 +175,34 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             return nativeMethods.promiseThen.call(fetchPromise, response => {
                 sandbox.cookieSandbox.syncCookie();
 
+                if (!isSameOrigin) {
+                    const isNoCorsMode = requestMode === 'no-cors';
+
+                    nativeMethods.objectDefineProperty(response, ADDITIONAL_CORS_RES_INFO, {
+                        value: {
+                            status: isNoCorsMode ? 0 : nativeMethods.responseStatusGetter.call(response),
+                            type:   isNoCorsMode ? 'opaque' : 'cors'
+                        }
+                    });
+                }
+
                 return response;
             });
         });
 
         overrideDescriptor(window.Response.prototype, 'type', {
             getter: function () {
-                return FetchSandbox._getResponseType(this);
+                return this[ADDITIONAL_CORS_RES_INFO] ?
+                       this[ADDITIONAL_CORS_RES_INFO].type :
+                       nativeMethods.responseTypeGetter.call(this);
             }
         });
 
         overrideDescriptor(window.Response.prototype, 'status', {
-            getter: function () {
-                const responseStatus = nativeMethods.responseStatusGetter.call(this);
-
-                return responseStatus === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : responseStatus;
+            getter: function (this: Response) {
+                return this[ADDITIONAL_CORS_RES_INFO] ?
+                       this[ADDITIONAL_CORS_RES_INFO].status :
+                       nativeMethods.responseStatusGetter.call(this);
             }
         });
 

@@ -16,13 +16,12 @@ import Charset from '../processing/encoding/charset';
 import * as urlUtils from '../utils/url';
 import * as contentTypeUtils from '../utils/content-type';
 import generateUniqueId from '../utils/generate-unique-id';
-import { check as checkSameOriginPolicy } from './xhr/same-origin-policy';
+import { check as checkSameOriginPolicy } from './same-origin-policy';
 import * as headerTransforms from './header-transforms';
 import { RequestInfo } from '../session/events/info';
 import SERVICE_ROUTES from '../proxy/service-routes';
-import BUILTIN_HEADERS from './builtin-header-names';
-import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from './xhr/same-origin-check-failed-status-code';
 import { processSetCookieHeader } from './header-transforms/transforms';
+import BUILTIN_HEADERS from './builtin-header-names';
 import logger from '../utils/logger';
 
 interface DestInfo {
@@ -335,13 +334,6 @@ export default class RequestPipelineContext {
     }
 
     closeWithError (statusCode: number, resBody: string | Buffer = ''): void {
-        if (statusCode === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE) {
-            const processedCookie = processSetCookieHeader(this.destRes.headers[BUILTIN_HEADERS.setCookie], this);
-
-            if (processedCookie && processedCookie.length)
-                (this.res as http.ServerResponse).setHeader(BUILTIN_HEADERS.setCookie, processedCookie);
-        }
-
         if ('setHeader' in this.res && !this.res.headersSent) {
             this.res.statusCode = statusCode;
             this.res.setHeader(BUILTIN_HEADERS.contentType, 'text/html');
@@ -349,6 +341,14 @@ export default class RequestPipelineContext {
         }
 
         this.res.end();
+
+        this.goToNextStage = false;
+    }
+
+    destroyFailedCorsRequest() {
+        processSetCookieHeader(this.destRes.headers[BUILTIN_HEADERS.setCookie], this);
+
+        this.res.destroy();
 
         this.goToNextStage = false;
     }

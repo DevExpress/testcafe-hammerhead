@@ -5,7 +5,7 @@ const { getFreePort }       = require('endpoint-utils');
 
 const {
     createDestinationServer,
-    getProxyUrl: getBasicProxyUrl,
+    getBasicProxyUrl,
     createSession,
     createProxy
 } = require('../common/utils');
@@ -84,7 +84,7 @@ describe('WebSocket', () => {
     };
 
     it('Should proxy WebSocket', () => {
-        const url = getProxyUrl('http://127.0.0.1:2000/web-socket', { isWebSocket: true }, encodeURIComponent('http://example.com'));
+        const url = getProxyUrl('http://127.0.0.1:2000/web-socket', { isWebSocket: true }, 'http://example.com');
 
         proxy.openSession('http://127.0.0.1:2000/', session);
         session.cookies.setByServer('http://127.0.0.1:2000', 'key=value');
@@ -119,8 +119,7 @@ describe('WebSocket', () => {
     });
 
     it('Should proxy secure WebSocket', () => {
-        const url = getProxyUrl('https://127.0.0.1:2001/secure-web-socket', { isWebSocket: true },
-            encodeURIComponent('http://example.com'));
+        const url = getProxyUrl('https://127.0.0.1:2001/secire-web-socket', { isWebSocket: true }, 'http://example.com');
 
         proxy.openSession('https://127.0.0.1:2001/', session);
 
