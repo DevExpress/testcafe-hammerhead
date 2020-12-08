@@ -89,6 +89,34 @@ test('calling Worker without the "new" keyword (GH-1970)', function () {
     }
 });
 
+test('should call postMessage with settings only for urls with the "blob:" protocol', function () {
+    var savedNativeWorker = nativeMethods.Worker;
+    var blobUrl           = 'blob:https://example.com/e4d97ad7-0806-4b18-89f0-242d3c861b26';
+
+    nativeMethods.Worker = function () {
+        return {
+            postMessage () {
+                ok(false);
+            }
+        };
+    };
+
+    new Worker('/test'); // eslint-disable-line no-new
+    new Worker('https://exmple.com/test'); // eslint-disable-line no-new
+
+    nativeMethods.Worker = function () {
+        return {
+            postMessage () {
+                ok(true);
+            }
+        };
+    };
+
+    new Worker(blobUrl); // eslint-disable-line no-new
+
+    nativeMethods.Worker = savedNativeWorker;
+});
+
 if (!browserUtils.isIE) {
     test('send xhr from worker', function () {
         var worker = new Worker(window.QUnitGlobals.getResourceUrl('../data/web-worker/xhr.js'));
