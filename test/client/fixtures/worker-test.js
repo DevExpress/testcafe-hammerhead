@@ -95,7 +95,7 @@ test('should call postMessage with settings only for urls with the "blob:" proto
 
     nativeMethods.Worker = function () {
         return {
-            postMessage () {
+            postMessage: function () {
                 ok(false);
             }
         };
@@ -106,7 +106,7 @@ test('should call postMessage with settings only for urls with the "blob:" proto
 
     nativeMethods.Worker = function () {
         return {
-            postMessage () {
+            postMessage: function () {
                 ok(true);
             }
         };
