@@ -265,11 +265,11 @@ export default class ShadowUI extends SandboxBase {
         const shadowUI = this;
         const docProto = window.Document.prototype;
 
-        overrideFunction(docProto, 'elementFromPoint', function (...args) {
+        overrideFunction(docProto, 'elementFromPoint', function (...args: [number, number]) {
             // NOTE: T212974
             shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
-            const res = ShadowUI._filterElement(nativeMethods.elementFromPoint.apply(this, args as [number, number]));
+            const res = ShadowUI._filterElement(nativeMethods.elementFromPoint.apply(this, args));
 
             shadowUI.removeClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
@@ -306,12 +306,12 @@ export default class ShadowUI extends SandboxBase {
             });
         }
 
-        overrideFunction(docProto, 'getElementById', function (...args) {
-            return ShadowUI._filterElement(nativeMethods.getElementById.apply(this, args as [string]));
+        overrideFunction(docProto, 'getElementById', function (...args: [string]) {
+            return ShadowUI._filterElement(nativeMethods.getElementById.apply(this, args));
         });
 
-        overrideFunction(docProto, 'getElementsByName', function (...args) {
-            const elements = nativeMethods.getElementsByName.apply(this, args as [string]);
+        overrideFunction(docProto, 'getElementsByName', function (...args: [string]) {
+            const elements = nativeMethods.getElementsByName.apply(this, args);
             const length   = getElementsByNameReturnsHTMLCollection
                 ? nativeMethods.htmlCollectionLengthGetter.call(elements)
                 : nativeMethods.nodeListLengthGetter.call(elements);

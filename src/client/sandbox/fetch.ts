@@ -102,8 +102,8 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         return entry;
     }
 
-    static _entriesWrapper (...args) {
-        const iterator   = nativeMethods.headersEntries.apply(this, args as []);
+    static _entriesWrapper (...args: []) {
+        const iterator   = nativeMethods.headersEntries.apply(this, args);
         const nativeNext = iterator.next;
 
         iterator.next = () => FetchSandbox._entriesFilteredNext(iterator, nativeNext);
@@ -111,8 +111,8 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         return iterator;
     }
 
-    static _valuesWrapper (...args) {
-        const iterator   = nativeMethods.headersEntries.apply(this, args as []);
+    static _valuesWrapper (...args: []) {
+        const iterator   = nativeMethods.headersEntries.apply(this, args);
         const nativeNext = iterator.next;
 
         iterator.next = () => {
@@ -167,7 +167,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
 
             // NOTE: Safari processed the empty `fetch()` request without `Promise` rejection (GH-1613)
             if (!args.length && !browserUtils.isSafari)
-                return nativeMethods.fetch.apply(this, [] as unknown as [RequestInfo, RequestInit?]);
+                return nativeMethods.fetch.apply(this, [] as unknown as [RequestInfo]);
 
             try {
                 FetchSandbox._processArguments(args);
@@ -220,7 +220,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
 
         overrideFunction(window.Headers.prototype, 'values', FetchSandbox._valuesWrapper);
 
-        overrideFunction(window.Headers.prototype, 'forEach', function (...args) {
+        overrideFunction(window.Headers.prototype, 'forEach', function (...args: [(value: any, name: any, headers: any) => void, any?]) {
             const callback = args[0];
 
             if (typeof callback === 'function') {
@@ -235,45 +235,45 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
                 };
             }
 
-            return nativeMethods.headersForEach.apply(this, args as [() => void, any?]);
+            return nativeMethods.headersForEach.apply(this, args);
         });
 
-        overrideFunction(window.Headers.prototype, 'get', function (...args) {
+        overrideFunction(window.Headers.prototype, 'get', function (...args: [string]) {
             const [headerName] = args;
 
             args[0] = transformHeaderNameToInternal(headerName);
 
-            const result = nativeMethods.headersGet.apply(this, args as [string]);
+            const result = nativeMethods.headersGet.apply(this, args);
 
             if (result === null) {
                 args[0] = headerName;
 
-                return nativeMethods.headersGet.apply(this, args as [string]);
+                return nativeMethods.headersGet.apply(this, args);
             }
 
             return result;
         });
 
-        overrideFunction(window.Headers.prototype, 'has', function (...args) {
+        overrideFunction(window.Headers.prototype, 'has', function (...args: [string]) {
             const [headerName] = args;
 
             args[0] = transformHeaderNameToInternal(headerName);
 
-            const result = nativeMethods.headersHas.apply(this, args as [string]);
+            const result = nativeMethods.headersHas.apply(this, args);
 
             if (!result) {
                 args[0] = headerName;
 
-                return nativeMethods.headersHas.apply(this, args as [string]);
+                return nativeMethods.headersHas.apply(this, args);
             }
 
             return result;
         });
 
-        overrideFunction(window.Headers.prototype, 'set', function (...args) {
+        overrideFunction(window.Headers.prototype, 'set', function (...args: [string, string]) {
             args[0] = transformHeaderNameToInternal(args[0]);
 
-            return nativeMethods.headersSet.apply(this, args as [string, string]);
+            return nativeMethods.headersSet.apply(this, args);
         });
     }
 }

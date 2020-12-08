@@ -85,10 +85,10 @@ const additionalProtoMethods = {
 
 if (HTMLCollection.prototype.namedItem) {
     additionalProtoMethods.namedItem = {
-        value:        function (this: HTMLCollectionWrapper, ...args) {
+        value:        function (this: HTMLCollectionWrapper, ...args: [string]) {
             this._refreshCollection();
 
-            const namedItem = this._collection.namedItem.apply(this._collection, args as [string]);
+            const namedItem = this._collection.namedItem.apply(this._collection, args);
 
             return namedItem && isShadowUIElement(namedItem) ? null : namedItem;
         },

@@ -71,7 +71,7 @@ export default class ChildWindowSandbox extends SandboxBase {
         });
     }
 
-    handleWindowOpen (window: Window, args: any[]): Window {
+    handleWindowOpen (window: Window, args: [string?, string?, string?, boolean?]): Window {
         const [url, target, parameters] = args;
 
         if (settings.get().allowMultipleWindows && ChildWindowSandbox._shouldOpenInNewWindow(target, DefaultTarget.windowOpen)) {
@@ -80,7 +80,7 @@ export default class ChildWindowSandbox extends SandboxBase {
             return openedWindowInfo.wnd;
         }
 
-        return nativeMethods.windowOpen.apply(window, args as [string?, string?, string?, boolean?]);
+        return nativeMethods.windowOpen.apply(window, args);
     }
 
     _handleFormSubmitting (window: Window): void {

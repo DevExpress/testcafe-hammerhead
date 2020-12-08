@@ -469,8 +469,8 @@ export default class WindowSandbox extends SandboxBase {
         });
 
         if (nativeMethods.objectAssign) {
-            overrideFunction(window.Object, 'assign', function (target, ...sources) {
-                let args = [];
+            overrideFunction(window.Object, 'assign', function (target: object, ...sources) {
+                let args: any[] = [];
 
                 args.push(target);
 
@@ -502,7 +502,7 @@ export default class WindowSandbox extends SandboxBase {
             });
         }
 
-        overrideFunction(window, 'open', function (...args) {
+        overrideFunction(window, 'open', function (...args: [string?, string?, string?, boolean?]) {
             args[0] = getProxyUrl(args[0]);
             args[1] = windowSandbox._getWindowOpenTarget(args[1]);
 
