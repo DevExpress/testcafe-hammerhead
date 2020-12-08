@@ -7,6 +7,9 @@ let emptyAnchor = nativeMethods.createElement.call(document, 'a');
 export function getAnchorProperty (el: HTMLElement, nativePropGetter: Function) {
     const href = nativeMethods.anchorHrefGetter.call(el);
 
+    if (!anchor)
+        reattach();
+
     if (href) {
         nativeMethods.anchorHrefSetter.call(anchor, getDestinationUrl(href));
 
@@ -19,6 +22,9 @@ export function getAnchorProperty (el: HTMLElement, nativePropGetter: Function) 
 export function setAnchorProperty (el: HTMLElement, nativePropSetter: Function, value: string) {
     const href = nativeMethods.anchorHrefGetter.call(el);
 
+    if (!anchor)
+        reattach();
+
     if (href) {
         nativeMethods.anchorHrefSetter.call(anchor, getDestinationUrl(href));
         nativePropSetter.call(anchor, value);
@@ -26,6 +32,11 @@ export function setAnchorProperty (el: HTMLElement, nativePropSetter: Function, 
     }
 
     return value;
+}
+
+export function reattach () {
+    anchor      = nativeMethods.createElement.call(document, 'a');
+    emptyAnchor = nativeMethods.createElement.call(document, 'a');
 }
 
 export function dispose () {

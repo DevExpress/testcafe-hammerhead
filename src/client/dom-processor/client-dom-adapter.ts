@@ -110,7 +110,7 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     processSrcdocAttr (html: string): string {
         this._srcdocMode = true;
 
-        const processedHtml = processHtml(html);
+        const processedHtml = processHtml(html, { isPage: true });
 
         this._srcdocMode = false;
 
