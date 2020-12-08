@@ -4,10 +4,6 @@ var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var Promise       = hammerhead.Promise;
 
-var workerMock = {
-    postMessage: function () {
-    }
-};
 
 module('Web Worker');
 
@@ -34,8 +30,6 @@ test('checking parameters (GH-1132)', function () {
     nativeMethods.Worker = function (scriptURL) {
         strictEqual(arguments.length, 1);
         strictEqual(scriptURL, urlUtils.getProxyUrl('/test', { resourceType: resourceType }));
-
-        return workerMock;
     };
     // eslint-disable-next-line no-new
     new Worker('/test');
@@ -44,8 +38,6 @@ test('checking parameters (GH-1132)', function () {
         strictEqual(arguments.length, 2);
         strictEqual(scriptURL, urlUtils.getProxyUrl('/test', { resourceType: resourceType }));
         strictEqual(options, workerOptions);
-
-        return workerMock;
     };
     // eslint-disable-next-line no-new
     new Worker('/test', workerOptions);
@@ -95,6 +87,34 @@ test('calling Worker without the "new" keyword (GH-1970)', function () {
     catch (e) {
         ok(true);
     }
+});
+
+test('should call postMessage with settings only for urls with the "blob:" protocol', function () {
+    var savedNativeWorker = nativeMethods.Worker;
+    var blobUrl           = 'blob:https://example.com/e4d97ad7-0806-4b18-89f0-242d3c861b26';
+
+    nativeMethods.Worker = function () {
+        return {
+            postMessage: function () {
+                ok(false);
+            }
+        };
+    };
+
+    new Worker('/test'); // eslint-disable-line no-new
+    new Worker('https://exmple.com/test'); // eslint-disable-line no-new
+
+    nativeMethods.Worker = function () {
+        return {
+            postMessage: function () {
+                ok(true);
+            }
+        };
+    };
+
+    new Worker(blobUrl); // eslint-disable-line no-new
+
+    nativeMethods.Worker = savedNativeWorker;
 });
 
 if (!browserUtils.isIE) {
