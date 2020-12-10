@@ -469,11 +469,8 @@ export default class WindowSandbox extends SandboxBase {
         });
 
         if (nativeMethods.objectAssign) {
-            overrideFunction(window.Object, 'assign', function (target: object, ...sources) {
-                let args: any[] = [];
-
-                args.push(target);
-
+            overrideFunction(window.Object, 'assign', function (target: object, ...sources: any[]) {
+                let args         = [target] as [object, ...any[]];
                 const targetType = typeof target;
 
                 if (target && (targetType === 'object' || targetType === 'function') && sources.length) {
@@ -498,7 +495,7 @@ export default class WindowSandbox extends SandboxBase {
                 else
                     args = nativeMethods.arrayConcat.call(args, sources);
 
-                return nativeMethods.objectAssign.apply(this, args as [object, any[]]);
+                return nativeMethods.objectAssign.apply(this, args);
             });
         }
 
