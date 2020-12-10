@@ -141,7 +141,7 @@ class NativeMethods {
     WindowInputEvent: any;
     WindowMouseEvent: any;
     windowOriginGetter: () => string;
-    windowOriginSetter: () => any;
+    windowOriginSetter: (this: Window, value: string) => void;
     canvasContextDrawImage: any;
     formDataAppend: FormData['append'];
     date: DateConstructor;
