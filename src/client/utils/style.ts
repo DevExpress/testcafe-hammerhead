@@ -234,7 +234,7 @@ export function getScrollLeft (el) {
         return el.pageXOffset;
 
     if (domUtils.isDocument(el))
-        return el.defaultView.pageXOffset;
+        return el.defaultView ? el.defaultView.pageXOffset : 0;
 
     return el.scrollLeft;
 }
@@ -247,7 +247,7 @@ export function getScrollTop (el) {
         return el.pageYOffset;
 
     if (domUtils.isDocument(el))
-        return el.defaultView.pageYOffset;
+        return el.defaultView ? el.defaultView.pageYOffset : 0;
 
     return el.scrollTop;
 }

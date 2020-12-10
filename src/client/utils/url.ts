@@ -19,7 +19,7 @@ export const DEFAULT_PROXY_SETTINGS = (function () {
     let proxyLocation  = locationWindow.location;
 
     while (!proxyLocation.hostname) {
-        locationWindow = locationWindow.parent;
+        locationWindow = locationWindow.parent as Window & typeof globalThis;
         proxyLocation  = locationWindow.location;
     }
 
@@ -75,7 +75,7 @@ export function getProxyUrl (url: string, opts?): string {
                             (parsedProxyUrl.proxy.port === proxyPort || parsedProxyUrl.proxy.port === crossDomainPort);
     /*eslint-enable no-restricted-properties*/
 
-    if (isValidProxyUrl) {
+    if (parsedProxyUrl && isValidProxyUrl) {
         if (resourceType && parsedProxyUrl.resourceType === resourceType)
             return resolvedUrl;
 
@@ -141,7 +141,7 @@ export function getNavigationUrl (url: string, win) {
     // NOTE: For the 'about:blank' page, we perform url proxing only for the top window, 'location' object and links.
     // For images and iframes, we keep urls as they were.
     // See details in https://github.com/DevExpress/testcafe-hammerhead/issues/339
-    let destinationLocation  = null;
+    let destinationLocation: string | null  = null;
 
     const isIframe    = win.top !== win;
     const winLocation = win.location.toString();
@@ -154,7 +154,7 @@ export function getNavigationUrl (url: string, win) {
         destinationLocation = parsedProxyUrl && parsedProxyUrl.destUrl;
     }
 
-    if (isSpecialPage(destinationLocation) && sharedUrlUtils.isRelativeUrl(url))
+    if (destinationLocation && isSpecialPage(destinationLocation) && sharedUrlUtils.isRelativeUrl(url))
         return '';
 
     url = sharedUrlUtils.prepareUrl(url);
@@ -171,7 +171,7 @@ export function getCrossDomainIframeProxyUrl (url: string) {
 
 export function getPageProxyUrl (url: string, windowId: string): string {
     const parsedProxyUrl = parseProxyUrl(url);
-    let resourceType = null;
+    let resourceType: string | null = null;
 
     if (parsedProxyUrl) {
         url = parsedProxyUrl.destUrl;
@@ -268,7 +268,9 @@ export function parseResourceType (resourceType: string): ResourceType {
 }
 
 export function stringifyResourceType (resourceType: ResourceType): string {
-    return sharedUrlUtils.getResourceTypeString(resourceType);
+    const stringifiedResourceType = sharedUrlUtils.getResourceTypeString(resourceType);
+
+    return stringifiedResourceType || '';
 }
 
 export function isChangedOnlyHash (currentUrl: string, newUrl: string): boolean {
@@ -292,5 +294,5 @@ export function getScope (url: string): string | null {
     if (!parsedUrl)
         return null;
 
-    return parsedUrl.partAfterHost.replace(SCOPE_RE, '/') || '/';
+    return parsedUrl.partAfterHost && parsedUrl.partAfterHost.replace(SCOPE_RE, '/') || '/';
 }

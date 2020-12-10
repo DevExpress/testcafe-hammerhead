@@ -29,7 +29,7 @@ export default class MessageSandbox extends SandboxBase {
     pingCallback: any;
     pingCmd: any;
 
-    storedOnMessageHandler: (this: WindowEventHandlers, ev: MessageEvent) => any;
+    storedOnMessageHandler: ((this: WindowEventHandlers, ev: MessageEvent) => any) | null;
     isWindowUnloaded: boolean;
 
     iframeInternalMsgQueue: any[];
@@ -79,7 +79,7 @@ export default class MessageSandbox extends SandboxBase {
         }
     }
 
-    private _onWindowMessage (e: MessageEvent, originListener): void {
+    private _onWindowMessage (e: MessageEvent, originListener): void | null {
         const data = MessageSandbox._getMessageData(e);
 
         if (data.type !== MessageType.Service) {
@@ -188,7 +188,7 @@ export default class MessageSandbox extends SandboxBase {
 
     sendServiceMsg (msg, targetWindow: Window, ports?: Transferable[]) {
         const message         = MessageSandbox._wrapMessage(MessageType.Service, msg);
-        const canSendDirectly = !isCrossDomainWindows(targetWindow, this.window) && !!targetWindow[this.RECEIVE_MSG_FN];
+        const canSendDirectly = !isCrossDomainWindows(targetWindow, this.window as Window) && !!targetWindow[this.RECEIVE_MSG_FN];
 
         if (!canSendDirectly)
             return MessageSandbox._isWindowAvailable(targetWindow) && targetWindow.postMessage(message, '*', ports);
@@ -218,7 +218,7 @@ export default class MessageSandbox extends SandboxBase {
             // NOTE: Imitation of a delay for the postMessage method.
             // We use the same-domain top window
             // so that the function called by setTimeout is executed after removing the iframe
-            const topSameDomainWindow = getTopSameDomainWindow(this.window);
+            const topSameDomainWindow = getTopSameDomainWindow(this.window as Window);
             const timeoutId           = nativeMethods.setTimeout.call(topSameDomainWindow, sendFunc, 10);
 
             this.iframeInternalMsgQueue.push({ timeoutId, sendFunc });
@@ -232,9 +232,9 @@ export default class MessageSandbox extends SandboxBase {
     // NOTE: This code is used only in legacy API.
     pingIframe (targetIframe, pingMessageCommand, shortWaiting: boolean) {
         return new Promise((resolve, reject) => {
-            let pingInterval = null;
-            let pingTimeout  = null;
-            let targetWindow = null;
+            let pingInterval                = null;
+            let pingTimeout                 = null;
+            let targetWindow: Window | null = null;
 
             const sendPingRequest = () => {
                 targetWindow = nativeMethods.contentWindowGetter.call(targetIframe);

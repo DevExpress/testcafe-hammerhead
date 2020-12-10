@@ -139,7 +139,7 @@ export default class Proxy extends Router {
 
     async _onServiceMessage (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) {
         const body    = await fetchBody(req);
-        const msg     = parseAsJson(body);
+        const msg     = parseAsJson(body) as ServiceMessage;
         const session = msg && this.openSessions.get(msg.sessionId);
 
         if (session) {
@@ -166,7 +166,7 @@ export default class Proxy extends Router {
         const session     = refererDest && this.openSessions.get(refererDest.sessionId);
         const windowId    = refererDest && refererDest.windowId;
 
-        if (session) {
+        if (session && refererDest && windowId) {
             res.setHeader(BUILTIN_HEADERS.contentType, 'application/x-javascript');
             addPreventCachingHeaders(res);
 

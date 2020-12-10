@@ -7,14 +7,14 @@ const HEADER_BODY_INVALID_CHARACTERS    = [ '\n', '\r' ];
 const HEADER_NAME_VALID_CHAR_CODE_RANGE = { min: 33, max: 126 };
 const HEADER_INVALID_CHAR_LOCATIONS     = { name: 'name', body: 'body' };
 
-interface InvalidCharactersRecord extends Dictionary<string> {
+interface InvalidCharactersRecord extends Dictionary<any> {
     name:  string;
     body?: string;
     index: string;
 }
 
 export function getFormattedInvalidCharacters (rawHeaders: string): string {
-    let invalidCharList = [];
+    let invalidCharList: InvalidCharactersRecord[] = [];
 
     for (const header of rawHeaders.split(HEADER_LINE_SEPARATOR)) {
         const name = header.slice(0, header.indexOf(HEADER_BODY_SEPARATOR));
@@ -35,7 +35,7 @@ function headerBodyCharIsInvalid (char: string): boolean {
 }
 
 function getInvalidCharacters (name: string, body: string): InvalidCharactersRecord[] {
-    const invalidCharList = [];
+    const invalidCharList: InvalidCharactersRecord[] = [];
 
     for (let i = 0; i < name.length; i++) {
         if (headerNameCharIsInvalid(name[i])) {

@@ -78,7 +78,7 @@ function createLogicalExpression (left: Expression, operator: LogicalOperator, r
     return { type: Syntax.LogicalExpression, left, right, operator }
 }
 
-export function createReturnStatement (argument: Expression = null): ReturnStatement {
+export function createReturnStatement (argument: Expression | null = null): ReturnStatement {
     return { type: Syntax.ReturnStatement, argument };
 }
 
@@ -110,7 +110,7 @@ export function createBlockStatement (body: Statement[]): BlockStatement {
     return { type: Syntax.BlockStatement, body };
 }
 
-export function createVariableDeclarator (id: Pattern, init: Expression = null): VariableDeclarator {
+export function createVariableDeclarator (id: Pattern, init: Expression | null = null): VariableDeclarator {
     return { type: Syntax.VariableDeclarator, id, init };
 }
 

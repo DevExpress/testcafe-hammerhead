@@ -17,32 +17,34 @@ debug.formatters.i = (ctx: RequestPipelineContext): string => {
     if (ctx.isWebSocket)
         stringifiedInfoArr.push('isWebSocket');
 
-    if (contentInfo.isCSS)
+    if (contentInfo && contentInfo.isCSS)
         stringifiedInfoArr.push('isCSS');
 
-    if (contentInfo.isScript)
+    if (contentInfo && contentInfo.isScript)
         stringifiedInfoArr.push('isScript');
 
-    if (contentInfo.isManifest)
+    if (contentInfo && contentInfo.isManifest)
         stringifiedInfoArr.push('isManifest');
 
-    if (contentInfo.isFileDownload)
+    if (contentInfo && contentInfo.isFileDownload)
         stringifiedInfoArr.push('isFileDownload');
 
-    if (ctx.contentInfo.isNotModified)
+    if (ctx.contentInfo && ctx.contentInfo.isNotModified)
         stringifiedInfoArr.push('isNotModified');
 
-    if (contentInfo.isRedirect)
+    if (contentInfo && contentInfo.isRedirect)
         stringifiedInfoArr.push('isRedirect');
 
-    if (contentInfo.isIframeWithImageSrc)
+    if (contentInfo && contentInfo.isIframeWithImageSrc)
         stringifiedInfoArr.push('isIframeWithImageSrc');
 
-    if (contentInfo.charset)
+    if (contentInfo && contentInfo.charset)
         stringifiedInfoArr.push('charset: ' + contentInfo.charset.get());
 
-    stringifiedInfoArr.push('encoding: ' + contentInfo.encoding);
-    stringifiedInfoArr.push('requireProcessing: ' + contentInfo.requireProcessing);
+    if (contentInfo) {
+        stringifiedInfoArr.push('encoding: ' + contentInfo.encoding);
+        stringifiedInfoArr.push('requireProcessing: ' + contentInfo.requireProcessing);
+    }
 
     return `{ ${stringifiedInfoArr.join(', ')} }`;
 };

@@ -82,14 +82,14 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     else if (!owner.location)
                         return owner.location;
 
-                    const wnd = domUtils.isWindow(owner) ? owner : owner.defaultView;
+                    const wnd = (domUtils.isWindow(owner) ? owner : owner.defaultView) as Window;
 
                     return new LocationWrapper(wnd, null, noop);
                 },
 
                 set: (owner: Window | Document, location: Location) => {
                     //@ts-ignore
-                    const ownerWindow     = domUtils.isWindow(owner) ? owner : owner.defaultView;
+                    const ownerWindow     = (domUtils.isWindow(owner) ? owner : owner.defaultView) as Window;
                     const locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(ownerWindow);
 
                     if (!locationWrapper || locationWrapper === owner.location ||

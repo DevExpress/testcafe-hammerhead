@@ -43,7 +43,7 @@ const FIND_SVG_RE      = /<svg\s?[^>]*>/ig;
 const FIND_NS_ATTRS_RE = /\s(?:NS[0-9]+:[^"']+('|")[\S\s]*?\1|[^:]+:NS[0-9]+=(?:""|''))/g;
 
 const STORED_ATTRS_SELECTOR = (() => {
-    const storedAttrs = [];
+    const storedAttrs: string[] = [];
 
     for (const attr of URL_ATTRS)
         storedAttrs.push(DomProcessor.getStoredAttrName(attr));
@@ -274,12 +274,12 @@ export function processHtml (html, options: ProcessHTMLOptions = {}) {
     const { parentTag, prepareDom, processedContext } = options;
 
     return processHtmlInternal(html, container => {
-        let doctypeElement  = null;
-        const htmlElements  = [];
-        let children        = [];
-        let length          = 0;
+        let doctypeElement: HTMLElement | null = null;
+        const htmlElements: HTMLElement[]      = [];
+        let children: HTMLElement[]            = [];
+        let length                             = 0;
         // @ts-ignore
-        const storedBaseUrl = urlResolver.getBaseUrl(document);
+        const storedBaseUrl                    = urlResolver.getBaseUrl(document);
 
         if (prepareDom)
             prepareDom(container);

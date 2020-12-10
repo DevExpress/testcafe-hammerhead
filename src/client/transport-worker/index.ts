@@ -17,7 +17,7 @@ let sessionId                = '';
 const msgQueue: MessageQueue = {};
 
 function asyncServiceMsg (msg: ServiceMessage, callback: AsyncMessageCallback) {
-    request(serviceMsgUrl, msg, (err, data) => callback({ err, data }));
+    request(serviceMsgUrl, msg, (err, data) => callback({ err: err as string, data }));
 }
 
 function queuedAsyncServiceMsg (msg: ServiceMessage, callback: AsyncMessageCallback) {
@@ -29,7 +29,8 @@ function queuedAsyncServiceMsg (msg: ServiceMessage, callback: AsyncMessageCallb
     const asyncMsgCallback = (result: MessageResponse) => {
         const queuedMsg = msgQueue[msg.cmd].shift();
 
-        queuedMsg.callback(result);
+        if (queuedMsg)
+            queuedMsg.callback(result);
 
         if (msgQueue[msg.cmd].length)
             asyncServiceMsg(msgQueue[msg.cmd][0].msg, asyncMsgCallback);

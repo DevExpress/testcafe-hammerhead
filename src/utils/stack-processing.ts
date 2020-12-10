@@ -55,7 +55,7 @@ export function getFirstDestUrl (stack: string | null | void): string | null {
             if (!stackFrameRegExp.test(stackFrame))
                 continue;
 
-            let destSource = null;
+            let destSource: string | null = null;
 
             stackFrame.replace(stackFrameRegExp, (str: string, source: string) => {
                 source     = source.replace(ROW_COLUMN_NUMBER_REG_EX, '');

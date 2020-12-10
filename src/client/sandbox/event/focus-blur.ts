@@ -91,8 +91,8 @@ export default class FocusBlurSandbox extends SandboxBase {
     }
 
     _getElementNonScrollableParentsScrollState (el: HTMLElement) {
-        const scrollState    = [];
-        const elementParents = domUtils.getParents(el);
+        const scrollState: { element: any, state: ScrollState }[] = [];
+        const elementParents                                      = domUtils.getParents(el);
 
         for (const elementParent of elementParents) {
             if (styleUtils.get(elementParent, 'overflow') === 'hidden') {
@@ -111,7 +111,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             FocusBlurSandbox._restoreElementScroll(scrollStateEntry.element, scrollStateEntry.state);
     }
 
-    _saveScrollStateIfNecessary (el: any, preventScrolling: boolean) {
+    _saveScrollStateIfNecessary (el: any, preventScrolling?: boolean) {
         if (preventScrolling)
             this._scrollState.windowScroll = styleUtils.getElementScroll(this.window);
 
@@ -119,8 +119,8 @@ export default class FocusBlurSandbox extends SandboxBase {
             this._scrollState.elementNonScrollableParentsScrollState = this._getElementNonScrollableParentsScrollState(el);
     }
 
-    _restoreScrollStateIfNecessary (preventScrolling: boolean) {
-        if (preventScrolling)
+    _restoreScrollStateIfNecessary (preventScrolling?: boolean) {
+        if (this.window && preventScrolling)
             FocusBlurSandbox._restoreElementScroll(this.window, this._scrollState.windowScroll);
 
         if (browserUtils.isIE)
@@ -134,11 +134,12 @@ export default class FocusBlurSandbox extends SandboxBase {
         const simulateEvent = () => {
             // NOTE: The focus and blur events should be raised after activeElement is changed (B237489)
             // in MSEdge, the focus/blur events are executed  synchronously.
-            if (browserUtils.isIE && browserUtils.version < 12) {
+            if (this.window && browserUtils.isIE && browserUtils.version < 12) {
                 this.window.setTimeout(() => {
-                    this.window.setTimeout(() => {
-                        delete el[FocusBlurSandbox.getInternalEventFlag(type)];
-                    }, 0);
+                    if (this.window)
+                        this.window.setTimeout(() => {
+                            delete el[FocusBlurSandbox.getInternalEventFlag(type)];
+                        }, 0);
                 }, 0);
             }
             else
@@ -247,9 +248,11 @@ export default class FocusBlurSandbox extends SandboxBase {
         this._topWindow = domUtils.isCrossDomainWindows(window, window.top) ? window : window.top;
 
         this._listeners.addInternalEventListener(window, ['focus', 'blur'], () => {
-            const activeElement = domUtils.getActiveElement(this.document);
+            if (this.document) {
+                const activeElement = domUtils.getActiveElement(this.document);
 
-            this._onChangeActiveElement(activeElement);
+                this._onChangeActiveElement(activeElement);
+            }
         });
     }
 
@@ -313,7 +316,7 @@ export default class FocusBlurSandbox extends SandboxBase {
 
                 // NOTE: If we call focus for an unfocusable element (like 'div' or 'image') in iframe, we should
                 // specify document.active for this iframe manually, so we call focus without handlers.
-                if (isElementInIframe && iframeElement &&
+                if (isElementInIframe && iframeElement && this._topWindow &&
                     domUtils.getActiveElement(this._topWindow.document) !== iframeElement)
                     this._raiseEvent(iframeElement, 'focus', () => this._raiseSelectionChange(callback, el), { withoutHandlers: true, isAsync });
                 else
@@ -326,6 +329,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             // NOTE: In IE, the focus() method does not have any effect if it is called in the focus event handler
             // during the  second event phase.
             if ((this._eventSimulator.isSavedWindowsEventsExists() || browserUtils.version > 10) &&
+                this.window &&
                 this.window.event &&
                 this.window.event.type === 'focus' && this.window.event.srcElement === el) {
                 this._raiseSelectionChange(callback, el);

@@ -14,7 +14,7 @@ export default class ResponseMock {
     private readonly body: any;
     readonly statusCode: string;
     readonly headers: any;
-    requestOptions: RequestOptions = null;
+    requestOptions: RequestOptions | null = null;
 
     constructor (body, statusCode, headers) {
         this.body       = body;

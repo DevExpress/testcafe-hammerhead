@@ -43,7 +43,9 @@ export default class Transport extends TransportLegacy {
                 const channel = new nativeMethods.MessageChannel();
 
                 messageSandbox.sendServiceMsg({ cmd: SET_MESSAGE_PORT }, source, [channel.port1]);
-                this._transportWorker.postMessage({ cmd: HANDLE_PORT_CMD }, [channel.port2]);
+
+                if (this._transportWorker)
+                    this._transportWorker.postMessage({ cmd: HANDLE_PORT_CMD }, [channel.port2]);
             }
 
             else if (message.cmd === SET_MESSAGE_PORT) {
@@ -56,7 +58,8 @@ export default class Transport extends TransportLegacy {
 
     private _processQueue () {
         for (const msgWrapper of this._queue)
-            this._transportWorker.postMessage(msgWrapper);
+            if (this._transportWorker)
+                this._transportWorker.postMessage(msgWrapper);
 
         this._queue.length = 0;
     }
@@ -64,7 +67,7 @@ export default class Transport extends TransportLegacy {
     private static _shouldAddReferer (): boolean {
         const frameElement = getFrameElement(window);
 
-        return frameElement && isIframeWithoutSrc(frameElement);
+        return !!frameElement && isIframeWithoutSrc(frameElement);
     }
 
     private _onWorkerMessage (e: MessageEvent) {
@@ -73,7 +76,10 @@ export default class Transport extends TransportLegacy {
         if (!this._messageCallbacks.has(id))
             return;
 
-        this._messageCallbacks.get(id)(result.err, result.data);
+        const messageCallback = this._messageCallbacks.get(id);
+
+        if (messageCallback)
+            messageCallback(result.err, result.data);
         this._messageCallbacks.delete(id);
     }
 

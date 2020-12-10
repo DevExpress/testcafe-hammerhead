@@ -44,18 +44,28 @@ export function createElement (tagName: string, attrs: ASTAttribute[]): ASTNode 
         tagName:    tagName,
         attrs:      attrs,
         childNodes: []
-    } as ASTNode;
+    } as unknown as ASTNode;
 }
 
 export function unshiftElement (el: ASTNode, parent: ASTNode): void {
     el.namespaceURI = parent.namespaceURI;
     el.parentNode   = parent;
-    parent.childNodes.unshift(el);
+
+    if (parent.childNodes)
+        parent.childNodes.unshift(el);
 }
 
 export function insertBeforeFirstScript (el: ASTNode, parent: ASTNode): void {
     const firstScriptIndex = findNodeIndex(parent, node => node.tagName === 'script');
-    const insertIndex      = firstScriptIndex !== -1 ? firstScriptIndex : parent.childNodes.length;
+
+    let insertIndex;
+
+    if (firstScriptIndex !== -1)
+        insertIndex = firstScriptIndex;
+    else if (parent.childNodes)
+        insertIndex = parent.childNodes.length;
+    else 
+        insertIndex = 0;
 
     appendNode(el, parent, insertIndex);
 }
@@ -67,9 +77,9 @@ export function findNodeIndex (parent: ASTNode, predicate: (value: ASTNode, inde
 }
 
 export function findNextNonTextNode (parent: ASTNode, startIndex: number): ASTNode | null {
-    let currentNode = null;
+    let currentNode: ASTNode | null = null;
 
-    while (currentNode = parent.childNodes[startIndex]){
+    while (parent.childNodes && (currentNode = parent.childNodes[startIndex])) {
         if (currentNode.nodeName !== '#text')
             return currentNode;
 
@@ -80,17 +90,22 @@ export function findNextNonTextNode (parent: ASTNode, startIndex: number): ASTNo
 }
 
 export function appendNode (node: ASTNode, parent: ASTNode, index: number): void {
-    node.namespaceURI = parent.namespaceURI;
-    node.parentNode   = parent;
+    if (parent.childNodes) {
+        node.namespaceURI = parent.namespaceURI;
+        node.parentNode   = parent;
 
-    parent.childNodes.splice(index, 0, node);
+        parent.childNodes.splice(index, 0, node);
+    }
 }
 
 export function removeNode (node: ASTNode): void {
     const parent  = node.parentNode;
-    const elIndex = parent.childNodes.indexOf(node);
 
-    parent.childNodes.splice(elIndex, 1);
+    if (parent && parent.childNodes) {
+        const elIndex = parent.childNodes.indexOf(node);
+
+        parent.childNodes.splice(elIndex, 1);
+    }
 }
 
 export function findElementsByTagNames (root: ASTNode, tagNames: string[]): Dictionary<ASTNode[]> {

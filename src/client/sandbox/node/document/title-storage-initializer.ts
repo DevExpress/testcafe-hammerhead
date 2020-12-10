@@ -55,7 +55,10 @@ export default class DocumentTitleStorageInitializer {
         const serviceValue = nativeMethods.titleElementTextGetter.call(firstTitle);
 
         nativeMethods.titleElementTextSetter.call(secondTitle, serviceValue);
-        removeElement(firstTitle);
+
+        if (firstTitle)
+            removeElement(firstTitle);
+
         this.storage.setTitleElementPropertyValue(secondTitle, pageOriginValue);
     }
 }

@@ -21,12 +21,12 @@ export default class StyleSandbox extends SandboxBase {
         this.FEATURES         = this._detectBrowserFeatures();
     }
 
-    static _convertToDashed (prop) {
+    static _convertToDashed (prop): string {
         return prop.replace(/[A-Z]/g, '-$&').toLowerCase();
     }
 
     static _generateDashedProps (props) {
-        const dashedProps = [];
+        const dashedProps: string[] = [];
 
         for (const prop of props) {
             const dashedProp = StyleSandbox._convertToDashed(prop);

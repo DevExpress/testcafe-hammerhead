@@ -78,8 +78,8 @@ import { SET_BLOB_WORKER_SETTINGS, SET_SERVICE_WORKER_SETTINGS } from '../../wor
 import { getOriginHeader } from '../../utils/destination-location';
 
 const INSTRUCTION_VALUES = (() => {
-    const values = [];
-    const keys   = nativeMethods.objectKeys(INSTRUCTION);
+    const values: string[] = [];
+    const keys             = nativeMethods.objectKeys(INSTRUCTION);
 
     for (const key of keys)
         values.push(INSTRUCTION[key]);
@@ -133,7 +133,7 @@ export default class WindowSandbox extends SandboxBase {
         uploadSandbox: UploadSandbox,
         nodeMutation: NodeMutation,
         private readonly _childWindowSandbox: ChildWindowSandbox,
-        private readonly _documentTitleStorageInitializer?: DocumentTitleStorageInitializer) {
+        private readonly _documentTitleStorageInitializer?: DocumentTitleStorageInitializer | null) {
         super();
 
         this.nodeSandbox           = nodeSandbox;
@@ -148,7 +148,7 @@ export default class WindowSandbox extends SandboxBase {
         this.SANDBOX_DOM_TOKEN_LIST_UPDATE_FN = SANDBOX_DOM_TOKEN_LIST_UPDATE_FN;
     }
 
-    private static _prepareStack (msg: string, stack: string): string {
+    private static _prepareStack (msg: string, stack: string | null): string {
         // NOTE: Firefox does not include an error message in a stack trace (unlike other browsers)
         // It is possible to get a stack trace for unhandled Promise rejections only if Promise is rejected with the 'Error' instance value.
         // This is why we should convert the stack to a common format.
@@ -200,10 +200,10 @@ export default class WindowSandbox extends SandboxBase {
         if (isCrossDomainWindows(window, window.top))
             return;
 
-        const sendToTopWindow = window !== window.top;
-        const pageUrl         = destLocation.get();
-        let msg               = null;
-        let stack             = null;
+        const sendToTopWindow    = window !== window.top;
+        const pageUrl            = destLocation.get();
+        let msg                  = '';
+        let stack: string | null = null;
 
         if (type === this.UNHANDLED_REJECTION_EVENT) {
             msg   = WindowSandbox._formatUnhandledRejectionReason((event as PromiseRejectionEvent).reason);
@@ -384,7 +384,8 @@ export default class WindowSandbox extends SandboxBase {
 
             const nativeText = nativeMethods.titleElementTextGetter.call(titleElement);
 
-            this._documentTitleStorageInitializer.storage.setTitleElementPropertyValue(titleElement, nativeText);
+            if (this._documentTitleStorageInitializer)
+                this._documentTitleStorageInitializer.storage.setTitleElementPropertyValue(titleElement, nativeText);
         }
     }
 
@@ -401,7 +402,7 @@ export default class WindowSandbox extends SandboxBase {
         if (event.defaultPrevented)
             return;
 
-        if (event.type === 'unhandledrejection')
+        if (this.window && event.type === 'unhandledrejection')
             this._raiseUncaughtJsErrorEvent(this.UNHANDLED_REJECTION_EVENT, event, this.window);
         else if (event.type === 'error') {
             if (event.message.indexOf('NS_ERROR_NOT_INITIALIZED') !== -1)
@@ -470,7 +471,7 @@ export default class WindowSandbox extends SandboxBase {
 
         if (nativeMethods.objectAssign) {
             overrideFunction(window.Object, 'assign', function (target, ...sources) {
-                let args = [];
+                let args: unknown[] = [];
 
                 args.push(target);
 
@@ -595,7 +596,7 @@ export default class WindowSandbox extends SandboxBase {
         if (window.MutationObserver) {
             overrideConstructor(window, 'MutationObserver', callback => {
                 const wrapper = function (mutations) {
-                    const result = [];
+                    const result: NodeMutation[] = [];
 
                     for (const mutation of mutations) {
                         if (!ShadowUI.isShadowUIMutation(mutation))
@@ -667,13 +668,14 @@ export default class WindowSandbox extends SandboxBase {
 
                         const channel = new nativeMethods.MessageChannel();
 
-                        serviceWorker.postMessage({
-                            cmd:          SET_SERVICE_WORKER_SETTINGS,
-                            currentScope: getScope(url),
-                            optsScope:    getScope(opts && opts.scope),
-                            protocol:     parsedProxyUrl.destResourceInfo.protocol, // eslint-disable-line no-restricted-properties
-                            host:         parsedProxyUrl.destResourceInfo.host // eslint-disable-line no-restricted-properties
-                        }, [channel.port1]);
+                        if (parsedProxyUrl)
+                            serviceWorker.postMessage({
+                                cmd:          SET_SERVICE_WORKER_SETTINGS,
+                                currentScope: getScope(url),
+                                optsScope:    getScope(opts && opts.scope),
+                                protocol:     parsedProxyUrl.destResourceInfo.protocol, // eslint-disable-line no-restricted-properties
+                                host:         parsedProxyUrl.destResourceInfo.host // eslint-disable-line no-restricted-properties
+                            }, [channel.port1]);
 
                         channel.port2.onmessage = (e) => {
                             const data = nativeMethods.messageEventDataGetter.call(e);
@@ -722,7 +724,7 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         overrideConstructor(window, 'Image', function () {
-            let image = null;
+            let image: HTMLElement | null = null;
 
             if (!arguments.length)
                 image = new nativeMethods.Image();
@@ -731,7 +733,8 @@ export default class WindowSandbox extends SandboxBase {
             else
                 image = new nativeMethods.Image(arguments[0], arguments[1]);
 
-            image[INTERNAL_PROPS.forceProxySrcForImage] = true;
+            if (image)
+                image[INTERNAL_PROPS.forceProxySrcForImage] = true;
 
             nodeSandbox.processNodes(image);
 
@@ -792,7 +795,7 @@ export default class WindowSandbox extends SandboxBase {
                         const parsedUrl = parseUrl(args[urlIndex]);
 
                         // eslint-disable-next-line no-restricted-properties
-                        isDestUrl = parsedUrl.hostname && destHostname === parsedUrl.hostname;
+                        isDestUrl = !!parsedUrl.hostname && destHostname === parsedUrl.hostname;
                     }
                     else
                         isDestUrl = destLocation.sameOriginCheck(destLocation.get(), args[urlIndex]);
@@ -1094,6 +1097,7 @@ export default class WindowSandbox extends SandboxBase {
             }
         });
 
+        // @ts-ignore
         if (nativeMethods.iframeSrcdocGetter) {
             overrideDescriptor(window.HTMLIFrameElement.prototype, 'srcdoc', {
                 getter: function () {
@@ -1322,7 +1326,7 @@ export default class WindowSandbox extends SandboxBase {
 
                 DOMMutationTracker.onChildrenChanged(el);
 
-                if (windowSandbox.document.body === el) {
+                if (windowSandbox.document && windowSandbox.document.body === el) {
                     const shadowUIRoot = windowSandbox.shadowUI.getRoot();
 
                     windowSandbox.shadowUI.markShadowUIContainers(windowSandbox.document.head, el);
@@ -1566,10 +1570,10 @@ export default class WindowSandbox extends SandboxBase {
         if (this._documentTitleStorageInitializer) {
             overrideDescriptor(window.HTMLTitleElement.prototype, 'text', {
                 getter: function () {
-                    return windowSandbox._documentTitleStorageInitializer.storage.getTitleElementPropertyValue(this);
+                    return (windowSandbox._documentTitleStorageInitializer as DocumentTitleStorageInitializer).storage.getTitleElementPropertyValue(this);
                 },
                 setter: function (value) {
-                    windowSandbox._documentTitleStorageInitializer.storage.setTitleElementPropertyValue(this, value);
+                    (windowSandbox._documentTitleStorageInitializer as DocumentTitleStorageInitializer).storage.setTitleElementPropertyValue(this, value);
                 }
             });
         }

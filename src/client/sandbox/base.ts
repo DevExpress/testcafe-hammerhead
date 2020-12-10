@@ -13,9 +13,10 @@ export default class SandboxBase extends EventEmitter {
         try {
             // NOTE: In IE11, a situation when the document is not active may occur.
             // eslint-disable-next-line no-unused-expressions
+            // @ts-ignore
             this.document.body;
 
-            if (this.window[INTERNAL_PROPS.hammerhead]) {
+            if (this.window && this.window[INTERNAL_PROPS.hammerhead]) {
                 const frameElement = getFrameElement(this.window);
 
                 return !!frameElement && !isElementInDocument(frameElement, findDocument(frameElement));

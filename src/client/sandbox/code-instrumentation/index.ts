@@ -91,12 +91,12 @@ export default class CodeInstrumentation extends SandboxBase {
                 const storedBaseUrl    = urlResolver.getBaseUrl(this.document);
                 const shouldChangeBase = baseUrl && baseUrl !== storedBaseUrl;
 
-                if (shouldChangeBase)
+                if (this.document && shouldChangeBase)
                     urlResolver.updateBase(baseUrl as string, this.document);
 
                 const proxyUrl = getProxyUrl(url, { resourceType: stringifyResourceType({ isScript: true }) });
 
-                if (shouldChangeBase)
+                if (this.document && shouldChangeBase)
                     urlResolver.updateBase(storedBaseUrl, this.document);
 
                 return proxyUrl;

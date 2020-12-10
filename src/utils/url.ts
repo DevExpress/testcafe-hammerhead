@@ -229,7 +229,7 @@ export function parseProxyUrl (proxyUrl: string): ParsedProxyUrl | null {
     if (!isSpecialPage(destUrlWithoutHash) && !SUPPORTED_PROTOCOL_RE.test(destUrl))
         return null;
 
-    let destResourceInfo = null;
+    let destResourceInfo: ParsedUrl | null = null;
 
     if (isSpecialPage(destUrlWithoutHash))
         destResourceInfo = SPECIAL_PAGE_DEST_RESOURCE_INFO;
@@ -345,7 +345,7 @@ export function resolveUrlAsDest (url: string, getProxyUrlMeth: Function): strin
 
 export function formatUrl (parsedUrl: ParsedUrl): string {
     // NOTE: the URL is relative.
-    if (parsedUrl.protocol !== 'file:' && !parsedUrl.host && (!parsedUrl.hostname || !parsedUrl.port))
+    if (parsedUrl.partAfterHost && parsedUrl.protocol !== 'file:' && !parsedUrl.host && (!parsedUrl.hostname || !parsedUrl.port))
         return parsedUrl.partAfterHost;
 
     let url = parsedUrl.protocol || '';

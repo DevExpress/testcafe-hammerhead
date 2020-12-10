@@ -15,13 +15,19 @@ export class RequestInfo {
 
     constructor (ctx: RequestPipelineContext) {
         this.requestId = ctx.requestId;
-        this.userAgent = ctx.reqOpts.headers['user-agent'] || '';
-        this.url       = ctx.reqOpts.url;
-        this.method    = ctx.reqOpts.method.toLowerCase();
         this.isAjax    = ctx.isAjax;
-        this.headers   = ctx.reqOpts.headers;
-        this.body      = ctx.reqOpts.body;
-        this.sessionId = ctx.session.id;
+
+        if (ctx.reqOpts) {
+            this.userAgent = ctx.reqOpts.headers['user-agent'] || '';
+            this.url       = ctx.reqOpts.url;
+            this.method    = ctx.reqOpts.method.toLowerCase();
+            this.headers   = ctx.reqOpts.headers;
+            this.body      = ctx.reqOpts.body as Buffer;
+            
+        }
+
+        if (ctx.session)
+            this.sessionId = ctx.session.id;
     }
 }
 
@@ -34,10 +40,15 @@ export class ResponseInfo {
 
     constructor (ctx: RequestPipelineContext) {
         this.requestId  = ctx.requestId;
-        this.headers    = ctx.destRes.headers;
-        this.body       = ctx.nonProcessedDestResBody;
-        this.statusCode = ctx.isSameOriginPolicyFailed ? SAME_ORIGIN_CHECK_FAILED_STATUS_CODE : ctx.destRes.statusCode;
-        this.sessionId  = ctx.session.id;
+        this.body       = ctx.nonProcessedDestResBody as Buffer;
+        
+        if (ctx.destRes) {
+            this.headers    = ctx.destRes.headers as { [name: string]: string|string[] };
+            this.statusCode = ctx.isSameOriginPolicyFailed ? SAME_ORIGIN_CHECK_FAILED_STATUS_CODE : ctx.destRes.statusCode as number;
+        }
+
+        if (ctx.session)
+            this.sessionId = ctx.session.id;
     }
 }
 

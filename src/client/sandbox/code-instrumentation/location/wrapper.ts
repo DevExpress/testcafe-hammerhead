@@ -40,7 +40,7 @@ function getLocationUrl (window: Window): string | undefined {
 }
 
 export default class LocationWrapper {
-    constructor (window: Window, messageSandbox: MessageSandbox, onChanged: Function) {
+    constructor (window: Window, messageSandbox: MessageSandbox | null, onChanged: Function) {
         const parsedLocation         = parseProxyUrl(getLocationUrl(window) as string);
         const locationResourceType   = parsedLocation ? parsedLocation.resourceType : '';
         const parsedResourceType     = parseResourceType(locationResourceType);
@@ -81,7 +81,7 @@ export default class LocationWrapper {
 
             const locationUrl = getLocationUrl(window);
 
-            let proxyPort = null;
+            let proxyPort: string | null = null;
 
             if (window !== window.parent) {
                 const parentLocationUrl       = getLocationUrl(window.parent) as string;
@@ -157,7 +157,8 @@ export default class LocationWrapper {
 
                 callbacks[id] = callback;
 
-                messageSandbox.sendServiceMsg({ id, cmd: GET_ORIGIN_CMD }, win);
+                if (messageSandbox)
+                    messageSandbox.sendServiceMsg({ id, cmd: GET_ORIGIN_CMD }, win);
             };
 
             if (messageSandbox) {

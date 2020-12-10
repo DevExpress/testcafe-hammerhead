@@ -159,7 +159,8 @@ export default class Sandbox extends SandboxBase {
 
         nativeMethods.objectDefineProperty(window, INTERNAL_PROPS.sandboxIsReattached, { value: true, configurable: false });
 
-        urlResolver.init(this.document);
+        if (this.document)
+            urlResolver.init(this.document);
 
         // NOTE: Eval Hammerhead code script.
         this.iframe.on(this.iframe.EVAL_HAMMERHEAD_SCRIPT_EVENT, e => {

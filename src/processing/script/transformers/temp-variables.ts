@@ -11,7 +11,7 @@ export default class TempVariables {
         TempVariables._counter = 0;
     }
 
-    static generateName(baseName?: string, key?: Expression, index?: number): string {
+    static generateName(baseName?: string, key?: Expression | null, index?: number): string {
         if (!baseName)
             return TEMP_VARIABLE_PREFIX + TempVariables._counter++;
 
@@ -19,7 +19,7 @@ export default class TempVariables {
             if (key.type === Syntax.Identifier)
                 return baseName + '$' + key.name;
 
-            if (key.type === Syntax.Literal)
+            if (key.type === Syntax.Literal && key.value)
                 return baseName + '$' + key.value.toString().replace(/[^a-zA-Z0-9]/g, '');
         }
 

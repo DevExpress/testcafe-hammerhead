@@ -173,7 +173,8 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
                 FetchSandbox._processArguments(args);
             }
             catch (e) {
-                return nativeMethods.promiseReject.call(sandbox.window.Promise, e);
+                if (sandbox.window)
+                    return nativeMethods.promiseReject.call(sandbox.window.Promise, e);
             }
 
             if (!FetchSandbox._sameOriginCheck(args))

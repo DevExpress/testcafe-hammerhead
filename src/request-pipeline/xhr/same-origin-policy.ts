@@ -5,10 +5,10 @@ import { castArray } from 'lodash';
 
 // NOTE: https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS
 export function check (ctx: RequestPipelineContext): boolean {
-    const reqOrigin = ctx.dest.reqOrigin;
+    const reqOrigin = ctx.dest ? ctx.dest.reqOrigin : '';
 
     // PASSED: Same origin.
-    if (ctx.dest.domain === reqOrigin)
+    if (ctx.dest && ctx.dest.domain === reqOrigin)
         return true;
 
     // PASSED: We have a "preflight" request.
@@ -16,8 +16,8 @@ export function check (ctx: RequestPipelineContext): boolean {
         return true;
 
     const withCredentials        = ctx.req.headers[INTERNAL_HEADERS.credentials] === 'include';
-    const allowOriginHeader      = ctx.destRes.headers[BUILTIN_HEADERS.accessControlAllowOrigin];
-    const allowCredentialsHeader = ctx.destRes.headers[BUILTIN_HEADERS.accessControlAllowCredentials];
+    const allowOriginHeader      = ctx.destRes ? ctx.destRes.headers[BUILTIN_HEADERS.accessControlAllowOrigin] : void 0;
+    const allowCredentialsHeader = ctx.destRes ? ctx.destRes.headers[BUILTIN_HEADERS.accessControlAllowCredentials] : void 0;
     const allowCredentials       = String(allowCredentialsHeader).toLowerCase() === 'true';
     const allowedOrigins         = castArray(allowOriginHeader);
     const wildcardAllowed        = allowedOrigins.includes('*');
@@ -41,7 +41,8 @@ export function shouldOmitCredentials (ctx: RequestPipelineContext): boolean {
         case 'omit':
             return true;
         case 'same-origin':
-            return ctx.dest.reqOrigin !== ctx.dest.domain;
+            if (ctx.dest)
+                return ctx.dest.reqOrigin !== ctx.dest.domain;
         case 'include':
             return false;
         default:

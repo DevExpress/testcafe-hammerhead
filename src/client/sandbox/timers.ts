@@ -28,11 +28,13 @@ export default class TimersSandbox extends SandboxBase {
         if (isIE && browserVersion < 12) {
             const timersSandbox = this;
             const fnToRun       = isScriptFirstArg ? () => {
-                // NOTE: We are switching eval to the global context with this assignment.
-                // Unlike eval, the setTimeout/setInterval functions always work in the global context.
-                const ev = this.window.eval;
+                if (this.window && script) {
+                    // NOTE: We are switching eval to the global context with this assignment.
+                    // Unlike eval, the setTimeout/setInterval functions always work in the global context.
+                    const ev = this.window.eval;
 
-                return ev(script);
+                    return ev(script);
+                }
             } : func;
 
             args[0] = function () {
@@ -47,8 +49,8 @@ export default class TimersSandbox extends SandboxBase {
 
     _callDeferredFunction (fn, args) {
         if (this.timeouts.length) {
-            const curTimeouts = [];
-            const curHandlers = [];
+            const curTimeouts: number[]   = [];
+            const curHandlers: Function[] = [];
 
             for (let i = 0; i < this.timeouts.length; i++) {
                 curTimeouts.push(this.timeouts[i]);

@@ -19,11 +19,13 @@ const STORE_CHILD_WINDOW_CMD    = 'hammerhead|command|store-child-window';
 
 export default class ChildWindowSandbox extends SandboxBase {
     readonly WINDOW_OPENED_EVENT = 'hammerhead|event|window-opened';
-    private _childWindows: Set<Window> | null;
+    private _childWindows: Set<Window>;
 
     constructor (private readonly _messageSandbox: MessageSandbox,
         private readonly _listeners: Listeners) {
         super();
+
+        this._childWindows = new Set();
     }
 
     private static _shouldOpenInNewWindow (target: string, defaultTarget: string): boolean {
@@ -44,7 +46,7 @@ export default class ChildWindowSandbox extends SandboxBase {
 
         const newPageUrl   = urlUtils.getPageProxyUrl(url, windowId);
         const targetWindow = window || this.window;
-        const openedWindow = nativeMethods.windowOpen.call(targetWindow, newPageUrl, windowName, windowParams);
+        const openedWindow = nativeMethods.windowOpen.call(targetWindow, newPageUrl, windowName, windowParams) as Window;
 
         this._tryToStoreChildWindow(openedWindow, getTopOpenerWindow());
 
@@ -146,7 +148,7 @@ export default class ChildWindowSandbox extends SandboxBase {
     }
 
     getChildWindows (): Window[] {
-        const childWindows = [];
+        const childWindows: Window[] = [];
 
         // eslint-disable-next-line hammerhead/proto-methods
         this._childWindows.forEach(win => {

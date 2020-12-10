@@ -57,7 +57,7 @@ export default abstract class Router {
     }
 
     _prepareParamInfo (tokens: string[], method: string) {
-        const paramNames = [];
+        const paramNames: RegExpMatchArray = [];
         const reParts    = tokens.map(token => {
             const paramMatch = token.match(PARAM_RE);
 
@@ -93,28 +93,30 @@ export default abstract class Router {
     }
 
     _route (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo): boolean {
-        const routerQuery = `${req.method} ${getPathname(req.url)}`;
-        const route       = this.routes.get(routerQuery);
+        if (req.url) {
+            const routerQuery = `${req.method} ${getPathname(req.url)}`;
+            const route       = this.routes.get(routerQuery);
 
-        if (route) {
-            if (route.isStatic)
-                respondStatic(req, res, route.handler, this.options.staticContentCaching);
-            else
-                (route.handler as Function)(req, res, serverInfo);
-
-            return true;
-        }
-
-
-        for (const routeWithParams of this.routesWithParams) {
-            const routeMatch = routerQuery.match(routeWithParams.re);
-
-            if (routeMatch) {
-                const params = buildRouteParamsMap(routeMatch, routeWithParams.paramNames);
-
-                routeWithParams.handler(req, res, serverInfo, params);
+            if (route) {
+                if (route.isStatic)
+                    respondStatic(req, res, route.handler, this.options.staticContentCaching);
+                else
+                    (route.handler as Function)(req, res, serverInfo);
 
                 return true;
+            }
+
+
+            for (const routeWithParams of this.routesWithParams) {
+                const routeMatch = routerQuery.match(routeWithParams.re);
+
+                if (routeMatch) {
+                    const params = buildRouteParamsMap(routeMatch, routeWithParams.paramNames);
+
+                    routeWithParams.handler(req, res, serverInfo, params);
+
+                    return true;
+                }
             }
         }
 

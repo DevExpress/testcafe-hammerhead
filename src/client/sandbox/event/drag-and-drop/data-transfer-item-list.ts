@@ -3,15 +3,15 @@ import DataTransferItem from './data-transfer-item';
 import DATA_STORE_MODE from './data-store-mode';
 import DATA_TRANSFER_ITEM_KIND from './data-transfer-item-kind';
 
-function parseTextUriList (textUriList) {
-    textUriList = textUriList.replace(/\r\n$/, '');
+function parseTextUriList (textUriString: string) {
+    textUriString = textUriString.replace(/\r\n$/, '');
 
-    const res = [];
+    const res: string[] = [];
 
-    if (textUriList === '')
+    if (textUriString === '')
         return res;
 
-    textUriList = textUriList.split(/\r\n/);
+    const textUriList = textUriString.split(/\r\n/);
 
     for (const textUri of textUriList) {
         if (textUri !== '#')
@@ -37,11 +37,11 @@ export default class DataTransferItemList {
 
     constructor (dataStore) {
         // Internals
-        let items     = [];
-        let itemsData = [];
+        let items: any[]     = [];
+        let itemsData: any[] = [];
 
         const getTypes = () => {
-            const res = [];
+            const res: any[] = [];
 
             for (const item of items)
                 res.push(item.type);
@@ -101,7 +101,7 @@ export default class DataTransferItemList {
         };
 
         const addItem = (data, type, allowReplace) => {
-            let newItem = null;
+            let newItem: DataTransferItem | null = null;
 
             if (typeof data === 'string') {
                 const typeLowerCase = type.toString().toLowerCase();

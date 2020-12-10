@@ -1,8 +1,8 @@
 export default function extend (target, ...args) {
     target = target || {};
 
-    let currentObj = null;
-    let copy       = null;
+    let currentObj: {} | null = null;
+    let copy                  = null;
 
     if (typeof target !== 'object' && target.toString() !== '[object Function]')
         target = {};

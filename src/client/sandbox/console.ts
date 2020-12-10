@@ -28,21 +28,22 @@ export default class ConsoleSandbox extends SandboxBase {
     }
 
     private _proxyConsoleMeth (meth: keyof Console): void {
-        overrideFunction(this.window.console, meth, (...args: any[]) => {
-            if (!isCrossDomainWindows(window, window.top)) {
-                const sendToTopWindow = window !== window.top;
-                const line            = nativeMethods.arrayMap.call(args, this._toString).join(' ');
+        if (this.window)
+            overrideFunction(this.window.console, meth, (...args: any[]) => {
+                if (!isCrossDomainWindows(window, window.top)) {
+                    const sendToTopWindow = window !== window.top;
+                    const line            = nativeMethods.arrayMap.call(args, this._toString).join(' ');
 
-                if (sendToTopWindow) {
-                    this.emit(this.CONSOLE_METH_CALLED_EVENT, { meth, line, inIframe: true });
-                    this._messageSandbox.sendServiceMsg({ meth, line, cmd: this.CONSOLE_METH_CALLED_EVENT }, window.top);
+                    if (sendToTopWindow) {
+                        this.emit(this.CONSOLE_METH_CALLED_EVENT, { meth, line, inIframe: true });
+                        this._messageSandbox.sendServiceMsg({ meth, line, cmd: this.CONSOLE_METH_CALLED_EVENT }, window.top);
+                    }
+                    else
+                        this.emit(this.CONSOLE_METH_CALLED_EVENT, { meth, line });
                 }
-                else
-                    this.emit(this.CONSOLE_METH_CALLED_EVENT, { meth, line });
-            }
 
-            this.nativeMethods.consoleMeths[meth].apply(this.nativeMethods.console, args);
-        });
+                this.nativeMethods.consoleMeths[meth].apply(this.nativeMethods.console, args);
+            });
     }
 
     attach (window: Window & typeof globalThis) {

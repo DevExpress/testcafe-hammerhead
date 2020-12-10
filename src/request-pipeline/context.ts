@@ -70,11 +70,16 @@ const REDIRECT_STATUS_CODES                  = [301, 302, 303, 307, 308];
 const CANNOT_BE_USED_WITH_WEB_SOCKET_ERR_MSG = 'The function cannot be used with a WebSocket request.';
 
 export default class RequestPipelineContext {
+    // @ts-ignore
     session: Session = null;
+    // @ts-ignore
     reqBody: Buffer = null;
+    // @ts-ignore
     dest: DestInfo = null;
+    // @ts-ignore
     destRes: http.IncomingMessage | FileStream | IncomingMessageMock = null;
     isDestResReadableEnded = false;
+    // @ts-ignore
     destResBody: Buffer = null;
     isAjax = false;
     isPage = false;
@@ -84,14 +89,17 @@ export default class RequestPipelineContext {
     isIframe = false;
     isSpecialPage = false;
     isWebSocketConnectionReset = false;
+    // @ts-ignore
     contentInfo: ContentInfo = null;
-    restoringStorages: StoragesSnapshot = null;
+    restoringStorages: StoragesSnapshot | null = null;
     requestId: string = generateUniqueId();
     requestFilterRules: RequestFilterRule[] = [];
     onResponseEventData: OnResponseEventData[] = [];
+    // @ts-ignore
     reqOpts: RequestOptions = null;
     parsedClientSyncCookie: ParsedClientSyncCookie;
     isFileProtocol: boolean;
+    // @ts-ignore
     nonProcessedDestResBody: Buffer = null;
     goToNextStage = true;
     mock: ResponseMock;
@@ -106,11 +114,12 @@ export default class RequestPipelineContext {
         this.isAjax = typeof req.headers[INTERNAL_HEADERS.credentials] === 'string';
         this.isPage = !this.isAjax && !!acceptHeader && contentTypeUtils.isPage(acceptHeader);
 
-        this.parsedClientSyncCookie = req.headers.cookie && parseClientSyncCookieStr(req.headers.cookie);
+        if (req.headers.cookie)
+            this.parsedClientSyncCookie = parseClientSyncCookieStr(req.headers.cookie);
     }
 
     // TODO: Rewrite parseProxyUrl instead.
-    private static _flattenParsedProxyUrl (parsed: ParsedProxyUrl): FlattenParsedProxyUrl {
+    private static _flattenParsedProxyUrl (parsed: ParsedProxyUrl): FlattenParsedProxyUrl | null {
         if (!parsed)
             return null;
 
@@ -121,17 +130,17 @@ export default class RequestPipelineContext {
             host:            parsed.destResourceInfo.host,
             hostname:        parsed.destResourceInfo.hostname,
             port:            parsed.destResourceInfo.port,
-            partAfterHost:   parsed.destResourceInfo.partAfterHost,
+            partAfterHost:   parsed.destResourceInfo.partAfterHost as string,
             auth:            parsed.destResourceInfo.auth,
-            isIframe:        parsedResourceType.isIframe,
-            isForm:          parsedResourceType.isForm,
-            isScript:        parsedResourceType.isScript || parsedResourceType.isServiceWorker,
-            isEventSource:   parsedResourceType.isEventSource,
-            isHtmlImport:    parsedResourceType.isHtmlImport,
-            isWebSocket:     parsedResourceType.isWebSocket,
-            isServiceWorker: parsedResourceType.isServiceWorker,
-            charset:         parsed.charset,
-            reqOrigin:       parsed.reqOrigin
+            isIframe:        parsedResourceType.isIframe as boolean,
+            isForm:          parsedResourceType.isForm as boolean,
+            isScript:        parsedResourceType.isScript || parsedResourceType.isServiceWorker as boolean,
+            isEventSource:   parsedResourceType.isEventSource as boolean,
+            isHtmlImport:    parsedResourceType.isHtmlImport as boolean,
+            isWebSocket:     parsedResourceType.isWebSocket as boolean,
+            isServiceWorker: parsedResourceType.isServiceWorker as boolean,
+            charset:         parsed.charset as string,
+            reqOrigin:       parsed.reqOrigin as string
         };
 
         return { dest, sessionId: parsed.sessionId, windowId: parsed.windowId };
@@ -165,7 +174,9 @@ export default class RequestPipelineContext {
     private _getDestFromReferer (parsedReferer: FlattenParsedProxyUrl): FlattenParsedProxyUrl {
         const dest = parsedReferer.dest;
 
-        dest.partAfterHost = this.req.url;
+        if (this.req.url)
+            dest.partAfterHost = this.req.url;
+
         dest.url           = urlUtils.formatUrl(dest);
 
         return { dest, sessionId: parsedReferer.sessionId, windowId: parsedReferer.windowId };
@@ -173,13 +184,13 @@ export default class RequestPipelineContext {
 
     // API
     dispatch (openSessions: Map<string, Session>): boolean {
-        const parsedReqUrl  = urlUtils.parseProxyUrl(this.req.url);
+        const parsedReqUrl  = urlUtils.parseProxyUrl(this.req.url as string);
         const referer       = this.req.headers[BUILTIN_HEADERS.referer] as string;
         const parsedReferer = referer && urlUtils.parseProxyUrl(referer);
 
         // TODO: Remove it after parseProxyURL is rewritten.
-        let flattenParsedReqUrl    = RequestPipelineContext._flattenParsedProxyUrl(parsedReqUrl);
-        const flattenParsedReferer = RequestPipelineContext._flattenParsedProxyUrl(parsedReferer);
+        let flattenParsedReqUrl    = RequestPipelineContext._flattenParsedProxyUrl(parsedReqUrl as ParsedProxyUrl);
+        const flattenParsedReferer = RequestPipelineContext._flattenParsedProxyUrl(parsedReferer as ParsedProxyUrl);
 
         // NOTE: Remove that after implementing the https://github.com/DevExpress/testcafe-hammerhead/issues/2155
         if (!flattenParsedReqUrl && flattenParsedReferer)
@@ -188,9 +199,11 @@ export default class RequestPipelineContext {
         if (!flattenParsedReqUrl)
             return false;
 
-        this.session = openSessions.get(flattenParsedReqUrl.sessionId);
+        const session = openSessions.get(flattenParsedReqUrl.sessionId);
 
-        if (!this.session)
+        if (session)
+            this.session = session;
+        else
             return false;
 
         this.dest               = flattenParsedReqUrl.dest;
@@ -245,7 +258,7 @@ export default class RequestPipelineContext {
         const isFormWithEmptyResponse = isForm && this.destRes.statusCode === 204;
 
         const isRedirect              = this.destRes.headers[BUILTIN_HEADERS.location] &&
-                                        REDIRECT_STATUS_CODES.includes(this.destRes.statusCode);
+                                        REDIRECT_STATUS_CODES.includes(this.destRes.statusCode as number);
         const requireAssetsProcessing = (isCSS || isScript || isManifest) && this.destRes.statusCode !== 204;
         const isNotModified           = this.req.method === 'GET' && this.destRes.statusCode === 304 &&
                                         !!(this.req.headers[BUILTIN_HEADERS.ifModifiedSince] ||
@@ -255,8 +268,8 @@ export default class RequestPipelineContext {
         const isFileDownload          = this._isFileDownload() && !this.dest.isScript;
         const isIframeWithImageSrc    = this.isIframe && !this.isPage && /^\s*image\//.test(contentType);
 
-        let charset               = null;
-        const contentTypeUrlToken = urlUtils.getResourceTypeString({
+        let charset: Charset | null   = null;
+        const contentTypeUrlToken     = urlUtils.getResourceTypeString({
             isIframe: this.isIframe,
             isForm:   isForm,
             isScript: isScript
@@ -274,17 +287,17 @@ export default class RequestPipelineContext {
             this.session.handleFileDownload();
 
         this.contentInfo = {
-            charset,
-            requireProcessing,
-            isIframeWithImageSrc,
-            isCSS,
-            isScript,
-            isManifest,
-            encoding,
-            contentTypeUrlToken,
-            isFileDownload,
-            isNotModified,
-            isRedirect
+            charset:              charset as Charset,
+            requireProcessing:    requireProcessing,
+            isIframeWithImageSrc: isIframeWithImageSrc,
+            isCSS:                isCSS,
+            isScript:             isScript,
+            isManifest:           isManifest,
+            encoding:             encoding,
+            contentTypeUrlToken:  contentTypeUrlToken as string,
+            isFileDownload:       isFileDownload,
+            isNotModified:        isNotModified,
+            isRedirect:           isRedirect as boolean
         };
 
         logger.proxy('Proxy resource content info %s %i', this.requestId, this);
@@ -336,7 +349,7 @@ export default class RequestPipelineContext {
 
     closeWithError (statusCode: number, resBody: string | Buffer = ''): void {
         if (statusCode === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE) {
-            const processedCookie = processSetCookieHeader(this.destRes.headers[BUILTIN_HEADERS.setCookie], this);
+            const processedCookie = processSetCookieHeader(this.destRes.headers[BUILTIN_HEADERS.setCookie] as string | string[], this);
 
             if (processedCookie && processedCookie.length)
                 (this.res as http.ServerResponse).setHeader(BUILTIN_HEADERS.setCookie, processedCookie);

@@ -195,7 +195,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
             this._send();
         }
 
-        else if (this._isTunnelingErr(err)) {
+        else if (this.opts.proxy && this._isTunnelingErr(err)) {
             if (TUNNELING_AUTHORIZE_ERR_RE.test(err.message))
                 this._fatalError(MESSAGE.cantAuthorizeToProxy, this.opts.proxy.host);
             else

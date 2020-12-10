@@ -131,9 +131,9 @@ function matchPattern (pattern, data) {
     if (data.length < pattern.pattern.length)
         return false;
 
-    let p          = 0;
-    let s          = 0;
-    let maskedData = null;
+    let p                         = 0;
+    let s                         = 0;
+    let maskedData: number | null = null;
 
     while (p < pattern.pattern.length) {
         maskedData = data[s] & pattern.mask[p];
@@ -155,7 +155,7 @@ function matchMime (patternGroup, data) {
     else if (isArrayBufferView(data[0]))
         data = isDataView(data[0]) ? data[0].buffer : data[0];
 
-    let byteArray = new nativeMethods.Uint8Array(data);
+    let byteArray: Uint8Array | null = new nativeMethods.Uint8Array(data);
 
     for (const pattern of patternGroup) {
         if (matchPattern(pattern, byteArray))

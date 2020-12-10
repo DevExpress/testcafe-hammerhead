@@ -5,7 +5,7 @@ import settings from '../settings';
 import nativeMethods from '../sandbox/native-methods';
 import getGlobalContextInfo from './global-context-info';
 
-let forcedLocation = null;
+let forcedLocation: string | null = null;
 
 // NOTE: exposed only for tests
 export function getLocation (): string {

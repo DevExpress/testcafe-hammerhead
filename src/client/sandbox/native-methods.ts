@@ -397,7 +397,7 @@ class NativeMethods {
         return this.isStoragePropsLocatedInProto ? win.Window.prototype : win;
     }
 
-    refreshDocumentMeths (doc: Document, win: Window & typeof globalThis) {
+    refreshDocumentMeths (doc?: Document, win?: Window & typeof globalThis) {
         doc = doc || document;
         win = win || window as Window & typeof globalThis;
 
@@ -457,24 +457,31 @@ class NativeMethods {
 
         const documentCookieDescriptor = win.Object.getOwnPropertyDescriptor(win[this.documentCookiePropOwnerName].prototype, 'cookie');
 
-        // TODO: remove this condition after the GH-1649 fix
-        if (!this.isNativeCode(documentCookieDescriptor.get) ||
-            !this.isNativeCode(documentCookieDescriptor.get.toString)) {
-            try {
-                const parentNativeMethods = win.parent['%hammerhead%'].nativeMethods;
+        if (documentCookieDescriptor && documentCookieDescriptor.get) {
+            // TODO: remove this condition after the GH-1649 fix
+            if (!this.isNativeCode(documentCookieDescriptor.get) ||
+                !this.isNativeCode(documentCookieDescriptor.get.toString)) {
+                try {
+                    const parentNativeMethods = win.parent['%hammerhead%'].nativeMethods;
 
-                documentCookieDescriptor.get = parentNativeMethods.documentCookieGetter;
-                documentCookieDescriptor.set = parentNativeMethods.documentCookieSetter;
+                    documentCookieDescriptor.get = parentNativeMethods.documentCookieGetter;
+                    documentCookieDescriptor.set = parentNativeMethods.documentCookieSetter;
+                }
+                catch {} // eslint-disable-line no-empty
             }
-            catch {} // eslint-disable-line no-empty
-        }
 
-        this.documentReferrerGetter      = win.Object.getOwnPropertyDescriptor(docPrototype, 'referrer').get;
-        this.documentStyleSheetsGetter   = win.Object.getOwnPropertyDescriptor(docPrototype, 'styleSheets').get;
-        this.documentActiveElementGetter = win.Object.getOwnPropertyDescriptor(docPrototype, 'activeElement').get;
-        this.documentScriptsGetter       = win.Object.getOwnPropertyDescriptor(win[this.documentScriptsPropOwnerName].prototype, 'scripts').get;
-        this.documentCookieGetter        = documentCookieDescriptor.get;
-        this.documentCookieSetter        = documentCookieDescriptor.set;
+            const documentReferrer      = win.Object.getOwnPropertyDescriptor(docPrototype, 'referrer');
+            const documentStyleSheets   = win.Object.getOwnPropertyDescriptor(docPrototype, 'styleSheets');
+            const documentActiveElement = win.Object.getOwnPropertyDescriptor(docPrototype, 'activeElement');
+            const documentScripts       = win.Object.getOwnPropertyDescriptor(win[this.documentScriptsPropOwnerName].prototype, 'scripts');
+
+            this.documentReferrerGetter      = documentReferrer ? documentReferrer.get : null;
+            this.documentStyleSheetsGetter   = documentStyleSheets ? documentStyleSheets.get : null;
+            this.documentActiveElementGetter = documentActiveElement ? documentActiveElement.get : null;
+            this.documentScriptsGetter       = documentScripts ? documentScripts.get : null;
+            this.documentCookieGetter        = documentCookieDescriptor.get;
+            this.documentCookieSetter        = documentCookieDescriptor.set;
+        }
 
         const documentDocumentURIDescriptor = win.Object.getOwnPropertyDescriptor(docPrototype, 'documentURI');
 
@@ -483,11 +490,13 @@ class NativeMethods {
 
         const documentTitleDescriptor = win.Object.getOwnPropertyDescriptor(docPrototype, 'title');
 
-        this.documentTitleGetter = documentTitleDescriptor.get;
-        this.documentTitleSetter = documentTitleDescriptor.set;
+        if (documentTitleDescriptor) {
+            this.documentTitleGetter = documentTitleDescriptor.get;
+            this.documentTitleSetter = documentTitleDescriptor.set;
+        }
     }
 
-    refreshElementMeths (doc, win: Window & typeof globalThis) {
+    refreshElementMeths (doc?, win?: Window & typeof globalThis) {
         win = win || window as Window & typeof globalThis;
 
         const createElement = tagName => this.createElement.call(doc || document, tagName);
@@ -567,16 +576,20 @@ class NativeMethods {
 
         const htmlElementStyleDescriptor = win.Object.getOwnPropertyDescriptor(win[this.htmlElementStylePropOwnerName].prototype, 'style');
 
-        this.htmlElementStyleGetter = htmlElementStyleDescriptor.get;
+        if (htmlElementStyleDescriptor) {
+            this.htmlElementStyleGetter = htmlElementStyleDescriptor.get;
 
-        // NOTE: IE does not allow to set a style property
-        if (htmlElementStyleDescriptor.set)
-            this.htmlElementStyleSetter = htmlElementStyleDescriptor.set;
+            // NOTE: IE does not allow to set a style property
+            if (htmlElementStyleDescriptor.set)
+                this.htmlElementStyleSetter = htmlElementStyleDescriptor.set;
+        }
 
         const styleCssTextDescriptor = win.Object.getOwnPropertyDescriptor(win.CSSStyleDeclaration.prototype, 'cssText');
 
-        this.styleCssTextGetter = styleCssTextDescriptor.get;
-        this.styleCssTextSetter = styleCssTextDescriptor.set;
+        if (styleCssTextDescriptor) {
+            this.styleCssTextGetter = styleCssTextDescriptor.get;
+            this.styleCssTextSetter = styleCssTextDescriptor.set;
+        }
     }
 
     _refreshGettersAndSetters (win, isInWorker = false) {

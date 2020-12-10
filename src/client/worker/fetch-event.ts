@@ -16,11 +16,12 @@ const swFetchCheckSettings = {
 function isCorrectScope (parsedUrl: ParsedUrl): boolean {
     return parsedUrl.protocol === swFetchCheckSettings.protocol &&
         parsedUrl.host === swFetchCheckSettings.host &&
+        !!parsedUrl.partAfterHost &&
         parsedUrl.partAfterHost.startsWith(swFetchCheckSettings.scope);
 }
 
 export default function overrideFetchEvent () {
-    let waitSettingsPromise = new Promise((resolve, reject) => {
+    let waitSettingsPromise: Promise<unknown> | null = new Promise((resolve, reject) => {
         nativeMethods.windowAddEventListener.call(self, 'message', function onMessage (e: any/*ExtendableMessageEvent*/) {
             const data = e.data;
 
@@ -75,7 +76,7 @@ export default function overrideFetchEvent () {
             // @ts-ignore Chrome has a non-standard the "iframe" destination
             const isPage = request.destination === 'document' || request.destination === 'iframe';
 
-            if (isPage) {
+            if (parsedProxyUrl && isPage) {
                 if (isCorrectScope(parsedProxyUrl.destResourceInfo))
                     return;
             }
@@ -83,7 +84,7 @@ export default function overrideFetchEvent () {
                 const proxyReferrer       = nativeMethods.requestReferrerGetter.call(request);
                 const parsedProxyReferrer = parseProxyUrl(proxyReferrer);
 
-                if (isCorrectScope(parsedProxyReferrer.destResourceInfo))
+                if (parsedProxyReferrer && isCorrectScope(parsedProxyReferrer.destResourceInfo))
                     return;
             }
         }

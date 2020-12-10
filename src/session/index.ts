@@ -55,7 +55,7 @@ interface TaskScriptTemplateOpts {
     isFirstPageLoad: boolean;
     referer: string | null;
     cookie: string | null;
-    iframeTaskScriptTemplate: string;
+    iframeTaskScriptTemplate: string | null;
     payloadScript: string;
     allowMultipleWindows: boolean;
     isRecordMode: boolean;
@@ -185,14 +185,14 @@ export default abstract class Session extends EventEmitter {
         if (!proxySettings || !proxySettings.url)
             return;
 
-        const { url, bypassRules } = proxySettings;
-        const parsedUrl            = parseUrl('http://' + url);
-        let settings               = null;
+        const { url, bypassRules }                 = proxySettings;
+        const parsedUrl                            = parseUrl('http://' + url);
+        let settings: ExternalProxySettings | null = null;
 
         if (parsedUrl && parsedUrl.host) {
             settings = {
                 host:     parsedUrl.host,
-                hostname: parsedUrl.hostname
+                hostname: parsedUrl.hostname as string
             };
 
             if (bypassRules)

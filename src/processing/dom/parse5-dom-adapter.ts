@@ -22,7 +22,9 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
     }
 
     getAttr (el: ASTNode, attr: string): string {
-        return parse5Utils.getAttr(el, attr);
+        const attribute = parse5Utils.getAttr(el, attr);
+
+        return attribute ? attribute : '';
     }
 
     getClassName (el: ASTNode): string {
@@ -59,11 +61,21 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
     }
 
     getScriptContent (script: ASTNode): string {
-        return script.childNodes.length ? script.childNodes[0].value : '';
+        let scriptContent;
+        
+        if (script.childNodes && script.childNodes[0])
+            scriptContent = script.childNodes[0].value;
+
+        return scriptContent ? scriptContent : '';
     }
 
     getStyleContent (style: ASTNode): string {
-        return style.childNodes.length ? style.childNodes[0].value : '';
+        let styleContent;
+        
+        if (style.childNodes && style.childNodes[0])
+            styleContent = style.childNodes[0].value;
+
+        return styleContent ? styleContent : '';
     }
 
     setStyleContent (style: ASTNode, content: string): void {

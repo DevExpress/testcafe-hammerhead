@@ -71,8 +71,8 @@ export default class ElementSandbox extends SandboxBase {
         if (el.hasAttribute(storedUrlAttr)) {
             const url = el.getAttribute(storedUrlAttr);
 
-            if (urlUtils.isSupportedProtocol(url))
-                el.setAttribute(urlAttr, url as string);
+            if (url && urlUtils.isSupportedProtocol(url))
+                el.setAttribute(urlAttr, url);
         }
     }
 
@@ -410,13 +410,13 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
-    private _addNodeCore ({ parentNode, args, nativeFn, checkBody }): void {
+    private _addNodeCore ({ parentNode, args, nativeFn, checkBody }): unknown {
         const newNode = args[0];
 
         this._prepareNodeForInsertion(newNode, parentNode);
 
-        let result          = null;
-        let childNodesArray = null;
+        let result: unknown                       = null;
+        let childNodesArray: HTMLElement[] | null = null;
 
         if (domUtils.isDocumentFragmentNode(newNode)) {
             const childNodes = nativeMethods.nodeChildNodesGetter.call(newNode);
@@ -748,7 +748,7 @@ export default class ElementSandbox extends SandboxBase {
         // NOTE: recalculate `formaction` attribute value if it placed in the dom
         if ((domUtils.isInputElement(el) || domUtils.isButtonElement(el)) && el.form &&
             nativeMethods.hasAttribute.call(el, 'formaction'))
-            el.setAttribute('formaction', el.getAttribute('formaction'));
+            el.setAttribute('formaction', el.getAttribute('formaction') as string);
 
         if (domUtils.isBodyElement(el))
             this._shadowUI.onBodyElementMutation();

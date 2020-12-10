@@ -93,7 +93,7 @@ export function instanceToString (instance: any): string {
         : '';
 }
 
-export function getActiveElement (currentDocument?: Document) {
+export function getActiveElement (currentDocument?: Document | null) {
     // NOTE: Sometimes document.activeElement returns an empty object or null (IE11).
     // https://github.com/DevExpress/testcafe-hammerhead/issues/768
     const doc           = currentDocument || document;
@@ -115,7 +115,7 @@ export function getActiveElement (currentDocument?: Document) {
 }
 
 export function getChildVisibleIndex (select: HTMLSelectElement, child: Node): number {
-    const childrenArray = getSelectVisibleChildren(select);
+    const childrenArray: Node[] = getSelectVisibleChildren(select);
 
     return childrenArray.indexOf(child);
 }
@@ -127,7 +127,7 @@ export function getIframeByElement (el: HTMLElement | Document) {
 }
 
 export function getIframeLocation (iframe) {
-    let documentLocation = null;
+    let documentLocation: string | null = null;
 
     try {
         // eslint-disable-next-line no-restricted-properties
@@ -170,7 +170,7 @@ export function getMapContainer (el: HTMLElement) {
 
 export function getParentWindowWithSrc (window: Window): Window {
     const parent           = window.parent;
-    let parentFrameElement = null;
+    let parentFrameElement: Element | null = null;
 
     if (window === window.top)
         return window;
@@ -185,7 +185,7 @@ export function getParentWindowWithSrc (window: Window): Window {
         parentFrameElement = null;
     }
 
-    if (parentFrameElement === null || !isIframeWithoutSrc(parentFrameElement))
+    if (parentFrameElement === null || parentFrameElement instanceof HTMLIFrameElement && !isIframeWithoutSrc(parentFrameElement))
         return parent;
 
     return getParentWindowWithSrc(parent);
@@ -221,9 +221,9 @@ export function getSelectParent (child) {
 }
 
 export function getSelectVisibleChildren (select: HTMLSelectElement) {
-    const children = nativeMethods.elementQuerySelectorAll.call(select, 'optgroup, option');
-    const result   = [];
-    const length   = nativeMethods.nodeListLengthGetter.call(children);
+    const children              = nativeMethods.elementQuerySelectorAll.call(select, 'optgroup, option');
+    const result: HTMLElement[] = [];
+    const length                = nativeMethods.nodeListLengthGetter.call(children);
 
     for (let i = 0; i < length; i++) {
         const child     = children[i];
@@ -238,8 +238,8 @@ export function getSelectVisibleChildren (select: HTMLSelectElement) {
 }
 
 export function getTopSameDomainWindow (window: Window): Window {
-    let result        = window;
-    let currentWindow = window.parent;
+    let result                       = window;
+    let currentWindow: Window | null = window.parent;
 
     if (result === window.top)
         return result;
@@ -284,13 +284,13 @@ export function findDocument (el: any): Document {
 }
 
 export function isContentEditableElement (el: Node) {
-    let isContentEditable = false;
-    let element           = null;
+    let isContentEditable           = false;
+    let element: HTMLElement | null = null;
 
     if (isTextNode(el))
         element = el.parentElement || nativeMethods.nodeParentNodeGetter.call(el);
     else
-        element = el;
+        element = el as HTMLElement;
 
     if (element) {
         isContentEditable = element.isContentEditable && !isAlwaysNotEditableElement(element);
@@ -345,7 +345,7 @@ export function getTagName (el): string {
     return el && typeof el.tagName === 'string' ? el.tagName.toLowerCase() : '';
 }
 
-export function isElementInDocument (el: Element, currentDocument?: Document): boolean {
+export function isElementInDocument (el: Element, currentDocument?: Document | null): boolean {
     const doc = currentDocument || document;
 
     return doc.documentElement ? doc.documentElement.contains(el) : false;
@@ -773,7 +773,7 @@ export function parseDocumentCharset () {
 }
 
 export function getParents (el, selector?) {
-    const parents = [];
+    const parents: HTMLElement[] = [];
 
     let parent = getParent(el);
 
@@ -809,8 +809,8 @@ export function findParent (node, includeSelf = false, predicate) {
 }
 
 export function nodeListToArray (nodeList) {
-    const result = [];
-    const length = nativeMethods.nodeListLengthGetter.call(nodeList);
+    const result: HTMLElement[] = [];
+    const length                = nativeMethods.nodeListLengthGetter.call(nodeList);
 
     for (let i = 0; i < length; i++)
         result.push(nodeList[i]);
@@ -822,8 +822,8 @@ export function getFileInputs (el) {
     return isFileInput(el) ? [el] : nodeListToArray(getNativeQuerySelectorAll(el).call(el, 'input[type=file]'));
 }
 
-export function getIframes (el) {
-    return isIframeElement(el) ? [el] : nodeListToArray(getNativeQuerySelectorAll(el).call(el, 'iframe,frame'));
+export function getIframes (el): HTMLIFrameElement[] {
+    return isIframeElement(el) ? [el] as HTMLIFrameElement[] : nodeListToArray(getNativeQuerySelectorAll(el).call(el, 'iframe,frame')) as HTMLIFrameElement[];
 }
 
 export function getScripts (el) {

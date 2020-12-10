@@ -21,10 +21,11 @@ export default class DocumentSandbox extends SandboxBase {
     constructor (private readonly _nodeSandbox: NodeSandbox,
         private readonly _shadowUI: ShadowUI,
         private readonly _cookieSandbox,
-        private readonly _documentTitleStorageInitializer?: DocumentTitleStorageInitializer) {
+        private readonly _documentTitleStorageInitializer?: DocumentTitleStorageInitializer | null) {
 
         super();
 
+        // @ts-ignore
         this.documentWriter = null;
     }
 
@@ -40,16 +41,18 @@ export default class DocumentSandbox extends SandboxBase {
     private _isUninitializedIframeWithoutSrc (win: Window): boolean {
         const frameElement = getFrameElement(win);
 
-        return win !== win.top && frameElement && isIframeWithoutSrc(frameElement) &&
+        return win !== win.top && !!frameElement && isIframeWithoutSrc(frameElement) &&
                !IframeSandbox.isIframeInitialized(frameElement as HTMLIFrameElement);
     }
 
     private _beforeDocumentCleaned () {
-        this._nodeSandbox.mutation.onBeforeDocumentCleaned(this.document);
+        if (this.document)
+            this._nodeSandbox.mutation.onBeforeDocumentCleaned(this.document);
     }
 
     private _onDocumentClosed () {
-        this._nodeSandbox.mutation.onDocumentClosed(this.document);
+        if (this.document)
+            this._nodeSandbox.mutation.onDocumentClosed(this.document);
     }
 
     private static _shouldEmitDocumentCleanedEvents (doc) {
@@ -79,7 +82,7 @@ export default class DocumentSandbox extends SandboxBase {
         const result = this.documentWriter.write(args, ln, shouldEmitEvents);
 
         // NOTE: B234357
-        if (!shouldEmitEvents)
+        if (this.document && !shouldEmitEvents)
             this._nodeSandbox.processNodes(null, this.document);
 
         return result;
@@ -320,10 +323,10 @@ export default class DocumentSandbox extends SandboxBase {
         if (this._documentTitleStorageInitializer && !partialInitializationForNotLoadedIframe) {
             overrideDescriptor(docPrototype, 'title', {
                 getter: function () {
-                    return documentSandbox._documentTitleStorageInitializer.storage.getTitle();
+                    return (documentSandbox._documentTitleStorageInitializer as DocumentTitleStorageInitializer).storage.getTitle();
                 } ,
                 setter: function (value) {
-                    documentSandbox._documentTitleStorageInitializer.storage.setTitle(value);
+                    (documentSandbox._documentTitleStorageInitializer as DocumentTitleStorageInitializer).storage.setTitle(value);
                 }
             });
         }

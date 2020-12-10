@@ -6,7 +6,7 @@ const WINDOW_DEACTIVATED_EVENT = 'hammerhead|event|window-deactivated';
 
 export default class ActiveWindowTracker extends SandboxBase {
     private _isIframeWindow = false;
-    private _activeWindow: Window = null;
+    private _activeWindow: Window | null = null;
     private _isActive = false;
 
     constructor (private readonly _messageSandbox: MessageSandbox) { //eslint-disable-line no-unused-vars
@@ -15,7 +15,7 @@ export default class ActiveWindowTracker extends SandboxBase {
 
     _notifyPrevActiveWindow (): void {
         try {
-            if (this._activeWindow.top && this._activeWindow !== this._activeWindow.top) {
+            if (this._activeWindow && this._activeWindow.top && this._activeWindow !== this._activeWindow.top) {
                 this._messageSandbox.sendServiceMsg({
                     cmd: WINDOW_DEACTIVATED_EVENT
                 }, this._activeWindow);
@@ -57,7 +57,7 @@ export default class ActiveWindowTracker extends SandboxBase {
 
             this._activeWindow = this.window;
         }
-        else {
+        else if (this.window) {
             this._messageSandbox.sendServiceMsg({
                 cmd: WINDOW_ACTIVATED_EVENT
             }, this.window.top);

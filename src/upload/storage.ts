@@ -67,9 +67,9 @@ export default class UploadStorage {
     }
 
     async store (fileNames: string[], data: string[]) {
-        const storedFiles    = [];
-        const mainUploadRoot = this.uploadRoots[0];
-        const err            = await UploadStorage.ensureUploadsRoot(mainUploadRoot);
+        const storedFiles: Record<string, string>[] = [];
+        const mainUploadRoot                        = this.uploadRoots[0];
+        const err                                   = await UploadStorage.ensureUploadsRoot(mainUploadRoot);
 
         if (err)
             return [{ err: err.toString(), path: mainUploadRoot }];
@@ -95,12 +95,12 @@ export default class UploadStorage {
     }
 
     async _resolvePath (filePath: string, result: ResolvePathError[]): Promise<string | null> {
-        let resolvedPath = null;
+        let resolvedPath: string | null = null;
 
         if (path.isAbsolute(filePath))
             resolvedPath = filePath;
         else {
-            const nonExistingPaths = [];
+            const nonExistingPaths: string[] = [];
 
             for (const uploadRoot of this.uploadRoots) {
                 resolvedPath = path.resolve(uploadRoot, filePath);
@@ -124,10 +124,10 @@ export default class UploadStorage {
     }
 
     async get (filePathList: string[]) {
-        const result = [];
+        const result: Record<string, any>[] = [];
 
         for (const filePath of filePathList) {
-            const resolvedPath: string | null = await this._resolvePath(filePath, result);
+            const resolvedPath: string | null = await this._resolvePath(filePath, result as ResolvePathError[]);
 
             if (resolvedPath === null)
                 continue;

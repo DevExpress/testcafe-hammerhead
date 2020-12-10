@@ -22,8 +22,8 @@ const ORIGIN_FIRST_TITLE_ELEMENT_LOADED_SCRIPT = createSelfRemovingScript(`
     window["${ INTERNAL_PROPS.hammerhead }"].sandbox.node.onOriginFirstTitleElementInHeadLoaded();
 `);
 
-const PARSED_BODY_CREATED_EVENT_SCRIPT                = parse5.parseFragment(BODY_CREATED_EVENT_SCRIPT).childNodes[0];
-const PARSED_ORIGIN_FIRST_TITLE_ELEMENT_LOADED_SCRIPT = parse5.parseFragment(ORIGIN_FIRST_TITLE_ELEMENT_LOADED_SCRIPT).childNodes[0];
+const PARSED_BODY_CREATED_EVENT_SCRIPT                = (parse5.parseFragment(BODY_CREATED_EVENT_SCRIPT).childNodes as ASTNode[])[0];
+const PARSED_ORIGIN_FIRST_TITLE_ELEMENT_LOADED_SCRIPT = (parse5.parseFragment(ORIGIN_FIRST_TITLE_ELEMENT_LOADED_SCRIPT).childNodes as ASTNode[])[0];
 
 interface PageProcessingOptions {
     crossDomainProxyPort: number;
@@ -43,14 +43,15 @@ class PageProcessor extends ResourceProcessorBase {
         this.RESTART_PROCESSING = Symbol();
     }
 
-    private _createRestoreStoragesScript (storageKey: string, storages): ASTNode {
+    private _createRestoreStoragesScript (storageKey: string, storages): ASTNode | void {
         const scriptStr              = createSelfRemovingScript(`
             window.localStorage.setItem("${ storageKey }", ${ JSON.stringify(storages.localStorage) });
             window.sessionStorage.setItem("${ storageKey }", ${ JSON.stringify(storages.sessionStorage) });
         `);
         const parsedDocumentFragment = parse5.parseFragment(scriptStr);
 
-        return parsedDocumentFragment.childNodes[0];
+        if (parsedDocumentFragment.childNodes)
+            return parsedDocumentFragment.childNodes[0];
     }
 
     private static _getPageProcessingOptions (ctx: RequestPipelineContext, urlReplacer: Function): PageProcessingOptions {
@@ -65,7 +66,7 @@ class PageProcessor extends ResourceProcessorBase {
     }
 
     private static _getPageMetas (metaEls, domAdapter: BaseDomAdapter) {
-        const metas = [];
+        const metas: Record<string, string>[] = [];
 
         for (let i = 0; i < metaEls.length; i++) {
             metas.push({
@@ -170,7 +171,8 @@ class PageProcessor extends ResourceProcessorBase {
         const storageKey            = getStorageKey(ctx.session.id, ctx.dest.host);
         const restoreStoragesScript = this._createRestoreStoragesScript(storageKey, ctx.restoringStorages);
 
-        parse5Utils.insertBeforeFirstScript(restoreStoragesScript, head);
+        if (restoreStoragesScript)
+            parse5Utils.insertBeforeFirstScript(restoreStoragesScript, head);
     }
 
     private static _addBodyCreatedEventScript (body: ASTNode): void {

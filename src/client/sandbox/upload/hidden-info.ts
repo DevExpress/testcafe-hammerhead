@@ -38,7 +38,7 @@ export function addInputInfo (input, fileList, value) {
     const formInfo = getFormInfo(input);
 
     if (formInfo) {
-        const files = [];
+        const files: { name: any, type: any, data: any }[] = [];
 
         fileList = nativeMethods.arraySlice.call(fileList);
 

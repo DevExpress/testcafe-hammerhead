@@ -10,6 +10,7 @@ import Listeners from '../event/listeners';
 import EventSimulator from '../event/simulator';
 import Transport from '../../transport';
 import settings from '../../settings';
+import Sandbox from '..';
 
 export default class UploadSandbox extends SandboxBase {
     START_FILE_UPLOADING_EVENT = 'hammerhead|event|start-file-uploading';
@@ -32,7 +33,7 @@ export default class UploadSandbox extends SandboxBase {
     static _getCurrentInfoManager (input: HTMLInputElement) {
         const contextWindow = input[INTERNAL_PROPS.processedContext];
 
-        return getSandboxBackup(contextWindow).upload.infoManager;
+        return (getSandboxBackup(contextWindow) as Sandbox).upload.infoManager;
     }
 
     /*eslint-disable max-nested-callbacks */

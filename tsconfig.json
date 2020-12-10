@@ -8,7 +8,8 @@
     "noImplicitReturns": true,
     "strictFunctionTypes": true,
     "strict": false,
-    "newLine": "lf"
+    "newLine": "lf",
+    "strictNullChecks": true
   },
   "exclude": [
     "node_modules"

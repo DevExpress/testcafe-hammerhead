@@ -17,7 +17,7 @@ export default class UploadInfoManager {
     }
 
     static _getFileListData (fileList) {
-        const data = [];
+        const data: any[] = [];
 
         for (const file of fileList)
             data.push(file.base64);
@@ -41,7 +41,7 @@ export default class UploadInfoManager {
     }
 
     static getFileNames (fileList, value) {
-        const result = [];
+        const result: string[] = [];
 
         if (fileList) {
             for (const file of fileList)
@@ -61,8 +61,8 @@ export default class UploadInfoManager {
     }
 
     static prepareFileListWrapper (filesInfo) {
-        const errs           = [];
-        const validFilesInfo = [];
+        const errs: unknown[]           = [];
+        const validFilesInfo: unknown[] = [];
 
         for (const fileInfo of filesInfo) {
             if (fileInfo.err)
@@ -128,10 +128,10 @@ export default class UploadInfoManager {
             return Promise.resolve(new FileListWrapper([]));
 
         return new Promise(resolve => {
-            const fileReader  = new FileReader();
-            const readedFiles = [];
-            let index         = 0;
-            let file          = fileList[index];
+            const fileReader         = new FileReader();
+            const readedFiles: any[] = [];
+            let index                = 0;
+            let file                 = fileList[index];
 
             fileReader.addEventListener('load', (e: any) => {
                 const info: any = {

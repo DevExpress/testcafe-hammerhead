@@ -5,7 +5,7 @@ import { createOverriddenDescriptor } from '../../../utils/overriding';
 const lengthWeakMap = new WeakMap<DOMStringListWrapper, number>();
 
 function updateOrigin (ancestorOrigins: DOMStringList, wrapper: DOMStringListWrapper, index: string, origin: string) {
-    const descriptor = createOverriddenDescriptor(ancestorOrigins, index as keyof DOMStringList, { value: origin });
+    const descriptor = createOverriddenDescriptor(ancestorOrigins, index as keyof DOMStringList, { value: origin }) as PropertyDescriptor;
 
     nativeMethods.objectDefineProperty(wrapper, index, descriptor);
 }

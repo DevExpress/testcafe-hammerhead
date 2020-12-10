@@ -19,8 +19,8 @@ export default class FileListWrapper {
 
         sliceSize = sliceSize || 512;
 
-        const byteCharacters = atob(base64Data);
-        const byteArrays     = [];
+        const byteCharacters           = atob(base64Data);
+        const byteArrays: Uint8Array[] = [];
 
         for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
             const slice       = byteCharacters.slice(offset, offset + sliceSize);
@@ -39,7 +39,7 @@ export default class FileListWrapper {
     }
 
     static _createFileWrapper (fileInfo) {
-        let wrapper = null;
+        let wrapper: any = null;
 
         if (!window.Blob) {
             wrapper = {

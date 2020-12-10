@@ -31,7 +31,7 @@ const transformer: Transformer<AssignmentExpression> = {
         destructuring(node.left, node.right, (pattern, value, isTemp) => {
             assignments.push(createAssignmentExpression(pattern, '=', value));
 
-            if (isTemp)
+            if (tempVars && isTemp)
                 tempVars.append((pattern as Identifier).name);
         });
 

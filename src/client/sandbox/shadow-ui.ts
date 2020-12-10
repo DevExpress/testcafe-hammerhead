@@ -80,7 +80,8 @@ export default class ShadowUI extends SandboxBase {
             this._restoreUIStyleSheets(e.document.head, this.uiStyleSheetsHtmlBackup);
             this.uiStyleSheetsHtmlBackup = null;
 
-            this.markShadowUIContainers(this.document.head, this.document.body);
+            if (this.document)
+                this.markShadowUIContainers(this.document.head, this.document.body);
         };
 
         this.documentClosedEventCallback = (document: Document) => {
@@ -107,7 +108,10 @@ export default class ShadowUI extends SandboxBase {
                 this.onBodyElementMutation();
         };
 
-        this.bodyCreatedEventCallback = body => this.markShadowUIContainers(this.document.head, body);
+        this.bodyCreatedEventCallback = body => {
+            if (this.document)
+                return this.markShadowUIContainers(this.document.head, body)
+        };
     }
 
     static _filterElement (el) {
@@ -115,7 +119,7 @@ export default class ShadowUI extends SandboxBase {
     }
 
     _filterList (list, listLength: number, predicate) {
-        const filteredList = [];
+        const filteredList: any[] = [];
 
         for (let i = 0; i < listLength; i++) {
             const el = predicate(list[i]);
@@ -389,10 +393,10 @@ export default class ShadowUI extends SandboxBase {
 
     getRoot () {
         // GH-2418
-        if (isChrome && !ShadowUI.isShadowContainer(this.document.body))
+        if (this.document && isChrome && !ShadowUI.isShadowContainer(this.document.body))
             this._markShadowUIContainerAndCollections(this.document.body);
 
-        if (!this.root || /* NOTE: T225944 */ !this.document.body.contains(this.root)) {
+        if (this.document && (!this.root || /* NOTE: T225944 */ !this.document.body.contains(this.root))) {
             if (!this.root) {
                 // NOTE: B254893
                 this.root = nativeMethods.createElement.call(this.document, 'div');
@@ -423,7 +427,9 @@ export default class ShadowUI extends SandboxBase {
     attach (window: Window & typeof globalThis) {
         super.attach(window, window.document);
 
-        this.markShadowUIContainers(this.document.head, this.document.body);
+        if (this.document)
+            this.markShadowUIContainers(this.document.head, this.document.body);
+
         this._overrideDocumentMethods(window, window.document);
         this._overrideElementMethods(window);
         this._markScriptsAndStylesAsShadowInHead(window.document.head);
@@ -441,20 +447,22 @@ export default class ShadowUI extends SandboxBase {
     }
 
     onBodyElementMutation () {
-        if (!this.root || !this.document.body)
+        if (!this.root || this.document && !this.document.body)
             return;
 
-        const isRootInDom     = domUtils.closest(this.root, 'html');
-        const isRootLastChild = !this.nativeMethods.elementNextElementSiblingGetter.call(this.root);
-        // NOTE: Fix for B239138 - The 'Cannot read property 'document' of null' error
-        // is thrown on recording on the unroll.me site. There was an issue when
-        // document.body was replaced, so we need to reattach a UI to a new body manually.
-        const isRootInBody = nativeMethods.nodeParentNodeGetter.call(this.root) === this.document.body;
+        if (this.document) {
+            const isRootInDom     = domUtils.closest(this.root, 'html');
+            const isRootLastChild = !this.nativeMethods.elementNextElementSiblingGetter.call(this.root);
+            // NOTE: Fix for B239138 - The 'Cannot read property 'document' of null' error
+            // is thrown on recording on the unroll.me site. There was an issue when
+            // document.body was replaced, so we need to reattach a UI to a new body manually.
+            const isRootInBody = nativeMethods.nodeParentNodeGetter.call(this.root) === this.document.body;
 
-        if (!(isRootInDom && isRootLastChild && isRootInBody))
-            this.nativeMethods.appendChild.call(this.document.body, this.root);
+            if (!(isRootInDom && isRootLastChild && isRootInBody))
+                this.nativeMethods.appendChild.call(this.document.body, this.root);
 
-        this.markShadowUIContainers(this.document.head, this.document.body);
+            this.markShadowUIContainers(this.document.head, this.document.body);
+        }
     }
 
     // Accessors
@@ -553,7 +561,7 @@ export default class ShadowUI extends SandboxBase {
         if (!length)
             return;
 
-        const shadowUIElements = [];
+        const shadowUIElements: HTMLElement[] = [];
 
         for (let i = 0; i < length; i++) {
             const item = collection[i];

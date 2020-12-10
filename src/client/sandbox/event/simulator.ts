@@ -235,8 +235,8 @@ export default class EventSimulator {
     }
 
     _simulateEvent (el, event, userOptions, options = {}) {
-        let args     = null;
-        let dispatch = null;
+        let args                      = null;
+        let dispatch: Function | null = null;
         // NOTE: We don't simulate a click on links with modifiers (ctrl, shift, ctrl+shift, alt),
         // because it causes the opening of a browser window or additional tabs in it or loading files.
         const isClickOnLink = event === 'click' && domUtils.isAnchorElement(el);
@@ -304,7 +304,7 @@ export default class EventSimulator {
             dispatch = (el, args) => this._dispatchTouchEvent(el, args);
         }
 
-        return dispatch(el, args);
+        return (dispatch as Function)(el, args);
     }
 
     _getTouchEventArgs (type, options: any = {}) {
@@ -390,7 +390,7 @@ export default class EventSimulator {
     }
 
     _dispatchKeyEvent (el, args) {
-        let ev = null;
+        let ev: KeyboardEvent | null = null;
 
         if (this.browserWithNewEventsStyle && nativeMethods.WindowKeyboardEvent) {
             const eventArgs: any = {
@@ -419,8 +419,9 @@ export default class EventSimulator {
             ev = new nativeMethods.WindowKeyboardEvent(args.type, eventArgs);
         }
         else if (nativeMethods.documentCreateEvent) {
-            ev = nativeMethods.documentCreateEvent.call(document, 'KeyboardEvent');
+            ev = nativeMethods.documentCreateEvent.call(document, 'KeyboardEvent') as KeyboardEvent;
 
+            // @ts-ignore
             ev.initKeyboardEvent(args.type, args.canBubble, args.cancelable, args.view, '', 0, EventSimulator._getModifiersAsString(args), false, '');
         }
 
@@ -480,7 +481,7 @@ export default class EventSimulator {
                 nativeMethods.objectDefineProperty(ev, 'returnValue', {
                     get: () => returnValue,
                     set: value => {
-                        if (value === false)
+                        if (ev && value === false)
                             ev.preventDefault();
 
                         returnValue = value;
@@ -501,7 +502,7 @@ export default class EventSimulator {
         return null;
     }
 
-    _getPointerEventTypeInfo (type: string): { eventType: string; pointerType: string } {
+    _getPointerEventTypeInfo (type: string): { eventType: string; pointerType: string } | null {
         if (MOUSE_TO_POINTER_EVENT_TYPE_MAP[type]) {
             return {
                 eventType:   MOUSE_TO_POINTER_EVENT_TYPE_MAP[type],
@@ -527,10 +528,10 @@ export default class EventSimulator {
 
         const { eventType, pointerType } = pointerEventTypeInfo;
 
-        let pointEvent         = null;
-        const elPosition       = getOffsetPosition(el);
-        const elBorders        = getBordersWidth(el);
-        const elClientPosition = offsetToClientCoords({
+        let pointEvent: PointerEvent | null = null;
+        const elPosition                    = getOffsetPosition(el);
+        const elBorders                     = getBordersWidth(el);
+        const elClientPosition              = offsetToClientCoords({
             x: elPosition.left + elBorders.left,
             y: elPosition.top + elBorders.top
         });
@@ -561,6 +562,7 @@ export default class EventSimulator {
             pointEvent = nativeMethods.documentCreateEvent.call(document, 'PointerEvent');
 
             // NOTE: We set the relatedTarget argument to null because IE has a memory leak.
+            // @ts-ignore
             pointEvent.initPointerEvent(pointerArgs.type, pointerArgs.canBubble, pointerArgs.cancelable, window,
                 pointerArgs.detail, pointerArgs.screenX, pointerArgs.screenY, pointerArgs.clientX, pointerArgs.clientY,
                 pointerArgs.ctrlKey, pointerArgs.altKey, pointerArgs.shiftKey, pointerArgs.metaKey, pointerArgs.button,
@@ -636,7 +638,7 @@ export default class EventSimulator {
         if (disabledParent)
             return null;
 
-        let event = null;
+        let event: MouseEvent | null = null;
 
         if (this.browserWithNewEventsStyle && nativeMethods.WindowMouseEvent) {
             event = new nativeMethods.WindowMouseEvent(args.type, {
@@ -659,7 +661,7 @@ export default class EventSimulator {
             });
         }
         else {
-            event = nativeMethods.documentCreateEvent.call(document, 'MouseEvents');
+            event = nativeMethods.documentCreateEvent.call(document, 'MouseEvents') as MouseEvent;
 
             event.initMouseEvent(args.type, args.canBubble, args.cancelable, window, args.detail, args.screenX,
                 args.screenY, args.clientX, args.clientY, args.ctrlKey, args.altKey, args.shiftKey, args.metaKey,
@@ -695,8 +697,8 @@ export default class EventSimulator {
     }
 
     _dispatchFocusEvent (el, name, relatedTarget = null) {
-        let event     = null;
-        const bubbles = FOCUS_IN_OUT_EVENT_NAME_RE.test(name);
+        let event: FocusEvent | null = null;
+        const bubbles                = FOCUS_IN_OUT_EVENT_NAME_RE.test(name);
 
         if (this.browserWithNewEventsStyle && nativeMethods.WindowFocusEvent) {
             event = new nativeMethods.WindowFocusEvent(name, {
@@ -711,6 +713,7 @@ export default class EventSimulator {
         else if (nativeMethods.documentCreateEvent) {
             event = nativeMethods.documentCreateEvent.call(document, 'FocusEvent');
 
+            // @ts-ignore
             event.initFocusEvent(name, bubbles, true, null, 0, bubbles ? relatedTarget : null);
         }
 
@@ -764,10 +767,10 @@ export default class EventSimulator {
     }
 
     _dispatchEvent (el, name, shouldBubble, flag?: string) {
-        let ev = null;
+        let ev: Event | null = null;
 
         if (nativeMethods.documentCreateEvent) {
-            ev = nativeMethods.documentCreateEvent.call(document, 'Events');
+            ev = nativeMethods.documentCreateEvent.call(document, 'Events') as Event;
 
             ev.initEvent(name, shouldBubble, true);
         }

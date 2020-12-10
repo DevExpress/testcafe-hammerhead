@@ -36,11 +36,11 @@ export function parse (str) {
     const attrValStrings = attributesString.split(/\s*;\s*/);
 
     while (attrValStrings.length) {
-        const attrValueStr = attrValStrings.shift();
-        const separatorIdx = attrValueStr.indexOf('=');
-        let key            = null;
-        let value          = null;
-        let date           = null;
+        const attrValueStr       = attrValStrings.shift() as string;
+        const separatorIdx       = attrValueStr.indexOf('=');
+        let key: string | null   = null;
+        let value: string | null = null;
+        let date: Date | null    = null;
 
         if (separatorIdx === -1)
             key = attrValueStr;
@@ -53,7 +53,7 @@ export function parse (str) {
 
         switch (key) {
             case 'expires':
-                value = value.replace(FIX_COOKIE_DATE, '$1 $2 $3');
+                value = value ? value.replace(FIX_COOKIE_DATE, '$1 $2 $3') : '';
                 date  = getUTCDate(Date.parse(value));
 
                 if (date)
@@ -79,7 +79,7 @@ export function parse (str) {
 
             case 'domain':
                 // NOTE: Remove leading '.'.
-                parsedCookie.domain = trim(value.replace(/^\./, ''));
+                parsedCookie.domain = trim(value ? value.replace(/^\./, '') : '');
                 break;
 
             default:

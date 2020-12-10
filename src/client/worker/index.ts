@@ -58,7 +58,9 @@ class WorkerHammerhead {
         const currentSettings = settings.get();
 
         currentSettings.sessionId = sessionId;
-        currentSettings.windowId  = windowId;
+
+        if (windowId)
+            currentSettings.windowId  = windowId;
 
         settings.set(currentSettings);
     }

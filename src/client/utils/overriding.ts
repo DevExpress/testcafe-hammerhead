@@ -18,8 +18,8 @@ function replaceNativeAccessor (descriptor, accessorName: string, newAccessor) {
     descriptor[accessorName] = newAccessor;
 }
 
-export function createOverriddenDescriptor<O extends object, K extends keyof O> (obj: O, prop: K, { getter, setter, value }: PropertySettings<O, K>) {
-    const descriptor = nativeMethods.objectGetOwnPropertyDescriptor(obj, prop);
+export function createOverriddenDescriptor<O extends object, K extends keyof O> (obj: O, prop: K, { getter, setter, value }: PropertySettings<O, K>): PropertyDescriptor {
+    const descriptor = nativeMethods.objectGetOwnPropertyDescriptor(obj, prop) as PropertyDescriptor;
 
     if ((getter || setter) && value)
         throw new Error('Cannot both specify accessors and a value or writable attribute.');

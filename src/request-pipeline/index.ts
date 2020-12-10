@@ -52,7 +52,7 @@ const stages = [
     },
 
     async function fetchProxyRequestBody (ctx: RequestPipelineContext) {
-        if (ctx.isHTMLPage)
+        if (ctx.session && ctx.isHTMLPage)
             ctx.session.onPageRequest(ctx);
 
         ctx.reqBody = await fetchBody(ctx.req);
@@ -68,7 +68,7 @@ const stages = [
             return;
         }
 
-        if (ctx.session.hasRequestEventListeners()) {
+        if (ctx.session && ctx.session.hasRequestEventListeners()) {
             const requestInfo = new RequestInfo(ctx);
 
             ctx.requestFilterRules = ctx.session.getRequestFilterRules(requestInfo);
@@ -93,7 +93,8 @@ const stages = [
         await ctx.forEachRequestFilterRule(async rule => {
             const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
 
-            await ctx.session.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
+            if (ctx.session)
+                await ctx.session.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
             await callOnResponseEventCallbackForFailedSameOriginCheck(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
         });
         logger.proxy('Proxy CORS check failed %s, responding 222', ctx.requestId);
@@ -106,8 +107,8 @@ const stages = [
         if (ctx.isWebSocket)
             respondOnWebSocket(ctx);
 
-        else if (ctx.contentInfo.requireProcessing) {
-            if (ctx.destRes.statusCode === 204)
+        else if (ctx.contentInfo && ctx.contentInfo.requireProcessing) {
+            if (ctx.destRes && ctx.destRes.statusCode === 204)
                 ctx.destRes.statusCode = 200;
 
             ctx.goToNextStage = true;
@@ -123,7 +124,7 @@ const stages = [
             await callOnConfigureResponseEventForNonProcessedRequest(ctx);
             ctx.sendResponseHeaders();
 
-            if (ctx.contentInfo.isNotModified)
+            if (ctx.contentInfo && ctx.contentInfo.isNotModified)
                 return await callOnResponseEventCallbackForMotModifiedResource(ctx);
 
             const onResponseEventDataWithBody    = ctx.getOnResponseEventData({ includeBody: true });
@@ -133,25 +134,33 @@ const stages = [
                 await callOnResponseEventCallbackWithBodyForNonProcessedRequest(ctx, onResponseEventDataWithBody);
             else if (onResponseEventDataWithoutBody.length)
                 await callOnResponseEventCallbackWithoutBodyForNonProcessedResource(ctx, onResponseEventDataWithoutBody);
-            else if (ctx.req.socket.destroyed && !ctx.isDestResReadableEnded)
+            else if (ctx.destRes && ctx.req.socket.destroyed && !ctx.isDestResReadableEnded)
                 ctx.destRes.destroy();
-            else {
-                ctx.res.once('close', () => !ctx.isDestResReadableEnded && ctx.destRes.destroy());
+            else if (ctx.destRes) {
+                ctx.res.once('close', () => {
+                    if (ctx.destRes)
+                        !ctx.isDestResReadableEnded && ctx.destRes.destroy();
+                });
+
                 ctx.destRes.pipe(ctx.res);
             }
 
             // NOTE: sets 60 minutes timeout for the "event source" requests instead of 2 minutes by default
-            if (ctx.dest.isEventSource) {
+            if (ctx.dest && ctx.dest.isEventSource) {
                 ctx.req.setTimeout(EVENT_SOURCE_REQUEST_TIMEOUT, noop);
-                ctx.req.on('close', () => ctx.destRes.destroy());
+                ctx.req.on('close', () => {
+                    if (ctx.destRes)
+                        ctx.destRes.destroy();
+                });
             }
         }
     },
 
     async function fetchContent (ctx: RequestPipelineContext) {
-        ctx.destResBody = await fetchBody(ctx.destRes);
+        if (ctx.destRes)
+            ctx.destResBody = await fetchBody(ctx.destRes);
 
-        if (ctx.requestFilterRules.length)
+        if (ctx.destResBody && ctx.requestFilterRules.length)
             ctx.saveNonProcessedDestResBody(ctx.destResBody);
     },
 
@@ -168,7 +177,8 @@ const stages = [
         const configureResponseEvents = await Promise.all(ctx.requestFilterRules.map(async rule => {
             const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
 
-            await ctx.session.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
+            if (ctx.session)
+                await ctx.session.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
 
             return configureResponseEvent;
         }));

@@ -69,12 +69,12 @@ export default class CookieSandbox extends SandboxBase {
         return !documentCookieIsEmpty;
     }
 
-    static _updateClientCookieStr (cookieKey, newCookieStr: string): void {
-        const cookieStr      = settings.get().cookie; // eslint-disable-line no-restricted-properties
-        const cookies        = cookieStr ? cookieStr.split(';') : [];
-        const changedCookies = [];
-        let replaced         = false;
-        const searchStr      = cookieKey === '' ? null : cookieKey + '=';
+    static _updateClientCookieStr (cookieKey, newCookieStr: string | null): void {
+        const cookieStr                = settings.get().cookie; // eslint-disable-line no-restricted-properties
+        const cookies                  = cookieStr ? cookieStr.split(';') : [];
+        const changedCookies: string[] = [];
+        let replaced                   = false;
+        const searchStr                = cookieKey === '' ? null : cookieKey + '=';
 
         // NOTE: Replace a cookie if it already exists.
         for (let cookie of cookies) {
@@ -130,10 +130,10 @@ export default class CookieSandbox extends SandboxBase {
         if ((!parsedCookie.secure || parsedDestLocation.protocol === 'https:') &&
             // eslint-disable-next-line no-restricted-properties
             cookieUtils.pathMatch(parsedDestLocation.pathname, parsedCookie.path)) {
-            const currentDate   = cookieUtils.getUTCDate();
-            let clientCookieStr = null;
+            const currentDate                  = cookieUtils.getUTCDate();
+            let clientCookieStr: string | null = null;
 
-            if (!parsedCookie.expires || parsedCookie.expires === 'Infinity' || parsedCookie.expires > currentDate)
+            if (!parsedCookie.expires || parsedCookie.expires === 'Infinity' || currentDate && parsedCookie.expires > currentDate)
                 clientCookieStr = cookieUtils.formatClientString(parsedCookie);
 
             CookieSandbox._updateClientCookieStr(parsedCookie.key, clientCookieStr);
@@ -148,10 +148,10 @@ export default class CookieSandbox extends SandboxBase {
     }
 
     syncCookie (): void {
-        const cookies           = nativeMethods.documentCookieGetter.call(this.document);
-        const parsedCookies     = parseClientSyncCookieStr(cookies);
-        const sessionId         = settings.get().sessionId;
-        const serverSyncCookies = [];
+        const cookies                           = nativeMethods.documentCookieGetter.call(this.document);
+        const parsedCookies                     = parseClientSyncCookieStr(cookies);
+        const sessionId                         = settings.get().sessionId;
+        const serverSyncCookies: CookieRecord[] = [];
 
         for (const outdatedCookie of parsedCookies.outdated)
             nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(outdatedCookie));
@@ -196,10 +196,14 @@ export default class CookieSandbox extends SandboxBase {
     }
 
     static isSyncCookieExists (parsedCookie: CookieRecord, clientCookieStr: string): boolean {
-        const startIndex = clientCookieStr.indexOf(parsedCookie.cookieStr);
-        const endIndex   = startIndex + parsedCookie.cookieStr.length;
+        if (parsedCookie.cookieStr) {
+            const startIndex = clientCookieStr.indexOf(parsedCookie.cookieStr);
+            const endIndex   = startIndex + parsedCookie.cookieStr.length;
 
-        return startIndex > -1 && (clientCookieStr.length === endIndex || clientCookieStr.charAt(endIndex) === ';');
+            return startIndex > -1 && (clientCookieStr.length === endIndex || clientCookieStr.charAt(endIndex) === ';');
+        }
+        else
+            return false;
     }
 
     syncWindowCookie (parsedCookies: CookieRecord[]): void {

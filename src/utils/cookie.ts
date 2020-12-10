@@ -27,8 +27,8 @@ function isSameCookies (cookie1: CookieRecord, cookie2: CookieRecord): boolean {
 }
 
 function sortByOutdatedAndActual (parsedCookies: CookieRecord[]): ParsedClientSyncCookie {
-    const outdated = [];
-    const actual   = [];
+    const outdated: CookieRecord[] = [];
+    const actual: CookieRecord[]   = [];
 
     for (let current = 0; current < parsedCookies.length; current++) {
         let other = current + 1;
@@ -72,8 +72,8 @@ function formatSyncCookieKey (cookie: CookieRecord): string {
 }
 
 export function parseClientSyncCookieStr (cookieStr: string): ParsedClientSyncCookie {
-    const cookies       = cookieStr ? cookieStr.split(';') : '';
-    const parsedCookies = [];
+    const cookies                       = cookieStr ? cookieStr.split(';') : '';
+    const parsedCookies: CookieRecord[] = [];
 
     for (const cookie of cookies) {
         const parsedCookie = parseSyncCookie(trim(cookie));
@@ -97,8 +97,11 @@ export function formatSyncCookie (cookie: CookieRecord): string {
     return `${formatSyncCookieKey(cookie)}=${cookie.value};path=/`;
 }
 
-export function parseSyncCookie (cookieStr: string): CookieRecord {
-    const [, key, value] = KEY_VALUE_REGEX.exec(cookieStr);
+export function parseSyncCookie (cookieStr: string): CookieRecord | null {
+    const keyValueMatch = KEY_VALUE_REGEX.exec(cookieStr);
+
+    const [, key, value] = keyValueMatch ? keyValueMatch : [, void 0, void 0];
+
     const parsedKey: any = key !== void 0 && value !== void 0 && key.split('|');
 
     if (parsedKey && parsedKey.length !== CLIENT_COOKIE_SYNC_KEY_FRAGMENT_COUNT)
@@ -133,8 +136,11 @@ export function changeSyncType (parsedCookie: CookieRecord, flags): void {
 
     const newSyncTypeStr = stringifySyncType(parsedCookie);
 
-    parsedCookie.syncKey   = parsedCookie.syncKey.replace(SYNCHRONIZATION_TYPE_RE, newSyncTypeStr);
-    parsedCookie.cookieStr = parsedCookie.cookieStr.replace(SYNCHRONIZATION_TYPE_RE, newSyncTypeStr);
+    if (parsedCookie.syncKey)
+        parsedCookie.syncKey   = parsedCookie.syncKey.replace(SYNCHRONIZATION_TYPE_RE, newSyncTypeStr);
+
+    if (parsedCookie.cookieStr)
+        parsedCookie.cookieStr = parsedCookie.cookieStr.replace(SYNCHRONIZATION_TYPE_RE, newSyncTypeStr);
 }
 
 export function isOutdatedSyncCookie (currentCookie: CookieRecord, newCookie: CookieRecord): boolean {

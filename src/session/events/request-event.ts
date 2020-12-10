@@ -15,7 +15,8 @@ export default class RequestEvent {
     }
 
     setMock (mock: ResponseMock) {
-        this._requestContext.session.setMock(this._requestFilterRule, mock);
+        if (this._requestContext.session)
+            this._requestContext.session.setMock(this._requestFilterRule, mock);
     }
 
     get requestOptions () {

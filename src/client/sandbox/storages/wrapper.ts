@@ -10,7 +10,7 @@ const KEY            = 0;
 const VALUE          = 1;
 
 function getWrapperMethods () {
-    const methods = [];
+    const methods: string[] = [];
 
     for (const key in StorageWrapper.prototype)
         methods.push(key);
@@ -68,7 +68,7 @@ export default class StorageWrapper {
             // But we rely on the fact that they are enumerated in the order they were created in all the supported browsers.
             // In this case we cannot use Object.getOwnPropertyNames
             // because the enumeration order in Android 6.0 is different from all other browsers.
-            const properties = [];
+            const properties: Extract<keyof this, string>[] = [];
 
             for (const property in this) {
                 if (nativeMethods.objectHasOwnProperty.call(this, property) && this.initialProperties.indexOf(property) === -1)
@@ -94,7 +94,7 @@ export default class StorageWrapper {
         };
 
         const raiseStorageChanged = (key, oldValue, newValue) => {
-            let url = null;
+            let url: string | null = null;
 
             try {
                 const parsedContextUrl = parseProxyUrl(this.context.location.toString());
@@ -168,8 +168,8 @@ export default class StorageWrapper {
         };
 
         this.getCurrentState = () => {
-            const addedProperties = getAddedProperties();
-            const state           = [[], []];
+            const addedProperties                                                             = getAddedProperties();
+            const state: [Extract<keyof this, string>[], this[Extract<keyof this, string>][]] = [[], []];
 
             for (const addedProperty of addedProperties) {
                 state[KEY].push(addedProperty);

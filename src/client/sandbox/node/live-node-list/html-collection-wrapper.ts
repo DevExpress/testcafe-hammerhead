@@ -83,6 +83,7 @@ const additionalProtoMethods = {
     }
 } as PropertyDescriptorMap;
 
+// @ts-ignore
 if (HTMLCollection.prototype.namedItem) {
     additionalProtoMethods.namedItem = {
         value:        function (this: HTMLCollectionWrapper, ...args) {
@@ -162,9 +163,9 @@ function updateNamedProps (wrapper: HTMLCollectionWrapper, oldNamedProps, curren
 }
 
 function filterCollection (wrapper: HTMLCollectionWrapper, nativeCollectionLength: number) {
-    const nativeCollection       = wrapper._collection;
-    const currentNamedProps      = wrapper._namedProps ? [] : null;
-    const filteredCollection     = wrapper._filteredCollection;
+    const nativeCollection                   = wrapper._collection;
+    const currentNamedProps: string[] | null = wrapper._namedProps ? [] : null;
+    const filteredCollection                 = wrapper._filteredCollection;
 
     filteredCollection.length = 0;
 

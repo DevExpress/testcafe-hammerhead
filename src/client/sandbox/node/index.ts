@@ -67,8 +67,10 @@ export default class NodeSandbox extends SandboxBase {
     }
 
     private _onBodyCreated (): void {
-        this._eventSandbox.listeners.initDocumentBodyListening(this.document);
-        this.mutation.onBodyCreated(this.document.body as HTMLBodyElement);
+        if (this.document) {
+            this._eventSandbox.listeners.initDocumentBodyListening(this.document);
+            this.mutation.onBodyCreated(this.document.body as HTMLBodyElement);
+        }
     }
 
     private _processElement (el: HTMLElement): void {
@@ -77,7 +79,7 @@ export default class NodeSandbox extends SandboxBase {
         if (domUtils.isShadowUIElement(el) || processedContext === this.window)
             return;
 
-        let urlAttrName = null;
+        let urlAttrName: string | null = null;
 
         if (processedContext) {
             urlAttrName = domProcessor.getUrlAttr(el);
@@ -96,7 +98,7 @@ export default class NodeSandbox extends SandboxBase {
 
         // NOTE: We need to reprocess url attribute of element, if it's moved to different window (GH-564)
         if (urlAttrName)
-            el.setAttribute(urlAttrName, el.getAttribute(urlAttrName));
+            el.setAttribute(urlAttrName, el.getAttribute(urlAttrName) as string);
 
         this.element.processElement(el);
     }
@@ -106,13 +108,14 @@ export default class NodeSandbox extends SandboxBase {
             this._documentTitleStorageInitializer.onPageTitleLoaded();
     }
 
-    processNodes (el: HTMLElement, doc?: Document): void {
+    processNodes (el: HTMLElement | null, doc?: Document | null): void {
         if (!el) {
             doc = doc || this.document;
 
-            if (doc.documentElement)
+            if (doc && doc.documentElement)
                 this.processNodes(doc.documentElement);
         }
+        // @ts-ignore
         else if (el.querySelectorAll) {
             this._processElement(el);
 

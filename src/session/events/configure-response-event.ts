@@ -14,10 +14,12 @@ export default class ConfigureResponseEvent {
     }
 
     setHeader (name: string, value: string) {
-        this._requestContext.destRes.headers[name.toLowerCase()] = value;
+        if (this._requestContext.destRes)
+            this._requestContext.destRes.headers[name.toLowerCase()] = value;
     }
 
     removeHeader (name: string) {
-        delete this._requestContext.destRes.headers[name.toLowerCase()];
+        if (this._requestContext.destRes)
+            delete this._requestContext.destRes.headers[name.toLowerCase()];
     }
 }

@@ -43,7 +43,7 @@ export default abstract class TransportLegacy {
         if (!storedMessages.length)
             return Promise.resolve();
 
-        const tasks = [];
+        const tasks: unknown[] = [];
 
         nativeMethods.winLocalStorageGetter.call(window).removeItem(settings.get().sessionId);
 

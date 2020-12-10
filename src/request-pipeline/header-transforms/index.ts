@@ -65,8 +65,8 @@ function calculateForcedHeadersCase (headers: OutgoingHttpHeaders, processedHead
 }
 
 export function transformHeadersCaseToRaw (headers: OutgoingHttpHeaders, rawHeaders: string[]) {
-    const processedHeaders = {};
-    const headersNames     = Object.keys(headers);
+    const processedHeaders    = {};
+    const headersNames: any[] = Object.keys(headers);
 
     for (let i = 0; i < rawHeaders.length; i += 2) {
         const rawHeaderName = rawHeaders[i];

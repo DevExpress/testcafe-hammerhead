@@ -17,7 +17,7 @@ function handleResolve (ctx: RequestContext, e: ProgressEvent) {
         handleReject(ctx, e);
     }
     else
-        ctx.callback(null, xhr.responseText && JSON.parse(xhr.responseText));
+        ctx.callback(void 0, xhr.responseText && JSON.parse(xhr.responseText));
 }
 
 function handleReject (ctx: RequestContext, e: ProgressEvent) {

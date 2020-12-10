@@ -32,7 +32,7 @@ import { Dictionary } from '../typings/common';
 import ShadowUI from './sandbox/shadow-ui';
 
 class Hammerhead {
-    win: Window & typeof globalThis;
+    win: Window & typeof globalThis | null;
     sandbox: Sandbox;
     pageNavigationWatch: PageNavigationWatch;
     EVENTS: Dictionary<string>;
@@ -213,7 +213,8 @@ class Hammerhead {
 
         if (forceReload) {
             this.sandbox.node.win.on(this.sandbox.node.win.HASH_CHANGE_EVENT, () => {
-                this.win.location.reload(true);
+                if (this.win)
+                    this.win.location.reload(true);
             });
         }
     }

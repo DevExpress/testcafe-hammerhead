@@ -51,7 +51,7 @@ export default {
 
     resolve (url: string, doc: Document) {
         const resolver = this.getResolverElement(doc);
-        let href       = null;
+        let href       = '';
 
         if (url === null)
             nativeMethods.removeAttribute.call(resolver, 'href');

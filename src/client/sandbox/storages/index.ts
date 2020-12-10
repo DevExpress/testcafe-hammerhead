@@ -25,7 +25,9 @@ export default class StorageSandbox extends SandboxBase {
         private readonly _eventSimulator: EventSimulator) {
         super();
 
+        // @ts-ignore
         this.localStorageWrapper   = null;
+        // @ts-ignore
         this.sessionStorageWrapper = null;
         this.storages              = {};
         this.isLocked              = false;
@@ -49,40 +51,43 @@ export default class StorageSandbox extends SandboxBase {
 
         const sessionId             = settings.get().sessionId;
         const storageKey            = getStorageKey(sessionId, host);
-        const topSameDomainWindow   = getTopSameDomainWindow(this.window);
-        const topSameDomainStorages = topSameDomainWindow[INTERNAL_PROPS.hammerhead].sandbox.storageSandbox.storages;
 
-        // NOTE: Use the already created wrappers.
-        if (topSameDomainStorages[storageKey]) {
-            this.localStorageWrapper   = topSameDomainStorages[storageKey].localStorageWrapper;
-            this.sessionStorageWrapper = topSameDomainStorages[storageKey].sessionStorageWrapper;
-        }
-        // NOTE: Or create new.
-        else {
-            // @ts-ignore
-            this.localStorageWrapper   = new StorageWrapper(this.window, this.nativeMethods.winLocalStorageGetter.call(this.window), storageKey);
-            // @ts-ignore
-            this.sessionStorageWrapper = new StorageWrapper(this.window, this.nativeMethods.winSessionStorageGetter.call(this.window), storageKey);
+        if (this.window) {
+            const topSameDomainWindow   = getTopSameDomainWindow(this.window);
+            const topSameDomainStorages = topSameDomainWindow[INTERNAL_PROPS.hammerhead].sandbox.storageSandbox.storages;
 
-            const saveToNativeStorages = () => {
-                if (!this.isLocked) {
-                    this.localStorageWrapper.saveToNativeStorage();
-                    this.sessionStorageWrapper.saveToNativeStorage();
-                }
-            };
+            // NOTE: Use the already created wrappers.
+            if (topSameDomainStorages[storageKey]) {
+                this.localStorageWrapper   = topSameDomainStorages[storageKey].localStorageWrapper;
+                this.sessionStorageWrapper = topSameDomainStorages[storageKey].sessionStorageWrapper;
+            }
+            // NOTE: Or create new.
+            else {
+                // @ts-ignore
+                this.localStorageWrapper   = new StorageWrapper(this.window, this.nativeMethods.winLocalStorageGetter.call(this.window), storageKey);
+                // @ts-ignore
+                this.sessionStorageWrapper = new StorageWrapper(this.window, this.nativeMethods.winSessionStorageGetter.call(this.window), storageKey);
 
-            this._unloadSandbox.on(this._unloadSandbox.UNLOAD_EVENT, saveToNativeStorages);
+                const saveToNativeStorages = () => {
+                    if (!this.isLocked) {
+                        this.localStorageWrapper.saveToNativeStorage();
+                        this.sessionStorageWrapper.saveToNativeStorage();
+                    }
+                };
 
-            // NOTE: In some case, a browser does not emit the onBeforeUnload event and we need manually watch navigation (GH-1999).
-            // Also, on iOS devices, we realize the BEFORE_UNLOAD_EVENT through the onPageHide event that browser emits too late
-            // and we do not have time to save the localStorage wrapper to the native localStorage (GH-1507).
-            hammerhead.pageNavigationWatch.on(hammerhead.pageNavigationWatch.PAGE_NAVIGATION_TRIGGERED_EVENT, saveToNativeStorages);
+                this._unloadSandbox.on(this._unloadSandbox.UNLOAD_EVENT, saveToNativeStorages);
 
-            // NOTE: Push to the top same-domain sandbox.
-            topSameDomainStorages[storageKey] = {
-                localStorageWrapper:   this.localStorageWrapper,
-                sessionStorageWrapper: this.sessionStorageWrapper
-            };
+                // NOTE: In some case, a browser does not emit the onBeforeUnload event and we need manually watch navigation (GH-1999).
+                // Also, on iOS devices, we realize the BEFORE_UNLOAD_EVENT through the onPageHide event that browser emits too late
+                // and we do not have time to save the localStorage wrapper to the native localStorage (GH-1507).
+                hammerhead.pageNavigationWatch.on(hammerhead.pageNavigationWatch.PAGE_NAVIGATION_TRIGGERED_EVENT, saveToNativeStorages);
+
+                // NOTE: Push to the top same-domain sandbox.
+                topSameDomainStorages[storageKey] = {
+                    localStorageWrapper:   this.localStorageWrapper,
+                    sessionStorageWrapper: this.sessionStorageWrapper
+                };
+            }
         }
     }
 
@@ -185,12 +190,14 @@ export default class StorageSandbox extends SandboxBase {
         this.localStorageWrapper.off(this.localStorageWrapper.STORAGE_CHANGED_EVENT, this.onLocalStorageChangeListener);
         this.sessionStorageWrapper.off(this.sessionStorageWrapper.STORAGE_CHANGED_EVENT, this.onSessionStorageListener);
 
-        const topSameDomainWindow = getTopSameDomainWindow(this.window);
+        if (this.window) {
+            const topSameDomainWindow = getTopSameDomainWindow(this.window);
 
-        // NOTE: For removed iframe without src in IE11 window.top equals iframe's window
-        if (this.window === topSameDomainWindow && !topSameDomainWindow.frameElement) {
-            this.localStorageWrapper.dispose();
-            this.sessionStorageWrapper.dispose();
+            // NOTE: For removed iframe without src in IE11 window.top equals iframe's window
+            if (this.window === topSameDomainWindow && !topSameDomainWindow.frameElement) {
+                this.localStorageWrapper.dispose();
+                this.sessionStorageWrapper.dispose();
+            }
         }
     }
 }

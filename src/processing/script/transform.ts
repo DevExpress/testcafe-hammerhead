@@ -96,7 +96,7 @@ function addChangeForTransformedNode (state: State, changes: CodeChange[], repla
     if (hasTransformedAncestor)
         return;
 
-    if (state.newExpressionAncestor) {
+    if (state.newExpressionAncestorParent && state.newExpressionAncestor) {
         replaceNode(state.newExpressionAncestor, state.newExpressionAncestor, state.newExpressionAncestorParent!, state.newExpressionAncestorKey!);
         changes.push(getChange(state.newExpressionAncestor, state.newExpressionAncestorParent.type));
     }
@@ -125,7 +125,10 @@ function beforeTransform (wrapLastExprWithProcessHtml = false, resolver?: Functi
             throw new Error();
         }
         catch (e) {
-            dynamicImportTransformer.baseUrl = getFirstDestUrl(e.stack);
+            const firstDestUrl = getFirstDestUrl(e.stack);
+
+            if (firstDestUrl)
+                dynamicImportTransformer.baseUrl = firstDestUrl;
 
             if (!dynamicImportTransformer.baseUrl && resolver)
                 parseProxyUrl(resolver('./'))!.destUrl;
@@ -166,9 +169,9 @@ function transform<T extends Node> (node: Node, changes: CodeChange[], state: St
         nodeTransformed = true;
     }
     else {
-        const storedNode = node;
-        let transformer  = findTransformer(node, parent);
-        let replacement  = null;
+        const storedNode     = node;
+        let transformer      = findTransformer(node, parent);
+        let replacement: any = null;
 
         while (transformer) {
             replacement = transformer.run(replacement || node, parent, key, tempVars);

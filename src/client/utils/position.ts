@@ -26,7 +26,7 @@ function getAreaElementRectangle (el, mapContainer) {
             return null;
     }
 
-    let rectangle = null;
+    let rectangle: Record<string, number> | null = null;
 
     switch (shape) {
         case 'rect':
@@ -152,8 +152,8 @@ function getSvgElementRelativeRectangle (el) {
 
         return {
             height: elementRect.height || boundingClientRect.height,
-            left:   offsetParentIsBody ? el.offsetLeft || elOffset.left : offsetParentOffset.left + el.offsetLeft,
-            top:    offsetParentIsBody ? el.offsetTop || elOffset.top : offsetParentOffset.top + el.offsetTop,
+            left:   offsetParentIsBody ? el.offsetLeft || elOffset && elOffset.left : offsetParentOffset && offsetParentOffset.left + el.offsetLeft,
+            top:    offsetParentIsBody ? el.offsetTop || elOffset && elOffset.top : offsetParentOffset && offsetParentOffset.top + el.offsetTop,
             width:  elementRect.width || boundingClientRect.width
         };
     }
@@ -252,8 +252,8 @@ function calcOffsetPosition (el, borders, offsetPosition) {
     const relativeRectangle = isSvg ? getSvgElementRelativeRectangle(el) : null;
 
     return {
-        left: isSvg ? relativeRectangle.left + borders.left : offsetPosition.left + borders.left,
-        top:  isSvg ? relativeRectangle.top + borders.top : offsetPosition.top + borders.top
+        left: isSvg && relativeRectangle ? relativeRectangle.left + borders.left : offsetPosition.left + borders.left,
+        top:  isSvg && relativeRectangle ? relativeRectangle.top + borders.top : offsetPosition.top + borders.top
     };
 }
 
@@ -263,9 +263,9 @@ function calcOffsetPositionInIframe (el, borders, offsetPosition, doc, currentIf
     borders.left += iframeBorders.left;
     borders.top += iframeBorders.top;
 
-    const iframeOffset  = getOffsetPosition(currentIframe);
-    const iframePadding = styleUtils.getElementPadding(currentIframe);
-    let clientPosition  = null;
+    const iframeOffset                             = getOffsetPosition(currentIframe);
+    const iframePadding                            = styleUtils.getElementPadding(currentIframe);
+    let clientPosition: Record<string, any> | null = null;
 
     if (domUtils.isSVGElementOrChild(el)) {
         const relativeRectangle = getSvgElementRelativeRectangle(el);
