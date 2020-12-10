@@ -4,10 +4,6 @@ import { isNativeFunction } from '../utils/overriding';
 
 const NATIVE_CODE_RE = /\[native code]/;
 
-interface IEHTMLElement extends HTMLElement {
-    msMatchesSelector: Function;
-}
-
 class NativeMethods {
     isStoragePropsLocatedInProto: boolean;
     createDocumentFragment: Document['createDocumentFragment'];
