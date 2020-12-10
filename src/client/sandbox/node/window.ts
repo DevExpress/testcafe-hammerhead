@@ -517,7 +517,7 @@ export default class WindowSandbox extends SandboxBase {
         if (window.Worker) {
             overrideConstructor(window, 'Worker', function WorkerWrapper (...args: [string | URL, WorkerOptions?]) {
                 const isCalledWithoutNewKeyword = constructorIsCalledWithoutNewKeyword(this, WorkerWrapper);
-            
+
                 if (arguments.length === 0)
                     // @ts-ignore
                     return isCalledWithoutNewKeyword ? nativeMethods.Worker() : new nativeMethods.Worker();
@@ -816,7 +816,7 @@ export default class WindowSandbox extends SandboxBase {
                 // because our input may have incorrect value if the input with the file has been removed from DOM.
                 if (name === INTERNAL_ATTRS.uploadInfoHiddenInputName)
                     return;
-            
+
                 // NOTE: If we append our file wrapper to FormData, we will lose the file name.
                 // This happens because the file wrapper is an instance of Blob
                 // and a browser thinks that Blob does not contain the "name" property.
