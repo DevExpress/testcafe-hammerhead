@@ -34,9 +34,7 @@ if (nativeMethods.createElement) {
     hasDataTransfer = !!window.DataTransfer;
 
     // NOTE: In the Edge 17, the getNamedItem method of attributes object is not enumerable
-    attrGetNamedItemIsNotEnumerable = nativeMethods.objectGetOwnPropertyDescriptor
-    // @ts-ignore
-        .call(window.Object, NamedNodeMap.prototype, 'getNamedItem') as boolean;
+    attrGetNamedItemIsNotEnumerable = !!nativeMethods.objectGetOwnPropertyDescriptor.call(window.Object, NamedNodeMap.prototype, 'getNamedItem');
 
     // Both IE and Edge return an HTMLCollection, not a NodeList
     // @ts-ignore
