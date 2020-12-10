@@ -210,7 +210,7 @@ export function parseProxyUrl (proxyUrl: string) {
     return sharedUrlUtils.parseProxyUrl(proxyUrl);
 }
 
-export function parseUrl (url: string) {
+export function parseUrl (url: string | URL) {
     return sharedUrlUtils.parseUrl(url);
 }
 

@@ -515,22 +515,24 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.Worker) {
-            overrideConstructor(window, 'Worker', function WorkerWrapper (scriptURL, options) {
+            overrideConstructor(window, 'Worker', function WorkerWrapper (...args: [string | URL, WorkerOptions?]) {
                 const isCalledWithoutNewKeyword = constructorIsCalledWithoutNewKeyword(this, WorkerWrapper);
-
+            
                 if (arguments.length === 0)
                     // @ts-ignore
                     return isCalledWithoutNewKeyword ? nativeMethods.Worker() : new nativeMethods.Worker();
-
+            
+                if (isCalledWithoutNewKeyword)
+                    return nativeMethods.Worker.apply(this, args);
+            
+                let scriptURL = args[0];
+                
                 if (typeof scriptURL === 'string')
                     scriptURL = getProxyUrl(scriptURL, { resourceType: stringifyResourceType({ isScript: true }) });
 
-                if (isCalledWithoutNewKeyword)
-                    return nativeMethods.Worker.apply(this, arguments as unknown as [string | URL, WorkerOptions?]);
-
                 const worker = arguments.length === 1
                     ? new nativeMethods.Worker(scriptURL)
-                    : new nativeMethods.Worker(scriptURL, options);
+                    : new nativeMethods.Worker(scriptURL, args[1]);
 
                 // eslint-disable-next-line no-restricted-properties
                 if (parseUrl(scriptURL).protocol == 'blob:') {

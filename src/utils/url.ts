@@ -135,7 +135,7 @@ function convertHostToLowerCase (url: string): string {
     return formatUrl(parsedUrl);
 }
 
-export function getURLString (url: string): string {
+export function getURLString (url: string | URL): string {
     // TODO: fix it
     // eslint-disable-next-line no-undef
     if (url === null && /iPad|iPhone/i.test(window.navigator.userAgent))
@@ -261,7 +261,7 @@ export function getPathname (path: string): string {
     return path.replace(QUERY_AND_HASH_RE, '');
 }
 
-export function parseUrl (url: string): ParsedUrl {
+export function parseUrl (url: string | URL): ParsedUrl {
     const parsed: any = {};
 
     url = processSpecialChars(url);
@@ -390,7 +390,7 @@ export function correctMultipleSlashes (url: string, pageProtocol = ''): string 
     return url.replace(/^(https?:)?\/+(\/\/.*$)/i, '$1$2');
 }
 
-export function processSpecialChars (url: string): string {
+export function processSpecialChars (url: string | URL): string {
     return correctMultipleSlashes(getURLString(url));
 }
 
