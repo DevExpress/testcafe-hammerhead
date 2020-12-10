@@ -161,13 +161,13 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             }
         });
 
-        overrideFunction(window, 'fetch', function (...args: [Request | string, any]) {
+        overrideFunction(window, 'fetch', function (...args: [RequestInfo, RequestInit]) {
             if (sandbox.gettingSettingInProgress())
                 return sandbox.delayUntilGetSettings(() => this.fetch.apply(this, args));
 
             // NOTE: Safari processed the empty `fetch()` request without `Promise` rejection (GH-1613)
             if (!args.length && !browserUtils.isSafari)
-                return nativeMethods.fetch.apply(this, [] as unknown as [RequestInfo]);
+                return nativeMethods.fetch.apply(this, args);
 
             try {
                 FetchSandbox._processArguments(args);
