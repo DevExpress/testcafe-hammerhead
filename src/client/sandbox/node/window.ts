@@ -809,21 +809,21 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.FormData) {
-            overrideFunction(window.FormData.prototype, 'append', function (name, value) {
+            overrideFunction(window.FormData.prototype, 'append', function (...args: [string, string | Blob, string?]) {
+                const [name, value] = args;
+            
                 // NOTE: We should not send our hidden input's value along with the file info,
                 // because our input may have incorrect value if the input with the file has been removed from DOM.
                 if (name === INTERNAL_ATTRS.uploadInfoHiddenInputName)
                     return;
-
+            
                 // NOTE: If we append our file wrapper to FormData, we will lose the file name.
                 // This happens because the file wrapper is an instance of Blob
                 // and a browser thinks that Blob does not contain the "name" property.
-                if (arguments.length === 2 && isBlob(value) && 'name' in value) {
-                    // @ts-ignore
-                    nativeMethods.formDataAppend.call(this, name, value, value.name);
-                }
-                else
-                    nativeMethods.formDataAppend.apply(this, arguments as unknown as [string, string | Blob, string?]);
+                if (args.length === 2 && isBlob(value) && 'name' in value)
+                    args[2] = value['name'] as string;
+            
+                nativeMethods.formDataAppend.apply(this, args);
             });
         }
 
