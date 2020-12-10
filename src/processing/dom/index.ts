@@ -266,7 +266,7 @@ export default class DomProcessor {
     }
 
     // API
-    processElement (el: Element, urlReplacer: UrlReplacer): void {
+    processElement (el: Element | DocumentFragment, urlReplacer: UrlReplacer): void {
         // @ts-ignore
         if (el[ELEMENT_PROCESSED])
             return;
@@ -359,8 +359,11 @@ export default class DomProcessor {
         return false;
     }
 
-    _isShadowElement (el: Element): boolean {
-        const className = this.adapter.getClassName(el);
+    _isShadowElement (el: Element | DocumentFragment): boolean {
+        if (el.nodeType === Node.DOCUMENT_FRAGMENT_NODE)
+            return false;
+        
+        const className = this.adapter.getClassName(el as Element);
 
         return typeof className === 'string' && className.indexOf(SHADOW_UI_CLASSNAME.postfix) > -1;
     }

@@ -71,18 +71,11 @@ export default class NodeSandbox extends SandboxBase {
         this.mutation.onBodyCreated(this.document.body as HTMLBodyElement);
     }
 
-    private _processElement (el: Element): void {
+    private _processElement (el: Element | DocumentFragment): void {
         const processedContext = el[INTERNAL_PROPS.processedContext];
 
         if (domUtils.isShadowUIElement(el) || processedContext === this.window)
             return;
-
-        let urlAttrName = null;
-
-        if (processedContext) {
-            urlAttrName = domProcessor.getUrlAttr(el);
-            urlAttrName = urlAttrName && el.hasAttribute(urlAttrName) ? urlAttrName : null;
-        }
 
         const canAddNewProp         = nativeMethods.objectIsExtensible(el);
         const canUpdateExistingProp = processedContext && !nativeMethods.objectIsFrozen(el);
@@ -94,9 +87,19 @@ export default class NodeSandbox extends SandboxBase {
             });
         }
 
-        // NOTE: We need to reprocess url attribute of element, if it's moved to different window (GH-564)
-        if (urlAttrName)
-            el.setAttribute(urlAttrName, el.getAttribute(urlAttrName));
+        if (el.nodeType === Node.ELEMENT_NODE) {
+            el = el as Element;
+            let urlAttrName = null;
+
+            if (processedContext) {
+                urlAttrName = domProcessor.getUrlAttr(el);
+                urlAttrName = urlAttrName && el.hasAttribute(urlAttrName) ? urlAttrName : null;
+            }
+
+            // NOTE: We need to reprocess url attribute of element, if it's moved to different window (GH-564)
+            if (urlAttrName)
+                el.setAttribute(urlAttrName, el.getAttribute(urlAttrName));
+        }
 
         this.element.processElement(el);
     }
@@ -106,7 +109,7 @@ export default class NodeSandbox extends SandboxBase {
             this._documentTitleStorageInitializer.onPageTitleLoaded();
     }
 
-    processNodes (el: Element, doc?: Document): void {
+    processNodes (el: Element | DocumentFragment, doc?: Document): void {
         if (!el) {
             doc = doc || this.document;
 
