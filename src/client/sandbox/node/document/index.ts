@@ -219,11 +219,9 @@ export default class DocumentSandbox extends SandboxBase {
         overrideFunction(docPrototype, 'createElementNS', function (...args: [string, string, (string | ElementCreationOptions)?]) {
             const el = nativeMethods.createElementNS.apply(this, args);
 
-            if (el instanceof HTMLElement) {
-                DocumentSandbox.forceProxySrcForImageIfNecessary(el);
-                domProcessor.processElement(el, urlUtils.convertToProxyUrl);
-                documentSandbox._nodeSandbox.processNodes(el);
-            }
+            DocumentSandbox.forceProxySrcForImageIfNecessary(el);
+            domProcessor.processElement(el, urlUtils.convertToProxyUrl);
+            documentSandbox._nodeSandbox.processNodes(el);
 
             return el;
         });
