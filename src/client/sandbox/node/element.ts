@@ -944,14 +944,14 @@ export default class ElementSandbox extends SandboxBase {
             urlResolver.updateBase(storedUrlAttr, el.ownerDocument || this.document);
     }
 
-    private _reProcessElementWithTargetAttr (el: HTMLElement, tagName: string): void {
+    private _reProcessElementWithTargetAttr (el: Element, tagName: string): void {
         const targetAttr = domProcessor.getTargetAttr(el);
 
         if (DomProcessor.isIframeFlagTag(tagName) && nativeMethods.getAttribute.call(el, targetAttr) === '_parent')
             domProcessor.processElement(el, urlUtils.convertToProxyUrl);
     }
 
-    processElement (el: HTMLElement): void {
+    processElement (el: Element): void {
         const tagName = domUtils.getTagName(el);
 
         switch (tagName) {

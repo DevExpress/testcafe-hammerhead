@@ -28,7 +28,7 @@ export default class DocumentSandbox extends SandboxBase {
         this.documentWriter = null;
     }
 
-    static forceProxySrcForImageIfNecessary (element: HTMLElement): void {
+    static forceProxySrcForImageIfNecessary (element: Element): void {
         if (isImgElement(element) && settings.get().forceProxySrcForImage)
             element[INTERNAL_PROPS.forceProxySrcForImage] = true;
     }
