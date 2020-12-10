@@ -220,7 +220,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
 
         overrideFunction(window.Headers.prototype, 'values', FetchSandbox._valuesWrapper);
 
-        overrideFunction(window.Headers.prototype, 'forEach', function (...args: [(value: any, name: any, headers: any) => void, any?]) {
+        overrideFunction(window.Headers.prototype, 'forEach', function (...args: [(value: string, key: string, parent: Headers) => void, any?]) {
             const callback = args[0];
 
             if (typeof callback === 'function') {
