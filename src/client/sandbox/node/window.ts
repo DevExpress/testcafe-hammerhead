@@ -352,7 +352,7 @@ export default class WindowSandbox extends SandboxBase {
     _createOverriddenDOMTokenListMethod (nativeMethod): Function {
         const windowSandbox = this;
 
-        return function (this: unknown) {
+        return function (this: DOMTokenList) {
             const executionResult = nativeMethod.apply(this, arguments);
             const tokenListOwner  = this[SANDBOX_DOM_TOKEN_LIST_OWNER];
 
@@ -469,7 +469,7 @@ export default class WindowSandbox extends SandboxBase {
         });
 
         if (nativeMethods.objectAssign) {
-            overrideFunction(window.Object, 'assign', function (this: Object, target: object, ...sources: any[]) {
+            overrideFunction(window.Object, 'assign', function (this: ObjectConstructor, target: object, ...sources: any[]) {
                 let args         = [target] as [object, ...any[]];
                 const targetType = typeof target;
 

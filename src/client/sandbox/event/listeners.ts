@@ -65,7 +65,7 @@ export default class Listeners extends EventEmitter {
     }
 
     private static _getEventListenerWrapper (eventCtx, listener) {
-        return function (this: unknown, e: Event) {
+        return function (this: EventTarget, e: Event) {
             // NOTE: Ignore IE11's and Edge's service handlers (GH-379)
             if (Listeners._isIEServiceHandler(listener) || eventCtx.cancelOuterHandlers)
                 return null;
@@ -98,7 +98,7 @@ export default class Listeners extends EventEmitter {
     private _createEventHandler (): Function {
         const listeners = this;
 
-        return function (this: unknown, e: Event) {
+        return function (this: EventTarget, e: Event) {
             const el                  = this as HTMLElement;
             const elWindow            = el[INTERNAL_PROPS.processedContext] || window;
             let eventPrevented        = false;
