@@ -102,7 +102,9 @@ export default class Selection {
         };
 
         this.selectWrapper = function (this: HTMLElement) {
-            const element = this.parentElement;
+            // NOTE: Non-standard IE Only class TextRange
+            // @ts-ignore
+            const element = this.parentElement();
 
             if (!element || domUtils.getActiveElement(domUtils.findDocument(element)) === element)
                 return nativeMethods.select.call(this);
