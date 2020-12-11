@@ -130,7 +130,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             nativeMethods.xhrOpen.apply(this, arguments);
         });
 
-        overrideFunction(xmlHttpRequestProto, 'send', function (this: XMLHttpRequest, ...args: [(string | Document | Blob | ArrayBufferView | ArrayBuffer | FormData | URLSearchParams | ReadableStream<Uint8Array>)?]) {
+        overrideFunction(xmlHttpRequestProto, 'send', function (this: XMLHttpRequest, ...args: [any]) {
             if (xhrSandbox.gettingSettingInProgress()) {
                 xhrSandbox.delayUntilGetSettings(() => this.send.apply(this, args));
 
