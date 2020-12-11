@@ -4,7 +4,7 @@ import * as JSON from 'json-hammerhead';
 import ShadowUI from '../shadow-ui';
 
 function createInput (form: HTMLFormElement) {
-    const hiddenInput = nativeMethods.createElement.call(document, 'input');
+    const hiddenInput = nativeMethods.createElement.call(document, 'input') as HTMLInputElement;
 
     hiddenInput.type  = 'hidden';
     hiddenInput.name  = INTERNAL_ATTRS.uploadInfoHiddenInputName;

@@ -266,7 +266,7 @@ export default class DomProcessor {
     }
 
     // API
-    processElement (el: HTMLElement, urlReplacer: UrlReplacer): void {
+    processElement (el: Element, urlReplacer: UrlReplacer): void {
         // @ts-ignore
         if (el[ELEMENT_PROCESSED])
             return;
@@ -313,7 +313,7 @@ export default class DomProcessor {
         return this.adapter.isSVGElement(el) && (attr === 'xml:base' || attr === 'base' && ns === XML_NAMESPACE);
     }
 
-    getUrlAttr (el: HTMLElement): string | null {
+    getUrlAttr (el: Element): string | null {
         const tagName = this.adapter.getTagName(el);
 
         for (const urlAttr of URL_ATTRS) {
@@ -325,7 +325,7 @@ export default class DomProcessor {
         return null;
     }
 
-    getTargetAttr (el: HTMLElement | ASTNode): string | null {
+    getTargetAttr (el: Element | ASTNode): string | null {
         const tagName = this.adapter.getTagName(el);
 
         for (const targetAttr of TARGET_ATTRS) {
@@ -359,7 +359,7 @@ export default class DomProcessor {
         return false;
     }
 
-    _isShadowElement (el: HTMLElement): boolean {
+    _isShadowElement (el: Element): boolean {
         const className = this.adapter.getClassName(el);
 
         return typeof className === 'string' && className.indexOf(SHADOW_UI_CLASSNAME.postfix) > -1;

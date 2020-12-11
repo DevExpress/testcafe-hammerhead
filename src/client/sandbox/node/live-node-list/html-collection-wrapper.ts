@@ -85,7 +85,7 @@ const additionalProtoMethods = {
 
 if (HTMLCollection.prototype.namedItem) {
     additionalProtoMethods.namedItem = {
-        value:        function (this: HTMLCollectionWrapper, ...args) {
+        value:        function (this: HTMLCollectionWrapper, ...args: [string]) {
             this._refreshCollection();
 
             const namedItem = this._collection.namedItem.apply(this._collection, args);

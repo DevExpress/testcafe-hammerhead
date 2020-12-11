@@ -141,7 +141,7 @@ class NativeMethods {
     WindowInputEvent: any;
     WindowMouseEvent: any;
     windowOriginGetter: () => string;
-    windowOriginSetter: () => any;
+    windowOriginSetter: (this: Window, value: string) => void;
     canvasContextDrawImage: any;
     formDataAppend: FormData['append'];
     date: DateConstructor;
@@ -490,7 +490,7 @@ class NativeMethods {
     refreshElementMeths (doc, win: Window & typeof globalThis) {
         win = win || window as Window & typeof globalThis;
 
-        const createElement = tagName => this.createElement.call(doc || document, tagName);
+        const createElement = (tagName => this.createElement.call(doc || document, tagName)) as Document['createElement'];
         const nativeElement = createElement('div');
 
         const createTextNode = data => this.createTextNode.call(doc || document, data);

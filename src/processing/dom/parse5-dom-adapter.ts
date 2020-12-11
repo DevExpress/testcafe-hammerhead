@@ -82,8 +82,8 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
         return this.isIframe;
     }
 
-    getProxyUrl (): string {
-        return urlUtils.getProxyUrl.apply(urlUtils, arguments);
+    getProxyUrl (...args: [string, any]): string {
+        return urlUtils.getProxyUrl(...args);
     }
 
     isTopParentIframe (): boolean {

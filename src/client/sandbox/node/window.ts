@@ -469,11 +469,8 @@ export default class WindowSandbox extends SandboxBase {
         });
 
         if (nativeMethods.objectAssign) {
-            overrideFunction(window.Object, 'assign', function (target, ...sources) {
-                let args = [];
-
-                args.push(target);
-
+            overrideFunction(window.Object, 'assign', function (target: object, ...sources: any[]) {
+                let args         = [target] as [object, ...any[]];
                 const targetType = typeof target;
 
                 if (target && (targetType === 'object' || targetType === 'function') && sources.length) {
@@ -502,7 +499,7 @@ export default class WindowSandbox extends SandboxBase {
             });
         }
 
-        overrideFunction(window, 'open', function (...args) {
+        overrideFunction(window, 'open', function (...args: [string?, string?, string?, boolean?]) {
             args[0] = getProxyUrl(args[0]);
             args[1] = windowSandbox._getWindowOpenTarget(args[1]);
 
@@ -518,22 +515,24 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.Worker) {
-            overrideConstructor(window, 'Worker', function WorkerWrapper (scriptURL, options) {
+            overrideConstructor(window, 'Worker', function WorkerWrapper (...args: [string | URL, WorkerOptions?]) {
                 const isCalledWithoutNewKeyword = constructorIsCalledWithoutNewKeyword(this, WorkerWrapper);
 
                 if (arguments.length === 0)
                     // @ts-ignore
                     return isCalledWithoutNewKeyword ? nativeMethods.Worker() : new nativeMethods.Worker();
-
+            
+                if (isCalledWithoutNewKeyword)
+                    return nativeMethods.Worker.apply(this, args);
+            
+                let scriptURL = args[0];
+                
                 if (typeof scriptURL === 'string')
                     scriptURL = getProxyUrl(scriptURL, { resourceType: stringifyResourceType({ isScript: true }) });
 
-                if (isCalledWithoutNewKeyword)
-                    return nativeMethods.Worker.apply(this, arguments);
-
                 const worker = arguments.length === 1
                     ? new nativeMethods.Worker(scriptURL)
-                    : new nativeMethods.Worker(scriptURL, options);
+                    : new nativeMethods.Worker(scriptURL, args[1]);
 
                 // eslint-disable-next-line no-restricted-properties
                 if (parseUrl(scriptURL).protocol == 'blob:') {
@@ -810,7 +809,9 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.FormData) {
-            overrideFunction(window.FormData.prototype, 'append', function (name, value) {
+            overrideFunction(window.FormData.prototype, 'append', function (...args: [string, string | Blob, string?]) {
+                const [name, value] = args;
+            
                 // NOTE: We should not send our hidden input's value along with the file info,
                 // because our input may have incorrect value if the input with the file has been removed from DOM.
                 if (name === INTERNAL_ATTRS.uploadInfoHiddenInputName)
@@ -819,12 +820,10 @@ export default class WindowSandbox extends SandboxBase {
                 // NOTE: If we append our file wrapper to FormData, we will lose the file name.
                 // This happens because the file wrapper is an instance of Blob
                 // and a browser thinks that Blob does not contain the "name" property.
-                if (arguments.length === 2 && isBlob(value) && 'name' in value) {
-                    // @ts-ignore
-                    nativeMethods.formDataAppend.call(this, name, value, value.name);
-                }
-                else
-                    nativeMethods.formDataAppend.apply(this, arguments);
+                if (args.length === 2 && isBlob(value) && 'name' in value)
+                    args[2] = value['name'] as string;
+            
+                nativeMethods.formDataAppend.apply(this, args);
             });
         }
 

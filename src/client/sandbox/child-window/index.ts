@@ -71,7 +71,7 @@ export default class ChildWindowSandbox extends SandboxBase {
         });
     }
 
-    handleWindowOpen (window: Window, args: any[]): Window {
+    handleWindowOpen (window: Window, args: [string?, string?, string?, boolean?]): Window {
         const [url, target, parameters] = args;
 
         if (settings.get().allowMultipleWindows && ChildWindowSandbox._shouldOpenInNewWindow(target, DefaultTarget.windowOpen)) {
