@@ -176,7 +176,7 @@ export default class StyleSandbox extends SandboxBase {
 
             if (this.nativeMethods.objectHasOwnProperty.call(styleDeclarationProto, prop) &&
                 typeof nativeFn === 'function') {
-                (styleDeclarationProto[prop] as unknown as Function) = function () {
+                (styleDeclarationProto[prop] as unknown as Function) = function (this: Window) {
                     return nativeFn.apply(this[CSS_STYLE_PROXY_TARGET] || this, arguments);
                 };
 
@@ -193,7 +193,7 @@ export default class StyleSandbox extends SandboxBase {
         const styleSandbox  = this;
 
         overrideDescriptor(window[nativeMethods.htmlElementStylePropOwnerName].prototype, 'style', {
-            getter: this.FEATURES.protoContainsAllProps ? null : function () {
+            getter: this.FEATURES.protoContainsAllProps ? null : function (this: Window) {
                 const style = nativeMethods.htmlElementStyleGetter.call(this);
 
                 if (styleSandbox.FEATURES.propsCannotBeOverridden)
@@ -201,7 +201,7 @@ export default class StyleSandbox extends SandboxBase {
 
                 return styleSandbox._processStyleInstance(style);
             },
-            setter: nativeMethods.htmlElementStyleSetter ? function (value) {
+            setter: nativeMethods.htmlElementStyleSetter ? function (this: Window, value) {
                 const processedCss = styleProcessor.process(value, getProxyUrl);
 
                 nativeMethods.htmlElementStyleSetter.call(this, processedCss);
@@ -236,19 +236,19 @@ export default class StyleSandbox extends SandboxBase {
             }
         });
 
-        overrideFunction(window.CSSStyleSheet.prototype, 'insertRule', function (rule, index) {
+        overrideFunction(window.CSSStyleSheet.prototype, 'insertRule', function (this: CSSStyleSheet, rule, index) {
             const newRule = styleProcessor.process(rule, getProxyUrl);
 
             return nativeMethods.styleInsertRule.call(this, newRule, index);
         });
 
-        overrideFunction(window.CSSStyleDeclaration.prototype, 'getPropertyValue', function (...args) {
+        overrideFunction(window.CSSStyleDeclaration.prototype, 'getPropertyValue', function (this: CSSStyleDeclaration, ...args) {
             const value = nativeMethods.styleGetPropertyValue.apply(this, args);
 
             return styleProcessor.cleanUp(value, parseProxyUrl);
         });
 
-        overrideFunction(window.CSSStyleDeclaration.prototype, 'setProperty', function (...args) {
+        overrideFunction(window.CSSStyleDeclaration.prototype, 'setProperty', function (this: CSSStyleDeclaration, ...args) {
             const value = args[1];
 
             if (typeof value === 'string')
@@ -257,7 +257,7 @@ export default class StyleSandbox extends SandboxBase {
             return nativeMethods.styleSetProperty.apply(this, args);
         });
 
-        overrideFunction(window.CSSStyleDeclaration.prototype, 'removeProperty', function (...args) {
+        overrideFunction(window.CSSStyleDeclaration.prototype, 'removeProperty', function (this: CSSStyleDeclaration, ...args) {
             const oldValue = nativeMethods.styleRemoveProperty.apply(this, args);
 
             return styleProcessor.cleanUp(oldValue, parseProxyUrl);

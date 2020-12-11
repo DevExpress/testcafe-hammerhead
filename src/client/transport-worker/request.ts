@@ -38,8 +38,8 @@ function handleReject (ctx: RequestContext, e: ProgressEvent) {
     }
 }
 
-function handleEvent (e: ProgressEvent) {
-    const ctx = this as RequestContext;
+function handleEvent (this: RequestContext, e: ProgressEvent) {
+    const ctx = this;
 
     if (e.type === 'load')
         handleResolve(ctx, e);

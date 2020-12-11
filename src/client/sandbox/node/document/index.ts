@@ -130,7 +130,7 @@ export default class DocumentSandbox extends SandboxBase {
         const docPrototype    = window.Document.prototype;
 
         const overriddenMethods = {
-            open: function (...args: [string?, string?, string?, boolean?]) {
+            open: function (this: Document, ...args: [string?, string?, string?, boolean?]) {
                 const isUninitializedIframe = documentSandbox._isUninitializedIframeWithoutSrc(window);
 
                 if (!isUninitializedIframe)
@@ -159,7 +159,7 @@ export default class DocumentSandbox extends SandboxBase {
                 return result;
             },
 
-            close: function (...args: []) {
+            close: function (this: Document, ...args: []) {
                 // NOTE: IE11 raise the "load" event only when the document.close method is called. We need to
                 // restore the overridden document.open and document.write methods before Hammerhead injection, if the
                 // window is not initialized.
@@ -206,7 +206,7 @@ export default class DocumentSandbox extends SandboxBase {
         if (document.open !== overriddenMethods.open)
             overrideFunction(document, 'open', overriddenMethods.open);
 
-        overrideFunction(docPrototype, 'createElement', function (...args: [string, ElementCreationOptions?]) {
+        overrideFunction(docPrototype, 'createElement', function (this: Document, ...args: [string, ElementCreationOptions?]) {
             const el = nativeMethods.createElement.apply(this, args);
 
             DocumentSandbox.forceProxySrcForImageIfNecessary(el);
@@ -216,7 +216,7 @@ export default class DocumentSandbox extends SandboxBase {
             return el;
         });
 
-        overrideFunction(docPrototype, 'createElementNS', function (...args: [string, string, (string | ElementCreationOptions)?]) {
+        overrideFunction(docPrototype, 'createElementNS', function (this: Document, ...args: [string, string, (string | ElementCreationOptions)?]) {
             const el = nativeMethods.createElementNS.apply(this, args);
 
             DocumentSandbox.forceProxySrcForImageIfNecessary(el);
@@ -226,7 +226,7 @@ export default class DocumentSandbox extends SandboxBase {
             return el;
         });
 
-        overrideFunction(docPrototype, 'createDocumentFragment', function (...args: []) {
+        overrideFunction(docPrototype, 'createDocumentFragment', function (this: Document, ...args: []) {
             const fragment = nativeMethods.createDocumentFragment.apply(this, args);
 
             documentSandbox._nodeSandbox.processNodes(fragment);
@@ -296,7 +296,7 @@ export default class DocumentSandbox extends SandboxBase {
         });
 
         overrideDescriptor(docPrototype, 'activeElement', {
-            getter: function () {
+            getter: function (this: Document) {
                 const activeElement = nativeMethods.documentActiveElementGetter.call(this);
 
                 if (activeElement && isShadowUIElement(activeElement))
