@@ -1543,7 +1543,7 @@ export default class WindowSandbox extends SandboxBase {
                 },
 
                 setter: function (value) {
-                    return nativeMethods.windowOriginSetter.apply(this, [value]);
+                    return nativeMethods.windowOriginSetter.call(this, value);
                 }
             });
         }
