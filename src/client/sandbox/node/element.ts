@@ -951,7 +951,7 @@ export default class ElementSandbox extends SandboxBase {
             domProcessor.processElement(el, urlUtils.convertToProxyUrl);
     }
 
-    processElement (el: Element | DocumentFragment): void {
+    processElement (el: Element): void {
         const tagName = domUtils.getTagName(el);
 
         switch (tagName) {
@@ -973,9 +973,8 @@ export default class ElementSandbox extends SandboxBase {
                 break;
         }
 
-        if (DomProcessor.isIframeFlagTag(tagName))
-            // NOTE: we need to reprocess a tag client-side if it wasn't processed on the server.
-            // See the usage of Parse5DomAdapter.needToProcessUrl
-            this._reProcessElementWithTargetAttr(el as Element, tagName);
+        // NOTE: we need to reprocess a tag client-side if it wasn't processed on the server.
+        // See the usage of Parse5DomAdapter.needToProcessUrl
+        this._reProcessElementWithTargetAttr(el, tagName);
     }
 }
