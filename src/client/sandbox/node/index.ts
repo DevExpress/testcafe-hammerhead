@@ -106,7 +106,7 @@ export default class NodeSandbox extends SandboxBase {
             this._documentTitleStorageInitializer.onPageTitleLoaded();
     }
 
-    processNodes (el: Element, doc?: Document): void {
+    processNodes (el?: Element | DocumentFragment, doc?: Document): void {
         if (!el) {
             doc = doc || this.document;
 
@@ -114,7 +114,8 @@ export default class NodeSandbox extends SandboxBase {
                 this.processNodes(doc.documentElement);
         }
         else if (el.querySelectorAll) {
-            this._processElement(el);
+            if (el.nodeType !== Node.DOCUMENT_FRAGMENT_NODE)
+                this._processElement(el as Element);
 
             const children = getNativeQuerySelectorAll(el).call(el, '*');
             const length   = nativeMethods.nodeListLengthGetter.call(children);
