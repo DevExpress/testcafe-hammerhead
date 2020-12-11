@@ -92,9 +92,9 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             value: xmlHttpRequestWrapper
         });
 
-        overrideFunction(xmlHttpRequestProto, 'abort', function (this: XMLHttpRequest, ...args) {
+        overrideFunction(xmlHttpRequestProto, 'abort', function (this: XMLHttpRequest, ...args: []) {
             if (xhrSandbox.gettingSettingInProgress()) {
-                xhrSandbox.delayUntilGetSettings(() => this.abort.apply(this, args as unknown as []));
+                xhrSandbox.delayUntilGetSettings(() => this.abort.apply(this, args));
 
                 return;
             }
@@ -108,7 +108,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
 
         // NOTE: Redirect all requests to the Hammerhead proxy and ensure that requests don't
         // violate Same Origin Policy.
-        overrideFunction(xmlHttpRequestProto, 'open', function (this: XMLHttpRequest, ...args) {
+        overrideFunction(xmlHttpRequestProto, 'open', function (this: XMLHttpRequest, ...args: [string, string, boolean, string?, string?]) {
             const url = arguments[1];
 
             if (getProxyUrl(url) === url) {
@@ -118,7 +118,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             }
 
             if (xhrSandbox.gettingSettingInProgress()) {
-                xhrSandbox.delayUntilGetSettings(() => this.open.apply(this, args as [string, string, boolean, string?, string?]));
+                xhrSandbox.delayUntilGetSettings(() => this.open.apply(this, args));
 
                 return;
             }
@@ -130,9 +130,9 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             nativeMethods.xhrOpen.apply(this, arguments);
         });
 
-        overrideFunction(xmlHttpRequestProto, 'send', function (this: XMLHttpRequest, ...args) {
+        overrideFunction(xmlHttpRequestProto, 'send', function (this: XMLHttpRequest, ...args: [(string | Document | Blob | ArrayBufferView | ArrayBuffer | FormData | URLSearchParams | ReadableStream<Uint8Array>)?]) {
             if (xhrSandbox.gettingSettingInProgress()) {
-                xhrSandbox.delayUntilGetSettings(() => this.send.apply(this, args as [(string | Document | Blob | ArrayBufferView | ArrayBuffer | FormData | URLSearchParams | ReadableStream<Uint8Array>)?]));
+                xhrSandbox.delayUntilGetSettings(() => this.send.apply(this, args));
 
                 return;
             }
