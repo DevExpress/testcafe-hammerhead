@@ -217,9 +217,10 @@ gulp.step('templates', () => {
 gulp.step('lint-js', () => {
     return gulp
         .src([
-            './test/server/*.js',
+            './test/server/**/*.js',
             './test/client/fixtures/**/*.js',
-            'Gulpfile.js'
+            'Gulpfile.js',
+            '!./test/server/data/**/*.js'
         ])
         .pipe(eslint())
         .pipe(eslint.format())
@@ -250,7 +251,7 @@ gulp.task('build',
 
 // Test
 gulp.step('mocha', () => {
-    return gulp.src('./test/server/*-test.js', { read: false })
+    return gulp.src('./test/server/**/*-test.js', { read: false })
         .pipe(mocha({
             // NOTE: Disable timeouts in debug mode.
             timeout:   typeof v8debug !== 'undefined' || !!process.debugPort ? Infinity : 2000,
