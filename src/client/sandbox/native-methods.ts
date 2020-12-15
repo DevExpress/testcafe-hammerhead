@@ -103,9 +103,9 @@ class NativeMethods {
     clearInterval: Window['clearInterval'];
     registerProtocolHandler: any;
     sendBeacon: any;
-    xhrAbort: any;
-    xhrOpen: any;
-    xhrSend: any;
+    xhrAbort: XMLHttpRequest['abort'];
+    xhrOpen: XMLHttpRequest['open'];
+    xhrSend: XMLHttpRequest['send'];
     xhrAddEventListener: any;
     xhrRemoveEventListener: any;
     xhrGetResponseHeader: any;

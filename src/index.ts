@@ -5,7 +5,6 @@ import RequestFilterRule from './request-pipeline/request-hooks/request-filter-r
 import UploadStorage from './upload/storage';
 import { processScript, isScriptProcessed } from './processing/script';
 import ConfigureResponseEventOptions from './session/events/configure-response-event-options';
-import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from './request-pipeline/xhr/same-origin-check-failed-status-code';
 import StateSnapshot from './session/state-snapshot';
 import { SPECIAL_BLANK_PAGE, SPECIAL_ERROR_PAGE } from './utils/url';
 import generateUniqueId from './utils/generate-unique-id';
@@ -19,7 +18,6 @@ export default {
     ResponseMock,
     RequestFilterRule,
     ConfigureResponseEventOptions,
-    SAME_ORIGIN_CHECK_FAILED_STATUS_CODE,
     StateSnapshot,
     SPECIAL_BLANK_PAGE,
     SPECIAL_ERROR_PAGE,

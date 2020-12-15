@@ -1,4 +1,3 @@
-var destLocation     = hammerhead.get('./utils/destination-location');
 var urlUtils         = hammerhead.get('./utils/url');
 var INTERNAL_HEADERS = hammerhead.get('../request-pipeline/internal-header-names');
 
@@ -12,36 +11,36 @@ if (window.fetch) {
     });
 
     test('global fetch - redirect request to proxy', function () {
-        return fetch('/xhr-test/100')
+        return fetch('/xhr-test/100', { credentials: 'same-origin' })
             .then(function (response) {
                 return response.text();
             })
             .then(function (url) {
-                strictEqual(url, '/sessionId/https://example.com/xhr-test/100');
+                strictEqual(url, '/sessionId!a!1/https://example.com/xhr-test/100');
             });
     });
 
     test('Request - redirect request to proxy', function () {
-        var request = new Request('/xhr-test/100');
+        var request = new Request('/xhr-test/100', { credentials: 'omit' });
 
         return fetch(request)
             .then(function (response) {
                 return response.text();
             })
             .then(function (url) {
-                strictEqual(url, '/sessionId/https://example.com/xhr-test/100');
+                strictEqual(url, '/sessionId!a!2/https://example.com/xhr-test/100');
             });
     });
 
     test('nested Request - redirect request to proxy', function () {
-        var request = new Request('/xhr-test/100');
+        var request = new Request('/xhr-test/100', { credentials: 'include' });
 
-        return fetch(new Request(request))
+        return fetch(new Request(request), { credentials: 'omit' })
             .then(function (response) {
                 return response.text();
             })
             .then(function (url) {
-                strictEqual(url, '/sessionId/https://example.com/xhr-test/100');
+                strictEqual(url, '/sessionId!a!2/https://example.com/xhr-test/100');
             });
     });
 
@@ -113,7 +112,7 @@ if (window.fetch) {
     });
 
     test('the failed cors request should emit an error', function () {
-        return fetch('/xhr-cors-failed/')
+        return fetch(window.QUnitGlobals.crossDomainHostname + '/xhr-test/100')
             .catch(function (err) {
                 ok(err);
             });
@@ -141,7 +140,7 @@ if (window.fetch) {
                 });
         });
         test('cors', function () {
-            return fetch(window.QUnitGlobals.crossDomainHostname + '/xhr-test/100')
+            return fetch(window.QUnitGlobals.crossDomainHostname + '/cors/')
                 .then(function (response) {
                     strictEqual(response.status, 200);
                     strictEqual(response.type, 'cors');
@@ -159,7 +158,6 @@ if (window.fetch) {
     module('request modes', function () {
         module('no-cors');
 
-
         test('same-domain', function () {
             return fetch('/xhr-test/100', { mode: 'no-cors' })
                 .then(function (response) {
@@ -168,13 +166,8 @@ if (window.fetch) {
                 });
         });
 
-        // NOTE: not supported scenario
-        // It is impossible to add custom headers to the fetch request
-        // with the 'no-cors' mode
-        // see https://fetch.spec.whatwg.org/#concept-headers-guard
-        // https://fetch.spec.whatwg.org/#cors-safelisted-request-header
-        QUnit.skip('cross-domain', function () {
-            return fetch('https://sub-domain.example.com', { mode: 'no-cors' })
+        test('cross-domain', function () {
+            return fetch(window.QUnitGlobals.crossDomainHostname + '/xhr-test/100', { mode: 'no-cors' })
                 .then(function (response) {
                     strictEqual(response.status, 0);
                     strictEqual(response.type, 'opaque');
@@ -229,6 +222,7 @@ if (window.fetch) {
             var testHeaders = new Headers();
 
             testHeaders.append('Content-Type', 'application/json');
+            testHeaders.append('Authorization', 'Basic qwerty');
             testHeaders.append('x-header', 'value');
 
             return fetch('/echo-request-headers', { method: 'post', headers: testHeaders })
@@ -242,7 +236,7 @@ if (window.fetch) {
                         entry  = entries.next();
                     }
 
-                    deepEqual(result, ['content-type', 'application/json', 'x-header', 'value']);
+                    deepEqual(result, ['content-type', 'application/json', 'authorization', 'Basic qwerty', 'x-header', 'value']);
 
                     var values = testHeaders.values();
                     var value  = values.next();
@@ -254,33 +248,38 @@ if (window.fetch) {
                         value  = values.next();
                     }
 
-                    deepEqual(result, ['application/json', 'value']);
+                    deepEqual(result, ['application/json', 'Basic qwerty', 'value']);
 
                     result = [];
 
                     testHeaders.forEach(result.push.bind(result));
 
-                    deepEqual(result, ['application/json', 'content-type', testHeaders, 'value', 'x-header', testHeaders]);
+                    deepEqual(result, ['application/json', 'content-type', testHeaders,
+                        'Basic qwerty', 'authorization', testHeaders, 'value', 'x-header', testHeaders]);
 
                     result = [];
 
                     eval('for (const entry of testHeaders)' +
                          '    result = result.concat(entry);');
 
-                    deepEqual(result, ['content-type', 'application/json', 'x-header', 'value']);
+                    deepEqual(result, ['content-type', 'application/json', 'authorization', 'Basic qwerty', 'x-header', 'value']);
                 });
         });
 
         test('an headers object passed to the fetch should not be changed', function () {
             var testHeaders = {
-                'Content-Type': 'application/json; charset=UTF-8',
-                'x-header':     'value'
+                'Content-Type':  'application/json; charset=UTF-8',
+                'x-header':      'value',
+                'authorization': 'Basic qwerty',
             };
 
             return fetch('/echo-request-headers', { method: 'post', headers: testHeaders })
-                .then(function () {
-                    notOk(INTERNAL_HEADERS.credentials in testHeaders);
-                    notOk(INTERNAL_HEADERS.origin in testHeaders);
+                .then(function (res) {
+                    return res.json();
+                })
+                .then(function (headers) {
+                    notOk(INTERNAL_HEADERS.authorization in testHeaders);
+                    ok(INTERNAL_HEADERS.authorization in headers);
                 });
         });
 
@@ -357,188 +356,6 @@ if (window.fetch) {
 
             strictEqual(headers.has('authorization'), true);
             strictEqual(headers.get('authorization'), 'Basic');
-        });
-
-        module('Fetch request credentials', function () {
-            module('default values');
-
-            test('headers is object', function () {
-                return fetch('/echo-request-headers', {
-                    method:  'post',
-                    headers: {
-                        'Content-Type': 'application/json; charset=UTF-8'
-                    }
-                })
-                    .then(function (response) {
-                        return response.json();
-                    })
-                    .then(function (headers) {
-                        ok(headers.hasOwnProperty(INTERNAL_HEADERS.credentials));
-                    });
-            });
-
-            test('headers is window.Headers', function () {
-                var testHeaders = new Headers();
-
-                testHeaders.append('Content-Type', 'application/json; charset=UTF-8');
-
-                return fetch('/echo-request-headers', {
-                    method:  'post',
-                    headers: testHeaders
-                })
-                    .then(function (response) {
-                        return response.json();
-                    })
-                    .then(function (headers) {
-                        ok(headers.hasOwnProperty(INTERNAL_HEADERS.credentials));
-                    });
-            });
-
-            module('non-default values');
-
-            test('headers is object', function () {
-                return fetch('/echo-request-headers', {
-                    method:      'post',
-                    headers:     { 'Content-Type': 'application/json; charset=UTF-8' },
-                    credentials: 'same-origin'
-                })
-                    .then(function (response) {
-                        return response.json();
-                    })
-                    .then(function (headers) {
-                        strictEqual(headers[INTERNAL_HEADERS.credentials], 'same-origin');
-                    });
-            });
-
-            test('headers is window.Headers', function () {
-                var testHeaders = new Headers();
-
-                testHeaders.append('Content-Type', 'application/json; charset=UTF-8');
-
-                return fetch('/echo-request-headers', {
-                    method:      'post',
-                    headers:     testHeaders,
-                    credentials: 'same-origin'
-                })
-                    .then(function (response) {
-                        return response.json();
-                    })
-                    .then(function (headers) {
-                        strictEqual(headers[INTERNAL_HEADERS.credentials], 'same-origin');
-                    });
-            });
-        });
-
-        module('Origin', function () {
-            module('global fetch');
-
-            test('headers is object', function () {
-                return fetch('/echo-request-headers', {
-                    method:  'post',
-                    headers: {
-                        'Content-Type': 'application/json; charset=UTF-8'
-                    }
-                })
-                    .then(function (response) {
-                        return response.json();
-                    })
-                    .then(function (headers) {
-                        strictEqual(headers[INTERNAL_HEADERS.origin], 'https://example.com');
-                    });
-            });
-
-            test('headers is window.Headers', function () {
-                var testHeaders = new Headers();
-
-                testHeaders.append('Content-Type', 'application/json; charset=UTF-8');
-
-                return fetch('/echo-request-headers', {
-                    method:  'post',
-                    headers: testHeaders
-                })
-                    .then(function (response) {
-                        return response.json();
-                    })
-                    .then(function (headers) {
-                        strictEqual(headers[INTERNAL_HEADERS.origin], 'https://example.com');
-                    });
-            });
-
-            module('Request');
-
-            test('headers is object', function () {
-                var request = new Request('/echo-request-headers', {
-                    method:  'post',
-                    headers: {
-                        'Content-Type': 'application/json; charset=UTF-8'
-                    }
-                });
-
-                return fetch(request)
-                    .then(function (response) {
-                        return response.json();
-                    })
-                    .then(function (headers) {
-                        strictEqual(headers[INTERNAL_HEADERS.origin], 'https://example.com');
-                    });
-            });
-
-            test('headers is window.Headers', function () {
-                var testHeaders = new Headers();
-
-                testHeaders.append('Content-Type', 'application/json; charset=UTF-8');
-
-                var request = new Request('/echo-request-headers', {
-                    method:  'post',
-                    headers: testHeaders
-                });
-
-                return fetch(request)
-                    .then(function (response) {
-                        return response.json();
-                    })
-                    .then(function (headers) {
-                        strictEqual(headers[INTERNAL_HEADERS.origin], 'https://example.com');
-                    });
-            });
-
-            module('location with file protocol');
-
-            test('headers is object', function () {
-                destLocation.forceLocation('http://localhost/sessionId/file:///path/index.html');
-
-                return fetch('/echo-request-headers', {
-                    method:  'post',
-                    headers: { 'Content-Type': 'application/json; charset=UTF-8' }
-                })
-                    .then(function (response) {
-                        return response.json();
-                    })
-                    .then(function (headers) {
-                        strictEqual(headers[INTERNAL_HEADERS.origin], 'file:///path/index.html');
-                        destLocation.forceLocation('http://localhost/sessionId/https://example.com');
-                    });
-            });
-
-            test('headers is window.Headers', function () {
-                destLocation.forceLocation('http://localhost/sessionId/file:///path/index.html');
-
-                var testHeaders = new Headers();
-
-                testHeaders.append('Content-Type', 'application/json; charset=UTF-8');
-
-                return fetch('/echo-request-headers', {
-                    method:  'post',
-                    headers: testHeaders
-                })
-                    .then(function (response) {
-                        return response.json();
-                    })
-                    .then(function (headers) {
-                        strictEqual(headers[INTERNAL_HEADERS.origin], 'file:///path/index.html');
-                        destLocation.forceLocation('http://localhost/sessionId/https://example.com');
-                    });
-            });
         });
     });
 
@@ -717,24 +534,6 @@ if (window.fetch) {
                 });
         });
 
-        test('should not duplicate values of internal headers (GH-1360)', function () {
-            var reqInit = {
-                credentials: 'same-origin',
-                headers:     new Headers({
-                    'content-type': 'application/json'
-                })
-            };
-
-            fetch('/echo-request-headers', reqInit);
-            fetch('/echo-request-headers', reqInit);
-
-            var origin                  = reqInit.headers.get(INTERNAL_HEADERS.origin);
-            var fetchRequestCredentials = reqInit.headers.get(INTERNAL_HEADERS.credentials);
-
-            strictEqual(origin, 'https://example.com');
-            strictEqual(fetchRequestCredentials, 'same-origin');
-        });
-
         test('should use the native "then" function (GH-TC-2686)', function () {
             var storedPromiseThen = window.Promise.prototype.then;
 
@@ -799,7 +598,8 @@ if (window.fetch) {
         test('should process headers passed as an array', function () {
             var headersArr = [
                 ['content-type', 'text/xml'],
-                ['breaking-bad', '<3']
+                ['breaking-bad', '<3'],
+                ['authorization', '123']
             ];
 
             return fetch('/echo-request-headers', { method: 'post', headers: headersArr })
@@ -807,9 +607,9 @@ if (window.fetch) {
                     return response.json();
                 })
                 .then(function (headers) {
-                    ok(headers['content-type'], 'text/xml');
-                    ok(headers['breaking-bad'], '<3');
-                    ok(headers.hasOwnProperty(INTERNAL_HEADERS.credentials));
+                    strictEqual(headers['content-type'], 'text/xml');
+                    strictEqual(headers['breaking-bad'], '<3');
+                    strictEqual(headers[INTERNAL_HEADERS.authorization], '123');
                 });
         });
 

@@ -1,3 +1,5 @@
+import { Credentials } from '../utils/url';
+
 export interface ResourceType {
     isIframe?: boolean;
     isForm?: boolean;
@@ -6,13 +8,14 @@ export interface ResourceType {
     isHtmlImport?: boolean;
     isWebSocket?: boolean;
     isServiceWorker?: boolean;
+    isAjax?: boolean;
 }
 
 export interface ParsedUrl {
-    protocol: string;
-    host: string;
-    hostname: string;
-    port: string;
+    protocol?: string;
+    host?: string;
+    hostname?: string;
+    port?: string;
     partAfterHost?: string;
     auth?: string;
 }
@@ -23,6 +26,7 @@ export interface RequestDescriptor {
     charset?: string;
     reqOrigin?: string;
     windowId?: string;
+    credentials?: Credentials;
 }
 
 export interface ParsedProxyUrl {
@@ -34,6 +38,7 @@ export interface ParsedProxyUrl {
     charset?: string;
     reqOrigin?: string;
     windowId?: string;
+    credentials?: number,
     proxy: {
         hostname: string;
         port: string;
@@ -49,4 +54,5 @@ export interface ProxyUrlOptions {
     proxyHostname: string;
     proxyPort: string;
     windowId?: string;
+    credentials?: Credentials;
 }

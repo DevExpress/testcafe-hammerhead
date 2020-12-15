@@ -96,7 +96,6 @@ const stages = [
             await callOnResponseEventCallbackForFailedSameOriginCheck(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
         });
         logger.proxy('Proxy CORS check failed %s', ctx.requestId);
-        ctx.destroyFailedCorsRequest();
     },
 
     async function decideOnProcessingStrategy (ctx: RequestPipelineContext) {

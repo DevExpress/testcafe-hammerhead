@@ -1,20 +1,24 @@
 import Promise from 'pinkie';
 import SandboxBaseWithDelayedSettings from '../worker/sandbox-base-with-delayed-settings';
 import nativeMethods from './native-methods';
-import { getDestinationUrl, getProxyUrl } from '../utils/url';
+import { getAjaxProxyUrl, getDestinationUrl, getProxyUrl } from '../utils/url';
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
 import INTERNAL_HEADERS from '../../request-pipeline/internal-header-names';
 import { transformHeaderNameToInternal } from '../utils/headers';
-import { getOriginHeader } from '../utils/destination-location';
 import { overrideConstructor, overrideDescriptor, overrideFunction } from '../utils/overriding';
 import CookieSandbox from './cookie';
+import { Credentials } from '../../utils/url';
 
 const XHR_READY_STATES = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
+
+type XhrOpenArgs = [string, string, boolean, string?, string?];
 
 export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
     readonly XHR_COMPLETED_EVENT = 'hammerhead|event|xhr-completed';
     readonly XHR_ERROR_EVENT = 'hammerhead|event|xhr-error';
     readonly BEFORE_XHR_SEND_EVENT = 'hammerhead|event|before-xhr-send';
+
+    private static readonly REQUESTS_OPTIONS = new WeakMap<XMLHttpRequest, { withCredentials: boolean, args: XhrOpenArgs }>();
 
     constructor (private readonly _cookieSandbox: CookieSandbox, waitHammerheadSettings?: Promise<void>) {
         super(waitHammerheadSettings);
@@ -45,8 +49,8 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
     attach (window) {
         super.attach(window);
 
-        const xhrSandbox             = this;
-        const xmlHttpRequestProto    = window.XMLHttpRequest.prototype;
+        const xhrSandbox          = this;
+        const xmlHttpRequestProto = window.XMLHttpRequest.prototype;
 
         const emitXhrCompletedEvent = function (this: XMLHttpRequest) {
             const nativeRemoveEventListener = nativeMethods.xhrRemoveEventListener || nativeMethods.removeEventListener;
@@ -92,13 +96,10 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         });
 
         overrideFunction(xmlHttpRequestProto, 'abort', function (this: XMLHttpRequest, ...args: []) {
-            if (xhrSandbox.gettingSettingInProgress()) {
-                xhrSandbox.delayUntilGetSettings(() => this.abort.apply(this, args));
+            if (xhrSandbox.gettingSettingInProgress())
+                return void xhrSandbox.delayUntilGetSettings(() => this.abort.apply(this, args));
 
-                return;
-            }
-
-            nativeMethods.xhrAbort.apply(this, arguments);
+            nativeMethods.xhrAbort.apply(this, args);
             xhrSandbox.emit(xhrSandbox.XHR_ERROR_EVENT, {
                 err: new Error('XHR aborted'),
                 xhr: this
@@ -107,45 +108,43 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
 
         // NOTE: Redirect all requests to the Hammerhead proxy and ensure that requests don't
         // violate Same Origin Policy.
-        overrideFunction(xmlHttpRequestProto, 'open', function (this: XMLHttpRequest, ...args: [string, string, boolean, string?, string?]) {
-            const url = arguments[1];
+        overrideFunction(xmlHttpRequestProto, 'open', function (this: XMLHttpRequest, ...args: XhrOpenArgs) {
+            let url = args[1];
 
-            if (getProxyUrl(url) === url) {
-                nativeMethods.xhrOpen.apply(this, arguments);
+            if (getProxyUrl(url) === url)
+                return void nativeMethods.xhrOpen.apply(this, args);
 
-                return;
-            }
+            if (xhrSandbox.gettingSettingInProgress())
+                return void xhrSandbox.delayUntilGetSettings(() => this.open.apply(this, args));
 
-            if (xhrSandbox.gettingSettingInProgress()) {
-                xhrSandbox.delayUntilGetSettings(() => this.open.apply(this, args));
+            url = typeof url === 'string' ? url : String(url);
 
-                return;
-            }
+            args[1] = getAjaxProxyUrl(url, this.withCredentials ? Credentials.include : Credentials.sameOrigin);
 
-            const urlIsString = typeof url === 'string';
+            nativeMethods.xhrOpen.apply(this, args);
 
-            arguments[1] = getProxyUrl(urlIsString ? url : String(url));
+            args[1] = url;
 
-            nativeMethods.xhrOpen.apply(this, arguments);
+            XhrSandbox.REQUESTS_OPTIONS.set(this, { withCredentials: this.withCredentials, args });
         });
 
         overrideFunction(xmlHttpRequestProto, 'send', function (this: XMLHttpRequest, ...args: [any]) {
-            if (xhrSandbox.gettingSettingInProgress()) {
-                xhrSandbox.delayUntilGetSettings(() => this.send.apply(this, args));
+            if (xhrSandbox.gettingSettingInProgress())
+                return void xhrSandbox.delayUntilGetSettings(() => this.send.apply(this, args));
 
-                return;
+            const reqOpts = XhrSandbox.REQUESTS_OPTIONS.get(this);
+
+            if (reqOpts.withCredentials !== this.withCredentials) {
+                reqOpts.args[1] = getAjaxProxyUrl(reqOpts.args[1], this.withCredentials ? Credentials.include : Credentials.sameOrigin);
+
+                nativeMethods.xhrOpen.apply(this, reqOpts.args);
             }
+
+            XhrSandbox.REQUESTS_OPTIONS.delete(this);
 
             xhrSandbox.emit(xhrSandbox.BEFORE_XHR_SEND_EVENT, { xhr: this });
 
-            // NOTE: As all requests are passed to the proxy, we need to perform Same Origin Policy compliance checks on the
-            // server side. So, we pass the CORS support flag to inform the proxy that it can analyze the
-            // Access-Control_Allow_Origin flag and skip "preflight" requests.
-            // eslint-disable-next-line no-restricted-properties
-            nativeMethods.xhrSetRequestHeader.call(this, INTERNAL_HEADERS.origin, getOriginHeader());
-            nativeMethods.xhrSetRequestHeader.call(this, INTERNAL_HEADERS.credentials, this.withCredentials ? 'include' : 'same-origin');
-
-            nativeMethods.xhrSend.apply(this, arguments);
+            nativeMethods.xhrSend.apply(this, args);
 
             // NOTE: For xhr with the sync mode
             if (this.readyState === this.DONE)

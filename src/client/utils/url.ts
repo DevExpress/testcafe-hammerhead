@@ -5,6 +5,8 @@ import * as urlResolver from './url-resolver';
 import settings from '../settings';
 import { ResourceType } from '../../typings/url';
 import getGlobalContextInfo from './global-context-info';
+import { getLocation, sameOriginCheck } from './destination-location';
+import { Credentials } from '../../utils/url';
 
 const HASH_RE                          = /#[\S\s]*$/;
 const SUPPORTED_WEB_SOCKET_PROTOCOL_RE = /^wss?:/i;
@@ -58,10 +60,11 @@ export function getProxyUrl (url: string, opts?): string {
         ? proxyServerProtocol.replace('http', 'ws')
         : proxyServerProtocol;
 
-    const sessionId = opts && opts.sessionId || settings.get().sessionId;
-    const windowId  = opts && opts.windowId || settings.get().windowId;
-    let charset     = opts && opts.charset;
-    let reqOrigin   = opts && opts.reqOrigin;
+    const sessionId   = opts && opts.sessionId || settings.get().sessionId;
+    const windowId    = opts && opts.windowId || settings.get().windowId;
+    const credentials = opts && opts.credentials;
+    let charset       = opts && opts.charset;
+    let reqOrigin     = opts && opts.reqOrigin;
 
     const crossDomainPort = getCrossDomainProxyPort(proxyPort);
 
@@ -89,7 +92,8 @@ export function getProxyUrl (url: string, opts?): string {
             sessionId,
             resourceType,
             charset,
-            reqOrigin
+            reqOrigin,
+            credentials
         });
     }
 
@@ -122,7 +126,7 @@ export function getProxyUrl (url: string, opts?): string {
         parsedUrl.protocol = parsedUrl.protocol.replace('ws', 'http');
 
         resolvedUrl = sharedUrlUtils.formatUrl(parsedUrl);
-        reqOrigin   = reqOrigin || encodeURIComponent(destLocation.getOriginHeader());
+        reqOrigin   = reqOrigin || destLocation.getOriginHeader();
     }
 
     return sharedUrlUtils.getProxyUrl(resolvedUrl, {
@@ -133,7 +137,8 @@ export function getProxyUrl (url: string, opts?): string {
         resourceType,
         charset,
         reqOrigin,
-        windowId
+        windowId,
+        credentials
     });
 }
 
@@ -293,4 +298,16 @@ export function getScope (url: string): string | null {
         return null;
 
     return parsedUrl.partAfterHost.replace(SCOPE_RE, '/') || '/';
+}
+
+export function getAjaxProxyUrl (url: string, credentials: Credentials) {
+    const isCrossDomain = !sameOriginCheck(getLocation(), url);
+    const opts          = { resourceType: stringifyResourceType({ isAjax: true }), credentials } as any;
+
+    if (isCrossDomain) {
+        opts.proxyPort = settings.get().crossDomainProxyPort;
+        opts.reqOrigin = destLocation.getOriginHeader();
+    }
+
+    return getProxyUrl(url, opts);
 }

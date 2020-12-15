@@ -74,7 +74,7 @@ function transformRefreshHeader (src: string, ctx: RequestPipelineContext) {
     return src.replace(/(url=)(.*)$/i, (_match, prefix, url) => prefix + resolveAndGetProxyUrl(url, ctx));
 }
 
-export function processSetCookieHeader (src: string | string[], ctx: RequestPipelineContext) {
+function processSetCookieHeader (src: string | string[], ctx: RequestPipelineContext) {
     const parsedCookies = src && !shouldOmitCredentials(ctx) ? ctx.session.cookies.setByServer(ctx.dest.url, src) : [];
 
     return generateSyncCookie(ctx, parsedCookies);
@@ -84,15 +84,13 @@ export function processSetCookieHeader (src: string | string[], ctx: RequestPipe
 export const requestTransforms = {
     [BUILTIN_HEADERS.host]:                (_src, ctx) => ctx.dest.host,
     [BUILTIN_HEADERS.referer]:             (_src: string, ctx: RequestPipelineContext) => ctx.dest.referer || void 0,
-    [BUILTIN_HEADERS.origin]:              (src: string, ctx: RequestPipelineContext) => ctx.dest.reqOrigin || src,
+    [BUILTIN_HEADERS.origin]:              (_src: string, ctx: RequestPipelineContext) => ctx.dest.reqOrigin || ctx.dest.domain,
     [BUILTIN_HEADERS.contentLength]:       (_src: string, ctx: RequestPipelineContext) => ctx.reqBody.length,
     [BUILTIN_HEADERS.cookie]:              skip,
     [BUILTIN_HEADERS.ifModifiedSince]:     skipIfStateSnapshotIsApplied,
     [BUILTIN_HEADERS.ifNoneMatch]:         skipIfStateSnapshotIsApplied,
     [BUILTIN_HEADERS.authorization]:       transformAuthorizationHeader,
     [BUILTIN_HEADERS.proxyAuthorization]:  transformAuthorizationHeader,
-    [INTERNAL_HEADERS.origin]:             skip,
-    [INTERNAL_HEADERS.credentials]:        skip,
     [INTERNAL_HEADERS.authorization]:      skip,
     [INTERNAL_HEADERS.proxyAuthorization]: skip
 };
@@ -100,14 +98,6 @@ export const requestTransforms = {
 export const forcedRequestTransforms = {
     [BUILTIN_HEADERS.cookie]: (_src: string, ctx: RequestPipelineContext) =>
         shouldOmitCredentials(ctx) ? void 0 : ctx.session.cookies.getHeader(ctx.dest.url) || void 0,
-
-    // NOTE: All browsers except Chrome don't send the 'Origin' header in case of the same domain XHR requests.
-    // So, if the request is actually cross-domain, we need to force the 'Origin' header to support CORS. (B234325)
-    [BUILTIN_HEADERS.origin]: (src: string, ctx: RequestPipelineContext) => {
-        const force = ctx.isAjax && !src && ctx.dest.domain !== ctx.dest.reqOrigin;
-
-        return force ? ctx.dest.reqOrigin : src;
-    },
 
     [BUILTIN_HEADERS.authorization]: (_src: string, ctx: RequestPipelineContext) =>
         ctx.req.headers[INTERNAL_HEADERS.authorization],
@@ -129,8 +119,8 @@ export const responseTransforms = {
     [BUILTIN_HEADERS.wwwAuthenticate]:   skip,
     [BUILTIN_HEADERS.proxyAuthenticate]: skip,
 
-    // NOTE: We perform CORS checks on our side, so we skip the related headers.
-    [BUILTIN_HEADERS.accessControlAllowOrigin]: skip,
+    [BUILTIN_HEADERS.accessControlAllowOrigin]: (_src: string, ctx: RequestPipelineContext) =>
+        ctx.isSameOriginPolicyFailed ? void 0 : ctx.getProxyOrigin(!!ctx.dest.reqOrigin),
 
     // NOTE: Change the transform type if we have an iframe with an image as src,
     // because it was transformed to HTML with the image tag.

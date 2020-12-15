@@ -2,6 +2,7 @@ var XhrSandbox       = hammerhead.get('./sandbox/xhr');
 var INTERNAL_HEADERS = hammerhead.get('../request-pipeline/internal-header-names');
 var destLocation     = hammerhead.get('./utils/destination-location');
 var urlUtils         = hammerhead.get('./utils/url');
+var sharedUrlUtils   = hammerhead.get('../utils/url');
 
 var nativeMethods = hammerhead.nativeMethods;
 var xhrSandbox    = hammerhead.sandbox.xhr;
@@ -16,21 +17,27 @@ function getPrototypeFromChainContainsProp (obj, prop) {
 }
 
 test('redirect requests to proxy', function () {
-    jQuery.ajaxSetup({ async: false });
+    var xhr = new XMLHttpRequest();
 
-    $.get('/xhr-test/100', function (url) {
-        strictEqual(url, '/sessionId/https://example.com/xhr-test/100');
-    });
+    xhr.open('get', '/xhr-test/100', false);
+    xhr.send();
 
-    $.get('http://' + window.location.host + '/xhr-test/200', function (url) {
-        strictEqual(url, '/sessionId/https://example.com/xhr-test/200');
-    });
+    strictEqual(xhr.responseText, '/sessionId!a!1/https://example.com/xhr-test/100');
 
-    $.get('https://example.com/xhr-test/300', function (url) {
-        strictEqual(url, '/sessionId/https://example.com/xhr-test/300');
-    });
+    xhr = new XMLHttpRequest();
 
-    jQuery.ajaxSetup({ async: true });
+    xhr.open('get', 'https://example.com/xhr-test/200', false);
+    xhr.send();
+
+    strictEqual(xhr.responseText, '/sessionId!a!1/https://example.com/xhr-test/200');
+
+    xhr = new XMLHttpRequest();
+
+    xhr.open('get', '/xhr-test/150', false);
+    xhr.withCredentials = true;
+    xhr.send();
+
+    strictEqual(xhr.responseText, '/sessionId!a!0/https://example.com/xhr-test/150');
 });
 
 test('createNativeXHR', function () {
@@ -77,35 +84,33 @@ test('toString, instanceof, constructor and static properties', function () {
 });
 
 test('different url types for xhr.open method (GH-1613)', function () {
-    var storedNativeXhrOpen = nativeMethods.xhrOpen;
-    var xhr                 = new XMLHttpRequest();
+    var storedNativeXhrOpen  = nativeMethods.xhrOpen;
+    var xhr                  = new XMLHttpRequest();
+    var getNativeOpenWrapper = function (expectedUrl) {
+        return function (_method, url) {
+            strictEqual(url, urlUtils.getProxyUrl(expectedUrl, {
+                resourceType: urlUtils.stringifyResourceType({ isAjax: true }),
+                credentials:  this.withCredentials ? sharedUrlUtils.Credentials.include : sharedUrlUtils.Credentials.sameOrigin
+            }));
+        };
+    };
 
     // NOTE: IE11 doesn't support 'URL()'
     if (!browserUtils.isIE11) {
-        nativeMethods.xhrOpen = function () {
-            strictEqual(arguments[1], urlUtils.getProxyUrl('https://example.com/some-path'));
-        };
+        nativeMethods.xhrOpen = getNativeOpenWrapper('https://example.com/some-path');
         xhr.open('GET', new URL('https://example.com/some-path'));
     }
 
-    nativeMethods.xhrOpen = function () {
-        strictEqual(arguments[1], urlUtils.getProxyUrl('https://example.com/null'));
-    };
+    nativeMethods.xhrOpen = getNativeOpenWrapper('https://example.com/null');
     xhr.open('GET', null);
 
-    nativeMethods.xhrOpen = function () {
-        strictEqual(arguments[1], urlUtils.getProxyUrl('https://example.com/undefined'));
-    };
+    nativeMethods.xhrOpen = getNativeOpenWrapper('https://example.com/undefined');
     xhr.open('GET', void 0);
 
-    nativeMethods.xhrOpen = function () {
-        strictEqual(arguments[1], urlUtils.getProxyUrl('https://example.com/[object%20Object]'));
-    };
+    nativeMethods.xhrOpen = getNativeOpenWrapper('https://example.com/[object%20Object]');
     xhr.open('GET', { url: '/some-path' });
 
-    nativeMethods.xhrOpen = function () {
-        strictEqual(arguments[1], urlUtils.getProxyUrl('https://example.com/some-path'));
-    };
+    nativeMethods.xhrOpen = getNativeOpenWrapper('https://example.com/some-path');
     xhr.open('GET', {
         toString: function () {
             return '/some-path';
@@ -204,7 +209,7 @@ test('the failed cors request should emit an error', function () {
     return new Promise(function (resolve, reject) {
         var xhr = new XMLHttpRequest();
 
-        xhr.open('GET', '/xhr-cors-failed/', true);
+        xhr.open('GET', window.QUnitGlobals.crossDomainHostname + '/echo-request-headers/', true);
         xhr.addEventListener('load', reject);
         xhr.addEventListener('error', resolve);
         xhr.send();
@@ -238,52 +243,68 @@ asyncTest('xhr.responseURL', function () {
 });
 
 test('send the origin header correctly (GH-284)', function () {
-    // NOTE: NetworkError occurs in IE11 after some Windows 10 update (iframe without src case) (GH-1837)
-    window.skipIframeCheck = false;
+    function xhrTestFunc (url, expectedParsedDescriptor, description) {
+        var storedNativeXhrOpen = window['%hammerhead%'].nativeMethods.xhrOpen;
+        var xhr                 = new XMLHttpRequest();
 
-    function xhrTestFunc () {
-        var xhr = new XMLHttpRequest();
+        window['%hammerhead%'].nativeMethods.xhrOpen = function (_method, proxyUrl) {
+            var parsedProxyUrl = window['%hammerhead%'].utils.url.parseProxyUrl(proxyUrl);
 
-        xhr.open('POST', '/xhr-origin-header-test/', false);
-        try {
-            xhr.send();
-        }
-        catch (e) {
-            if (e.name === 'NetworkError')
-                window.parent.skipIframeCheck = true;
-        }
+            strictEqual(parsedProxyUrl.resourceType, expectedParsedDescriptor.resourceType, description + ' resourceType');
+            strictEqual(parsedProxyUrl.reqOrigin, expectedParsedDescriptor.reqOrigin, description + ' reqOrigin');
+            strictEqual(parsedProxyUrl.credentials, expectedParsedDescriptor.credentials, description + ' credentials');
+        };
 
-        window.response = xhr.responseText;
+        xhr.open('POST', url, false);
+
+        window['%hammerhead%'].nativeMethods.xhrOpen = storedNativeXhrOpen;
     }
 
-    function checkIframe (iframe, assertionMessage) {
-        var script = document.createElement('script');
-
-        nativeMethods.scriptTextSetter.call(script, '(' + xhrTestFunc.toString() + ')()');
-
-        iframe.contentDocument.body.appendChild(script);
-
-        if (!window.skipIframeCheck)
-            strictEqual(iframe.contentWindow.response, 'https://example.com', assertionMessage);
-
-        window.skipIframeCheck = false;
-    }
-
-    xhrTestFunc();
-    strictEqual(window.response, 'https://example.com', 'top window');
+    xhrTestFunc('/path', {
+        resourceType: 'a',
+        reqOrigin:    void 0,
+        credentials:  sharedUrlUtils.Credentials.sameOrigin
+    }, 'same-domain src');
 
     destLocation.forceLocation('http://localhost/sessionId/file:///path/index.html');
 
-    xhrTestFunc();
-    strictEqual(window.response, 'file:///path/index.html', 'location with file protocol');
+    xhrTestFunc('/path', {
+        resourceType: 'a',
+        reqOrigin:    'null',
+        credentials:  sharedUrlUtils.Credentials.sameOrigin
+    }, 'file: protocol src');
+
+    destLocation.forceLocation('http://localhost/sessionId/http://example.com');
+
+    xhrTestFunc('https://sub.example.com/path', {
+        resourceType: 'a',
+        reqOrigin:    'http://example.com',
+        credentials:  sharedUrlUtils.Credentials.sameOrigin
+    }, 'cross-domain origin with http: protocol');
 
     destLocation.forceLocation('http://localhost/sessionId/https://example.com');
+
+    xhrTestFunc('https://sub.example.com/path', {
+        resourceType: 'a',
+        reqOrigin:    'https://example.com',
+        credentials:  sharedUrlUtils.Credentials.sameOrigin
+    }, 'cross-domain origin with https: protocol');
 
     return Promise.all([
         createTestIframe(),
         createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/simple-iframe.html') })
     ])
         .then(function (iframes) {
+            function checkIframe (iframe, description) {
+                iframe.contentWindow.eval('window.xhrTestFunc = ' + xhrTestFunc.toString());
+                iframe.contentWindow.strictEqual = strictEqual;
+                iframe.contentWindow.xhrTestFunc('https://example.com/path', {
+                    resourceType: 'a',
+                    reqOrigin:    void 0,
+                    credentials:  sharedUrlUtils.Credentials.sameOrigin
+                }, description);
+            }
+
             checkIframe(iframes[0], 'iframe without src');
             checkIframe(iframes[1], 'iframe with src');
         });

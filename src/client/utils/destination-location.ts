@@ -131,8 +131,5 @@ export function getParsed () {
 }
 
 export function getOriginHeader (): string {
-    const parsedDest = getParsed();
-
-    // eslint-disable-next-line no-restricted-properties
-    return parsedDest.protocol === 'file:' ? get() : sharedUrlUtils.getDomain(parsedDest);
+    return sharedUrlUtils.getDomain(getParsed());
 }

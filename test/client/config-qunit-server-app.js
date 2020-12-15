@@ -120,10 +120,6 @@ module.exports = function (app) {
         }, delay);
     });
 
-    app.post('/xhr-origin-header-test/', function (req, res) {
-        res.send(req.headers['x-hammerhead-origin']);
-    });
-
     app.get('/xhr-with-sync-cookie/', function (req, res) {
         res.setHeader('set-cookie', 's|sessionId|hello|example.com|%2F||1fckm5lnl=world;path=/');
         res.setHeader('cache-control', 'no-cache, no-store, must-revalidate');
@@ -131,9 +127,9 @@ module.exports = function (app) {
         res.send();
     });
 
-    app.get('/xhr-cors-failed/', function (req, res) {
-        req.destroy('123');
-    });
+    app.get('/cors/', (req, res) => res
+        .set('access-control-allow-origin', req.headers.origin)
+        .send());
 
     app.get('/redirect/', function (req, res) {
         res.statusCode = 302;
