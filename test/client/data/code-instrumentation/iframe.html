@@ -11,6 +11,7 @@
 
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
     hammerhead.start({
+        sessionId:                'sessionId',
         crossDomainProxyPort:     2000,
         iframeTaskScriptTemplate: 'window["%hammerhead%"].get("./utils/destination-location").forceLocation("http://localhost/sessionId/https://example.com");' +
                                   'window["%hammerhead%"].start({ iframeTaskScriptTemplate: {{{iframeTaskScriptTemplate}}}});'

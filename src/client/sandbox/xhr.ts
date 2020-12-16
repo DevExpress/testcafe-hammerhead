@@ -140,8 +140,6 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
                 nativeMethods.xhrOpen.apply(this, reqOpts.args);
             }
 
-            XhrSandbox.REQUESTS_OPTIONS.delete(this);
-
             xhrSandbox.emit(xhrSandbox.BEFORE_XHR_SEND_EVENT, { xhr: this });
 
             nativeMethods.xhrSend.apply(this, args);

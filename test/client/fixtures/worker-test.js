@@ -125,12 +125,11 @@ if (!browserUtils.isIE) {
             worker.onmessage = function (e) {
                 worker.onmessage = void 0;
 
-                resolve(JSON.parse(e.data));
+                resolve(e.data);
             };
         })
-            .then(function (headers) {
-                strictEqual(headers['x-hammerhead-credentials'], 'same-origin');
-                strictEqual(headers['x-hammerhead-origin'], 'https://example.com');
+            .then(function (proxyUrl) {
+                strictEqual(proxyUrl, '/sessionId!a!1/https://example.com/xhr-test/100');
 
                 worker.terminate();
             });
@@ -148,9 +147,8 @@ if (nativeMethods.fetch) {
                 resolve(e.data);
             };
         })
-            .then(function (headers) {
-                strictEqual(headers['x-hammerhead-credentials'], 'omit');
-                strictEqual(headers['x-hammerhead-origin'], 'https://example.com');
+            .then(function (proxyUrl) {
+                strictEqual(proxyUrl, '/sessionId!a!2/https://example.com/xhr-test/50');
 
                 worker.terminate();
             });
@@ -224,7 +222,7 @@ if (!browserUtils.isIE && !browserUtils.isSafari) {
     test('send xhr from worker with object url', function () {
         var script  = [
             'var xhr = new XMLHttpRequest();',
-            'xhr.open("post", "http://example.com/echo-request-headers/");',
+            'xhr.open("get", "https://example.com/xhr-test/20");',
             'xhr.addEventListener("load", function () {',
             '    postMessage(xhr.responseText);',
             '});',
@@ -237,12 +235,11 @@ if (!browserUtils.isIE && !browserUtils.isSafari) {
             worker.onmessage = function (e) {
                 worker.onmessage = void 0;
 
-                resolve(JSON.parse(e.data));
+                resolve(e.data);
             };
         })
-            .then(function (headers) {
-                strictEqual(headers['x-hammerhead-credentials'], 'same-origin');
-                strictEqual(headers['x-hammerhead-origin'], 'https://example.com');
+            .then(function (proxyUrl) {
+                strictEqual(proxyUrl, '/sessionId!a!1/https://example.com/xhr-test/20');
 
                 worker.terminate();
             });
@@ -250,9 +247,9 @@ if (!browserUtils.isIE && !browserUtils.isSafari) {
 
     test('send fetch from worker with object url', function () {
         var script  = [
-            'fetch("http://example.com/echo-request-headers/", { method: "post", credentials: "omit" })',
-            '    .then(res => res.json())' +
-            '    .then(json => postMessage(json));'
+            'fetch("https://example.com/xhr-test/30")',
+            '    .then(res => res.text())' +
+            '    .then(text => postMessage(text));'
         ].join('\n');
         var fileURL = URL.createObjectURL(new File([script], 'script.js'));
         var worker  = new Worker(fileURL);
@@ -264,9 +261,8 @@ if (!browserUtils.isIE && !browserUtils.isSafari) {
                 resolve(e.data);
             };
         })
-            .then(function (headers) {
-                strictEqual(headers['x-hammerhead-credentials'], 'omit');
-                strictEqual(headers['x-hammerhead-origin'], 'https://example.com');
+            .then(function (proxyUrl) {
+                strictEqual(proxyUrl, '/sessionId!a!1/https://example.com/xhr-test/30');
 
                 worker.terminate();
             });

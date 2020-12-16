@@ -112,13 +112,9 @@ module.exports = function (app) {
             });
     });
 
-    app.get('/xhr-test/:delay', function (req, res) {
-        var delay = req.params.delay || 0;
-
-        setTimeout(function () {
-            res.send(req.originalUrl || req.url);
-        }, delay);
-    });
+    app.get('/xhr-test/:delay', (req, res) => setTimeout(() => {
+        res.send(req.originalUrl || req.url);
+    }, req.params.delay || 0));
 
     app.get('/xhr-with-sync-cookie/', function (req, res) {
         res.setHeader('set-cookie', 's|sessionId|hello|example.com|%2F||1fckm5lnl=world;path=/');

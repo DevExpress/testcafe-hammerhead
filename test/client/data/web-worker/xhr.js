@@ -2,7 +2,7 @@
 
 var xhr = new XMLHttpRequest();
 
-xhr.open('post', '/echo-request-headers/');
+xhr.open('get', '/xhr-test/100');
 xhr.addEventListener('load', function () {
     postMessage(xhr.responseText);
 });
