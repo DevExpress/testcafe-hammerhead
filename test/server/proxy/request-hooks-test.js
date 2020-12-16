@@ -285,7 +285,8 @@ describe('Request Hooks', () => {
                 onResponse: e => {
                     return new Promise(resolve => {
                         setTimeout(() => {
-                            expect(e.statusCode).eql(0);
+                            expect(e.statusCode).eql(200);
+                            expect(e.isSameOriginPolicyFailed).to.be.true;
 
                             responseEventIsRaised = true;
 

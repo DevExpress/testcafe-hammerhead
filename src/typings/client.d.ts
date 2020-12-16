@@ -19,10 +19,6 @@ export interface HammerheadInitSettings {
     windowId: string;
 }
 
-declare const TextRange: {
-    parentElement: () => void
-}
-
 export interface ElementSandboxBeforeFormSubmitEvent {
     form: HTMLFormElement;
 }
