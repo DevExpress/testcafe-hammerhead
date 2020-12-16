@@ -6,7 +6,7 @@ const express               = require('express');
 const read                  = require('read-file-relative').readSync;
 const selfSignedCertificate = require('openssl-self-signed-certificate');
 const INTERNAL_HEADERS      = require('../../../lib/request-pipeline/internal-header-names');
-const BUILTIN_HEADERS       = require('../../lib/request-pipeline/builtin-header-names');
+const BUILTIN_HEADERS       = require('../../../lib/request-pipeline/builtin-header-names');
 const StateSnaphot          = require('../../../lib/session/state-snapshot');
 const RequestFilterRule     = require('../../../lib/request-pipeline/request-hooks/request-filter-rule');
 const { gzip }              = require('../../../lib/utils/promisified-functions');
@@ -73,8 +73,8 @@ describe('Proxy', () => {
     let proxy             = null;
     let session           = null;
 
-    function getProxyUrl (url, resourceType, reqOrigin, isCrossDomain, currentSession = session) {
-        return getBasicProxyUrl(url, resourceType, reqOrigin, isCrossDomain, currentSession);
+    function getProxyUrl (url, resourceType, reqOrigin, credentials, isCrossDomain, currentSession = session) {
+        return getBasicProxyUrl(url, resourceType, reqOrigin, credentials, isCrossDomain, currentSession);
     }
 
     function setupSameDomainServer () {
@@ -348,7 +348,7 @@ describe('Proxy', () => {
     describe('Session', () => {
         it('Should ensure a trailing slash on openSession() (GH-1426)', () => {
             function getExpectedProxyUrl (testCase) {
-                const proxiedUrl = getProxyUrl(testCase.url, void 0, void 0, false, session);
+                const proxiedUrl = getProxyUrl(testCase.url);
 
                 return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
             }
@@ -926,7 +926,7 @@ describe('Proxy', () => {
 
         it('Should restrict requests between file urls', () => {
             const options = {
-                url: getProxyUrl(getFileProtocolUrl('./data/stylesheet/src.css'), { isAjax: true },
+                url: getProxyUrl(getFileProtocolUrl('../data/stylesheet/src.css'), { isAjax: true },
                     'null', Credentials.sameOrigin, true),
 
                 resolveWithFullResponse: true

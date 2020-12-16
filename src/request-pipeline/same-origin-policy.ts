@@ -27,7 +27,7 @@ export function check (ctx: RequestPipelineContext): boolean {
     return wildcardAllowed || allowedOrigins.includes(reqOrigin);
 }
 
-export function shouldOmitCredentials (ctx: RequestPipelineContext): boolean {debugger;
+export function shouldOmitCredentials (ctx: RequestPipelineContext): boolean {
     switch (ctx.dest.credentials) {
         case Credentials.omit:
             return true;

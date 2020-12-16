@@ -13,7 +13,7 @@ const DestinationRequest     = require('../../../lib/request-pipeline/destinatio
 const RequestPipelineContext = require('../../../lib/request-pipeline/context');
 const scriptHeader           = require('../../../lib/processing/script/header');
 const resourceProcessor      = require('../../../lib/processing/resources');
-const BUILTIN_HEADERS        = require('../../lib/request-pipeline/builtin-header-names');
+const BUILTIN_HEADERS        = require('../../../lib/request-pipeline/builtin-header-names');
 const { gzip }               = require('../../../lib/utils/promisified-functions');
 const urlUtils               = require('../../../lib/utils/url');
 
@@ -42,8 +42,8 @@ describe('Regression', () => {
     let destServer        = null;
     let crossDomainServer = null;
 
-    function getProxyUrl (url, resourceType, reqOrigin, isCrossDomain, currentSession = session) {
-        return getBasicProxyUrl(url, resourceType, reqOrigin, isCrossDomain, currentSession);
+    function getProxyUrl (url, resourceType, reqOrigin, credentials, isCrossDomain, currentSession = session) {
+        return getBasicProxyUrl(url, resourceType, reqOrigin, credentials, isCrossDomain, currentSession);
     }
 
     function setupSameDomainServer () {
@@ -199,6 +199,12 @@ describe('Regression', () => {
                 .set('location', 'http://localhost/')
                 .end();
         });
+
+        app.get('/echo-raw-headers-names', (req, res) => {
+            const rawHeadersNames = req.rawHeaders.filter((str, index) => !(index & 1));
+
+            res.end(JSON.stringify(rawHeadersNames));
+        });
     }
 
     function setupCrossDomainServer () {
@@ -223,15 +229,6 @@ describe('Regression', () => {
             res.setHeader('access-control-allow-credentials', 'true');
 
             res.json(req.headers);
-        });
-
-        crossDomainApp.get('/echo-raw-headers-names', (req, res) => {
-            const rawHeadersNames = req.rawHeaders.filter((str, index) => !(index & 1));
-
-            res.setHeader('access-control-allow-origin', 'http://127.0.0.1:2000');
-            res.setHeader('access-control-allow-credentials', 'true');
-
-            res.end(JSON.stringify(rawHeadersNames));
         });
     }
 

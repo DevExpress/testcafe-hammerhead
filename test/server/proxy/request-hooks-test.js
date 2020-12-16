@@ -28,8 +28,8 @@ describe('Request Hooks', () => {
     let proxy      = null;
     let destServer = null;
 
-    function getProxyUrl (url, resourceType, reqOrigin, isCrossDomain, currentSession = session) {
-        return getBasicProxyUrl(url, resourceType, reqOrigin, isCrossDomain, currentSession);
+    function getProxyUrl (url, resourceType, reqOrigin, credentials, isCrossDomain, currentSession = session) {
+        return getBasicProxyUrl(url, resourceType, reqOrigin, credentials, isCrossDomain, currentSession);
     }
 
     before(() => {
