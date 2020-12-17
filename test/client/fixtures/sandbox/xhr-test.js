@@ -458,19 +458,29 @@ test('should correctly send headers when the "withCredentials" property is chang
     })
         .then(function () {
             strictEqual(JSON.parse(xhr.responseText)['content-type'], 'application/json');
-            strictEqual(nativeMethods.xhrResponseURLGetter.call(xhr),
-                'http://' + location.host + '/sessionId!a!0/https://example.com/echo-request-headers/');
+
+            if (nativeMethods.xhrResponseURLGetter) {
+                strictEqual(nativeMethods.xhrResponseURLGetter.call(xhr),
+                    'http://' + location.host + '/sessionId!a!0/https://example.com/echo-request-headers/');
+            }
+
+            if (browserUtils.isIE11)
+                return;
 
             xhr.open('get', '/echo-request-headers/');
             xhr.setRequestHeader('content-type', 'text/plain');
             xhr.withCredentials = false;
 
+            // eslint-disable-next-line consistent-return
             return new Promise(function (resolve) {
                 xhr.addEventListener('load', resolve);
                 xhr.send();
             });
         })
         .then(function () {
+            if (browserUtils.isIE11)
+                return;
+
             strictEqual(JSON.parse(xhr.responseText)['content-type'], 'text/plain');
             strictEqual(nativeMethods.xhrResponseURLGetter.call(xhr),
                 'http://' + location.host + '/sessionId!a!1/https://example.com/echo-request-headers/');
