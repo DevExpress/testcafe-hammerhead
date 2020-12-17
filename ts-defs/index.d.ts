@@ -153,7 +153,4 @@ declare module 'testcafe-hammerhead' {
 
     /** The URL of the service error page **/
     export const SPECIAL_ERROR_PAGE: string;
-
-    /** The internal status code indicating to failed same origin check **/
-    export const SAME_ORIGIN_CHECK_FAILED_STATUS_CODE: number;
 }

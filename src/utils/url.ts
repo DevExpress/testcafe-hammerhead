@@ -183,7 +183,7 @@ export function getDomain (parsed: { protocol?: string, host?: string, hostname?
         protocol: parsed.protocol,
         host:     parsed.host,
         hostname: parsed.hostname,
-        port:     parsed.port.toString()
+        port:     String(parsed.port || '')
     });
 }
 

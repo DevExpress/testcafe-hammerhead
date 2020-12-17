@@ -444,3 +444,35 @@ test('should emulate native browser behavior for xhr requests that end with an e
         checkUrl('/respond-500')
     ]);
 });
+
+test('should correctly send headers when the "withCredentials" property is changed', function () {
+    var xhr = new XMLHttpRequest();
+
+    xhr.open('get', '/echo-request-headers/');
+    xhr.setRequestHeader('content-type', 'application/json');
+    xhr.withCredentials = true;
+
+    return new Promise(function (resolve) {
+        xhr.addEventListener('load', resolve);
+        xhr.send();
+    })
+        .then(function () {
+            strictEqual(JSON.parse(xhr.responseText)['content-type'], 'application/json');
+            strictEqual(nativeMethods.xhrResponseURLGetter.call(xhr),
+                'http://' + location.host + '/sessionId!a!0/https://example.com/echo-request-headers/');
+
+            xhr.open('get', '/echo-request-headers/');
+            xhr.setRequestHeader('content-type', 'text/plain');
+            xhr.withCredentials = false;
+
+            return new Promise(function (resolve) {
+                xhr.addEventListener('load', resolve);
+                xhr.send();
+            });
+        })
+        .then(function () {
+            strictEqual(JSON.parse(xhr.responseText)['content-type'], 'text/plain');
+            strictEqual(nativeMethods.xhrResponseURLGetter.call(xhr),
+                'http://' + location.host + '/sessionId!a!1/https://example.com/echo-request-headers/');
+        });
+});

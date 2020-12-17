@@ -13,12 +13,18 @@ const XHR_READY_STATES = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DO
 
 type XhrOpenArgs = [string, string, boolean, string?, string?];
 
+interface RequestOptions {
+    withCredentials: boolean;
+    openArgs: XhrOpenArgs;
+    headers: ([string, string])[];
+}
+
 export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
     readonly XHR_COMPLETED_EVENT = 'hammerhead|event|xhr-completed';
     readonly XHR_ERROR_EVENT = 'hammerhead|event|xhr-error';
     readonly BEFORE_XHR_SEND_EVENT = 'hammerhead|event|before-xhr-send';
 
-    private static readonly REQUESTS_OPTIONS = new WeakMap<XMLHttpRequest, { withCredentials: boolean, args: XhrOpenArgs }>();
+    private static readonly REQUESTS_OPTIONS = new WeakMap<XMLHttpRequest, RequestOptions>();
 
     constructor (private readonly _cookieSandbox: CookieSandbox, waitHammerheadSettings?: Promise<void>) {
         super(waitHammerheadSettings);
@@ -44,6 +50,21 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
     static openNativeXhr (xhr, url, isAsync) {
         xhr.open('POST', url, isAsync);
         xhr.setRequestHeader(BUILTIN_HEADERS.cacheControl, 'no-cache, no-store, must-revalidate');
+    }
+
+    private static _reopenXhr(xhr: XMLHttpRequest, reqOpts: RequestOptions) {
+        const url             = reqOpts.openArgs[1];
+        const withCredentials = xhr.withCredentials;
+
+        reqOpts.withCredentials = withCredentials;
+        reqOpts.openArgs[1] = getAjaxProxyUrl(url, withCredentials ? Credentials.include : Credentials.sameOrigin);
+
+        nativeMethods.xhrOpen.apply(xhr, reqOpts.openArgs);
+
+        reqOpts.openArgs[1] = url;
+
+        for (const header of reqOpts.headers)
+            nativeMethods.xhrSetRequestHeader.apply(xhr, header);
     }
 
     attach (window) {
@@ -125,7 +146,11 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
 
             args[1] = url;
 
-            XhrSandbox.REQUESTS_OPTIONS.set(this, { withCredentials: this.withCredentials, args });
+            XhrSandbox.REQUESTS_OPTIONS.set(this, {
+                withCredentials: this.withCredentials,
+                openArgs:        args,
+                headers:         []
+            });
         });
 
         overrideFunction(xmlHttpRequestProto, 'send', function (this: XMLHttpRequest, ...args: [any]) {
@@ -134,11 +159,8 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
 
             const reqOpts = XhrSandbox.REQUESTS_OPTIONS.get(this);
 
-            if (reqOpts.withCredentials !== this.withCredentials) {
-                reqOpts.args[1] = getAjaxProxyUrl(reqOpts.args[1], this.withCredentials ? Credentials.include : Credentials.sameOrigin);
-
-                nativeMethods.xhrOpen.apply(this, reqOpts.args);
-            }
+            if (reqOpts.withCredentials !== this.withCredentials)
+                XhrSandbox._reopenXhr(this, reqOpts);
 
             xhrSandbox.emit(xhrSandbox.BEFORE_XHR_SEND_EVENT, { xhr: this });
 
@@ -151,10 +173,15 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             syncCookieWithClientIfNecessary.call(this);
         });
 
-        overrideFunction(xmlHttpRequestProto, 'setRequestHeader', function (this: XMLHttpRequest, ...args) {
+        overrideFunction(xmlHttpRequestProto, 'setRequestHeader', function (this: XMLHttpRequest, ...args: [string, string]) {
             args[0] = transformHeaderNameToInternal(args[0]);
 
-            return nativeMethods.xhrSetRequestHeader.apply(this, args);
+            nativeMethods.xhrSetRequestHeader.apply(this, args);
+
+            const reqOpts = XhrSandbox.REQUESTS_OPTIONS.get(this);
+
+            if (reqOpts)
+                reqOpts.headers.push([String(args[0]), String(args[1])])
         });
 
         if (nativeMethods.xhrResponseURLGetter) {

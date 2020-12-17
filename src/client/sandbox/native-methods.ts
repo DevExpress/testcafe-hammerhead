@@ -110,7 +110,7 @@ class NativeMethods {
     xhrRemoveEventListener: any;
     xhrGetResponseHeader: any;
     xhrGetAllResponseHeaders: any;
-    xhrSetRequestHeader: any;
+    xhrSetRequestHeader: XMLHttpRequest['setRequestHeader'];
     xhrOverrideMimeType: any;
     xhrDispatchEvent: any;
     registerServiceWorker: any;
