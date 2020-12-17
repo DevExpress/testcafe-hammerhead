@@ -30,8 +30,6 @@ describe('WebSocket', () => {
 
         destServer = sameDomainDestinationServer.server;
 
-        destServer = sameDomainDestinationServer.server;
-
         httpsServer = https.createServer({
             key:  selfSignedCertificate.key,
             cert: selfSignedCertificate.cert
@@ -140,13 +138,8 @@ describe('WebSocket', () => {
 
         const ws = new WebSocket(url);
 
-        ws.on('error', err => {
-            expect(err.message).eql('socket hang up');
-        });
-
-        ws.on('close', () => {
-            done();
-        });
+        ws.on('error', err => expect(err.message).eql('socket hang up'));
+        ws.on('close', () => done());
     });
 
     it('Should close webSocket from server side', done => {
@@ -208,8 +201,6 @@ describe('WebSocket', () => {
             done();
         };
 
-        ws.on('error', err => {
-            expect(err.message).eql('socket hang up');
-        });
+        ws.on('error', err => expect(err.message).eql('socket hang up'));
     });
 });
