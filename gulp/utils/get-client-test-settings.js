@@ -10,6 +10,6 @@ module.exports = function getClientTestSettings () {
             { src: '/before-test.js', path: './test/client/before-test.js' }
         ],
 
-        configApp: require('./test/client/config-qunit-server-app')
+        configApp: require('../../test/client/config-qunit-server-app')
     };
 };
