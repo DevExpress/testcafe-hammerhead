@@ -593,11 +593,6 @@ describe('Proxy', () => {
             expect(sessionWithDefaultParameters.options.requestTimeout.page).eql(25000);
             expect(sessionWithDefaultParameters.options.requestTimeout.ajax).eql(120000);
 
-            sessionWithDefaultParameters.setRequestTimeout({ page: 1, ajax: 2 });
-
-            expect(sessionWithDefaultParameters.options.requestTimeout.page).eql(1);
-            expect(sessionWithDefaultParameters.options.requestTimeout.ajax).eql(2);
-
             const sessionWithSpecifiedPageTimeout = new Session('/upload-root-folder', {
                 requestTimeout: { page: 100 }
             });
@@ -611,6 +606,16 @@ describe('Proxy', () => {
 
             expect(sessionWithSpecifiedBothTimeouts.options.requestTimeout.page).eql(100);
             expect(sessionWithSpecifiedBothTimeouts.options.requestTimeout.ajax).eql(200);
+
+            const sessionWithUndefinedTimeouts = new Session('/upload-root-folder', {
+                requestTimeout: {
+                    page: void 0,
+                    ajax: void 0
+                }
+            });
+
+            expect(sessionWithUndefinedTimeouts.options.requestTimeout.page).eql(25000);
+            expect(sessionWithUndefinedTimeouts.options.requestTimeout.ajax).eql(120000);
         });
     });
 

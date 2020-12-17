@@ -100,11 +100,13 @@ export default abstract class Session extends EventEmitter {
         this.options       = this._getOptions(options);
     }
 
-    private _getOptions (options: Partial<SessionOptions>): SessionOptions {
-        const requestTimeout = Object.assign({}, DEFAULT_REQUEST_TIMEOUT, (options || {}).requestTimeout);
+    private _getOptions (options: Partial<SessionOptions> = {}): SessionOptions {
+        const requestTimeout = {
+            page: options.requestTimeout && options.requestTimeout.page || DEFAULT_REQUEST_TIMEOUT.page,
+            ajax: options.requestTimeout && options.requestTimeout.ajax || DEFAULT_REQUEST_TIMEOUT.ajax,
+        };
 
-        if (options && options.requestTimeout)
-            delete options.requestTimeout;
+        delete options.requestTimeout;
 
         return Object.assign({
             disablePageCaching:   false,
@@ -307,10 +309,6 @@ export default abstract class Session extends EventEmitter {
 
     setRecordMode(): void {
         this._recordMode = true;
-    }
-
-    setRequestTimeout (requestTimeout: RequestTimeout): void {
-        this.options.requestTimeout = requestTimeout;
     }
 
     abstract async getIframePayloadScript (iframeWithoutSrc: boolean): Promise<string>;
