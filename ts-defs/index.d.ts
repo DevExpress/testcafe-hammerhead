@@ -131,6 +131,9 @@ declare module 'testcafe-hammerhead' {
 
         /** The body of the query response **/
         body: Buffer;
+
+        /** The same origin policy check **/
+        isSameOriginPolicyFailed: boolean;
     }
 
     /** The ResponseMock class is used to construct the response of the mocked request **/

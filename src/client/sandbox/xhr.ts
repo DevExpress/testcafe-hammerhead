@@ -57,7 +57,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         const withCredentials = xhr.withCredentials;
 
         reqOpts.withCredentials = withCredentials;
-        reqOpts.openArgs[1] = getAjaxProxyUrl(url, withCredentials ? Credentials.include : Credentials.sameOrigin);
+        reqOpts.openArgs[1]     = getAjaxProxyUrl(url, withCredentials ? Credentials.include : Credentials.sameOrigin);
 
         nativeMethods.xhrOpen.apply(xhr, reqOpts.openArgs);
 
