@@ -38,7 +38,7 @@ export interface ParsedProxyUrl {
     charset?: string;
     reqOrigin?: string;
     windowId?: string;
-    credentials?: number,
+    credentials?: Credentials,
     proxy: {
         hostname: string;
         port: string;
