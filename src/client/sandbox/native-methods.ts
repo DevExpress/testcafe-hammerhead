@@ -333,6 +333,7 @@ class NativeMethods {
     tokenListSupports: any;
     tokenListToggle: any;
     tokenListContains: any;
+    tokenListValueSetter: (value: string) => void;
     windowClass: any;
     documentClass: any;
     locationClass: any;
@@ -1049,6 +1050,13 @@ class NativeMethods {
             this.tokenListSupports = win.DOMTokenList.prototype.supports;
             this.tokenListToggle   = win.DOMTokenList.prototype.toggle;
             this.tokenListContains = win.DOMTokenList.prototype.contains;
+
+            const tokenListValueDescriptor = win.Object.getOwnPropertyDescriptor(win.DOMTokenList.prototype, 'value');
+
+            // NOTE: IE11 doesn't support the 'value' property of the DOMTokenList interface
+            if (tokenListValueDescriptor)
+                this.tokenListValueSetter = tokenListValueDescriptor.set;
+
 
             // Stylesheets
             this.styleGetPropertyValue = win.CSSStyleDeclaration.prototype.getPropertyValue;

@@ -42,7 +42,8 @@ import {
     findDocument,
     isBodyElement,
     isHtmlElement,
-    isTitleElement
+    isTitleElement,
+    getFrameElement
 } from '../../utils/dom';
 
 import { isPrimitiveType } from '../../utils/types';
@@ -75,7 +76,6 @@ import DefaultTarget from '../child-window/default-target';
 import { getNativeQuerySelectorAll } from '../../utils/query-selector';
 import DocumentTitleStorageInitializer from './document/title-storage-initializer';
 import { SET_BLOB_WORKER_SETTINGS, SET_SERVICE_WORKER_SETTINGS } from '../../worker/set-settings-command';
-import { getOriginHeader } from '../../utils/destination-location';
 
 const INSTRUCTION_VALUES = (() => {
     const values = [];
@@ -521,12 +521,12 @@ export default class WindowSandbox extends SandboxBase {
                 if (arguments.length === 0)
                     // @ts-ignore
                     return isCalledWithoutNewKeyword ? nativeMethods.Worker() : new nativeMethods.Worker();
-            
+
                 if (isCalledWithoutNewKeyword)
                     return nativeMethods.Worker.apply(this, args);
-            
+
                 let scriptURL = args[0];
-                
+
                 if (typeof scriptURL === 'string')
                     scriptURL = getProxyUrl(scriptURL, { resourceType: stringifyResourceType({ isScript: true }) });
 
@@ -540,7 +540,7 @@ export default class WindowSandbox extends SandboxBase {
                         cmd:       SET_BLOB_WORKER_SETTINGS,
                         sessionId: settings.get().sessionId,
                         windowId:  settings.get().windowId,
-                        origin:    getOriginHeader()
+                        origin:    destLocation.getOriginHeader()
                     });
                 }
 
@@ -821,7 +821,7 @@ export default class WindowSandbox extends SandboxBase {
                 // and a browser thinks that Blob does not contain the "name" property.
                 if (args.length === 2 && isBlob(value) && 'name' in value)
                     args[2] = value['name'] as string;
-            
+
                 nativeMethods.formDataAppend.apply(this, args);
             });
         }
@@ -1500,6 +1500,21 @@ export default class WindowSandbox extends SandboxBase {
             });
         }
 
+        if (nativeMethods.tokenListValueSetter) {
+            overrideDescriptor(window.DOMTokenList.prototype, 'value', {
+                getter: null,
+                setter: function (value) {
+                    const tokenListOwner = this[SANDBOX_DOM_TOKEN_LIST_OWNER];
+
+                    nativeMethods.tokenListValueSetter.call(this, value);
+
+                    if (tokenListOwner)
+                        // eslint-disable-next-line no-restricted-properties
+                        windowSandbox.nodeSandbox.element.setAttributeCore(tokenListOwner, ['sandbox', this.value]);
+                }
+            });
+        }
+
         overrideFunction(window.DOMImplementation.prototype, 'createHTMLDocument', function (this: DOMImplementation, ...args) {
             const doc = nativeMethods.createHTMLDocument.apply(this, args);
 
@@ -1529,14 +1544,23 @@ export default class WindowSandbox extends SandboxBase {
                 getter: function () {
                     const proxyOrigin = nativeMethods.windowOriginGetter.call(this);
 
-                    if (!proxyOrigin)
+                    if (!proxyOrigin || proxyOrigin === 'null')
                         return proxyOrigin;
+
+                    const frame = getFrameElement(windowSandbox.window);
+
+                    if (frame) {
+                        const sandbox = windowSandbox.nodeSandbox.element.getAttributeCore(frame, ['sandbox']);
+
+                        if (typeof sandbox === 'string' && sandbox.indexOf('allow-same-origin') === -1)
+                            return 'null';
+                    }
 
                     const parsedDestLocation = destLocation.getParsed();
 
                     // eslint-disable-next-line no-restricted-properties
                     if (parsedDestLocation && parsedDestLocation.protocol === 'file:')
-                        return null;
+                        return 'null';
 
                     return destLocation.getOriginHeader();
                 },

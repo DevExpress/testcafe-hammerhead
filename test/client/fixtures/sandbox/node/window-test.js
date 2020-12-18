@@ -581,10 +581,10 @@ if (nativeMethods.windowOriginGetter) {
         var storedWindowOriginGetter = nativeMethods.windowOriginGetter;
 
         nativeMethods.windowOriginGetter = function () {
-            return null;
+            return 'null';
         };
 
-        strictEqual(window.origin, null);
+        strictEqual(window.origin, 'null');
 
         nativeMethods.windowOriginGetter = storedWindowOriginGetter;
 
@@ -594,7 +594,7 @@ if (nativeMethods.windowOriginGetter) {
 
         destLocation.forceLocation(urlUtils.getProxyUrl('file:///home/testcafe/site'));
 
-        strictEqual(window.origin, null);
+        strictEqual(window.origin, 'null');
 
         destLocation.forceLocation(storedForcedLocation);
     });
@@ -606,6 +606,16 @@ if (nativeMethods.windowOriginGetter) {
 
         window.origin = 2;
         strictEqual(window.origin, 2);
+    });
+
+    test('should be null in iframe with the sandbox attribute that doesn`t contain `allow-same-origin`', function () {
+        return createTestIframe({
+            src:     getSameDomainPageUrl('../../../data/iframe/simple-iframe.html'),
+            sandbox: 'allow-scripts'
+        })
+            .then(function (iframe) {
+                strictEqual(iframe.contentWindow.origin, 'null');
+            });
     });
 }
 
