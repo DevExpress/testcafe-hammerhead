@@ -1053,6 +1053,7 @@ class NativeMethods {
 
             const tokenListValueDescriptor = win.Object.getOwnPropertyDescriptor(win.DOMTokenList.prototype, 'value');
 
+            // NOTE: IE11 doesn't support the 'value' property of the DOMTokenList interface
             if (tokenListValueDescriptor)
                 this.tokenListValueSetter = tokenListValueDescriptor.set;
 
