@@ -5,6 +5,7 @@ import BUILTIN_HEADERS from './builtin-header-names';
 import * as headerTransforms from './header-transforms';
 import { inject as injectUpload } from '../upload';
 import matchUrl from 'match-url-wildcard';
+import { RequestTimeout } from '../typings/proxy';
 
 export default class RequestOptions {
     url: string;
@@ -25,6 +26,7 @@ export default class RequestOptions {
     agent?: any;
     ecdhCurve?: string;
     rejectUnauthorized?: boolean;
+    requestTimeout: RequestTimeout;
 
     constructor (ctx: RequestPipelineContext) {
         const bodyWithUploads = injectUpload(ctx.req.headers[BUILTIN_HEADERS.contentType] as string, ctx.reqBody);
@@ -37,25 +39,26 @@ export default class RequestOptions {
         const headers = headerTransforms.forRequest(ctx);
         const proxy   = ctx.session.externalProxySettings;
 
-        this.url         = ctx.dest.url;
-        this.protocol    = ctx.dest.protocol;
-        this.hostname    = ctx.dest.hostname;
-        this.host        = ctx.dest.host;
-        this.port        = ctx.dest.port;
-        this.path        = ctx.dest.partAfterHost;
-        this.auth        = ctx.dest.auth;
-        this.method      = ctx.req.method;
-        this.credentials = ctx.session.getAuthCredentials();
-        this.body        = ctx.reqBody;
-        this.isAjax      = ctx.isAjax;
-        this.rawHeaders  = ctx.req.rawHeaders;
-        this.headers     = headers;
-        this.requestId   = ctx.requestId;
+        this.url            = ctx.dest.url;
+        this.protocol       = ctx.dest.protocol;
+        this.hostname       = ctx.dest.hostname;
+        this.host           = ctx.dest.host;
+        this.port           = ctx.dest.port;
+        this.path           = ctx.dest.partAfterHost;
+        this.auth           = ctx.dest.auth;
+        this.method         = ctx.req.method;
+        this.credentials    = ctx.session.getAuthCredentials();
+        this.body           = ctx.reqBody;
+        this.isAjax         = ctx.isAjax;
+        this.rawHeaders     = ctx.req.rawHeaders;
+        this.headers        = headers;
+        this.requestId      = ctx.requestId;
+        this.requestTimeout = ctx.session.options.requestTimeout;
 
         this._applyExternalProxySettings(proxy, ctx, headers);
     }
 
-    _applyExternalProxySettings (proxy, ctx: RequestPipelineContext, headers: IncomingHttpHeaders): void {
+    private _applyExternalProxySettings (proxy, ctx: RequestPipelineContext, headers: IncomingHttpHeaders): void {
         if (!proxy || matchUrl(ctx.dest.url, proxy.bypassRules))
             return;
 

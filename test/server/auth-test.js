@@ -1,22 +1,21 @@
-const expect       = require('chai').expect;
-const express      = require('express');
-const ntlm         = require('express-ntlm');
-const auth         = require('basic-auth');
-const request      = require('request-promise-native');
-const Proxy        = require('../../lib/proxy');
-const Session      = require('../../lib/session');
+const expect  = require('chai').expect;
+const express = require('express');
+const ntlm    = require('express-ntlm');
+const auth    = require('basic-auth');
+const request = require('request-promise-native');
+
+const {
+    createProxy,
+    createSession
+} = require('./common/utils');
 
 describe('Authentication', () => {
     let proxy   = null;
     let session = null;
 
     beforeEach(() => {
-        session = new Session();
-
-        session.getAuthCredentials = () => null;
-        session.handleFileDownload = () => void 0;
-
-        proxy = new Proxy('127.0.0.1', 1836, 1837);
+        session = createSession();
+        proxy   = createProxy();
     });
 
     afterEach(() => {

@@ -1,7 +1,7 @@
 import net from 'net';
 import http from 'http';
 import { respondStatic } from '../utils/http';
-import { StaticContent, ServerInfo } from '../typings/proxy';
+import { StaticContent, ServerInfo, RouterOptions } from '../typings/proxy';
 import md5 from 'crypto-md5';
 import { getPathname } from '../utils/url';
 import { isEqual } from 'lodash';
@@ -31,7 +31,7 @@ export default abstract class Router {
     private readonly routes: Map<string, Route> = new Map();
     private readonly routesWithParams: RouteWithParams[] = [];
 
-    protected constructor (options = {}) {
+    protected constructor (options: RouterOptions = {}) {
         this.options = options;
     }
 

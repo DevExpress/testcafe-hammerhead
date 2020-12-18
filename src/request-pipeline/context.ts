@@ -388,7 +388,7 @@ export default class RequestPipelineContext {
         const headers = headerTransforms.forResponse(this);
         const res     = this.res as http.ServerResponse;
 
-        if (this.isHTMLPage && this.session.disablePageCaching)
+        if (this.isHTMLPage && this.session.options.disablePageCaching)
             headerTransforms.setupPreventCachingHeaders(headers);
 
         logger.proxy('Proxy response %s %d %j', this.requestId, this.destRes.statusCode, headers);

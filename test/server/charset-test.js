@@ -53,7 +53,8 @@ describe('Content charset', () => {
         const requestPipelineContextMock = {
             dest:    {},
             session: {
-                hasRequestEventListeners: () => false
+                hasRequestEventListeners: () => false,
+                options:                  { allowMultipleWindows: false }
             },
             serverInfo: {
                 crossDomainPort: 1338
@@ -173,7 +174,8 @@ describe('Content charset', () => {
             const requestPipelineContextMock = {
                 dest:    {},
                 session: {
-                    hasRequestEventListeners: () => false
+                    hasRequestEventListeners: () => false,
+                    options:                  { allowMultipleWindows: false }
                 },
                 serverInfo: {
                     crossDomainPort: 1338

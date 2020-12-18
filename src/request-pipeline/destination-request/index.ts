@@ -3,7 +3,6 @@ import RequestOptions from '../request-options';
 import http from 'http';
 import https from 'https';
 import { noop } from 'lodash';
-import semver from 'semver';
 import * as requestAgent from './agent';
 import { EventEmitter } from 'events';
 import { getAuthInfo, addCredentials, requiresResBody } from 'webauth';
@@ -17,12 +16,6 @@ const TUNNELING_AUTHORIZE_ERR_RE = /statusCode=407/i;
 const SOCKET_HANG_UP_ERR_RE      = /socket hang up/i;
 const IS_DNS_ERR_MSG_RE          = /ECONNREFUSED|ENOTFOUND|EPROTO/;
 const IS_DNS_ERR_CODE_RE         = /ECONNRESET/;
-
-// NOTE: Starting from 8.6 version, Node.js changes behavior related with sending requests
-// to sites using SSL2 and SSL3 protocol versions. It affects the https core module
-// and can break a proxying of some sites. This is why, we are forced to use the special hack.
-// For details, see https://github.com/nodejs/node/issues/16196
-const IS_NODE_VERSION_GREATER_THAN_8_5: boolean = semver.gt(process.version, '8.5.0');
 
 interface DestinationRequestEvents {
     on(event: 'response', listener: (res: http.IncomingMessage) => void): this;
@@ -41,23 +34,18 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     private readonly protocolInterface: any;
     private readonly timeout: number;
 
-    static TIMEOUT = 25 * 1000;
-    static AJAX_TIMEOUT = 2 * 60 * 1000;
-
     constructor (opts: RequestOptions) {
         super();
 
         this.opts              = opts;
         this.isHttps           = opts.protocol === 'https:';
         this.protocolInterface = this.isHttps ? https : http;
-        this.timeout           = this.opts.isAjax ? DestinationRequest.AJAX_TIMEOUT : DestinationRequest.TIMEOUT;
+        this.timeout           = this.opts.isAjax ? opts.requestTimeout.ajax : opts.requestTimeout.page;
 
         // NOTE: Ignore SSL auth.
         if (this.isHttps) {
             opts.rejectUnauthorized = false;
-
-            if (IS_NODE_VERSION_GREATER_THAN_8_5)
-                opts.ecdhCurve = 'auto';
+            opts.ecdhCurve          = 'auto';
         }
 
         requestAgent.assign(this.opts);

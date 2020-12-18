@@ -3,11 +3,11 @@ const {
     createProxy,
     getFileProtocolUrl,
     compareCode
-} = require('./utils');
+} = require('../common/utils');
 
 const {
     PAGE_ACCEPT_HEADER
-} = require('./constants');
+} = require('../common/constants');
 
 const request    = require('request-promise-native');
 const fs         = require('fs');

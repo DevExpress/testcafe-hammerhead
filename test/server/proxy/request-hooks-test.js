@@ -6,9 +6,8 @@ const request           = require('request-promise-native');
 
 const {
     TEST_OBJ,
-    PAGE_ACCEPT_HEADER,
-    SAME_DOMAIN_SERVER_PORT
-} = require('./constants');
+    PAGE_ACCEPT_HEADER
+} = require('../common/constants');
 
 const SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = require('../../../lib/request-pipeline/xhr/same-origin-check-failed-status-code');
 const INTERNAL_HEADERS                     = require('../../../lib/request-pipeline/internal-header-names');
@@ -20,7 +19,7 @@ const {
     compareCode,
     normalizeNewLine,
     createDestinationServer
-} = require('./utils');
+} = require('../common/utils');
 
 describe('Request Hooks', () => {
     let session    = null;
@@ -28,7 +27,7 @@ describe('Request Hooks', () => {
     let destServer = null;
 
     before(() => {
-        const sameDomainDestinationServer = createDestinationServer(SAME_DOMAIN_SERVER_PORT);
+        const sameDomainDestinationServer = createDestinationServer();
         const { app }                     = sameDomainDestinationServer;
 
         destServer = sameDomainDestinationServer.server;

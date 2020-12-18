@@ -8,11 +8,10 @@ const {
     getProxyUrl: getBasicProxyUrl,
     createSession,
     createProxy
-} = require('./utils');
+} = require('../common/utils');
 
-const promisifyEvent              = require('promisify-event');
-const { expect }                  = require('chai');
-const { SAME_DOMAIN_SERVER_PORT } = require('./constants');
+const promisifyEvent = require('promisify-event');
+const { expect }     = require('chai');
 
 describe('WebSocket', () => {
     let session     = null;
@@ -27,7 +26,9 @@ describe('WebSocket', () => {
     }
 
     before(() => {
-        const sameDomainDestinationServer = createDestinationServer(SAME_DOMAIN_SERVER_PORT);
+        const sameDomainDestinationServer = createDestinationServer();
+
+        destServer = sameDomainDestinationServer.server;
 
         destServer = sameDomainDestinationServer.server;
 

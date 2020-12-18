@@ -8,12 +8,11 @@ const {
     createProxy,
     compareCode,
     createDestinationServer
-} = require('./utils');
+} = require('../common/utils');
 
 const {
-    PAGE_ACCEPT_HEADER,
-    SAME_DOMAIN_SERVER_PORT
-} = require('./constants');
+    PAGE_ACCEPT_HEADER
+} = require('../common/constants');
 
 describe('https proxy', () => {
     let session    = null;
@@ -21,7 +20,7 @@ describe('https proxy', () => {
     let destServer = null;
 
     before(() => {
-        const sameDomainDestinationServer = createDestinationServer(SAME_DOMAIN_SERVER_PORT);
+        const sameDomainDestinationServer = createDestinationServer();
         const { app }                     = sameDomainDestinationServer;
 
         destServer = sameDomainDestinationServer.server;
