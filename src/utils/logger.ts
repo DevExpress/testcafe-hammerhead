@@ -111,6 +111,10 @@ const destination = {
         destinationLogger('Destination request %s %s %s %j', opts.requestId, opts.method, opts.url, opts.headers);
     },
 
+    onCachedRequest: (opts: RequestOptions, hitCount: number) => {
+        destinationLogger('Cached destination request %s %s %s %j (hitCount: %d)', opts.requestId, opts.method, opts.url, opts.headers, hitCount);
+    },
+
     onUpgradeRequest: (opts: RequestOptions, res: IncomingMessage) => {
         destinationLogger('Destination upgrade %s %d %j', opts.requestId, res.statusCode, res.headers);
     },

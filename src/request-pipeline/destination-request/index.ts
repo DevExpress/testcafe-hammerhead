@@ -10,6 +10,8 @@ import connectionResetGuard from '../connection-reset-guard';
 import { MESSAGE, getText } from '../../messages';
 import { transformHeadersCaseToRaw } from '../header-transforms';
 import logger from '../../utils/logger';
+import * as requestCache from '../cache';
+import IncomingMessageLike from '../incoming-message-like';
 
 const TUNNELING_SOCKET_ERR_RE    = /tunneling socket could not be established/i;
 const TUNNELING_AUTHORIZE_ERR_RE = /statusCode=407/i;
@@ -33,7 +35,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     private readonly protocolInterface: any;
     private readonly timeout: number;
 
-    constructor (readonly opts: RequestOptions) {
+    constructor (readonly opts: RequestOptions, readonly cache: boolean) {
         super();
 
         this.isHttps           = opts.protocol === 'https:';
@@ -50,6 +52,34 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         this._send();
     }
 
+    _sendReal (storedHeaders: http.IncomingHttpHeaders, waitForData?: boolean): void {
+        this.req = this.protocolInterface.request(this.opts, res => {
+            if (waitForData) {
+                res.on('data', noop);
+                res.once('end', () => this._onResponse(res));
+            }
+        });
+        this.opts.headers = storedHeaders;
+
+        if (logger.destinationSocket.enabled) {
+            this.req.on('socket', socket => {
+                socket.once('data', data => logger.destinationSocket.onFirstChunk(this.opts, data));
+                socket.once('error', err => logger.destinationSocket.onError(this.opts, err));
+            });
+        }
+
+        if (!waitForData)
+            this.req.on('response', (res: http.IncomingMessage) => this._onResponse(res));
+
+        this.req.on('error', (err: Error) => this._onError(err));
+        this.req.on('upgrade', (res: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgrade(res, socket, head));
+        this.req.setTimeout(this.timeout, () => this._onTimeout());
+        this.req.write(this.opts.body);
+        this.req.end();
+
+        logger.destination.onRequest(this.opts);
+    }
+
     _send (waitForData?: boolean): void {
         connectionResetGuard(() => {
             const storedHeaders = this.opts.headers;
@@ -58,31 +88,23 @@ export default class DestinationRequest extends EventEmitter implements Destinat
             // We also need to restore the request option headers to a lower case because headers may change
             // if a request is unauthorized, so there can be duplicated headers, for example, 'www-authenticate' and 'WWW-Authenticate'.
             this.opts.headers = transformHeadersCaseToRaw(this.opts.headers, this.opts.rawHeaders);
-            this.req          = this.protocolInterface.request(this.opts, res => {
-                if (waitForData) {
-                    res.on('data', noop);
-                    res.once('end', () => this._onResponse(res));
-                }
-            });
-            this.opts.headers = storedHeaders;
 
-            if (logger.destinationSocket.enabled) {
-                this.req.on('socket', socket => {
-                    socket.once('data', data => logger.destinationSocket.onFirstChunk(this.opts, data));
-                    socket.once('error', err => logger.destinationSocket.onError(this.opts, err));
-                });
+            if (this.cache) {
+                const cachedResponse = requestCache.getResponse(this.opts);
+
+                if (cachedResponse) {
+                    // NOTE: To store async order of the 'response' event
+                    setTimeout(() => {
+                        this._emitOnResponse(cachedResponse.res);
+                    }, 0);
+
+                    logger.destination.onCachedRequest(this.opts, cachedResponse.hitCount);
+
+                    return;
+                }
             }
 
-            if (!waitForData)
-                this.req.on('response', (res: http.IncomingMessage) => this._onResponse(res));
-
-            this.req.on('error', (err: Error) => this._onError(err));
-            this.req.on('upgrade', (res: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgrade(res, socket, head));
-            this.req.setTimeout(this.timeout, () => this._onTimeout());
-            this.req.write(this.opts.body);
-            this.req.end();
-
-            logger.destination.onRequest(this.opts);
+            this._sendReal(storedHeaders, waitForData);
         });
     }
 
@@ -109,10 +131,14 @@ export default class DestinationRequest extends EventEmitter implements Destinat
             logger.destination.onProxyAuthenticationError(this.opts);
             this._fatalError(MESSAGE.cantAuthorizeToProxy, this.opts.proxy.host);
         }
-        else {
-            this.hasResponse = true;
-            this.emit('response', res);
-        }
+        else
+            this._emitOnResponse(res);
+    }
+
+    _emitOnResponse (res: http.IncomingMessage | IncomingMessageLike) {
+        this.hasResponse = true;
+
+        this.emit('response', res);
     }
 
     _onUpgrade (res: http.IncomingMessage, socket: net.Socket, head: Buffer): void {

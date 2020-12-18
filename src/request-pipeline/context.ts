@@ -10,7 +10,7 @@ import RequestFilterRule from './request-hooks/request-filter-rule';
 import IncomingMessageLike from './incoming-message-like';
 import RequestOptions from './request-options';
 import { ParsedProxyUrl } from '../typings/url';
-import { OnResponseEventData } from '../typings/context';
+import { OnResponseEventData, RequestCacheEntry } from '../typings/context';
 import Charset from '../processing/encoding/charset';
 import * as urlUtils from '../utils/url';
 import * as contentTypeUtils from '../utils/content-type';
@@ -23,6 +23,8 @@ import BUILTIN_HEADERS from './builtin-header-names';
 import logger from '../utils/logger';
 import { Credentials } from '../utils/url';
 import createSpecialPageResponse from './create-special-page-response';
+import { fetchBody } from '../utils/http';
+import * as requestCache from './cache';
 
 interface DestInfo {
     url: string;
@@ -98,6 +100,7 @@ export default class RequestPipelineContext {
     mock: ResponseMock;
     isSameOriginPolicyFailed = false;
     windowId?: string;
+    temporaryCacheEntry?: RequestCacheEntry;
 
     constructor (readonly req: http.IncomingMessage,
         readonly res: http.ServerResponse | net.Socket,
@@ -296,6 +299,13 @@ export default class RequestPipelineContext {
             .map(userScript => userScript.url);
     }
 
+    private async _getDestResBody (res: IncomingMessageLike | http.IncomingMessage | FileStream): Promise<Buffer> {
+        if (IncomingMessageLike.isIncomingMessageLike(res))
+            return (res as IncomingMessageLike).getBody();
+
+        return await fetchBody(this.destRes);
+    }
+
     calculateIsDestResReadableEnded () {
         if (!this.contentInfo.isNotModified && !this.contentInfo.isRedirect) {
             this.destRes.once('end', () => {
@@ -427,5 +437,21 @@ export default class RequestPipelineContext {
         this.destRes = createSpecialPageResponse();
 
         this.buildContentInfo();
+    }
+
+    async fetchDestResBody (): Promise<void> {
+        this.destResBody = await this._getDestResBody(this.destRes);
+
+        if (!this.temporaryCacheEntry)
+            return;
+
+        this.temporaryCacheEntry.value.res.setBody(this.destResBody);
+
+        requestCache.add(this.temporaryCacheEntry);
+    }
+
+    createCacheEntry (res: http.IncomingMessage | IncomingMessageLike | FileStream): void {
+        if (requestCache.shouldCache(this) && !IncomingMessageLike.isIncomingMessageLike(res))
+            this.temporaryCacheEntry = requestCache.create(this.reqOpts, res);
     }
 }

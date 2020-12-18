@@ -237,6 +237,12 @@ gulp.step('https-playground-server', () => {
 
 gulp.task('https-playground', gulp.series('build', 'https-playground-server'));
 
+gulp.step('cached-http-playground-server', () => {
+    return runPlayground({ cache: true });
+});
+
+gulp.task('cached-http-playground', gulp.series('build', 'cached-http-playground-server'));
+
 gulp.task('test-functional-testcafe-travis',
     gulp.series('build',
         gulpRunCommand([

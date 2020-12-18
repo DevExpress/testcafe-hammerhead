@@ -1,4 +1,4 @@
-import { IncomingHttpHeaders } from 'http';
+import { IncomingHttpHeaders, IncomingMessage } from 'http';
 import { Readable } from 'stream';
 
 interface InitOptions {
@@ -51,5 +51,27 @@ export default class IncomingMessageLike extends Readable {
     _read (): void {
         this.push(this._body);
         this._body = null;
+    }
+
+    setBody (value: Buffer): void {
+        this._body = value;
+    }
+
+    getBody (): Buffer {
+        return this._body;
+    }
+
+    static createFrom (res: IncomingMessage): IncomingMessageLike {
+        const { headers, trailers, statusCode } = res;
+
+        return new IncomingMessageLike({
+            headers,
+            trailers,
+            statusCode
+        });
+    }
+
+    static isIncomingMessageLike (obj: object): boolean {
+        return obj instanceof IncomingMessageLike;
     }
 }

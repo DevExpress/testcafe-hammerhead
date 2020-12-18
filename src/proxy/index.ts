@@ -33,12 +33,13 @@ function parseAsJson (msg: Buffer): ServiceMessage | null {
     }
 }
 
-function createServerInfo (hostname: string, port: number, crossDomainPort: number, protocol: string): ServerInfo {
+function createServerInfo (hostname: string, port: number, crossDomainPort: number, protocol: string, cacheRequests: boolean): ServerInfo {
     return {
         hostname,
         port,
         crossDomainPort,
         protocol,
+        cacheRequests,
         domain: `${protocol}//${hostname}:${port}`
     };
 }
@@ -58,16 +59,17 @@ export default class Proxy extends Router {
     // https://github.com/nodejs/node/commit/186035243fad247e3955fa0c202987cae99e82db#diff-1d0d420098503156cddb601e523b82e7R59
     public static MAX_REQUEST_HEADER_SIZE = 80 * 1024;
 
-    constructor (hostname: string, port1: number, port2: number, options: Partial<ProxyOptions> = { developmentMode: false }) {
+    constructor (hostname: string, port1: number, port2: number, options: Partial<ProxyOptions> = { developmentMode: false, cache: false }) {
         super(options);
 
-        const { ssl, developmentMode } = options;
-        const protocol                 = ssl ? 'https:' : 'http:';
-        const opts                     = this._getOpts(ssl);
-        const createServer             = this._getCreateServerMethod(ssl);
+        const { ssl, developmentMode, cache } = options;
 
-        this.server1Info = createServerInfo(hostname, port1, port2, protocol);
-        this.server2Info = createServerInfo(hostname, port2, port1, protocol);
+        const protocol     = ssl ? 'https:' : 'http:';
+        const opts         = this._getOpts(ssl);
+        const createServer = this._getCreateServerMethod(ssl);
+
+        this.server1Info = createServerInfo(hostname, port1, port2, protocol, cache);
+        this.server2Info = createServerInfo(hostname, port2, port1, protocol, cache);
 
         this.server1 = createServer(opts, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server1Info));
         this.server2 = createServer(opts, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server2Info));
