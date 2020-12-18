@@ -750,7 +750,7 @@ describe('Regression', () => {
             requestTimeout: { page: 100 }
         });
 
-        destReq.on('error', () => noop);
+        destReq.on('error', noop);
         destReq.on('fatalError', () => {
             fatalErrorEventCount++;
         });
