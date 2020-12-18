@@ -68,6 +68,7 @@
     "endpoint-utils": "^1.0.1",
     "eslint": "^7.13.0",
     "eslint-plugin-hammerhead": "^0.4.0",
+    "eslint-plugin-no-only-tests": "^2.0.1",
     "express": "4.16.3",
     "express-ntlm": "2.1.5",
     "gulp": "^4.0.0",

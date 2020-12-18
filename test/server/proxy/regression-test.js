@@ -35,7 +35,7 @@ const {
 
 let longResponseSocket = null;
 
-describe.only('Regression', () => {
+describe('Regression', () => {
     let session           = null;
     let proxy             = null;
     let destServer        = null;
