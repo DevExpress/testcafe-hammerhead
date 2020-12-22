@@ -21,6 +21,7 @@ import { RequestInfo } from '../session/events/info';
 import SERVICE_ROUTES from '../proxy/service-routes';
 import BUILTIN_HEADERS from './builtin-header-names';
 import logger from '../utils/logger';
+import { Credentials } from '../utils/url';
 
 interface DestInfo {
     url: string;
@@ -253,8 +254,9 @@ export default class RequestPipelineContext {
         let charset               = null;
         const contentTypeUrlToken = urlUtils.getResourceTypeString({
             isIframe: this.isIframe,
-            isForm:   isForm,
-            isScript: isScript
+            isAjax:   this.isAjax,
+
+            isForm, isScript
         });
 
         // NOTE: We need charset information if we are going to process the resource.
@@ -341,7 +343,7 @@ export default class RequestPipelineContext {
         this.goToNextStage = false;
     }
 
-    toProxyUrl (url: string, isCrossDomain: boolean, resourceType: string, charset?: string): string {
+    toProxyUrl (url: string, isCrossDomain: boolean, resourceType: string, charset?: string, reqOrigin?: string, credentials?: Credentials): string {
         const proxyHostname = this.serverInfo.hostname;
         const proxyProtocol = this.serverInfo.protocol;
         const proxyPort     = isCrossDomain ? this.serverInfo.crossDomainPort.toString() : this.serverInfo.port.toString();
@@ -355,7 +357,9 @@ export default class RequestPipelineContext {
             sessionId,
             resourceType,
             charset,
-            windowId
+            windowId,
+            reqOrigin,
+            credentials
         });
     }
 
@@ -368,7 +372,7 @@ export default class RequestPipelineContext {
     }
 
     isPassSameOriginPolicy (): boolean {
-        const shouldPerformCORSCheck = this.isAjax && !this.contentInfo.isNotModified && this.dest.reqOrigin;
+        const shouldPerformCORSCheck = this.isAjax && !this.contentInfo.isNotModified;
 
         return !shouldPerformCORSCheck || checkSameOriginPolicy(this);
     }

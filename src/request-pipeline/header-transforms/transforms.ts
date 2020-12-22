@@ -66,6 +66,10 @@ function resolveAndGetProxyUrl (url: string, ctx: RequestPipelineContext): strin
 
         isCrossDomain = isCrossDomainLocationBeforeRedirect !== isCrossDomainLocationAfterRedirect;
     }
+    else if (ctx.isAjax) {
+        return ctx.toProxyUrl(url, isCrossDomain, ctx.contentInfo.contentTypeUrlToken,
+            void 0, ctx.dest.reqOrigin, ctx.dest.credentials);
+    }
 
     return ctx.toProxyUrl(url, isCrossDomain, ctx.contentInfo.contentTypeUrlToken);
 }

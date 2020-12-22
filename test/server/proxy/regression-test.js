@@ -1487,4 +1487,23 @@ describe('Regression', () => {
                 });
         });
     });
+
+    it('Should copy the ajax request descriptor for the location header', () => {
+        const options = {
+            url: getProxyUrl('http://127.0.0.1:2000/redirect-with-status/302', { isAjax: true },
+                'http://example.com', Credentials.omit, true),
+
+            resolveWithFullResponse: true,
+            followRedirect:          false,
+            simple:                  false
+        };
+
+        proxy.openSession('http://127.0.0.1:2000/', session);
+        session.id = 'sid';
+
+        return request(options)
+            .then(res => {
+                expect(res.headers.location).eql('http://127.0.0.1:1837/sid*12345!a!2!example.com/http://localhost/');
+            });
+    });
 });

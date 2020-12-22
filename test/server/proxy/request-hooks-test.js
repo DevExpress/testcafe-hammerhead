@@ -298,7 +298,7 @@ describe('Request Hooks', () => {
 
             const options = {
                 url: getProxyUrl('http://127.0.0.1:2000/page/plain-text', { isAjax: true },
-                    'http://127.0.0.1:2000', Credentials.sameOrigin, true),
+                    'http://example.com', Credentials.sameOrigin, true),
 
                 resolveWithFullResponse: true
             };

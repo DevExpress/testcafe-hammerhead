@@ -6,6 +6,11 @@ import { Credentials } from '../utils/url';
 // NOTE: https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS
 export function check (ctx: RequestPipelineContext): boolean {
     const reqOrigin              = ctx.dest.reqOrigin;
+
+    // PASSED: Same origin.
+    if (ctx.dest.domain === reqOrigin)
+        return true;
+
     const withCredentials        = ctx.dest.credentials === Credentials.include;
     const allowOriginHeader      = ctx.destRes.headers[BUILTIN_HEADERS.accessControlAllowOrigin];
     const allowCredentialsHeader = ctx.destRes.headers[BUILTIN_HEADERS.accessControlAllowCredentials];
