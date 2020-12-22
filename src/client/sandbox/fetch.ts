@@ -214,7 +214,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         overrideFunction(window.Headers.prototype, 'get', function (this: Headers, ...args: Parameters<Headers['get']>) {
             const value = nativeMethods.headersGet.apply(this, args);
 
-            return FetchSandbox._removeAuthHeadersPrefix(args[0], value);
+            return value && FetchSandbox._removeAuthHeadersPrefix(args[0], value);
         });
 
         overrideFunction(window.Headers.prototype, 'set', function (this: Headers, ...args: Parameters<Headers['set']>) {

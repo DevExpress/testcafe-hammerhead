@@ -196,7 +196,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         overrideFunction(xmlHttpRequestProto, 'getResponseHeader', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['getResponseHeader']>) {
             let value = nativeMethods.xhrGetResponseHeader.apply(this, args);
 
-            if (isAuthenticateHeader(args[0]))
+            if (value && isAuthenticateHeader(args[0]))
                 value = removeAuthenticatePrefix(value);
 
             return value;

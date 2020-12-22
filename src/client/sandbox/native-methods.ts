@@ -108,8 +108,8 @@ class NativeMethods {
     xhrSend: XMLHttpRequest['send'];
     xhrAddEventListener: any;
     xhrRemoveEventListener: any;
-    xhrGetResponseHeader: any;
-    xhrGetAllResponseHeaders: any;
+    xhrGetResponseHeader: XMLHttpRequest['getResponseHeader'];
+    xhrGetAllResponseHeaders: XMLHttpRequest['getAllResponseHeaders'];
     xhrSetRequestHeader: XMLHttpRequest['setRequestHeader'];
     xhrOverrideMimeType: any;
     xhrDispatchEvent: any;
