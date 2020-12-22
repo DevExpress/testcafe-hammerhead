@@ -1,15 +1,16 @@
-const expect  = require('chai').expect;
-const express = require('express');
-const ntlm    = require('express-ntlm');
-const auth    = require('basic-auth');
-const request = require('request-promise-native');
+const expect       = require('chai').expect;
+const express      = require('express');
+const ntlm         = require('express-ntlm');
+const auth         = require('basic-auth');
+const request      = require('request-promise-native');
+const headersUtils = require('../../lib/utils/headers');
 
 const {
     createProxy,
     createSession
 } = require('./common/utils');
 
-describe('Authentication', () => {
+describe('Authentication', () => { // eslint-disable-line
     let proxy   = null;
     let session = null;
 
@@ -97,7 +98,8 @@ describe('Authentication', () => {
             };
 
             const options = {
-                url:                     proxy.openSession('http://127.0.0.1:1507/', session),
+                url: proxy.openSession('http://127.0.0.1:1507/', session),
+
                 resolveWithFullResponse: true
             };
 
@@ -117,7 +119,8 @@ describe('Authentication', () => {
             };
 
             const options = {
-                url:                     proxy.openSession('http://127.0.0.1:1507/', session),
+                url: proxy.openSession('http://127.0.0.1:1507/', session),
+
                 resolveWithFullResponse: true
             };
 
@@ -129,7 +132,7 @@ describe('Authentication', () => {
                     expect(err.statusCode).equal(401);
                     expect(err.error).equal('Access denied');
                     // NOTE: prevent showing the native credentials window.
-                    expect(err.response.headers['www-authenticate']).to.be.undefined;
+                    expect(err.response.headers['www-authenticate']).eql(headersUtils.addAuthenticatePrefix('Basic realm="example"'));
                 });
         });
 

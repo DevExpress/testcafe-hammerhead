@@ -1,6 +1,5 @@
-var urlUtils         = hammerhead.get('./utils/url');
-var INTERNAL_HEADERS = hammerhead.get('../request-pipeline/internal-header-names');
-
+var urlUtils      = hammerhead.get('./utils/url');
+var headersUtils  = hammerhead.get('../utils/headers');
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var Promise       = hammerhead.Promise;
@@ -218,11 +217,11 @@ if (window.fetch) {
     });
 
     module('special headers', function () {
-        test('an instance of window.Headers should not iterate internal headers', function () {
+        test('an instance of window.Headers should not iterate internal headers values', function () {
             var testHeaders = new Headers();
 
-            testHeaders.append('Content-Type', 'application/json');
             testHeaders.append('Authorization', 'Basic qwerty');
+            testHeaders.append('Content-Type', 'application/json');
             testHeaders.append('x-header', 'value');
 
             return fetch('/echo-request-headers', { method: 'post', headers: testHeaders })
@@ -236,7 +235,8 @@ if (window.fetch) {
                         entry  = entries.next();
                     }
 
-                    deepEqual(result, ['content-type', 'application/json', 'authorization', 'Basic qwerty', 'x-header', 'value']);
+                    deepEqual(result, ['authorization', 'Basic qwerty',
+                        'content-type', 'application/json', 'x-header', 'value']);
 
                     var values = testHeaders.values();
                     var value  = values.next();
@@ -248,21 +248,22 @@ if (window.fetch) {
                         value  = values.next();
                     }
 
-                    deepEqual(result, ['application/json', 'Basic qwerty', 'value']);
+                    deepEqual(result, ['Basic qwerty', 'application/json', 'value']);
 
                     result = [];
 
                     testHeaders.forEach(result.push.bind(result));
 
-                    deepEqual(result, ['application/json', 'content-type', testHeaders,
-                        'Basic qwerty', 'authorization', testHeaders, 'value', 'x-header', testHeaders]);
+                    deepEqual(result, ['Basic qwerty', 'authorization', testHeaders,
+                        'application/json', 'content-type', testHeaders, 'value', 'x-header', testHeaders]);
 
                     result = [];
 
                     eval('for (const entry of testHeaders)' +
                          '    result = result.concat(entry);');
 
-                    deepEqual(result, ['content-type', 'application/json', 'authorization', 'Basic qwerty', 'x-header', 'value']);
+                    deepEqual(result, ['authorization', 'Basic qwerty',
+                        'content-type', 'application/json', 'x-header', 'value']);
                 });
         });
 
@@ -278,27 +279,26 @@ if (window.fetch) {
                     return res.json();
                 })
                 .then(function (headers) {
-                    notOk(INTERNAL_HEADERS.authorization in testHeaders);
-                    ok(INTERNAL_HEADERS.authorization in headers);
+                    strictEqual(testHeaders.authorization, 'Basic qwerty');
+                    strictEqual(headers.authorization, headersUtils.addAuthorizationPrefix('Basic qwerty'));
                 });
         });
 
         test('the www-authenticate and proxy-authenticate header processing', function () {
-            var headers = { 'content-type': 'text/plain' };
-
-            headers[INTERNAL_HEADERS.wwwAuthenticate]   = 'Basic realm="Login"';
-            headers[INTERNAL_HEADERS.proxyAuthenticate] = 'Digital realm="Login"';
+            var headers = {
+                'content-type':       'text/plain',
+                'www-authenticate':   headersUtils.addAuthenticatePrefix('Basic realm="Login"'),
+                'proxy-authenticate': headersUtils.addAuthenticatePrefix('Digital realm="Login"')
+            };
 
             return fetch('/echo-request-body-in-response-headers', { method: 'post', body: JSON.stringify(headers) })
                 .then(function (res) {
-                    strictEqual(nativeMethods.headersHas.call(res.headers, INTERNAL_HEADERS.wwwAuthenticate), true);
-                    strictEqual(nativeMethods.headersHas.call(res.headers, INTERNAL_HEADERS.proxyAuthenticate), true);
-                    strictEqual(nativeMethods.headersHas.call(res.headers, 'www-authenticate'), false);
-                    strictEqual(nativeMethods.headersHas.call(res.headers, 'proxy-authenticate'), false);
-                    strictEqual(res.headers.has('WWW-Authenticate'), true);
                     strictEqual(res.headers.get('WWW-Authenticate'), 'Basic realm="Login"');
-                    strictEqual(res.headers.has('Proxy-Authenticate'), true);
                     strictEqual(res.headers.get('Proxy-Authenticate'), 'Digital realm="Login"');
+                    strictEqual(nativeMethods.headersGet.call(res.headers, 'WWW-Authenticate'),
+                        headersUtils.addAuthenticatePrefix('Basic realm="Login"'));
+                    strictEqual(nativeMethods.headersGet.call(res.headers, 'Proxy-Authenticate'),
+                        headersUtils.addAuthenticatePrefix('Digital realm="Login"'));
 
                     var headersValuesIterator = res.headers.values();
                     var headersValuesArray    = [];
@@ -307,6 +307,7 @@ if (window.fetch) {
                         headersValuesArray.push(value.value);
 
                     notEqual(headersValuesArray.indexOf('Basic realm="Login"'), -1);
+                    strictEqual(headersValuesArray.indexOf(headersUtils.addAuthenticatePrefix('Basic realm="Login"')), -1);
 
                     var headersEntriesIterator = res.headers.entries();
                     var headersEntriesArray    = [];
@@ -314,7 +315,10 @@ if (window.fetch) {
                     for (var entry = headersEntriesIterator.next(); !entry.done; entry = headersEntriesIterator.next())
                         headersEntriesArray.push(entry.value[0] + ': ' + entry.value[1]);
 
+                    var processedHeader = 'www-authenticate: ' + headersUtils.addAuthenticatePrefix('Basic realm="Login"');
+
                     notEqual(headersEntriesArray.indexOf('www-authenticate: Basic realm="Login"'), -1);
+                    strictEqual(headersEntriesArray.indexOf(processedHeader), -1);
 
                     headersEntriesArray = [];
 
@@ -323,24 +327,22 @@ if (window.fetch) {
                     });
 
                     notEqual(headersEntriesArray.indexOf('www-authenticate: Basic realm="Login"'), -1);
+                    strictEqual(headersEntriesArray.indexOf(processedHeader), -1);
                 });
         });
 
-        test('the authorization and proxy-authorization header processing (GH-2344)', function () {
-            var headers = { 'content-type': 'text/plain' };
-
-            headers['Authorization']       = 'Basic qwerty';
-            headers['proxy-Authorization'] = 'Digital abcdifg';
+        test('the authorization header processing (GH-2344)', function () {
+            var headers = {
+                'content-type':  'text/plain',
+                'Authorization': 'Basic qwerty'
+            };
 
             return fetch('/echo-request-headers', { method: 'post', headers: headers })
                 .then(function (res) {
                     return res.json();
                 })
                 .then(function (proxyHeaders) {
-                    notOk('authorization' in proxyHeaders);
-                    notOk('proxy-authorization' in proxyHeaders);
-                    strictEqual(proxyHeaders[INTERNAL_HEADERS.authorization], 'Basic qwerty');
-                    strictEqual(proxyHeaders[INTERNAL_HEADERS.proxyAuthorization], 'Digital abcdifg');
+                    strictEqual(proxyHeaders.authorization, headersUtils.addAuthorizationPrefix('Basic qwerty'));
                 });
         });
 
@@ -349,13 +351,8 @@ if (window.fetch) {
 
             headers.set('authorization', 'Basic');
 
-            strictEqual(nativeMethods.headersHas.call(headers, INTERNAL_HEADERS.authorization), true);
-            strictEqual(nativeMethods.headersHas.call(headers, 'authorization'), false);
-            strictEqual(nativeMethods.headersGet.call(headers, INTERNAL_HEADERS.authorization), 'Basic');
-            strictEqual(nativeMethods.headersGet.call(headers, 'authorization'), null);
-
-            strictEqual(headers.has('authorization'), true);
             strictEqual(headers.get('authorization'), 'Basic');
+            strictEqual(nativeMethods.headersGet.call(headers, 'authorization'), headersUtils.addAuthorizationPrefix('Basic'));
         });
     });
 
@@ -609,7 +606,7 @@ if (window.fetch) {
                 .then(function (headers) {
                     strictEqual(headers['content-type'], 'text/xml');
                     strictEqual(headers['breaking-bad'], '<3');
-                    strictEqual(headers[INTERNAL_HEADERS.authorization], '123');
+                    strictEqual(headers.authorization, headersUtils.addAuthorizationPrefix('123'));
                 });
         });
 
@@ -626,7 +623,7 @@ if (window.fetch) {
                     return response.json();
                 })
                 .then(function (headers) {
-                    strictEqual(headers[INTERNAL_HEADERS.authorization], '123', 'Authorization');
+                    strictEqual(headers.authorization, headersUtils.addAuthorizationPrefix('123'), 'Authorization');
                     strictEqual(headers['content-type'], 'charset=utf-8', 'Content-Type');
                 });
         });

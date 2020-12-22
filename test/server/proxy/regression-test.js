@@ -8,7 +8,6 @@ const net                    = require('net');
 const { noop }               = require('lodash');
 const { getFreePort }        = require('endpoint-utils');
 const request                = require('request-promise-native');
-const INTERNAL_HEADERS       = require('../../../lib/request-pipeline/internal-header-names');
 const DestinationRequest     = require('../../../lib/request-pipeline/destination-request');
 const RequestPipelineContext = require('../../../lib/request-pipeline/context');
 const scriptHeader           = require('../../../lib/processing/script/header');
@@ -16,6 +15,7 @@ const resourceProcessor      = require('../../../lib/processing/resources');
 const BUILTIN_HEADERS        = require('../../../lib/request-pipeline/builtin-header-names');
 const { gzip }               = require('../../../lib/utils/promisified-functions');
 const urlUtils               = require('../../../lib/utils/url');
+const headersUtils           = require('../../../lib/utils/headers');
 
 const {
     createSession,
@@ -510,17 +510,13 @@ describe('Regression', () => {
             });
     });
 
-    it('Should not send cookie and authorization headers to the cross-domain destination server for the xhr request without credentials (GH-545)', () => {
+    it('Should not send cookie headers to the cross-domain destination server for the xhr request without credentials (GH-545)', () => {
         session.cookies.setByServer('http://example.com', 'key=value');
 
         const options = {
             url: getProxyUrl('http://127.0.0.1:2002/echo-headers', { isAjax: true },
                 'http://example.com', Credentials.sameOrigin, true),
-            json:    true,
-            headers: {
-                authorization:         'value',
-                'proxy-authorization': 'value'
-            }
+            json: true
         };
 
         proxy.openSession('http://example.com', session);
@@ -528,8 +524,6 @@ describe('Regression', () => {
         return request(options)
             .then(parsedBody => {
                 expect(parsedBody.cookie).to.be.undefined;
-                expect(parsedBody.authorization).to.be.undefined;
-                expect(parsedBody['proxy-authorization']).to.be.undefined;
             });
     });
 
@@ -772,25 +766,21 @@ describe('Regression', () => {
             url:     proxy.openSession('http://127.0.0.1:2002/echo-headers-with-credentials', session),
             json:    true,
             headers: {
-                [INTERNAL_HEADERS.authorization]:      'Basic 1243==',
-                [INTERNAL_HEADERS.proxyAuthorization]: 'Digital 423=='
+                authorization:         headersUtils.addAuthorizationPrefix('Basic 1243=='),
+                'proxy-authorization': headersUtils.addAuthorizationPrefix('Digital 423==')
             }
         };
 
         return Promise.all([
             request(options1)
                 .then(parsedBody => {
-                    expect(parsedBody['authorization']).eql('Basic origin==');
-                    expect(parsedBody['proxy-authorization']).eql('Digital origin==');
-                    expect(parsedBody[INTERNAL_HEADERS.authorization]).to.be.undefined;
-                    expect(parsedBody[INTERNAL_HEADERS.proxyAuthorization]).to.be.undefined;
+                    expect(parsedBody['authorization']).to.be.undefined;
+                    expect(parsedBody['proxy-authorization']).to.be.undefined;
                 }),
             request(options2)
                 .then(parsedBody => {
                     expect(parsedBody['authorization']).eql('Basic 1243==');
                     expect(parsedBody['proxy-authorization']).eql('Digital 423==');
-                    expect(parsedBody[INTERNAL_HEADERS.authorization]).to.be.undefined;
-                    expect(parsedBody[INTERNAL_HEADERS.proxyAuthorization]).to.be.undefined;
                 })
         ]);
     });

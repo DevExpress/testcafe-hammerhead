@@ -5,7 +5,6 @@ const { expect }            = require('chai');
 const express               = require('express');
 const read                  = require('read-file-relative').readSync;
 const selfSignedCertificate = require('openssl-self-signed-certificate');
-const INTERNAL_HEADERS      = require('../../../lib/request-pipeline/internal-header-names');
 const BUILTIN_HEADERS       = require('../../../lib/request-pipeline/builtin-header-names');
 const StateSnaphot          = require('../../../lib/session/state-snapshot');
 const RequestFilterRule     = require('../../../lib/request-pipeline/request-hooks/request-filter-rule');
@@ -13,6 +12,7 @@ const { gzip }              = require('../../../lib/utils/promisified-functions'
 const urlUtils              = require('../../../lib/utils/url');
 const { processScript }     = require('../../../lib/processing/script');
 const Session               = require('../../../lib/session');
+const headersUtils          = require('../../../lib/utils/headers');
 const {
     createDestinationServer,
     createSession,
@@ -809,10 +809,8 @@ describe('Proxy', () => {
 
             return request(options)
                 .then(res => {
-                    expect(res.headers['www-authenticate']).is.undefined;
-                    expect(res.headers['proxy-authenticate']).is.undefined;
-                    expect(res.headers[INTERNAL_HEADERS.wwwAuthenticate]).eql('Basic realm="Login"');
-                    expect(res.headers[INTERNAL_HEADERS.proxyAuthenticate]).eql('Digital realm="Login"');
+                    expect(res.headers['www-authenticate']).eql(headersUtils.addAuthenticatePrefix('Basic realm="Login"'));
+                    expect(res.headers['proxy-authenticate']).eql(headersUtils.addAuthenticatePrefix('Digital realm="Login"'));
                 });
         });
 
@@ -1078,12 +1076,11 @@ describe('Proxy', () => {
     describe('Fetch', () => {
         describe('Credential modes', () => {
             describe('Omit', () => {
-                it('Should omit cookie and authorization header for same-domain request', () => {
+                it('Should omit cookie header for same-domain request', () => {
                     const options = {
                         url: getProxyUrl('http://127.0.0.1:2000/echo-headers',
                             { isAjax: true }, void 0, Credentials.omit),
-                        headers: { authorization: 'value' },
-                        json:    true
+                        json: true
                     };
 
                     proxy.openSession('http://127.0.0.1:2000', session);
@@ -1092,16 +1089,14 @@ describe('Proxy', () => {
                     return request(options)
                         .then(parsedBody => {
                             expect(parsedBody.cookie).to.be.undefined;
-                            expect(parsedBody.authorization).to.be.undefined;
                         });
                 });
 
-                it('Should omit cookie and authorization header for cross-domain request', () => {
+                it('Should omit cookie header for cross-domain request', () => {
                     const options = {
                         url: getProxyUrl('http://127.0.0.1:2002/echo-headers', { isAjax: true },
                             'http://127.0.0.1:2000', Credentials.omit, true),
-                        headers: { authorization: 'value' },
-                        json:    true
+                        json: true
                     };
 
                     proxy.openSession('http://127.0.0.1:2000', session);
@@ -1110,18 +1105,16 @@ describe('Proxy', () => {
                     return request(options)
                         .then(parsedBody => {
                             expect(parsedBody.cookie).to.be.undefined;
-                            expect(parsedBody.authorization).to.be.undefined;
                         });
                 });
             });
 
             describe('Same-origin', () => {
-                it('Should pass cookie and pass authorization headers for same-domain request', () => {
+                it('Should pass cookie header for same-domain request', () => {
                     const options = {
                         url: getProxyUrl('http://127.0.0.1:2000/echo-headers',
                             { isAjax: true }, void 0, Credentials.sameOrigin),
-                        headers: { authorization: 'value' },
-                        json:    true
+                        json: true
                     };
 
                     proxy.openSession('http://127.0.0.1:2000', session);
@@ -1130,16 +1123,14 @@ describe('Proxy', () => {
                     return request(options)
                         .then(parsedBody => {
                             expect(parsedBody.cookie).eql('key=value');
-                            expect(parsedBody.authorization).eql('value');
                         });
                 });
 
-                it('Should omit cookie and authorization header for cross-domain request', () => {
+                it('Should omit cookie header for cross-domain request', () => {
                     const options = {
                         url: getProxyUrl('http://127.0.0.1:2002/echo-headers', { isAjax: true },
                             'http://127.0.0.1:2000', Credentials.sameOrigin, true),
-                        headers: { authorization: 'value' },
-                        json:    true
+                        json: true
                     };
 
                     proxy.openSession('http://127.0.0.1:2000', session);
@@ -1148,18 +1139,16 @@ describe('Proxy', () => {
                     return request(options)
                         .then(parsedBody => {
                             expect(parsedBody.cookie).to.be.undefined;
-                            expect(parsedBody.authorization).to.be.undefined;
                         });
                 });
             });
 
             describe('Include', () => {
-                it('Should pass cookie and authorization headers for same-domain request', () => {
+                it('Should pass cookie header for same-domain request', () => {
                     const options = {
                         url: getProxyUrl('http://127.0.0.1:2000/echo-headers',
                             { isAjax: true }, void 0, Credentials.include),
-                        headers: { authorization: 'value' },
-                        json:    true
+                        json: true
                     };
 
                     proxy.openSession('http://127.0.0.1:2000', session);
@@ -1168,16 +1157,14 @@ describe('Proxy', () => {
                     return request(options)
                         .then(parsedBody => {
                             expect(parsedBody.cookie).eql('key=value');
-                            expect(parsedBody.authorization).eql('value');
                         });
                 });
 
-                it('Should pass cookie and authorization headers for cross-domain request', () => {
+                it('Should pass cookie headers for cross-domain request', () => {
                     const options = {
                         url: getProxyUrl('http://127.0.0.1:2002/echo-headers-with-credentials', { isAjax: true },
                             'http://127.0.0.1:2000', Credentials.include, true),
-                        headers: { authorization: 'value' },
-                        json:    true
+                        json: true
                     };
 
                     proxy.openSession('http://127.0.0.1:2000', session);
@@ -1186,7 +1173,6 @@ describe('Proxy', () => {
                     return request(options)
                         .then(parsedBody => {
                             expect(parsedBody.cookie).eql('key=value');
-                            expect(parsedBody.authorization).eql('value');
                         });
                 });
             });

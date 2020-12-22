@@ -3,19 +3,21 @@ import SandboxBaseWithDelayedSettings from '../worker/sandbox-base-with-delayed-
 import nativeMethods from './native-methods';
 import { getAjaxProxyUrl, getDestinationUrl, getProxyUrl } from '../utils/url';
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
-import INTERNAL_HEADERS from '../../request-pipeline/internal-header-names';
-import { transformHeaderNameToInternal } from '../utils/headers';
 import { overrideConstructor, overrideDescriptor, overrideFunction } from '../utils/overriding';
 import CookieSandbox from './cookie';
 import { Credentials } from '../../utils/url';
+import {
+    addAuthorizationPrefix, hasAuthenticatePrefix,
+    isAuthenticateHeader,
+    isAuthorizationHeader,
+    removeAuthenticatePrefix
+} from '../../utils/headers';
 
 const XHR_READY_STATES = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
 
-type XhrOpenArgs = [string, string, boolean, string?, string?];
-
 interface RequestOptions {
     withCredentials: boolean;
-    openArgs: XhrOpenArgs;
+    openArgs: Parameters<XMLHttpRequest['open']>;
     headers: ([string, string])[];
 }
 
@@ -103,10 +105,8 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         };
 
         for (const readyState of XHR_READY_STATES) {
-            nativeMethods.objectDefineProperty(xmlHttpRequestWrapper, readyState, {
-                value:      XMLHttpRequest[readyState],
-                enumerable: true
-            });
+            nativeMethods.objectDefineProperty(xmlHttpRequestWrapper, readyState,
+                nativeMethods.objectGetOwnPropertyDescriptor(nativeMethods.XMLHttpRequest, readyState));
         }
 
         // NOTE: We cannot just assign constructor property of the prototype of XMLHttpRequest starts from safari 9.0
@@ -116,7 +116,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             value: xmlHttpRequestWrapper
         });
 
-        overrideFunction(xmlHttpRequestProto, 'abort', function (this: XMLHttpRequest, ...args: []) {
+        overrideFunction(xmlHttpRequestProto, 'abort', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['abort']>) {
             if (xhrSandbox.gettingSettingInProgress())
                 return void xhrSandbox.delayUntilGetSettings(() => this.abort.apply(this, args));
 
@@ -129,7 +129,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
 
         // NOTE: Redirect all requests to the Hammerhead proxy and ensure that requests don't
         // violate Same Origin Policy.
-        overrideFunction(xmlHttpRequestProto, 'open', function (this: XMLHttpRequest, ...args: XhrOpenArgs) {
+        overrideFunction(xmlHttpRequestProto, 'open', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['open']>) {
             let url = args[1];
 
             if (getProxyUrl(url) === url)
@@ -153,7 +153,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             });
         });
 
-        overrideFunction(xmlHttpRequestProto, 'send', function (this: XMLHttpRequest, ...args: [any]) {
+        overrideFunction(xmlHttpRequestProto, 'send', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['send']>) {
             if (xhrSandbox.gettingSettingInProgress())
                 return void xhrSandbox.delayUntilGetSettings(() => this.send.apply(this, args));
 
@@ -173,8 +173,9 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             syncCookieWithClientIfNecessary.call(this);
         });
 
-        overrideFunction(xmlHttpRequestProto, 'setRequestHeader', function (this: XMLHttpRequest, ...args: [string, string]) {
-            args[0] = transformHeaderNameToInternal(args[0]);
+        overrideFunction(xmlHttpRequestProto, 'setRequestHeader', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['setRequestHeader']>) {
+            if (isAuthorizationHeader(args[0]))
+                args[1] = addAuthorizationPrefix(args[1]);
 
             nativeMethods.xhrSetRequestHeader.apply(this, args);
 
@@ -192,18 +193,22 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             });
         }
 
-        overrideFunction(xmlHttpRequestProto, 'getResponseHeader', function (this: XMLHttpRequest, ...args) {
-            args[0] = transformHeaderNameToInternal(args[0]);
+        overrideFunction(xmlHttpRequestProto, 'getResponseHeader', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['getResponseHeader']>) {
+            let value = nativeMethods.xhrGetResponseHeader.apply(this, args);
 
-            return nativeMethods.xhrGetResponseHeader.apply(this, args);
+            if (isAuthenticateHeader(args[0]))
+                value = removeAuthenticatePrefix(value);
+
+            return value;
         });
 
-        overrideFunction(xmlHttpRequestProto, 'getAllResponseHeaders', function (this: XMLHttpRequest) {
-            const allHeaders = nativeMethods.xhrGetAllResponseHeaders.apply(this, arguments);
+        overrideFunction(xmlHttpRequestProto, 'getAllResponseHeaders', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['getAllResponseHeaders']>) {
+            let allHeaders = nativeMethods.xhrGetAllResponseHeaders.apply(this, args);
 
-            return allHeaders
-                .replace(INTERNAL_HEADERS.wwwAuthenticate, BUILTIN_HEADERS.wwwAuthenticate)
-                .replace(INTERNAL_HEADERS.proxyAuthenticate, BUILTIN_HEADERS.proxyAuthenticate);
+            while (hasAuthenticatePrefix(allHeaders))
+                allHeaders = removeAuthenticatePrefix(allHeaders);
+
+            return allHeaders;
         });
     }
 }

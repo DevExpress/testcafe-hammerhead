@@ -121,7 +121,7 @@ class NativeMethods {
     Request: typeof Request;
     requestUrlGetter: (this: Request) => Request['url'];
     requestReferrerGetter: (this: Request) => Request['referrer'];
-    Headers: Headers['constructor'];
+    Headers: typeof Headers;
     headersSet: Headers['set'];
     headersGet: Headers['get'];
     headersHas: Headers['has'];

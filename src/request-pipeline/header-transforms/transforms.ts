@@ -1,10 +1,10 @@
 import RequestPipelineContext from '../context';
 import BUILTIN_HEADERS from '../builtin-header-names';
-import INTERNAL_HEADERS from '../internal-header-names';
 import * as urlUtils from '../../utils/url';
 import { parse as parseUrl, resolve as resolveUrl } from 'url';
 import { shouldOmitCredentials } from '../same-origin-policy';
 import { formatSyncCookie, generateDeleteSyncCookieStr, isOutdatedSyncCookie } from '../../utils/cookie';
+import { addAuthenticatePrefix, hasAuthorizationPrefix, removeAuthorizationPrefix } from '../../utils/headers';
 
 function skip (): undefined {
     return void 0;
@@ -14,8 +14,8 @@ function skipIfStateSnapshotIsApplied (src: string, ctx: RequestPipelineContext)
     return ctx.restoringStorages ? void 0 : src;
 }
 
-function transformAuthorizationHeader (src: string, ctx: RequestPipelineContext): string | undefined {
-    return shouldOmitCredentials(ctx) ? void 0 : src;
+function transformAuthorizationHeader (src: string): string | undefined {
+    return hasAuthorizationPrefix(src) ? removeAuthorizationPrefix(src) : void 0;
 }
 
 function generateSyncCookie (ctx: RequestPipelineContext, parsedServerCookies) {
@@ -82,28 +82,20 @@ function processSetCookieHeader (src: string | string[], ctx: RequestPipelineCon
 
 // Request headers
 export const requestTransforms = {
-    [BUILTIN_HEADERS.host]:                (_src, ctx) => ctx.dest.host,
-    [BUILTIN_HEADERS.referer]:             (_src: string, ctx: RequestPipelineContext) => ctx.dest.referer || void 0,
-    [BUILTIN_HEADERS.origin]:              (_src: string, ctx: RequestPipelineContext) => ctx.dest.reqOrigin || ctx.dest.domain,
-    [BUILTIN_HEADERS.contentLength]:       (_src: string, ctx: RequestPipelineContext) => ctx.reqBody.length,
-    [BUILTIN_HEADERS.cookie]:              skip,
-    [BUILTIN_HEADERS.ifModifiedSince]:     skipIfStateSnapshotIsApplied,
-    [BUILTIN_HEADERS.ifNoneMatch]:         skipIfStateSnapshotIsApplied,
-    [BUILTIN_HEADERS.authorization]:       transformAuthorizationHeader,
-    [BUILTIN_HEADERS.proxyAuthorization]:  transformAuthorizationHeader,
-    [INTERNAL_HEADERS.authorization]:      skip,
-    [INTERNAL_HEADERS.proxyAuthorization]: skip
+    [BUILTIN_HEADERS.host]:               (_src, ctx) => ctx.dest.host,
+    [BUILTIN_HEADERS.referer]:            (_src: string, ctx: RequestPipelineContext) => ctx.dest.referer || void 0,
+    [BUILTIN_HEADERS.origin]:             (_src: string, ctx: RequestPipelineContext) => ctx.dest.reqOrigin || ctx.dest.domain,
+    [BUILTIN_HEADERS.contentLength]:      (_src: string, ctx: RequestPipelineContext) => ctx.reqBody.length,
+    [BUILTIN_HEADERS.cookie]:             skip,
+    [BUILTIN_HEADERS.ifModifiedSince]:    skipIfStateSnapshotIsApplied,
+    [BUILTIN_HEADERS.ifNoneMatch]:        skipIfStateSnapshotIsApplied,
+    [BUILTIN_HEADERS.authorization]:      transformAuthorizationHeader,
+    [BUILTIN_HEADERS.proxyAuthorization]: transformAuthorizationHeader
 };
 
 export const forcedRequestTransforms = {
     [BUILTIN_HEADERS.cookie]: (_src: string, ctx: RequestPipelineContext) =>
-        shouldOmitCredentials(ctx) ? void 0 : ctx.session.cookies.getHeader(ctx.dest.url) || void 0,
-
-    [BUILTIN_HEADERS.authorization]: (_src: string, ctx: RequestPipelineContext) =>
-        ctx.req.headers[INTERNAL_HEADERS.authorization],
-
-    [BUILTIN_HEADERS.proxyAuthorization]: (_src: string, ctx: RequestPipelineContext) =>
-        ctx.req.headers[INTERNAL_HEADERS.proxyAuthorization]
+        shouldOmitCredentials(ctx) ? void 0 : ctx.session.cookies.getHeader(ctx.dest.url) || void 0
 };
 
 // Response headers
@@ -116,8 +108,8 @@ export const responseTransforms = {
     [BUILTIN_HEADERS.xWebkitCsp]:                       skip,
 
     // NOTE: Even if we are not able to be authorized, we should prevent showing the native credentials window.
-    [BUILTIN_HEADERS.wwwAuthenticate]:   skip,
-    [BUILTIN_HEADERS.proxyAuthenticate]: skip,
+    [BUILTIN_HEADERS.wwwAuthenticate]:   addAuthenticatePrefix,
+    [BUILTIN_HEADERS.proxyAuthenticate]: addAuthenticatePrefix,
 
     [BUILTIN_HEADERS.accessControlAllowOrigin]: (_src: string, ctx: RequestPipelineContext) =>
         ctx.isSameOriginPolicyFailed ? void 0 : ctx.getProxyOrigin(!!ctx.dest.reqOrigin),
@@ -170,12 +162,6 @@ export const responseTransforms = {
 
 export const forcedResponseTransforms = {
     [BUILTIN_HEADERS.setCookie]: processSetCookieHeader,
-
-    [INTERNAL_HEADERS.wwwAuthenticate]: (_src: string, ctx: RequestPipelineContext) =>
-        ctx.destRes.headers[BUILTIN_HEADERS.wwwAuthenticate],
-
-    [INTERNAL_HEADERS.proxyAuthenticate]: (_src: string, ctx: RequestPipelineContext) =>
-        ctx.destRes.headers[BUILTIN_HEADERS.proxyAuthenticate],
 
     [BUILTIN_HEADERS.serviceWorkerAllowed]: (_src: string, ctx: RequestPipelineContext) => ctx.dest.isServiceWorker ? '/' : void 0
 };
