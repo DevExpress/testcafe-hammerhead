@@ -102,7 +102,7 @@ describe('Proxy', () => {
             res.end();
         });
 
-        app.get('/', (req, res) => res.end(req.url));
+        app.get('/', (req, res) => res.destroy());
 
         app.get('/cookie-server-sync/:cookies', (req, res) => {
             res
@@ -1179,9 +1179,9 @@ describe('Proxy', () => {
         });
 
         it('Should respond with error if an error is occurred on attempting to connect with destination server', () => {
-            const url = getProxyUrl('https://127.0.0.1:2000/', { isAjax: true }, void 0, Credentials.omit);
+            const url = getProxyUrl('http://127.0.0.1:2000/', { isAjax: true }, void 0, Credentials.omit);
 
-            proxy.openSession('https://127.0.0.1:2000/', session);
+            proxy.openSession('http://127.0.0.1:2000/', session);
 
             return request(url)
                 .then(() => {
