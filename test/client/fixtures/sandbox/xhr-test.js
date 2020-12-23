@@ -310,69 +310,77 @@ test('send the origin header correctly (GH-284)', function () {
         });
 });
 
-asyncTest('authorization header by client should be processed (GH-1016)', function () {
+test('authorization headers by client should be processed (GH-1016)', function () {
     var xhr = new XMLHttpRequest();
 
-    xhr.open('GET', '/echo-request-headers/', true);
+    var processedHeaders       = {};
+    var storedSetRequestHeader = nativeMethods.xhrSetRequestHeader;
+
+    nativeMethods.xhrSetRequestHeader = function (name, value) {
+        processedHeaders[name] = value;
+    };
+
     xhr.setRequestHeader('Authorization', '123');
     xhr.setRequestHeader('x-header1', '456');
-    xhr.addEventListener('readystatechange', function () {
-        if (this.readyState === this.DONE) {
-            var headers = JSON.parse(this.responseText);
+    xhr.setRequestHeader('Proxy-Authorization', '789');
 
-            strictEqual(headers.authorization, headersUtils.addAuthorizationPrefix('123'));
-            strictEqual(headers['x-header1'], '456');
-
-            start();
-        }
+    deepEqual(processedHeaders, {
+        'Authorization':       headersUtils.addAuthorizationPrefix('123'),
+        'x-header1':           '456',
+        'Proxy-Authorization': headersUtils.addAuthorizationPrefix('789')
     });
-    xhr.send();
+
+    nativeMethods.xhrSetRequestHeader = storedSetRequestHeader;
 });
 
-asyncTest('getResponseHeader', function () {
-    var xhr     = new XMLHttpRequest();
-    var headers = {
-        'content-type':       'text/plain',
-        'www-authenticate':   headersUtils.addAuthenticatePrefix('Basic realm="Login"'),
-        'proxy-authenticate': headersUtils.addAuthenticatePrefix('Digital realm="Login"')
+test('getResponseHeader', function () {
+    var xhr = new XMLHttpRequest();
+
+    var storedGetResponseHeader = nativeMethods.xhrGetResponseHeader;
+    var makeGetResponseHeaderFn = function (value) {
+        return function () {
+            return value;
+        };
     };
 
-    xhr.open('post', '/echo-request-body-in-response-headers');
-    xhr.addEventListener('load', function () {
-        strictEqual(xhr.getResponseHeader('content-type'), 'text/plain');
-        strictEqual(xhr.getResponseHeader('WWW-Authenticate'), 'Basic realm="Login"');
-        strictEqual(xhr.getResponseHeader('Proxy-Authenticate'), 'Digital realm="Login"');
-        strictEqual(nativeMethods.xhrGetResponseHeader.call(xhr, 'WWW-Authenticate'),
-            headersUtils.addAuthenticatePrefix('Basic realm="Login"'));
-        strictEqual(nativeMethods.xhrGetResponseHeader.call(xhr, 'Proxy-Authenticate'),
-            headersUtils.addAuthenticatePrefix('Digital realm="Login"'));
+    var processedAuthenticateHeader = headersUtils.addAuthenticatePrefix('Basic realm="Login"');
 
-        start();
-    });
-    xhr.send(JSON.stringify(headers));
+    nativeMethods.xhrGetResponseHeader = makeGetResponseHeaderFn(processedAuthenticateHeader);
+
+    strictEqual(xhr.getResponseHeader('content-type'), processedAuthenticateHeader);
+    strictEqual(xhr.getResponseHeader('WWW-Authenticate'), 'Basic realm="Login"');
+    strictEqual(xhr.getResponseHeader('proxy-Authenticate'), 'Basic realm="Login"');
+
+    nativeMethods.xhrGetResponseHeader = makeGetResponseHeaderFn(null);
+
+    strictEqual(xhr.getResponseHeader('WWW-Authenticate'), null);
+    strictEqual(xhr.getResponseHeader('proxy-Authenticate'), null);
+
+    nativeMethods.xhrGetResponseHeader = storedGetResponseHeader;
 });
 
-asyncTest('getAllResponseHeaders', function () {
-    var xhr     = new XMLHttpRequest();
-    var headers = {
-        'content-type':       'text/plain',
-        'www-authenticate':   headersUtils.addAuthenticatePrefix('Digital realm="Login"'),
-        'proxy-authenticate': headersUtils.addAuthenticatePrefix('Basic realm="Login"')
+test('getAllResponseHeaders', function () {
+    var xhr = new XMLHttpRequest();
+
+    var storedGetAllResponseHeaders = nativeMethods.xhrGetAllResponseHeaders;
+
+    nativeMethods.xhrGetAllResponseHeaders = function () {
+        return 'connection: keep-alive\n' +
+            'content-type: text/plain\n' +
+            'date: Tue, 22 Dec 2020 12:37:49 GMT\n' +
+            'proxy-authenticate: ' + headersUtils.addAuthenticatePrefix('Basic realm="Login"') +
+            'keep-alive: timeout=5\n' +
+            'transfer-encoding: chunked\n' +
+            'www-authenticate: ' + headersUtils.addAuthenticatePrefix('Digital realm="Login"');
     };
 
-    xhr.open('post', '/echo-request-body-in-response-headers');
-    xhr.addEventListener('load', function () {
-        var nativeHeadersStr = nativeMethods.xhrGetAllResponseHeaders.call(xhr);
-        var headersStr       = xhr.getAllResponseHeaders();
+    var headersStr = xhr.getAllResponseHeaders();
 
-        ok(headersStr.indexOf('\nwww-authenticate: Digital realm="Login"') !== -1);
-        ok(headersStr.indexOf('\nproxy-authenticate: Basic realm="Login"') !== -1);
-        ok(headersStr.indexOf(headersUtils.addAuthenticatePrefix('')) === -1);
-        ok(nativeHeadersStr.indexOf(headersUtils.addAuthenticatePrefix('')) !== -1);
+    ok(headersStr.indexOf('\nwww-authenticate: Digital realm="Login"') !== -1);
+    ok(headersStr.indexOf('\nproxy-authenticate: Basic realm="Login"') !== -1);
+    ok(headersStr.indexOf(headersUtils.addAuthenticatePrefix('')) === -1);
 
-        start();
-    });
-    xhr.send(JSON.stringify(headers));
+    nativeMethods.xhrGetAllResponseHeaders = storedGetAllResponseHeaders;
 });
 
 asyncTest('"XHR_COMPLETED_EVENT" should be raised when xhr is prevented (GH-1283)', function () {

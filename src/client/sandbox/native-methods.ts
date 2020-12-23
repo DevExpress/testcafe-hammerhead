@@ -124,7 +124,6 @@ class NativeMethods {
     Headers: typeof Headers;
     headersSet: Headers['set'];
     headersGet: Headers['get'];
-    headersHas: Headers['has'];
     headersDelete: Headers['delete'];
     headersEntries: Headers['entries'];
     headersForEach: Headers['forEach'];
@@ -973,7 +972,6 @@ class NativeMethods {
             this.Headers        = win.Headers;
             this.headersSet     = win.Headers.prototype.set;
             this.headersGet     = win.Headers.prototype.get;
-            this.headersHas     = win.Headers.prototype.has;
             this.headersDelete  = win.Headers.prototype.delete;
             this.headersEntries = win.Headers.prototype.entries;
             this.headersForEach = win.Headers.prototype.forEach;
