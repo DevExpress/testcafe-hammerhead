@@ -131,6 +131,9 @@ declare module 'testcafe-hammerhead' {
 
         /** The body of the query response **/
         body: Buffer;
+
+        /** The same origin policy check **/
+        isSameOriginPolicyFailed: boolean;
     }
 
     /** The ResponseMock class is used to construct the response of the mocked request **/
@@ -153,7 +156,4 @@ declare module 'testcafe-hammerhead' {
 
     /** The URL of the service error page **/
     export const SPECIAL_ERROR_PAGE: string;
-
-    /** The internal status code indicating to failed same origin check **/
-    export const SAME_ORIGIN_CHECK_FAILED_STATUS_CODE: number;
 }

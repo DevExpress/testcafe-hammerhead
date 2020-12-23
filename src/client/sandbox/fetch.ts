@@ -1,18 +1,32 @@
 import Promise from 'pinkie';
 import SandboxBaseWithDelayedSettings from '../worker/sandbox-base-with-delayed-settings';
 import nativeMethods from './native-methods';
-import INTERNAL_HEADERS from '../../request-pipeline/internal-header-names';
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
-import { getProxyUrl, getDestinationUrl } from '../utils/url';
-import { getOriginHeader, sameOriginCheck, get as getDestLocation } from '../utils/destination-location';
+import { getAjaxProxyUrl, getDestinationUrl } from '../utils/url';
 import { isFetchHeaders, isFetchRequest } from '../utils/dom';
-import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
 import { overrideConstructor, overrideDescriptor, overrideFunction } from '../utils/overriding';
 import * as browserUtils from '../utils/browser';
-import { transformHeaderNameToBuiltin, transformHeaderNameToInternal } from '../utils/headers';
 import CookieSandbox from './cookie';
+import { Credentials } from '../../utils/url';
+import {
+    addAuthorizationPrefix, hasAuthorizationPrefix,
+    isAuthenticateHeader,
+    isAuthorizationHeader, removeAuthenticatePrefix,
+    removeAuthorizationPrefix
+} from '../../utils/headers';
 
-const DEFAULT_REQUEST_CREDENTIALS = nativeMethods.Request ? new nativeMethods.Request(location.toString()).credentials : void 0;
+function getCredentialsMode (credentialsOpt: any) {
+    credentialsOpt = String(credentialsOpt).toLowerCase();
+
+    switch (credentialsOpt) {
+        case 'omit': return Credentials.omit;
+        case 'same-origin': return Credentials.sameOrigin;
+        case 'include': return Credentials.include;
+        default: return Credentials.unknown;
+    }
+}
+
+const DEFAULT_REQUEST_CREDENTIALS = getCredentialsMode(nativeMethods.Request && new nativeMethods.Request(location.toString()).credentials);
 
 export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
     readonly FETCH_REQUEST_SENT_EVENT = 'hammerhead|event|fetch-request-sent-event';
@@ -21,108 +35,89 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         super(waitHammerheadSettings);
     }
 
-    private static _addSpecialHeadersToRequestInit (init) {
-        const credentials = init.credentials || DEFAULT_REQUEST_CREDENTIALS;
-        let headers       = init.headers;
+    private static _removeAuthHeadersPrefix (name: string, value: string) {
+        if (isAuthorizationHeader(name))
+            return removeAuthorizationPrefix(value);
+        else if (isAuthenticateHeader(name))
+            return removeAuthenticatePrefix(value);
+
+        return value;
+    }
+
+    private static _processInit (init?: RequestInit) {
+        let headers = init.headers;
+
+        if (!headers)
+            return init;
 
         if (!isFetchHeaders(headers)) {
-            // @ts-ignore
             headers      = headers ? new nativeMethods.Headers(headers) : new nativeMethods.Headers();
             init.headers = headers;
         }
 
-        // eslint-disable-next-line no-restricted-properties
-        nativeMethods.headersSet.call(headers, INTERNAL_HEADERS.origin, getOriginHeader());
-        nativeMethods.headersSet.call(headers, INTERNAL_HEADERS.credentials, credentials);
-
         const authorizationValue      = nativeMethods.headersGet.call(headers, BUILTIN_HEADERS.authorization);
         const proxyAuthorizationValue = nativeMethods.headersGet.call(headers, BUILTIN_HEADERS.proxyAuthorization);
 
-        if (authorizationValue !== null) {
-            nativeMethods.headersSet.call(headers, INTERNAL_HEADERS.authorization, authorizationValue);
-            nativeMethods.headersDelete.call(headers, BUILTIN_HEADERS.authorization);
-        }
+        if (authorizationValue !== null && !hasAuthorizationPrefix(authorizationValue))
+            nativeMethods.headersSet.call(headers, BUILTIN_HEADERS.authorization, addAuthorizationPrefix(authorizationValue));
 
-        if (proxyAuthorizationValue !== null) {
-            nativeMethods.headersSet.call(headers, INTERNAL_HEADERS.proxyAuthorization, proxyAuthorizationValue);
-            nativeMethods.headersDelete.call(headers, BUILTIN_HEADERS.proxyAuthorization);
-        }
+        if (proxyAuthorizationValue !== null && !hasAuthorizationPrefix(proxyAuthorizationValue))
+            nativeMethods.headersSet.call(headers, BUILTIN_HEADERS.proxyAuthorization, addAuthorizationPrefix(proxyAuthorizationValue));
 
         return init;
     }
 
-    private static _processArguments (args) {
-        const [input, init]       = args;
-        const inputIsString       = typeof input === 'string';
-        const inputIsFetchRequest = isFetchRequest(input);
+    private static _processArguments (args: Parameters<Window['fetch']>) {
+        const [input, init]   = args;
+        const inputIsString   = typeof input === 'string';
+        const optsCredentials = getCredentialsMode(init && init.credentials);
 
-        if (!inputIsFetchRequest) {
-            args[0] = getProxyUrl(inputIsString ? input : String(input));
-            args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init || {});
+        if (!isFetchRequest(input)) {
+            const url         = inputIsString ? input : String(input);
+            const credentials = optsCredentials === Credentials.unknown ? DEFAULT_REQUEST_CREDENTIALS : optsCredentials;
+
+            args[0] = getAjaxProxyUrl(url, credentials);
+            args[1] = FetchSandbox._processInit(init || {});
         }
-        else if (init && init.headers && input.destination !== 'worker')
-            args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init);
+        else {
+            if (optsCredentials !== Credentials.unknown)
+                args[0] = getAjaxProxyUrl(input.url, optsCredentials);
+
+            if (init && init.headers && input.destination !== 'worker')
+                args[1] = FetchSandbox._processInit(init);
+        }
     }
 
-    private static _sameOriginCheck ([input, init]) {
-        const isRequest   = isFetchRequest(input);
-        const url         = isRequest ? getDestinationUrl(nativeMethods.requestUrlGetter.call(input)) : getDestinationUrl(input);
-        const requestMode = isRequest ? input.mode : init && init.mode;
-
-        if (requestMode === 'same-origin')
-            return sameOriginCheck(getDestLocation(), url);
-
-        return true;
-    }
-
-    static _getResponseType (response) {
-        const destUrl      = getDestinationUrl(nativeMethods.responseUrlGetter.call(response));
-        const isSameOrigin = sameOriginCheck(getDestLocation(), destUrl);
-
-        if (isSameOrigin)
-            return 'basic';
-
-        return response.status === 0 ? 'opaque' : 'cors';
-    }
-
-    static _entriesFilteredNext (iterator, nativeNext) {
-        const entry = nativeNext.apply(iterator);
-
+    private static _processHeaderEntry (entry: IteratorResult<[string, string]>, isOnlyValue = false) {
         if (entry.done)
             return entry;
 
-        const headerName = entry.value[0]; // eslint-disable-line no-restricted-properties
+        /* eslint-disable no-restricted-properties */
+        const processedValue = FetchSandbox._removeAuthHeadersPrefix(entry.value[0], entry.value[1]);
 
-        // eslint-disable-next-line no-restricted-properties
-        if (headerName === INTERNAL_HEADERS.origin || headerName === INTERNAL_HEADERS.credentials)
-            return FetchSandbox._entriesFilteredNext(iterator, nativeNext);
-
-        entry.value[0] = transformHeaderNameToBuiltin(headerName); // eslint-disable-line no-restricted-properties
+        if (isOnlyValue)
+            entry.value = processedValue;
+        else
+            entry.value[1] = processedValue;
+        /* eslint-enable no-restricted-properties */
 
         return entry;
     }
 
-    static _entriesWrapper (...args: []) {
+    private static _entriesWrapper (...args: Parameters<Headers['entries']>) {
         const iterator   = nativeMethods.headersEntries.apply(this, args);
         const nativeNext = iterator.next;
 
-        iterator.next = () => FetchSandbox._entriesFilteredNext(iterator, nativeNext);
+        iterator.next = () => FetchSandbox._processHeaderEntry(nativeNext.call(iterator));
 
         return iterator;
     }
 
-    static _valuesWrapper (...args: []) {
+    private static _valuesWrapper (...args: Parameters<Headers['values']>) {
         const iterator   = nativeMethods.headersEntries.apply(this, args);
         const nativeNext = iterator.next;
 
-        iterator.next = () => {
-            const filteredEntry = FetchSandbox._entriesFilteredNext(iterator, nativeNext);
-
-            if (!filteredEntry.done)
-                filteredEntry.value = filteredEntry.value[1]; // eslint-disable-line no-restricted-properties
-
-            return filteredEntry;
-        };
+        iterator.next = () => FetchSandbox._processHeaderEntry(nativeNext.call(iterator), true);
 
         return iterator;
     }
@@ -135,7 +130,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
 
         const sandbox = this;
 
-        overrideConstructor(window, 'Request', function (...args) {
+        overrideConstructor(window, 'Request', function (...args: ConstructorParameters<typeof Request>) {
             FetchSandbox._processArguments(args);
 
             window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = nativeMethods.headersEntries;
@@ -161,7 +156,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             }
         });
 
-        overrideFunction(window, 'fetch', function (this: Window, ...args: [RequestInfo, RequestInit]) {
+        overrideFunction(window, 'fetch', function (this: Window, ...args: Parameters<Window['fetch']>) {
             if (sandbox.gettingSettingInProgress())
                 return sandbox.delayUntilGetSettings(() => this.fetch.apply(this, args));
 
@@ -175,10 +170,6 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             catch (e) {
                 return nativeMethods.promiseReject.call(sandbox.window.Promise, e);
             }
-
-            if (!FetchSandbox._sameOriginCheck(args))
-                // @ts-ignore
-                return nativeMethods.promiseReject.call(sandbox.window.Promise, new TypeError());
 
             window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = nativeMethods.headersEntries;
 
@@ -195,20 +186,6 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             });
         });
 
-        overrideDescriptor(window.Response.prototype, 'type', {
-            getter: function () {
-                return FetchSandbox._getResponseType(this);
-            }
-        });
-
-        overrideDescriptor(window.Response.prototype, 'status', {
-            getter: function () {
-                const responseStatus = nativeMethods.responseStatusGetter.call(this);
-
-                return responseStatus === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : responseStatus;
-            }
-        });
-
         overrideDescriptor(window.Response.prototype, 'url', {
             getter: function () {
                 return getDestinationUrl(nativeMethods.responseUrlGetter.call(this));
@@ -220,16 +197,12 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
 
         overrideFunction(window.Headers.prototype, 'values', FetchSandbox._valuesWrapper);
 
-        overrideFunction(window.Headers.prototype, 'forEach', function (this: Headers, ...args: [(value: string, key: string, parent: Headers) => void, any?]) {
+        overrideFunction(window.Headers.prototype, 'forEach', function (this: Headers, ...args: Parameters<Headers['forEach']>) {
             const callback = args[0];
 
             if (typeof callback === 'function') {
                 args[0] = function (value, name, headers) {
-                    // eslint-disable-next-line no-restricted-properties
-                    if (name === INTERNAL_HEADERS.origin || name === INTERNAL_HEADERS.credentials)
-                        return;
-
-                    name = transformHeaderNameToBuiltin(name);
+                    value = FetchSandbox._removeAuthHeadersPrefix(name, value);
 
                     callback.call(this, value, name, headers);
                 };
@@ -238,40 +211,15 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             return nativeMethods.headersForEach.apply(this, args);
         });
 
-        overrideFunction(window.Headers.prototype, 'get', function (this: Headers, ...args: [string]) {
-            const [headerName] = args;
+        overrideFunction(window.Headers.prototype, 'get', function (this: Headers, ...args: Parameters<Headers['get']>) {
+            const value = nativeMethods.headersGet.apply(this, args);
 
-            args[0] = transformHeaderNameToInternal(headerName);
-
-            const result = nativeMethods.headersGet.apply(this, args);
-
-            if (result === null) {
-                args[0] = headerName;
-
-                return nativeMethods.headersGet.apply(this, args);
-            }
-
-            return result;
+            return value && FetchSandbox._removeAuthHeadersPrefix(args[0], value);
         });
 
-        overrideFunction(window.Headers.prototype, 'has', function (this: Headers, ...args: [string]) {
-            const [headerName] = args;
-
-            args[0] = transformHeaderNameToInternal(headerName);
-
-            const result = nativeMethods.headersHas.apply(this, args);
-
-            if (!result) {
-                args[0] = headerName;
-
-                return nativeMethods.headersHas.apply(this, args);
-            }
-
-            return result;
-        });
-
-        overrideFunction(window.Headers.prototype, 'set', function (this: Headers, ...args: [string, string]) {
-            args[0] = transformHeaderNameToInternal(args[0]);
+        overrideFunction(window.Headers.prototype, 'set', function (this: Headers, ...args: Parameters<Headers['set']>) {
+            if (isAuthorizationHeader(args[0]))
+                args[1] = addAuthorizationPrefix(args[1]);
 
             return nativeMethods.headersSet.apply(this, args);
         });

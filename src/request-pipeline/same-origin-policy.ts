@@ -1,21 +1,17 @@
-import RequestPipelineContext from '../context';
-import BUILTIN_HEADERS from '../builtin-header-names';
-import INTERNAL_HEADERS from '../internal-header-names';
+import RequestPipelineContext from './context';
+import BUILTIN_HEADERS from './builtin-header-names';
 import { castArray } from 'lodash';
+import { Credentials } from '../utils/url';
 
 // NOTE: https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS
 export function check (ctx: RequestPipelineContext): boolean {
-    const reqOrigin = ctx.dest.reqOrigin;
+    const reqOrigin              = ctx.dest.reqOrigin;
 
     // PASSED: Same origin.
     if (ctx.dest.domain === reqOrigin)
         return true;
 
-    // PASSED: We have a "preflight" request.
-    if (ctx.req.method === 'OPTIONS')
-        return true;
-
-    const withCredentials        = ctx.req.headers[INTERNAL_HEADERS.credentials] === 'include';
+    const withCredentials        = ctx.dest.credentials === Credentials.include;
     const allowOriginHeader      = ctx.destRes.headers[BUILTIN_HEADERS.accessControlAllowOrigin];
     const allowCredentialsHeader = ctx.destRes.headers[BUILTIN_HEADERS.accessControlAllowCredentials];
     const allowCredentials       = String(allowCredentialsHeader).toLowerCase() === 'true';
@@ -37,12 +33,12 @@ export function check (ctx: RequestPipelineContext): boolean {
 }
 
 export function shouldOmitCredentials (ctx: RequestPipelineContext): boolean {
-    switch (ctx.req.headers[INTERNAL_HEADERS.credentials]) {
-        case 'omit':
+    switch (ctx.dest.credentials) {
+        case Credentials.omit:
             return true;
-        case 'same-origin':
+        case Credentials.sameOrigin:
             return ctx.dest.reqOrigin !== ctx.dest.domain;
-        case 'include':
+        case Credentials.include:
             return false;
         default:
             return false;

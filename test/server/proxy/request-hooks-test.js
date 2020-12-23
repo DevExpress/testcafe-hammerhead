@@ -1,30 +1,36 @@
 const fs                = require('fs');
+const { noop }          = require('lodash');
 const ResponseMock      = require('../../../lib/request-pipeline/request-hooks/response-mock');
 const RequestFilterRule = require('../../../lib/request-pipeline/request-hooks/request-filter-rule');
 const { expect }        = require('chai');
 const request           = require('request-promise-native');
+const urlUtils          = require('../../../lib/utils/url');
 
 const {
     TEST_OBJ,
     PAGE_ACCEPT_HEADER
 } = require('../common/constants');
 
-const SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = require('../../../lib/request-pipeline/xhr/same-origin-check-failed-status-code');
-const INTERNAL_HEADERS                     = require('../../../lib/request-pipeline/internal-header-names');
-const { noop }                             = require('lodash');
 
 const {
     createSession,
     createProxy,
     compareCode,
     normalizeNewLine,
+    getBasicProxyUrl,
     createDestinationServer
 } = require('../common/utils');
+
+const Credentials = urlUtils.Credentials;
 
 describe('Request Hooks', () => {
     let session    = null;
     let proxy      = null;
     let destServer = null;
+
+    function getProxyUrl (url, resourceType, reqOrigin, credentials, isCrossDomain, currentSession = session) {
+        return getBasicProxyUrl(url, resourceType, reqOrigin, credentials, isCrossDomain, currentSession);
+    }
 
     before(() => {
         const sameDomainDestinationServer = createDestinationServer();
@@ -247,7 +253,7 @@ describe('Request Hooks', () => {
         });
 
         it('Ajax request', () => {
-            let requestEventIsRaised          = false;
+            let requestEventIsRaised           = false;
             let configureResponseEventIsRaised = false;
             let responseEventIsRaised          = false;
 
@@ -279,7 +285,8 @@ describe('Request Hooks', () => {
                 onResponse: e => {
                     return new Promise(resolve => {
                         setTimeout(() => {
-                            expect(e.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
+                            expect(e.statusCode).eql(200);
+                            expect(e.isSameOriginPolicyFailed).to.be.true;
 
                             responseEventIsRaised = true;
 
@@ -290,17 +297,17 @@ describe('Request Hooks', () => {
             });
 
             const options = {
-                url:                     proxy.openSession('http://127.0.0.1:2000/page/plain-text', session),
-                resolveWithFullResponse: true,
-                headers:                 {
-                    referer:                        proxy.openSession('http://example.com', session),
-                    [INTERNAL_HEADERS.credentials]: 'same-origin'
-                }
+                url: getProxyUrl('http://127.0.0.1:2000/page/plain-text', { isAjax: true },
+                    'http://example.com', Credentials.sameOrigin, true),
+
+                resolveWithFullResponse: true
             };
+
+            proxy.openSession('http://example.com', session);
 
             return request(options)
                 .then(res => {
-                    expect(res.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
+                    expect(res.statusCode).eql(200);
                     expect(requestEventIsRaised).to.be.true;
                     expect(configureResponseEventIsRaised).to.be.true;
                     expect(responseEventIsRaised).to.be.true;
@@ -589,13 +596,11 @@ describe('Request Hooks', () => {
             });
 
             const options = {
-                url:     proxy.openSession(url, session),
-                headers: {
-                    accept:                         PAGE_ACCEPT_HEADER,
-                    referer:                        proxy.openSession('http://example.com', session),
-                    [INTERNAL_HEADERS.credentials]: 'same-origin'
-                }
+                url:     getProxyUrl(url, { isAjax: true }, void 0, Credentials.sameOrigin),
+                headers: { accept: PAGE_ACCEPT_HEADER }
             };
+
+            proxy.openSession('http://example.com', session);
 
             return request(options)
                 .then(body => {
@@ -604,8 +609,6 @@ describe('Request Hooks', () => {
                     session.removeRequestEventListeners(rule);
                 });
         });
-
-
     });
 
     it('Should allow to set request options', () => {

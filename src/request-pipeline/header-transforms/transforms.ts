@@ -1,10 +1,10 @@
 import RequestPipelineContext from '../context';
 import BUILTIN_HEADERS from '../builtin-header-names';
-import INTERNAL_HEADERS from '../internal-header-names';
 import * as urlUtils from '../../utils/url';
 import { parse as parseUrl, resolve as resolveUrl } from 'url';
-import { shouldOmitCredentials } from '../xhr/same-origin-policy';
+import { shouldOmitCredentials } from '../same-origin-policy';
 import { formatSyncCookie, generateDeleteSyncCookieStr, isOutdatedSyncCookie } from '../../utils/cookie';
+import { addAuthenticatePrefix, hasAuthorizationPrefix, removeAuthorizationPrefix } from '../../utils/headers';
 
 function skip (): undefined {
     return void 0;
@@ -14,8 +14,8 @@ function skipIfStateSnapshotIsApplied (src: string, ctx: RequestPipelineContext)
     return ctx.restoringStorages ? void 0 : src;
 }
 
-function transformAuthorizationHeader (src: string, ctx: RequestPipelineContext): string | undefined {
-    return shouldOmitCredentials(ctx) ? void 0 : src;
+function transformAuthorizationHeader (src: string): string | undefined {
+    return hasAuthorizationPrefix(src) ? removeAuthorizationPrefix(src) : void 0;
 }
 
 function generateSyncCookie (ctx: RequestPipelineContext, parsedServerCookies) {
@@ -66,6 +66,10 @@ function resolveAndGetProxyUrl (url: string, ctx: RequestPipelineContext): strin
 
         isCrossDomain = isCrossDomainLocationBeforeRedirect !== isCrossDomainLocationAfterRedirect;
     }
+    else if (ctx.isAjax) {
+        return ctx.toProxyUrl(url, isCrossDomain, ctx.contentInfo.contentTypeUrlToken,
+            void 0, ctx.dest.reqOrigin, ctx.dest.credentials);
+    }
 
     return ctx.toProxyUrl(url, isCrossDomain, ctx.contentInfo.contentTypeUrlToken);
 }
@@ -74,7 +78,7 @@ function transformRefreshHeader (src: string, ctx: RequestPipelineContext) {
     return src.replace(/(url=)(.*)$/i, (_match, prefix, url) => prefix + resolveAndGetProxyUrl(url, ctx));
 }
 
-export function processSetCookieHeader (src: string | string[], ctx: RequestPipelineContext) {
+function processSetCookieHeader (src: string | string[], ctx: RequestPipelineContext) {
     const parsedCookies = src && !shouldOmitCredentials(ctx) ? ctx.session.cookies.setByServer(ctx.dest.url, src) : [];
 
     return generateSyncCookie(ctx, parsedCookies);
@@ -82,38 +86,20 @@ export function processSetCookieHeader (src: string | string[], ctx: RequestPipe
 
 // Request headers
 export const requestTransforms = {
-    [BUILTIN_HEADERS.host]:                (_src, ctx) => ctx.dest.host,
-    [BUILTIN_HEADERS.referer]:             (_src: string, ctx: RequestPipelineContext) => ctx.dest.referer || void 0,
-    [BUILTIN_HEADERS.origin]:              (src: string, ctx: RequestPipelineContext) => ctx.dest.reqOrigin || src,
-    [BUILTIN_HEADERS.contentLength]:       (_src: string, ctx: RequestPipelineContext) => ctx.reqBody.length,
-    [BUILTIN_HEADERS.cookie]:              skip,
-    [BUILTIN_HEADERS.ifModifiedSince]:     skipIfStateSnapshotIsApplied,
-    [BUILTIN_HEADERS.ifNoneMatch]:         skipIfStateSnapshotIsApplied,
-    [BUILTIN_HEADERS.authorization]:       transformAuthorizationHeader,
-    [BUILTIN_HEADERS.proxyAuthorization]:  transformAuthorizationHeader,
-    [INTERNAL_HEADERS.origin]:             skip,
-    [INTERNAL_HEADERS.credentials]:        skip,
-    [INTERNAL_HEADERS.authorization]:      skip,
-    [INTERNAL_HEADERS.proxyAuthorization]: skip
+    [BUILTIN_HEADERS.host]:               (_src, ctx) => ctx.dest.host,
+    [BUILTIN_HEADERS.referer]:            (_src: string, ctx: RequestPipelineContext) => ctx.dest.referer || void 0,
+    [BUILTIN_HEADERS.origin]:             (_src: string, ctx: RequestPipelineContext) => ctx.dest.reqOrigin || ctx.dest.domain,
+    [BUILTIN_HEADERS.contentLength]:      (_src: string, ctx: RequestPipelineContext) => ctx.reqBody.length,
+    [BUILTIN_HEADERS.cookie]:             skip,
+    [BUILTIN_HEADERS.ifModifiedSince]:    skipIfStateSnapshotIsApplied,
+    [BUILTIN_HEADERS.ifNoneMatch]:        skipIfStateSnapshotIsApplied,
+    [BUILTIN_HEADERS.authorization]:      transformAuthorizationHeader,
+    [BUILTIN_HEADERS.proxyAuthorization]: transformAuthorizationHeader
 };
 
 export const forcedRequestTransforms = {
     [BUILTIN_HEADERS.cookie]: (_src: string, ctx: RequestPipelineContext) =>
-        shouldOmitCredentials(ctx) ? void 0 : ctx.session.cookies.getHeader(ctx.dest.url) || void 0,
-
-    // NOTE: All browsers except Chrome don't send the 'Origin' header in case of the same domain XHR requests.
-    // So, if the request is actually cross-domain, we need to force the 'Origin' header to support CORS. (B234325)
-    [BUILTIN_HEADERS.origin]: (src: string, ctx: RequestPipelineContext) => {
-        const force = ctx.isAjax && !src && ctx.dest.domain !== ctx.dest.reqOrigin;
-
-        return force ? ctx.dest.reqOrigin : src;
-    },
-
-    [BUILTIN_HEADERS.authorization]: (_src: string, ctx: RequestPipelineContext) =>
-        ctx.req.headers[INTERNAL_HEADERS.authorization],
-
-    [BUILTIN_HEADERS.proxyAuthorization]: (_src: string, ctx: RequestPipelineContext) =>
-        ctx.req.headers[INTERNAL_HEADERS.proxyAuthorization]
+        shouldOmitCredentials(ctx) ? void 0 : ctx.session.cookies.getHeader(ctx.dest.url) || void 0
 };
 
 // Response headers
@@ -126,11 +112,11 @@ export const responseTransforms = {
     [BUILTIN_HEADERS.xWebkitCsp]:                       skip,
 
     // NOTE: Even if we are not able to be authorized, we should prevent showing the native credentials window.
-    [BUILTIN_HEADERS.wwwAuthenticate]:   skip,
-    [BUILTIN_HEADERS.proxyAuthenticate]: skip,
+    [BUILTIN_HEADERS.wwwAuthenticate]:   addAuthenticatePrefix,
+    [BUILTIN_HEADERS.proxyAuthenticate]: addAuthenticatePrefix,
 
-    // NOTE: We perform CORS checks on our side, so we skip the related headers.
-    [BUILTIN_HEADERS.accessControlAllowOrigin]: skip,
+    [BUILTIN_HEADERS.accessControlAllowOrigin]: (_src: string, ctx: RequestPipelineContext) =>
+        ctx.isSameOriginPolicyFailed ? void 0 : ctx.getProxyOrigin(!!ctx.dest.reqOrigin),
 
     // NOTE: Change the transform type if we have an iframe with an image as src,
     // because it was transformed to HTML with the image tag.
@@ -180,12 +166,6 @@ export const responseTransforms = {
 
 export const forcedResponseTransforms = {
     [BUILTIN_HEADERS.setCookie]: processSetCookieHeader,
-
-    [INTERNAL_HEADERS.wwwAuthenticate]: (_src: string, ctx: RequestPipelineContext) =>
-        ctx.destRes.headers[BUILTIN_HEADERS.wwwAuthenticate],
-
-    [INTERNAL_HEADERS.proxyAuthenticate]: (_src: string, ctx: RequestPipelineContext) =>
-        ctx.destRes.headers[BUILTIN_HEADERS.proxyAuthenticate],
 
     [BUILTIN_HEADERS.serviceWorkerAllowed]: (_src: string, ctx: RequestPipelineContext) => ctx.dest.isServiceWorker ? '/' : void 0
 };

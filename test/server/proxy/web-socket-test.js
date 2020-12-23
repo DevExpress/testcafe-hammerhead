@@ -5,7 +5,7 @@ const { getFreePort }       = require('endpoint-utils');
 
 const {
     createDestinationServer,
-    getProxyUrl: getBasicProxyUrl,
+    getBasicProxyUrl,
     createSession,
     createProxy
 } = require('../common/utils');
@@ -21,14 +21,12 @@ describe('WebSocket', () => {
     let wsServer    = null;
     let wssServer   = null;
 
-    function getProxyUrl (url, resourceType, reqOrigin, isCrossDomain, currentSession = session) {
-        return getBasicProxyUrl(url, resourceType, reqOrigin, isCrossDomain, currentSession);
+    function getProxyUrl (url, resourceType, reqOrigin, credentials, isCrossDomain, currentSession = session) {
+        return getBasicProxyUrl(url, resourceType, reqOrigin, credentials, isCrossDomain, currentSession);
     }
 
     before(() => {
         const sameDomainDestinationServer = createDestinationServer();
-
-        destServer = sameDomainDestinationServer.server;
 
         destServer = sameDomainDestinationServer.server;
 
@@ -76,27 +74,21 @@ describe('WebSocket', () => {
         proxy.close();
     });
 
-    const askSocket = (ws, msg) => {
-        return new Promise(resolve => {
-            ws.once('message', resolve);
-            ws.send(msg);
-        });
-    };
+    const askSocket = (ws, msg) => new Promise(resolve => {
+        ws.once('message', resolve);
+        ws.send(msg);
+    });
 
     it('Should proxy WebSocket', () => {
-        const url = getProxyUrl('http://127.0.0.1:2000/web-socket', { isWebSocket: true }, encodeURIComponent('http://example.com'));
+        const url = getProxyUrl('http://127.0.0.1:2000/web-socket', { isWebSocket: true }, 'http://example.com');
 
         proxy.openSession('http://127.0.0.1:2000/', session);
         session.cookies.setByServer('http://127.0.0.1:2000', 'key=value');
 
-        const ws = new WebSocket(url, { origin: 'http://some.domain.url' });
+        const ws = new WebSocket(url, { origin: 'http://example.com' });
 
-        return new Promise(resolve => {
-            ws.on('open', resolve);
-        })
-            .then(() => {
-                return askSocket(ws, 'get origin header');
-            })
+        return new Promise(resolve => ws.on('open', resolve))
+            .then(() => askSocket(ws, 'get origin header'))
             .then(msg => {
                 expect(msg).eql('http://example.com');
 
@@ -119,19 +111,14 @@ describe('WebSocket', () => {
     });
 
     it('Should proxy secure WebSocket', () => {
-        const url = getProxyUrl('https://127.0.0.1:2001/secure-web-socket', { isWebSocket: true },
-            encodeURIComponent('http://example.com'));
+        const url = getProxyUrl('https://127.0.0.1:2001/secure-web-socket', { isWebSocket: true }, 'http://example.com');
 
         proxy.openSession('https://127.0.0.1:2001/', session);
 
-        const ws = new WebSocket(url, { origin: 'http://some.domain.url' });
+        const ws = new WebSocket(url, { origin: 'http://example.com' });
 
-        return new Promise(resolve => {
-            ws.on('open', resolve);
-        })
-            .then(() => {
-                return askSocket(ws, 'get origin header');
-            })
+        return new Promise(resolve => ws.on('open', resolve))
+            .then(() => askSocket(ws, 'get origin header'))
             .then(msg => {
                 expect(msg).eql('http://example.com');
 
@@ -151,13 +138,8 @@ describe('WebSocket', () => {
 
         const ws = new WebSocket(url);
 
-        ws.on('error', err => {
-            expect(err.message).eql('socket hang up');
-        });
-
-        ws.on('close', () => {
-            done();
-        });
+        ws.on('error', err => expect(err.message).eql('socket hang up'));
+        ws.on('close', () => done());
     });
 
     it('Should close webSocket from server side', done => {
@@ -219,8 +201,6 @@ describe('WebSocket', () => {
             done();
         };
 
-        ws.on('error', err => {
-            expect(err.message).eql('socket hang up');
-        });
+        ws.on('error', err => expect(err.message).eql('socket hang up'));
     });
 });

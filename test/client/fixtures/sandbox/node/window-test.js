@@ -1,6 +1,7 @@
 var urlUtils     = hammerhead.get('./utils/url');
 var destLocation = hammerhead.get('./utils/destination-location');
 var INSTRUCTION  = hammerhead.get('../processing/script/instruction');
+var XhrSandbox   = hammerhead.get('./sandbox/xhr');
 
 var windowSandox  = hammerhead.sandbox.node.win;
 var nativeMethods = hammerhead.nativeMethods;
@@ -349,6 +350,8 @@ test('parameters passed to the native function in its original form', function (
     checkNativeFunctionArgs('abort', 'xhrAbort', xhr);
 
     nativeMethods.xhrOpen.call(xhr, 'GET', '/path', true);
+    XhrSandbox.REQUESTS_OPTIONS.set(xhr, { withCredentials: false });
+
     checkNativeFunctionArgs('send', 'xhrSend', xhr);
 
     // Event

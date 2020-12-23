@@ -1,7 +1,6 @@
 import RequestPipelineContext from '../../request-pipeline/context';
 import ConfigureResponseEventOptions from './configure-response-event-options';
 import { IncomingHttpHeaders } from 'http';
-import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
 
 export class RequestInfo {
     readonly requestId: string;
@@ -31,13 +30,16 @@ export class ResponseInfo {
     readonly sessionId: string;
     readonly headers: { [name: string]: string|string[] };
     readonly body: Buffer;
+    readonly isSameOriginPolicyFailed: boolean;
 
     constructor (ctx: RequestPipelineContext) {
         this.requestId  = ctx.requestId;
         this.headers    = ctx.destRes.headers;
         this.body       = ctx.nonProcessedDestResBody;
-        this.statusCode = ctx.isSameOriginPolicyFailed ? SAME_ORIGIN_CHECK_FAILED_STATUS_CODE : ctx.destRes.statusCode;
+        this.statusCode = ctx.destRes.statusCode;
         this.sessionId  = ctx.session.id;
+
+        this.isSameOriginPolicyFailed = ctx.isSameOriginPolicyFailed;
     }
 }
 
@@ -47,11 +49,14 @@ export class PreparedResponseInfo {
     readonly sessionId: string;
     readonly headers?: { [name: string]: string|string[] };
     readonly body?: Buffer;
+    readonly isSameOriginPolicyFailed: boolean;
 
     constructor (responseInfo: ResponseInfo, opts: ConfigureResponseEventOptions) {
         this.requestId  = responseInfo.requestId;
         this.statusCode = responseInfo.statusCode;
         this.sessionId  = responseInfo.sessionId;
+
+        this.isSameOriginPolicyFailed = responseInfo.isSameOriginPolicyFailed;
 
         if (opts.includeHeaders)
             this.headers = responseInfo.headers;

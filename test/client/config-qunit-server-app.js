@@ -112,17 +112,9 @@ module.exports = function (app) {
             });
     });
 
-    app.get('/xhr-test/:delay', function (req, res) {
-        var delay = req.params.delay || 0;
-
-        setTimeout(function () {
-            res.send(req.originalUrl || req.url);
-        }, delay);
-    });
-
-    app.post('/xhr-origin-header-test/', function (req, res) {
-        res.send(req.headers['x-hammerhead-origin']);
-    });
+    app.get('/xhr-test/:delay', (req, res) => setTimeout(() => {
+        res.send(req.originalUrl || req.url);
+    }, req.params.delay || 0));
 
     app.get('/xhr-with-sync-cookie/', function (req, res) {
         res.setHeader('set-cookie', 's|sessionId|hello|example.com|%2F||1fckm5lnl=world;path=/');
@@ -131,10 +123,9 @@ module.exports = function (app) {
         res.send();
     });
 
-    app.get('/xhr-222/', function (req, res) {
-        res.statusCode = 222;
-        res.send('true');
-    });
+    app.get('/cors/', (req, res) => res
+        .set('access-control-allow-origin', req.headers.origin)
+        .send());
 
     app.get('/redirect/', function (req, res) {
         res.statusCode = 302;

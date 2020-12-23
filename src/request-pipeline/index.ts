@@ -5,7 +5,6 @@ import { ServerInfo } from '../typings/proxy';
 import RequestPipelineContext from './context';
 import { process as processResource } from '../processing/resources';
 import connectionResetGuard from './connection-reset-guard';
-import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from './xhr/same-origin-check-failed-status-code';
 import { fetchBody, respond404 } from '../utils/http';
 import { respondOnWebSocket } from './websocket';
 import createSpecialPageResponse from './special-page';
@@ -96,8 +95,7 @@ const stages = [
             await ctx.session.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
             await callOnResponseEventCallbackForFailedSameOriginCheck(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
         });
-        logger.proxy('Proxy CORS check failed %s, responding 222', ctx.requestId);
-        ctx.closeWithError(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
+        logger.proxy('Proxy CORS check failed %s', ctx.requestId);
     },
 
     async function decideOnProcessingStrategy (ctx: RequestPipelineContext) {

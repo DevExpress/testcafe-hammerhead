@@ -103,14 +103,14 @@ class NativeMethods {
     clearInterval: Window['clearInterval'];
     registerProtocolHandler: any;
     sendBeacon: any;
-    xhrAbort: any;
-    xhrOpen: any;
-    xhrSend: any;
+    xhrAbort: XMLHttpRequest['abort'];
+    xhrOpen: XMLHttpRequest['open'];
+    xhrSend: XMLHttpRequest['send'];
     xhrAddEventListener: any;
     xhrRemoveEventListener: any;
-    xhrGetResponseHeader: any;
-    xhrGetAllResponseHeaders: any;
-    xhrSetRequestHeader: any;
+    xhrGetResponseHeader: XMLHttpRequest['getResponseHeader'];
+    xhrGetAllResponseHeaders: XMLHttpRequest['getAllResponseHeaders'];
+    xhrSetRequestHeader: XMLHttpRequest['setRequestHeader'];
     xhrOverrideMimeType: any;
     xhrDispatchEvent: any;
     registerServiceWorker: any;
@@ -121,10 +121,9 @@ class NativeMethods {
     Request: typeof Request;
     requestUrlGetter: (this: Request) => Request['url'];
     requestReferrerGetter: (this: Request) => Request['referrer'];
-    Headers: Headers['constructor'];
+    Headers: typeof Headers;
     headersSet: Headers['set'];
     headersGet: Headers['get'];
-    headersHas: Headers['has'];
     headersDelete: Headers['delete'];
     headersEntries: Headers['entries'];
     headersForEach: Headers['forEach'];
@@ -240,7 +239,6 @@ class NativeMethods {
     elementChildElementCountGetter: any;
     inputFilesGetter: any;
     styleSheetHrefGetter: any;
-    xhrStatusGetter: any;
     objectDataGetter: any;
     inputTypeGetter: any;
     inputValueGetter: any;
@@ -645,8 +643,6 @@ class NativeMethods {
             // NOTE: IE doesn't support the 'responseURL' property
             if (xhrResponseURLDescriptor)
                 this.xhrResponseURLGetter = xhrResponseURLDescriptor.get;
-
-            this.xhrStatusGetter = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'status').get;
         }
 
         // eslint-disable-next-line no-restricted-properties
@@ -977,7 +973,6 @@ class NativeMethods {
             this.Headers        = win.Headers;
             this.headersSet     = win.Headers.prototype.set;
             this.headersGet     = win.Headers.prototype.get;
-            this.headersHas     = win.Headers.prototype.has;
             this.headersDelete  = win.Headers.prototype.delete;
             this.headersEntries = win.Headers.prototype.entries;
             this.headersForEach = win.Headers.prototype.forEach;

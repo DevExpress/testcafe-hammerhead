@@ -1,21 +1,32 @@
 import Promise from 'pinkie';
 import SandboxBaseWithDelayedSettings from '../worker/sandbox-base-with-delayed-settings';
 import nativeMethods from './native-methods';
-import { getDestinationUrl, getProxyUrl } from '../utils/url';
+import { getAjaxProxyUrl, getDestinationUrl, getProxyUrl } from '../utils/url';
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
-import INTERNAL_HEADERS from '../../request-pipeline/internal-header-names';
-import { transformHeaderNameToInternal } from '../utils/headers';
-import { getOriginHeader } from '../utils/destination-location';
 import { overrideConstructor, overrideDescriptor, overrideFunction } from '../utils/overriding';
-import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
 import CookieSandbox from './cookie';
+import { Credentials } from '../../utils/url';
+import {
+    addAuthorizationPrefix, hasAuthenticatePrefix,
+    isAuthenticateHeader,
+    isAuthorizationHeader,
+    removeAuthenticatePrefix
+} from '../../utils/headers';
 
 const XHR_READY_STATES = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
+
+interface RequestOptions {
+    withCredentials: boolean;
+    openArgs: Parameters<XMLHttpRequest['open']>;
+    headers: ([string, string])[];
+}
 
 export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
     readonly XHR_COMPLETED_EVENT = 'hammerhead|event|xhr-completed';
     readonly XHR_ERROR_EVENT = 'hammerhead|event|xhr-error';
     readonly BEFORE_XHR_SEND_EVENT = 'hammerhead|event|before-xhr-send';
+
+    private static readonly REQUESTS_OPTIONS = new WeakMap<XMLHttpRequest, RequestOptions>();
 
     constructor (private readonly _cookieSandbox: CookieSandbox, waitHammerheadSettings?: Promise<void>) {
         super(waitHammerheadSettings);
@@ -43,11 +54,26 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         xhr.setRequestHeader(BUILTIN_HEADERS.cacheControl, 'no-cache, no-store, must-revalidate');
     }
 
+    private static _reopenXhr(xhr: XMLHttpRequest, reqOpts: RequestOptions) {
+        const url             = reqOpts.openArgs[1];
+        const withCredentials = xhr.withCredentials;
+
+        reqOpts.withCredentials = withCredentials;
+        reqOpts.openArgs[1]     = getAjaxProxyUrl(url, withCredentials ? Credentials.include : Credentials.sameOrigin);
+
+        nativeMethods.xhrOpen.apply(xhr, reqOpts.openArgs);
+
+        reqOpts.openArgs[1] = url;
+
+        for (const header of reqOpts.headers)
+            nativeMethods.xhrSetRequestHeader.apply(xhr, header);
+    }
+
     attach (window) {
         super.attach(window);
 
-        const xhrSandbox             = this;
-        const xmlHttpRequestProto    = window.XMLHttpRequest.prototype;
+        const xhrSandbox          = this;
+        const xmlHttpRequestProto = window.XMLHttpRequest.prototype;
 
         const emitXhrCompletedEvent = function (this: XMLHttpRequest) {
             const nativeRemoveEventListener = nativeMethods.xhrRemoveEventListener || nativeMethods.removeEventListener;
@@ -79,10 +105,8 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         };
 
         for (const readyState of XHR_READY_STATES) {
-            nativeMethods.objectDefineProperty(xmlHttpRequestWrapper, readyState, {
-                value:      XMLHttpRequest[readyState],
-                enumerable: true
-            });
+            nativeMethods.objectDefineProperty(xmlHttpRequestWrapper, readyState,
+                nativeMethods.objectGetOwnPropertyDescriptor(nativeMethods.XMLHttpRequest, readyState));
         }
 
         // NOTE: We cannot just assign constructor property of the prototype of XMLHttpRequest starts from safari 9.0
@@ -92,14 +116,11 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             value: xmlHttpRequestWrapper
         });
 
-        overrideFunction(xmlHttpRequestProto, 'abort', function (this: XMLHttpRequest, ...args: []) {
-            if (xhrSandbox.gettingSettingInProgress()) {
-                xhrSandbox.delayUntilGetSettings(() => this.abort.apply(this, args));
+        overrideFunction(xmlHttpRequestProto, 'abort', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['abort']>) {
+            if (xhrSandbox.gettingSettingInProgress())
+                return void xhrSandbox.delayUntilGetSettings(() => this.abort.apply(this, args));
 
-                return;
-            }
-
-            nativeMethods.xhrAbort.apply(this, arguments);
+            nativeMethods.xhrAbort.apply(this, args);
             xhrSandbox.emit(xhrSandbox.XHR_ERROR_EVENT, {
                 err: new Error('XHR aborted'),
                 xhr: this
@@ -108,45 +129,42 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
 
         // NOTE: Redirect all requests to the Hammerhead proxy and ensure that requests don't
         // violate Same Origin Policy.
-        overrideFunction(xmlHttpRequestProto, 'open', function (this: XMLHttpRequest, ...args: [string, string, boolean, string?, string?]) {
-            const url = arguments[1];
+        overrideFunction(xmlHttpRequestProto, 'open', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['open']>) {
+            let url = args[1];
 
-            if (getProxyUrl(url) === url) {
-                nativeMethods.xhrOpen.apply(this, arguments);
+            if (getProxyUrl(url) === url)
+                return void nativeMethods.xhrOpen.apply(this, args);
 
-                return;
-            }
+            if (xhrSandbox.gettingSettingInProgress())
+                return void xhrSandbox.delayUntilGetSettings(() => this.open.apply(this, args));
 
-            if (xhrSandbox.gettingSettingInProgress()) {
-                xhrSandbox.delayUntilGetSettings(() => this.open.apply(this, args));
+            url = typeof url === 'string' ? url : String(url);
 
-                return;
-            }
+            args[1] = getAjaxProxyUrl(url, this.withCredentials ? Credentials.include : Credentials.sameOrigin);
 
-            const urlIsString = typeof url === 'string';
+            nativeMethods.xhrOpen.apply(this, args);
 
-            arguments[1] = getProxyUrl(urlIsString ? url : String(url));
+            args[1] = url;
 
-            nativeMethods.xhrOpen.apply(this, arguments);
+            XhrSandbox.REQUESTS_OPTIONS.set(this, {
+                withCredentials: this.withCredentials,
+                openArgs:        args,
+                headers:         []
+            });
         });
 
-        overrideFunction(xmlHttpRequestProto, 'send', function (this: XMLHttpRequest, ...args: [any]) {
-            if (xhrSandbox.gettingSettingInProgress()) {
-                xhrSandbox.delayUntilGetSettings(() => this.send.apply(this, args));
+        overrideFunction(xmlHttpRequestProto, 'send', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['send']>) {
+            if (xhrSandbox.gettingSettingInProgress())
+                return void xhrSandbox.delayUntilGetSettings(() => this.send.apply(this, args));
 
-                return;
-            }
+            const reqOpts = XhrSandbox.REQUESTS_OPTIONS.get(this);
+
+            if (reqOpts.withCredentials !== this.withCredentials)
+                XhrSandbox._reopenXhr(this, reqOpts);
 
             xhrSandbox.emit(xhrSandbox.BEFORE_XHR_SEND_EVENT, { xhr: this });
 
-            // NOTE: As all requests are passed to the proxy, we need to perform Same Origin Policy compliance checks on the
-            // server side. So, we pass the CORS support flag to inform the proxy that it can analyze the
-            // Access-Control_Allow_Origin flag and skip "preflight" requests.
-            // eslint-disable-next-line no-restricted-properties
-            nativeMethods.xhrSetRequestHeader.call(this, INTERNAL_HEADERS.origin, getOriginHeader());
-            nativeMethods.xhrSetRequestHeader.call(this, INTERNAL_HEADERS.credentials, this.withCredentials ? 'include' : 'same-origin');
-
-            nativeMethods.xhrSend.apply(this, arguments);
+            nativeMethods.xhrSend.apply(this, args);
 
             // NOTE: For xhr with the sync mode
             if (this.readyState === this.DONE)
@@ -155,18 +173,16 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             syncCookieWithClientIfNecessary.call(this);
         });
 
-        overrideFunction(xmlHttpRequestProto, 'setRequestHeader', function (this: XMLHttpRequest, ...args) {
-            args[0] = transformHeaderNameToInternal(args[0]);
+        overrideFunction(xmlHttpRequestProto, 'setRequestHeader', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['setRequestHeader']>) {
+            if (isAuthorizationHeader(args[0]))
+                args[1] = addAuthorizationPrefix(args[1]);
 
-            return nativeMethods.xhrSetRequestHeader.apply(this, args);
-        });
+            nativeMethods.xhrSetRequestHeader.apply(this, args);
 
-        overrideDescriptor(window.XMLHttpRequest.prototype, 'status', {
-            getter: function () {
-                const status = nativeMethods.xhrStatusGetter.call(this);
+            const reqOpts = XhrSandbox.REQUESTS_OPTIONS.get(this);
 
-                return status === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : status;
-            }
+            if (reqOpts)
+                reqOpts.headers.push([String(args[0]), String(args[1])])
         });
 
         if (nativeMethods.xhrResponseURLGetter) {
@@ -177,18 +193,22 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             });
         }
 
-        overrideFunction(xmlHttpRequestProto, 'getResponseHeader', function (this: XMLHttpRequest, ...args) {
-            args[0] = transformHeaderNameToInternal(args[0]);
+        overrideFunction(xmlHttpRequestProto, 'getResponseHeader', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['getResponseHeader']>) {
+            let value = nativeMethods.xhrGetResponseHeader.apply(this, args);
 
-            return nativeMethods.xhrGetResponseHeader.apply(this, args);
+            if (value && isAuthenticateHeader(args[0]))
+                value = removeAuthenticatePrefix(value);
+
+            return value;
         });
 
-        overrideFunction(xmlHttpRequestProto, 'getAllResponseHeaders', function (this: XMLHttpRequest) {
-            const allHeaders = nativeMethods.xhrGetAllResponseHeaders.apply(this, arguments);
+        overrideFunction(xmlHttpRequestProto, 'getAllResponseHeaders', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['getAllResponseHeaders']>) {
+            let allHeaders = nativeMethods.xhrGetAllResponseHeaders.apply(this, args);
 
-            return allHeaders
-                .replace(INTERNAL_HEADERS.wwwAuthenticate, BUILTIN_HEADERS.wwwAuthenticate)
-                .replace(INTERNAL_HEADERS.proxyAuthenticate, BUILTIN_HEADERS.proxyAuthenticate);
+            while (hasAuthenticatePrefix(allHeaders))
+                allHeaders = removeAuthenticatePrefix(allHeaders);
+
+            return allHeaders;
         });
     }
 }

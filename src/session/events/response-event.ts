@@ -8,6 +8,8 @@ export default class ResponseEvent {
     readonly sessionId: string;
     readonly headers?: { [name: string]: string|string[] };
     readonly body?: Buffer;
+    readonly isSameOriginPolicyFailed: boolean;
+
 
     constructor (requestFilterRule: RequestFilterRule, preparedResponseInfo: PreparedResponseInfo) {
         this._requestFilterRule = requestFilterRule;
@@ -15,6 +17,8 @@ export default class ResponseEvent {
         this.requestId  = preparedResponseInfo.requestId;
         this.statusCode = preparedResponseInfo.statusCode;
         this.sessionId  = preparedResponseInfo.sessionId;
+
+        this.isSameOriginPolicyFailed = preparedResponseInfo.isSameOriginPolicyFailed;
 
         if (preparedResponseInfo.headers)
             this.headers = preparedResponseInfo.headers;

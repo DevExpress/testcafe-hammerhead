@@ -55,7 +55,7 @@ exports.compareCode = function (code1, code2) {
     expect(code1).eql(code2);
 };
 
-exports.getProxyUrl = function (url, resourceType, reqOrigin, isCrossDomain = false, urlSession) {
+exports.getBasicProxyUrl = function (url, resourceType, reqOrigin, credentials, isCrossDomain = false, urlSession) {
     if (resourceType)
         resourceType = urlUtils.getResourceTypeString(resourceType);
 
@@ -65,7 +65,7 @@ exports.getProxyUrl = function (url, resourceType, reqOrigin, isCrossDomain = fa
         sessionId:     urlSession.id,
         windowId:      urlSession.options.windowId,
 
-        resourceType, reqOrigin
+        resourceType, reqOrigin, credentials
     });
 };
 

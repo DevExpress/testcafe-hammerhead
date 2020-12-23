@@ -83,7 +83,7 @@ export default function overrideFetchEvent () {
                 const proxyReferrer       = nativeMethods.requestReferrerGetter.call(request);
                 const parsedProxyReferrer = parseProxyUrl(proxyReferrer);
 
-                if (isCorrectScope(parsedProxyReferrer.destResourceInfo))
+                if (parsedProxyReferrer && isCorrectScope(parsedProxyReferrer.destResourceInfo))
                     return;
             }
         }
