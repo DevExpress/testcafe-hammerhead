@@ -5,8 +5,8 @@
 
 import BUILTIN_HEADERS from '../request-pipeline/builtin-header-names';
 
-const AUTHENTICATE_PREFIX  = '~~~TestCafe added this prefix to hide the authentication dialog box~~~ ';
-const AUTHORIZATION_PREFIX = '~~~TestCafe added this prefix to control the authorization flow~~~ ';
+const AUTHENTICATE_PREFIX  = '~~~TestCafe added this prefix to hide the authentication dialog box~~~';
+const AUTHORIZATION_PREFIX = '~~~TestCafe added this prefix to control the authorization flow~~~';
 
 export function addAuthenticatePrefix (value: string) {
     return AUTHENTICATE_PREFIX + value;
