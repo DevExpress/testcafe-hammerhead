@@ -90,6 +90,15 @@ var ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
     }
 ];
 
+test('location native behavior', function () {
+    var locationWrapper = getLocation(location);
+
+    strictEqual(locationWrapper.constructor.name, 'Location');
+    strictEqual(locationWrapper.constructor.toString(), 'function Location() { [native code] }');
+    strictEqual(Function.prototype.toString.apply(locationWrapper.constructor), 'function Location() { [native code] }');
+    strictEqual(locationWrapper instanceof Location, true);
+});
+
 test('"isLocation" (GH-1863)', function () {
     var locationCopy = extend({}, window.location);
 

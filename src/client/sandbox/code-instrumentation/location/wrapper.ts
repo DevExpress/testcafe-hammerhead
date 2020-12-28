@@ -24,7 +24,7 @@ import urlResolver from '../../../utils/url-resolver';
 import DomProcessor from '../../../../processing/dom';
 import DOMStringListWrapper from './ancestor-origins-wrapper';
 import IntegerIdGenerator from '../../../utils/integer-id-generator';
-import { createOverriddenDescriptor } from '../../../utils/overriding';
+import { createOverriddenDescriptor, overrideStringRepresentation } from '../../../utils/overriding';
 import MessageSandbox from '../../event/message';
 
 const GET_ORIGIN_CMD      = 'hammerhead|command|get-origin';
@@ -39,8 +39,14 @@ function getLocationUrl (window: Window): string | undefined {
     }
 }
 
-export default class LocationWrapper {
+class LocationInheritor {}
+
+LocationInheritor.prototype = Location.prototype;
+
+export default class LocationWrapper extends LocationInheritor {
     constructor (window: Window, messageSandbox: MessageSandbox, onChanged: Function) {
+        super();
+
         const parsedLocation         = parseProxyUrl(getLocationUrl(window) as string);
         const locationResourceType   = parsedLocation ? parsedLocation.resourceType : '';
         const parsedResourceType     = parseResourceType(locationResourceType);
@@ -249,3 +255,5 @@ export default class LocationWrapper {
         nativeMethods.objectDefineProperties(this, locationProps);
     }
 }
+
+overrideStringRepresentation(LocationWrapper, Location);
