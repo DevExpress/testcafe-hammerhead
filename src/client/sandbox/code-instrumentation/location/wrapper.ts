@@ -256,4 +256,9 @@ export default class LocationWrapper extends LocationInheritor {
     }
 }
 
-overrideStringRepresentation(LocationWrapper, Location);
+// NOTE: window.Location in IE11 is object
+if (typeof Location !== 'function')
+    LocationWrapper.toString = () => Location.toString();
+else
+    overrideStringRepresentation(LocationWrapper, Location);
+

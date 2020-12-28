@@ -93,10 +93,12 @@ var ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
 test('location native behavior', function () {
     var locationWrapper = getLocation(location);
 
-    strictEqual(locationWrapper.constructor.name, 'Location');
-    strictEqual(locationWrapper.constructor.toString(), Location.toString());
-    strictEqual(Function.prototype.toString.apply(locationWrapper.constructor), Location.toString());
+    strictEqual(locationWrapper.constructor.name, Location.name);
+    strictEqual(locationWrapper.constructor.toString(), location.constructor.toString());
     strictEqual(locationWrapper instanceof Location, true);
+
+    if (typeof Location === 'function')
+        strictEqual(Function.prototype.toString.apply(locationWrapper.constructor), Function.prototype.toString.apply(Location));
 });
 
 test('"isLocation" (GH-1863)', function () {
