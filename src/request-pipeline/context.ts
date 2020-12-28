@@ -284,7 +284,7 @@ export default class RequestPipelineContext {
             isRedirect
         };
 
-        logger.proxy('Proxy resource content info %s %i', this.requestId, this);
+        logger.proxy.onContentInfoBuilt(this);
     }
 
     private _getInjectableUserScripts () {
@@ -391,14 +391,14 @@ export default class RequestPipelineContext {
         if (this.isHTMLPage && this.session.options.disablePageCaching)
             headerTransforms.setupPreventCachingHeaders(headers);
 
-        logger.proxy('Proxy response %s %d %j', this.requestId, this.destRes.statusCode, headers);
+        logger.proxy.onResponse(this, headers);
 
         res.writeHead(this.destRes.statusCode as number, headers);
         res.addTrailers(this.destRes.trailers as http.OutgoingHttpHeaders);
     }
 
     async mockResponse (): Promise<void> {
-        logger.destination('Destination request is mocked %s %s %j', this.requestId, this.mock.statusCode, this.mock.headers);
+        logger.destination.onMockedRequest(this);
 
         this.mock.setRequestOptions(this.reqOpts);
 

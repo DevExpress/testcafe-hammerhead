@@ -79,7 +79,7 @@ export function sendRequest (ctx: RequestPipelineContext) {
 
         req.on('fatalError', err => {
             if (ctx.isFileProtocol)
-                logger.destination('File read error %s %o', ctx.requestId, err);
+                logger.destination.onFileReadError(ctx, err);
 
             error(ctx, err);
             resolve();
@@ -91,7 +91,7 @@ export function sendRequest (ctx: RequestPipelineContext) {
         });
 
         if (req instanceof FileRequest) {
-            logger.destination('Read file %s %s', ctx.requestId, ctx.reqOpts.url);
+            logger.destination.onFileRead(ctx);
             req.init();
         }
     });
