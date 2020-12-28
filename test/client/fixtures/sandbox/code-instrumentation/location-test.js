@@ -94,8 +94,8 @@ test('location native behavior', function () {
     var locationWrapper = getLocation(location);
 
     strictEqual(locationWrapper.constructor.name, 'Location');
-    strictEqual(locationWrapper.constructor.toString(), 'function Location() { [native code] }');
-    strictEqual(Function.prototype.toString.apply(locationWrapper.constructor), 'function Location() { [native code] }');
+    strictEqual(locationWrapper.constructor.toString(), Location.toString());
+    strictEqual(Function.prototype.toString.apply(locationWrapper.constructor), Location.toString());
     strictEqual(locationWrapper instanceof Location, true);
 });
 
