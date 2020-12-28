@@ -167,10 +167,16 @@ class NativeMethods {
     arraySlice: any;
     arrayConcat: any;
     arrayFilter: any;
+    arrayFind: any;
     arrayMap: any;
     arrayJoin: any;
     arraySplice: any;
+    arrayUnshift: any;
     arrayForEach: any;
+    arrayIndexOf: any;
+    arraySome: any;
+    arrayReverse: any;
+    arrayReduce: any;
     arrayFrom: any;
     DOMParserParseFromString: any;
     arrayBufferIsView: any;
@@ -1043,10 +1049,16 @@ class NativeMethods {
         this.arraySlice   = win.Array.prototype.slice;
         this.arrayConcat  = win.Array.prototype.concat;
         this.arrayFilter  = win.Array.prototype.filter;
+        this.arrayFind    = win.Array.prototype.find;
         this.arrayMap     = win.Array.prototype.map;
         this.arrayJoin    = win.Array.prototype.join;
         this.arraySplice  = win.Array.prototype.splice;
+        this.arrayUnshift = win.Array.prototype.unshift;
         this.arrayForEach = win.Array.prototype.forEach;
+        this.arrayIndexOf = win.Array.prototype.indexOf;
+        this.arraySome    = win.Array.prototype.some;
+        this.arrayReverse = win.Array.prototype.reverse;
+        this.arrayReduce  = win.Array.prototype.reduce;
         this.arrayFrom    = win.Array.from;
 
         this.DOMParserParseFromString = win.DOMParser && win.DOMParser.prototype.parseFromString;
