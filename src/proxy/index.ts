@@ -152,12 +152,12 @@ export default class Proxy extends Router {
             try {
                 const result = await session.handleServiceMessage(msg, serverInfo);
 
-                logger.serviceMsg('Service message %j, result %j', msg, result);
+                logger.serviceMsg.onMessage(msg, result);
 
                 respondWithJSON(res, result, false);
             }
             catch (err) {
-                logger.serviceMsg('Service message %j, error %o', msg, err);
+                logger.serviceMsg.onError(msg, err);
 
                 respond500(res, err.toString());
             }
