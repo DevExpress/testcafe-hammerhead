@@ -116,23 +116,20 @@ function addTempVarsDeclaration (node: BlockStatement | Program, changes: CodeCh
     addChangeForTransformedNode(state, changes, declaration, node.type);
 }
 
-function beforeTransform (this: unknown, wrapLastExprWithProcessHtml = false, resolver?: Function) {
+function beforeTransform (wrapLastExprWithProcessHtml = false, resolver?: Function) {
     jsProtocolLastExpression.wrapLastExpr = wrapLastExprWithProcessHtml;
-    staticImportTransformer.resolver = resolver;
+    staticImportTransformer.resolver      = resolver;
 
-    if (this) {
-        try {
-            throw new Error();
-        }
-        catch (e) {
-            dynamicImportTransformer.baseUrl = getFirstDestUrl(e.stack);
+    const isServerSide = typeof window === 'undefined';
 
-            if (!dynamicImportTransformer.baseUrl && resolver)
-                parseProxyUrl(resolver('./'))!.destUrl;
-        }
-    }
-    else if (resolver)
+    if (isServerSide)
         dynamicImportTransformer.baseUrl = parseProxyUrl(resolver('./'))!.destUrl;
+    else {
+        const currentStack = new Error().stack;
+
+        // NOTE: IE11 doesn't give the error stack without the 'throw' statement and doesn't support the 'import' statement
+        dynamicImportTransformer.baseUrl = currentStack && getFirstDestUrl(currentStack) || '';
+    }
 }
 
 function afterTransform () {
