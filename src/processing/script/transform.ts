@@ -123,7 +123,7 @@ function beforeTransform (wrapLastExprWithProcessHtml = false, resolver?: Functi
     const isServerSide = typeof window === 'undefined';
 
     if (isServerSide)
-        dynamicImportTransformer.baseUrl = parseProxyUrl(resolver('./'))!.destUrl;
+        dynamicImportTransformer.baseUrl = resolver ? parseProxyUrl(resolver('./'))!.destUrl : '';
     else {
         const currentStack = new Error().stack;
 
