@@ -4,7 +4,7 @@ import * as destLocation from './destination-location';
 import * as urlResolver from './url-resolver';
 import settings from '../settings';
 import { ResourceType } from '../../typings/url';
-import getGlobalContextInfo from './global-context-info';
+import globalContextInfo from './global-context-info';
 import { getLocation, sameOriginCheck } from './destination-location';
 import { Credentials } from '../../utils/url';
 
@@ -16,8 +16,7 @@ const SCOPE_RE                         = /\/[^/]*$/;
 // therefore we need to find a window with src to get the proxy settings
 export const DEFAULT_PROXY_SETTINGS = (function () {
     /*eslint-disable no-restricted-properties*/
-    const globalCtx    = getGlobalContextInfo();
-    let locationWindow = globalCtx.isInWorker ? { location: parseUrl(self.location.origin), parent: null } : window;
+    let locationWindow = globalContextInfo.isInWorker ? { location: parseUrl(self.location.origin), parent: null } : window;
     let proxyLocation  = locationWindow.location;
 
     while (!proxyLocation.hostname) {

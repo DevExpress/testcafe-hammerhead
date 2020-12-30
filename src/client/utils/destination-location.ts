@@ -3,7 +3,7 @@ import * as domUtils from './dom';
 import * as urlResolver from './url-resolver';
 import settings from '../settings';
 import nativeMethods from '../sandbox/native-methods';
-import getGlobalContextInfo from './global-context-info';
+import globalContextInfo from './global-context-info';
 
 let forcedLocation = null;
 
@@ -13,14 +13,13 @@ export function getLocation (): string {
     if (forcedLocation)
         return forcedLocation;
 
-    const globalCtx    = getGlobalContextInfo().global;
-    const frameElement = domUtils.getFrameElement(globalCtx);
+    const frameElement = domUtils.getFrameElement(globalContextInfo.global);
 
     // NOTE: Fallback to the owner page's URL if we are in an iframe without src.
     if (frameElement && domUtils.isIframeWithoutSrc(frameElement))
         return settings.get().referer;
 
-    return globalCtx.location.toString();
+    return globalContextInfo.global.location.toString();
 }
 
 // NOTE: We need to be able to force the page location. During the test, Hammerhead should think that it is on the
@@ -37,7 +36,6 @@ export function sameOriginCheck (location: string, checkedUrl: string): boolean 
 }
 
 export function resolveUrl (url: string, doc?: Document): string {
-    const globalCtx     = getGlobalContextInfo();
     let preProcessedUrl = sharedUrlUtils.getURLString(url);
 
     if (preProcessedUrl && preProcessedUrl.indexOf('//') === 0) {
@@ -49,7 +47,7 @@ export function resolveUrl (url: string, doc?: Document): string {
     else
         preProcessedUrl = sharedUrlUtils.correctMultipleSlashes(preProcessedUrl);
 
-    if (globalCtx.isInWorker) {
+    if (globalContextInfo.isInWorker) {
         if (self.location.protocol !== 'blob:') // eslint-disable-line no-restricted-properties
             return new nativeMethods.URL(preProcessedUrl, get()).href; // eslint-disable-line no-restricted-properties
         else

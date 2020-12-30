@@ -5,7 +5,7 @@ import FetchSandbox from '../sandbox/fetch';
 import CookieSandbox from '../sandbox/cookie';
 import settings from '../settings';
 import overrideFetchEvent from './fetch-event';
-import getGlobalContextInfo from '../utils/global-context-info';
+import globalContextInfo from '../utils/global-context-info';
 import noop from '../utils/noop';
 import nativeMethods from '../sandbox/native-methods';
 import { SET_BLOB_WORKER_SETTINGS } from './set-settings-command';
@@ -46,7 +46,7 @@ class WorkerHammerhead {
         this.fetch = new FetchSandbox(cookieSandboxMock, waitHammerheadSettings);
         this.fetch.attach(self);
 
-        if (!getGlobalContextInfo().isServiceWorker) {
+        if (!globalContextInfo.isServiceWorker) {
             this.xhr = new XhrSandbox(cookieSandboxMock, waitHammerheadSettings);
             this.xhr.attach(self);
         }
