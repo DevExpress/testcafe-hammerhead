@@ -489,7 +489,7 @@ export default class ElementSandbox extends SandboxBase {
 
                 if (args.length > 1 && html !== null) {
                     args[1] = processHtml(String(html), {
-                        parentTag:        parentEl && parentEl.tagName,
+                        parentTag:        parentEl && parentEl['tagName'],
                         processedContext: el[INTERNAL_PROPS.processedContext]
                     });
                 }
@@ -576,6 +576,14 @@ export default class ElementSandbox extends SandboxBase {
                 sandbox._nodeSandbox.processNodes(clone);
 
                 return clone;
+            },
+
+            attachShadow (...args: Parameters<Element['attachShadow']>) {
+                const root = nativeMethods.attachShadow.apply(this, args);
+
+                nativeMethods.objectDefineProperty(root, domUtils.SHADOW_ROOT_PARENT_ELEMENT, { value: this });
+
+                return root;
             },
 
             getAttribute () {
@@ -808,6 +816,9 @@ export default class ElementSandbox extends SandboxBase {
         overrideFunction(window.Element.prototype, 'hasAttribute', this.overriddenMethods.hasAttribute);
         overrideFunction(window.Element.prototype, 'hasAttributeNS', this.overriddenMethods.hasAttributeNS);
         overrideFunction(window.Element.prototype, 'hasAttributes', this.overriddenMethods.hasAttributes);
+
+        if (nativeMethods.attachShadow)
+            overrideFunction(window.Element.prototype, 'attachShadow', this.overriddenMethods.attachShadow);
 
         overrideFunction(window.Node.prototype, 'cloneNode', this.overriddenMethods.cloneNode);
         overrideFunction(window.Node.prototype, 'appendChild', this.overriddenMethods.appendChild);
