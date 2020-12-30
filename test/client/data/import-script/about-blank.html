@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+</head>
+<body>
+<script type="text/javascript">
+    var hammerhead = window['%hammerhead%'];
+
+    hammerhead.get('./utils/destination-location').forceLocation('http://localhost:2000/sessionId/about:blank');
+    hammerhead.start({ sessionId: 'sessionId' });
+
+    var INSTRUCTION   = hammerhead.get('../processing/script/instruction');
+    var callMethod    = window[INSTRUCTION.callMethod];
+    var processScript = window[INSTRUCTION.processScript];
+
+    window.Error = function () {
+        return {
+            stack: 'no valid proxy url'
+        };
+    };
+
+    var getLoc = new Function('return location.href;');
+
+    callMethod(top, 'postMessage', [{ type: 'gh2399', message: getLoc() }, 'https://example.com']);
+</script>
+</body>
+</html>
