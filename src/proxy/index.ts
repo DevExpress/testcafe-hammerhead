@@ -11,6 +11,7 @@ import {
 
 import http from 'http';
 import https from 'https';
+import { escape } from 'lodash';
 import * as urlUtils from '../utils/url';
 import { readSync as read } from 'read-file-relative';
 import { respond500, respondWithJSON, fetchBody, addPreventCachingHeaders } from '../utils/http';
@@ -157,9 +158,16 @@ export default class Proxy extends Router {
                 respondWithJSON(res, result, false);
             }
             catch (err) {
+                const isError    = err instanceof Error;
+                const errType    = typeof err;
+                const errMessage = isError ? err.toString() : escape(String(err));
+
                 logger.serviceMsg.onError(msg, err);
 
-                respond500(res, (err && err.toString) ? err.toString() : "");
+                if (!isError)
+                    logger.serviceMsg.onMessage(msg, { warning: `The "${errMessage}" error of the "${errType}" type was thrown. Throw the Error instead.` });
+
+                respond500(res, errMessage);
             }
         }
         else
