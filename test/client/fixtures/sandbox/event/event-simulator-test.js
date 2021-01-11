@@ -1049,3 +1049,20 @@ if (!browserUtils.isIE) {
         deepEqual(log, expectedLog);
     });
 }
+
+if (nativeMethods.WindowInputEvent) {
+    test('Simulated "input" event should contain the "data" property (GH-2377)', function () {
+        var handler = function (e) {
+            if (e.data === 'test')
+                raised = true;
+        };
+
+        var eventName = 'input';
+
+        document.addEventListener(eventName, handler);
+        eventSimulator.input(domElement, 'test');
+        document.removeEventListener(eventName, handler);
+
+        ok(raised);
+    });
+}

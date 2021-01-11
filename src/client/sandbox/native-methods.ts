@@ -137,9 +137,9 @@ class NativeMethods {
     WindowKeyboardEvent: any;
     WindowFocusEvent: any;
     WindowTextEvent: any;
-    WindowInputEvent: any;
+    WindowInputEvent: typeof InputEvent;
     WindowMouseEvent: any;
-    windowOriginGetter: () => string;
+    windowOriginGetter: (this: Window) => string;
     windowOriginSetter: (this: Window, value: string) => void;
     canvasContextDrawImage: any;
     formDataAppend: FormData['append'];

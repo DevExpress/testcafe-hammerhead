@@ -745,7 +745,7 @@ export default class EventSimulator {
         return null;
     }
 
-    _dispatchInputEvent (el, type, text) {
+    _dispatchInputEvent (el: EventTarget, type: string, data?: string | null) {
         if (!nativeMethods.WindowInputEvent)
             return this._dispatchEvent(el, type, true);
 
@@ -754,9 +754,11 @@ export default class EventSimulator {
             composed:   eventUtils.isComposedEvent(type),
             cancelable: true,
             view:       window,
-            inputType:  'insertText',
-            data:       text
-        };
+            inputType:  'insertText'
+        } as InputEventInit;
+
+        if (data !== void 0)
+            args.data = data;
 
         const event = new nativeMethods.WindowInputEvent(type, args);
 
@@ -943,16 +945,16 @@ export default class EventSimulator {
         return this._dispatchEvent(el, 'change', true, this.DISPATCHED_EVENT_FLAG);
     }
 
-    textInput (el, text) {
-        return this._dispatchTextEvent(el, text);
+    textInput (el: EventTarget, data?: string | null) {
+        return this._dispatchTextEvent(el, data);
     }
 
-    beforeInput (el, text) {
-        return this._dispatchInputEvent(el, 'beforeinput', text);
+    beforeInput (el: EventTarget, data?: string | null) {
+        return this._dispatchInputEvent(el, 'beforeinput', data);
     }
 
-    input (el) {
-        return this._dispatchInputEvent(el, 'input', null);
+    input (el: EventTarget, data?: string | null) {
+        return this._dispatchInputEvent(el, 'input', data);
     }
 
     submit (el) {
