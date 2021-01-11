@@ -1,5 +1,5 @@
 /*global Document, Window */
-import getGlobalContextInfo from '../utils/global-context-info';
+import globalContextInfo from '../utils/global-context-info';
 import { isNativeFunction } from '../utils/overriding';
 
 const NATIVE_CODE_RE = /\[native code]/;
@@ -375,13 +375,11 @@ class NativeMethods {
     URL: typeof URL;
 
     constructor (doc?: Document, win?: Window & typeof globalThis) {
-        const globalCtx = getGlobalContextInfo();
+        win = win || globalContextInfo.global;
 
-        win = win || globalCtx.global;
+        this.refreshWindowMeths(win, globalContextInfo.isInWorker);
 
-        this.refreshWindowMeths(win, globalCtx.isInWorker);
-
-        if (globalCtx.isInWorker)
+        if (globalContextInfo.isInWorker)
             return;
 
         this.refreshDocumentMeths(doc, win);
