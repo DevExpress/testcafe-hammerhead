@@ -478,7 +478,7 @@ describe('Proxy', () => {
             proxy.openSession('http://example.com', session);
 
             session['ServiceTestCmd'] = () => {
-                throw void 0;
+                throw 1;
             };
 
             return request(options)
@@ -490,8 +490,8 @@ describe('Proxy', () => {
 
                     debug.disable();
 
-                    expect(err.message).eql('500 - "undefined"');
-                    expect(log).contains('The "undefined" error of the "undefined" type was passed. Make sure that service message handlers throw errors correctly.');
+                    expect(err.message).eql('500 - 1');
+                    expect(log).contains('The "1" error of the "number" type was passed. Make sure that service message handlers throw errors correctly.');
                 });
         });
 
