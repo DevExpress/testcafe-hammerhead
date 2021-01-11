@@ -1,11 +1,8 @@
-import IncomingMessageMock from './incoming-message-mock';
+import IncomingMessageLike from './incoming-message-like';
 import BUILTIN_HEADERS from './builtin-header-names';
 
 export default function createSpecialPageResponse () {
-    return new IncomingMessageMock({
-        _body:      Buffer.alloc(0),
-        statusCode: 200,
-        trailers:   {},
+    return new IncomingMessageLike({
         headers:    {
             [BUILTIN_HEADERS.contentType]:   'text/html',
             [BUILTIN_HEADERS.contentLength]: '0'

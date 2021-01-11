@@ -5,22 +5,35 @@ interface InitOptions {
     headers: { [name: string]: string|string[] };
     trailers: { [key: string]: string | undefined };
     statusCode: number;
-    _body: object|string|Buffer|null;
+    body: object|string|Buffer|null;
 }
 
-export default class IncomingMessageMock extends Readable {
+const DEFAULT_STATUS_CODE = 200;
+
+export default class IncomingMessageLike extends Readable {
     private _body: Buffer|null;
     headers: IncomingHttpHeaders;
     trailers: { [key: string]: string | undefined };
     statusCode: number;
 
-    constructor (init: InitOptions) {
+    constructor (init: Partial<InitOptions> = {}) {
         super();
 
-        this.headers    = init.headers;
-        this.trailers   = init.trailers;
-        this.statusCode = init.statusCode;
-        this._body      = this._getBody(init._body);
+        const { headers, trailers, statusCode, body } = this._getOptions(init);
+
+        this.headers    = headers;
+        this.trailers   = trailers;
+        this.statusCode = statusCode;
+        this._body      = this._getBody(body);
+    }
+
+    private _getOptions (init: Partial<InitOptions>): InitOptions {
+        return {
+            headers:    Object.assign({}, init.headers),
+            trailers:   Object.assign({}, init.trailers),
+            statusCode: init.statusCode || DEFAULT_STATUS_CODE,
+            body:       init.body || Buffer.alloc(0)
+        }
     }
 
     _read (): void {

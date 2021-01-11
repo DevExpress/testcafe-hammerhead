@@ -7,7 +7,7 @@ import ResponseMock from './request-hooks/response-mock';
 import { parseClientSyncCookieStr } from '../utils/cookie';
 import { ParsedClientSyncCookie } from '../typings/cookie';
 import RequestFilterRule from './request-hooks/request-filter-rule';
-import IncomingMessageMock from './incoming-message-mock';
+import IncomingMessageLike from './incoming-message-like';
 import RequestOptions from './request-options';
 import { ParsedProxyUrl } from '../typings/url';
 import { OnResponseEventData } from '../typings/context';
@@ -73,7 +73,7 @@ export default class RequestPipelineContext {
     session: Session = null;
     reqBody: Buffer = null;
     dest: DestInfo = null;
-    destRes: http.IncomingMessage | FileStream | IncomingMessageMock = null;
+    destRes: http.IncomingMessage | FileStream | IncomingMessageLike = null;
     isDestResReadableEnded = false;
     destResBody: Buffer = null;
     isAjax = false;
