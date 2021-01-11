@@ -491,7 +491,7 @@ describe('Proxy', () => {
                     debug.disable();
 
                     expect(err.message).eql('500 - "undefined"');
-                    expect(log).contains('The \\"undefined\\" error of the \\"undefined\\" type was thrown. Throw the Error instead.');
+                    expect(log).contains('The "undefined" error of the "undefined" type was passed. Make sure that service message handlers throw errors correctly.');
                 });
         });
 

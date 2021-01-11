@@ -11,7 +11,6 @@ import {
 
 import http from 'http';
 import https from 'https';
-import { escape } from 'lodash';
 import * as urlUtils from '../utils/url';
 import { readSync as read } from 'read-file-relative';
 import { respond500, respondWithJSON, fetchBody, addPreventCachingHeaders } from '../utils/http';
@@ -21,6 +20,7 @@ import { resetKeepAliveConnections } from '../request-pipeline/destination-reque
 import SERVICE_ROUTES from './service-routes';
 import BUILTIN_HEADERS from '../request-pipeline/builtin-header-names';
 import logger from '../utils/logger';
+import errToString from '../utils/err-to-string';
 
 const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
 
@@ -158,16 +158,9 @@ export default class Proxy extends Router {
                 respondWithJSON(res, result, false);
             }
             catch (err) {
-                const isError    = err instanceof Error;
-                const errType    = typeof err;
-                const errMessage = isError ? err.toString() : escape(String(err));
-
                 logger.serviceMsg.onError(msg, err);
 
-                if (!isError)
-                    logger.serviceMsg.onMessage(msg, { warning: `The "${errMessage}" error of the "${errType}" type was thrown. Throw the Error instead.` });
-
-                respond500(res, errMessage);
+                respond500(res, errToString(err));
             }
         }
         else
