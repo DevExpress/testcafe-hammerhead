@@ -1541,7 +1541,7 @@ export default class WindowSandbox extends SandboxBase {
 
         if (nativeMethods.windowOriginGetter) {
             overrideDescriptor(window, 'origin', {
-                getter: function () {
+                getter: function (this: Window) {
                     const proxyOrigin = nativeMethods.windowOriginGetter.call(this);
 
                     if (!proxyOrigin || proxyOrigin === 'null')
