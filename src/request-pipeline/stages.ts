@@ -2,7 +2,7 @@ import RequestPipelineContext from './context';
 import logger from '../utils/logger';
 import { fetchBody } from '../utils/http';
 import RequestOptions from './request-options';
-import createSpecialPageResponse from "./special-page";
+import createSpecialPageResponse from './create-special-page-response';
 import { RequestInfo } from '../session/events/info';
 import {
     callOnConfigureResponseEventForNonProcessedRequest,
@@ -61,6 +61,7 @@ export default [
             ctx.destRes = createSpecialPageResponse();
 
             ctx.buildContentInfo();
+
             return;
         }
 
@@ -92,6 +93,7 @@ export default [
             await ctx.session.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
             await callOnResponseEventCallbackForFailedSameOriginCheck(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
         });
+
         logger.proxy.onCORSFailed(ctx);
     },
 

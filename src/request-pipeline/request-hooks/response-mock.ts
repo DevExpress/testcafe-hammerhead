@@ -1,4 +1,4 @@
-import IncomingMessageMock from '../incoming-message-mock';
+import IncomingMessageLike from '../incoming-message-like';
 import { JSON_MIME } from '../../utils/content-type';
 import BUILTIN_HEADERS from '../builtin-header-names';
 import RequestOptions from '../request-options';
@@ -85,21 +85,20 @@ export default class ResponseMock {
         this.requestOptions = opts;
     }
 
-    async getResponse (): Promise<IncomingMessageMock> {
+    async getResponse (): Promise<IncomingMessageLike> {
         let response: any = {
             headers:    { [BUILTIN_HEADERS.contentType]: this._getContentType() },
-            trailers:   {},
-            statusCode: this.statusCode || 200
+            statusCode: this.statusCode
         };
 
         if (this.headers)
             response.headers = Object.assign(response.headers, this.headers);
 
         if (this.body === void 0)
-            response._body = EMPTY_PAGE_HTML;
+            response.body = EMPTY_PAGE_HTML;
         else if (typeof this.body === 'function') {
             response.setBody = value => {
-                response._body = value;
+                response.body = value;
             };
 
             response = Object.assign(response, await this.body(this.requestOptions, response));
@@ -107,10 +106,10 @@ export default class ResponseMock {
             delete response.setBody;
         }
         else
-            response._body = this.body;
+            response.body = this.body;
 
         response.headers = this._lowerCaseHeaderNames(response.headers);
 
-        return new IncomingMessageMock(response);
+        return new IncomingMessageLike(response);
     }
 }

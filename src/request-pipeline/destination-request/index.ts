@@ -29,15 +29,13 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     private hasResponse = false;
     private credentialsSent = false;
     private aborted = false;
-    private readonly opts: RequestOptions;
     private readonly isHttps: boolean;
     private readonly protocolInterface: any;
     private readonly timeout: number;
 
-    constructor (opts: RequestOptions) {
+    constructor (readonly opts: RequestOptions) {
         super();
 
-        this.opts              = opts;
         this.isHttps           = opts.protocol === 'https:';
         this.protocolInterface = this.isHttps ? https : http;
         this.timeout           = this.opts.isAjax ? opts.requestTimeout.ajax : opts.requestTimeout.page;
