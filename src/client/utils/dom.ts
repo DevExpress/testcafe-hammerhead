@@ -356,6 +356,14 @@ export function getNodeShadowRootParent (el: Node): Element | null {
     return parent && parent[SHADOW_ROOT_PARENT_ELEMENT];
 }
 
+export function getParentExceptShadowRoot (el: Node) {
+    const parent = nativeMethods.nodeParentNodeGetter.call(el);
+
+    return parent && parent.nodeType === Node.DOCUMENT_FRAGMENT_NODE && parent[SHADOW_ROOT_PARENT_ELEMENT]
+           ? parent[SHADOW_ROOT_PARENT_ELEMENT]
+           : parent;
+}
+
 export function isElementInDocument (el: Element, currentDocument?: Document): boolean {
     const doc = currentDocument || document;
 
