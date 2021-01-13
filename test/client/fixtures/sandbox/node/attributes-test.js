@@ -1219,17 +1219,43 @@ if (nativeMethods.linkAsSetter) {
 
         link.href = '/test';
 
-        equal(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test'));
+        strictEqual(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test'));
 
         link.as = 'script';
 
-        equal(link.as, 'script');
-        equal(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test', { resourceType: 's' } ));
+        strictEqual(link.as, 'script');
+        strictEqual(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test', { resourceType: 's' } ));
 
         link.as = 'style';
-        equal(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test'));
+        strictEqual(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test'));
+
+        link.setAttribute('as', 'script');
+
+        strictEqual(link.as, 'script');
+        strictEqual(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test', { resourceType: 's' } ));
     });
 }
+
+test('"modulepreload" link (GH-2518)', function () {
+    var link = document.createElement('link');
+
+    link.href = '/test';
+
+    strictEqual(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test'));
+
+    link.rel = 'modulepreload';
+
+    strictEqual(link.rel, 'modulepreload');
+    strictEqual(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test', { resourceType: 's' } ));
+
+    link.rel = '';
+    strictEqual(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test'));
+
+    link.setAttribute('rel', 'modulepreload');
+
+    strictEqual(link.rel, 'modulepreload');
+    strictEqual(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test', { resourceType: 's' } ));
+});
 
 if (browserUtils.isChrome) {
     asyncTest('setting the "disabled" property of the "input" element should not raise the "Maximum call stack size exceeded" error (GH-24050)', function () {

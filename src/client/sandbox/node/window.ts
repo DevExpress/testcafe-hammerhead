@@ -5,7 +5,6 @@ import nativeMethods from '../native-methods';
 import EventSimulator from '../event/simulator';
 import { processScript } from '../../../processing/script';
 import styleProcessor from '../../../processing/style';
-import domProcessor from '../../dom-processor';
 import * as destLocation from '../../utils/destination-location';
 import { cleanUpHtml, processHtml } from '../../utils/html';
 import {
@@ -1060,6 +1059,9 @@ export default class WindowSandbox extends SandboxBase {
 
         this._overrideAttrDescriptors('rel', [window.HTMLLinkElement]);
 
+        if (nativeMethods.linkAsSetter)
+            this._overrideAttrDescriptors('as', [window.HTMLLinkElement]);
+
         overrideDescriptor(window.HTMLInputElement.prototype, 'type', {
             getter: null,
             setter: function (this: HTMLInputElement, value) {
@@ -1567,24 +1569,6 @@ export default class WindowSandbox extends SandboxBase {
 
                 setter: function (this: Window, value) {
                     return nativeMethods.windowOriginSetter.call(this, value);
-                }
-            });
-        }
-
-        if (nativeMethods.linkAsSetter) {
-            overrideDescriptor(window.HTMLLinkElement.prototype, 'as', {
-                getter: null,
-                setter: function (this: HTMLLinkElement, value) {
-                    const currentValue         = this.as;
-                    const shouldRecalculateUrl = value !== currentValue &&
-                        (value === domProcessor.PROCESSED_PRELOAD_LINK_CONTENT_TYPE || currentValue === domProcessor.PROCESSED_PRELOAD_LINK_CONTENT_TYPE);
-
-                    nativeMethods.linkAsSetter.call(this, value);
-
-                    if (shouldRecalculateUrl)
-                        this.href = this.href; // eslint-disable-line no-restricted-properties
-
-                    return value;
                 }
             });
         }
