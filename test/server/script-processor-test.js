@@ -1150,6 +1150,20 @@ describe('Script processor', () => {
             ]);
         });
 
+        it('duplicate destructuring', () => {
+            testProcessing([
+                {
+                    src: 'const { A: { C }, A: { B } } = obj;',
+
+                    expected: 'const _hh$temp0 = obj,' +
+                              '    _hh$temp0$A = _hh$temp0.A,' +
+                              '    C = _hh$temp0$A.C,' +
+                              '    _hh$temp0$A$i1 = _hh$temp0.A,' +
+                              '    B = _hh$temp0$A$i1.B;'
+                }
+            ]);
+        });
+
         it('Should not process destructuring', () => {
             testProcessing([
                 {
