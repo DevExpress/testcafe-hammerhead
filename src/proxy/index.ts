@@ -20,6 +20,7 @@ import { resetKeepAliveConnections } from '../request-pipeline/destination-reque
 import SERVICE_ROUTES from './service-routes';
 import BUILTIN_HEADERS from '../request-pipeline/builtin-header-names';
 import logger from '../utils/logger';
+import errToString from '../utils/err-to-string';
 
 const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
 
@@ -159,7 +160,7 @@ export default class Proxy extends Router {
             catch (err) {
                 logger.serviceMsg.onError(msg, err);
 
-                respond500(res, err.toString());
+                respond500(res, errToString(err));
             }
         }
         else

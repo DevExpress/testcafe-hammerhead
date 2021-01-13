@@ -3,6 +3,13 @@ import RequestPipelineContext from '../request-pipeline/context';
 import { IncomingMessage, OutgoingHttpHeaders } from 'http';
 import { ServiceMessage } from '../typings/proxy';
 import RequestOptions from '../request-pipeline/request-options';
+import errToString from './err-to-string'
+
+function getIncorrectErrorTypeMessage (err: object) {
+    const errType = typeof err;
+
+    return `The "${errToString(err)}" error of the "${errType}" type was passed. Make sure that service message handlers throw errors correctly.`;
+}
 
 debug.formatters.i = (ctx: RequestPipelineContext): string => {
     const stringifiedInfoArr: string[] = [];
@@ -87,8 +94,11 @@ const serviceMsg = {
         serviceMsgLogger('Service message %j, result %j', msg, result);
     },
 
-    onError: (msg: ServiceMessage, err: Error) => {
-        serviceMsgLogger('Service message %j, error %o', msg, err);
+    onError: (msg: ServiceMessage, err: object) => {
+        const isError = err instanceof Error;
+        const errMsg  = isError ? err : getIncorrectErrorTypeMessage(err);
+
+        serviceMsgLogger('Service message %j, error %o', msg, errMsg);
     }
 };
 

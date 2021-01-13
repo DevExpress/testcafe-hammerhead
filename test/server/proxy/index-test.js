@@ -3,6 +3,7 @@ const https                 = require('https');
 const request               = require('request-promise-native');
 const { expect }            = require('chai');
 const express               = require('express');
+const debug                 = require('debug');
 const read                  = require('read-file-relative').readSync;
 const selfSignedCertificate = require('openssl-self-signed-certificate');
 const BUILTIN_HEADERS       = require('../../../lib/request-pipeline/builtin-header-names');
@@ -450,6 +451,47 @@ describe('Proxy', () => {
             return request(options)
                 .then(parsedBody => {
                     expect(parsedBody).eql('answer: 42');
+                });
+        });
+
+        it('Should handle undefined/wrong-type error correctly', () => {
+            debug.enable('hammerhead:service-message');
+
+            const srderrWrite = process.stderr.write;
+            let log           = '';
+
+            process.stderr.write = msg => {
+                log += msg;
+            };
+
+            const options = {
+                method: 'POST',
+                url:    'http://localhost:1836/messaging',
+                json:   true,
+                body:   {
+                    cmd:       'ServiceTestCmd',
+                    data:      '42',
+                    sessionId: session.id
+                }
+            };
+
+            proxy.openSession('http://example.com', session);
+
+            session['ServiceTestCmd'] = () => {
+                throw 1;
+            };
+
+            return request(options)
+                .then(() => {
+                    throw new Error('unexpected error');
+                })
+                .catch(err => {
+                    process.stderr.write = srderrWrite;
+
+                    debug.disable();
+
+                    expect(err.message).eql('500 - 1');
+                    expect(log).contains('The "1" error of the "number" type was passed. Make sure that service message handlers throw errors correctly.');
                 });
         });
 
