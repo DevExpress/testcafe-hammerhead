@@ -491,7 +491,7 @@ describe('Proxy', () => {
                     debug.disable();
 
                     expect(err.message).eql('500 - 1');
-                    expect(log).contains('The "1" error of the "number" type was passed. Make sure that service message handlers throw errors correctly.');
+                    expect(log).contains('The "1" error of the "number" type was passed. Make sure that service message handlers throw errors of the Error type.');
                 });
         });
 

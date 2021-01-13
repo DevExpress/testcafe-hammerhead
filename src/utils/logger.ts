@@ -8,7 +8,7 @@ import errToString from './err-to-string'
 function getIncorrectErrorTypeMessage (err: object) {
     const errType = typeof err;
 
-    return `The "${errToString(err)}" error of the "${errType}" type was passed. Make sure that service message handlers throw errors correctly.`;
+    return `The "${errToString(err)}" error of the "${errType}" type was passed. Make sure that service message handlers throw errors of the Error type.`;
 }
 
 debug.formatters.i = (ctx: RequestPipelineContext): string => {
