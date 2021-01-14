@@ -61,6 +61,7 @@ function processObjectPattern (pattern: ObjectPattern, value: Expression, build:
     const hasRest        = properties.length && properties[properties.length - 1].type === Syntax.RestElement;
     const tempIdentifier = createTempIdentifierOrUseExisting(value, build, baseTempName);
     const propNames      = [] as Expression[];
+    const baseTempNames  = [] as string[];
 
     if (!baseTempName)
         baseTempName = tempIdentifier.name;
@@ -93,8 +94,16 @@ function processObjectPattern (pattern: ObjectPattern, value: Expression, build:
             // @ts-ignore
             build(prop.argument, createObjectRest(tempIdentifier, propNames));
         }
-        else
-            processObjectProperty(prop, tempIdentifier, build, TempVariables.generateName(baseTempName, prop.key, i));
+        else {
+            let newBaseTempName = TempVariables.generateName(baseTempName, prop.key, i);
+
+            if (baseTempNames.indexOf(newBaseTempName) > -1)
+                newBaseTempName = TempVariables.generateName(newBaseTempName, void 0, i);
+
+            baseTempNames.push(newBaseTempName);
+
+            processObjectProperty(prop, tempIdentifier, build, newBaseTempName);
+        }
     }
 }
 
@@ -130,7 +139,7 @@ function processAssignmentPattern (pattern: AssignmentPattern, value: Expression
     if (!baseTempName)
         baseTempName = tempIdentifier.name;
 
-    baseTempName += '$' + 'assign';
+    baseTempName += '$assign';
 
     process(left, tempConditional, build, baseTempName);
 }
