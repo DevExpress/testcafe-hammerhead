@@ -333,7 +333,7 @@ export function isElementVisible (el, doc) {
         if (get(el, 'display', doc) === 'none' || get(el, 'visibility', doc) === 'hidden')
             return false;
 
-        el = nativeMethods.nodeParentNodeGetter.call(el);
+        el = domUtils.getParentExceptShadowRoot(el);
     }
 
     return true;

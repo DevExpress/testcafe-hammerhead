@@ -374,7 +374,7 @@ export default class WindowSandbox extends SandboxBase {
         /*eslint-enable no-restricted-properties*/
     }
 
-    private _setSandboxedTextForTitleElements (el: HTMLElement): void {
+    private _setSandboxedTextForTitleElements (el: Node & ParentNode): void {
         const titleElements = getNativeQuerySelectorAll(el).call(el, 'title');
 
         for(const titleElement of titleElements) {
@@ -1375,7 +1375,7 @@ export default class WindowSandbox extends SandboxBase {
                     const parentWindow   = parentDocument ? parentDocument.defaultView : null;
 
                     nativeMethods.elementOuterHTMLSetter.call(el, processHtml(String(value), {
-                        parentTag:        parentEl && parentEl.tagName,
+                        parentTag:        parentEl && parentEl['tagName'],
                         processedContext: el[INTERNAL_PROPS.processedContext]
                     }));
 

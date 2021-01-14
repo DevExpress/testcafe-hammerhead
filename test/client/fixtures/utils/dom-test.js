@@ -465,6 +465,39 @@ test('isContentEditableElement', function () {
     ok(domUtils.isContentEditableElement(elementMock));
 });
 
+test('isElementInDocument', function () {
+    var shadowParent = document.createElement('div');
+
+    ok(domUtils.isElementInDocument(document.body));
+    notOk(domUtils.isElementInDocument(shadowParent));
+
+    if (!nativeMethods.attachShadow)
+        return;
+
+    var shadow = shadowParent.attachShadow({ mode: 'open' });
+    var div    = document.createElement('div');
+
+    notOk(domUtils.isElementInDocument(div));
+
+    shadow.appendChild(div);
+
+    notOk(domUtils.isElementInDocument(div));
+
+    document.body.appendChild(shadowParent);
+
+    ok(domUtils.isElementInDocument(shadowParent));
+    ok(domUtils.isElementInDocument(div));
+
+    var nestedShadowDiv = document.createElement('div');
+    var nestedShadow    = div.attachShadow({ mode: 'closed' });
+
+    nestedShadow.appendChild(nestedShadowDiv);
+
+    ok(domUtils.isElementInDocument(nestedShadowDiv));
+
+    document.body.removeChild(shadowParent);
+});
+
 module('isIframeWithoutSrc');
 
 test('should not process an iframe with a same url twice (GH-1419)', function () {

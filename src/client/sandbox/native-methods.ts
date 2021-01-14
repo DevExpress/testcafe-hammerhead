@@ -45,7 +45,8 @@ class NativeMethods {
     documentDocumentURIGetter: any;
     documentTitleGetter: any;
     documentTitleSetter: any;
-    appendChild: any;
+    appendChild: Element['appendChild'];
+    attachShadow: Element['attachShadow'];
     replaceChild: any;
     cloneNode: any;
     elementGetElementsByClassName: any;
@@ -234,7 +235,7 @@ class NativeMethods {
     messageEventOriginGetter: any;
     htmlCollectionLengthGetter: any;
     nodeListLengthGetter: any;
-    nodeParentNodeGetter: any;
+    nodeParentNodeGetter: () => Node['parentNode'];
     nodeChildNodesGetter: any;
     elementChildElementCountGetter: any;
     inputFilesGetter: any;
@@ -495,6 +496,7 @@ class NativeMethods {
 
         // Dom
         this.appendChild                   = nativeElement.appendChild;
+        this.attachShadow                  = nativeElement.attachShadow;
         this.replaceChild                  = nativeElement.replaceChild;
         this.cloneNode                     = nativeElement.cloneNode;
         this.elementGetElementsByClassName = nativeElement.getElementsByClassName;
