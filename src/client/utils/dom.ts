@@ -333,6 +333,10 @@ export function isCrossDomainWindows (window1: Window, window2: Window): boolean
     }
 }
 
+export function isIframeWindow (wnd: Window): boolean {
+    return wnd !== wnd.top;
+}
+
 export function isDomElement (el): boolean {
     if (el instanceof nativeMethods.elementClass)
         return true;
