@@ -701,6 +701,17 @@ test("SVG's <title> element (GH-2364)", function () {
     div.parentNode.removeChild(div);
 });
 
+test('creation via "innerHTML" in iframe', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            var html = '<head><title>Test title</title></head><body></body>';
+
+            iframe.contentDocument.documentElement.innerHTML = html;
+
+            strictEqual(iframe.contentDocument.title, 'Test title');
+        });
+});
+
 module('regression');
 
 test('document.write for several tags in iframe (T215136)', function () {
