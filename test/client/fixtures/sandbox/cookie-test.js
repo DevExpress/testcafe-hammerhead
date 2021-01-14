@@ -9,6 +9,9 @@ var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var Promise       = hammerhead.Promise;
 
+var validDate    = new Date((Math.floor(Date.now() / 1000) + 60) * 1000);
+var validDateStr = validDate.toUTCString();
+
 QUnit.testDone(function () {
     nativeMethods.documentCookieGetter.call(document)
         .split(';')
@@ -37,28 +40,28 @@ test('get/set', function () {
     }
 
     testCookies(storedForcedLocation, [
-        'Test1=Basic; expires=Wed, 13-Jan-2021 22:23:01 GMT',
-        'Test2=PathMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/',
-        'Test4=DomainMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=.example.com',
-        'Test5=DomainNotMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=.cbf4e2d79.com',
-        'Test6=HttpOnly; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/; HttpOnly',
-        'Test7=Secure; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/; Secure',
+        'Test1=Basic; expires=' + validDateStr,
+        'Test2=PathMatch; expires=' + validDateStr + '; path=/',
+        'Test4=DomainMatch; expires=' + validDateStr + '; domain=.example.com',
+        'Test5=DomainNotMatch; expires=' + validDateStr + '; domain=.cbf4e2d79.com',
+        'Test6=HttpOnly; expires=' + validDateStr + '; path=/; HttpOnly',
+        'Test7=Secure; expires=' + validDateStr + '; path=/; Secure',
         'Test8=Expired; expires=Wed, 13-Jan-1977 22:23:01 GMT; path=/',
-        'Test9=Duplicate; One=More; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/',
+        'Test9=Duplicate; One=More; expires=' + validDateStr + '; path=/',
         'Test10=' + new Array(350).join('(big cookie)'),
         'value without key'
     ], 'Test1=Basic; Test2=PathMatch; Test4=DomainMatch; Test7=Secure; Test9=Duplicate; value without key');
 
     testCookies('http://localhost', [
-        'Test1=DomainMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=localhost',
-        'Test2=DomainNotMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=localhost:80',
-        'Test2=DomainNotMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=127.0.0.1',
+        'Test1=DomainMatch; expires=' + validDateStr + '; domain=localhost',
+        'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=localhost:80',
+        'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=127.0.0.1',
     ], 'Test1=DomainMatch');
 
     testCookies('http://127.0.0.1', [
-        'Test1=DomainMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=127.0.0.1',
-        'Test2=DomainNotMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=127.0.0.1:80',
-        'Test2=DomainNotMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=localhost',
+        'Test1=DomainMatch; expires=' + validDateStr + '; domain=127.0.0.1',
+        'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=127.0.0.1:80',
+        'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=localhost',
     ], 'Test1=DomainMatch');
 
     testCookies('http://sub.example.com/', [
