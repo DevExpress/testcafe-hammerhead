@@ -1,46 +1,49 @@
 var cookieUtil = hammerhead.get('./utils/cookie');
 
+var validDate    = new Date((Math.floor(Date.now() / 1000) + 60) * 1000);
+var validDateStr = validDate.toUTCString();
+
 test('parse', function () {
-    deepEqual(cookieUtil.parse('Test1=Basic; expires=Wed, 13 Jan 2021 22:23:01 GMT'), {
+    deepEqual(cookieUtil.parse('Test1=Basic; expires=' + validDateStr), {
         key:     'Test1',
         value:   'Basic',
-        expires: new Date('Wed, 13 Jan 2021 22:23:01 GMT')
+        expires: validDate
     });
 
-    deepEqual(cookieUtil.parse('Test2=PathMatch; expires=Wed, 13 Jan 2021 22:23:01 GMT; path=/TestPath'), {
+    deepEqual(cookieUtil.parse('Test2=PathMatch; expires=' + validDateStr + '; path=/TestPath'), {
         key:     'Test2',
         value:   'PathMatch',
-        expires: new Date('Wed, 13 Jan 2021 22:23:01 GMT'),
+        expires: validDate,
         path:    '/TestPath'
     });
 
-    deepEqual(cookieUtil.parse('Test3=DomainMatch; expires=Wed, 13 Jan 2021 22:23:01 GMT; domain=.dc5f4ce48f6.com'), {
+    deepEqual(cookieUtil.parse('Test3=DomainMatch; expires=' + validDateStr + '; domain=.dc5f4ce48f6.com'), {
         key:     'Test3',
         value:   'DomainMatch',
-        expires: new Date('Wed, 13 Jan 2021 22:23:01 GMT'),
+        expires: validDate,
         domain:  'dc5f4ce48f6.com'
     });
 
-    deepEqual(cookieUtil.parse('Test4=HttpOnly; expires=Wed, 13 Jan 2021 22:23:01 GMT; path=/; HttpOnly'), {
+    deepEqual(cookieUtil.parse('Test4=HttpOnly; expires=' + validDateStr + '; path=/; HttpOnly'), {
         key:      'Test4',
         value:    'HttpOnly',
-        expires:  new Date('Wed, 13 Jan 2021 22:23:01 GMT'),
+        expires:  validDate,
         path:     '/',
         httpOnly: true
     });
 
-    deepEqual(cookieUtil.parse('Test5=Secure; expires=Wed, 13 Jan 2021 22:23:01 GMT; path=/; Secure'), {
+    deepEqual(cookieUtil.parse('Test5=Secure; expires=' + validDateStr + '; path=/; Secure'), {
         key:     'Test5',
         value:   'Secure',
-        expires: new Date('Wed, 13 Jan 2021 22:23:01 GMT'),
+        expires: validDate,
         path:    '/',
         secure:  true
     });
 
-    deepEqual(cookieUtil.parse('Test6=Duplicate; One=More; expires=Wed, 13 Jan 2021 22:23:01 GMT; path=/'), {
+    deepEqual(cookieUtil.parse('Test6=Duplicate; One=More; expires=' + validDateStr + '; path=/'), {
         key:     'Test6',
         value:   'Duplicate',
-        expires: new Date('Wed, 13 Jan 2021 22:23:01 GMT'),
+        expires: validDate,
         path:    '/'
     });
 
@@ -56,7 +59,7 @@ test('formatClientString', function () {
     strictEqual(cookieUtil.formatClientString({
         key:     'Test1',
         value:   'Basic',
-        expires: new Date('Wed, 13 Jan 2021 22:23:01 GMT'),
+        expires: validDate,
         secure:  true
     }), 'Test1=Basic');
 

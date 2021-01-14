@@ -8,21 +8,22 @@
         hammerhead.start({ sessionId: 'sessionId' });
 
         window.runTest = function () {
+            var validDateStr   = new Date(Date.now() + 1000 * 60).toUTCString();
             var uniq           = Math.floor(Math.random() * 1e10);
             var validCookies   = [
-                'Valid1=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT;',
-                'Valid2=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/ ',
-                'Valid3=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/test-resource',
-                'Valid4=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path= /test-resource',
-                'Valid5=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path= /test-resource ',
-                'Valid6=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path= /test-resource/ ',
-                'Valid7=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/test-resource/cookie-sandbox'
+                'Valid1=' + uniq + '; expires=' + validDateStr + ';',
+                'Valid2=' + uniq + '; expires=' + validDateStr + '; path=/ ',
+                'Valid3=' + uniq + '; expires=' + validDateStr + '; path=/test-resource',
+                'Valid4=' + uniq + '; expires=' + validDateStr + '; path= /test-resource',
+                'Valid5=' + uniq + '; expires=' + validDateStr + '; path= /test-resource ',
+                'Valid6=' + uniq + '; expires=' + validDateStr + '; path= /test-resource/ ',
+                'Valid7=' + uniq + '; expires=' + validDateStr + '; path=/test-resource/cookie-sandbox'
             ];
             var invalidCookies = [
                 'Invalid1=' + uniq + '; expires=Wed, 13-Jan-2000 22:23:01 GMT; path=/',
-                'Invalid2=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path= /path',
-                'Invalid3=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path= /path ',
-                'Invalid4=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path= /path/ '
+                'Invalid2=' + uniq + '; expires=' + validDateStr + '; path= /path',
+                'Invalid3=' + uniq + '; expires=' + validDateStr + '; path= /path ',
+                'Invalid4=' + uniq + '; expires=' + validDateStr + '; path= /path/ '
             ];
 
             var i;
