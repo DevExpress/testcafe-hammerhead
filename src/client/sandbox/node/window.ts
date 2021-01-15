@@ -75,6 +75,7 @@ import DefaultTarget from '../child-window/default-target';
 import { getNativeQuerySelectorAll } from '../../utils/query-selector';
 import DocumentTitleStorageInitializer from './document/title-storage-initializer';
 import { SET_BLOB_WORKER_SETTINGS, SET_SERVICE_WORKER_SETTINGS } from '../../worker/set-settings-command';
+import { isIframeWindow } from '../../utils/dom';
 
 const INSTRUCTION_VALUES = (() => {
     const values = [];
@@ -199,7 +200,7 @@ export default class WindowSandbox extends SandboxBase {
         if (isCrossDomainWindows(window, window.top))
             return;
 
-        const sendToTopWindow = window !== window.top;
+        const sendToTopWindow = isIframeWindow(window);
         const pageUrl         = destLocation.get();
         let msg               = null;
         let stack             = null;
@@ -374,6 +375,9 @@ export default class WindowSandbox extends SandboxBase {
     }
 
     private _setSandboxedTextForTitleElements (el: Node & ParentNode): void {
+        if (isIframeWindow(window))
+            return;
+
         const titleElements = getNativeQuerySelectorAll(el).call(el, 'title');
 
         for(const titleElement of titleElements) {

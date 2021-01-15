@@ -1,5 +1,6 @@
 import SandboxBase from '../base';
 import MessageSandbox from './message';
+import { isIframeWindow } from '../../utils/dom';
 
 const WINDOW_ACTIVATED_EVENT   = 'hammerhead|event|window-activated';
 const WINDOW_DEACTIVATED_EVENT = 'hammerhead|event|window-deactivated';
@@ -29,7 +30,7 @@ export default class ActiveWindowTracker extends SandboxBase {
     attach (window: Window & typeof globalThis): void {
         super.attach(window);
 
-        this._isIframeWindow = window !== window.top;
+        this._isIframeWindow = isIframeWindow(window);
         this._activeWindow   = !this._isIframeWindow ? window.top : null;
         this._isActive       = !this._isIframeWindow;
 

@@ -13,6 +13,7 @@ import isKeywordTarget from '../../../utils/is-keyword-target';
 import Listeners from '../event/listeners';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import getTopOpenerWindow from '../../utils/get-top-opener-window';
+import { isIframeWindow } from '../../utils/dom';
 
 const DEFAULT_WINDOW_PARAMETERS = 'width=500px, height=500px';
 const STORE_CHILD_WINDOW_CMD    = 'hammerhead|command|store-child-window';
@@ -123,7 +124,7 @@ export default class ChildWindowSandbox extends SandboxBase {
     }
 
     private _setupChildWindowCollecting (window: Window) {
-        if (window !== window.top)
+        if (isIframeWindow(window))
             return;
 
         const topOpenerWindow = getTopOpenerWindow();

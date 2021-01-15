@@ -20,6 +20,7 @@ import * as browserUtils from '../../utils/browser';
 import ChildWindowSandbox from '../child-window';
 import DocumentTitleStorage from './document/title-storage';
 import DocumentTitleStorageInitializer from './document/title-storage-initializer';
+import { isIframeWindow } from '../../utils/dom';
 
 const ATTRIBUTE_SELECTOR_REG_EX          = /\[([\w-]+)(\^?=.+?)]/g;
 const ATTRIBUTE_OPERATOR_WITH_HASH_VALUE = /^\W+\s*#/;
@@ -58,7 +59,7 @@ export default class NodeSandbox extends SandboxBase {
     }
 
     private static _createDocumentTitleStorageInitializer (): DocumentTitleStorageInitializer | null {
-        if (window !== window.top)
+        if (isIframeWindow(window))
             return null;
 
         const documentTitleStorage = new DocumentTitleStorage(document);

@@ -26,6 +26,7 @@ import DOMStringListWrapper from './ancestor-origins-wrapper';
 import IntegerIdGenerator from '../../../utils/integer-id-generator';
 import { createOverriddenDescriptor, overrideStringRepresentation } from '../../../utils/overriding';
 import MessageSandbox from '../../event/message';
+import { isIframeWindow } from '../../../utils/dom';
 
 const GET_ORIGIN_CMD      = 'hammerhead|command|get-origin';
 const ORIGIN_RECEIVED_CMD = 'hammerhead|command|origin-received';
@@ -56,7 +57,7 @@ export default class LocationWrapper extends LocationInheritor {
         const locationPropsOwner     = isLocationPropsInProto ? window.Location.prototype : window.location;
         const locationProps: any     = {};
 
-        parsedResourceType.isIframe = parsedResourceType.isIframe || window !== window.top;
+        parsedResourceType.isIframe = parsedResourceType.isIframe || isIframeWindow(window);
 
         const resourceType   = getResourceTypeString({
             isIframe: parsedResourceType.isIframe,
@@ -64,7 +65,7 @@ export default class LocationWrapper extends LocationInheritor {
         });
         const getHref        = () => {
             // eslint-disable-next-line no-restricted-properties
-            if (window !== window.top && window.location.href === SPECIAL_BLANK_PAGE)
+            if (isIframeWindow(window) && window.location.href === SPECIAL_BLANK_PAGE)
                 return SPECIAL_BLANK_PAGE;
 
             const locationUrl    = getDestLocation();
