@@ -41,6 +41,7 @@ const INTEGRITY_ATTR_TAGS = ['script', 'link'];
 const IFRAME_FLAG_TAGS    = ['a', 'form', 'area', 'input', 'button'];
 
 const PROCESSED_PRELOAD_LINK_CONTENT_TYPE = 'script';
+const MODULE_PRELOAD_LINK_REL             = 'modulepreload';
 
 const ELEMENT_PROCESSED = 'hammerhead|element-processed';
 
@@ -59,8 +60,9 @@ type UrlReplacer = (url: string, resourceType?: string, charset?: string, isCros
 export default class DomProcessor {
     readonly HTML_PROCESSING_REQUIRED_EVENT = 'hammerhead|event|html-processing-required';
     SVG_XLINK_HREF_TAGS: string[] = SVG_XLINK_HREF_TAGS;
-    AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER: string = AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
-    PROCESSED_PRELOAD_LINK_CONTENT_TYPE: string = PROCESSED_PRELOAD_LINK_CONTENT_TYPE;
+    AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER = AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
+    PROCESSED_PRELOAD_LINK_CONTENT_TYPE = PROCESSED_PRELOAD_LINK_CONTENT_TYPE;
+    MODULE_PRELOAD_LINK_REL = MODULE_PRELOAD_LINK_REL;
     private readonly elementProcessorPatterns: ElementProcessingPattern[];
     forceProxySrcForImage = false;
     allowMultipleWindows = false;
@@ -286,12 +288,9 @@ export default class DomProcessor {
     getElementResourceType (el: HTMLElement): string | null {
         const tagName = this.adapter.getTagName(el);
 
-        if (tagName === 'link') {
-            const asAttr = this._getAsAttribute(el);
-
-            if (PROCESSED_PRELOAD_LINK_CONTENT_TYPE === asAttr)
-                return getResourceTypeString({ isScript: true });
-        }
+        if (tagName === 'link' && (this._getAsAttribute(el) === PROCESSED_PRELOAD_LINK_CONTENT_TYPE ||
+                                   this._getRelAttribute(el) === MODULE_PRELOAD_LINK_REL))
+            return getResourceTypeString({ isScript: true });
 
         return getResourceTypeString({
             isIframe:     tagName === 'iframe' || tagName === 'frame' || this._isOpenLinkInIframe(el),

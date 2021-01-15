@@ -145,6 +145,7 @@ export default class ElementSandbox extends SandboxBase {
         const isEventAttr = domProcessor.EVENTS.indexOf(attr) !== -1;
 
         let needToCallTargetChanged = false;
+        let needToRecalcHref        = false;
 
         const isSpecialPage       = urlUtils.isSpecialPage(value);
         const isSupportedProtocol = urlUtils.isSupportedProtocol(value);
@@ -266,8 +267,12 @@ export default class ElementSandbox extends SandboxBase {
             return setAttrMeth.apply(el, [storedIntegrityAttr, value]);
         }
         else if (!isNs && loweredAttr === 'rel' && tagName === 'link') {
+            const currentValue  = nativeMethods.getAttribute.call(el, 'rel');
             const formatedValue = trim(value.toLowerCase());
             const storedRelAttr = DomProcessor.getStoredAttrName(attr);
+
+            needToRecalcHref = value !== currentValue && (value === domProcessor.MODULE_PRELOAD_LINK_REL ||
+                                                          currentValue === domProcessor.MODULE_PRELOAD_LINK_REL);
 
             if (formatedValue === 'prefetch') {
                 nativeMethods.removeAttribute.call(el, attr);
@@ -275,6 +280,12 @@ export default class ElementSandbox extends SandboxBase {
             }
             else
                 nativeMethods.removeAttribute.call(el, storedRelAttr);
+        }
+        else if (!isNs && loweredAttr === 'as' && tagName === 'link') {
+            const currentValue = nativeMethods.getAttribute.call(el, 'as');
+
+            needToRecalcHref = value !== currentValue && (value === domProcessor.PROCESSED_PRELOAD_LINK_CONTENT_TYPE ||
+                                                          currentValue === domProcessor.PROCESSED_PRELOAD_LINK_CONTENT_TYPE);
         }
         else if (!isNs && loweredAttr === 'required' && domUtils.isFileInput(el)) {
             const storedRequiredAttr = DomProcessor.getStoredAttrName(attr);
@@ -317,6 +328,9 @@ export default class ElementSandbox extends SandboxBase {
 
         if (needToCallTargetChanged)
             ElementSandbox._onTargetChanged(el);
+
+        if (needToRecalcHref && nativeMethods.hasAttribute.call(el, 'href'))
+            this.setAttributeCore(el, ['href', nativeMethods.getAttribute.call(el, 'href')]);
 
         return result;
     }
