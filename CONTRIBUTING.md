@@ -54,7 +54,7 @@ leave a comment saying that you started your work on this issue.
     To build and launch TestCafe Hammerhead, run the `http-playground` task:
 
     ```sh
-    node node_modules/gulp/bin/gulp http-playground
+    gulp http-playground
     ```
 
     The `http-playground` task builds Hammerhead, launches a local HTTP server, and opens a playground page, where you can specify a web page to proxy.
@@ -62,7 +62,7 @@ leave a comment saying that you started your work on this issue.
     To run a playground over HTTPS, run the `https-playground` task.
 
     ```sh
-    node node_modules/gulp/bin/gulp https-playground
+    gulp https-playground
     ```
 
 7. Add regression tests to appropriate sections if you are fixing a bug. To find these sections, search for `Regression` in the code.
@@ -82,9 +82,9 @@ leave a comment saying that you started your work on this issue.
 
 Before you submit your pull request, it has to satisfy the following conditions:
 
-* The pull request name should describe the changes you implemented.
-* The pull request description should contain the [closes](https://github.com/blog/1506-closing-issues-via-pull-requests) directive with an appropriate issue number.
-* All tests must be passing
+* The pull request name should describe the changes you implemented
+* The pull request description should contain the [closes](https://github.com/blog/1506-closing-issues-via-pull-requests) directive with an appropriate issue number
+* All existing and new tests must be passing
 * Code must be linted without errors (see [Build Instructions](#build-instructions))
 
 ## Build Instructions
