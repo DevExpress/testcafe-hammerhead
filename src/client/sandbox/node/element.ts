@@ -468,6 +468,17 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
+    private _removeNodeCore <K, A extends Node[]> (context: Node, args: A, removingNode: Node, nativeFn: (...args: A) => K): K {
+        this._onRemoveFileInputInfo(removingNode);
+        this._onRemoveIframe(removingNode);
+
+        const result = nativeFn.apply(context, args);
+
+        this._onElementRemoved(removingNode);
+
+        return result;
+    }
+
     private _prepareNodesForInsertion (nodes: (string | Node)[], parentNode: Node): void {
         for (let i = 0; i < nodes.length; i++) {
             const node = nodes[i];
@@ -564,17 +575,12 @@ export default class ElementSandbox extends SandboxBase {
                 return sandbox._addNodeCore(this, args, args, nativeMethods.append);
             },
 
-            removeChild () {
-                const child = arguments[0];
+            removeChild (this: Node, ...args: Parameters<Node['removeChild']>) {
+                return sandbox._removeNodeCore(this, args, args[0], nativeMethods.removeChild);
+            },
 
-                sandbox._onRemoveFileInputInfo(child);
-                sandbox._onRemoveIframe(child);
-
-                const result = nativeMethods.removeChild.apply(this, arguments);
-
-                sandbox._onElementRemoved(child);
-
-                return result;
+            remove (this: Element, ...args: Parameters<Element['remove']>) {
+                return sandbox._removeNodeCore(this, args, this, nativeMethods.remove);
             },
 
             replaceChild (this: Node, ...args: Parameters<Node['replaceChild']>) {
@@ -745,7 +751,7 @@ export default class ElementSandbox extends SandboxBase {
             this.addFileInputInfo(fileInput);
     }
 
-    private _onRemoveFileInputInfo (el): void {
+    private _onRemoveFileInputInfo (el: Node): void {
         if (!domUtils.isDomElement(el))
             return;
 
@@ -755,7 +761,7 @@ export default class ElementSandbox extends SandboxBase {
             domUtils.find(el, 'input[type=file]', ElementSandbox._removeFileInputInfo);
     }
 
-    private _onRemoveIframe (el: HTMLIFrameElement): void {
+    private _onRemoveIframe (el: Node): void {
         if (domUtils.isDomElement(el) && domUtils.isIframeElement(el))
             windowsStorage.remove(nativeMethods.contentWindowGetter.call(el));
     }
@@ -800,7 +806,7 @@ export default class ElementSandbox extends SandboxBase {
         }
     }
 
-    private _onElementRemoved (el: HTMLElement): void {
+    private _onElementRemoved (el: Node): void {
         if (domUtils.isBodyElement(el))
             this._shadowUI.onBodyElementMutation();
 
@@ -855,6 +861,9 @@ export default class ElementSandbox extends SandboxBase {
 
         if (nativeMethods.append)
             overrideFunction(window.Element.prototype, 'append', this.overriddenMethods.append);
+
+        if (nativeMethods.remove)
+            overrideFunction(window.Element.prototype, 'remove', this.overriddenMethods.remove);
 
         overrideFunction(window.DocumentFragment.prototype, 'querySelector', this.overriddenMethods.querySelector);
         overrideFunction(window.DocumentFragment.prototype, 'querySelectorAll', this.overriddenMethods.querySelectorAll);

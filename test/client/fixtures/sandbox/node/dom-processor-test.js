@@ -109,6 +109,26 @@ if (nativeMethods.append) {
     });
 }
 
+if (nativeMethods.remove) {
+    test('Element.prototype.remove', function () {
+        var div = document.createElement('div');
+
+        document.body.appendChild(div);
+
+        var onElementRemovedCalled = false;
+
+        elementSandbox._onElementRemoved = function () {
+            onElementRemovedCalled = true;
+            delete elementSandbox._onElementRemoved;
+        };
+
+        div.remove();
+
+        ok(onElementRemovedCalled);
+        strictEqual(nativeMethods.nodeParentNodeGetter.call(div), null);
+    });
+}
+
 test('comment inside script', function () {
     var testScript = function (scriptText) {
         var script = nativeMethods.createElement.call(document, 'script');

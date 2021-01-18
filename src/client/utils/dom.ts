@@ -525,7 +525,7 @@ export function isFormElement (el: any): el is HTMLFormElement {
     return instanceToString(el) === '[object HTMLFormElement]';
 }
 
-export function isFileInput (el: HTMLElement): boolean {
+export function isFileInput (el: Node): el is HTMLInputElement {
     return isInputElement(el) && el.type.toLowerCase() === 'file';
 }
 
