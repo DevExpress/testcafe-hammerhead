@@ -10,9 +10,11 @@ test('should not throw an error after for...of loop transformation (GH-1231)', f
             div.parentNode.removeChild(div);
         })
         .catch(function (err) {
+            console.log(err);
             return err;
         })
         .then(function (err) {
+            console.log(err);
             ok(!err, err);
         });
 });
