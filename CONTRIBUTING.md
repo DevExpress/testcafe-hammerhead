@@ -30,8 +30,7 @@ Follow the steps below when submitting your code.
 
 1. Search the [list of issues](https://github.com/DevExpress/testcafe-hammerhead/issues) to see if there is an issue for the bug or feature you are going to work on or create a new one.
 
-2. To address an already described issue, check the comment thread to make sure that no one is working on it at the moment. Leave a comment saying that you are willing to fix this issue, and include details on how you plan to do this. Core team members may need to discuss the details of the proposed fix with you. After they have approved it,
-leave a comment saying that you started your work on this issue.
+2. To address an already described issue, check the comment thread to make sure that no one is working on it at the moment. Leave a comment saying that you are willing to fix this issue, and include details on how you plan to do this. Core team members may need to discuss the details of the proposed fix with you. After they have approved it, leave a comment saying that you started your work on this issue.
 
 3. Install [Node.js](https://nodejs.org/en/) on your development machine.
 
