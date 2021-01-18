@@ -368,7 +368,7 @@ export function getParentExceptShadowRoot (el: Node) {
            : parent;
 }
 
-export function isElementInDocument (el: Element, currentDocument?: Document): boolean {
+export function isElementInDocument (el: Node, currentDocument?: Document): boolean {
     const doc = currentDocument || document;
 
     if (!doc.documentElement)
@@ -533,7 +533,7 @@ export function isInputWithNativeDialog (el: HTMLInputElement): boolean {
     return isInputElement(el) && INPUT_WITH_NATIVE_DIALOG.test(el.type.toLowerCase());
 }
 
-export function isBodyElementWithChildren (el: HTMLElement): boolean {
+export function isBodyElementWithChildren (el: Node): boolean {
     return isBodyElement(el) && nativeMethods.htmlCollectionLengthGetter.call(el.children);
 }
 

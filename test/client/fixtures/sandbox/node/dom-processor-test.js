@@ -10,7 +10,9 @@ var sharedUrlUtils = hammerhead.get('../utils/url');
 var destLocation   = hammerhead.get('./utils/destination-location');
 var eventSimulator = hammerhead.sandbox.event.eventSimulator;
 
-var nativeMethods = hammerhead.nativeMethods;
+var nativeMethods  = hammerhead.nativeMethods;
+var elementSandbox = hammerhead.sandbox.node.element;
+var shadowUI       = hammerhead.sandbox.shadowUI;
 
 test('iframe', function () {
     var iframe         = nativeMethods.createElement.call(document, 'iframe');
@@ -82,6 +84,30 @@ test('anchor in iframe', function () {
     iframe.parentNode.removeChild(iframe);
     anchor.parentNode.removeChild(anchor);
 });
+
+if (nativeMethods.append) {
+    test('Element.prototype.append', function () {
+        var div  = document.createElement('div');
+        var root = shadowUI.getRoot();
+
+        document.body.append(div);
+
+        strictEqual(nativeMethods.nodeLastChildGetter.call(document.body), root);
+        strictEqual(nativeMethods.nodePrevSiblingGetter.call(root), div);
+
+        var isScriptElementAddedEventRaised = false;
+
+        elementSandbox.on(elementSandbox.SCRIPT_ELEMENT_ADDED_EVENT, function () {
+            isScriptElementAddedEventRaised = true;
+        });
+
+        div.append('text node', document.createTextNode('123'), document.createElement('script'));
+
+        ok(isScriptElementAddedEventRaised);
+
+        document.body.removeChild(div);
+    });
+}
 
 test('comment inside script', function () {
     var testScript = function (scriptText) {
@@ -619,6 +645,23 @@ test('script and style content added via a child text node must be overridden (G
     ok(script.childNodes[0].data.indexOf('var host1 =  __get$Loc(location) .host') > -1);
     script.insertBefore(scriptTextNode2, scriptTextNode1);
     ok(script.childNodes[0].data.indexOf('var host2 =  __get$Loc(location) .host') > -1);
+
+    if (!nativeMethods.append)
+        return;
+
+    style.append('div.class3 { background-image: url("/image3.png"); }',
+        'div.class4 { background-image: url("/image4.png"); }',
+        document.createTextNode('div.class5 { background-image: url("/image5.png"); }'));
+    ok(style.childNodes[2].data.indexOf(urlUtils.getProxyUrl('/image3.png')) > -1);
+    ok(style.childNodes[3].data.indexOf(urlUtils.getProxyUrl('/image4.png')) > -1);
+    ok(style.childNodes[4].data.indexOf(urlUtils.getProxyUrl('/image5.png')) > -1);
+
+    script.append('var port = location.port',
+        document.createTextNode('var hostname = location.hostname'),
+        'var protocol = location.protocol');
+    ok(script.childNodes[2].data.indexOf('var port =  __get$Loc(location) .port') > -1);
+    ok(script.childNodes[3].data.indexOf('var hostname =  __get$Loc(location) .hostname') > -1);
+    ok(script.childNodes[4].data.indexOf('var protocol =  __get$Loc(location) .protocol') > -1);
 });
 
 test('node.replaceChild must be overridden (GH-264)', function () {

@@ -424,44 +424,61 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
-    private _addNodeCore ({ parentNode, args, nativeFn, checkBody }): void {
-        const newNode = args[0];
+    private _addNodeCore<K, A extends (string | Node)[]> (parentNode: Element | Node & ParentNode,
+                                                          newNodes: (string | Node)[], args: A,
+                                                          nativeFn: (...args: A) => K, checkBody = true): K {
+        this._prepareNodesForInsertion(newNodes, parentNode);
 
-        this._prepareNodeForInsertion(newNode, parentNode);
+        let result            = null;
+        const childNodesArray = [] as Node[];
 
-        let result          = null;
-        let childNodesArray = null;
+        for (const node of newNodes) {
+            if (domUtils.isDocumentFragmentNode(node)) {
+                const childNodes = nativeMethods.nodeChildNodesGetter.call(node);
 
-        if (domUtils.isDocumentFragmentNode(newNode)) {
-            const childNodes = nativeMethods.nodeChildNodesGetter.call(newNode);
-
-            childNodesArray = domUtils.nodeListToArray(childNodes);
+                childNodesArray.push.apply(childNodesArray, domUtils.nodeListToArray(childNodes));
+            }
+            else if (typeof node !== 'string')
+                childNodesArray.push(node);
         }
 
         // NOTE: Before the page's <body> is processed and added to DOM,
         // some javascript frameworks create their own body element, perform
         // certain manipulations and then remove it.
         // Therefore, we need to check if the body element is present in DOM
-        if (checkBody && domUtils.isBodyElementWithChildren(parentNode) && domUtils.isElementInDocument(parentNode))
-            result = this._shadowUI.insertBeforeRoot(newNode);
-        else
-            result = nativeFn.apply(parentNode, args);
+        const needInsertBeforeRoot = checkBody && domUtils.isBodyElementWithChildren(parentNode) &&
+                                     domUtils.isElementInDocument(parentNode);
 
-        if (childNodesArray) {
-            for (const child of childNodesArray)
-                this._onElementAdded(child);
+        let rootEl = null;
+
+        if (needInsertBeforeRoot) {
+            rootEl = this._shadowUI.getRoot();
+
+            nativeMethods.removeChild.call(parentNode, rootEl);
         }
-        else
-            this._onElementAdded(newNode);
+
+        result = nativeFn.apply(parentNode, args);
+
+        if (needInsertBeforeRoot)
+            nativeMethods.appendChild.call(parentNode, rootEl);
+
+        for (const child of childNodesArray)
+            this._onElementAdded(child);
 
         return result;
     }
 
-    private _prepareNodeForInsertion (node, parentNode): void {
-        if (domUtils.isTextNode(node))
-            ElementSandbox._processTextNodeContent(node, parentNode);
+    private _prepareNodesForInsertion (nodes: (string | Node)[], parentNode: Node): void {
+        for (let i = 0; i < nodes.length; i++) {
+            const node = nodes[i];
 
-        this._nodeSandbox.processNodes(node);
+            if (typeof node === 'string')
+                nodes[i] = ElementSandbox._processTextContent(node, parentNode);
+            else if (domUtils.isTextNode(node))
+                node.data = ElementSandbox._processTextContent(node.data, parentNode);
+            else
+                this._nodeSandbox.processNodes(node as Element | DocumentFragment);
+        }
     }
 
     private _createOverriddenMethods () {
@@ -469,11 +486,13 @@ export default class ElementSandbox extends SandboxBase {
         const sandbox = this;
 
         this.overriddenMethods = {
-            appendData (text) {
+            appendData (this: CharacterData, text: string) {
+                const parentNode = nativeMethods.nodeParentNodeGetter.call(this);
+
                 nativeMethods.nodeTextContentSetter.call(this, nativeMethods.nodeTextContentGetter.call(this) + text);
 
-                if (nativeMethods.nodeParentNodeGetter.call(this))
-                    ElementSandbox._processTextNodeContent(this, nativeMethods.nodeParentNodeGetter.call(this));
+                if (parentNode)
+                    this.data = ElementSandbox._processTextContent(this.data, parentNode);
             },
 
             insertRow () {
@@ -533,24 +552,16 @@ export default class ElementSandbox extends SandboxBase {
                 return null;
             },
 
-            insertBefore (...args) {
-                return sandbox._addNodeCore({
-                    parentNode: this,
-                    nativeFn:   nativeMethods.insertBefore,
-                    checkBody:  !args[1],
-
-                    args
-                });
+            insertBefore (this: Node & ParentNode, ...args: Parameters<Node['insertBefore']>) {
+                return sandbox._addNodeCore(this, [args[0]], args, nativeMethods.insertBefore, !args[1]);
             },
 
-            appendChild (...args) {
-                return sandbox._addNodeCore({
-                    parentNode: this,
-                    nativeFn:   nativeMethods.appendChild,
-                    checkBody:  true,
+            appendChild (this: Node & ParentNode, ...args: Parameters<Node['appendChild']>) {
+                return sandbox._addNodeCore(this, [args[0]], args, nativeMethods.appendChild);
+            },
 
-                    args
-                });
+            append (this: Element, ...args: Parameters<Element['append']>) {
+                return sandbox._addNodeCore(this, args, args, nativeMethods.append);
             },
 
             removeChild () {
@@ -566,12 +577,11 @@ export default class ElementSandbox extends SandboxBase {
                 return result;
             },
 
-            replaceChild () {
-                const newChild = arguments[0];
-                const oldChild = arguments[1];
+            replaceChild (this: Node, ...args: Parameters<Node['replaceChild']>) {
+                const [newChild, oldChild] = args;
 
                 if (domUtils.isTextNode(newChild))
-                    ElementSandbox._processTextNodeContent(newChild, this);
+                    newChild.data = ElementSandbox._processTextContent(newChild.data, this);
 
                 sandbox._onRemoveFileInputInfo(oldChild);
 
@@ -692,14 +702,17 @@ export default class ElementSandbox extends SandboxBase {
         };
     }
 
-    private static _processTextNodeContent (node, parentNode): void {
-        if (!parentNode.tagName)
-            return;
+    private static _processTextContent (str: string, parentNode: Node): string {
+        if (!parentNode['tagName'])
+            return str;
 
         if (domUtils.isScriptElement(parentNode))
-            node.data = processScript(node.data, true, false, urlUtils.convertToProxyUrl);
-        else if (domUtils.isStyleElement(parentNode))
-            node.data = styleProcessor.process(node.data, urlUtils.getProxyUrl);
+            return processScript(str, true, false, urlUtils.convertToProxyUrl);
+
+        if (domUtils.isStyleElement(parentNode))
+            return styleProcessor.process(str, urlUtils.getProxyUrl);
+
+        return str;
     }
 
     private static _isHrefAttrForBaseElement (el: HTMLElement, attr: string): boolean {
@@ -710,7 +723,7 @@ export default class ElementSandbox extends SandboxBase {
         hiddenInfo.removeInputInfo(el);
     }
 
-    private static _hasShadowUIParentOrContainsShadowUIClassPostfix (el: HTMLElement): boolean {
+    private static _hasShadowUIParentOrContainsShadowUIClassPostfix (el: Node): boolean {
         const parent = nativeMethods.nodeParentNodeGetter.call(el);
 
         return parent && domUtils.isShadowUIElement(parent) || ShadowUI.containsShadowUIClassPostfix(el);
@@ -722,7 +735,7 @@ export default class ElementSandbox extends SandboxBase {
         return nativeMethods.querySelector.call(doc, 'base') === el;
     }
 
-    private _onAddFileInputInfo (el: HTMLElement): void {
+    private _onAddFileInputInfo (el): void {
         if (!domUtils.isDomElement(el))
             return;
 
@@ -732,7 +745,7 @@ export default class ElementSandbox extends SandboxBase {
             this.addFileInputInfo(fileInput);
     }
 
-    private _onRemoveFileInputInfo (el: HTMLInputElement): void {
+    private _onRemoveFileInputInfo (el): void {
         if (!domUtils.isDomElement(el))
             return;
 
@@ -747,7 +760,7 @@ export default class ElementSandbox extends SandboxBase {
             windowsStorage.remove(nativeMethods.contentWindowGetter.call(el));
     }
 
-    private _onElementAdded (el: HTMLElement): void {
+    private _onElementAdded (el: Node): void {
         if (ElementSandbox._hasShadowUIParentOrContainsShadowUIClassPostfix(el))
             ShadowUI.markElementAndChildrenAsShadow(el);
 
@@ -839,6 +852,9 @@ export default class ElementSandbox extends SandboxBase {
         overrideFunction(window.Node.prototype, 'removeChild', this.overriddenMethods.removeChild);
         overrideFunction(window.Node.prototype, 'insertBefore', this.overriddenMethods.insertBefore);
         overrideFunction(window.Node.prototype, 'replaceChild', this.overriddenMethods.replaceChild);
+
+        if (nativeMethods.append)
+            overrideFunction(window.Element.prototype, 'append', this.overriddenMethods.append);
 
         overrideFunction(window.DocumentFragment.prototype, 'querySelector', this.overriddenMethods.querySelector);
         overrideFunction(window.DocumentFragment.prototype, 'querySelectorAll', this.overriddenMethods.querySelectorAll);
