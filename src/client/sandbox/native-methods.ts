@@ -45,8 +45,9 @@ class NativeMethods {
     documentDocumentURIGetter: any;
     documentTitleGetter: any;
     documentTitleSetter: any;
-    appendChild: Element['appendChild'];
+    appendChild: Node['appendChild'];
     attachShadow: Element['attachShadow'];
+    append: Element['append'];
     replaceChild: any;
     cloneNode: any;
     elementGetElementsByClassName: any;
@@ -56,7 +57,7 @@ class NativeMethods {
     getAttribute: any;
     getAttributeNS: any;
     insertAdjacentHTML: any;
-    insertBefore: any;
+    insertBefore: Node['insertBefore'];
     insertCell: any;
     insertTableRow: any;
     insertTBodyRow: any;
@@ -495,8 +496,9 @@ class NativeMethods {
         const textNode       = createTextNode('text');
 
         // Dom
-        this.appendChild                   = nativeElement.appendChild;
-        this.attachShadow                  = nativeElement.attachShadow;
+        this.appendChild                   = win.Node.prototype.appendChild;
+        this.append                        = win.Element.prototype.append;
+        this.attachShadow                  = win.Element.prototype.attachShadow;
         this.replaceChild                  = nativeElement.replaceChild;
         this.cloneNode                     = nativeElement.cloneNode;
         this.elementGetElementsByClassName = nativeElement.getElementsByClassName;
