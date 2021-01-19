@@ -46,15 +46,14 @@ describe('DOM processor', () => {
         const root = process('<html><head></head><body><iframe sandbox="allow-forms"></iframe></body></html>');
 
         expect(parse5.serialize(root)).contains('<iframe sandbox="allow-forms allow-same-origin allow-scripts" ' +
-                                                                 DomProcessor.getStoredAttrName('sandbox') +
-                                                                 '="allow-forms">');
+                                                DomProcessor.getStoredAttrName('sandbox') + '="allow-forms">');
     });
 
     it('Should process style attribute', () => {
-        const root = process('<div style="background: url(\'http://example.com/style.css\')"></div>');
+        const root = process('<div style="background: url(http://example.com/style.css)"></div>');
 
-        expect(parse5.serialize(root)).eql('<html><head></head><body><div style="background: ' +
-                                                            'url(\'http://localhost:80/sessionId/http://example.com/style.css\')"></div></body></html>');
+        expect(parse5.serialize(root)).eql('<html><head></head><body>' +
+            '<div style="background: url(http://localhost:80/sessionId/http://example.com/style.css)"></div></body></html>');
     });
 
     it('Should process <script> src', () => {
@@ -156,6 +155,25 @@ describe('DOM processor', () => {
 
         expect(crossDomainIframeSrc).eql(crossDomainProxyUrl);
         expect(iframeSrc).eql(proxyUrl);
+    });
+
+    it('Should process iframe with cross-domain src', () => {
+        const root          = process('<iframe src="http://cross.domain.com/"></iframe>');
+        const iframe        = parse5Utils.findElementsByTagNames(root, 'iframe').iframe[0];
+        const storedSrcAttr = DomProcessor.getStoredAttrName('src');
+
+        expect(domAdapter.getAttr(iframe, 'src')).eql('http://localhost:' +
+            testCrossDomainPort + '/sessionId!i/http://cross.domain.com/');
+        expect(domAdapter.getAttr(iframe, storedSrcAttr)).eql('http://cross.domain.com/');
+    });
+
+    it('Should process iframe with empty src', () => {
+        const root          = process('<iframe src=""></iframe>');
+        const iframe        = parse5Utils.findElementsByTagNames(root, 'iframe').iframe[0];
+        const storedSrcAttr = DomProcessor.getStoredAttrName('src');
+
+        expect(domAdapter.getAttr(iframe, 'src')).eql('');
+        expect(domAdapter.getAttr(iframe, storedSrcAttr)).eql('');
     });
 
     describe('Regression', () => {
