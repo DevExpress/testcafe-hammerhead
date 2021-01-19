@@ -931,6 +931,7 @@ if (!browserUtils.isFirefox) {
 
 test("An object with the 'tagName' and 'nodeName' properties shouldn't be recognized as a dom element", function () {
     notOk(domUtils.isIframeElement({ tagName: 'iframe', nodeName: 'iframe' }), 'iframe');
+    notOk(domUtils.isFrameElement({ tagName: 'frame', nodeName: 'frame' }), 'frame');
     notOk(domUtils.isImgElement({ tagName: 'img', nodeName: 'img' }), 'img');
     notOk(domUtils.isInputElement({ tagName: 'input', nodeName: 'input' }), 'input');
     notOk(domUtils.isHtmlElement({ tagName: 'html', nodeName: 'html' }), 'html');
@@ -956,6 +957,7 @@ test("An object with the 'tagName' and 'nodeName' properties shouldn't be recogn
 test('inspect html elements', function () {
     const htmlElements = [
         { tagName: 'iframe', assertFn: domUtils.isIframeElement },
+        { tagName: 'frame', assertFn: domUtils.isFrameElement },
         { tagName: 'img', assertFn: domUtils.isImgElement },
         { tagName: 'input', assertFn: domUtils.isInputElement },
         { tagName: 'html', assertFn: domUtils.isHtmlElement },

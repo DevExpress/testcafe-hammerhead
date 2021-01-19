@@ -397,6 +397,10 @@ export function isIframeElement (el: any): el is HTMLIFrameElement {
     return instanceToString(el) === '[object HTMLIFrameElement]';
 }
 
+export function isFrameElement (el: any): el is HTMLFrameElement {
+    return instanceToString(el) === '[object HTMLFrameElement]';
+}
+
 export function isIframeWithoutSrc (iframe: HTMLIFrameElement | HTMLFrameElement): boolean {
     const iframeLocation         = getIframeLocation(iframe);
     const iframeSrcLocation      = iframeLocation.srcLocation;

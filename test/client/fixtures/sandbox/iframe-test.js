@@ -147,6 +147,26 @@ if (nativeMethods.iframeSrcdocGetter) {
     });
 }
 
+test('should not call the contentWindow getter while cloning iframe/frame from XMLDocument (GH-2554)', function () {
+    expect(0);
+
+    var str = '<document><iframe /><frame /></document>';
+
+    var parser      = new DOMParser();
+    var xmlDocument = parser.parseFromString(str, 'text/xml');
+    var iframe      = xmlDocument.childNodes[0].childNodes[0];
+    var frame       = xmlDocument.childNodes[0].childNodes[1];
+
+    try {
+        // NOTE: in this case we have the "Element" iframe/frame prototype that doesn't have the contentWindow getter.
+        iframe.cloneNode(true);
+        frame.cloneNode(true);
+    }
+    catch (e) {
+        ok(false, e);
+    }
+});
+
 module('regression');
 
 test('take sequences starting with "$" into account when generating task scripts (GH-389)', function () {
