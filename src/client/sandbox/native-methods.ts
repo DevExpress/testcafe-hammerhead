@@ -63,7 +63,8 @@ class NativeMethods {
     insertTBodyRow: any;
     removeAttribute: any;
     removeAttributeNS: any;
-    removeChild: any;
+    removeChild: Node['removeChild'];
+    remove: Element['remove'];
     setAttribute: any;
     setAttributeNS: any;
     hasAttribute: any;
@@ -514,7 +515,8 @@ class NativeMethods {
         this.insertTBodyRow                = createElement('tbody').insertRow;
         this.removeAttribute               = nativeElement.removeAttribute;
         this.removeAttributeNS             = nativeElement.removeAttributeNS;
-        this.removeChild                   = nativeElement.removeChild;
+        this.removeChild                   = win.Node.prototype.removeChild;
+        this.remove                        = win.Element.prototype.remove;
         this.setAttribute                  = nativeElement.setAttribute;
         this.setAttributeNS                = nativeElement.setAttributeNS;
         this.hasAttribute                  = nativeElement.hasAttribute;
