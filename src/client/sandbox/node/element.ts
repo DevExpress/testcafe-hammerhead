@@ -575,17 +575,17 @@ export default class ElementSandbox extends SandboxBase {
                 return sandbox._addNodeCore(this, args, args, nativeMethods.append);
             },
 
-            removeChild (this: Node, node: Node) {
+            removeChild (this: Node) {
                 // NOTE: We are created the args array manually because of the test for the GH-1231 issue.
                 // Babel process the spread operator same as `for..of` loop, and IE11 throws an error
                 // when array is created through `new Array(len)`.
-                const args   = [node] as Parameters<Node['removeChild']>;
+                const args   = [];
                 const length = arguments.length
 
-                for (let i = 1; i < length; i++)
+                for (let i = 0; i < length; i++)
                     args.push(arguments[i]);
 
-                return sandbox._removeNodeCore(this, args, args[0], nativeMethods.removeChild);
+                return sandbox._removeNodeCore(this, args as Parameters<Node['removeChild']>, args[0], nativeMethods.removeChild);
             },
 
             remove (this: Element, ...args: Parameters<Element['remove']>) {
