@@ -31,6 +31,6 @@ interface RequestTimeout {
 }
 
 interface ProxyOptions extends RouterOptions {
-    ssl?: object;
-    developmentMode?: boolean;
+    ssl: object;
+    developmentMode: boolean;
 }

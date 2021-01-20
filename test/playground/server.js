@@ -25,13 +25,12 @@ function prepareUrl (url) {
     return url;
 }
 
-exports.start = sslOptions => {
+exports.start = (options = {}) => {
     const app       = express();
     const appServer = http.createServer({ maxHeaderSize: Proxy.MAX_REQUEST_HEADER_SIZE }, app);
-    const proxy     = new Proxy('localhost', PROXY_PORT_1, PROXY_PORT_2, {
-        ssl:             sslOptions,
+    const proxy     = new Proxy('localhost', PROXY_PORT_1, PROXY_PORT_2, Object.assign(options, {
         developmentMode: true
-    });
+    }));
 
     app.use(bodyParser.urlencoded({ extended: true }));
 

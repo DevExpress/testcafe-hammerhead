@@ -2,7 +2,6 @@ import RequestPipelineContext from './context';
 import logger from '../utils/logger';
 import { fetchBody } from '../utils/http';
 import RequestOptions from './request-options';
-import createSpecialPageResponse from './create-special-page-response';
 import { RequestInfo } from '../session/events/info';
 import {
     callOnConfigureResponseEventForNonProcessedRequest,
@@ -58,9 +57,7 @@ export default [
         ctx.reqOpts = new RequestOptions(ctx);
 
         if (ctx.isSpecialPage) {
-            ctx.destRes = createSpecialPageResponse();
-
-            ctx.buildContentInfo();
+            ctx.respondForSpecialPage();
 
             return;
         }

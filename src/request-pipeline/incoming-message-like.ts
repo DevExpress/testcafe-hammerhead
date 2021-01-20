@@ -11,7 +11,7 @@ interface InitOptions {
 const DEFAULT_STATUS_CODE = 200;
 
 export default class IncomingMessageLike extends Readable {
-    private _body: Buffer|null;
+    private _body: Buffer;
     headers: IncomingHttpHeaders;
     trailers: { [key: string]: string | undefined };
     statusCode: number;
@@ -19,15 +19,15 @@ export default class IncomingMessageLike extends Readable {
     constructor (init: Partial<InitOptions> = {}) {
         super();
 
-        const { headers, trailers, statusCode, body } = this._getOptions(init);
+        const { headers, trailers, statusCode, body } = this._initOptions(init);
 
         this.headers    = headers;
         this.trailers   = trailers;
         this.statusCode = statusCode;
-        this._body      = this._getBody(body);
+        this._body      = this._initBody(body);
     }
 
-    private _getOptions (init: Partial<InitOptions>): InitOptions {
+    private _initOptions (init: Partial<InitOptions>): InitOptions {
         return {
             headers:    Object.assign({}, init.headers),
             trailers:   Object.assign({}, init.trailers),
@@ -36,12 +36,7 @@ export default class IncomingMessageLike extends Readable {
         }
     }
 
-    _read (): void {
-        this.push(this._body);
-        this._body = null;
-    }
-
-    private _getBody (body: object|string|Buffer|null): Buffer {
+    private _initBody (body: object|string|Buffer|null): Buffer {
         if (!body)
             return Buffer.alloc(0);
 
@@ -51,5 +46,10 @@ export default class IncomingMessageLike extends Readable {
         const bodyStr = typeof body === 'object' ? JSON.stringify(body) : String(body);
 
         return Buffer.from(bodyStr);
+    }
+
+    _read (): void {
+        this.push(this._body);
+        this._body = null;
     }
 }

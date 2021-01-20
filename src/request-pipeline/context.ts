@@ -22,6 +22,7 @@ import SERVICE_ROUTES from '../proxy/service-routes';
 import BUILTIN_HEADERS from './builtin-header-names';
 import logger from '../utils/logger';
 import { Credentials } from '../utils/url';
+import createSpecialPageResponse from './create-special-page-response';
 
 interface DestInfo {
     url: string;
@@ -420,5 +421,11 @@ export default class RequestPipelineContext {
 
     resolveInjectableUrl (url: string): string {
         return this.serverInfo.domain + url;
+    }
+
+    respondForSpecialPage (): void {
+        this.destRes = createSpecialPageResponse();
+
+        this.buildContentInfo();
     }
 }
