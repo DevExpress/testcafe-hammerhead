@@ -14,10 +14,10 @@ const testProxyHostName   = 'localhost';
 const testProxyPort       = 80;
 
 
-function process (html, isIframe) {
+function process (html, isIframe, replacer) {
     const root             = parse5.parse(html);
     const testDomProcessor = new DomProcessor(new DomAdapter(isIframe, testCrossDomainPort));
-    const urlReplacer      = (resourceUrl, resourceType, charsetAttrValue, isCrossDomain = false) => {
+    const urlReplacer      = replacer || ((resourceUrl, resourceType, charsetAttrValue, isCrossDomain = false) => {
         resourceUrl = urlLib.resolve('http://example.com/', resourceUrl);
 
         return urlUtils.getProxyUrl(resourceUrl, {
@@ -26,7 +26,7 @@ function process (html, isIframe) {
             sessionId:     'sessionId',
             resourceType:  resourceType
         });
-    };
+    });
 
     parse5Utils.walkElements(root, el => testDomProcessor.processElement(el, urlReplacer));
 
@@ -165,6 +165,28 @@ describe('DOM processor', () => {
         expect(domAdapter.getAttr(iframe, 'src')).eql('http://localhost:' +
             testCrossDomainPort + '/sessionId!i/http://cross.domain.com/');
         expect(domAdapter.getAttr(iframe, storedSrcAttr)).eql('http://cross.domain.com/');
+    });
+
+    it('Should process iframe in https mode correctly', () => {
+        const urlReplacer = (resourceUrl, resourceType) => {
+            resourceUrl = urlLib.resolve('http://example.com/', resourceUrl);
+
+            return urlUtils.getProxyUrl(resourceUrl, {
+                proxyHostname: testProxyHostName,
+                proxyPort:     testProxyPort,
+                proxyProtocol: 'https:',
+                sessionId:     'sessionId',
+                resourceType
+            });
+        };
+
+        const root          = process('<iframe src="http://example.com/"></iframe>', false, urlReplacer);
+        const iframe        = parse5Utils.findElementsByTagNames(root, 'iframe').iframe[0];
+        const storedSrcAttr = DomProcessor.getStoredAttrName('src');
+
+        expect(domAdapter.getAttr(iframe, 'src')).eql('https://localhost:' +
+            testProxyPort + '/sessionId!i/http://example.com/');
+        expect(domAdapter.getAttr(iframe, storedSrcAttr)).eql('http://example.com/');
     });
 
     it('Should process iframe with empty src', () => {
