@@ -3,7 +3,7 @@ import SandboxBase from './base';
 import settings from '../settings';
 import nativeMethods from '../sandbox/native-methods';
 import DomProcessor from '../../processing/dom';
-import { isShadowUIElement, isIframeWithoutSrc, getTagName } from '../utils/dom';
+import { isShadowUIElement, isIframeWithoutSrc, isIframeElement, isFrameElement } from '../utils/dom';
 import { isFirefox, isWebKit, isIE } from '../utils/browser';
 import * as JSON from 'json-hammerhead';
 import NodeMutation from './node/mutation';
@@ -153,10 +153,8 @@ export default class IframeSandbox extends SandboxBase {
         if (isShadowUIElement(el))
             return;
 
-        const tagName = getTagName(el);
-
-        if (tagName === 'iframe' && nativeMethods.contentWindowGetter.call(el) ||
-            tagName === 'frame' && nativeMethods.frameContentWindowGetter.call(el))
+        if (isIframeElement(el) && nativeMethods.contentWindowGetter.call(el) ||
+            isFrameElement(el) && nativeMethods.frameContentWindowGetter.call(el))
             this._raiseReadyToInitEvent(el);
 
         // NOTE: This handler exists for iframes without the src attribute. In some the browsers (e.g. Chrome)
