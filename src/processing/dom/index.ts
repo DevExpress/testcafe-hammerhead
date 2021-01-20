@@ -596,11 +596,12 @@ export default class DomProcessor {
         if (!this.adapter.needToProcessUrl(elTagName, target))
             return;
 
-        const resourceType      = this.getElementResourceType(el);
-        const parsedResourceUrl = parseUrl(resourceUrl);
-        const isRelativePath    = parsedResourceUrl.protocol !== 'file:' && !parsedResourceUrl.host;
-        const charsetAttrValue  = isScript && this.adapter.getAttr(el, 'charset');
-        const isImgWithoutSrc   = elTagName === 'img' && resourceUrl === '';
+        const resourceType         = this.getElementResourceType(el);
+        const parsedResourceUrl    = parseUrl(resourceUrl);
+        const isRelativePath       = parsedResourceUrl.protocol !== 'file:' && !parsedResourceUrl.host;
+        const charsetAttrValue     = isScript && this.adapter.getAttr(el, 'charset');
+        const isImgWithoutSrc      = elTagName === 'img' && resourceUrl === '';
+        const isIframeWithEmptySrc = isIframe && resourceUrl === '';
 
         let isCrossDomainSrc = false;
         let proxyUrl         = resourceUrl;
@@ -609,7 +610,7 @@ export default class DomProcessor {
         if (isIframe && !isSpecialPageUrl && !isRelativePath)
             isCrossDomainSrc = !this.adapter.sameOriginCheck(parseProxyUrl(urlReplacer('/')).destUrl, resourceUrl);
 
-        if ((!isSpecialPageUrl || isAnchor) && !isImgWithoutSrc) {
+        if ((!isSpecialPageUrl || isAnchor) && !isImgWithoutSrc && !isIframeWithEmptySrc) {
             proxyUrl = elTagName === 'img' && !this.forceProxySrcForImage
                 ? resolveUrlAsDest(resourceUrl, urlReplacer)
                 : urlReplacer(resourceUrl, resourceType, charsetAttrValue, isCrossDomainSrc);
