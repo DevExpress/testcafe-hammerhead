@@ -303,17 +303,10 @@ if (window.DOMParser) {
 
             strictEqual(nativeMethods.getAttribute.call(anchor, 'href'), '/path');
 
-            if (!browserUtils.isChrome || browserUtils.version < 88) {
-                parsedDocument = domParser.parseFromString(htmlStr, 'text/html', 'third argument');
-                anchor = parsedDocument.querySelector('a');
+            parsedDocument = domParser.parseFromString(htmlStr, 'text/html');
+            anchor         = parsedDocument.querySelector('a');
 
-                strictEqual(nativeMethods.anchorHrefGetter.call(anchor), proxyUrl);
-            }
-            else {
-                throws(function () {
-                    domParser.parseFromString(htmlStr, 'text/html', 'third argument');
-                }, TypeError);
-            }
+            strictEqual(nativeMethods.anchorHrefGetter.call(anchor), proxyUrl);
         });
 
         test('parseFromString result Document should not contain self-removing scripts (GH-1619)', function () {
