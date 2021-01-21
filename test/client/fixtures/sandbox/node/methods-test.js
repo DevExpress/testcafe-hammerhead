@@ -303,10 +303,17 @@ if (window.DOMParser) {
 
             strictEqual(nativeMethods.getAttribute.call(anchor, 'href'), '/path');
 
-            parsedDocument = domParser.parseFromString(htmlStr, 'text/html', 'third argument');
-            anchor         = parsedDocument.querySelector('a');
+            if (!browserUtils.isChrome || browserUtils.version < 88) {
+                parsedDocument = domParser.parseFromString(htmlStr, 'text/html', 'third argument');
+                anchor = parsedDocument.querySelector('a');
 
-            strictEqual(nativeMethods.anchorHrefGetter.call(anchor), proxyUrl);
+                strictEqual(nativeMethods.anchorHrefGetter.call(anchor), proxyUrl);
+            }
+            else {
+                throws(function () {
+                    domParser.parseFromString(htmlStr, 'text/html', 'third argument');
+                }, TypeError);
+            }
         });
 
         test('parseFromString result Document should not contain self-removing scripts (GH-1619)', function () {
@@ -524,19 +531,17 @@ test('document.createDocumentFragment must be overriden (B237717)', function () 
     notEqual(clone.firstChild.getAttribute, nativeMethods.getAttribute);
 });
 
-if (!browserUtils.isIE || browserUtils.version > 9) {
-    test('Range.createContextualFragment must be overriden (GH-535)', function () {
-        var tagString = '<a href="http://some.domain.com/index.html"></a>';
-        var range     = document.createRange();
-        var container = document.createElement('div');
+test('Range.createContextualFragment must be overriden (GH-535)', function () {
+    var tagString = '<a href="http://some.domain.com/index.html"></a>';
+    var range     = document.createRange();
+    var container = document.createElement('div');
 
-        document.body.appendChild(container);
+    document.body.appendChild(container);
 
-        range.selectNode(container);
+    range.selectNode(container);
 
-        var fragment = range.createContextualFragment(tagString);
-        var anchor   = fragment.childNodes[0];
+    var fragment = range.createContextualFragment(tagString);
+    var anchor   = fragment.childNodes[0];
 
-        strictEqual(nativeMethods.anchorHrefGetter.call(anchor), urlUtils.getProxyUrl('http://some.domain.com/index.html'));
-    });
-}
+    strictEqual(nativeMethods.anchorHrefGetter.call(anchor), urlUtils.getProxyUrl('http://some.domain.com/index.html'));
+});

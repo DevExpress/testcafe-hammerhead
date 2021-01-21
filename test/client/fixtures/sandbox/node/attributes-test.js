@@ -136,30 +136,28 @@ test('url attributes overridden by descriptor', function () {
         testUrlAttr(testData[i].tagName, testData[i].attr, testData[i].getter);
 });
 
-if (!browserUtils.isIE || browserUtils.version > 9) {
-    test('formaction attribute in the form', function () {
-        var form   = document.createElement('form');
-        var input  = document.createElement('input');
-        var button = document.createElement('button');
+test('formaction attribute in the form', function () {
+    var form   = document.createElement('form');
+    var input  = document.createElement('input');
+    var button = document.createElement('button');
 
-        input.type = 'submit';
+    input.type = 'submit';
 
-        form.appendChild(input);
-        form.appendChild(button);
+    form.appendChild(input);
+    form.appendChild(button);
 
-        nativeMethods.setAttribute.call(form, 'action', urlUtils.getProxyUrl('./action.html', { resourceType: 'f' }));
-        input.setAttribute('formaction', './input.html');
-        button.setAttribute('formaction', './button.html');
-        strictEqual(urlUtils.parseProxyUrl(nativeMethods.inputFormActionGetter.call(input)).resourceType, 'f');
-        strictEqual(urlUtils.parseProxyUrl(nativeMethods.buttonFormActionGetter.call(button)).resourceType, 'f');
+    nativeMethods.setAttribute.call(form, 'action', urlUtils.getProxyUrl('./action.html', { resourceType: 'f' }));
+    input.setAttribute('formaction', './input.html');
+    button.setAttribute('formaction', './button.html');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.inputFormActionGetter.call(input)).resourceType, 'f');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.buttonFormActionGetter.call(button)).resourceType, 'f');
 
-        nativeMethods.setAttribute.call(form, 'action', urlUtils.getProxyUrl('./action.html', { resourceType: 'fi' }));
-        input.setAttribute('formaction', './input.html');
-        button.setAttribute('formaction', './button.html');
-        strictEqual(urlUtils.parseProxyUrl(nativeMethods.inputFormActionGetter.call(input)).resourceType, 'fi');
-        strictEqual(urlUtils.parseProxyUrl(nativeMethods.buttonFormActionGetter.call(button)).resourceType, 'fi');
-    });
-}
+    nativeMethods.setAttribute.call(form, 'action', urlUtils.getProxyUrl('./action.html', { resourceType: 'fi' }));
+    input.setAttribute('formaction', './input.html');
+    button.setAttribute('formaction', './button.html');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.inputFormActionGetter.call(input)).resourceType, 'fi');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.buttonFormActionGetter.call(button)).resourceType, 'fi');
+});
 
 test('set and remove "formtarget" attribute on form child element with existing "formaction" attribute', function () {
     var iframe = document.createElement('iframe');
