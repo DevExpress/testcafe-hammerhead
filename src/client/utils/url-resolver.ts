@@ -43,6 +43,11 @@ export default {
 
     init (doc: Document) {
         this.updateBase(destLocation.get(), doc);
+
+        const initialBaseElement = nativeMethods.elementGetElementsByTagName.call(doc.head, 'base')[0];
+
+        if (initialBaseElement)
+            this.updateBaseTarget(nativeMethods.getAttribute.call(initialBaseElement, 'target'), doc);
     },
 
     getResolverElement (doc: Document) {
@@ -74,6 +79,8 @@ export default {
     },
 
     updateBase (url: string, doc: Document) {
+        debugger;
+
         const resolverDocument = this._getResolver(doc);
         const baseElement      = nativeMethods.elementGetElementsByTagName.call(resolverDocument.head, 'base')[0];
 
@@ -95,10 +102,23 @@ export default {
         nativeMethods.setAttribute.call(baseElement, 'href', url);
     },
 
+    updateBaseTarget (value: string, doc: Document) {
+        const resolverDocument = this._getResolver(doc);
+        const baseElement      = nativeMethods.elementGetElementsByTagName.call(resolverDocument.head, 'base')[0];
+
+        nativeMethods.setAttribute.call(baseElement, 'target', value);
+    },
+
     getBaseUrl (doc) {
         const baseElement = nativeMethods.elementGetElementsByTagName.call(this._getResolver(doc).head, 'base')[0];
 
         return nativeMethods.getAttribute.call(baseElement, 'href');
+    },
+
+    getBaseTarget (doc) {
+        const baseElement = nativeMethods.elementGetElementsByTagName.call(this._getResolver(doc).head, 'base')[0];
+
+        return nativeMethods.getAttribute.call(baseElement, 'target');
     },
 
     changeUrlPart (url, nativePropSetter, value, doc) {

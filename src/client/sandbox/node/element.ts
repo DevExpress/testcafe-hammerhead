@@ -134,6 +134,7 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     setAttributeCore (el: HTMLElement, args, isNs?: boolean) {
+        debugger;
         const ns          = isNs ? args[0] : null;
         const attr        = String(args[isNs ? 1 : 0]);
         const loweredAttr = attr.toLowerCase();
@@ -212,6 +213,14 @@ export default class ElementSandbox extends SandboxBase {
         }
         else if (loweredAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName) ||
                  loweredAttr === 'formtarget' && DomProcessor.isTagWithFormTargetAttr(tagName)) {
+
+            debugger;
+
+
+            if (tagName === 'base' && domUtils.isElementInDocument(el, this.document))
+                // @ts-ignore
+                urlResolver.updateBaseTarget(value, this.document);
+
             const currentTarget = nativeMethods.getAttribute.call(el, loweredAttr);
             const newTarget     = this.getCorrectedTarget(value);
 
@@ -410,9 +419,12 @@ export default class ElementSandbox extends SandboxBase {
             }
         }
 
-        if (ElementSandbox._isHrefAttrForBaseElement(el, formatedAttr))
+        if (ElementSandbox._isHrefAttrForBaseElement(el, formatedAttr)) {
             // @ts-ignore
             urlResolver.updateBase(getDestLocation(), this.document);
+            // @ts-ignore
+            urlResolver.updateBaseTarget('', this.document);
+        }
 
         if (formatedAttr !== 'autocomplete')
             result = removeAttrFunc.apply(el, args);
@@ -812,19 +824,29 @@ export default class ElementSandbox extends SandboxBase {
             if (storedHrefAttrValue !== null)
                 // @ts-ignore
                 urlResolver.updateBase(storedHrefAttrValue, this.document);
+
+            debugger;
+
+            // @ts-ignore
+            urlResolver.updateBaseTarget(el.getAttribute('target'), this.document);
         }
     }
 
     private _onElementRemoved (el: Node): void {
+        debugger;
+
         if (domUtils.isBodyElement(el))
             this._shadowUI.onBodyElementMutation();
 
         else if (domUtils.isBaseElement(el)) {
             const firstBaseEl    = nativeMethods.querySelector.call(this.document, 'base');
             const storedHrefAttr = firstBaseEl && firstBaseEl.getAttribute(DomProcessor.getStoredAttrName('href'));
+            const targetAttr     = firstBaseEl && firstBaseEl.getAttribute('target') || '';
 
             // @ts-ignore
             urlResolver.updateBase(storedHrefAttr || getDestLocation(), this.document);
+            // @ts-ignore
+            urlResolver.updateBaseTarget(targetAttr, this.document);
         }
 
         DOMMutationTracker.onElementChanged(el);

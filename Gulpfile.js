@@ -11,7 +11,7 @@ const mocha                 = require('gulp-mocha-simple');
 const mustache              = require('gulp-mustache');
 const rename                = require('gulp-rename');
 const webmake               = require('@belym.a.2105/gulp-webmake');
-const uglify                = require('gulp-uglify');
+// const uglify                = require('gulp-uglify');
 const util                  = require('gulp-util');
 const ll                    = require('gulp-ll-next');
 const gulpRunCommand        = require('gulp-run-command').default;
@@ -104,15 +104,15 @@ gulp.step('client-scripts-processing', () => {
         .pipe(rename('hammerhead.js'));
 
     const bundledScript = script.pipe(clone())
-        .pipe(uglify())
+        // .pipe(uglify())
         .pipe(rename('hammerhead.min.js'));
 
     const bundledTransportWorker = gulp.src('./lib/client/transport-worker.js')
-        .pipe(uglify())
+        // .pipe(uglify())
         .pipe(rename('transport-worker.min.js'));
 
     const bundledWorkerHammerhead = gulp.src('./lib/client/worker-hammerhead.js')
-        .pipe(uglify())
+        // .pipe(uglify())
         .pipe(rename('worker-hammerhead.min.js'));
 
     return mergeStreams(script, bundledScript, bundledTransportWorker, bundledWorkerHammerhead)
@@ -222,7 +222,7 @@ gulp.step('set-multi-browser-mode', done => {
     done();
 });
 
-gulp.task('multi-window-http-playground', gulp.series('build', 'set-multi-browser-mode', 'http-playground-server'));
+gulp.task('mw', gulp.series('build', 'set-multi-browser-mode', 'http-playground-server'));
 
 gulp.task('http-playground', gulp.series('build', 'http-playground-server'));
 

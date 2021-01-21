@@ -6,6 +6,7 @@ import * as windowsStorage from '../windows-storage';
 import getRandomInt16Value from '../../utils/get-random-int-16-value';
 import * as domUtils from '../../utils/dom';
 import * as urlUtils from '../../utils/url';
+import * as urlResolver from '../../utils/url-resolver';
 import { SPECIAL_BLANK_PAGE } from '../../../utils/url';
 import { OpenedWindowInfo } from '../../../typings/client';
 import DefaultTarget from './default-target';
@@ -28,11 +29,17 @@ export default class ChildWindowSandbox extends SandboxBase {
     }
 
     private static _shouldOpenInNewWindow (target: string, defaultTarget: string): boolean {
+        debugger;
+
         target = target || defaultTarget;
         target = target.toLowerCase();
 
+        debugger;
+
         if (isKeywordTarget(target))
             return target === '_blank';
+
+        debugger;
 
         return !windowsStorage.findByName(target);
     }
@@ -54,13 +61,20 @@ export default class ChildWindowSandbox extends SandboxBase {
         return { windowId, wnd: openedWindow };
     }
 
+    private _getTarget (el): string {
+        // @ts-ignore
+        const baseTarget = urlResolver.getBaseTarget(this.document);
+
+        return baseTarget || el.target;
+    }
+
     handleClickOnLinkOrArea(el: HTMLLinkElement | HTMLAreaElement): void {
         if (!settings.get().allowMultipleWindows)
             return;
 
         this._listeners.initElementListening(el, ['click']);
         this._listeners.addInternalEventListener(el, ['click'], (_e, _dispatched, preventEvent) => {
-            if (!ChildWindowSandbox._shouldOpenInNewWindow(el.target, DefaultTarget.linkOrArea))
+            if (!ChildWindowSandbox._shouldOpenInNewWindow(this._getTarget(el), DefaultTarget.linkOrArea))
                 return;
 
             // TODO: need to check that specified 'area' are clickable (initiated new page opening)
