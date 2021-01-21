@@ -125,7 +125,7 @@ function parseLocationThroughURL (url: string) {
 export function getParsed () {
     const dest = get();
 
-    return typeof document !== 'undefined' ? parseLocationThroughAnchor(dest) : parseLocationThroughURL(dest);
+    return globalContextInfo.isInWorker ? parseLocationThroughURL(dest) : parseLocationThroughAnchor(dest);
 }
 
 export function getOriginHeader (): string {
