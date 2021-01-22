@@ -276,7 +276,7 @@ export default class StorageWrapper {
                 return true;
             },
 
-            ownKeys: (target) =>  getAddedProperties(target),
+            ownKeys: getAddedProperties,
 
             deleteProperty: (target, key) => {
                 target.removeItem(key);
