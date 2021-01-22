@@ -32,6 +32,58 @@ test('window.open', function () {
     settings.get().allowMultipleWindows = false;
 });
 
+test('open child window considering base element', function () {
+    settings.get().allowMultipleWindows = true;
+
+    hammerhead.sandbox.childWindow._handleFormSubmitting(window);
+
+    let openedWindowUrl          = '';
+    var storedOpenUrlInNewWindow = windowSandbox._childWindowSandbox._openUrlInNewWindow;
+
+    hammerhead.sandbox.childWindow._openUrlInNewWindow = function (url) {
+        openedWindowUrl = url;
+
+        return {
+            windowId: Date.now()
+        };
+    };
+
+    var base  = document.createElement('base');
+    var link  = document.createElement('a');
+    var form  = document.createElement('form');
+    var input = document.createElement('input');
+
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+    });
+
+    base.target    = '_blank';
+    link.innerText = 'link';
+    link.href      = 'http://link';
+    form.action    = 'http://form';
+    form.method    = 'get';
+    input.type     = 'submit';
+
+    document.head.appendChild(base);
+    document.body.appendChild(link);
+    document.body.appendChild(form);
+    form.appendChild(input);
+
+    nativeMethods.click.call(link);
+    ok(openedWindowUrl.includes('http://link'));
+
+    // NOTE: new window after form submit opens in the `about:blank` page
+    nativeMethods.click.call(input);
+    ok(openedWindowUrl.includes('about:blank'));
+
+    windowSandbox._childWindowSandbox._openUrlInNewWindow = storedOpenUrlInNewWindow;
+
+    settings.get().allowMultipleWindows = false;
+
+    document.body.removeChild(link);
+    document.body.removeChild(form);
+});
+
 module('regression');
 
 test('should be prevented only default behaviour (GH-2467)', function () {

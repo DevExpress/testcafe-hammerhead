@@ -27,6 +27,12 @@ export default class ChildWindowSandbox extends SandboxBase {
         super();
     }
 
+    private static _shouldOpenInNewWindowOnElementAction (el: HTMLLinkElement | HTMLAreaElement | HTMLFormElement, defaultTarget: string): boolean {
+        const target = this._calculateTargetForElement(el);
+
+        return this._shouldOpenInNewWindow(target, defaultTarget);
+    }
+
     private static _shouldOpenInNewWindow (target: string, defaultTarget: string): boolean {
         target = target || defaultTarget;
         target = target.toLowerCase();
@@ -54,13 +60,19 @@ export default class ChildWindowSandbox extends SandboxBase {
         return { windowId, wnd: openedWindow };
     }
 
+    private static _calculateTargetForElement (el: HTMLLinkElement | HTMLAreaElement | HTMLFormElement): string {
+        const base = nativeMethods.querySelector.call(domUtils.findDocument(el), 'base');
+
+        return el.target || base?.target;
+    }
+
     handleClickOnLinkOrArea(el: HTMLLinkElement | HTMLAreaElement): void {
         if (!settings.get().allowMultipleWindows)
             return;
 
         this._listeners.initElementListening(el, ['click']);
         this._listeners.addInternalEventListener(el, ['click'], (_e, _dispatched, preventEvent) => {
-            if (!ChildWindowSandbox._shouldOpenInNewWindow(el.target, DefaultTarget.linkOrArea))
+            if (!ChildWindowSandbox._shouldOpenInNewWindowOnElementAction(el, DefaultTarget.linkOrArea))
                 return;
 
             // TODO: need to check that specified 'area' are clickable (initiated new page opening)
@@ -95,7 +107,7 @@ export default class ChildWindowSandbox extends SandboxBase {
 
             const form = e.target;
 
-            if (!ChildWindowSandbox._shouldOpenInNewWindow(form.target, DefaultTarget.form))
+            if (!ChildWindowSandbox._shouldOpenInNewWindowOnElementAction(form, DefaultTarget.form))
                 return;
 
             const aboutBlankUrl = urlUtils.getProxyUrl(SPECIAL_BLANK_PAGE);
