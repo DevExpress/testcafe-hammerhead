@@ -70,11 +70,11 @@ test('open child window considering base element', function () {
     form.appendChild(input);
 
     nativeMethods.click.call(link);
-    ok(openedWindowUrl.includes('http://link'));
+    ok(openedWindowUrl.indexOf('http://link') > -1);
 
     // NOTE: new window after form submit opens in the `about:blank` page
     nativeMethods.click.call(input);
-    ok(openedWindowUrl.includes('about:blank'));
+    ok(openedWindowUrl.indexOf('about:blank') > -1);
 
     windowSandbox._childWindowSandbox._openUrlInNewWindow = storedOpenUrlInNewWindow;
 
