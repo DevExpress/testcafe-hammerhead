@@ -80,7 +80,9 @@ export default class StorageWrapper {
 
         nativeMethods.objectDefineProperty(this, 'length', {
             get: () => getAddedProperties(this).length,
-            set: () => void 0
+            set: () => void 0,
+
+            configurable: true
         });
 
         const loadStorage = (storage?: any) => {
@@ -191,8 +193,7 @@ export default class StorageWrapper {
         };
 
         const getValidKey = key => {
-            const isWrapperMember = this.wrapperMethods.indexOf(key) !== -1 || this.initialProperties.indexOf(key) !==
-                                    -1;
+            const isWrapperMember = this.wrapperMethods.indexOf(key) !== -1 || this.initialProperties.indexOf(key) !== -1;
 
             key = isWrapperMember ? API_KEY_PREFIX + key : key;
 
@@ -274,6 +275,8 @@ export default class StorageWrapper {
 
                 return true;
             },
+
+            ownKeys: (target) =>  getAddedProperties(target),
 
             deleteProperty: (target, key) => {
                 target.removeItem(key);
