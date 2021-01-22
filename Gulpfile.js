@@ -19,8 +19,8 @@ const clone                 = require('gulp-clone');
 const mergeStreams          = require('merge-stream');
 const path                  = require('path');
 const getClientTestSettings = require('./gulp/utils/get-client-test-settings');
-const hang                  = require('./gulp/utils/hang');
 const SAUCELABS_SETTINGS    = require('./gulp/saucelabs-settings');
+const runPlayground         = require('./gulp/utils/run-playground');
 
 gulpStep.install();
 
@@ -211,9 +211,7 @@ gulp.step('travis-saucelabs-qunit', () => {
 gulp.task('test-client-travis', gulp.series('build', 'travis-saucelabs-qunit'));
 
 gulp.step('http-playground-server', () => {
-    require('./test/playground/server.js').start();
-
-    return hang();
+    return runPlayground();
 });
 
 gulp.step('set-multi-browser-mode', done => {
@@ -229,12 +227,12 @@ gulp.task('http-playground', gulp.series('build', 'http-playground-server'));
 gulp.step('https-playground-server', () => {
     const selfSignedCertificate = require('openssl-self-signed-certificate');
 
-    require('./test/playground/server.js').start({
-        key:  selfSignedCertificate.key,
-        cert: selfSignedCertificate.cert
+    return runPlayground({
+        ssl: {
+            key:  selfSignedCertificate.key,
+            cert: selfSignedCertificate.cert
+        }
     });
-
-    return hang();
 });
 
 gulp.task('https-playground', gulp.series('build', 'https-playground-server'));

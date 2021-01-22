@@ -39,8 +39,10 @@ describe('https proxy', () => {
         session = createSession();
 
         proxy = createProxy({
-            key:  selfSignedCertificate.key,
-            cert: selfSignedCertificate.cert
+            ssl: {
+                key:  selfSignedCertificate.key,
+                cert: selfSignedCertificate.cert
+            }
         });
     });
 
