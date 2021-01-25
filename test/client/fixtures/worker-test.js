@@ -22,7 +22,7 @@ test('throwing errors (GH-1132)', function () {
     }, TypeError);
 });
 
-test('checking parameters (GH-1132)', function () {
+test('checking parameters (GH-1132, GH-2512)', function () {
     var savedNativeWorker = nativeMethods.Worker;
     var workerOptions     = { name: 'test' };
     var resourceType      = urlUtils.stringifyResourceType({ isScript: true });
@@ -31,16 +31,22 @@ test('checking parameters (GH-1132)', function () {
         strictEqual(arguments.length, 1);
         strictEqual(scriptURL, urlUtils.getProxyUrl('/test', { resourceType: resourceType }));
     };
-    // eslint-disable-next-line no-new
+    /* eslint-disable no-new */
     new Worker('/test');
+    // NOTE: GH-2512
+    new Worker({
+        toString: function () {
+            return '/test';
+        }
+    });
 
     nativeMethods.Worker = function (scriptURL, options) {
         strictEqual(arguments.length, 2);
         strictEqual(scriptURL, urlUtils.getProxyUrl('/test', { resourceType: resourceType }));
         strictEqual(options, workerOptions);
     };
-    // eslint-disable-next-line no-new
     new Worker('/test', workerOptions);
+    /* eslint-enable no-new */
 
     nativeMethods.Worker = savedNativeWorker;
 });

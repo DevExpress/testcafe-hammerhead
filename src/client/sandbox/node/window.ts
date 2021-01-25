@@ -530,8 +530,10 @@ export default class WindowSandbox extends SandboxBase {
 
                 let scriptURL = args[0];
 
-                if (typeof scriptURL === 'string')
-                    scriptURL = getProxyUrl(scriptURL, { resourceType: stringifyResourceType({ isScript: true }) });
+                if (typeof scriptURL !== 'string')
+                    scriptURL = String(scriptURL);
+
+                scriptURL = getProxyUrl(scriptURL, { resourceType: stringifyResourceType({ isScript: true }) });
 
                 const worker = arguments.length === 1
                     ? new nativeMethods.Worker(scriptURL)
