@@ -248,6 +248,13 @@ if (window.Proxy) {
         strictEqual(sessionStorage.getItem('key2'), null);
         strictEqual(sessionStorage.length, 0);
     });
+
+    test('should not throw an error when deletion occurs on a property that does not exist (GH-2504)', function () {
+        strictEqual(localStorage.getItem('key2504'), null);
+        strictEqual(delete localStorage.key2504, true);
+        strictEqual(nativeLocalStorage.getItem('key2504'), null);
+        strictEqual(delete nativeLocalStorage.key2504, true);
+    });
 }
 
 module('area of visibility');
