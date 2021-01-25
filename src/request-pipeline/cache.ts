@@ -1,7 +1,7 @@
 import LRUCache from 'lru-cache';
 import { ResponseCacheEntry, ResponseCacheEntryBase, RequestCacheEntry } from '../typings/context';
 import RequestOptions from './request-options';
-import { IncomingMessage } from 'http';
+import { IncomingMessage, OutgoingHttpHeader } from 'http';
 import CachePolicy from 'http-cache-semantics';
 import RequestPipelineContext from "./context";
 import { FileStream } from '../typings/session';
@@ -11,11 +11,18 @@ const requestsCache = new LRUCache<string, ResponseCacheEntry>({
     max: 500 // Store 500 responses
 });
 
-function toLowerCase (val: string | string[]): string | string[] {
-    if (Array.isArray(val))
-        return val.map(item => item.toLowerCase());
+function valueToLowerCase (val: OutgoingHttpHeader): number | string | string[] {
+    if (typeof val === 'string')
+        return val.toLowerCase();
 
-    return val.toLowerCase();
+    return val;
+}
+
+function headerValueToLowerCase (val: OutgoingHttpHeader): OutgoingHttpHeader {
+    if (Array.isArray(val))
+        return val.map(item => valueToLowerCase(item)) as OutgoingHttpHeader;
+
+    return valueToLowerCase(val);
 }
 
 function getCacheKey (requestOptions: RequestOptions): string {
@@ -42,12 +49,12 @@ export function prepareReqOptions (reqOptions: RequestOptions): RequestOptions {
         const lowerCaseHeaderName = headerName.toLocaleLowerCase();
 
         if (!headerNames.includes(lowerCaseHeaderName)) {
-            clonedReqOptions.headers[lowerCaseHeaderName] = toLowerCase(clonedReqOptions.headers[headerName]);
+            clonedReqOptions.headers[lowerCaseHeaderName] = headerValueToLowerCase(clonedReqOptions.headers[headerName]);
 
             delete clonedReqOptions.headers[headerName];
         }
         else
-            clonedReqOptions.headers[headerName] = toLowerCase(clonedReqOptions.headers[headerName]);
+            clonedReqOptions.headers[headerName] = headerValueToLowerCase(clonedReqOptions.headers[headerName]);
     }
 
     return clonedReqOptions;

@@ -137,9 +137,10 @@ describe('Cache', () => {
         it('RequestsCache.prepareReqOptions', () => {
             const reqOptions = {
                 headers: {
-                    'Host':       'http://localhost:1234',
-                    'connection': 'Closed',
-                    'Vary':       'Accept-Encoding'
+                    'Host':           'http://localhost:1234',
+                    'connection':     'Closed',
+                    'Vary':           'Accept-Encoding',
+                    'Content-Length': 170
                 }
             };
 
@@ -147,9 +148,10 @@ describe('Cache', () => {
 
             expect(Object.is(reqOptions, preparedReqOptions)).to.be.false;
             expect(preparedReqOptions.headers).eql({
-                'host':       'http://localhost:1234',
-                'connection': 'closed',
-                'vary':       'accept-encoding'
+                'host':           'http://localhost:1234',
+                'connection':     'closed',
+                'vary':           'accept-encoding',
+                'content-length': 170
             });
         });
 

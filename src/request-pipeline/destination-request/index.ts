@@ -52,7 +52,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         this._send();
     }
 
-    _sendReal (storedHeaders: http.IncomingHttpHeaders, waitForData?: boolean): void {
+    _sendReal (storedHeaders: http.OutgoingHttpHeaders, waitForData?: boolean): void {
         this.req = this.protocolInterface.request(this.opts, res => {
             if (waitForData) {
                 res.on('data', noop);

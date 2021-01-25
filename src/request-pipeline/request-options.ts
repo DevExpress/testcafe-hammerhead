@@ -1,6 +1,6 @@
 import RequestPipelineContext from './context';
 import { Credentials, ExternalProxySettings } from '../typings/session';
-import { IncomingHttpHeaders } from 'http';
+import { OutgoingHttpHeaders } from 'http';
 import BUILTIN_HEADERS from './builtin-header-names';
 import * as headerTransforms from './header-transforms';
 import { inject as injectUpload } from '../upload';
@@ -19,7 +19,7 @@ export default class RequestOptions {
     body: Buffer;
     isAjax: boolean;
     rawHeaders: string[];
-    headers: IncomingHttpHeaders;
+    headers: OutgoingHttpHeaders;
     auth: string | void;
     requestId: string;
     proxy?: ExternalProxySettings;
@@ -58,7 +58,7 @@ export default class RequestOptions {
         this._applyExternalProxySettings(proxy, ctx, headers);
     }
 
-    private _applyExternalProxySettings (proxy, ctx: RequestPipelineContext, headers: IncomingHttpHeaders): void {
+    private _applyExternalProxySettings (proxy, ctx: RequestPipelineContext, headers: OutgoingHttpHeaders): void {
         if (!proxy || matchUrl(ctx.dest.url, proxy.bypassRules))
             return;
 
