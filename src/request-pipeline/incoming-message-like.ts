@@ -71,7 +71,7 @@ export default class IncomingMessageLike extends Readable {
         });
     }
 
-    static isIncomingMessageLike (obj: object): boolean {
+    static isIncomingMessageLike (obj: object): obj is IncomingMessageLike {
         return obj instanceof IncomingMessageLike;
     }
 }

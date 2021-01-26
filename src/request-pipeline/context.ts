@@ -301,7 +301,7 @@ export default class RequestPipelineContext {
 
     private async _getDestResBody (res: IncomingMessageLike | http.IncomingMessage | FileStream): Promise<Buffer> {
         if (IncomingMessageLike.isIncomingMessageLike(res))
-            return (res as IncomingMessageLike).getBody();
+            return res.getBody();
 
         return fetchBody(this.destRes);
     }
