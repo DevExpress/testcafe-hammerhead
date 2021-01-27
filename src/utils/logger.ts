@@ -60,6 +60,7 @@ debug.formatters.i = (ctx: RequestPipelineContext): string => {
 const hammerhead              = debug('hammerhead');
 const proxyLogger             = hammerhead.extend('proxy');
 const destinationLogger       = hammerhead.extend('destination');
+const cachedDestinationLogger = destinationLogger.extend('cached');
 const destinationSocketLogger = destinationLogger.extend('socket');
 const serviceMsgLogger        = hammerhead.extend('service-message');
 
@@ -109,6 +110,10 @@ const destination = {
 
     onRequest: (opts: RequestOptions) => {
         destinationLogger('Destination request %s %s %s %j', opts.requestId, opts.method, opts.url, opts.headers);
+    },
+
+    onCachedRequest: (opts: RequestOptions, hitCount: number) => {
+        cachedDestinationLogger('Cached destination request %s %s %s %j (hitCount: %d)', opts.requestId, opts.method, opts.url, opts.headers, hitCount);
     },
 
     onUpgradeRequest: (opts: RequestOptions, res: IncomingMessage) => {

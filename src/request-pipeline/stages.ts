@@ -143,7 +143,7 @@ export default [
     },
 
     async function fetchContent (ctx: RequestPipelineContext) {
-        ctx.destResBody = await fetchBody(ctx.destRes);
+        await ctx.fetchDestResBody();
 
         if (ctx.requestFilterRules.length)
             ctx.saveNonProcessedDestResBody(ctx.destResBody);

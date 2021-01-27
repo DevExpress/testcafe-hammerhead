@@ -1,6 +1,6 @@
 import RequestPipelineContext from '../../request-pipeline/context';
 import ConfigureResponseEventOptions from './configure-response-event-options';
-import { IncomingHttpHeaders } from 'http';
+import { OutgoingHttpHeaders } from 'http';
 
 export class RequestInfo {
     readonly requestId: string;
@@ -8,13 +8,13 @@ export class RequestInfo {
     readonly url: string;
     readonly method: string;
     readonly isAjax: boolean;
-    readonly headers: IncomingHttpHeaders;
+    readonly headers: OutgoingHttpHeaders;
     readonly body: string | Buffer;
     readonly sessionId: string;
 
     constructor (ctx: RequestPipelineContext) {
         this.requestId = ctx.requestId;
-        this.userAgent = ctx.reqOpts.headers['user-agent'] || '';
+        this.userAgent = (ctx.reqOpts.headers['user-agent'] || '').toString();
         this.url       = ctx.reqOpts.url;
         this.method    = ctx.reqOpts.method.toLowerCase();
         this.isAjax    = ctx.isAjax;

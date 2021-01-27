@@ -4,6 +4,7 @@ export interface ServerInfo {
     crossDomainPort: number;
     protocol: string;
     domain: string;
+    cacheRequests: boolean;
 }
 
 export interface ServiceMessage {
@@ -33,4 +34,5 @@ interface RequestTimeout {
 interface ProxyOptions extends RouterOptions {
     ssl: object;
     developmentMode: boolean;
+    cache: boolean;
 }

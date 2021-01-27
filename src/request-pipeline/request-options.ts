@@ -1,11 +1,12 @@
 import RequestPipelineContext from './context';
 import { Credentials, ExternalProxySettings } from '../typings/session';
-import { IncomingHttpHeaders } from 'http';
+import { OutgoingHttpHeaders } from 'http';
 import BUILTIN_HEADERS from './builtin-header-names';
 import * as headerTransforms from './header-transforms';
 import { inject as injectUpload } from '../upload';
 import matchUrl from 'match-url-wildcard';
 import { RequestTimeout } from '../typings/proxy';
+import { transformHeadersCaseToRaw } from "./header-transforms";
 
 export default class RequestOptions {
     url: string;
@@ -19,7 +20,8 @@ export default class RequestOptions {
     body: Buffer;
     isAjax: boolean;
     rawHeaders: string[];
-    headers: IncomingHttpHeaders;
+    headers: OutgoingHttpHeaders;
+    transformedHeaders: OutgoingHttpHeaders;
     auth: string | void;
     requestId: string;
     proxy?: ExternalProxySettings;
@@ -58,7 +60,7 @@ export default class RequestOptions {
         this._applyExternalProxySettings(proxy, ctx, headers);
     }
 
-    private _applyExternalProxySettings (proxy, ctx: RequestPipelineContext, headers: IncomingHttpHeaders): void {
+    private _applyExternalProxySettings (proxy, ctx: RequestPipelineContext, headers: OutgoingHttpHeaders): void {
         if (!proxy || matchUrl(ctx.dest.url, proxy.bypassRules))
             return;
 
@@ -73,5 +75,26 @@ export default class RequestOptions {
             if (proxy.authHeader)
                 headers[BUILTIN_HEADERS.proxyAuthorization] = proxy.authHeader;
         }
+    }
+
+    get isHttps (): boolean {
+        return this.protocol === 'https:';
+    }
+
+    ignoreSSLAuth (): void {
+        this.rejectUnauthorized = false;
+        this.ecdhCurve          = 'auto';
+    }
+
+    prepare (): object {
+        // NOTE: The headers are converted to raw headers because some sites ignore headers in a lower case. (GH-1380)
+        // We also need to restore the request option headers to a lower case because headers may change
+        // if a request is unauthorized, so there can be duplicated headers, for example, 'www-authenticate' and 'WWW-Authenticate'.
+        const transformedHeaders = transformHeadersCaseToRaw(this.headers, this.rawHeaders);
+        const clonedReqOptions   = Object.assign({}, this) as object;
+
+        clonedReqOptions['headers'] = transformedHeaders;
+
+        return clonedReqOptions;
     }
 }
