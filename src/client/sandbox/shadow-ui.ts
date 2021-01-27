@@ -728,6 +728,31 @@ export default class ShadowUI extends SandboxBase {
         this.lastActiveElement = el;
     }
 
+    insertBeforeRoot (newNodes: (string | Node)[]) {
+        const rootEl          = this.getRoot()
+        const rootParent      = this.nativeMethods.nodeParentNodeGetter.call(rootEl);
+        const lastParentChild = this.nativeMethods.nodeLastChildGetter.call(rootParent);
+
+        // GH-2418
+        if (lastParentChild != rootEl)
+            nativeMethods.appendChild.call(rootParent, rootEl);
+
+        if (newNodes.length > 1 || typeof newNodes[0] !== 'object') {
+            const fragment = document.createDocumentFragment.call(this.document);
+
+            for (let node of newNodes) {
+                if (typeof node === 'string')
+                    node = nativeMethods.createTextNode.call(this.document, node);
+
+                nativeMethods.appendChild.call(fragment, node);
+            }
+
+            return nativeMethods.insertBefore.call(rootParent, fragment, rootEl);
+        }
+
+        return nativeMethods.insertBefore.call(rootParent, newNodes[0] as Node, rootEl);
+    }
+
     static markElementAsShadow (el) {
         el[INTERNAL_PROPS.shadowUIElement] = true;
     }
