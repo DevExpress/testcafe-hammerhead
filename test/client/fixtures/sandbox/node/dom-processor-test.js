@@ -106,6 +106,30 @@ if (nativeMethods.append) {
         ok(isScriptElementAddedEventRaised);
 
         document.body.removeChild(div);
+
+        var text = 'foobar';
+        var span = document.createElement('span');
+        var p    = document.createElement('p');
+
+        document.body.append(text, span, p);
+
+        strictEqual(nativeMethods.nodeLastChildGetter.call(document.body), root);
+        strictEqual(nativeMethods.nodePrevSiblingGetter.call(root), p);
+        strictEqual(nativeMethods.nodePrevSiblingGetter.call(p), span);
+        strictEqual(nativeMethods.nodePrevSiblingGetter.call(span).data, text);
+
+        document.body.removeChild(span.previousSibling);
+        document.body.removeChild(span);
+        document.body.removeChild(p);
+
+        var onlyText = 'only text';
+
+        document.body.append(onlyText);
+
+        strictEqual(nativeMethods.nodeLastChildGetter.call(document.body), root);
+        strictEqual(nativeMethods.nodePrevSiblingGetter.call(root).data, onlyText);
+
+        document.body.removeChild(root.previousSibling);
     });
 }
 

@@ -446,21 +446,10 @@ export default class ElementSandbox extends SandboxBase {
         // some javascript frameworks create their own body element, perform
         // certain manipulations and then remove it.
         // Therefore, we need to check if the body element is present in DOM
-        const needInsertBeforeRoot = checkBody && domUtils.isBodyElementWithChildren(parentNode) &&
-                                     domUtils.isElementInDocument(parentNode);
-
-        let rootEl = null;
-
-        if (needInsertBeforeRoot) {
-            rootEl = this._shadowUI.getRoot();
-
-            nativeMethods.removeChild.call(parentNode, rootEl);
-        }
-
-        result = nativeFn.apply(parentNode, args);
-
-        if (needInsertBeforeRoot)
-            nativeMethods.appendChild.call(parentNode, rootEl);
+        if (checkBody && domUtils.isBodyElementWithChildren(parentNode) && domUtils.isElementInDocument(parentNode))
+            result = this._shadowUI.insertBeforeRoot(newNodes);
+        else
+            result = nativeFn.apply(parentNode, args);
 
         for (const child of childNodesArray)
             this._onElementAdded(child);
