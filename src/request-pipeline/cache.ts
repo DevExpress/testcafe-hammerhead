@@ -1,7 +1,7 @@
 import LRUCache from 'lru-cache';
 import { ResponseCacheEntry, ResponseCacheEntryBase, RequestCacheEntry } from '../typings/context';
 import RequestOptions from './request-options';
-import { IncomingMessage, OutgoingHttpHeader } from 'http';
+import { IncomingMessage } from 'http';
 import CachePolicy from 'http-cache-semantics';
 import RequestPipelineContext from "./context";
 import { FileStream } from '../typings/session';
@@ -10,20 +10,6 @@ import IncomingMessageLike from './incoming-message-like';
 const requestsCache = new LRUCache<string, ResponseCacheEntry>({
     max: 500 // Store 500 responses
 });
-
-function valueToLowerCase (val: OutgoingHttpHeader): number | string | string[] {
-    if (typeof val === 'string')
-        return val.toLowerCase();
-
-    return val;
-}
-
-function headerValueToLowerCase (val: OutgoingHttpHeader): OutgoingHttpHeader {
-    if (Array.isArray(val))
-        return val.map(item => valueToLowerCase(item)) as OutgoingHttpHeader;
-
-    return valueToLowerCase(val);
-}
 
 function getCacheKey (requestOptions: RequestOptions): string {
     // NOTE: We don't use pair <method:url> as a cache key since we cache only GET requests
@@ -38,37 +24,14 @@ export function shouldCache (ctx: RequestPipelineContext): boolean {
         (ctx.contentInfo.isCSS || ctx.contentInfo.isScript);
 }
 
-// NOTE: export for testing purposes
-export function prepareReqOptions (reqOptions: RequestOptions): RequestOptions {
-    // NOTE: The 'http-cache-semantics' module requires header names in the low-case notation.
-    const clonedReqOptions = Object.assign({}, reqOptions);
-    const headerNames      = Object.keys(clonedReqOptions.headers);
-
-    for (let i = 0; i < headerNames.length; i++) {
-        const headerName          = headerNames[i];
-        const lowerCaseHeaderName = headerName.toLocaleLowerCase();
-
-        if (!headerNames.includes(lowerCaseHeaderName)) {
-            clonedReqOptions.headers[lowerCaseHeaderName] = headerValueToLowerCase(clonedReqOptions.headers[headerName]);
-
-            delete clonedReqOptions.headers[headerName];
-        }
-        else
-            clonedReqOptions.headers[headerName] = headerValueToLowerCase(clonedReqOptions.headers[headerName]);
-    }
-
-    return clonedReqOptions;
-}
-
 export function create (reqOptions: RequestOptions, res: IncomingMessage | IncomingMessageLike | FileStream): RequestCacheEntry | undefined {
-    const preparedReqOptions = prepareReqOptions(reqOptions);
-    const cachePolicy        = new CachePolicy(preparedReqOptions, res);
+    const cachePolicy = new CachePolicy(reqOptions, res);
 
     if (!cachePolicy.storable())
         return void 0;
 
     return {
-        key:   getCacheKey(preparedReqOptions),
+        key:   getCacheKey(reqOptions),
         value: {
             cachePolicy,
             res:      IncomingMessageLike.createFrom(res as IncomingMessage),
@@ -84,16 +47,15 @@ export function add (entry: RequestCacheEntry): void {
 }
 
 export function getResponse (reqOptions: RequestOptions): ResponseCacheEntryBase | undefined {
-    const preparedReqOptions = prepareReqOptions(reqOptions);
-    const key                = getCacheKey(preparedReqOptions);
-    const cachedResponse     = requestsCache.get(key);
+    const key                  = getCacheKey(reqOptions);
+    const cachedResponse       = requestsCache.get(key);
 
     if (!cachedResponse)
         return void 0;
 
     const { cachePolicy, res } = cachedResponse;
 
-    if (!cachePolicy.satisfiesWithoutRevalidation(preparedReqOptions))
+    if (!cachePolicy.satisfiesWithoutRevalidation(reqOptions))
         return void 0;
 
     res.headers = cachePolicy.responseHeaders();

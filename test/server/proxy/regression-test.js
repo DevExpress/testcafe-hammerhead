@@ -16,6 +16,7 @@ const BUILTIN_HEADERS        = require('../../../lib/request-pipeline/builtin-he
 const { gzip }               = require('../../../lib/utils/promisified-functions');
 const urlUtils               = require('../../../lib/utils/url');
 const headersUtils           = require('../../../lib/utils/headers');
+const RequestOptions         = require('../../../lib/request-pipeline/request-options');
 
 const {
     createSession,
@@ -668,22 +669,35 @@ describe('Regression', () => {
     it('Should abort destination request after fatal error (GH-937)', done => {
         let fatalErrorEventCount = 0;
 
-        session.options.requestTimeout.page = 100;
+        const requestOptions = new RequestOptions({
+            dest: {
+                url:      'http://127.0.0.1:2000/wait/150',
+                protocol: 'http:',
+                hostname: PROXY_HOSTNAME,
+                host:     '127.0.0.1:2000',
+                port:     2000,
+                path:     '/wait/150',
+                method:   'GET'
+            },
+            req: {
+                headers:    {},
+                rawHeaders: []
+            },
+            reqBody: Buffer.alloc(0),
+            isAjax:  false,
+            session: {
+                getAuthCredentials: noop,
 
-        const destReq = new DestinationRequest({
-            url:            'http://127.0.0.1:2000/wait/150',
-            protocol:       'http:',
-            hostname:       PROXY_HOSTNAME,
-            host:           '127.0.0.1:2000',
-            port:           2000,
-            path:           '/wait/150',
-            method:         'GET',
-            body:           Buffer.alloc(0),
-            isAjax:         false,
-            headers:        {},
-            rawHeaders:     [],
-            requestTimeout: { page: 100 }
+                options: {
+                    requestTimeout: { page: 100 }
+                },
+                cookies: {
+                    getHeader: noop
+                }
+            }
         });
+
+        const destReq = new DestinationRequest(requestOptions, false);
 
         destReq.on('error', noop);
         destReq.on('fatalError', () => {

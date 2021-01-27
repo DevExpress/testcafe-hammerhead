@@ -134,27 +134,6 @@ describe('Cache', () => {
             })).to.be.false;
         });
 
-        it('RequestsCache.prepareReqOptions', () => {
-            const reqOptions = {
-                headers: {
-                    'Host':           'http://localhost:1234',
-                    'connection':     'Closed',
-                    'Vary':           'Accept-Encoding',
-                    'Content-Length': 170
-                }
-            };
-
-            const preparedReqOptions = requestsCache.prepareReqOptions(reqOptions);
-
-            expect(Object.is(reqOptions, preparedReqOptions)).to.be.false;
-            expect(preparedReqOptions.headers).eql({
-                'host':           'http://localhost:1234',
-                'connection':     'closed',
-                'vary':           'accept-encoding',
-                'content-length': 170
-            });
-        });
-
         it('Should not cache pages', async () => {
             await testRequestCaching({
                 requestParameters: {

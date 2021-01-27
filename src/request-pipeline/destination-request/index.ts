@@ -8,7 +8,6 @@ import { EventEmitter } from 'events';
 import { getAuthInfo, addCredentials, requiresResBody } from 'webauth';
 import connectionResetGuard from '../connection-reset-guard';
 import { MESSAGE, getText } from '../../messages';
-import { transformHeadersCaseToRaw } from '../header-transforms';
 import logger from '../../utils/logger';
 import * as requestCache from '../cache';
 import IncomingMessageLike from '../incoming-message-like';
@@ -31,35 +30,31 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     private hasResponse = false;
     private credentialsSent = false;
     private aborted = false;
-    private readonly isHttps: boolean;
     private readonly protocolInterface: any;
     private readonly timeout: number;
 
     constructor (readonly opts: RequestOptions, readonly cache: boolean) {
         super();
 
-        this.isHttps           = opts.protocol === 'https:';
-        this.protocolInterface = this.isHttps ? https : http;
+        this.protocolInterface = this.opts.isHttps ? https : http;
         this.timeout           = this.opts.isAjax ? opts.requestTimeout.ajax : opts.requestTimeout.page;
 
-        // NOTE: Ignore SSL auth.
-        if (this.isHttps) {
-            opts.rejectUnauthorized = false;
-            opts.ecdhCurve          = 'auto';
-        }
+        if (this.opts.isHttps)
+            opts.ignoreSSLAuth();
 
         requestAgent.assign(this.opts);
         this._send();
     }
 
-    _sendReal (storedHeaders: http.OutgoingHttpHeaders, waitForData?: boolean): void {
-        this.req = this.protocolInterface.request(this.opts, res => {
+    _sendReal (waitForData?: boolean): void {
+        const preparedOptions = this.opts.prepare();
+
+        this.req = this.protocolInterface.request(preparedOptions, res => {
             if (waitForData) {
                 res.on('data', noop);
                 res.once('end', () => this._onResponse(res));
             }
         });
-        this.opts.headers = storedHeaders;
 
         if (logger.destinationSocket.enabled) {
             this.req.on('socket', socket => {
@@ -82,19 +77,12 @@ export default class DestinationRequest extends EventEmitter implements Destinat
 
     _send (waitForData?: boolean): void {
         connectionResetGuard(() => {
-            const storedHeaders = this.opts.headers;
-
-            // NOTE: The headers are converted to raw headers because some sites ignore headers in a lower case. (GH-1380)
-            // We also need to restore the request option headers to a lower case because headers may change
-            // if a request is unauthorized, so there can be duplicated headers, for example, 'www-authenticate' and 'WWW-Authenticate'.
-            this.opts.headers = transformHeadersCaseToRaw(this.opts.headers, this.opts.rawHeaders);
-
             if (this.cache) {
                 const cachedResponse = requestCache.getResponse(this.opts);
 
                 if (cachedResponse) {
                     // NOTE: To store async order of the 'response' event
-                    setTimeout(() => {
+                    setImmediate(() => {
                         this._emitOnResponse(cachedResponse.res);
                     }, 0);
 
@@ -104,7 +92,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
                 }
             }
 
-            this._sendReal(storedHeaders, waitForData);
+            this._sendReal(waitForData);
         });
     }
 
@@ -127,7 +115,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
 
         if (this._shouldResendWithCredentials(res))
             this._resendWithCredentials(res);
-        else if (!this.isHttps && this.opts.proxy && res.statusCode === 407) {
+        else if (!this.opts.isHttps && this.opts.proxy && res.statusCode === 407) {
             logger.destination.onProxyAuthenticationError(this.opts);
             this._fatalError(MESSAGE.cantAuthorizeToProxy, this.opts.proxy.host);
         }
@@ -176,7 +164,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     }
 
     _isTunnelingErr (err): boolean {
-        return this.isHttps && this.opts.proxy && err.message && TUNNELING_SOCKET_ERR_RE.test(err.message);
+        return this.opts.isHttps && this.opts.proxy && err.message && TUNNELING_SOCKET_ERR_RE.test(err.message);
     }
 
     _isSocketHangUpErr (err): boolean {
@@ -214,7 +202,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         }
 
         else if (this._isDNSErr(err)) {
-            if (!this.isHttps && this.opts.proxy)
+            if (!this.opts.isHttps && this.opts.proxy)
                 this._fatalError(MESSAGE.cantEstablishProxyConnection, this.opts.proxy.host);
             else
                 this._fatalError(MESSAGE.cantResolveUrl);

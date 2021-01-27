@@ -64,27 +64,33 @@ function calculateForcedHeadersCase (headers: OutgoingHttpHeaders, processedHead
     }
 }
 
-export function transformHeadersCaseToRaw (headers: OutgoingHttpHeaders, rawHeaders: string[]) {
-    const processedHeaders = {};
-    const headersNames     = Object.keys(headers);
-
+function transformOriginHeaders (headers: OutgoingHttpHeaders, processedHeaders: object, headersNames: string[], rawHeaders: string[]): void {
     for (let i = 0; i < rawHeaders.length; i += 2) {
-        const rawHeaderName = rawHeaders[i];
-        const headerName    = rawHeaderName.toLowerCase();
-        const headerIndex   = headersNames.indexOf(headerName);
+        const rawHeaderName           = rawHeaders[i];
+        const lowerCasedRawHeaderName = rawHeaderName.toLowerCase();
+        const headerIndex             = headersNames.indexOf(lowerCasedRawHeaderName);
 
         if (headerIndex > -1) {
-            processedHeaders[rawHeaderName] = headers[headerName];
+            processedHeaders[rawHeaderName] = headers[lowerCasedRawHeaderName];
             headersNames[headerIndex]       = void 0;
         }
     }
+}
 
-    calculateForcedHeadersCase(headers, processedHeaders, headersNames);
-
+function addServiceHeaders (headers: OutgoingHttpHeaders, processedHeaders: object, headersNames: (string | void)[]): void {
     for (const headerName of headersNames) {
         if (headerName !== void 0)
-            processedHeaders[headerName] = headers[headerName];
+            processedHeaders[headerName as string] = headers[headerName as string];
     }
+}
+
+export function transformHeadersCaseToRaw (headers: OutgoingHttpHeaders, rawHeaders: string[]): object {
+    const processedHeaders = {};
+    const headersNames     = Object.keys(headers);
+
+    transformOriginHeaders(headers, processedHeaders, headersNames, rawHeaders);
+    calculateForcedHeadersCase(headers, processedHeaders, headersNames);
+    addServiceHeaders(headers, processedHeaders, headersNames);
 
     return processedHeaders;
 }
