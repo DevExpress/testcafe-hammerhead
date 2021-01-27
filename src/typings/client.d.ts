@@ -1,3 +1,5 @@
+import StorageWrapper from '../client/sandbox/storages/wrapper';
+
 export interface CheckByConditionOptions {
     win?: Window;
     checkConditionEveryMs?: number;
@@ -38,3 +40,12 @@ export interface OpenedWindowInfo {
     wnd: Window;
 }
 
+interface StorageProxy {
+    unwrapProxy: () => StorageWrapper;
+    // NOTE: This property is necessary, because 'StorageWrapper' is not assignable to 'StorageProxy'.
+    nonExistentProperty: void;
+}
+
+interface HammerheadStorageEventInit extends Omit<StorageEventInit, 'storageArea'> {
+    storageArea: StorageProxy;
+}

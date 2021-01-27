@@ -3,8 +3,9 @@ var settings       = hammerhead.settings;
 
 var storageSandbox = hammerhead.sandbox.storageSandbox;
 var Promise        = hammerhead.Promise;
-var isIE           = hammerhead.utils.browser.isIE;
+var browserUtils   = hammerhead.utils.browser;
 var nativeMethods  = hammerhead.nativeMethods;
+var unloadSandbox  = hammerhead.sandbox.event.unload;
 
 var storageWrapperKey = 'hammerhead|storage-wrapper|' + settings.get().sessionId + '|example.com';
 
@@ -13,12 +14,12 @@ var nativeSessionStorage = nativeMethods.winSessionStorageGetter.call(window);
 
 // NOTE: Removes the last 'hammerhead|event|unload' listener (() => dispose())
 // so that tests don't crash when 'hammerhead|event|unload' is emitted
-storageSandbox._unloadSandbox.eventsListeners[storageSandbox._unloadSandbox.UNLOAD_EVENT].pop();
+unloadSandbox.eventsListeners[unloadSandbox.UNLOAD_EVENT].pop();
 
 QUnit.testStart(function () {
     // NOTE: Clean up storage wrappers
-    nativeLocalStorage.clear();
-    nativeSessionStorage.clear();
+    nativeMethods.storageClear.call(nativeLocalStorage);
+    nativeMethods.storageClear.call(nativeSessionStorage);
     localStorage.clear();
     sessionStorage.clear();
 });
@@ -39,44 +40,71 @@ function waitStorageEvent (window, action) {
     });
 }
 
+test('wrapper', function () {
+    ok(localStorage instanceof Storage);
+    strictEqual(Storage.prototype.setItem.call(localStorage, 'key', 'value'), void 0);
+    strictEqual(Storage.prototype.getItem.call(localStorage, 'key'), 'value');
+    strictEqual(Storage.prototype.key.call(localStorage, 0), 'key');
+    strictEqual(Storage.prototype.removeItem.call(localStorage, 'key'), void 0);
+    strictEqual(Storage.prototype.clear.call(localStorage), void 0);
+    strictEqual(localStorage.length, 0);
+
+    const nativeStorageKeys = [];
+    const storageKeys       = [];
+
+    for (var nativeKey in nativeLocalStorage)
+        nativeStorageKeys.push(nativeKey);
+
+    for (var key in localStorage)
+        storageKeys.push(key);
+
+    deepEqual(storageKeys, nativeStorageKeys);
+});
+
 module('storage sandbox API');
 
 test('clear', function () {
+    var nativeLocalStorageKey   = localStorage.internal.nativeStorageKey;
+    var nativeSessionStorageKey = sessionStorage.internal.nativeStorageKey;
+
     localStorage.setItem('key11', 'value1');
     sessionStorage.setItem('key12', 'value2');
 
     strictEqual(localStorage.length, 1);
     strictEqual(sessionStorage.length, 1);
-    strictEqual(nativeLocalStorage.getItem(localStorage.nativeStorageKey), null);
-    strictEqual(nativeSessionStorage.getItem(sessionStorage.nativeStorageKey), null);
+    strictEqual(nativeMethods.storageGetItem.call(nativeLocalStorage, nativeLocalStorageKey), null);
+    strictEqual(nativeMethods.storageGetItem.call(nativeSessionStorage, nativeSessionStorageKey), null);
 
-    storageSandbox._unloadSandbox.emit(storageSandbox._unloadSandbox.UNLOAD_EVENT);
+    unloadSandbox.emit(unloadSandbox.UNLOAD_EVENT);
 
-    strictEqual(nativeLocalStorage.getItem(localStorage.nativeStorageKey), '[["key11"],["value1"]]');
-    strictEqual(nativeSessionStorage.getItem(sessionStorage.nativeStorageKey), '[["key12"],["value2"]]');
+    strictEqual(nativeMethods.storageGetItem.call(nativeLocalStorage, nativeLocalStorageKey), '[["key11"],["value1"]]');
+    strictEqual(nativeMethods.storageGetItem.call(nativeSessionStorage, nativeSessionStorageKey), '[["key12"],["value2"]]');
 
     storageSandbox.clear();
 
     strictEqual(localStorage.length, 1);
     strictEqual(sessionStorage.length, 1);
-    strictEqual(nativeLocalStorage.getItem(localStorage.nativeStorageKey), null);
-    strictEqual(nativeSessionStorage.getItem(sessionStorage.nativeStorageKey), null);
+    strictEqual(nativeMethods.storageGetItem.call(nativeLocalStorage, nativeLocalStorageKey), null);
+    strictEqual(nativeMethods.storageGetItem.call(nativeSessionStorage, nativeSessionStorageKey), null);
 });
 
 test('lock', function () {
+    var nativeLocalStorageKey   = localStorage.internal.nativeStorageKey;
+    var nativeSessionStorageKey = sessionStorage.internal.nativeStorageKey;
+
     localStorage.setItem('key11', 'value1');
     sessionStorage.setItem('key12', 'value2');
 
     strictEqual(localStorage.length, 1);
     strictEqual(sessionStorage.length, 1);
-    strictEqual(nativeLocalStorage.getItem(localStorage.nativeStorageKey), null);
-    strictEqual(nativeSessionStorage.getItem(sessionStorage.nativeStorageKey), null);
+    strictEqual(nativeMethods.storageGetItem.call(nativeLocalStorage, nativeLocalStorageKey), null);
+    strictEqual(nativeMethods.storageGetItem.call(nativeSessionStorage, nativeSessionStorageKey), null);
 
     storageSandbox.lock();
-    storageSandbox._unloadSandbox.emit(storageSandbox._unloadSandbox.UNLOAD_EVENT);
+    unloadSandbox.emit(unloadSandbox.UNLOAD_EVENT);
 
-    strictEqual(nativeLocalStorage.getItem(localStorage.nativeStorageKey), null);
-    strictEqual(nativeSessionStorage.getItem(sessionStorage.nativeStorageKey), null);
+    strictEqual(nativeMethods.storageGetItem.call(nativeLocalStorage, nativeLocalStorageKey), null);
+    strictEqual(nativeMethods.storageGetItem.call(nativeSessionStorage, nativeSessionStorageKey), null);
 
     storageSandbox.isLocked = false;
 });
@@ -222,8 +250,13 @@ if (window.Proxy) {
         strictEqual(sessionStorage.getItem('key1'), '222');
         strictEqual(sessionStorage.length, 1);
 
-        sessionStorage.length = 3;
-        strictEqual(sessionStorage.length, 1);
+        sessionStorage.unwrapProxy = 333;
+        sessionStorage.internal = 444;
+        strictEqual(sessionStorage.getItem('unwrapProxy'), '333');
+        strictEqual(sessionStorage.unwrapProxy()['hammerhead|api-key-prefix|unwrapProxy'], '333');
+        strictEqual(sessionStorage.getItem('internal'), '444');
+        strictEqual(sessionStorage.unwrapProxy()['hammerhead|api-key-prefix|internal'], '444');
+        strictEqual(sessionStorage.length, 3);
     });
 
     test('clear storage via delete properties', function () {
@@ -252,7 +285,7 @@ if (window.Proxy) {
     test('should not throw an error when deletion occurs on a property that does not exist (GH-2504)', function () {
         strictEqual(localStorage.getItem('key2504'), null);
         strictEqual(delete localStorage.key2504, true);
-        strictEqual(nativeLocalStorage.getItem('key2504'), null);
+        strictEqual(nativeMethods.storageGetItem.call(nativeLocalStorage, 'key2504'), null);
         strictEqual(delete nativeLocalStorage.key2504, true);
     });
 }
@@ -269,7 +302,7 @@ test('iframe with empty src', function () {
             strictEqual(iframeLocalStorage.key1, 'value1');
 
             iframeLocalStorage.key2 = 'value2';
-            localStorage.key3    = 'value3';
+            localStorage.key3       = 'value3';
 
             strictEqual(localStorage.key2, 'value2');
             strictEqual(iframeLocalStorage.key3, 'value3');
@@ -282,8 +315,8 @@ test('storages load their state from native', function () {
     nativeLocalStorage[storageWrapperKey]   = '[[ "key1" ],[ "value1" ]]';
     nativeSessionStorage[storageWrapperKey] = '[[ "key2" ],[ "value2" ]]';
 
-    var localSandboxWrapper   = new StorageWrapper(window, nativeLocalStorage, storageWrapperKey, hammerhead.sandbox.event.listeners);
-    var sessionSandboxWrapper = new StorageWrapper(window, nativeSessionStorage, storageWrapperKey, hammerhead.sandbox.event.listeners);
+    var localSandboxWrapper   = new StorageWrapper(window, nativeLocalStorage, storageWrapperKey);
+    var sessionSandboxWrapper = new StorageWrapper(window, nativeSessionStorage, storageWrapperKey);
 
     strictEqual(localSandboxWrapper.key1, 'value1');
     strictEqual(sessionSandboxWrapper.key2, 'value2');
@@ -297,7 +330,7 @@ test('storages save their state on the unload event', function () {
     ok(!nativeSessionStorage[storageWrapperKey]);
 
     // NOTE: Simulate page leaving
-    hammerhead.sandbox.event.unload._emitEvent(hammerhead.sandbox.event.unload.unloadProperties);
+    unloadSandbox._emitEvent(unloadSandbox.unloadProperties);
 
     strictEqual(nativeLocalStorage[storageWrapperKey], JSON.stringify([['key1'], ['value1']]));
     strictEqual(nativeSessionStorage[storageWrapperKey], JSON.stringify([['key2'], ['value2']]));
@@ -309,12 +342,10 @@ test('event firing in all same host windows except current', function () {
     var iframe                 = null;
     var topStorageEventArgs    = [];
     var iframeStorageEventArgs = [];
-
-    var topWindowHandler = function (e) {
+    var topWindowHandler       = function (e) {
         topStorageEventArgs.push(e);
     };
-
-    var iframeWindowHandler = function (e) {
+    var iframeWindowHandler    = function (e) {
         iframeStorageEventArgs.push(e);
     };
 
@@ -333,7 +364,7 @@ test('event firing in all same host windows except current', function () {
             strictEqual(iframeStorageEventArgs.length, 0);
 
             strictEqual(topStorageEventArgs[0].key, 'key1');
-            strictEqual(topStorageEventArgs[0].oldValue, isIE ? '' : null);
+            strictEqual(topStorageEventArgs[0].oldValue, browserUtils.isIE ? '' : null);
             strictEqual(topStorageEventArgs[0].newValue, 'value1');
             strictEqual(topStorageEventArgs[0].url, 'https://example.com/');
             strictEqual(topStorageEventArgs[0].storageArea, iframe.contentWindow.localStorage);
@@ -347,7 +378,7 @@ test('event firing in all same host windows except current', function () {
             strictEqual(iframeStorageEventArgs.length, 1);
 
             strictEqual(iframeStorageEventArgs[0].key, 'key2');
-            strictEqual(iframeStorageEventArgs[0].oldValue, isIE ? '' : null);
+            strictEqual(iframeStorageEventArgs[0].oldValue, browserUtils.isIE ? '' : null);
             strictEqual(iframeStorageEventArgs[0].newValue, 'value2');
             strictEqual(iframeStorageEventArgs[0].url, 'https://example.com/');
             strictEqual(iframeStorageEventArgs[0].storageArea, localStorage);
@@ -376,14 +407,14 @@ test('event argument parameters', function () {
             });
         })
         .then(function (e) {
-            checkEventArg(e, 'key1', isIE ? '' : null, 'value1');
+            checkEventArg(e, 'key1', browserUtils.isIE ? '' : null, 'value1');
 
             return waitStorageEvent(window, function () {
                 iframeStorageSandbox.key2 = 'value2';
             });
         })
         .then(function (e) {
-            checkEventArg(e, 'key2', isIE ? '' : null, 'value2');
+            checkEventArg(e, 'key2', browserUtils.isIE ? '' : null, 'value2');
 
             return waitStorageEvent(window, function () {
                 iframeStorageSandbox.key1 = 'value3';
@@ -397,7 +428,7 @@ test('event argument parameters', function () {
             });
         })
         .then(function (e) {
-            checkEventArg(e, 'key1', 'value3', isIE ? 'null' : null);
+            checkEventArg(e, 'key1', 'value3', browserUtils.isIE ? 'null' : null);
         });
 });
 
@@ -407,9 +438,6 @@ test('Storage wrapper should has Storage prototype (GH-955)', function () {
     Object.defineProperty(window.Storage.prototype, 'gh955', {
         get: function () {
             return 'gh955';
-        },
-        set: function () {
-            return void 0;
         }
     });
 
@@ -418,18 +446,20 @@ test('Storage wrapper should has Storage prototype (GH-955)', function () {
 });
 
 test("should work with keys named as wrapper's internal members (GH-735)", function () {
-    sessionStorage.initialProperties.forEach(function (property) {
-        sessionStorage.setItem(property, 'test');
+    var internalProps = nativeMethods.objectKeys(Storage.prototype).concat(StorageWrapper.HH_INTERNAL_METHODS);
 
-        ok(sessionStorage[property] !== 'test');
-        strictEqual(sessionStorage.getItem(property), 'test');
-    });
+    internalProps.forEach(function (property) {
+        sessionStorage.setItem(property, 'test1');
 
-    sessionStorage.wrapperMethods.forEach(function (method) {
-        sessionStorage.setItem(method, 'test');
+        notEqual(sessionStorage[property], 'test1');
+        strictEqual(sessionStorage.getItem(property), 'test1');
 
-        ok(sessionStorage[method] !== 'test');
-        strictEqual(sessionStorage.getItem(method), 'test');
+        if (!browserUtils.isIE11) {
+            localStorage[property] = 'test2';
+
+            notEqual(localStorage[property], 'test2');
+            strictEqual(localStorage.getItem(property), 'test2');
+        }
     });
 });
 
