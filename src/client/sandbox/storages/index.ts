@@ -84,33 +84,6 @@ export default class StorageSandbox extends SandboxBase {
         }
     }
 
-    _overrideStorageEvent () {
-        // @ts-ignore
-        this.window.StorageEvent = function (this: Window, type, opts) {
-            if (arguments.length === 0)
-                throw new TypeError();
-
-            const storedArea = opts.storageArea || null;
-
-            if (storedArea)
-                delete opts.storageArea;
-
-            const event = new this['nativeMethods'].StorageEvent(type, opts);
-
-            if (storedArea) {
-                this['nativeMethods'].objectDefineProperty(event, 'storageArea', {
-                    get: () => storedArea,
-                    set: () => void 0
-                });
-            }
-
-            return event;
-        };
-
-        // @ts-ignore
-        window.StorageEvent.toString = () => this.nativeMethods.StorageEvent.toString();
-    }
-
     clear () {
         this.nativeMethods.winLocalStorageGetter.call(this.window).removeItem(this.localStorageWrapper.nativeStorageKey);
         this.nativeMethods.winSessionStorageGetter.call(this.window).removeItem(this.sessionStorageWrapper.nativeStorageKey);
@@ -147,8 +120,6 @@ export default class StorageSandbox extends SandboxBase {
             if (!dispatched)
                 preventEvent();
         });
-
-        this._overrideStorageEvent();
 
         const storagesPropsOwner = this.nativeMethods.getStoragesPropsOwner(window);
 
