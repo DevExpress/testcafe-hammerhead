@@ -5,6 +5,7 @@ import * as domUtils from '../../utils/dom';
 import * as eventUtils from '../../utils/event';
 import { getOffsetPosition, offsetToClientCoords, shouldIgnoreMouseEventInsideIframe } from '../../utils/position';
 import { getBordersWidth } from '../../utils/style';
+import { isTouchDevice } from '../../utils/feature-detection';
 
 const TOUCH_EVENT_RADIUS = 25;
 const TOUCH_EVENT_FORCE  = 0.5;
@@ -622,7 +623,9 @@ export default class EventSimulator {
             }
         }
 
-        if (eventUtils.hasPointerEvents)
+        // NOTE: In the case of touch devices we have already dispatched pointer events in _dispatchTouchEvent
+        // (TC-GH-5891)
+        if (eventUtils.hasPointerEvents && !isTouchDevice)
             this._dispatchPointerEvent(el, args);
 
         return this._dispatchMouseEvent(el, args, userOptions);
