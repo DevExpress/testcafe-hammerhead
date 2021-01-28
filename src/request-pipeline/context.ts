@@ -173,6 +173,13 @@ export default class RequestPipelineContext {
         return { dest, sessionId: parsedReferer.sessionId, windowId: parsedReferer.windowId };
     }
 
+    private _addTemporaryEntryToCache (): void {
+        this.temporaryCacheEntry.value.res.setBody(this.destResBody);
+        requestCache.add(this.temporaryCacheEntry);
+
+        this.temporaryCacheEntry = void 0;
+    }
+
     // API
     dispatch (openSessions: Map<string, Session>): boolean {
         const parsedReqUrl  = urlUtils.parseProxyUrl(this.req.url);
@@ -230,7 +237,7 @@ export default class RequestPipelineContext {
         return (str[0] === '/' ? '' : '/') + str;
     }
 
-    buildContentInfo () {
+    buildContentInfo (): void {
         const contentType = this.destRes.headers[BUILTIN_HEADERS.contentType] as string || '';
         const accept      = this.req.headers[BUILTIN_HEADERS.accept] as string || '';
         const encoding    = (this.destRes.headers[BUILTIN_HEADERS.contentEncoding] as string || '').toLowerCase();
@@ -306,7 +313,7 @@ export default class RequestPipelineContext {
         return fetchBody(this.destRes);
     }
 
-    calculateIsDestResReadableEnded () {
+    calculateIsDestResReadableEnded (): void {
         if (!this.contentInfo.isNotModified && !this.contentInfo.isRedirect) {
             this.destRes.once('end', () => {
                 this.isDestResReadableEnded = true;
@@ -445,9 +452,23 @@ export default class RequestPipelineContext {
         if (!this.temporaryCacheEntry)
             return;
 
-        this.temporaryCacheEntry.value.res.setBody(this.destResBody);
+        this._addTemporaryEntryToCache();
+    }
 
-        requestCache.add(this.temporaryCacheEntry);
+    async pipeNonProcessedResponse (): Promise<void> {
+        if (!this.serverInfo.cacheRequests) {
+            this.destRes.pipe(this.res);
+
+            return;
+        }
+
+        this.destResBody = await this._getDestResBody(this.destRes);
+
+        if (this.temporaryCacheEntry)
+            this._addTemporaryEntryToCache();
+
+        this.res.write(this.destResBody);
+        this.res.end();
     }
 
     createCacheEntry (res: http.IncomingMessage | IncomingMessageLike | FileStream): void {
