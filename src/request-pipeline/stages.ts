@@ -21,7 +21,6 @@ import { respondOnWebSocket } from './websocket';
 import { noop } from 'lodash';
 import { process as processResource } from '../processing/resources';
 import connectionResetGuard from './connection-reset-guard';
-import http from 'http';
 
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 
@@ -131,7 +130,8 @@ export default [
                 ctx.destRes.destroy();
             else {
                 ctx.res.once('close', () => !ctx.isDestResReadableEnded && ctx.destRes.destroy());
-                ctx.destRes.pipe(ctx.res);
+
+                await ctx.pipeNonProcessedResponse();
             }
 
             // NOTE: sets 60 minutes timeout for the "event source" requests instead of 2 minutes by default
@@ -174,9 +174,7 @@ export default [
                 await callResponseEventCallbackForProcessedRequest(ctx, configureResponseEvent);
             }));
 
-            const res = ctx.res as http.ServerResponse;
-
-            res.write(ctx.destResBody);
+            ctx.res.write(ctx.destResBody);
             ctx.res.end();
         });
     }

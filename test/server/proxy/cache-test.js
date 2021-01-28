@@ -12,7 +12,8 @@ const {
     createDestinationServer,
     createSession,
     createProxy,
-    compareCode
+    compareCode,
+    getBasicProxyUrl
 } = require('../common/utils');
 
 const SESSION_COUNT = 3;
@@ -44,7 +45,7 @@ describe('Cache', () => {
             res.end(readFileContentAsString('test/server/data/cache/page.html'));
         });
 
-        app.get('/script', (req, res) => {
+        app.get('/script/:id', (req, res) => {
             serverRouteCalls++;
 
             addCacheHeader(res);
@@ -76,12 +77,14 @@ describe('Cache', () => {
         return sessionNumber * 2 + requestNumber;
     }
 
-    async function testRequestCaching ({ requestParameters, expectedResultFile, shouldCache }) {
+    async function testRequestCaching ({ requestParameters, expectedResultFile, isAjax, shouldCache }) {
         for (let i = 0; i < SESSION_COUNT; i++) {
             const session                 = createSession();
             const clonedRequestParameters = Object.assign({}, requestParameters);
 
-            clonedRequestParameters.url = proxy.openSession(clonedRequestParameters.url, session);
+            clonedRequestParameters.url = getBasicProxyUrl(clonedRequestParameters.url, { isAjax }, void 0, void 0, false, session);
+
+            proxy.openSession('http://example.com/', session);
 
             const expectedResult         = readFileContentAsString(expectedResultFile);
             let expectedServerRouteCalls = getExpectedServerRouteCall(i, 1, shouldCache);
@@ -147,13 +150,26 @@ describe('Cache', () => {
             });
         });
 
-        it('Should cache scripts', async () => {
-            await testRequestCaching({
-                requestParameters: {
-                    url: 'http://127.0.0.1:2000/script'
-                },
-                expectedResultFile: 'test/server/data/cache/expected-script.js',
-                shouldCache:        true
+        describe('Should cache scripts', async () => {
+            it('Processed', async () => {
+                await testRequestCaching({
+                    requestParameters: {
+                        url: 'http://127.0.0.1:2000/script/1'
+                    },
+                    expectedResultFile: 'test/server/data/cache/expected-script.js',
+                    shouldCache:        true
+                });
+            });
+
+            it('Non-processed', async () => {
+                await testRequestCaching({
+                    requestParameters: {
+                        url: 'http://127.0.0.1:2000/script/2'
+                    },
+                    expectedResultFile: 'test/server/data/cache/script.js',
+                    shouldCache:        true,
+                    isAjax:             true
+                });
             });
         });
     });
