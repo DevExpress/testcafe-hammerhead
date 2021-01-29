@@ -10,21 +10,24 @@ export default abstract class TransportLegacy {
     protected _activeServiceMsgCount = 0;
 
     private static _getStoredMessages (): ServiceMessage[] {
-        const storedMessagesStr = nativeMethods.winLocalStorageGetter.call(window).getItem(settings.get().sessionId);
+        const nativeLocalStorage = nativeMethods.winLocalStorageGetter.call(window);
+        const storedMessagesStr  = nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId);
 
         return storedMessagesStr ? parseJSON(storedMessagesStr) : [];
     }
 
     protected static _storeMessage (msg: ServiceMessage): void {
-        const storedMessages = TransportLegacy._getStoredMessages();
+        const storedMessages     = TransportLegacy._getStoredMessages();
+        const nativeLocalStorage = nativeMethods.winLocalStorageGetter.call(window);
 
         storedMessages.push(msg);
 
-        nativeMethods.winLocalStorageGetter.call(window).setItem(settings.get().sessionId, stringifyJSON(storedMessages));
+        nativeMethods.storageSetItem.call(nativeLocalStorage, settings.get().sessionId, stringifyJSON(storedMessages));
     }
 
     protected static _removeMessageFromStore (cmd: string): void {
-        const messages = TransportLegacy._getStoredMessages();
+        const messages           = TransportLegacy._getStoredMessages();
+        const nativeLocalStorage = nativeMethods.winLocalStorageGetter.call(window);
 
         for (let i = 0; i < messages.length; i++) {
             if (messages[i].cmd === cmd) {
@@ -34,7 +37,7 @@ export default abstract class TransportLegacy {
             }
         }
 
-        nativeMethods.winLocalStorageGetter.call(window).setItem(settings.get().sessionId, stringifyJSON(messages));
+        nativeMethods.storageSetItem.call(nativeLocalStorage, settings.get().sessionId, stringifyJSON(messages));
     }
 
     batchUpdate (): Promise<any> {
@@ -43,9 +46,10 @@ export default abstract class TransportLegacy {
         if (!storedMessages.length)
             return Promise.resolve();
 
-        const tasks = [];
+        const tasks              = [];
+        const nativeLocalStorage = nativeMethods.winLocalStorageGetter.call(window);
 
-        nativeMethods.winLocalStorageGetter.call(window).removeItem(settings.get().sessionId);
+        nativeMethods.storageRemoveItem.call(nativeLocalStorage, settings.get().sessionId);
 
         for (const storedMessage of storedMessages)
             tasks.push(this.queuedAsyncServiceMsg(storedMessage));

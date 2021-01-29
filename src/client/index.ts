@@ -204,7 +204,9 @@ class Hammerhead {
     }
 
     static _cleanLocalStorageServiceData (sessionId: string, window: Window): void {
-        nativeMethods.winLocalStorageGetter.call(window).removeItem(sessionId);
+        const nativeLocalStorage = nativeMethods.winLocalStorageGetter.call(window);
+
+        nativeMethods.storageRemoveItem.call(nativeLocalStorage, sessionId);
     }
 
     on (evtName: string, handler: Function): void {

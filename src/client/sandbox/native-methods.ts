@@ -318,8 +318,8 @@ class NativeMethods {
     promiseThen: any;
     promiseReject: any;
     xhrResponseURLGetter: any;
-    winLocalStorageGetter: any;
-    winSessionStorageGetter: any;
+    winLocalStorageGetter: (this: Window) => Storage;
+    winSessionStorageGetter: (this: Window) => Storage;
     mutationRecordNextSiblingGetter: any;
     mutationRecordPrevSiblingGetter: any;
     styleGetPropertyValue: any;
@@ -666,15 +666,15 @@ class NativeMethods {
             this.winSessionStorageGetter = win.Object.getOwnPropertyDescriptor(storagesPropsOwner, 'sessionStorage').get;
         }
 
+        if (isInWorker)
+            return;
+
         this.storageGetItem      = win.Storage.prototype.getItem;
         this.storageSetItem      = win.Storage.prototype.setItem;
         this.storageRemoveItem   = win.Storage.prototype.removeItem;
         this.storageClear        = win.Storage.prototype.clear;
         this.storageKey          = win.Storage.prototype.key;
         this.storageLengthGetter = win.Object.getOwnPropertyDescriptor(win.Storage.prototype, 'length');
-
-        if (isInWorker)
-            return;
 
         const objectDataDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLObjectElement.prototype, 'data');
         const inputTypeDescriptor            = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'type');

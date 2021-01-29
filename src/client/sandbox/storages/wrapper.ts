@@ -50,7 +50,7 @@ class StorageWrapper extends StorageInheritor {
         return INTERNAL_WEAK_MAP.get(this);
     }
 
-    static create (window, nativeStorage, nativeStorageKey) {
+    static create (window: Window & typeof globalThis, nativeStorage: Storage, nativeStorageKey: string) {
         const storageWrapper = new StorageWrapper(window, nativeStorage, nativeStorageKey);
 
         if (!window.Proxy)
@@ -58,21 +58,21 @@ class StorageWrapper extends StorageInheritor {
             return storageWrapper as StorageProxy;
 
         return new nativeMethods.Proxy(storageWrapper, {
-            get: (target, property) => {
+            get: (target: StorageWrapper, property: string) => {
                 if (property === STORAGE_WRAPPER_KEY)
                     return target;
 
                 return target[property];
             },
 
-            set: (target, property, value) => {
-                target.setItem(property, value);
+            set: (target: StorageWrapper, property: string, value: any) => {
+                target['setItem'](property, value);
 
                 return true;
             },
 
-            deleteProperty: (target, key) => {
-                target.removeItem(key);
+            deleteProperty: (target: StorageWrapper, key: string) => {
+                target['removeItem'](key);
 
                 return true;
             }
