@@ -446,7 +446,7 @@ test('Storage wrapper should has Storage prototype (GH-955)', function () {
 });
 
 test("should work with keys named as wrapper's internal members (GH-735)", function () {
-    var internalProps = nativeMethods.objectKeys(Storage.prototype).concat(StorageWrapper.HH_INTERNAL_METHODS);
+    var internalProps = nativeMethods.objectKeys(Storage.prototype).concat(StorageWrapper.INTERNAL_METHODS);
 
     internalProps.forEach(function (property) {
         sessionStorage.setItem(property, 'test1');

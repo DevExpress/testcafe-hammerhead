@@ -9,9 +9,11 @@ import { StorageProxy } from '../../../typings/client';
 
 const STORAGE_WRAPPER_KEY = 'hammerhead|get-storage-wrapper';
 const EMPTY_OLD_VALUE_ARG = isIE ? '' : null;
-const INTERNAL_WEAK_MAP   = new WeakMap<StorageWrapper, StorageInternalInfo>();
-const KEY                 = 0;
-const VALUE               = 1;
+
+const storageWrappersInternalInfo = new WeakMap<StorageWrapper, StorageInternalInfo>();
+
+const KEY   = 0;
+const VALUE = 1;
 
 type StorageState = [string[], string[]];
 
@@ -29,12 +31,12 @@ class StorageInheritor {}
 StorageInheritor.prototype = Storage.prototype;
 
 class StorageWrapper extends StorageInheritor {
-    static HH_INTERNAL_METHODS: string[];
+    static INTERNAL_METHODS: string[];
 
     private constructor (window: Window, nativeStorage: Storage, nativeStorageKey: string) {
         super();
 
-        INTERNAL_WEAK_MAP.set(this, {
+        storageWrappersInternalInfo.set(this, {
             win:          window,
             ctx:          window,
             lastState:    null,
@@ -43,11 +45,10 @@ class StorageWrapper extends StorageInheritor {
         });
 
         this.loadStorage();
-        this.internal.lastState = this.getCurrentState();
     }
 
     get internal () {
-        return INTERNAL_WEAK_MAP.get(this);
+        return storageWrappersInternalInfo.get(this);
     }
 
     static create (window: Window & typeof globalThis, nativeStorage: Storage, nativeStorageKey: string) {
@@ -109,8 +110,6 @@ class StorageWrapper extends StorageInheritor {
     restore (storageStr: string) {
         this.clearStorage();
         this.loadStorage(storageStr);
-
-        this.internal.lastState = this.getCurrentState();
     }
 
     clearStorage () {
@@ -121,6 +120,9 @@ class StorageWrapper extends StorageInheritor {
             delete this[addedProperty];
             changed = true;
         }
+
+        if (changed)
+            this.internal.lastState = this.getCurrentState();
 
         return changed;
     }
@@ -134,6 +136,8 @@ class StorageWrapper extends StorageInheritor {
 
         for (let i = 0; i < storageStateLength; i++)
             this[storageState[KEY][i]] = storageState[VALUE][i];
+
+        this.internal.lastState = storageState;
     }
 
     raiseStorageChanged (key: string | null, oldValue: string | null, newValue: string | null) {
@@ -225,6 +229,6 @@ nativeMethods.objectDefineProperty(StorageWrapper.prototype, 'internal', interna
 nativeMethods.objectDefineProperty(StorageWrapper.prototype, 'constructor',
     nativeMethods.objectGetOwnPropertyDescriptor(Storage.prototype, 'constructor'));
 
-nativeMethods.objectDefineProperty(StorageWrapper, 'HH_INTERNAL_METHODS', { value: ourMethods });
+nativeMethods.objectDefineProperty(StorageWrapper, 'INTERNAL_METHODS', { value: ourMethods });
 
 export default StorageWrapper;

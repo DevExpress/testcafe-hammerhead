@@ -22,7 +22,7 @@ interface StoragesBackup {
 
 const API_KEY_PREFIX = 'hammerhead|api-key-prefix|';
 const STORAGE_PROPS  = nativeMethods.arrayConcat.call(nativeMethods.objectKeys(Storage.prototype),
-    StorageWrapper.HH_INTERNAL_METHODS);
+    StorageWrapper.INTERNAL_METHODS);
 
 export default class StorageSandbox extends SandboxBase {
     private localStorageProxy: StorageProxy | null = null;
@@ -124,7 +124,6 @@ export default class StorageSandbox extends SandboxBase {
                 return;
 
             storage.raiseStorageChanged(null, null, null);
-            storage.internal.lastState = storage.getCurrentState();
         });
 
         overrideFunction(window.Storage.prototype, 'getItem', function (this: StorageProxy, key: string) {
