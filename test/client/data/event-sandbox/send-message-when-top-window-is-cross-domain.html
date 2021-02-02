@@ -9,7 +9,7 @@
         var hammerhead     = window['%hammerhead%'];
         var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
 
-        hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
+        hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/http://origin_iframe_host');
         hammerhead.start({ crossDomainProxyPort: 2000 });
 
         var iframeSandbox         = hammerhead.sandbox.iframe;

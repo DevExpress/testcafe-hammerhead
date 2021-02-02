@@ -8,7 +8,7 @@
 <script type="text/javascript">
     var hammerhead = window['%hammerhead%'];
 
-    hammerhead.get('./utils/destination-location').forceLocation('http://localhost:2000/sessionId/about:blank');
+    hammerhead.utils.destLocation.forceLocation('http://localhost:2000/sessionId/about:blank');
     hammerhead.start({ sessionId: 'sessionId' });
 
     var INSTRUCTION   = hammerhead.get('../processing/script/instruction');

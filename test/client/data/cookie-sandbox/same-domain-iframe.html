@@ -6,7 +6,7 @@
         var hammerhead    = window['%hammerhead%'];
         var iframeSandbox = hammerhead.sandbox.iframe;
 
-        hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/https://example.com');
+        hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/https://example.com');
         hammerhead.start({ crossDomainProxyPort: 2001, cookie: '', sessionId: 'sessionId' });
 
         iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, parent.initIframeTestHandler);

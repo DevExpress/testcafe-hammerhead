@@ -10,14 +10,14 @@
     var hammerhead = window['%hammerhead%'];
     var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
 
-    hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://target_url');
+    hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/http://target_url');
     hammerhead.start({
         cookie:                   "",
         crossDomainProxyPort:     2000,
         serviceMsgUrl:            '/service-msg/"window[\'' + INTERNAL_PROPS.processDomMethodName +
                                   '\'] = function() {}"',
         iframeTaskScriptTemplate: [
-                                      'window["%hammerhead%"].get("./utils/destination-location").forceLocation("http://localhost/sessionId/http://target_url");',
+                                      'window["%hammerhead%"].utils.destLocation.forceLocation("http://localhost/sessionId/http://target_url");',
                                       'window["%hammerhead%"].start({',
                                       '    referer : "",',
                                       '    cookie: "",',

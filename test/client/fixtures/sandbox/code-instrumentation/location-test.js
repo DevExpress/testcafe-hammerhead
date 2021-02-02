@@ -4,7 +4,7 @@ var LocationInstrumentation = hammerhead.get('./sandbox/code-instrumentation/loc
 var LocationWrapper         = hammerhead.get('./sandbox/code-instrumentation/location/wrapper');
 var urlUtils                = hammerhead.get('./utils/url');
 var sharedUrlUtils          = hammerhead.get('../utils/url');
-var destLocation            = hammerhead.get('./utils/destination-location');
+var destLocation            = hammerhead.utils.destLocation;
 var urlResolver             = hammerhead.get('./utils/url-resolver');
 var extend                  = hammerhead.get('./utils/extend');
 
@@ -161,7 +161,7 @@ test('location object of iframe with empty src should have properties with corre
 
         return window.QUnitGlobals.waitForIframe(nativeIframe)
             .then(function () {
-                iframe.contentWindow['%hammerhead%'].get('./utils/destination-location').forceLocation(null);
+                iframe.contentWindow['%hammerhead%'].utils.destLocation.forceLocation(null);
 
                 strictEqual(
                     eval(processScript('iframe.contentDocument.location.protocol')),

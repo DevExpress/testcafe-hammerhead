@@ -3,7 +3,7 @@
 var sharedCookieUtils = hammerhead.get('../utils/cookie');
 var settings          = hammerhead.get('./settings');
 var urlUtils          = hammerhead.get('./utils/url');
-var destLocation      = hammerhead.get('./utils/destination-location');
+var destLocation      = hammerhead.utils.destLocation;
 
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;

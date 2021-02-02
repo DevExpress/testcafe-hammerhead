@@ -3,7 +3,7 @@ var DomProcessor     = hammerhead.get('../processing/dom');
 var domProcessor     = hammerhead.get('./dom-processor');
 var settings         = hammerhead.get('./settings');
 var urlUtils         = hammerhead.get('./utils/url');
-var destLocation     = hammerhead.get('./utils/destination-location');
+var destLocation     = hammerhead.utils.destLocation;
 var featureDetection = hammerhead.get('./utils/feature-detection');
 var processScript    = hammerhead.get('../processing/script').processScript;
 
@@ -1165,7 +1165,7 @@ test('Url resolving in an instance of document.implementation (GH-1673)', functi
 test('The overridden "createHTMLDocument" method should has right context (GH-1722)', function () {
     return createTestIframe()
         .then(function (iframe) {
-            var iframeDestLocation = iframe.contentWindow['%hammerhead%'].get('./utils/destination-location');
+            var iframeDestLocation = iframe.contentWindow['%hammerhead%'].utils.destLocation;
 
             iframeDestLocation.forceLocation(void 0);
 

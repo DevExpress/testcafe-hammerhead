@@ -1,5 +1,5 @@
 var urlUtils       = hammerhead.get('./utils/url');
-var destLocation   = hammerhead.get('./utils/destination-location');
+var destLocation   = hammerhead.utils.destLocation;
 var DomProcessor   = hammerhead.get('../processing/dom');
 var urlResolver    = hammerhead.get('./utils/url-resolver');
 

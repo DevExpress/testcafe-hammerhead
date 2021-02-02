@@ -9,7 +9,7 @@
 <script type="text/javascript">
     var hammerhead = window['%hammerhead%'];
 
-    hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
+    hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/http://origin_iframe_host');
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
     var INSTRUCTION    = hammerhead.get('../processing/script/instruction');

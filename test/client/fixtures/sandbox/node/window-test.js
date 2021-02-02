@@ -1,5 +1,5 @@
 var urlUtils     = hammerhead.get('./utils/url');
-var destLocation = hammerhead.get('./utils/destination-location');
+var destLocation = hammerhead.utils.destLocation;
 var INSTRUCTION  = hammerhead.get('../processing/script/instruction');
 var XhrSandbox   = hammerhead.get('./sandbox/xhr');
 
@@ -414,7 +414,7 @@ if (window.history.replaceState && window.history.pushState) {
                 var baseUrl             = 'http://' + location.host + '/some/path';
 
                 iframeHammerhead.get('./utils/url-resolver').updateBase(baseUrl, iframe.contentDocument);
-                iframeHammerhead.get('./utils/destination-location')
+                iframeHammerhead.utils.destLocation
                     .forceLocation('http://' + iframeLocation.host + '/sessionId/' + baseUrl);
 
                 var testUrl = function (url, fn, nativeFn) {
