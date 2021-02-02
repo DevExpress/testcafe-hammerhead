@@ -6,7 +6,12 @@ import { getTopSameDomainWindow } from '../../utils/dom';
 import getStorageKey from '../../../utils/get-storage-key';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import * as JSON from 'json-hammerhead';
-import { createOverriddenDescriptor, overrideDescriptor, overrideFunction } from '../../utils/overriding';
+import {
+    createOverriddenDescriptor,
+    overrideConstructor,
+    overrideDescriptor,
+    overrideFunction
+} from '../../utils/overriding';
 import hammerhead from '../../index';
 import Listeners from '../event/listeners';
 import UnloadSandbox from '../event/unload';
@@ -88,6 +93,33 @@ export default class StorageSandbox extends SandboxBase {
             // and we do not have time to save the localStorage wrapper to the native localStorage (GH-1507).
             hammerhead.pageNavigationWatch.on(hammerhead.pageNavigationWatch.PAGE_NAVIGATION_TRIGGERED_EVENT, saveToNativeStorages);
         }
+    }
+
+    private _overrideStorageEvent () {
+        overrideConstructor(this.window, 'StorageEvent', function (this: Window, type: string, opts?: StorageEventInit) {
+            const storedArea = opts?.storageArea;
+
+            if (storedArea)
+                delete opts.storageArea;
+
+            let event: StorageEvent;
+
+            if (arguments.length === 0)
+                event = new (nativeMethods.StorageEvent as new () => StorageEvent)();
+            else if (arguments.length === 1)
+                event = new nativeMethods.StorageEvent(type);
+            else
+                event = new nativeMethods.StorageEvent(type, opts);
+
+            if (storedArea) {
+                nativeMethods.objectDefineProperty(event, 'storageArea', {
+                    get: () => storedArea,
+                    set: () => void 0
+                });
+            }
+
+            return event;
+        });
     }
 
     clear () {
@@ -250,6 +282,7 @@ export default class StorageSandbox extends SandboxBase {
         this._listeners.addInternalEventBeforeListener(window, ['storage'],
             (_, dispatched, preventEvent) => !dispatched && preventEvent());
 
+        this._overrideStorageEvent();
         this._overrideStoragesGetters();
     }
 
