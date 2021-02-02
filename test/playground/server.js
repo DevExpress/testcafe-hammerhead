@@ -5,6 +5,8 @@ const process       = require('child_process');
 const bodyParser    = require('body-parser');
 const Proxy         = require('../../lib/proxy');
 const createSession = require('./create-session');
+const scriptProc    = require('../../lib/processing/script');
+const jsBeautify    = require('js-beautify');
 
 const PROXY_PORT_1 = 1401;
 const PROXY_PORT_2 = 1402;
@@ -31,6 +33,12 @@ exports.start = (options = {}) => {
     const proxy     = new Proxy('localhost', PROXY_PORT_1, PROXY_PORT_2, Object.assign(options, {
         developmentMode: true
     }));
+
+    if (options.needBeautifyScripts) {
+        const nativeProcessScript = scriptProc.processScript;
+
+        scriptProc.processScript = (...args) => jsBeautify(nativeProcessScript(...args));
+    }
 
     app.use(bodyParser.urlencoded({ extended: true }));
 

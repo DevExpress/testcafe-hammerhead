@@ -1376,5 +1376,33 @@ describe('Script processor', () => {
                 }
             ]);
         });
+
+        it('Should not lose parentheses inside the for..of loop (GH-2573)', () => {
+            testProcessing({
+                src: 'i[j] = () => {' +
+                     '    for (var x of (a, b))' +
+                     '        c();' +
+                     '}',
+
+                expected: '__set$(i, j, () => {' +
+                          '    for (var x of (a, b))' +
+                          '        c();' +
+                          '})'
+            });
+        });
+
+        it('Should not lose await keyword in "for await...of" loop', () => {
+            testProcessing({
+                src: 'i[j] = async () => {' +
+                     '    for await (let num of asyncIterable)' +
+                     '        x += num;' +
+                     '};',
+
+                expected: '__set$(i, j, async () => {' +
+                          '    for await (let num of asyncIterable)' +
+                          '        x += num;' +
+                          '});',
+            });
+        });
     });
 });

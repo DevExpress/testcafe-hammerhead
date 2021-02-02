@@ -24,6 +24,8 @@ const runPlayground         = require('./gulp/utils/run-playground');
 
 gulpStep.install();
 
+const needBeautifyScripts = process.argv.includes('--beautify');
+
 ll
     .install()
     .tasks('lint')
@@ -211,7 +213,7 @@ gulp.step('travis-saucelabs-qunit', () => {
 gulp.task('test-client-travis', gulp.series('build', 'travis-saucelabs-qunit'));
 
 gulp.step('http-playground-server', () => {
-    return runPlayground();
+    return runPlayground({ needBeautifyScripts });
 });
 
 gulp.step('set-multi-browser-mode', done => {
@@ -230,7 +232,8 @@ gulp.step('https-playground-server', () => {
     return runPlayground({
         ssl: {
             key:  selfSignedCertificate.key,
-            cert: selfSignedCertificate.cert
+            cert: selfSignedCertificate.cert,
+            needBeautifyScripts
         }
     });
 });
@@ -238,7 +241,7 @@ gulp.step('https-playground-server', () => {
 gulp.task('https-playground', gulp.series('build', 'https-playground-server'));
 
 gulp.step('cached-http-playground-server', () => {
-    return runPlayground({ cache: true });
+    return runPlayground({ cache: true, needBeautifyScripts });
 });
 
 gulp.task('cached-http-playground', gulp.series('build', 'cached-http-playground-server'));

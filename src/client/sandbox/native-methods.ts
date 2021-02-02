@@ -1119,7 +1119,6 @@ class NativeMethods {
         this.NodeList             = win.NodeList;
         this.Node                 = win.Node;
         this.URL                  = win.URL;
-        this.Proxy                = win.Proxy;
         this.DataTransfer         = win.DataTransfer;
         this.DataTransferItemList = win.DataTransferItemList;
         this.DataTransferItem     = win.DataTransferItem;
