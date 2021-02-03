@@ -97,6 +97,7 @@
     window.setProperty   = window[INSTRUCTION.setProperty];
     window.callMethod    = window[INSTRUCTION.callMethod];
     window.getLocation   = window[INSTRUCTION.getLocation];
+    window.getEval       = window[INSTRUCTION.getEval];
     window.hammerhead    = hammerhead;
 
     window.getCrossDomainPageUrl = function (filePath, resourceName) {

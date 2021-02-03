@@ -57,6 +57,7 @@ import { emptyActionAttrFallbacksToTheLocation } from '../../utils/feature-detec
 import { HASH_RE, isValidUrl } from '../../../utils/url';
 import UploadSandbox from '../upload';
 import { getAnchorProperty, setAnchorProperty } from '../code-instrumentation/properties/anchor';
+import CodeInstrumentation from '../code-instrumentation';
 import { XLINK_NAMESPACE } from '../../../processing/dom/namespaces';
 import urlResolver from '../../utils/url-resolver';
 import { remove as removeProcessingHeader } from '../../../processing/script/header';
@@ -632,7 +633,12 @@ export default class WindowSandbox extends SandboxBase {
                         else if (INSTRUCTION_VALUES.indexOf(name) > -1)
                             return window[name];
 
-                        return storedGet.call(this, getterTarget, name, receiver);
+                        const result = storedGet.call(this, getterTarget, name, receiver);
+
+                        if (name === 'eval' && result[CodeInstrumentation.WRAPPED_EVAL_FN])
+                            return result[CodeInstrumentation.WRAPPED_EVAL_FN];
+
+                        return result;
                     };
 
                     nativeMethods.objectDefineProperty(handler.get, PROXY_HANDLER_FLAG, { value: true, enumerable: false });
