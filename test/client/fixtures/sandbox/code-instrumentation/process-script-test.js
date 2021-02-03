@@ -1,4 +1,4 @@
-var urlUtils      = hammerhead.get('./utils/url');
+var urlUtils      = hammerhead.utils.url;
 var processScript = hammerhead.get('../processing/script').processScript;
 var scriptHeader  = hammerhead.get('../processing/script/header');
 

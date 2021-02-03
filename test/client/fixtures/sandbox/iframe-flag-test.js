@@ -1,5 +1,5 @@
-var urlUtils = hammerhead.get('./utils/url');
-var settings = hammerhead.get('./settings');
+var urlUtils = hammerhead.utils.url;
+var settings = hammerhead.settings;
 
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;

@@ -1,5 +1,5 @@
 var StorageWrapper = hammerhead.get('./sandbox/storages/wrapper');
-var settings       = hammerhead.get('./settings');
+var settings       = hammerhead.settings;
 
 var storageSandbox = hammerhead.sandbox.storageSandbox;
 var Promise        = hammerhead.Promise;

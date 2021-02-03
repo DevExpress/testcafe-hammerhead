@@ -1,5 +1,5 @@
 var DomProcessor = hammerhead.get('../processing/dom');
-var urlUtils     = hammerhead.get('./utils/url');
+var urlUtils     = hammerhead.utils.url;
 
 var nativeMethods  = hammerhead.nativeMethods;
 var eventSimulator = hammerhead.sandbox.event.eventSimulator;

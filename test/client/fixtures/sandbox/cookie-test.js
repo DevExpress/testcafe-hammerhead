@@ -1,8 +1,8 @@
 // NOTE: You should clear a browser's cookie if tests are fail,
 // because document.cookie can contains cookie from another sites which was run through playground
-var sharedCookieUtils = hammerhead.get('../utils/cookie');
-var settings          = hammerhead.get('./settings');
-var urlUtils          = hammerhead.get('./utils/url');
+var sharedCookieUtils = hammerhead.sharedUtils.cookie;
+var settings          = hammerhead.settings;
+var urlUtils          = hammerhead.utils.url;
 var destLocation      = hammerhead.utils.destLocation;
 
 var nativeMethods = hammerhead.nativeMethods;
@@ -283,8 +283,8 @@ test('same-domain frames', function () {
             function checkCookies (expectedCookies) {
                 strictEqual(nativeMethods.documentCookieGetter.call(document), '');
                 strictEqual(settings.get().cookie, expectedCookies);
-                strictEqual(iframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, expectedCookies);
-                strictEqual(embeddedIframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, expectedCookies);
+                strictEqual(iframe.contentWindow['%hammerhead%'].settings.get().cookie, expectedCookies);
+                strictEqual(embeddedIframe.contentWindow['%hammerhead%'].settings.get().cookie, expectedCookies);
             }
 
             checkCookies('');
@@ -348,7 +348,7 @@ test('cross-domain frames', function () {
             nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
 
             strictEqual(settings.get().cookie, '');
-            strictEqual(iframes[1].contentWindow['%hammerhead%'].get('./settings').get().cookie, '');
+            strictEqual(iframes[1].contentWindow['%hammerhead%'].settings.get().cookie, '');
 
             return Promise.all([
                 checkCrossDomainIframeCookie(iframes[0], ''),
@@ -361,7 +361,7 @@ test('cross-domain frames', function () {
             expectedCookies = 'cafe=321; test=123';
 
             strictEqual(settings.get().cookie, expectedCookies);
-            strictEqual(iframes[1].contentWindow['%hammerhead%'].get('./settings').get().cookie, expectedCookies);
+            strictEqual(iframes[1].contentWindow['%hammerhead%'].settings.get().cookie, expectedCookies);
 
             return window.QUnitGlobals.wait(realCookieIsEmpty, 5000);
         })
@@ -379,7 +379,7 @@ test('cross-domain frames', function () {
         })
         .then(function () {
             strictEqual(settings.get().cookie, 'test=123; set=cookie');
-            strictEqual(iframes[1].contentWindow['%hammerhead%'].get('./settings').get().cookie, 'test=123; set=cookie');
+            strictEqual(iframes[1].contentWindow['%hammerhead%'].settings.get().cookie, 'test=123; set=cookie');
 
             return Promise.all([
                 checkCrossDomainIframeCookie(iframes[0], 'test=123; set=cookie'),

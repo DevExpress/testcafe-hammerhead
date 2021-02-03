@@ -13,6 +13,11 @@ import * as typeUtils from './utils/types';
 import * as positionUtils from './utils/position';
 import * as styleUtils from './utils/style';
 import trim from '../utils/string-trim';
+import * as sharedCookieUtils from '../utils/cookie';
+import * as sharedUrlUtils from '../utils/url';
+import * as sharedHeadersUtils from '../utils/headers';
+import * as sharedStackProcessingUtils from '../utils/stack-processing';
+import sharedSelfRemovingScripts from '../utils/self-removing-scripts';
 import * as urlUtils from './utils/url';
 import * as featureDetection from './utils/feature-detection';
 import * as htmlUtils from './utils/html';
@@ -51,6 +56,8 @@ class Hammerhead {
     storages: any;
     eventSandbox: Dictionary<any>;
     utils: Dictionary<any>;
+    sharedUtils: Dictionary<any>;
+    settings: typeof settings;
 
     constructor () {
         this.win                 = null;
@@ -136,6 +143,16 @@ class Hammerhead {
             featureDetection: featureDetection,
             destLocation:     destLocationUtils
         };
+
+        this.sharedUtils = {
+            cookie:              sharedCookieUtils,
+            url:                 sharedUrlUtils,
+            headers:             sharedHeadersUtils,
+            stackProcessing:     sharedStackProcessingUtils,
+            selfRemovingScripts: sharedSelfRemovingScripts
+        };
+
+        this.settings = settings;
     }
 
     _getEventOwner (evtName: string) {

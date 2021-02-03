@@ -9,7 +9,7 @@
 <script type="text/javascript">
     var hammerhead = window['%hammerhead%'];
 
-    hammerhead.get('./settings').set({ CROSS_DOMAIN_PROXY_PORT: 2000 });
+    hammerhead.settings.set({ CROSS_DOMAIN_PROXY_PORT: 2000 });
     hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/https://example.com');
     hammerhead.start({
         'sessionId': 'sessionId'

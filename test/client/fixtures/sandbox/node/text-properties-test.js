@@ -1,9 +1,9 @@
 var INTERNAL_PROPS          = hammerhead.get('../processing/dom/internal-properties');
-var processHtml             = hammerhead.get('../client/utils/html').processHtml;
+var processHtml             = hammerhead.utils.html.processHtml;
 var scriptProcessingHeaders = hammerhead.get('../processing/script/header');
 var styleProcessor          = hammerhead.get('../processing/style');
 var scriptProcessor         = hammerhead.get('../processing/script');
-var urlUtils                = hammerhead.get('./utils/url');
+var urlUtils                = hammerhead.utils.url;
 var DomProcessor            = hammerhead.get('../processing/dom');
 
 var nativeMethods = hammerhead.nativeMethods;

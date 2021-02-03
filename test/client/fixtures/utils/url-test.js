@@ -1,6 +1,6 @@
-var settings       = hammerhead.get('./settings');
-var urlUtils       = hammerhead.get('./utils/url');
-var sharedUrlUtils = hammerhead.get('../utils/url');
+var settings       = hammerhead.settings;
+var urlUtils       = hammerhead.utils.url;
+var sharedUrlUtils = hammerhead.sharedUtils.url;
 var destLocation   = hammerhead.utils.destLocation;
 
 var browserUtils  = hammerhead.utils.browser;

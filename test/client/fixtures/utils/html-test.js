@@ -1,12 +1,12 @@
 ﻿var INTERNAL_ATTRS = hammerhead.get('../processing/dom/internal-attributes');
 var DomProcessor   = hammerhead.get('../processing/dom');
 var domProcessor   = hammerhead.get('./dom-processor');
-var htmlUtils      = hammerhead.get('./utils/html');
+var htmlUtils      = hammerhead.utils.html;
 var processScript  = hammerhead.get('../processing/script').processScript;
-var urlUtils       = hammerhead.get('./utils/url');
+var urlUtils       = hammerhead.utils.url;
 var urlResolver    = hammerhead.get('./utils/url-resolver');
 
-var SELF_REMOVING_SCRIPTS = hammerhead.get('../utils/self-removing-scripts');
+var SELF_REMOVING_SCRIPTS = hammerhead.sharedUtils.selfRemovingScripts;
 
 var nativeMethods = hammerhead.nativeMethods;
 var shadowUI      = hammerhead.sandbox.shadowUI;

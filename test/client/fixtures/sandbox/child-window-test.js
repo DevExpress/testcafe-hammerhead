@@ -1,6 +1,6 @@
 var ChildWindowSandbox = hammerhead.get('./sandbox/child-window');
 var defaultTarget      = hammerhead.get('./sandbox/child-window/default-target');
-var settings           = hammerhead.get('./settings');
+var settings           = hammerhead.settings;
 
 var windowSandbox = hammerhead.sandbox.node.win;
 var nativeMethods = hammerhead.nativeMethods;

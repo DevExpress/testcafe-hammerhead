@@ -1,10 +1,10 @@
 var processScript           = hammerhead.get('../processing/script').processScript;
 var SHADOW_UI_CLASSNAME     = hammerhead.get('../shadow-ui/class-name');
 var INTERNAL_PROPS          = hammerhead.get('../processing/dom/internal-properties');
-var urlUtils                = hammerhead.get('./utils/url');
+var urlUtils                = hammerhead.utils.url;
 var destLocation            = hammerhead.utils.destLocation;
 var overriding              = hammerhead.get('./utils/overriding');
-var settings                = hammerhead.get('./settings');
+var settings                = hammerhead.settings;
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;

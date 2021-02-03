@@ -1,4 +1,4 @@
-var urlUtils      = hammerhead.get('./utils/url');
+var urlUtils      = hammerhead.utils.url;
 var nativeMethods = hammerhead.nativeMethods;
 var StyleSandbox  = hammerhead.get('./sandbox/style');
 var styleSandbox  = hammerhead.sandbox.style;

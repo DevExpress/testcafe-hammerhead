@@ -1,4 +1,4 @@
-var settings     = hammerhead.get('./settings');
+var settings     = hammerhead.settings;
 var listeningCtx = hammerhead.get('../client/sandbox/event/listening-context');
 
 var Promise       = hammerhead.Promise;

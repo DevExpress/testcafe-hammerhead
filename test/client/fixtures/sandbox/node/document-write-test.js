@@ -1,5 +1,5 @@
-var urlUtils                = hammerhead.get('./utils/url');
-var htmlUtils               = hammerhead.get('../client/utils/html');
+var urlUtils                = hammerhead.utils.url;
+var htmlUtils               = hammerhead.utils.html;
 var styleProcessor          = hammerhead.get('../processing/style');
 var scriptProcessingHeaders = hammerhead.get('../processing/script/header');
 

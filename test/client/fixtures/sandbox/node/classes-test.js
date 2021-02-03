@@ -1,6 +1,6 @@
 var DomProcessor    = hammerhead.get('../processing/dom');
 var destLocation    = hammerhead.utils.destLocation;
-var urlUtils        = hammerhead.get('./utils/url');
+var urlUtils        = hammerhead.utils.url;
 var FileListWrapper = hammerhead.get('./sandbox/upload/file-list-wrapper');
 var INTERNAL_ATTRS  = hammerhead.get('../processing/dom/internal-attributes');
 var Promise         = hammerhead.Promise;

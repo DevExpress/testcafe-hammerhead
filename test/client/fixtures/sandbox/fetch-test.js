@@ -1,5 +1,5 @@
-var urlUtils      = hammerhead.get('./utils/url');
-var headersUtils  = hammerhead.get('../utils/headers');
+var urlUtils      = hammerhead.utils.url;
+var headersUtils  = hammerhead.sharedUtils.headers;
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var Promise       = hammerhead.Promise;

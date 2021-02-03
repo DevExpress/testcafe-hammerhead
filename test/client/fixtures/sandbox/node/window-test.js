@@ -1,4 +1,4 @@
-var urlUtils     = hammerhead.get('./utils/url');
+var urlUtils     = hammerhead.utils.url;
 var destLocation = hammerhead.utils.destLocation;
 var INSTRUCTION  = hammerhead.get('../processing/script/instruction');
 var XhrSandbox   = hammerhead.get('./sandbox/xhr');
