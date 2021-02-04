@@ -5,7 +5,7 @@
     <script>
         var hammerhead = window['%hammerhead%'];
 
-        hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/https://example.com');
+        hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/https://example.com');
         hammerhead.start({ crossDomainProxyPort: 2000, cookie: '', sessionId: 'sessionId' });
 
         var INSTRUCTION   = hammerhead.get('../processing/script/instruction');

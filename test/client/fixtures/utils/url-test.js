@@ -1,7 +1,7 @@
 var settings       = hammerhead.get('./settings');
 var urlUtils       = hammerhead.get('./utils/url');
 var sharedUrlUtils = hammerhead.get('../utils/url');
-var destLocation   = hammerhead.get('./utils/destination-location');
+var destLocation   = hammerhead.utils.destLocation;
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;

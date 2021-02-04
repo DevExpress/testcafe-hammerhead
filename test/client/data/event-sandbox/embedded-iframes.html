@@ -9,7 +9,7 @@
     var hammerhead = window['%hammerhead%'];
     var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
 
-    hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
+    hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/http://origin_iframe_host');
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
     var iframeSandbox = hammerhead.sandbox.iframe;
@@ -35,7 +35,7 @@
         var iframeHammerhead        = iframeWindow['%hammerhead%'];
         var iframeMessageSandbox    = iframeHammerhead.sandbox.event.message;
 
-        iframeHammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
+        iframeHammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/http://origin_iframe_host');
         iframeMessageSandbox.window = iframeWindow;
         iframeMessageSandbox.sendServiceMsg({ embeddedIframesTestPassed: true }, iframeWindow.parent);
     });

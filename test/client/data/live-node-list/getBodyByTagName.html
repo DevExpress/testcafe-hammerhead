@@ -11,7 +11,7 @@
 
             const hammerhead = window['%hammerhead%'];
 
-            hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
+            hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/http://origin_iframe_host');
             hammerhead.start({ crossDomainProxyPort: 2000 });
 
             window.bodyExistsBeforeAttachingBody = bodyExists();

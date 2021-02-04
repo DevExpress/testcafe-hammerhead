@@ -13,7 +13,7 @@
 
     var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
     var INSTRUCTION    = hammerhead.get('../processing/script/instruction');
-    var destLocation   = hammerhead.get('./utils/destination-location');
+    var destLocation   = hammerhead.utils.destLocation;
     var iframeSandbox  = hammerhead.sandbox.iframe;
     var cookieSandbox  = hammerhead.sandbox.cookie;
 
@@ -26,7 +26,7 @@
     };
 
     var iframeTaskScriptTemplate = [
-        'window["%hammerhead%"].get("./utils/destination-location").forceLocation("{{{location}}}");',
+        'window["%hammerhead%"].utils.destLocation.forceLocation("{{{location}}}");',
         'window["%hammerhead%"].start({',
         '    referer : {{{referer}}},',
         '    cookie: {{{cookie}}},',
@@ -60,7 +60,7 @@
 
         if (iframe.id.indexOf('test') !== -1) {
             iframe.contentWindow.eval.call(iframe.contentWindow, [
-                'window["%hammerhead%"].get("./utils/destination-location").forceLocation("' + location + '");',
+                'window["%hammerhead%"].utils.destLocation.forceLocation("' + location + '");',
                 'window["%hammerhead%"].start({',
                 '    referer: ' + JSON.stringify(referer) + ',',
                 '    serviceMsgUrl: "' + serviceMsgUrl + '",',

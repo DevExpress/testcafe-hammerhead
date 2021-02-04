@@ -7,7 +7,7 @@ var styleProcessor = hammerhead.get('../processing/style');
 var settings       = hammerhead.get('./settings');
 var urlUtils       = hammerhead.get('./utils/url');
 var sharedUrlUtils = hammerhead.get('../utils/url');
-var destLocation   = hammerhead.get('./utils/destination-location');
+var destLocation   = hammerhead.utils.destLocation;
 var eventSimulator = hammerhead.sandbox.event.eventSimulator;
 
 var nativeMethods  = hammerhead.nativeMethods;

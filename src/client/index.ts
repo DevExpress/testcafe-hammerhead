@@ -6,6 +6,7 @@ import settings from './settings';
 import Transport from './transport';
 import * as JSON from 'json-hammerhead';
 import * as browserUtils from './utils/browser';
+import * as destLocationUtils from './utils/destination-location';
 import * as domUtils from './utils/dom';
 import * as eventUtils from './utils/event';
 import * as typeUtils from './utils/types';
@@ -132,7 +133,8 @@ class Hammerhead {
             extend:           extend,
             html:             htmlUtils,
             url:              urlUtils,
-            featureDetection: featureDetection
+            featureDetection: featureDetection,
+            destLocation:     destLocationUtils
         };
     }
 
