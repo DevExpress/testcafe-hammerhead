@@ -165,12 +165,12 @@ export default class WindowSync {
         }
 
         if (syncMessages.length) {
-            let syncMessagesPromise = Promise.all(syncMessages);
+            const syncMessagesPromise = Promise.all(syncMessages);
 
             if (this._win === topOpenerWindow)
-                syncMessagesPromise = syncMessagesPromise.then(() => this._removeSyncCookie(cookies));
+                return syncMessagesPromise.then(() => this._removeSyncCookie(cookies));
 
-            return syncMessagesPromise;
+            return syncMessagesPromise.then();
         }
         else {
             this._removeSyncCookie(cookies);

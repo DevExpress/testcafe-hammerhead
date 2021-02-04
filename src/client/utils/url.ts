@@ -1,7 +1,7 @@
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import * as sharedUrlUtils from '../../utils/url';
 import * as destLocation from './destination-location';
-import * as urlResolver from './url-resolver';
+import urlResolver from './url-resolver';
 import settings from '../settings';
 import { ResourceType } from '../../typings/url';
 import globalContextInfo from './global-context-info';
@@ -232,7 +232,6 @@ export function changeDestUrlPart (proxyUrl: string, nativePropSetter, value, re
     if (parsed) {
         const sessionId = parsed.sessionId;
         const proxy     = parsed.proxy;
-        // @ts-ignore
         const destUrl   = urlResolver.changeUrlPart(parsed.destUrl, nativePropSetter, value, document);
 
         return getProxyUrl(destUrl, {

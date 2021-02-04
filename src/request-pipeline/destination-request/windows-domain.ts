@@ -5,9 +5,9 @@ let cached: WindowCredentials | null = null;
 
 async function queryOSForCredential (cmd: string): Promise<string> {
     try {
-        const credential: string = await exec(cmd);
+        const { stdout } = await exec(cmd);
 
-        return credential.replace(/\s/g, '');
+        return stdout.replace(/\s/g, '');
     }
     catch (err) {
         return '';

@@ -9,7 +9,7 @@ import styleProcessor from '../../../processing/style';
 import * as urlUtils from '../../utils/url';
 import * as domUtils from '../../utils/dom';
 import * as hiddenInfo from '../upload/hidden-info';
-import * as urlResolver from '../../utils/url-resolver';
+import urlResolver from '../../utils/url-resolver';
 import { sameOriginCheck, get as getDestLocation } from '../../utils/destination-location';
 import { isValidEventListener, stopPropagation } from '../../utils/event';
 import { processHtml, isInternalHtmlParserElement } from '../../utils/html';
@@ -189,7 +189,6 @@ export default class ElementSandbox extends SandboxBase {
 
                     if (ElementSandbox._isHrefAttrForBaseElement(el, attr) &&
                         domUtils.isElementInDocument(el, currentDocument))
-                        // @ts-ignore
                         urlResolver.updateBase(value, currentDocument);
 
                     args[valueIndex] = isIframe && isCrossDomainUrl
@@ -411,7 +410,6 @@ export default class ElementSandbox extends SandboxBase {
         }
 
         if (ElementSandbox._isHrefAttrForBaseElement(el, formatedAttr))
-            // @ts-ignore
             urlResolver.updateBase(getDestLocation(), this.document);
 
         if (formatedAttr !== 'autocomplete')
@@ -799,7 +797,6 @@ export default class ElementSandbox extends SandboxBase {
             const storedHrefAttrValue = el.getAttribute(storedHrefAttrName);
 
             if (storedHrefAttrValue !== null)
-                // @ts-ignore
                 urlResolver.updateBase(storedHrefAttrValue, this.document);
         }
     }
@@ -812,7 +809,6 @@ export default class ElementSandbox extends SandboxBase {
             const firstBaseEl    = nativeMethods.querySelector.call(this.document, 'base');
             const storedHrefAttr = firstBaseEl && firstBaseEl.getAttribute(DomProcessor.getStoredAttrName('href'));
 
-            // @ts-ignore
             urlResolver.updateBase(storedHrefAttr || getDestLocation(), this.document);
         }
 
@@ -988,7 +984,6 @@ export default class ElementSandbox extends SandboxBase {
         const storedUrlAttr = nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('href'));
 
         if (storedUrlAttr !== null)
-        // @ts-ignore
             urlResolver.updateBase(storedUrlAttr, el.ownerDocument || this.document);
     }
 
