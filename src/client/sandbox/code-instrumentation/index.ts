@@ -12,6 +12,8 @@ import EventSandbox from '../event';
 import MessageSandbox from '../event/message';
 
 export default class CodeInstrumentation extends SandboxBase {
+    static readonly WRAPPED_EVAL_FN = 'hammerhead|code-instrumentation|wrapped-eval-fn';
+
     _methodCallInstrumentation: MethodCallInstrumentation;
     _locationAccessorsInstrumentation: LocationAccessorsInstrumentation;
     _propertyAccessorsInstrumentation: PropertyAccessorsInstrumentation;
@@ -40,12 +42,16 @@ export default class CodeInstrumentation extends SandboxBase {
                 if (evalFn !== window.eval)
                     return evalFn;
 
-                return (script: any) => {
+                const evalWrapper = (script: any) => {
                     if (typeof script === 'string')
                         script = processScript(script);
 
                     return evalFn(script);
                 };
+
+                nativeMethods.objectDefineProperty(evalWrapper, CodeInstrumentation.WRAPPED_EVAL_FN, { value: evalFn });
+
+                return evalWrapper;
             },
 
             configurable: true
