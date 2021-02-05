@@ -1,7 +1,7 @@
-var settings     = hammerhead.get('./settings');
+var settings     = hammerhead.settings;
 var overriding   = hammerhead.get('./utils/overriding');
 var DomProcessor = hammerhead.get('../processing/dom');
-var htmlUtils    = hammerhead.get('./utils/html');
+var htmlUtils    = hammerhead.utils.html;
 
 var iframeSandbox = hammerhead.sandbox.iframe;
 var cookieSandbox = hammerhead.sandbox.cookie;
@@ -258,7 +258,7 @@ test('quotes in the cookies are not escaped when a task script for an iframe is 
 
     return createTestIframe()
         .then(function (iframe) {
-            strictEqual(iframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, cookie);
+            strictEqual(iframe.contentWindow['%hammerhead%'].settings.get().cookie, cookie);
         });
 });
 

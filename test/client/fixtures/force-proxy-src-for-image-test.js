@@ -1,11 +1,11 @@
 var nativeMethods = hammerhead.nativeMethods;
 var listeners     = hammerhead.sandbox.event.listeners;
 
-var urlUtils = hammerhead.get('./utils/url');
+var urlUtils = hammerhead.utils.url;
 
 QUnit.testStart(function () {
     var domProcessor = hammerhead.get('./dom-processor');
-    var settings     = hammerhead.get('./settings');
+    var settings     = hammerhead.settings;
 
     domProcessor.forceProxySrcForImage   = true;
     settings.get().forceProxySrcForImage = true;

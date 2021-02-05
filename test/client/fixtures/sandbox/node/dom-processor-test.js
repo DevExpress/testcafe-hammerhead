@@ -1,12 +1,12 @@
 var INTERNAL_ATTRS = hammerhead.get('../processing/dom/internal-attributes');
-var htmlUtils      = hammerhead.get('./utils/html');
+var htmlUtils      = hammerhead.utils.html;
 var DomProcessor   = hammerhead.get('../processing/dom');
 var domProcessor   = hammerhead.get('./dom-processor');
 var processScript  = hammerhead.get('../processing/script').processScript;
 var styleProcessor = hammerhead.get('../processing/style');
-var settings       = hammerhead.get('./settings');
-var urlUtils       = hammerhead.get('./utils/url');
-var sharedUrlUtils = hammerhead.get('../utils/url');
+var settings       = hammerhead.settings;
+var urlUtils       = hammerhead.utils.url;
+var sharedUrlUtils = hammerhead.sharedUtils.url;
 var destLocation   = hammerhead.utils.destLocation;
 var eventSimulator = hammerhead.sandbox.event.eventSimulator;
 

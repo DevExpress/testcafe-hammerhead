@@ -9,7 +9,7 @@
         hammerhead.start({ crossDomainProxyPort: 2000, cookie: '', sessionId: 'sessionId' });
 
         var INSTRUCTION   = hammerhead.get('../processing/script/instruction');
-        var settings      = hammerhead.get('./settings');
+        var settings      = hammerhead.settings;
         var nativeMethods = hammerhead.nativeMethods;
 
         window.addEventListener('message', function (e) {

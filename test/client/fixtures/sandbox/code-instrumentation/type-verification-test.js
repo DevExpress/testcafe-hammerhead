@@ -1,4 +1,4 @@
-var urlUtils = hammerhead.get('./utils/url');
+var urlUtils = hammerhead.utils.url;
 
 test('is window instance', function () {
     var savedGetProxyUrl = urlUtils.getProxyUrl;

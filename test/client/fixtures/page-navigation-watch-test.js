@@ -1,5 +1,5 @@
-var urlUtils = hammerhead.get('./utils/url');
-var settings = hammerhead.get('./settings');
+var urlUtils = hammerhead.utils.url;
+var settings = hammerhead.settings;
 
 var storageSandbox      = hammerhead.sandbox.storageSandbox;
 var Promise             = hammerhead.Promise;

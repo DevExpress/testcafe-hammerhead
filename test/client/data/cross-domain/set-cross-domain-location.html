@@ -11,7 +11,7 @@
     hammerhead.start({ crossDomainProxyPort: 2001 });
 
     var INSTRUCTION = hammerhead.get('../processing/script/instruction');
-    var urlUtils    = hammerhead.get('./utils/url');
+    var urlUtils    = hammerhead.utils.url;
     var getLocation = window[INSTRUCTION.getLocation];
 
     var storedParseProxyUrl = urlUtils.parseProxyUrl;

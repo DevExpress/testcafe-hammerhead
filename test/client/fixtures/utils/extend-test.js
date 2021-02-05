@@ -1,4 +1,4 @@
-var extend = hammerhead.get('./utils/extend');
+var extend = hammerhead.utils.extend;
 
 test('simple two objects', function () {
     var obj1 = {

@@ -4,7 +4,7 @@ var hiddenInfo        = hammerhead.get('./sandbox/upload/hidden-info');
 var UploadSandbox     = hammerhead.get('./sandbox/upload');
 var listeningContext  = hammerhead.get('./sandbox/event/listening-context');
 var INTERNAL_PROPS    = hammerhead.get('../processing/dom/internal-properties');
-var settings          = hammerhead.get('./settings');
+var settings          = hammerhead.settings;
 
 var Promise        = hammerhead.Promise;
 var transport      = hammerhead.transport;
