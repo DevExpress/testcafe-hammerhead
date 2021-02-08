@@ -79,6 +79,7 @@ class Hammerhead {
     EventEmitter: any;
     doUpload: Function;
     createNativeXHR: Function;
+    processScript: Function;
     get: Function;
     Promise: any;
     json: any;
@@ -142,6 +143,7 @@ class Hammerhead {
         // Methods
         this.doUpload        = (input: HTMLInputElement, filePaths: string | string[]) => this.sandbox.upload.doUpload(input, filePaths);
         this.createNativeXHR = XhrSandbox.createNativeXHR;
+        this.processScript   = scriptProcessingUtils.processScript;
 
         // NOTE: We should provide a function to retrieve modules, because hammerhead will be bundled into a single
         // file and we will not have access to the internal modules by default.
