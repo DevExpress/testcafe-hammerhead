@@ -1,4 +1,4 @@
-var cookieUtil = hammerhead.get('./utils/cookie');
+var cookieUtil = hammerhead.utils.cookie;
 
 var validDate    = new Date((Math.floor(Date.now() / 1000) + 60) * 1000);
 var validDateStr = validDate.toUTCString();

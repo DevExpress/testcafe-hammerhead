@@ -1,7 +1,7 @@
-var INTERNAL_PROPS      = hammerhead.get('../processing/dom/internal-properties');
-var DomProcessor        = hammerhead.get('../processing/dom');
+var INTERNAL_PROPS      = hammerhead.DOM_PROCESSING_INTERNAL_PROPS;
+var DomProcessor        = hammerhead.processors.DomProcessor;
 var urlUtils            = hammerhead.utils.url;
-var SHADOW_UI_CLASSNAME = hammerhead.get('../shadow-ui/class-name');
+var SHADOW_UI_CLASSNAME = hammerhead.SHADOW_UI_CLASS_NAME;
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;

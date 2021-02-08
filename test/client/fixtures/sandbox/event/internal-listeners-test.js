@@ -1,4 +1,4 @@
-var Listeners = hammerhead.get('./sandbox/event/listeners');
+var Listeners = hammerhead.sandboxUtils.EventListeners;
 
 var browserUtils  = hammerhead.utils.browser;
 var domUtils      = hammerhead.utils.dom;
@@ -665,7 +665,7 @@ test('dispatchEvent, fireEvent, click', function () {
         .then(function (iframe) {
             var iframeDocument            = iframe.contentDocument;
             var iframeHammerhead          = iframe.contentWindow['%hammerhead%'];
-            var iframeListeners           = iframeHammerhead.get('./sandbox/event/listeners');
+            var iframeListeners           = iframeHammerhead.sandboxUtils.EventListeners;
             var targetListeners           = getListenersModule(iframeListeners, Listeners);
             var storedBeforeDispatchEvent = targetListeners.beforeDispatchEvent;
             var storedAfterDispatchEvent  = targetListeners.afterDispatchEvent;
@@ -718,7 +718,7 @@ if (browserUtils.isIE && !browserUtils.isMSEdge) {
             .then(function (iframe) {
                 var iframeDocument            = iframe.contentDocument;
                 var iframeHammerhead          = iframe.contentWindow['%hammerhead%'];
-                var iframeListeners           = iframeHammerhead.get('./sandbox/event/listeners');
+                var iframeListeners           = iframeHammerhead.sandboxUtils.EventListeners;
                 var storedBeforeDispatchEvent = iframeListeners.beforeDispatchEvent;
                 var storedAfterDispatchEvent  = iframeListeners.afterDispatchEvent;
 

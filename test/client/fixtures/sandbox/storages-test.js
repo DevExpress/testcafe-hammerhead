@@ -1,4 +1,4 @@
-var StorageWrapper = hammerhead.get('./sandbox/storages/wrapper');
+var StorageWrapper = hammerhead.sandboxUtils.StorageWrapper;
 var settings       = hammerhead.settings;
 
 var storageSandbox = hammerhead.sandbox.storageSandbox;

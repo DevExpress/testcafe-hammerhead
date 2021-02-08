@@ -10,7 +10,7 @@
 
     hammerhead.start({});
 
-    var INSTRUCTION    = hammerhead.get('../processing/script/instruction');
+    var INSTRUCTION    = hammerhead.SCRIPT_PROCESSING_INSTRUCTIONS;
     var getPostMessage = window[INSTRUCTION.getPostMessage];
 
     getPostMessage(top).call(top, '.', '.');

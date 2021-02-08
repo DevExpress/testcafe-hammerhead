@@ -1,4 +1,4 @@
-var backup = hammerhead.get('./sandbox/backup');
+var backup = hammerhead.sandboxUtils.backup;
 
 test('backup.get should return the latest sandbox backup', function () {
     var iframe = document.createElement('iframe');

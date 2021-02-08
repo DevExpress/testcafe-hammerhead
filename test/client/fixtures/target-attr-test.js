@@ -1,4 +1,4 @@
-var DomProcessor = hammerhead.get('../processing/dom');
+var DomProcessor = hammerhead.processors.DomProcessor;
 var urlUtils     = hammerhead.utils.url;
 
 var nativeMethods  = hammerhead.nativeMethods;

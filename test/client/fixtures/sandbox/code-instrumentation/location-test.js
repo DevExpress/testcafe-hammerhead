@@ -1,11 +1,11 @@
-var INSTRUCTION             = hammerhead.get('../processing/script/instruction');
-var CodeInstrumentation     = hammerhead.get('./sandbox/code-instrumentation');
-var LocationInstrumentation = hammerhead.get('./sandbox/code-instrumentation/location');
-var LocationWrapper         = hammerhead.get('./sandbox/code-instrumentation/location/wrapper');
+var INSTRUCTION             = hammerhead.SCRIPT_PROCESSING_INSTRUCTIONS;
+var CodeInstrumentation     = hammerhead.sandboxUtils.CodeInstrumentation;
+var LocationInstrumentation = hammerhead.sandboxUtils.LocationInstrumentation;
+var LocationWrapper         = hammerhead.sandboxUtils.LocationWrapper;
 var urlUtils                = hammerhead.utils.url;
 var sharedUrlUtils          = hammerhead.sharedUtils.url;
 var destLocation            = hammerhead.utils.destLocation;
-var urlResolver             = hammerhead.get('./utils/url-resolver');
+var urlResolver             = hammerhead.utils.urlResolver;
 var extend                  = hammerhead.utils.extend;
 
 var Promise       = hammerhead.Promise;

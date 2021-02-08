@@ -7,7 +7,7 @@
 <body>
 <script>
     var hammerhead = window['%hammerhead%'];
-    var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
+    var INTERNAL_PROPS = hammerhead.DOM_PROCESSING_INTERNAL_PROPS;
 
     hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/http://origin_iframe_host');
     hammerhead.start({ crossDomainProxyPort: 2000 });

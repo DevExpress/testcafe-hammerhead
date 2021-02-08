@@ -1,5 +1,5 @@
-var ElectronSandbox = hammerhead.get('./sandbox/electron');
-var overriding      = hammerhead.get('./utils/overriding');
+var ElectronSandbox = hammerhead.sandboxes.ElectronSandbox;
+var overriding      = hammerhead.utils.overriding;
 
 var nativeEval = window.eval;
 

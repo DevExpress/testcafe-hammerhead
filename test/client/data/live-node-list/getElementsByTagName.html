@@ -20,7 +20,7 @@
     hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/http://origin_iframe_host');
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
-    var DOMMutationTrackerProto = Object.getPrototypeOf(hammerhead.get('./sandbox/node/live-node-list/dom-mutation-tracker'));
+    var DOMMutationTrackerProto = Object.getPrototypeOf(hammerhead.sandboxUtils.domMutationTracker);
 
     var testDiv = document.createElement('div');
 

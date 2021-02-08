@@ -1,4 +1,4 @@
-var SHADOW_UI_CLASSNAME = hammerhead.get('./../shadow-ui/class-name');
+var SHADOW_UI_CLASSNAME = hammerhead.SHADOW_UI_CLASS_NAME;
 
 var Promise               = hammerhead.Promise;
 var browserUtils          = hammerhead.utils.browser;

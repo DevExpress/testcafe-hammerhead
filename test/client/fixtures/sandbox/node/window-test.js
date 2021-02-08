@@ -1,7 +1,7 @@
 var urlUtils     = hammerhead.utils.url;
 var destLocation = hammerhead.utils.destLocation;
-var INSTRUCTION  = hammerhead.get('../processing/script/instruction');
-var XhrSandbox   = hammerhead.get('./sandbox/xhr');
+var INSTRUCTION  = hammerhead.SCRIPT_PROCESSING_INSTRUCTIONS;
+var XhrSandbox   = hammerhead.sandboxes.XhrSandbox;
 
 var windowSandox  = hammerhead.sandbox.node.win;
 var nativeMethods = hammerhead.nativeMethods;
@@ -413,7 +413,7 @@ if (window.history.replaceState && window.history.pushState) {
                 var iframeLocation      = iframeWindow.location;
                 var baseUrl             = 'http://' + location.host + '/some/path';
 
-                iframeHammerhead.get('./utils/url-resolver').updateBase(baseUrl, iframe.contentDocument);
+                iframeHammerhead.utils.urlResolver.updateBase(baseUrl, iframe.contentDocument);
                 iframeHammerhead.utils.destLocation
                     .forceLocation('http://' + iframeLocation.host + '/sessionId/' + baseUrl);
 

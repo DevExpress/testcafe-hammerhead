@@ -1,5 +1,5 @@
 var settings     = hammerhead.settings;
-var listeningCtx = hammerhead.get('../client/sandbox/event/listening-context');
+var listeningCtx = hammerhead.sandboxUtils.listeningContext;
 
 var Promise       = hammerhead.Promise;
 var browserUtils  = hammerhead.utils.browser;
