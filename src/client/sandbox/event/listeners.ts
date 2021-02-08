@@ -27,6 +27,7 @@ export default class Listeners extends EventEmitter {
     addInternalEventListener: Function;
     addFirstInternalHandler: Function;
     removeInternalEventListener: Function;
+    addPostHandler: Function;
 
     constructor () {
         super();
@@ -36,6 +37,7 @@ export default class Listeners extends EventEmitter {
         this.addInternalEventListener    = this.listeningCtx.addInternalHandler;
         this.addFirstInternalHandler     = this.listeningCtx.addFirstInternalHandler;
         this.removeInternalEventListener = this.listeningCtx.removeInternalHandler;
+        this.addPostHandler              = this.listeningCtx.addPostHandler;
     }
 
     private static _getNativeAddEventListener (el: any) {
@@ -170,6 +172,8 @@ export default class Listeners extends EventEmitter {
                 listeningCtx.wrapEventListener(eventCtx, listener, wrapper, useCapture);
 
                 const res = nativeAddEventListener.apply(el, args);
+
+                listeningCtx.updatePostHandlers(el, eventType);
 
                 listeners.emit(listeners.EVENT_LISTENER_ATTACHED_EVENT, { el, eventType, listener });
 

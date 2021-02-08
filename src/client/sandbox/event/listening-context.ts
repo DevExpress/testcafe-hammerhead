@@ -29,6 +29,7 @@ export function addListeningElement (el, events) {
                 internalHandlers:     [],
                 outerHandlers:        [],
                 outerHandlersWrapper: null,
+                postHandlers:         [],
                 wrappers:             [],
                 cancelOuterHandlers:  false
             };
@@ -45,6 +46,15 @@ export function addListeningElement (el, events) {
 
 export function removeListeningElement (el) {
     delete el[ELEMENT_LISTENING_EVENTS_STORAGE_PROP];
+}
+
+export function addPostHandler (el, events, handler) {
+    const elementCtx = getElementCtx(el);
+
+    for (const event of events) {
+        elementCtx[event].postHandlers.unshift(handler);
+        nativeMethods.addEventListener.call(el, event, handler);
+    }
 }
 
 export function addFirstInternalHandler (el, events, handler) {
@@ -100,4 +110,13 @@ export function getWrapper (eventCtx, listener, useCapture) {
     }
 
     return null;
+}
+
+export function updatePostHandlers (el, eventType) {
+    const elementCtx = getElementCtx(el);
+
+    for (const handler of elementCtx[eventType].postHandlers) {
+        nativeMethods.removeEventListener.call(el, eventType, handler);
+        nativeMethods.addEventListener.call(el, eventType, handler);
+    }
 }

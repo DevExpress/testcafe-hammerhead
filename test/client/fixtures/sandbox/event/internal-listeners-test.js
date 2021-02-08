@@ -229,6 +229,36 @@ test('add wrapper', function () {
     dispatchEvent(container, event);
 });
 
+module('post handlers');
+
+test('add post handler', function () {
+    var event    = 'click';
+    var actual   = [];
+    var expected = ['click1', 'click2', 'post1', 'post2'];
+
+    listeners.initElementListening(container, [event]);
+
+    container.addEventListener(event, function () {
+        actual.push('click1');
+    });
+
+    listeners.addPostHandler(container, [event], function () {
+        actual.push('post1');
+    });
+
+    container.addEventListener(event, function () {
+        actual.push('click2');
+    });
+
+    listeners.addPostHandler(container, [event], function () {
+        actual.push('post2');
+    });
+
+    dispatchEvent(container, 'click');
+
+    deepEqual(actual, expected);
+});
+
 module('prevent event');
 
 test('preventer added before listener', function () {
