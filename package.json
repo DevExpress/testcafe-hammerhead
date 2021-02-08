@@ -42,12 +42,8 @@
     "webauth": "^1.1.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.4.0",
-    "@babel/plugin-proposal-class-properties": "^7.4.0",
-    "@babel/plugin-transform-async-to-generator": "^7.4.0",
-    "@babel/preset-env": "7.4.2",
-    "@babel/preset-typescript": "^7.3.3",
-    "@belym.a.2105/gulp-webmake": "^0.0.43",
+    "@rollup/plugin-commonjs": "^17.1.0",
+    "@rollup/plugin-node-resolve": "^11.1.1",
     "@types/css": "0.0.31",
     "@types/estree": "^0.0.39",
     "@types/lodash": "^4.14.129",
@@ -73,7 +69,6 @@
     "express": "4.16.3",
     "express-ntlm": "2.1.5",
     "gulp": "^4.0.0",
-    "gulp-babel": "8.0.0",
     "gulp-clone": "^2.0.1",
     "gulp-eslint": "^6.0.0",
     "gulp-ll-next": "^2.1.0",
@@ -93,6 +88,8 @@
     "publish-please": "^5.5.2",
     "request": "^2.34.0",
     "request-promise-native": "^1.0.5",
+    "rollup": "^2.38.5",
+    "rollup-plugin-typescript2": "^0.29.0",
     "tmp": "0.0.26",
     "typescript": "3.7.5",
     "ws": "^5.2.0"

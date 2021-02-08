@@ -134,11 +134,6 @@ class Hammerhead {
         this.createNativeXHR = XhrSandbox.createNativeXHR;
         this.processScript   = scriptProcessingUtils.processScript;
 
-        // NOTE: We should provide a function to retrieve modules, because hammerhead will be bundled into a single
-        // file and we will not have access to the internal modules by default.
-        // eslint-disable-next-line no-undef
-        this.get = require;
-
         // Modules
         this.Promise       = Promise;
         this.json          = JSON;

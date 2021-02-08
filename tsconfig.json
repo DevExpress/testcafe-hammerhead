@@ -17,9 +17,14 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "strictFunctionTypes": true,
-    "noImplicitThis": true
+    "noImplicitThis": true,
+    "outDir": "lib"
   },
+  "include": [
+    "src/**/*"
+  ],
   "exclude": [
+    "src/client/**/*",
     "node_modules"
   ]
 }
