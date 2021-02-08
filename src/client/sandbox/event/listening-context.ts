@@ -26,12 +26,12 @@ export function addListeningElement (el, events) {
     for (let i = 0; i < events.length; i++) {
         if (!elementCtx[events[i]]) {
             elementCtx[events[i]] = {
-                internalHandlers:     [],
-                outerHandlers:        [],
-                outerHandlersWrapper: null,
-                postHandlers:         [],
-                wrappers:             [],
-                cancelOuterHandlers:  false
+                internalBeforeHandlers: [],
+                internalAfterHandlers:  [],
+                outerHandlers:          [],
+                outerHandlersWrapper:   null,
+                wrappers:               [],
+                cancelOuterHandlers:    false
             };
         }
     }
@@ -48,38 +48,38 @@ export function removeListeningElement (el) {
     delete el[ELEMENT_LISTENING_EVENTS_STORAGE_PROP];
 }
 
-export function addPostHandler (el, events, handler) {
+export function addInternalAfterHandler (el, events, handler) {
     const elementCtx = getElementCtx(el);
 
     for (const event of events) {
-        elementCtx[event].postHandlers.unshift(handler);
+        elementCtx[event].internalAfterHandlers.unshift(handler);
         nativeMethods.addEventListener.call(el, event, handler);
     }
 }
 
-export function addFirstInternalHandler (el, events, handler) {
+export function addFirstInternalBeforeHandler (el, events, handler) {
     const elementCtx = getElementCtx(el);
 
     for (const event of events)
-        elementCtx[event].internalHandlers.unshift(handler);
+        elementCtx[event].internalBeforeHandlers.unshift(handler);
 }
 
-export function addInternalHandler (el, events, handler) {
+export function addInternalBeforeHandler (el, events, handler) {
     const elementCtx = getElementCtx(el);
 
     for (const event of events)
-        elementCtx[event].internalHandlers.push(handler);
+        elementCtx[event].internalBeforeHandlers.push(handler);
 }
 
-export function removeInternalHandler (el, events, handler) {
+export function removeInternalBeforeHandler (el, events, handler) {
     const elementCtx = getElementCtx(el);
 
     for (const event of events) {
-        const internalHandlers = elementCtx[event].internalHandlers;
-        const handlerIndex     = internalHandlers.indexOf(handler);
+        const internalBeforeHandlers = elementCtx[event].internalBeforeHandlers;
+        const handlerIndex     = internalBeforeHandlers.indexOf(handler);
 
         if (handlerIndex > -1)
-            internalHandlers.splice(handlerIndex, 1);
+            internalBeforeHandlers.splice(handlerIndex, 1);
     }
 }
 
@@ -112,10 +112,10 @@ export function getWrapper (eventCtx, listener, useCapture) {
     return null;
 }
 
-export function updatePostHandlers (el, eventType) {
+export function updateInternalAfterHandlers (el, eventType) {
     const elementCtx = getElementCtx(el);
 
-    for (const handler of elementCtx[eventType].postHandlers) {
+    for (const handler of elementCtx[eventType].internalAfterHandlers) {
         nativeMethods.removeEventListener.call(el, eventType, handler);
         nativeMethods.addEventListener.call(el, eventType, handler);
     }

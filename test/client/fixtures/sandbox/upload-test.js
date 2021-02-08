@@ -470,7 +470,7 @@ asyncTest('get uploaded file error: single file', function () {
     };
 
     uploadSandbox.on(uploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
-    listeningContext.getElementCtx(window).change.internalHandlers[1].call(inputMock, { target: inputMock });
+    listeningContext.getElementCtx(window).change.internalBeforeHandlers[1].call(inputMock, { target: inputMock });
 });
 
 asyncTest('get uploaded file error: multi file', function () {
@@ -512,7 +512,7 @@ asyncTest('get uploaded file error: multi file', function () {
     };
 
     uploadSandbox.on(uploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
-    listeningContext.getElementCtx(window).change.internalHandlers[1].call(inputMock, { target: inputMock });
+    listeningContext.getElementCtx(window).change.internalBeforeHandlers[1].call(inputMock, { target: inputMock });
 });
 
 module('upload');
@@ -912,7 +912,7 @@ if (window.FileList) {
 
 test('Should not prevent native upload dialog in the record mode (GH-2168)', function () {
     var uploadSand = new UploadSandbox({
-        addInternalEventListener: function (el, events) {
+        addInternalEventBeforeListener: function (el, events) {
             strictEqual(events.indexOf('click'), -1);
         }
     });

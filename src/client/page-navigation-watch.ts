@@ -37,7 +37,7 @@ export default class PageNavigationWatch extends EventEmiter {
 
         // NOTE: fires when the form is submitted by clicking the submit button
         eventSandbox.listeners.initElementListening(window, ['submit']);
-        eventSandbox.listeners.addInternalEventListener(window, ['submit'], (e: Event) => {
+        eventSandbox.listeners.addInternalEventBeforeListener(window, ['submit'], (e: Event) => {
             let prevented = false;
 
             if (!isFormElement(e.target as HTMLElement))
@@ -80,7 +80,7 @@ export default class PageNavigationWatch extends EventEmiter {
 
     _linkWatch (eventSandbox: EventSandbox): void {
         eventSandbox.listeners.initElementListening(window, ['click']);
-        eventSandbox.listeners.addInternalEventListener(window, ['click'], (e: Event) => {
+        eventSandbox.listeners.addInternalEventBeforeListener(window, ['click'], (e: Event) => {
             const link = isAnchorElement(e.target) ? e.target : closest(e.target, 'a');
 
             if (link && !isShadowUIElement(link)) {

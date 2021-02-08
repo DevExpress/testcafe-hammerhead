@@ -421,7 +421,7 @@ if (browserUtils.isWebKit) {
         return createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/window-event-listeners.html') })
             .then(function (iframe) {
                 iframe.contentWindow.performWrite();
-                iframe.contentWindow['%hammerhead%'].eventSandbox.listeners.addInternalEventListener(iframe.contentWindow, ['click'], function () {
+                iframe.contentWindow['%hammerhead%'].eventSandbox.listeners.addInternalEventBeforeListener(iframe.contentWindow, ['click'], function () {
                     ++internalClickEventCounter;
                 });
 

@@ -71,7 +71,7 @@ export default class ChildWindowSandbox extends SandboxBase {
             return;
 
         this._listeners.initElementListening(el, ['click']);
-        this._listeners.addPostHandler(el, ['click'], e => {
+        this._listeners.addInternalEventAfterListener(el, ['click'], e => {
             if (e.defaultPrevented)
                 return;
 
@@ -104,7 +104,7 @@ export default class ChildWindowSandbox extends SandboxBase {
             return;
 
         this._listeners.initElementListening(window, ['submit']);
-        this._listeners.addInternalEventListener(window, ['submit'], e => {
+        this._listeners.addInternalEventBeforeListener(window, ['submit'], e => {
             if (!domUtils.isFormElement(e.target))
                 return;
 

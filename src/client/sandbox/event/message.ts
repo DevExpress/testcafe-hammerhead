@@ -136,7 +136,7 @@ export default class MessageSandbox extends SandboxBase {
         const onMessageHandler       = (...args) => fastApply(this, '_onMessage', args);
         const onWindowMessageHandler = (...args) => fastApply(this, '_onWindowMessage', args);
 
-        this._listeners.addInternalEventListener(window, ['message'], onMessageHandler);
+        this._listeners.addInternalEventBeforeListener(window, ['message'], onMessageHandler);
         this._listeners.setEventListenerWrapper(window, ['message'], onWindowMessageHandler);
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.

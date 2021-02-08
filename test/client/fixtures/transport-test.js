@@ -236,14 +236,14 @@ test('should send queued messages', function () {
     var storedEventObj  = null;
     var iframeTransport = null;
 
-    msgEventCtx.internalHandlers.unshift(function (e, flag, preventEvent) {
+    msgEventCtx.internalBeforeHandlers.unshift(function (e, flag, preventEvent) {
         var msgData = e.toString() === '[object MessageEvent]' ? nativeMethods.messageEventDataGetter.call(e) : e.data;
 
         if (msgData.message.cmd !== 'hammerhead|command|get-message-port')
             return;
 
         storedEventObj = e;
-        msgEventCtx.internalHandlers.shift();
+        msgEventCtx.internalBeforeHandlers.shift();
         preventEvent();
     });
 
@@ -266,7 +266,7 @@ test('should send queued messages', function () {
             strictEqual(iframeTransport._queue[0].queued, false);
             strictEqual(iframeTransport._queue[0].msg.test, 'me');
 
-            msgEventCtx.internalHandlers[0].call(window, storedEventObj);
+            msgEventCtx.internalBeforeHandlers[0].call(window, storedEventObj);
 
             return msgPromise;
         })

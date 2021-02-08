@@ -144,7 +144,7 @@ export default class UnloadSandbox extends SandboxBase {
         this._attachEvent(this.beforeUnloadProperties);
         this._attachEvent(this.unloadProperties);
 
-        this._listeners.addInternalEventListener(window, [this.beforeUnloadProperties.nativeEventName], () => this.emit(this.BEFORE_BEFORE_UNLOAD_EVENT));
+        this._listeners.addInternalEventBeforeListener(window, [this.beforeUnloadProperties.nativeEventName], () => this.emit(this.BEFORE_BEFORE_UNLOAD_EVENT));
     }
 
     setOnEvent (eventProperties: EventProperties, window: Window, handler) {

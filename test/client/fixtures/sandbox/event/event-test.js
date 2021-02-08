@@ -306,7 +306,7 @@ test('SVGElement.dispatchEvent should be overriden (GH-614)', function () {
     });
 
     listeners.initElementListening(svg, ['click']);
-    listeners.addFirstInternalHandler(svg, ['click'], function (event, isDispatchedEventFlag) {
+    listeners.addFirstInternalEventBeforeListener(svg, ['click'], function (event, isDispatchedEventFlag) {
         ok(isDispatchedEventFlag);
     });
 
@@ -531,7 +531,7 @@ asyncTest('events should not be called twice (GH-2062)', function () {
         ++eventCallCounter;
     });
 
-    listeners.addInternalEventListener(window, ['keypress'], function () {
+    listeners.addInternalEventBeforeListener(window, ['keypress'], function () {
         ++internalCallCounter;
     });
 
@@ -562,7 +562,7 @@ test('events should be restored after iframe rewriting (GH-1881)', function () {
             contentDocument.write('<!doctype html><html><head></head><body>hello</body></html>');
             contentDocument.close();
 
-            contentWindow['%hammerhead%'].eventSandbox.listeners.addInternalEventListener(contentWindow, ['click'], function () {
+            contentWindow['%hammerhead%'].eventSandbox.listeners.addInternalEventBeforeListener(contentWindow, ['click'], function () {
                 ++internalClickEventCounter;
             });
 
@@ -581,7 +581,7 @@ test('events should be restored after iframe rewriting (GH-1881)', function () {
             contentDocument.close();
 
             if (browserUtils.isIE) {
-                contentWindow['%hammerhead%'].eventSandbox.listeners.addInternalEventListener(contentWindow, ['click'], function () {
+                contentWindow['%hammerhead%'].eventSandbox.listeners.addInternalEventBeforeListener(contentWindow, ['click'], function () {
                     ++internalClickEventCounter;
                 });
             }

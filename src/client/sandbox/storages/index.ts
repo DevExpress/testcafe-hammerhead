@@ -143,7 +143,7 @@ export default class StorageSandbox extends SandboxBase {
             e => this._simulateStorageEventIfNecessary(e, this.sessionStorageWrapper));
 
         this._listeners.initElementListening(window, ['storage']);
-        this._listeners.addInternalEventListener(window, ['storage'], (_e, dispatched, preventEvent) => {
+        this._listeners.addInternalEventBeforeListener(window, ['storage'], (_e, dispatched, preventEvent) => {
             if (!dispatched)
                 preventEvent();
         });
