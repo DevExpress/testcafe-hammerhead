@@ -52,6 +52,19 @@ describe('Cache', () => {
             res.setHeader('content-type', 'application/javascript; charset=utf-8');
             res.end(readFileContentAsString('test/server/data/cache/script.js'));
         });
+
+        app.get('/image-like/:size', (req, res) => {
+            serverRouteCalls++;
+
+            addCacheHeader(res);
+            res.setHeader('content-type', 'image/png');
+
+            const size = parseInt(req.params.size, 10);
+            const arr  = Array(size).fill(0x66);
+            const data = Buffer.from(arr);
+
+            res.end(data);
+        });
     }
 
     before(() => {
@@ -86,20 +99,32 @@ describe('Cache', () => {
 
             proxy.openSession('http://example.com/', session);
 
-            const expectedResult         = readFileContentAsString(expectedResultFile);
+            let expectedResult = null;
+
+            if (expectedResultFile)
+                expectedResult = readFileContentAsString(expectedResultFile);
+
             let expectedServerRouteCalls = getExpectedServerRouteCall(i, 1, shouldCache);
 
             let currentResult = await request(clonedRequestParameters);
 
             expect(serverRouteCalls).eql(expectedServerRouteCalls);
-            compareCode(currentResult, expectedResult);
+
+            if (expectedResult)
+                compareCode(currentResult, expectedResult);
+            else
+                expect(currentResult.length).gt(0);
 
             currentResult = await request(clonedRequestParameters);
 
             expectedServerRouteCalls = getExpectedServerRouteCall(i, 2, shouldCache);
 
             expect(serverRouteCalls).eql(expectedServerRouteCalls);
-            compareCode(currentResult, expectedResult);
+
+            if (expectedResult)
+                compareCode(currentResult, expectedResult);
+            else
+                expect(currentResult.length).gt(0);
         }
 
         serverRouteCalls = 0;
@@ -121,6 +146,12 @@ describe('Cache', () => {
 
             expect(requestsCache.shouldCache({
                 serverInfo:  { cacheRequests: true },
+                contentInfo: { requireProcessing: false },
+                reqOpts:     { method: 'GET' }
+            })).to.be.true;
+
+            expect(requestsCache.shouldCache({
+                serverInfo:  { cacheRequests: true },
                 contentInfo: { isCSS: true },
                 reqOpts:     { method: 'HEAD' }
             })).to.be.false;
@@ -133,6 +164,12 @@ describe('Cache', () => {
             expect(requestsCache.shouldCache({
                 serverInfo:  { cacheRequests: false },
                 contentInfo: { isScript: true },
+                reqOpts:     { method: 'GET' }
+            })).to.be.false;
+
+            expect(requestsCache.shouldCache({
+                serverInfo:  { cacheRequests: true },
+                contentInfo: { requireProcessing: true },
                 reqOpts:     { method: 'GET' }
             })).to.be.false;
         });
@@ -169,6 +206,26 @@ describe('Cache', () => {
                     expectedResultFile: 'test/server/data/cache/script.js',
                     shouldCache:        true,
                     isAjax:             true
+                });
+            });
+        });
+
+        describe('Should cache non-proxied resources', () => {
+            it('Regular size', async () => {
+                await testRequestCaching({
+                    requestParameters: {
+                        url: 'http://127.0.0.1:2000/image-like/1234'
+                    },
+                    shouldCache: true
+                });
+            });
+
+            it('Large size', async () => {
+                await testRequestCaching({
+                    requestParameters: {
+                        url: 'http://127.0.0.1:2000/image-like/6291456' // 6 Mb
+                    },
+                    shouldCache: false
                 });
             });
         });
