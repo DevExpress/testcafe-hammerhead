@@ -43,12 +43,12 @@ function getResourceUrlReplacer (ctx: RequestPipelineContext): Function {
 }
 
 export async function process (ctx: RequestPipelineContext): Promise<Buffer> {
-    const body        = ctx.destResBody;
-    const contentInfo = ctx.contentInfo;
-    const encoding    = contentInfo.encoding;
-    const charset     = contentInfo.charset;
+    const { destResBody: body, contentInfo } = ctx;
+    const { encoding, charset }              = contentInfo;
 
     const decoded = await decodeContent(body, encoding, charset);
+
+    await ctx.prepareInjectableUserScripts();
 
     for (const processor of RESOURCE_PROCESSORS) {
         if (processor.shouldProcessResource(ctx)) {

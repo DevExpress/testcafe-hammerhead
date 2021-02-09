@@ -265,10 +265,11 @@ export default abstract class Session extends EventEmitter {
         this.requestEventListeners.clear();
     }
 
-    getRequestFilterRules (requestInfo: RequestInfo): RequestFilterRule[] {
-        const rulesArray: RequestFilterRule[] = Array.from(this.requestEventListeners.keys());
+    async getRequestFilterRules (requestInfo: RequestInfo): Promise<RequestFilterRule[]> {
+        const rulesArray  = Array.from(this.requestEventListeners.keys());
+        const matchingRules = await Promise.all(rulesArray.map(rule => rule.match(requestInfo)));
 
-        return rulesArray.filter(rule => rule.match(requestInfo));
+        return rulesArray.filter((_, index) => matchingRules[index]);
     }
 
     async callRequestEventCallback (eventName: RequestEventNames, requestFilterRule: RequestFilterRule, eventData: RequestEvent | ResponseEvent | ConfigureResponseEvent) {

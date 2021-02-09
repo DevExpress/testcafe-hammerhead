@@ -79,8 +79,8 @@ export default class RequestFilterRule {
                this._matchIsAjax(this.options.isAjax, requestInfo.isAjax);
     }
 
-    _matchUsingFunctionOptions (requestInfo: RequestInfo) {
-        return !!this.options.call(this, requestInfo);
+    async _matchUsingFunctionOptions (requestInfo: RequestInfo): Promise<boolean> {
+        return !!await this.options.call(this, requestInfo);
     }
 
     _stringifyObjectOptions () {
@@ -101,9 +101,9 @@ export default class RequestFilterRule {
         return `{ ${msg} }`;
     }
 
-    match (requestInfo: RequestInfo): boolean {
+    async match (requestInfo: RequestInfo): Promise<boolean> {
         if (typeof this.options === 'function')
-            return this._matchUsingFunctionOptions(requestInfo);
+            return await this._matchUsingFunctionOptions(requestInfo);
 
         return this._matchUsingObjectOptions(requestInfo);
     }
