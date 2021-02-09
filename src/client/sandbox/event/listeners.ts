@@ -24,18 +24,20 @@ export default class Listeners extends EventEmitter {
 
     listeningCtx: any;
 
-    addInternalEventListener: Function;
-    addFirstInternalHandler: Function;
-    removeInternalEventListener: Function;
+    addInternalEventBeforeListener: Function;
+    addFirstInternalEventBeforeListener: Function;
+    addInternalEventAfterListener: Function;
+    removeInternalEventBeforeListener: Function;
 
     constructor () {
         super();
 
         this.listeningCtx = listeningCtx;
 
-        this.addInternalEventListener    = this.listeningCtx.addInternalHandler;
-        this.addFirstInternalHandler     = this.listeningCtx.addFirstInternalHandler;
-        this.removeInternalEventListener = this.listeningCtx.removeInternalHandler;
+        this.addInternalEventBeforeListener      = this.listeningCtx.addInternalBeforeHandler;
+        this.addFirstInternalEventBeforeListener = this.listeningCtx.addFirstInternalBeforeHandler;
+        this.addInternalEventAfterListener       = this.listeningCtx.addInternalAfterHandler;
+        this.removeInternalEventBeforeListener   = this.listeningCtx.removeInternalBeforeHandler;
     }
 
     private static _getNativeAddEventListener (el: any) {
@@ -109,7 +111,7 @@ export default class Listeners extends EventEmitter {
             if (!eventCtx)
                 return;
 
-            const internalHandlers = eventCtx.internalHandlers;
+            const internalHandlers = eventCtx.internalBeforeHandlers;
 
             eventCtx.cancelOuterHandlers = false;
 
@@ -170,6 +172,8 @@ export default class Listeners extends EventEmitter {
                 listeningCtx.wrapEventListener(eventCtx, listener, wrapper, useCapture);
 
                 const res = nativeAddEventListener.apply(el, args);
+
+                listeningCtx.updateInternalAfterHandlers(el, eventType);
 
                 listeners.emit(listeners.EVENT_LISTENER_ATTACHED_EVENT, { el, eventType, listener });
 

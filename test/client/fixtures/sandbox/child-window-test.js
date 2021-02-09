@@ -23,11 +23,15 @@ test('_shouldOpenInNewWindow', function () {
 test('window.open', function () {
     settings.get().allowMultipleWindows = true;
 
+    var storedHandleWindowOpen = windowSandbox._childWindowSandbox.handleWindowOpen;
+
     windowSandbox._childWindowSandbox.handleWindowOpen = function (window, args) {
         strictEqual(args[1], '_blank');
     };
 
     window.open('/test');
+
+    windowSandbox._childWindowSandbox.handleWindowOpen = storedHandleWindowOpen;
 
     settings.get().allowMultipleWindows = false;
 });
@@ -37,7 +41,7 @@ test('open child window considering base element', function () {
 
     hammerhead.sandbox.childWindow._handleFormSubmitting(window);
 
-    let openedWindowUrl          = '';
+    var openedWindowUrl          = '';
     var storedOpenUrlInNewWindow = windowSandbox._childWindowSandbox._openUrlInNewWindow;
 
     hammerhead.sandbox.childWindow._openUrlInNewWindow = function (url) {
@@ -82,6 +86,48 @@ test('open child window considering base element', function () {
 
     document.body.removeChild(link);
     document.body.removeChild(form);
+});
+
+test('Should not open in window if the default behavior was prevented', function () {
+    settings.get().allowMultipleWindows = true;
+
+    var windowOpenCounter        = 0;
+    var openedWindowUrl          = '';
+    var storedOpenUrlInNewWindow = windowSandbox._childWindowSandbox._openUrlInNewWindow;
+
+    hammerhead.sandbox.childWindow._openUrlInNewWindow = function (url) {
+        windowOpenCounter++;
+
+        openedWindowUrl = url;
+
+        return {
+            windowId: Date.now()
+        };
+    };
+
+    var link  = document.createElement('a');
+
+    link.innerText = 'link';
+    link.href      = 'http://example.com';
+    link.target    = '_blank';
+
+    link.addEventListener('click', function (e) {
+        window.open('http://link');
+
+        e.preventDefault();
+    });
+
+    document.body.appendChild(link);
+
+    nativeMethods.click.call(link);
+    ok(openedWindowUrl.indexOf('http://link') > -1);
+    strictEqual(windowOpenCounter, 1);
+
+    windowSandbox._childWindowSandbox._openUrlInNewWindow = storedOpenUrlInNewWindow;
+
+    settings.get().allowMultipleWindows = false;
+
+    document.body.removeChild(link);
 });
 
 module('regression');

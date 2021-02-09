@@ -116,13 +116,13 @@ export default class Selection {
                     focusRaised = true;
             };
 
-            listeners.addInternalEventListener(document, ['focus'], focusHandler);
+            listeners.addInternalEventBeforeListener(document, ['focus'], focusHandler);
 
             result = nativeMethods.select.call(this);
 
             timersSandbox.setTimeout.call(window, () => {
                 timersSandbox.setTimeout.call(window, () => {
-                    listeners.removeInternalEventListener(document, ['focus'], focusHandler);
+                    listeners.removeInternalEventBeforeListener(document, ['focus'], focusHandler);
 
                     if (!focusRaised)
                         eventSimulator.focus(element);
@@ -168,7 +168,7 @@ export default class Selection {
         };
 
         if (needFocus)
-            this.listeners.addInternalEventListener(document, ['focus'], focusHandler);
+            this.listeners.addInternalEventBeforeListener(document, ['focus'], focusHandler);
 
         // The focus and blur events
         Listeners.beforeDispatchEvent(el);
@@ -194,7 +194,7 @@ export default class Selection {
             if (browserUtils.isIE11) {
                 this.timersSandbox.setTimeout.call(window, () => {
                     this.timersSandbox.setTimeout.call(window, () => {
-                        this.listeners.removeInternalEventListener(document, ['focus'], focusHandler);
+                        this.listeners.removeInternalEventBeforeListener(document, ['focus'], focusHandler);
 
                         if (!focusRaised)
                             this.eventSimulator.focus(el);
@@ -202,7 +202,7 @@ export default class Selection {
                 }, 0);
             }
             else {
-                this.listeners.removeInternalEventListener(document, ['focus'], focusHandler);
+                this.listeners.removeInternalEventBeforeListener(document, ['focus'], focusHandler);
 
                 if (!focusRaised) {
                     // NOTE: In Firefox, raising the dispatchEvent 'focus' doesn’t activate an element.

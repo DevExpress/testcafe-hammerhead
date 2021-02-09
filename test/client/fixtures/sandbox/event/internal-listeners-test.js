@@ -125,7 +125,7 @@ test('initElementListening', function () {
 
     listeners.initElementListening(container, [event]);
 
-    listeners.addInternalEventListener(container, [event], function () {
+    listeners.addInternalEventBeforeListener(container, [event], function () {
     });
 
     function checkHandlerCounters (first, second, third, fourth) {
@@ -173,7 +173,7 @@ test('getEventListeners', function () {
 
     listeners.initElementListening(container, ['click']);
 
-    listeners.addInternalEventListener(container, ['click'], function () {
+    listeners.addInternalEventBeforeListener(container, ['click'], function () {
     });
 
     deepEqual(listeners.getEventListeners(container, 'click'), []);
@@ -196,7 +196,7 @@ test('stop propagation', function () {
     };
 
     listeners.initElementListening(container, [event]);
-    listeners.addInternalEventListener(container, [event], testStopPropagation);
+    listeners.addInternalEventBeforeListener(container, [event], testStopPropagation);
     bindAll(event);
 
     notEqual(domUtils.getActiveElement(), input);
@@ -229,6 +229,36 @@ test('add wrapper', function () {
     dispatchEvent(container, event);
 });
 
+module('post handlers');
+
+test('add post handler', function () {
+    var event    = 'click';
+    var actual   = [];
+    var expected = ['click1', 'click2', 'post1', 'post2'];
+
+    listeners.initElementListening(container, [event]);
+
+    container.addEventListener(event, function () {
+        actual.push('click1');
+    });
+
+    listeners.addInternalEventAfterListener(container, [event], function () {
+        actual.push('post1');
+    });
+
+    container.addEventListener(event, function () {
+        actual.push('click2');
+    });
+
+    listeners.addInternalEventAfterListener(container, [event], function () {
+        actual.push('post2');
+    });
+
+    dispatchEvent(container, 'click');
+
+    deepEqual(actual, expected);
+});
+
 module('prevent event');
 
 test('preventer added before listener', function () {
@@ -242,7 +272,7 @@ test('preventer added before listener', function () {
     };
 
     listeners.initElementListening(container, [event]);
-    listeners.addInternalEventListener(container, [event], testPreventEvent);
+    listeners.addInternalEventBeforeListener(container, [event], testPreventEvent);
     bindAll(event);
     dispatchEvent(input, event);
 
@@ -253,7 +283,7 @@ test('preventer added before listener', function () {
     ok(!elementBubbleEventRaised);
 
     preventEventRaised = false;
-    listeners.removeInternalEventListener(container, [event], testPreventEvent);
+    listeners.removeInternalEventBeforeListener(container, [event], testPreventEvent);
     dispatchEvent(input, event);
 
     ok(!preventEventRaised);
@@ -275,7 +305,7 @@ test('preventer added after listener', function () {
 
     listeners.initElementListening(container, [event]);
     bindAll(event);
-    listeners.addInternalEventListener(container, [event], testPreventEvent);
+    listeners.addInternalEventBeforeListener(container, [event], testPreventEvent);
     dispatchEvent(input, event);
 
     ok(preventEventRaised);
@@ -306,10 +336,10 @@ test('append several handlers', function () {
     };
 
     listeners.initElementListening(container, [event1, event2]);
-    listeners.addInternalEventListener(container, [event1], handler1);
-    listeners.addInternalEventListener(container, [event1], testPreventEvent);
-    listeners.addInternalEventListener(container, [event1], handler2);
-    listeners.addInternalEventListener(container, [event2], testPreventEvent);
+    listeners.addInternalEventBeforeListener(container, [event1], handler1);
+    listeners.addInternalEventBeforeListener(container, [event1], testPreventEvent);
+    listeners.addInternalEventBeforeListener(container, [event1], handler2);
+    listeners.addInternalEventBeforeListener(container, [event2], testPreventEvent);
 
     bindAll(event1);
     bindAll(event2);
@@ -340,7 +370,7 @@ test('canceller added after listener', function () {
 
     listeners.initElementListening(container, [event]);
     bindAll(event);
-    listeners.addInternalEventListener(container, [event], testCancelHandlers);
+    listeners.addInternalEventBeforeListener(container, [event], testCancelHandlers);
     dispatchEvent(uiElement, event);
 
     ok(cancelHandlersRaised);
@@ -351,7 +381,7 @@ test('canceller added after listener', function () {
     ok(uiElementCaptureEventRaised);
     ok(uiElementBubbleEventRaised);
 
-    listeners.removeInternalEventListener(container, [event], testCancelHandlers);
+    listeners.removeInternalEventBeforeListener(container, [event], testCancelHandlers);
 });
 
 module('regression');
@@ -378,7 +408,7 @@ test('only one of several handlers must be called (document handlers) (T233158)'
 
     listeners.initElementListening(document, [event]);
 
-    listeners.addInternalEventListener(document, [event], function () {
+    listeners.addInternalEventBeforeListener(document, [event], function () {
     });
 
     var $document = $(document);
@@ -439,7 +469,7 @@ test('only one of several handlers must be called (body handlers) (T233158)', fu
 
     listeners.initElementListening(document, [event]);
 
-    listeners.addInternalEventListener(document, [event], function () {
+    listeners.addInternalEventBeforeListener(document, [event], function () {
     });
 
     document.body.addEventListener(event, clickHandler, true);
@@ -472,7 +502,7 @@ test('only one of several handlers must be called (element handlers) (T233158)',
 
     listeners.initElementListening(document, [event]);
 
-    listeners.addInternalEventListener(document, [event], function () {
+    listeners.addInternalEventBeforeListener(document, [event], function () {
     });
 
     container.addEventListener(event, clickHandler, true);
@@ -500,7 +530,7 @@ test('should allow removing a listener inside a listener (testcafe/#3652', funct
     function expendableHandler () {
         expendableHandlerCallCount++;
 
-        listeners.removeInternalEventListener(container, [event], expendableHandler);
+        listeners.removeInternalEventBeforeListener(container, [event], expendableHandler);
     }
 
     function normalEventHandler () {
@@ -509,9 +539,9 @@ test('should allow removing a listener inside a listener (testcafe/#3652', funct
 
     listeners.initElementListening(container, [event]);
 
-    listeners.addInternalEventListener(container, [event], normalEventHandler);
-    listeners.addInternalEventListener(container, [event], expendableHandler);
-    listeners.addInternalEventListener(container, [event], normalEventHandler);
+    listeners.addInternalEventBeforeListener(container, [event], normalEventHandler);
+    listeners.addInternalEventBeforeListener(container, [event], expendableHandler);
+    listeners.addInternalEventBeforeListener(container, [event], normalEventHandler);
 
     dispatchEvent(container, event);
     dispatchEvent(container, event);
@@ -531,7 +561,7 @@ if (browserUtils.isIE) {
 
         listeners.initElementListening(document, [events]);
 
-        listeners.addInternalEventListener(document, [events], function () {
+        listeners.addInternalEventBeforeListener(document, [events], function () {
         });
 
         document.addEventListener('pointerdown', handler, true);

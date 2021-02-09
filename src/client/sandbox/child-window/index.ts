@@ -71,16 +71,19 @@ export default class ChildWindowSandbox extends SandboxBase {
             return;
 
         this._listeners.initElementListening(el, ['click']);
-        this._listeners.addInternalEventListener(el, ['click'], (_e, _dispatched, preventEvent) => {
+        this._listeners.addInternalEventAfterListener(el, ['click'], e => {
+            if (e.defaultPrevented)
+                return;
+
             if (!ChildWindowSandbox._shouldOpenInNewWindowOnElementAction(el, DefaultTarget.linkOrArea))
                 return;
 
             // TODO: need to check that specified 'area' are clickable (initiated new page opening)
             const url = nativeMethods.anchorHrefGetter.call(el);
 
-            this._openUrlInNewWindow(url);
+            e.preventDefault();
 
-            preventEvent(true);
+            this._openUrlInNewWindow(url);
         });
     }
 
@@ -101,7 +104,7 @@ export default class ChildWindowSandbox extends SandboxBase {
             return;
 
         this._listeners.initElementListening(window, ['submit']);
-        this._listeners.addInternalEventListener(window, ['submit'], e => {
+        this._listeners.addInternalEventBeforeListener(window, ['submit'], e => {
             if (!domUtils.isFormElement(e.target))
                 return;
 

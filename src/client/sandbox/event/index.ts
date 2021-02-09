@@ -163,7 +163,7 @@ export default class EventSandbox extends SandboxBase {
         // 'Click' is a complex emulated action that uses 'dispatchEvent' method internally.
         // Another browsers open the native browser dialog in this case.
         // This is why, we are forced to prevent the browser's open file dialog.
-        this.listeners.addInternalEventListener(window, ['click'], (e: Event, dispatched: boolean) => {
+        this.listeners.addInternalEventBeforeListener(window, ['click'], (e: Event, dispatched: boolean) => {
             if (dispatched && domUtils.isInputWithNativeDialog(e.target as HTMLInputElement))
                 preventDefault(e, true);
         });
@@ -212,8 +212,8 @@ export default class EventSandbox extends SandboxBase {
 
         this.listeners.initElementListening(document, DOM_EVENTS);
         this.listeners.initElementListening(window, DOM_EVENTS.concat(['load', 'beforeunload', 'pagehide', 'unload', 'message']));
-        this.listeners.addInternalEventListener(window, ['focus'], this._onFocus);
-        this.listeners.addInternalEventListener(window, ['focus', 'blur', 'change', 'focusin', 'focusout'], this._cancelInternalEvents);
+        this.listeners.addInternalEventBeforeListener(window, ['focus'], this._onFocus);
+        this.listeners.addInternalEventBeforeListener(window, ['focus', 'blur', 'change', 'focusin', 'focusout'], this._cancelInternalEvents);
 
         this._preventInputNativeDialogs(window);
 

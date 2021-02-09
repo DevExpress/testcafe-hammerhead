@@ -923,7 +923,7 @@ export default class ElementSandbox extends SandboxBase {
 
     private _setValidBrowsingContextOnElementClick (window): void {
         this._eventSandbox.listeners.initElementListening(window, ['click']);
-        this._eventSandbox.listeners.addInternalEventListener(window, ['click'], e => {
+        this._eventSandbox.listeners.addInternalEventBeforeListener(window, ['click'], e => {
             let el = e.target;
 
             if (domUtils.isInputElement(el) && el.form)
@@ -964,7 +964,7 @@ export default class ElementSandbox extends SandboxBase {
 
     private _handleImageLoadEventRaising (el: HTMLImageElement): void {
         this._eventSandbox.listeners.initElementListening(el, ['load']);
-        this._eventSandbox.listeners.addInternalEventListener(el, ['load'], (_e, _dispatched, preventEvent, _cancelHandlers, stopEventPropagation) => {
+        this._eventSandbox.listeners.addInternalEventBeforeListener(el, ['load'], (_e, _dispatched, preventEvent, _cancelHandlers, stopEventPropagation) => {
             if (el[INTERNAL_PROPS.cachedImage])
                 el[INTERNAL_PROPS.cachedImage] = false;
 

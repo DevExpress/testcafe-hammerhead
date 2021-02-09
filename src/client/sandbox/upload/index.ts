@@ -39,7 +39,7 @@ export default class UploadSandbox extends SandboxBase {
     attach (window: Window & typeof globalThis) {
         super.attach(window);
 
-        this._listeners.addInternalEventListener(window, ['change'], (e, dispatched) => {
+        this._listeners.addInternalEventBeforeListener(window, ['change'], (e, dispatched) => {
             const input              = e.target;
             const currentInfoManager = UploadSandbox._getCurrentInfoManager(input);
 
@@ -74,7 +74,7 @@ export default class UploadSandbox extends SandboxBase {
             // 'Click' is a complex emulated action that uses 'dispatchEvent' method internally.
             // Another browsers open the native browser dialog in this case.
             // This is why, we are forced to prevent the browser's open file dialog.
-            this._listeners.addInternalEventListener(window, ['click'], (e: Event, dispatched: boolean) => {
+            this._listeners.addInternalEventBeforeListener(window, ['click'], (e: Event, dispatched: boolean) => {
                 if (dispatched && isFileInput(e.target as HTMLInputElement))
                     preventDefault(e, true);
             });

@@ -169,9 +169,9 @@ export default class FocusBlurSandbox extends SandboxBase {
                     stopEventPropagation();
                 };
 
-                this._listeners.addInternalEventListener(window, ['focus'], preventFocus);
+                this._listeners.addInternalEventBeforeListener(window, ['focus'], preventFocus);
                 this._eventSimulator['focus'](el, relatedTarget);
-                this._listeners.removeInternalEventListener(window, ['focus'], preventFocus);
+                this._listeners.removeInternalEventBeforeListener(window, ['focus'], preventFocus);
             }
 
             callback();
@@ -246,7 +246,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         this._activeWindowTracker.attach(window);
         this._topWindow = domUtils.isCrossDomainWindows(window, window.top) ? window : window.top;
 
-        this._listeners.addInternalEventListener(window, ['focus', 'blur'], () => {
+        this._listeners.addInternalEventBeforeListener(window, ['focus', 'blur'], () => {
             const activeElement = domUtils.getActiveElement(this.document);
 
             this._onChangeActiveElement(activeElement);
@@ -407,12 +407,12 @@ export default class FocusBlurSandbox extends SandboxBase {
             };
 
             if (PREVENT_FOCUS_ON_CHANGE)
-                this._listeners.addInternalEventListener(window, ['focus'], focusOnChangeHandler);
+                this._listeners.addInternalEventBeforeListener(window, ['focus'], focusOnChangeHandler);
 
             this._elementEditingWatcher.processElementChanging(el);
 
             if (PREVENT_FOCUS_ON_CHANGE)
-                this._listeners.removeInternalEventListener(window, ['focus'], focusOnChangeHandler);
+                this._listeners.removeInternalEventBeforeListener(window, ['focus'], focusOnChangeHandler);
 
             this._elementEditingWatcher.stopWatching(el);
         }
