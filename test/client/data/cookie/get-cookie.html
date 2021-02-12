@@ -7,7 +7,7 @@
 <body>
 <script type="text/javascript">
     var hammerhead    = window['%hammerhead%'];
-    var INSTRUCTION   = hammerhead.SCRIPT_PROCESSING_INSTRUCTIONS;
+    var INSTRUCTION   = hammerhead.PROCESSING_INSTRUCTIONS.dom.script;
 
     hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/https://sub.example.com');
     hammerhead.start({ sessionId: 'cookieSession' });

@@ -10,7 +10,7 @@
 
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
-    var INSTRUCTION = hammerhead.SCRIPT_PROCESSING_INSTRUCTIONS;
+    var INSTRUCTION = hammerhead.PROCESSING_INSTRUCTIONS.dom.script;
     var getPostMessage = window[INSTRUCTION.getPostMessage];
 
     getPostMessage(top).call(top, localStorage.getItem('app'), '*');

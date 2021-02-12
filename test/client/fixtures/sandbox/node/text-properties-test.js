@@ -1,4 +1,4 @@
-var INTERNAL_PROPS          = hammerhead.DOM_PROCESSING_INTERNAL_PROPS;
+var INTERNAL_PROPS          = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_props;
 var processHtml             = hammerhead.utils.html.processHtml;
 var scriptProcessingHeaders = hammerhead.utils.processing.header;
 var styleProcessor          = hammerhead.processors.styleProcessor;

@@ -1,4 +1,4 @@
-var INSTRUMETNED_PROPERTIES = hammerhead.utils.processing.instrumented.PROPERTIES;
+var INSTRUMETNED_PROPERTIES = hammerhead.utils.processing.instrumentation.PROPERTIES;
 var codeInstrumentation     = hammerhead.sandbox.codeInstrumentation;
 var nativeMethods           = hammerhead.nativeMethods;
 

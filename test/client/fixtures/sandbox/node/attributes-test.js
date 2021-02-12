@@ -1,4 +1,4 @@
-var INTERNAL_PROPS   = hammerhead.DOM_PROCESSING_INTERNAL_PROPS;
+var INTERNAL_PROPS   = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_props;
 var DomProcessor     = hammerhead.processors.DomProcessor;
 var domProcessor     = hammerhead.processors.domProcessor;
 var settings         = hammerhead.settings;

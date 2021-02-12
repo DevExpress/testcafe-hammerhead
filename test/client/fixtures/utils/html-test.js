@@ -1,4 +1,4 @@
-﻿var INTERNAL_ATTRS = hammerhead.DOM_PROCESSING_INTERNAL_ATTRIBUTES;
+﻿var INTERNAL_ATTRS = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_attributes;
 var DomProcessor   = hammerhead.processors.DomProcessor;
 var domProcessor   = hammerhead.processors.domProcessor;
 var htmlUtils      = hammerhead.utils.html;

@@ -1,4 +1,4 @@
-var INSTRUCTION             = hammerhead.SCRIPT_PROCESSING_INSTRUCTIONS;
+var INSTRUCTION             = hammerhead.PROCESSING_INSTRUCTIONS.dom.script;
 var CodeInstrumentation     = hammerhead.sandboxUtils.CodeInstrumentation;
 var LocationInstrumentation = hammerhead.sandboxUtils.LocationInstrumentation;
 var LocationWrapper         = hammerhead.sandboxUtils.LocationWrapper;

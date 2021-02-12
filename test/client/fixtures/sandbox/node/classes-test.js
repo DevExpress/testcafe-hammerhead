@@ -2,7 +2,7 @@ var DomProcessor    = hammerhead.processors.DomProcessor;
 var destLocation    = hammerhead.utils.destLocation;
 var urlUtils        = hammerhead.utils.url;
 var FileListWrapper = hammerhead.sandboxUtils.FileListWrapper;
-var INTERNAL_ATTRS  = hammerhead.DOM_PROCESSING_INTERNAL_ATTRIBUTES;
+var INTERNAL_ATTRS  = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_attributes;
 var Promise         = hammerhead.Promise;
 var processScript   = hammerhead.utils.processing.script.processScript;
 

@@ -1,4 +1,4 @@
-var INTERNAL_PROPS = hammerhead.DOM_PROCESSING_INTERNAL_PROPS;
+var INTERNAL_PROPS = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_props;
 
 var domUtils      = hammerhead.utils.dom;
 var browserUtils  = hammerhead.utils.browser;

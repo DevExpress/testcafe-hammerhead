@@ -45,13 +45,8 @@ import * as htmlUtils from './utils/html';
 import nativeMethods from './sandbox/native-methods';
 import * as scriptProcessingUtils from '../processing/script';
 import * as headerProcessingUtils from '../processing/script/header';
-import * as instrumentedProcessingUtils from '../processing/script/instrumented';
+import * as instrumentationProcessingUtils from '../processing/script/instrumented';
 import SCRIPT_PROCESSING_INSTRUCTIONS from '../processing/script/instruction';
-import {
-    SCRIPT_PROCESSING_START_COMMENT,
-    SCRIPT_PROCESSING_END_HEADER_COMMENT,
-    SCRIPT_PROCESSING_END_COMMENT
-} from '../processing/script/header';
 import styleProcessor from '../processing/style';
 import DomProcessor from '../processing/dom';
 import extend from './utils/extend';
@@ -70,12 +65,9 @@ class Hammerhead {
     sandbox: Sandbox;
     pageNavigationWatch: PageNavigationWatch;
     EVENTS: Dictionary<string>;
-    PROCESSING_COMMENTS: Dictionary<string>;
+    PROCESSING_INSTRUCTIONS: Dictionary<any>;
     SHADOW_UI_CLASS_NAME: Dictionary<string>;
     SESSION_COMMAND: Dictionary<string>;
-    SCRIPT_PROCESSING_INSTRUCTIONS: Dictionary<string>;
-    DOM_PROCESSING_INTERNAL_ATTRIBUTES: Dictionary<string>;
-    DOM_PROCESSING_INTERNAL_PROPS: Dictionary<string>;
     EventEmitter: any;
     doUpload: Function;
     createNativeXHR: Function;
@@ -124,19 +116,16 @@ class Hammerhead {
             windowOpened:            this.sandbox.childWindow.WINDOW_OPENED_EVENT
         };
 
-        this.PROCESSING_COMMENTS = {
-            stylesheetStart: styleProcessor.STYLESHEET_PROCESSING_START_COMMENT,
-            stylesheetEnd:   styleProcessor.STYLESHEET_PROCESSING_END_COMMENT,
-            scriptStart:     SCRIPT_PROCESSING_START_COMMENT,
-            scriptEndHeader: SCRIPT_PROCESSING_END_HEADER_COMMENT,
-            scriptEnd:       SCRIPT_PROCESSING_END_COMMENT
+        this.PROCESSING_INSTRUCTIONS = {
+            dom: {
+                script:              SCRIPT_PROCESSING_INSTRUCTIONS,
+                internal_attributes: INTERNAL_ATTRIBUTES,
+                internal_props:      INTERNAL_PROPS
+            }
         };
 
-        this.SCRIPT_PROCESSING_INSTRUCTIONS = SCRIPT_PROCESSING_INSTRUCTIONS;
-        this.DOM_PROCESSING_INTERNAL_ATTRIBUTES = INTERNAL_ATTRIBUTES;
-        this.DOM_PROCESSING_INTERNAL_PROPS = INTERNAL_PROPS;
         this.SHADOW_UI_CLASS_NAME = SHADOW_UI_CLASS_NAME;
-        this.SESSION_COMMAND = SESSION_COMMAND;
+        this.SESSION_COMMAND      = SESSION_COMMAND;
 
         this.EventEmitter = EventEmitter;
 
@@ -171,9 +160,9 @@ class Hammerhead {
         };
 
         const processingUtils = {
-            script:       scriptProcessingUtils,
-            header:       headerProcessingUtils,
-            instrumented: instrumentedProcessingUtils
+            script:          scriptProcessingUtils,
+            header:          headerProcessingUtils,
+            instrumentation: instrumentationProcessingUtils
         };
 
         this.utils = {

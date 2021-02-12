@@ -1,6 +1,6 @@
 var processScript           = hammerhead.utils.processing.script.processScript;
 var SHADOW_UI_CLASSNAME     = hammerhead.SHADOW_UI_CLASS_NAME;
-var INTERNAL_PROPS          = hammerhead.DOM_PROCESSING_INTERNAL_PROPS;
+var INTERNAL_PROPS          = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_props;
 var urlUtils                = hammerhead.utils.url;
 var destLocation            = hammerhead.utils.destLocation;
 var overriding              = hammerhead.utils.overriding;

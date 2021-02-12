@@ -1,6 +1,6 @@
 var urlUtils     = hammerhead.utils.url;
 var destLocation = hammerhead.utils.destLocation;
-var INSTRUCTION  = hammerhead.SCRIPT_PROCESSING_INSTRUCTIONS;
+var INSTRUCTION  = hammerhead.PROCESSING_INSTRUCTIONS.dom.script;
 var XhrSandbox   = hammerhead.sandboxes.XhrSandbox;
 
 var windowSandox  = hammerhead.sandbox.node.win;

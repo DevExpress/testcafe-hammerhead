@@ -3,7 +3,7 @@ var UploadInfoManager = hammerhead.sandboxUtils.UploadInfoManager;
 var hiddenInfo        = hammerhead.sandboxUtils.hiddenInfo;
 var UploadSandbox     = hammerhead.sandboxes.UploadSandbox;
 var listeningContext  = hammerhead.sandboxUtils.listeningContext;
-var INTERNAL_PROPS    = hammerhead.DOM_PROCESSING_INTERNAL_PROPS;
+var INTERNAL_PROPS    = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_props;
 var settings          = hammerhead.settings;
 
 var Promise        = hammerhead.Promise;

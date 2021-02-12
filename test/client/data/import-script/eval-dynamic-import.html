@@ -11,7 +11,7 @@
     hammerhead.utils.destLocation.forceLocation('http://localhost:2000/sessionId/https://example.com/');
     hammerhead.start({ sessionId: 'sessionId' });
 
-    var INSTRUCTION = hammerhead.SCRIPT_PROCESSING_INSTRUCTIONS;
+    var INSTRUCTION = hammerhead.PROCESSING_INSTRUCTIONS.dom.script;
     var callMethod  = window[INSTRUCTION.callMethod];
 </script>
 
