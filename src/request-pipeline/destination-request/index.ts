@@ -11,6 +11,7 @@ import { MESSAGE, getText } from '../../messages';
 import logger from '../../utils/logger';
 import * as requestCache from '../cache';
 import IncomingMessageLike from '../incoming-message-like';
+import { formatRequestHttp2Headers, getHttp2Session, makePseudoResponse } from './http2';
 
 const TUNNELING_SOCKET_ERR_RE    = /tunneling socket could not be established/i;
 const TUNNELING_AUTHORIZE_ERR_RE = /statusCode=407/i;
@@ -46,25 +47,43 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         this._send();
     }
 
-    _sendReal (waitForData?: boolean): void {
+    async _sendReal (waitForData?: boolean) {
         const preparedOptions = this.opts.prepare();
 
-        this.req = this.protocolInterface.request(preparedOptions, res => {
-            if (waitForData) {
-                res.on('data', noop);
-                res.once('end', () => this._onResponse(res));
-            }
-        });
+        const http2Session = this.opts.isHttps && await getHttp2Session(this.opts.protocol + '//' + this.opts.host);
 
-        if (logger.destinationSocket.enabled) {
-            this.req.on('socket', socket => {
-                socket.once('data', data => logger.destinationSocket.onFirstChunk(this.opts, data));
-                socket.once('error', err => logger.destinationSocket.onError(this.opts, err));
+        if (http2Session) {
+            const reqHeaders = formatRequestHttp2Headers(this.opts);
+            const stream     = http2Session.request(reqHeaders, { endStream: false });
+
+            stream.on('response', headers => {
+                makePseudoResponse(stream, headers);
+
+                // @ts-ignore
+                this._onResponse(stream);
             });
-        }
 
-        if (!waitForData)
-            this.req.on('response', (res: http.IncomingMessage) => this._onResponse(res));
+            // @ts-ignore
+            this.req = stream;
+        }
+        else {
+            this.req = this.protocolInterface.request(preparedOptions, res => {
+                if (waitForData) {
+                    res.on('data', noop);
+                    res.once('end', () => this._onResponse(res));
+                }
+            });
+
+            if (logger.destinationSocket.enabled) {
+                this.req.on('socket', socket => {
+                    socket.once('data', data => logger.destinationSocket.onFirstChunk(this.opts, data));
+                    socket.once('error', err => logger.destinationSocket.onError(this.opts, err));
+                });
+            }
+
+            if (!waitForData)
+                this.req.on('response', (res: http.IncomingMessage) => this._onResponse(res));
+        }
 
         this.req.on('error', (err: Error) => this._onError(err));
         this.req.on('upgrade', (res: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgrade(res, socket, head));
@@ -153,7 +172,8 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     _fatalError (msg: string, url?: string): void {
         if (!this.aborted) {
             this.aborted = true;
-            this.req.abort();
+
+            this.req.destroy();
             this.emit('fatalError', getText(msg, { url: url || this.opts.url }));
         }
     }
@@ -184,6 +204,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     }
 
     _onError (err: Error): void {
+        // console.log(err); // eslint-disable-line
         logger.destination.onError(this.opts, err);
 
         if (this._isSocketHangUpErr(err))
