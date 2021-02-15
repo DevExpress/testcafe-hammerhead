@@ -8,7 +8,12 @@ import { FileStream } from '../typings/session';
 import IncomingMessageLike from './incoming-message-like';
 
 const requestsCache = new LRUCache<string, ResponseCacheEntry>({
-    max: 500 // Store 500 responses
+    max:    50 * 1024 * 1024, // Max cache size is 50 MBytes.
+    length: responseCacheEntry => {
+        // NOTE: Length is resource content size.
+        // 1 character is 1 bite.
+        return responseCacheEntry.res.getBody().length;
+    }
 });
 
 function getCacheKey (requestOptions: RequestOptions): string {
@@ -21,7 +26,7 @@ export function shouldCache (ctx: RequestPipelineContext): boolean {
     return ctx.serverInfo.cacheRequests &&
         !ctx.isFileProtocol &&
         ctx.reqOpts.method === 'GET' &&
-        (ctx.contentInfo.isCSS || ctx.contentInfo.isScript);
+        (ctx.contentInfo.isCSS || ctx.contentInfo.isScript || !ctx.contentInfo.requireProcessing);
 }
 
 export function create (reqOptions: RequestOptions, res: IncomingMessage | IncomingMessageLike | FileStream): RequestCacheEntry | undefined {
@@ -67,5 +72,8 @@ export function getResponse (reqOptions: RequestOptions): ResponseCacheEntryBase
         hitCount: cachedResponse.hitCount
     };
 }
+
+// NOTE: Maximum size for the non processed resource is 5 Mb
+export const MAX_SIZE_FOR_NON_PROCESSED_RESOURCE = 5 * 1024 *1024;
 
 

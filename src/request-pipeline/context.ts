@@ -464,7 +464,7 @@ export default class RequestPipelineContext {
 
         this.destResBody = await this._getDestResBody(this.destRes);
 
-        if (this.temporaryCacheEntry)
+        if (this.temporaryCacheEntry && this.destResBody.length < requestCache.MAX_SIZE_FOR_NON_PROCESSED_RESOURCE)
             this._addTemporaryEntryToCache();
 
         this.res.write(this.destResBody);
