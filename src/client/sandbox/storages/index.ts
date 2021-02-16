@@ -96,6 +96,10 @@ export default class StorageSandbox extends SandboxBase {
     }
 
     private _overrideStorageEvent () {
+        // NOTE: IE11 has the StorageEvent property, but it is not a constructor
+        if (typeof StorageEvent === 'object')
+            return;
+
         overrideConstructor(this.window, 'StorageEvent', function (this: Window, type: string, opts?: StorageEventInit) {
             const storedArea = opts?.storageArea;
 
