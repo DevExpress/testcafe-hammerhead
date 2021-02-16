@@ -48,8 +48,6 @@ export async function process (ctx: RequestPipelineContext): Promise<Buffer> {
 
     const decoded = await decodeContent(destResBody, encoding, charset);
 
-    await ctx.prepareInjectableUserScripts();
-
     for (const processor of RESOURCE_PROCESSORS) {
         if (!processor.shouldProcessResource(ctx))
             continue;
