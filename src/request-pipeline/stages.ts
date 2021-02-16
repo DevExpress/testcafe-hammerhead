@@ -64,7 +64,8 @@ export default [
         if (ctx.session.hasRequestEventListeners()) {
             const requestInfo = new RequestInfo(ctx);
 
-            ctx.requestFilterRules = ctx.session.getRequestFilterRules(requestInfo);
+            ctx.requestFilterRules = await ctx.session.getRequestFilterRules(requestInfo);
+
             await ctx.forEachRequestFilterRule(async rule => {
                 await callOnRequestEventCallback(ctx, rule, requestInfo);
                 ctx.setupMockIfNecessary(rule);

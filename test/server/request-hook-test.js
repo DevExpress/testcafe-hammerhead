@@ -189,7 +189,7 @@ describe('RequestFilterRule', () => {
         expect(hook.toString()).eql('{ <predicate> }');
     });
 
-    it('Match', () => {
+    it('Match', async () => {
         const requestInfo = {
             url:     'http://example.com/',
             method:  'post',
@@ -200,46 +200,55 @@ describe('RequestFilterRule', () => {
             }
         };
 
-        expect(new RequestFilterRule('http://example.com').match(requestInfo)).to.be.true;
-        expect(new RequestFilterRule('http://example.com/').match(requestInfo)).to.be.true;
-        expect(new RequestFilterRule('http://example.com/index').match(requestInfo)).to.be.false;
-        expect(new RequestFilterRule('https://example.com').match(requestInfo)).to.be.false;
-        expect(new RequestFilterRule(/example.com/).match(requestInfo)).to.be.true;
-        expect(new RequestFilterRule(/example1.com/).match(requestInfo)).to.be.false;
-        expect(new RequestFilterRule({ url: 'http://example.com', method: 'Post' }).match(requestInfo)).to.be.true;
-        expect(new RequestFilterRule({ url: 123, method: 'Post' }).match(requestInfo)).to.be.false;
-        expect(new RequestFilterRule({ method: 'get' }).match(requestInfo)).to.be.false;
-        expect(new RequestFilterRule({ method: 1 }).match(requestInfo)).to.be.false;
-        expect(new RequestFilterRule({
+        expect(await new RequestFilterRule('http://example.com').match(requestInfo)).to.be.true;
+        expect(await new RequestFilterRule('http://example.com/').match(requestInfo)).to.be.true;
+        expect(await new RequestFilterRule('http://example.com/index').match(requestInfo)).to.be.false;
+        expect(await new RequestFilterRule('https://example.com').match(requestInfo)).to.be.false;
+        expect(await new RequestFilterRule(/example.com/).match(requestInfo)).to.be.true;
+        expect(await new RequestFilterRule(/example1.com/).match(requestInfo)).to.be.false;
+        expect(await new RequestFilterRule({ url: 'http://example.com', method: 'Post' }).match(requestInfo)).to.be.true;
+        expect(await new RequestFilterRule({ url: 123, method: 'Post' }).match(requestInfo)).to.be.false;
+        expect(await new RequestFilterRule({ method: 'get' }).match(requestInfo)).to.be.false;
+        expect(await new RequestFilterRule({ method: 1 }).match(requestInfo)).to.be.false;
+        expect(await new RequestFilterRule({
             url:    'http://example.com',
             method: 'Post',
             isAjax: false
         }).match(requestInfo)).to.be.false;
-        expect(new RequestFilterRule({
+        expect(await new RequestFilterRule({
             url:    'http://example.com',
             method: 'Post',
             isAjax: true
         }).match(requestInfo)).to.be.true;
-        expect(new RequestFilterRule({
+        expect(await new RequestFilterRule({
             url:    'http://example.com',
             method: 'Post',
             isAjax: 'test'
         }).match(requestInfo)).to.be.false;
-        expect(new RequestFilterRule(() => {}).match(requestInfo)).to.be.false;
-        expect(new RequestFilterRule(request => request.url === 'wrong_url').match(requestInfo)).to.be.false;
-        expect(new RequestFilterRule(request => {
+        expect(await new RequestFilterRule(() => {}).match(requestInfo)).to.be.false;
+        expect(await new RequestFilterRule(request => request.url === 'wrong_url').match(requestInfo)).to.be.false;
+        expect(await new RequestFilterRule(request => {
             return request.url === 'http://example.com/' &&
                    request.method === 'post' &&
                    request.isAjax &&
                    request.body === '{ test: true }' &&
                    request.headers['content-type'] === 'application/json';
         }).match(requestInfo)).to.be.true;
+        expect(await new RequestFilterRule(async request => {
+            const resultPromise = new Promise(resolve => {
+                setTimeout(() => {
+                    resolve(request.url === 'http://example.com/');
+                }, 100);
+            });
+
+            return resultPromise;
+        }).match(requestInfo)).to.be.true;
     });
 
-    it('Match all', () => {
-        expect(RequestFilterRule.ANY.match({ url: 'https://example.com' })).to.be.true;
-        expect(RequestFilterRule.ANY.match({ url: 'https://example.com/index.html' })).to.be.true;
-        expect(RequestFilterRule.ANY.match({ url: 'file://user/bin/data' })).to.be.true;
+    it('Match all', async () => {
+        expect(await RequestFilterRule.ANY.match({ url: 'https://example.com' })).to.be.true;
+        expect(await RequestFilterRule.ANY.match({ url: 'https://example.com/index.html' })).to.be.true;
+        expect(await RequestFilterRule.ANY.match({ url: 'file://user/bin/data' })).to.be.true;
     });
 
     it('isANY', () => {

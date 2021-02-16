@@ -101,6 +101,7 @@ export default class RequestPipelineContext {
     isSameOriginPolicyFailed = false;
     windowId?: string;
     temporaryCacheEntry?: RequestCacheEntry;
+    _injectableUserScripts: string[] = [];
 
     constructor (readonly req: http.IncomingMessage,
         readonly res: http.ServerResponse | net.Socket,
@@ -298,11 +299,17 @@ export default class RequestPipelineContext {
         logger.proxy.onContentInfoBuilt(this);
     }
 
-    private _getInjectableUserScripts () {
-        const requestInfo = new RequestInfo(this);
+    public async prepareInjectableUserScripts (): Promise<void> {
+        const requestInfo        = new RequestInfo(this);
+        const matchedUserScripts = await Promise.all(this.session.injectable.userScripts.map(async userScript => {
+            if (await userScript.page.match(requestInfo))
+                return userScript;
 
-        return this.session.injectable.userScripts
-            .filter(userScript => userScript.page.match(requestInfo))
+            return void 0;
+        } ));
+
+        this._injectableUserScripts = matchedUserScripts
+            .filter(userScript => !!userScript)
             .map(userScript => userScript.url);
     }
 
@@ -325,7 +332,7 @@ export default class RequestPipelineContext {
 
     getInjectableScripts (): string[] {
         const taskScript = this.isIframe ? SERVICE_ROUTES.iframeTask : SERVICE_ROUTES.task;
-        const scripts    = this.session.injectable.scripts.concat(taskScript, this._getInjectableUserScripts());
+        const scripts    = this.session.injectable.scripts.concat(taskScript, this._injectableUserScripts);
 
         return this._resolveInjectableUrls(scripts);
     }
