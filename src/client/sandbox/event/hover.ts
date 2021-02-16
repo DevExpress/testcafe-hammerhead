@@ -22,6 +22,10 @@ export default class HoverSandbox extends SandboxBase {
             // NOTE: Assign a pseudo-class marker to the elements until the joint parent is found.
             if (newHoveredElement !== jointParent) {
                 nativeMethods.setAttribute.call(newHoveredElement, INTERNAL_ATTRS.hoverPseudoClass, '');
+
+                if (newHoveredElement.control)
+                    nativeMethods.setAttribute.call(newHoveredElement.control, INTERNAL_ATTRS.hoverPseudoClass, '');
+
                 newHoveredElement = nativeMethods.nodeParentNodeGetter.call(newHoveredElement);
             }
             else
@@ -39,6 +43,9 @@ export default class HoverSandbox extends SandboxBase {
             let el = this._lastHoveredElement;
 
             while (el && el.tagName && el.contains) {
+                if (el.control)
+                    nativeMethods.removeAttribute.call(el.control, INTERNAL_ATTRS.hoverPseudoClass);
+
                 // NOTE: Check that the current element is a joint parent for the hovered elements.
                 if (!el.contains(newHoveredElement)) {
                     nativeMethods.removeAttribute.call(el, INTERNAL_ATTRS.hoverPseudoClass);
