@@ -43,25 +43,30 @@ function getResourceUrlReplacer (ctx: RequestPipelineContext): Function {
 }
 
 export async function process (ctx: RequestPipelineContext): Promise<Buffer> {
-    const { destResBody: body, contentInfo } = ctx;
-    const { encoding, charset }              = contentInfo;
+    const { destResBody, contentInfo } = ctx;
+    const { encoding, charset }        = contentInfo;
 
-    const decoded = await decodeContent(body, encoding, charset);
+    const decoded = await decodeContent(destResBody, encoding, charset);
 
     await ctx.prepareInjectableUserScripts();
 
     for (const processor of RESOURCE_PROCESSORS) {
-        if (processor.shouldProcessResource(ctx)) {
-            const urlReplacer = getResourceUrlReplacer(ctx);
-            // @ts-ignore: Cannot invoke an expression whose type lacks a call signature
-            const processed   = processor.processResource(decoded, ctx, charset, urlReplacer);
+        if (!processor.shouldProcessResource(ctx))
+            continue;
 
-            if (processed === pageProcessor.RESTART_PROCESSING)
-                return await process(ctx);
+        const urlReplacer = getResourceUrlReplacer(ctx);
 
-            return await encodeContent(processed as string, encoding, charset);
-        }
+        if (pageProcessor === processor)
+            await ctx.prepareInjectableUserScripts();
+
+        // @ts-ignore: Cannot invoke an expression whose type lacks a call signature
+        const processed   = processor.processResource(decoded, ctx, charset, urlReplacer);
+
+        if (processed === pageProcessor.RESTART_PROCESSING)
+            return await process(ctx);
+
+        return await encodeContent(processed as string, encoding, charset);
     }
 
-    return body;
+    return destResBody;
 }
