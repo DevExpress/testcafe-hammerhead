@@ -5,6 +5,7 @@ import * as domUtils from '../../utils/dom';
 import * as eventUtils from '../../utils/event';
 import { getOffsetPosition, offsetToClientCoords, shouldIgnoreMouseEventInsideIframe } from '../../utils/position';
 import { getBordersWidth } from '../../utils/style';
+import { HammerheadStorageEventInit } from '../../../typings/client';
 
 const TOUCH_EVENT_RADIUS = 25;
 const TOUCH_EVENT_FORCE  = 0.5;
@@ -937,7 +938,7 @@ export default class EventSimulator {
         return this._dispatchFocusEvent(el, 'focusout', relatedTarget);
     }
 
-    storage (window, options) {
+    storage (window: Window, options: HammerheadStorageEventInit) {
         return this._simulateEvent(window, 'storage', options);
     }
 

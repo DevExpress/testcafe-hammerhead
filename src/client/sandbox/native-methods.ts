@@ -318,8 +318,8 @@ class NativeMethods {
     promiseThen: any;
     promiseReject: any;
     xhrResponseURLGetter: any;
-    winLocalStorageGetter: any;
-    winSessionStorageGetter: any;
+    winLocalStorageGetter: (this: Window) => Storage;
+    winSessionStorageGetter: (this: Window) => Storage;
     mutationRecordNextSiblingGetter: any;
     mutationRecordPrevSiblingGetter: any;
     styleGetPropertyValue: any;
@@ -355,7 +355,7 @@ class NativeMethods {
     Error: any;
     functionToString: Function;
     FontFace: any;
-    StorageEvent: any;
+    StorageEvent: typeof StorageEvent;
     MutationObserver: any;
     EventSource: any;
     Proxy: any;
@@ -376,6 +376,12 @@ class NativeMethods {
     crypto: Crypto;
     cryptoGetRandomValues: Function;
     URL: typeof URL;
+    storageGetItem: Storage['getItem'];
+    storageSetItem: Storage['setItem'];
+    storageRemoveItem: Storage['removeItem'];
+    storageClear: Storage['clear'];
+    storageKey: Storage['key'];
+    storageLengthGetter: (this: Storage) => Storage['length'];
 
     constructor (doc?: Document, win?: Window & typeof globalThis) {
         win = win || globalContextInfo.global;
@@ -662,6 +668,13 @@ class NativeMethods {
 
         if (isInWorker)
             return;
+
+        this.storageGetItem      = win.Storage.prototype.getItem;
+        this.storageSetItem      = win.Storage.prototype.setItem;
+        this.storageRemoveItem   = win.Storage.prototype.removeItem;
+        this.storageClear        = win.Storage.prototype.clear;
+        this.storageKey          = win.Storage.prototype.key;
+        this.storageLengthGetter = win.Object.getOwnPropertyDescriptor(win.Storage.prototype, 'length');
 
         const objectDataDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLObjectElement.prototype, 'data');
         const inputTypeDescriptor            = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'type');

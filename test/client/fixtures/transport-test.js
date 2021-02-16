@@ -82,7 +82,7 @@ test('batchUpdate - with stored messages', function () {
         { cmd: 'Type3', duration: 30 }
     ];
 
-    nativeLocalStorage.setItem(settings.get().sessionId, JSON.stringify(messages));
+    nativeMethods.storageSetItem.call(nativeLocalStorage, settings.get().sessionId, JSON.stringify(messages));
 
     return transport.batchUpdate()
         .then(function () {
@@ -106,24 +106,24 @@ else {
 
         var requestId = Math.random();
 
-        ok(!nativeLocalStorage.getItem(settings.get().sessionId));
+        ok(!nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId));
 
         return transport.asyncServiceMsg({ id: requestId, rejectForTest: true })
             .then(function () {
-                var storedMsgStr = nativeLocalStorage.getItem(settings.get().sessionId);
+                var storedMsgStr = nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId);
                 var storedMsg    = JSON.parse(storedMsgStr)[0];
 
                 ok(storedMsgStr);
                 strictEqual(storedMsg.id, requestId);
 
-                nativeLocalStorage.removeItem(settings.get().sessionId);
+                nativeMethods.storageRemoveItem.call(nativeLocalStorage, settings.get().sessionId);
             });
     });
 
     test('do not duplicate messages in store (WebKit)', function () {
         settings.get().sessionId = '%%%testUid%%%';
 
-        ok(!nativeLocalStorage.getItem(settings.get().sessionId));
+        ok(!nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId));
 
         var msg         = { test: 'testValue', rejectForTest: true };
         var msgPromises = [
@@ -133,27 +133,27 @@ else {
 
         return Promise.all(msgPromises)
             .then(function () {
-                var storedMsgStr = nativeLocalStorage.getItem(settings.get().sessionId);
+                var storedMsgStr = nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId);
                 var storedMsgArr = JSON.parse(storedMsgStr);
 
                 strictEqual(storedMsgArr.length, 1);
 
-                nativeLocalStorage.removeItem(settings.get().sessionId);
+                nativeMethods.storageRemoveItem.call(nativeLocalStorage, settings.get().sessionId);
             });
     });
 
     test('do not resend aborted async service msg if it contains "disableResending" flag (WebKit)', function () {
         settings.get().sessionId = '%%%testUid%%%';
 
-        ok(!nativeLocalStorage.getItem(settings.get().sessionId));
+        ok(!nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId));
 
         return sendAsyncServiceMsgWithDisableResendingFlag()
             .then(function () {
-                var storedMsgStr = nativeLocalStorage.getItem(settings.get().sessionId);
+                var storedMsgStr = nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId);
 
                 strictEqual(storedMsgStr, null);
 
-                nativeLocalStorage.removeItem(settings.get().sessionId);
+                nativeMethods.storageRemoveItem.call(nativeLocalStorage, settings.get().sessionId);
             });
     });
 }
@@ -289,13 +289,13 @@ test('hammerhead should remove service data from local storage on the first sess
     settings.get().isFirstPageLoad = true;
 
     // NOTE: Add service data.
-    nativeLocalStorage.setItem(sessionId, 'some-serive-data');
+    nativeMethods.storageSetItem.call(nativeLocalStorage, sessionId, 'some-serive-data');
 
     var hh = new hammerhead.constructor(window);
 
     hh.start(settings.get(), window);
 
-    ok(!nativeLocalStorage.getItem(sessionId));
+    ok(!nativeMethods.storageGetItem.call(nativeLocalStorage, sessionId));
 });
 
 test('failed service messages should respond via error handler (GH-1839)', function () {
