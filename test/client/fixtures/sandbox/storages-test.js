@@ -432,21 +432,23 @@ test('event argument parameters', function () {
         });
 });
 
-test('the StorageEvent constructor should not throw an error', function () {
-    var event = new StorageEvent('storage', {
-        key:         'test_key',
-        newValue:    'test_value',
-        oldValue:    'value',
-        url:         'http://example.com',
-        storageArea: localStorage
-    });
+if (typeof StorageEvent !== 'object') {
+    test('the StorageEvent constructor should not throw an error', function () {
+        var event = new StorageEvent('storage', {
+            key:         'test_key',
+            newValue:    'test_value',
+            oldValue:    'value',
+            url:         'http://example.com',
+            storageArea: localStorage
+        });
 
-    strictEqual(event.key, 'test_key');
-    strictEqual(event.newValue, 'test_value');
-    strictEqual(event.oldValue, 'value');
-    strictEqual(event.url, 'http://example.com');
-    strictEqual(event.storageArea, localStorage);
-});
+        strictEqual(event.key, 'test_key');
+        strictEqual(event.newValue, 'test_value');
+        strictEqual(event.oldValue, 'value');
+        strictEqual(event.url, 'http://example.com');
+        strictEqual(event.storageArea, localStorage);
+    });
+}
 
 module('regression');
 
