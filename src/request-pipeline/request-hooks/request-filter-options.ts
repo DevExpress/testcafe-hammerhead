@@ -1,7 +1,7 @@
 import { isRegExp, isString } from 'lodash';
 import { ObjectInitializer, Predicate } from '../../typings/request-filter-rule';
 import { RequestInfo } from '../../session/events/info';
-import { ensureOriginTrailingSlash } from '../../utils/url';
+import { matchUrl, matchMethod, matchIsAjax } from './matchers';
 import RequestFilterRule from './request-filter-rule';
 
 export interface RequestFilterRuleOptions {
@@ -27,46 +27,10 @@ export class ObjectOptions implements RequestFilterRuleOptions {
         }
     }
 
-    private static matchUrl (optionValue: string | RegExp | void, checkedValue: string) {
-        if (optionValue === void 0)
-            return true;
-
-        if (typeof optionValue === 'string') {
-            optionValue = ensureOriginTrailingSlash(optionValue);
-
-            return optionValue === checkedValue;
-        }
-
-        else if (isRegExp(optionValue))
-            return optionValue.test(checkedValue);
-
-        return false;
-    }
-
-    private static matchMethod (optionValue: string | void, checkedValue: string) {
-        if (optionValue === void 0)
-            return true;
-
-        if (typeof optionValue === 'string')
-            return optionValue === checkedValue;
-
-        return false;
-    }
-
-    private static matchIsAjax (optionValue: boolean | void, checkedValue: boolean) {
-        if (optionValue === void 0)
-            return true;
-
-        if (typeof optionValue === 'boolean')
-            return optionValue === checkedValue;
-
-        return false;
-    }
-
     async match (requestInfo: RequestInfo) {
-        return ObjectOptions.matchUrl(this.url, requestInfo.url) &&
-               ObjectOptions.matchMethod(this.method, requestInfo.method) &&
-               ObjectOptions.matchIsAjax(this.isAjax, requestInfo.isAjax);
+        return matchUrl(this.url, requestInfo.url) &&
+               matchMethod(this.method, requestInfo.method) &&
+               matchIsAjax(this.isAjax, requestInfo.isAjax);
     }
 
     toString () {
