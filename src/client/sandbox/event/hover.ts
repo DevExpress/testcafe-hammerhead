@@ -23,10 +23,10 @@ export default class HoverSandbox extends SandboxBase {
             if (newHoveredElement !== jointParent) {
                 nativeMethods.setAttribute.call(newHoveredElement, INTERNAL_ATTRS.hoverPseudoClass, '');
 
-                const inputForLabel = newHoveredElement.control || newHoveredElement.htmlFor && document.getElementById(newHoveredElement.htmlFor);
+                const associatedElement = domUtils.getAssociatedElement(newHoveredElement);
 
-                if (inputForLabel)
-                    nativeMethods.setAttribute.call(inputForLabel, INTERNAL_ATTRS.hoverPseudoClass, '');
+                if (associatedElement)
+                    nativeMethods.setAttribute.call(associatedElement, INTERNAL_ATTRS.hoverPseudoClass, '');
 
                 newHoveredElement = nativeMethods.nodeParentNodeGetter.call(newHoveredElement);
             }
@@ -45,10 +45,10 @@ export default class HoverSandbox extends SandboxBase {
             let el = this._lastHoveredElement;
 
             while (el && el.tagName && el.contains) {
-                const inputForLabel = el.control || el.htmlFor && document.getElementById(el.htmlFor);
+                const associatedElement = domUtils.getAssociatedElement(el);
 
-                if (inputForLabel)
-                    nativeMethods.removeAttribute.call(inputForLabel, INTERNAL_ATTRS.hoverPseudoClass);
+                if (associatedElement)
+                    nativeMethods.removeAttribute.call(associatedElement, INTERNAL_ATTRS.hoverPseudoClass);
 
                 // NOTE: Check that the current element is a joint parent for the hovered elements.
                 if (!el.contains(newHoveredElement)) {
