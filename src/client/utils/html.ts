@@ -8,7 +8,7 @@ import styleProcessor from '../../processing/style';
 import { find, getTagName, isScriptElement } from './dom';
 import { convertToProxyUrl, parseProxyUrl } from './url';
 import { isIE, isMSEdge } from './browser';
-import * as urlResolver from './url-resolver';
+import urlResolver from './url-resolver';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import { URL_ATTRS, ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../processing/dom/attributes';
 import SELF_REMOVING_SCRIPTS from '../../utils/self-removing-scripts';
@@ -264,7 +264,6 @@ export function processHtml (html, options: ProcessHTMLOptions = {}) {
         const htmlElements  = [];
         let children        = [];
         let length          = 0;
-        // @ts-ignore
         const storedBaseUrl = urlResolver.getBaseUrl(document);
 
         if (prepareDom)
@@ -278,7 +277,6 @@ export function processHtml (html, options: ProcessHTMLOptions = {}) {
         const base = nativeMethods.elementQuerySelector.call(container, 'base');
 
         if (base)
-            // @ts-ignore
             urlResolver.updateBase(nativeMethods.getAttribute.call(base, 'href'), document);
 
         for (let i = 0; i < length; i++) {
@@ -318,7 +316,6 @@ export function processHtml (html, options: ProcessHTMLOptions = {}) {
                 nativeMethods.insertAdjacentHTML.call(container, InsertPosition.afterBegin, SELF_REMOVING_SCRIPTS.iframeInit);
         }
 
-        // @ts-ignore
         urlResolver.updateBase(storedBaseUrl, document);
 
         return true;

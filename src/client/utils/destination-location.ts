@@ -1,6 +1,6 @@
 import * as sharedUrlUtils from '../../utils/url';
 import * as domUtils from './dom';
-import * as urlResolver from './url-resolver';
+import urlResolver from './url-resolver';
 import settings from '../settings';
 import nativeMethods from '../sandbox/native-methods';
 import globalContextInfo from './global-context-info';
@@ -54,7 +54,6 @@ export function resolveUrl (url: string, doc?: Document): string {
             return url;
     }
     else {
-        // @ts-ignore
         return urlResolver.resolve(preProcessedUrl, doc || document);
     }
 }
@@ -76,7 +75,6 @@ export function withHash (hash: string): string {
 }
 
 function parseLocationThroughAnchor (url: string) {
-    // @ts-ignore
     const resolver = urlResolver.getResolverElement(document);
 
     // eslint-disable-next-line no-restricted-properties
