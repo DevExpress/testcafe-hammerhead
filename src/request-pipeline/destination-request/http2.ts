@@ -23,9 +23,7 @@ const unsupportedOrigins = [] as string[];
 const pendingSessions    = new Map<string, Promise<ClientHttp2Session | null>>();
 const sessionsCache      = new LRUCache<string, ClientHttp2Session>({
     max:     HTTP2_SESSIONS_CACHE_SIZE,
-    dispose: (_, session) => {
-        session.destroy();
-    }
+    dispose: (_, session) => session.close()
 });
 
 export async function getHttp2Session (origin: string): Promise<ClientHttp2Session | null> {
@@ -52,9 +50,9 @@ export async function getHttp2Session (origin: string): Promise<ClientHttp2Sessi
             resolve(null);
         };
 
-        // const errorAfterConnectedHandler = (err) => {
-        //     console.log('error', Date.now(), err); // eslint-disable-line
-        // };
+        const errorAfterConnectedHandler = (err) => {
+            console.log('error', Date.now(), err); // eslint-disable-line
+        };
 
         const closeHandler = () => {
             // console.log('close', Date.now(), origin); // eslint-disable-line
@@ -67,7 +65,7 @@ export async function getHttp2Session (origin: string): Promise<ClientHttp2Sessi
             pendingSessions.delete(origin);
             sessionsCache.set(origin, session);
             session.off('error', errorBeforeConnectedHandler);
-            //session.once('error', errorAfterConnectedHandler);
+            session.once('error', errorAfterConnectedHandler);
             session.once('close', closeHandler);
 
             resolve(session);

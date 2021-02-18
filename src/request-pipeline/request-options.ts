@@ -29,6 +29,7 @@ export default class RequestOptions {
     ecdhCurve?: string;
     rejectUnauthorized?: boolean;
     requestTimeout: RequestTimeout;
+    isWebSocket: boolean;
 
     constructor (ctx: RequestPipelineContext) {
         const bodyWithUploads = injectUpload(ctx.req.headers[BUILTIN_HEADERS.contentType] as string, ctx.reqBody);
@@ -56,6 +57,7 @@ export default class RequestOptions {
         this.headers        = headers;
         this.requestId      = ctx.requestId;
         this.requestTimeout = ctx.session.options.requestTimeout;
+        this.isWebSocket    = ctx.isWebSocket;
 
         this._applyExternalProxySettings(proxy, ctx, headers);
     }
