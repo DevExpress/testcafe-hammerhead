@@ -1,7 +1,7 @@
 var urlUtils       = hammerhead.utils.url;
 var destLocation   = hammerhead.utils.destLocation;
-var DomProcessor   = hammerhead.get('../processing/dom');
-var urlResolver    = hammerhead.get('./utils/url-resolver');
+var DomProcessor   = hammerhead.processors.DomProcessor;
+var urlResolver    = hammerhead.utils.urlResolver;
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;

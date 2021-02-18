@@ -4,7 +4,7 @@ var listeners     = hammerhead.sandbox.event.listeners;
 var urlUtils = hammerhead.utils.url;
 
 QUnit.testStart(function () {
-    var domProcessor = hammerhead.get('./dom-processor');
+    var domProcessor = hammerhead.processors.domProcessor;
     var settings     = hammerhead.settings;
 
     domProcessor.forceProxySrcForImage   = true;

@@ -11,7 +11,7 @@
     hammerhead.utils.destLocation.forceLocation('http://localhost:2000/sessionId/about:blank');
     hammerhead.start({ sessionId: 'sessionId' });
 
-    var INSTRUCTION   = hammerhead.get('../processing/script/instruction');
+    var INSTRUCTION   = hammerhead.PROCESSING_INSTRUCTIONS.dom.script;
     var callMethod    = window[INSTRUCTION.callMethod];
     var processScript = window[INSTRUCTION.processScript];
 

@@ -1,5 +1,5 @@
 /*eslint-disable no-unused-expressions*/
-var DOMMutationTracker = hammerhead.get('./sandbox/node/live-node-list/dom-mutation-tracker');
+var DOMMutationTracker = hammerhead.sandboxUtils.domMutationTracker;
 
 var shadowUI      = hammerhead.sandbox.shadowUI;
 var nativeMethods = hammerhead.nativeMethods;

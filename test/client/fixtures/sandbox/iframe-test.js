@@ -1,6 +1,6 @@
 var settings     = hammerhead.settings;
-var overriding   = hammerhead.get('./utils/overriding');
-var DomProcessor = hammerhead.get('../processing/dom');
+var overriding   = hammerhead.utils.overriding;
+var DomProcessor = hammerhead.processors.DomProcessor;
 var htmlUtils    = hammerhead.utils.html;
 
 var iframeSandbox = hammerhead.sandbox.iframe;

@@ -1,6 +1,6 @@
 var urlUtils      = hammerhead.utils.url;
-var processScript = hammerhead.get('../processing/script').processScript;
-var scriptHeader  = hammerhead.get('../processing/script/header');
+var processScript = hammerhead.utils.processing.script.processScript;
+var scriptHeader  = hammerhead.utils.processing.header;
 
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;

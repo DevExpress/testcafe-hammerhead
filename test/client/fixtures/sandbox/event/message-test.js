@@ -1,4 +1,4 @@
-var INSTRUCTION = hammerhead.get('../processing/script/instruction');
+var INSTRUCTION = hammerhead.PROCESSING_INSTRUCTIONS.dom.script;
 
 var Promise        = hammerhead.Promise;
 var messageSandbox = hammerhead.sandbox.event.message;

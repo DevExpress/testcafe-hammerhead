@@ -1,9 +1,9 @@
-var COMMAND           = hammerhead.get('../session/command');
-var UploadInfoManager = hammerhead.get('./sandbox/upload/info-manager');
-var hiddenInfo        = hammerhead.get('./sandbox/upload/hidden-info');
-var UploadSandbox     = hammerhead.get('./sandbox/upload');
-var listeningContext  = hammerhead.get('./sandbox/event/listening-context');
-var INTERNAL_PROPS    = hammerhead.get('../processing/dom/internal-properties');
+var COMMAND           = hammerhead.SESSION_COMMAND;
+var UploadInfoManager = hammerhead.sandboxUtils.UploadInfoManager;
+var hiddenInfo        = hammerhead.sandboxUtils.hiddenInfo;
+var UploadSandbox     = hammerhead.sandboxes.UploadSandbox;
+var listeningContext  = hammerhead.sandboxUtils.listeningContext;
+var INTERNAL_PROPS    = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_props;
 var settings          = hammerhead.settings;
 
 var Promise        = hammerhead.Promise;

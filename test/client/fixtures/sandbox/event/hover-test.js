@@ -1,4 +1,4 @@
-var INTERNAL_ATTRS = hammerhead.get('../processing/dom/internal-attributes');
+var INTERNAL_ATTRS = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_attributes;
 
 var hover            = hammerhead.sandbox.event.hover;
 var featureDetection = hammerhead.utils.featureDetection;

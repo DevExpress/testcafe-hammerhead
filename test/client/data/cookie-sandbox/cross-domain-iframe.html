@@ -8,7 +8,7 @@
         hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/https://example.com');
         hammerhead.start({ crossDomainProxyPort: 2000, cookie: '', sessionId: 'sessionId' });
 
-        var INSTRUCTION   = hammerhead.get('../processing/script/instruction');
+        var INSTRUCTION   = hammerhead.PROCESSING_INSTRUCTIONS.dom.script;
         var settings      = hammerhead.settings;
         var nativeMethods = hammerhead.nativeMethods;
 

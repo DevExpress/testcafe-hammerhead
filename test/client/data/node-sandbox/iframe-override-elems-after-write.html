@@ -19,8 +19,8 @@
 </script>
 <script>
     var iframeSandbox   = window['%hammerhead%'].sandbox.iframe;
-    var INTERNAL_PROPS  = hammerhead.get('../processing/dom/internal-properties');
-    var overriding      = hammerhead.get('../client/utils/overriding');
+    var INTERNAL_PROPS  = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_props;
+    var overriding      = hammerhead.utils.overriding;
     var hhPostMessage   = hammerhead.sandbox.event.message.postMessage;
 
     iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, window.top.initIframeTestHandler);

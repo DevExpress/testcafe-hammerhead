@@ -4,7 +4,7 @@ var nativeMethods  = hammerhead.nativeMethods;
 var listeners      = hammerhead.sandbox.event.listeners;
 var focusBlur      = hammerhead.sandbox.event.focusBlur;
 var eventSimulator = hammerhead.sandbox.event.eventSimulator;
-var listeningCtx   = hammerhead.get('../client/sandbox/event/listening-context');
+var listeningCtx   = hammerhead.sandboxUtils.listeningContext;
 
 asyncTest('override setTimeout error (T203986)', function () {
     var str = 'success';

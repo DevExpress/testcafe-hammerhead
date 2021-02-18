@@ -1,10 +1,10 @@
-﻿var INTERNAL_ATTRS = hammerhead.get('../processing/dom/internal-attributes');
-var DomProcessor   = hammerhead.get('../processing/dom');
-var domProcessor   = hammerhead.get('./dom-processor');
+﻿var INTERNAL_ATTRS = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_attributes;
+var DomProcessor   = hammerhead.processors.DomProcessor;
+var domProcessor   = hammerhead.processors.domProcessor;
 var htmlUtils      = hammerhead.utils.html;
-var processScript  = hammerhead.get('../processing/script').processScript;
+var processScript  = hammerhead.utils.processing.script.processScript;
 var urlUtils       = hammerhead.utils.url;
-var urlResolver    = hammerhead.get('./utils/url-resolver');
+var urlResolver    = hammerhead.utils.urlResolver;
 
 var SELF_REMOVING_SCRIPTS = hammerhead.sharedUtils.selfRemovingScripts;
 

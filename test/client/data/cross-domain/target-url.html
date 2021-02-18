@@ -12,7 +12,7 @@
     hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/http://target_url');
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
-    var INSTRUCTION = hammerhead.get('../processing/script/instruction');
+    var INSTRUCTION = hammerhead.PROCESSING_INSTRUCTIONS.dom.script;
     var callMethod  = window[INSTRUCTION.callMethod];
 
     callMethod(top, 'postMessage', [{ type: 'messaging test', description: 'same origin' }, 'https://example.com']);

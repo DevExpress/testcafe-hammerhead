@@ -2,6 +2,23 @@ import Promise from 'pinkie';
 import Sandbox from './sandbox';
 import EventEmitter from './utils/event-emitter';
 import XhrSandbox from './sandbox/xhr';
+import StyleSandbox from './sandbox/style';
+import ElectronSandbox from './sandbox/electron';
+import ShadowUISandbox from './sandbox/shadow-ui';
+import UploadSandbox from './sandbox/upload';
+import ChildWindowSandbox from './sandbox/child-window';
+import defaultTarget from './sandbox/child-window/default-target';
+import * as hiddenInfoUtils from './sandbox/upload/hidden-info';
+import UploadInfoManager from './sandbox/upload/info-manager';
+import FileListWrapper from './sandbox/upload/file-list-wrapper';
+import domMutationTracker from './sandbox/node/live-node-list/dom-mutation-tracker';
+import * as sandboxBackupUtils from './sandbox/backup'
+import StorageWrapper from './sandbox/storages/wrapper';
+import EventListeners from './sandbox/event/listeners';
+import * as listeningContextUtils from './sandbox/event/listening-context';
+import CodeInstrumentation from './sandbox/code-instrumentation';
+import LocationInstrumentation from './sandbox/code-instrumentation/location';
+import LocationWrapper from './sandbox/code-instrumentation/location/wrapper';
 import settings from './settings';
 import Transport from './transport';
 import * as JSON from 'json-hammerhead';
@@ -12,6 +29,10 @@ import * as eventUtils from './utils/event';
 import * as typeUtils from './utils/types';
 import * as positionUtils from './utils/position';
 import * as styleUtils from './utils/style';
+import * as overridingUtils from './utils/overriding';
+import * as cookieUtils from './utils/cookie';
+import getMimeType from './utils/get-mime-type';
+import urlResolver from './utils/url-resolver';
 import trim from '../utils/string-trim';
 import * as sharedCookieUtils from '../utils/cookie';
 import * as sharedUrlUtils from '../utils/url';
@@ -22,15 +43,17 @@ import * as urlUtils from './utils/url';
 import * as featureDetection from './utils/feature-detection';
 import * as htmlUtils from './utils/html';
 import nativeMethods from './sandbox/native-methods';
-import { processScript } from '../processing/script';
-import {
-    SCRIPT_PROCESSING_START_COMMENT,
-    SCRIPT_PROCESSING_END_HEADER_COMMENT,
-    SCRIPT_PROCESSING_END_COMMENT
-} from '../processing/script/header';
-import StyleProcessor from '../processing/style';
+import * as scriptProcessingUtils from '../processing/script';
+import * as headerProcessingUtils from '../processing/script/header';
+import * as instrumentationProcessingUtils from '../processing/script/instrumented';
+import SCRIPT_PROCESSING_INSTRUCTIONS from '../processing/script/instruction';
+import styleProcessor from '../processing/style';
+import DomProcessor from '../processing/dom';
 import extend from './utils/extend';
 import INTERNAL_PROPS from '../processing/dom/internal-properties';
+import INTERNAL_ATTRIBUTES from '../processing/dom/internal-attributes';
+import SHADOW_UI_CLASS_NAME from '../shadow-ui/class-name';
+import SESSION_COMMAND from '../session/command';
 import PageNavigationWatch from './page-navigation-watch';
 import domProcessor from './dom-processor';
 import { HammerheadInitSettings } from '../typings/client';
@@ -42,7 +65,9 @@ class Hammerhead {
     sandbox: Sandbox;
     pageNavigationWatch: PageNavigationWatch;
     EVENTS: Dictionary<string>;
-    PROCESSING_COMMENTS: Dictionary<string>;
+    PROCESSING_INSTRUCTIONS: Dictionary<any>;
+    SHADOW_UI_CLASS_NAME: Dictionary<string>;
+    SESSION_COMMAND: Dictionary<string>;
     EventEmitter: any;
     doUpload: Function;
     createNativeXHR: Function;
@@ -58,6 +83,9 @@ class Hammerhead {
     utils: Dictionary<any>;
     sharedUtils: Dictionary<any>;
     settings: typeof settings;
+    sandboxes: Dictionary<any>;
+    sandboxUtils: Dictionary<any>;
+    processors: Dictionary<any>;
 
     constructor () {
         this.win                 = null;
@@ -88,21 +116,23 @@ class Hammerhead {
             windowOpened:            this.sandbox.childWindow.WINDOW_OPENED_EVENT
         };
 
-        this.PROCESSING_COMMENTS = {
-            stylesheetStart: StyleProcessor.STYLESHEET_PROCESSING_START_COMMENT,
-            stylesheetEnd:   StyleProcessor.STYLESHEET_PROCESSING_END_COMMENT,
-            scriptStart:     SCRIPT_PROCESSING_START_COMMENT,
-            scriptEndHeader: SCRIPT_PROCESSING_END_HEADER_COMMENT,
-            scriptEnd:       SCRIPT_PROCESSING_END_COMMENT
+        this.PROCESSING_INSTRUCTIONS = {
+            dom: {
+                script:              SCRIPT_PROCESSING_INSTRUCTIONS,
+                internal_attributes: INTERNAL_ATTRIBUTES,
+                internal_props:      INTERNAL_PROPS
+            }
         };
+
+        this.SHADOW_UI_CLASS_NAME = SHADOW_UI_CLASS_NAME;
+        this.SESSION_COMMAND      = SESSION_COMMAND;
 
         this.EventEmitter = EventEmitter;
 
         // Methods
         this.doUpload        = (input: HTMLInputElement, filePaths: string | string[]) => this.sandbox.upload.doUpload(input, filePaths);
         this.createNativeXHR = XhrSandbox.createNativeXHR;
-
-        this.processScript = processScript;
+        this.processScript   = scriptProcessingUtils.processScript;
 
         // NOTE: We should provide a function to retrieve modules, because hammerhead will be bundled into a single
         // file and we will not have access to the internal modules by default.
@@ -129,6 +159,12 @@ class Hammerhead {
             DragDataStore:         this.sandbox.event.DragDataStore
         };
 
+        const processingUtils = {
+            script:          scriptProcessingUtils,
+            header:          headerProcessingUtils,
+            instrumentation: instrumentationProcessingUtils
+        };
+
         this.utils = {
             browser:          browserUtils,
             dom:              domUtils,
@@ -141,7 +177,12 @@ class Hammerhead {
             html:             htmlUtils,
             url:              urlUtils,
             featureDetection: featureDetection,
-            destLocation:     destLocationUtils
+            destLocation:     destLocationUtils,
+            overriding:       overridingUtils,
+            cookie:           cookieUtils,
+            getMimeType:      getMimeType,
+            urlResolver:      urlResolver,
+            processing:       processingUtils
         };
 
         this.sharedUtils = {
@@ -153,6 +194,36 @@ class Hammerhead {
         };
 
         this.settings = settings;
+
+        this.sandboxes = {
+            XhrSandbox,
+            StyleSandbox,
+            ShadowUISandbox,
+            ElectronSandbox,
+            UploadSandbox,
+            ChildWindowSandbox
+        };
+
+        this.sandboxUtils = {
+            hiddenInfo: hiddenInfoUtils,
+            listeningContext: listeningContextUtils,
+            backup: sandboxBackupUtils,
+            domMutationTracker,
+            defaultTarget,
+            UploadInfoManager,
+            FileListWrapper,
+            EventListeners,
+            StorageWrapper,
+            CodeInstrumentation,
+            LocationInstrumentation,
+            LocationWrapper
+        };
+
+        this.processors = {
+            styleProcessor,
+            domProcessor,
+            DomProcessor
+        };
     }
 
     _getEventOwner (evtName: string) {

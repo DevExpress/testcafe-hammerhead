@@ -1,10 +1,10 @@
-var INTERNAL_PROPS          = hammerhead.get('../processing/dom/internal-properties');
+var INTERNAL_PROPS          = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_props;
 var processHtml             = hammerhead.utils.html.processHtml;
-var scriptProcessingHeaders = hammerhead.get('../processing/script/header');
-var styleProcessor          = hammerhead.get('../processing/style');
-var scriptProcessor         = hammerhead.get('../processing/script');
+var scriptProcessingHeaders = hammerhead.utils.processing.header;
+var styleProcessor          = hammerhead.processors.styleProcessor;
+var scriptProcessor         = hammerhead.utils.processing.script;
 var urlUtils                = hammerhead.utils.url;
-var DomProcessor            = hammerhead.get('../processing/dom');
+var DomProcessor            = hammerhead.processors.DomProcessor;
 
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;

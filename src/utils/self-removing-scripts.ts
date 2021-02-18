@@ -67,7 +67,7 @@ export default {
     
         if (!sandbox) {
             try {
-                sandbox = window.parent["${ INTERNAL_PROPS.hammerhead }"].get('./sandbox/backup').get(window);
+                sandbox = window.parent["${ INTERNAL_PROPS.hammerhead }"].sandboxUtils.backup.get(window);
             } catch(e) {}
         }
     

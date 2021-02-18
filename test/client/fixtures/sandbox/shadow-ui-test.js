@@ -1,8 +1,8 @@
-var SHADOW_UI_CLASSNAME = hammerhead.get('./../shadow-ui/class-name');
-var ShadowUI            = hammerhead.get('./sandbox/shadow-ui');
-var INTERNAL_PROPS      = hammerhead.get('../processing/dom/internal-properties');
-var INTERNAL_ATTRS      = hammerhead.get('../processing/dom/internal-attributes');
-var hiddenInfo          = hammerhead.get('./sandbox/upload/hidden-info');
+var SHADOW_UI_CLASSNAME = hammerhead.SHADOW_UI_CLASS_NAME;
+var ShadowUI            = hammerhead.sandboxes.ShadowUISandbox;
+var INTERNAL_PROPS      = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_props;
+var INTERNAL_ATTRS      = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_attributes;
+var hiddenInfo          = hammerhead.sandboxUtils.hiddenInfo;
 
 var shadowUI      = hammerhead.sandbox.shadowUI;
 var domUtils      = hammerhead.utils.dom;

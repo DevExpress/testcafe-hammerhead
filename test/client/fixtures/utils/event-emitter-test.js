@@ -1,4 +1,4 @@
-var EventEmitter = hammerhead.get('./utils/event-emitter');
+var EventEmitter = hammerhead.EventEmitter;
 var browserUtils = hammerhead.utils.browser;
 
 module('regression');

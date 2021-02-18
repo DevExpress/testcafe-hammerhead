@@ -1,4 +1,4 @@
-var XhrSandbox     = hammerhead.get('./sandbox/xhr');
+var XhrSandbox     = hammerhead.sandboxes.XhrSandbox;
 var destLocation   = hammerhead.utils.destLocation;
 var urlUtils       = hammerhead.utils.url;
 var sharedUrlUtils = hammerhead.sharedUtils.url;

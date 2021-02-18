@@ -11,8 +11,8 @@
     nativeMethods.winLocalStorageGetter.call(window).clear();
     nativeMethods.winSessionStorageGetter.call(window).clear();
 
-    var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
-    var INSTRUCTION    = hammerhead.get('../processing/script/instruction');
+    var INTERNAL_PROPS = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_props;
+    var INSTRUCTION    = hammerhead.PROCESSING_INSTRUCTIONS.dom.script;
     var destLocation   = hammerhead.utils.destLocation;
     var iframeSandbox  = hammerhead.sandbox.iframe;
     var cookieSandbox  = hammerhead.sandbox.cookie;

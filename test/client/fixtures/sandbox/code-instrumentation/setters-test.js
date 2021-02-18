@@ -1,5 +1,5 @@
 var urlUtils          = hammerhead.utils.url;
-var processScript     = hammerhead.get('../processing/script').processScript;
+var processScript     = hammerhead.utils.processing.script.processScript;
 
 var Promise               = hammerhead.Promise;
 var nativeMethods         = hammerhead.nativeMethods;

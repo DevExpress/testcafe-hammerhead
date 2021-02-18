@@ -12,7 +12,7 @@
     hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/http://origin_iframe_host');
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
-    var processScript = hammerhead.get('../processing/script').processScript;
+    var processScript = hammerhead.utils.processing.script.processScript;
     var messageSandbox = hammerhead.sandbox.event.message;
     var windowHandlerExecuted = false;
 

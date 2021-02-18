@@ -1,4 +1,4 @@
-var getMimeType = hammerhead.get('./utils/get-mime-type');
+var getMimeType = hammerhead.utils.getMimeType;
 
 test('png, jpeg, zip', function () {
     var testCases = [

@@ -1,7 +1,7 @@
 var urlUtils                = hammerhead.utils.url;
 var htmlUtils               = hammerhead.utils.html;
-var styleProcessor          = hammerhead.get('../processing/style');
-var scriptProcessingHeaders = hammerhead.get('../processing/script/header');
+var styleProcessor          = hammerhead.processors.styleProcessor;
+var scriptProcessingHeaders = hammerhead.utils.processing.header;
 
 var nativeMethods = hammerhead.nativeMethods;
 var iframeSandbox = hammerhead.sandbox.iframe;

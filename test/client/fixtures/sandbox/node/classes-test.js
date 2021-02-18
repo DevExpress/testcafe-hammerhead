@@ -1,10 +1,10 @@
-var DomProcessor    = hammerhead.get('../processing/dom');
+var DomProcessor    = hammerhead.processors.DomProcessor;
 var destLocation    = hammerhead.utils.destLocation;
 var urlUtils        = hammerhead.utils.url;
-var FileListWrapper = hammerhead.get('./sandbox/upload/file-list-wrapper');
-var INTERNAL_ATTRS  = hammerhead.get('../processing/dom/internal-attributes');
+var FileListWrapper = hammerhead.sandboxUtils.FileListWrapper;
+var INTERNAL_ATTRS  = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_attributes;
 var Promise         = hammerhead.Promise;
-var processScript   = hammerhead.get('../processing/script').processScript;
+var processScript   = hammerhead.utils.processing.script.processScript;
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
