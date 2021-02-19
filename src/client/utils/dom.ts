@@ -877,3 +877,9 @@ export function isInputWithoutSelectionProperties (el): boolean {
 
     return !hasSelectionProperties;
 }
+
+export function getAssociatedElement (el: HTMLLabelElement): HTMLElement {
+    const doc = findDocument(el);
+
+    return el.control || el.htmlFor && nativeMethods.getElementById.call(doc, el.htmlFor);
+}
