@@ -1,6 +1,6 @@
 # Configuration for Label Actions - https://github.com/dessant/label-actions
 
-? 'TYPE: Question'
+? 'TYPE: question'
 :
   # Post a comment
   comment: |
@@ -40,4 +40,59 @@
   label: 'STATE: Need clarification'
   unlabel: 
     - 'STATE: Need access confirmation'
+    - 'STATE: Need response'
+
+? 'STATE: Incomplete template'
+:
+  # Post a comment
+  comment: |
+    Thank you for submitting this issue. However, the information you shared is insufficient to determine its cause. Please submit a new issue and fill the issue template completely - specify your TestCafe version and share a sample application with a test case that we can run on our side to reproduce and research the issue.
+  unlabel:
+    - 'STATE: Incomplete template'
+    - 'STATE: Need response'
+  close: true
+
+? 'STATE: No updates'
+:
+  # Post a comment
+  comment: |
+    No updates yet. Once we get any results, we will post them in this thread.
+  unlabel:
+    - 'STATE: No updates'
+    - 'STATE: Need response'
+
+? 'STATE: No estimations'
+:
+  # Post a comment
+  comment: |
+    Any personal estimate may be misleading, so we cannot currently tell it at the moment. Once we get any results, we will post them in this thread.
+  unlabel:
+    - 'STATE: No estimations'
+    - 'STATE: Need response'
+
+? 'STATE: Outdated proposal'
+:
+  # Post a comment
+  comment: |
+    We are focused on implementing features from our [Roadmap](https://devexpress.github.io/testcafe/roadmap/). Since this enhancement is not there, we cannot tell you any time frames on when we will be able to address it. If this feature is important for you, please submit a Pull Request with its implementation. See the [Сontribution guide](https://github.com/DevExpress/testcafe/blob/master/CONTRIBUTING.md) for more information.
+  unlabel:
+    - 'STATE: Outdated proposal'
+    - 'STATE: Need response'
+
+? 'STATE: Outdated issue'
+:
+  # Post a comment
+  comment: |
+    We address issues according to their severity, priority, and other factors. It appears that this issue is an edge case. If this issue is important for you, please submit a Pull Request with a fix. See the [Сontribution guide](https://github.com/DevExpress/testcafe/blob/master/CONTRIBUTING.md) for more information.
+  unlabel:
+    - 'STATE: Outdated issue'
+    - 'STATE: Need response'
+
+? 'STATE: No workarounds'
+:
+  # Post a comment
+  comment: |
+    There are no workarounds. Once we get any updates, we will post them in this thread.
+  unlabel:
+    - 'STATE: No workarounds'
     - 'STATE: Need response'
