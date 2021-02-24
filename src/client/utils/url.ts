@@ -295,7 +295,10 @@ export function getScope (url: string): string | null {
     if (!parsedUrl)
         return null;
 
-    return parsedUrl.partAfterHost.replace(SCOPE_RE, '/') || '/';
+    // NOTE: Delete query and hash parts. These parts are not related to the scope (GH-2524)
+    const partAfterHostWithoutQueryAndHash = sharedUrlUtils.getPathname(parsedUrl.partAfterHost);
+
+    return partAfterHostWithoutQueryAndHash.replace(SCOPE_RE, '/') || '/';
 }
 
 export function getAjaxProxyUrl (url: string, credentials: Credentials) {
