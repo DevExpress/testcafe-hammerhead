@@ -51,10 +51,13 @@ declare module 'testcafe-hammerhead' {
 
     type RequestFilterPredicate = (requestInfo: RequestInfo) => boolean;
 
+    /** Specifies which requests the hook should handle **/
+    export type RequestFilterRuleOptions = string | RegExp | RequestFilterPredicate | ObjectInitializer;
+
     /** The RequestFilterRule class is used to create URL filtering rules for request hook **/
     export class RequestFilterRule {
         /** Creates a request filter rule instance **/
-        constructor (options: string | RegExp | RequestFilterPredicate | ObjectInitializer);
+        constructor (options: RequestFilterRuleOptions);
 
         /** Returns the value that accepts any request  **/
         static ANY: RequestFilterRule;
