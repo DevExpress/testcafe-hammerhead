@@ -167,6 +167,11 @@ test('scope', function () {
     strictEqual(urlUtils.getScope('http://example.com/path?z=9'), '/');
     strictEqual(urlUtils.getScope('/path/?z=9'), '/path/');
     strictEqual(urlUtils.getScope('../path/sw.js'), '/path/');
+
+    // GH-2524
+    strictEqual(urlUtils.getScope('http://example.com/path/sw.js?https://some.url/another-path'), '/path/');
+    strictEqual(urlUtils.getScope('/path/sw.js?v=arg=/another-path'), '/path/');
+    strictEqual(urlUtils.getScope('/path/sw.js?'), '/path/');
 });
 
 module('get proxy url');
