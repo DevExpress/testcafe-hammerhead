@@ -27,6 +27,7 @@ import IntegerIdGenerator from '../../../utils/integer-id-generator';
 import { createOverriddenDescriptor, overrideStringRepresentation } from '../../../utils/overriding';
 import MessageSandbox from '../../event/message';
 import { isIframeWindow } from '../../../utils/dom';
+import { isIE11 } from '../../../utils/browser'
 
 const GET_ORIGIN_CMD      = 'hammerhead|command|get-origin';
 const ORIGIN_RECEIVED_CMD = 'hammerhead|command|origin-received';
@@ -254,6 +255,41 @@ export default class LocationWrapper extends LocationInheritor {
             locationProps.valueOf  = createOverriddenDescriptor(locationPropsOwner, 'valueOf', { value: () => this });
 
         nativeMethods.objectDefineProperties(this, locationProps);
+
+        // NOTE: We shouldn't break the client script if the browser add the new API. For example:
+        // > From Chrome 80 to Chrome 85, the fragmentDirective property was defined on Location.prototype.
+        if (isIE11)
+            return;
+
+        const protoKeys           = nativeMethods.objectKeys(Location.prototype);
+        const locWrapper          = this;
+        const rewriteDescriptorFn = (descriptor, key: string) => {
+            if (typeof descriptor[key] !== 'function')
+                return;
+
+            const nativeMethod = descriptor[key];
+
+            descriptor[key] = function () {
+                const ctx = this === locWrapper ? window.location : this;
+
+                return nativeMethod.apply(ctx, arguments);
+            };
+        }
+
+        for (const protoKey of protoKeys) {
+            if (protoKey in locationProps)
+                continue;
+
+            const protoKeyDescriptor = nativeMethods.objectGetOwnPropertyDescriptor(Location.prototype, protoKey);
+
+            rewriteDescriptorFn(protoKeyDescriptor, 'get');
+            rewriteDescriptorFn(protoKeyDescriptor, 'set');
+            rewriteDescriptorFn(protoKeyDescriptor, 'value');
+
+            nativeMethods.objectDefineProperty(locWrapper, protoKey, protoKeyDescriptor);
+            // NOTE: We hide errors with a new browser API and we should know about it.
+            nativeMethods.consoleMeths.log(`testcafe-hammerhead: unwrapped Location.prototype.${protoKey} descriptor!`);
+        }
     }
 }
 
