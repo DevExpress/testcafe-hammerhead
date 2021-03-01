@@ -853,7 +853,6 @@ test('set a relative url to a cross-domain location', function () {
         });
 });
 
-
 test('location.replace should not throw an error when called by iframe added dynamically (GH-2417)', function () {
     const iframe = document.createElement('iframe');
 
@@ -875,3 +874,36 @@ test('location.replace should not throw an error when called by iframe added dyn
         document.body.removeChild(iframe);
     }
 });
+
+if (!browserUtils.isIE11) {
+    // NOTE: From Chrome 80 to Chrome 85, the fragmentDirective property was defined on Location.prototype.
+    test('we should not break a user script which uses new browser API if we are not overridden it', function () {
+        const hashDescriptor = Object.getOwnPropertyDescriptor(Location.prototype, 'hash') ||
+            Object.getOwnPropertyDescriptor(location, 'hash');
+
+        hashDescriptor.configurable = true;
+
+        Object.defineProperty(Location.prototype, 'newAPIProp', hashDescriptor);
+
+        hashDescriptor.value = hashDescriptor.get;
+        delete hashDescriptor.get;
+        delete hashDescriptor.set;
+
+        Object.defineProperty(Location.prototype, 'newAPIFn', hashDescriptor);
+
+        var locWrapper = new LocationWrapper(window);
+
+        locWrapper.newAPIProp = '123';
+
+        strictEqual(locWrapper.newAPIProp, '#123');
+        strictEqual(locWrapper.newAPIFn(), '#123');
+
+        throws(function () {
+            var obj = {};
+
+            Object.defineProperty(obj, 'some', Object.getOwnPropertyDescriptor(locWrapper, 'newAPIProp'));
+
+            obj.some; // eslint-disable-line no-unused-expressions
+        });
+    });
+}
