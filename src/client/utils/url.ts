@@ -34,7 +34,7 @@ export const DEFAULT_PROXY_SETTINGS = (function () {
 
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = sharedUrlUtils.REQUEST_DESCRIPTOR_VALUES_SEPARATOR;
 
-export function getProxyUrl (url: string, opts?): string {
+export let getProxyUrl = function (url: string, opts?): string {
     url = sharedUrlUtils.getURLString(url);
 
     const resourceType       = opts && opts.resourceType;
@@ -141,6 +141,10 @@ export function getProxyUrl (url: string, opts?): string {
     });
 }
 
+export function overrideGetProxyUrl (func: typeof getProxyUrl): void {
+    getProxyUrl = func;
+}
+
 export function getNavigationUrl (url: string, win) {
     // NOTE: For the 'about:blank' page, we perform url proxing only for the top window, 'location' object and links.
     // For images and iframes, we keep urls as they were.
@@ -166,11 +170,15 @@ export function getNavigationUrl (url: string, win) {
     return getProxyUrl(url);
 }
 
-export function getCrossDomainIframeProxyUrl (url: string) {
+export let getCrossDomainIframeProxyUrl = function (url: string) {
     return getProxyUrl(url, {
         proxyPort:    settings.get().crossDomainProxyPort,
         resourceType: sharedUrlUtils.getResourceTypeString({ isIframe: true })
     });
+}
+
+export function overrideGetCrossDomainIframeProxyUrl (func: typeof getCrossDomainIframeProxyUrl): void {
+    getCrossDomainIframeProxyUrl = func;
 }
 
 export function getPageProxyUrl (url: string, windowId: string): string {
@@ -202,28 +210,40 @@ export function getCrossDomainProxyPort (proxyPort: string) {
         : settings.get().crossDomainProxyPort;
 }
 
-export function resolveUrlAsDest (url: string) {
+export let resolveUrlAsDest = function (url: string) {
     return sharedUrlUtils.resolveUrlAsDest(url, getProxyUrl);
+}
+
+export function overrideResolveUrlAsDest (func: typeof resolveUrlAsDest): void {
+    resolveUrlAsDest = func;
 }
 
 export function formatUrl (parsedUrl) {
     return sharedUrlUtils.formatUrl(parsedUrl);
 }
 
-export function parseProxyUrl (proxyUrl: string) {
+export let parseProxyUrl = function (proxyUrl: string) {
     return sharedUrlUtils.parseProxyUrl(proxyUrl);
+}
+
+export function overrideParseProxyUrl (func: typeof parseProxyUrl) {
+    parseProxyUrl = func;
 }
 
 export function parseUrl (url: string | URL) {
     return sharedUrlUtils.parseUrl(url);
 }
 
-export function convertToProxyUrl (url: string, resourceType, charset, isCrossDomain = false) {
+export let convertToProxyUrl = function (url: string, resourceType, charset, isCrossDomain = false) {
     return getProxyUrl(url, {
         resourceType, charset,
         // eslint-disable-next-line no-restricted-properties
         proxyPort: isCrossDomain ? settings.get().crossDomainProxyPort : DEFAULT_PROXY_SETTINGS.port
     });
+}
+
+export function overrideConvertToProxyUrl (func: typeof convertToProxyUrl): void {
+    convertToProxyUrl = func;
 }
 
 export function changeDestUrlPart (proxyUrl: string, nativePropSetter, value, resourceType) {

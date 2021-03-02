@@ -666,9 +666,9 @@ if (browserUtils.compareVersions([browserUtils.webkitVersion, '603.1.30']) === -
 
         return createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/target-url.html') })
             .then(function (iframe) {
-                urlUtils.getProxyUrl = function () {
+                urlUtils.overrideGetProxyUrl(function () {
                     return sameDomainSrc;
-                };
+                });
 
                 return new Promise(function (resolve) {
                     iframe.onload = function () {
@@ -680,7 +680,7 @@ if (browserUtils.compareVersions([browserUtils.webkitVersion, '603.1.30']) === -
             .then(function (iframe) {
                 ok(iframe.contentWindow.location.toString().indexOf(sameDomainSrc) !== -1);
 
-                urlUtils.getProxyUrl = storedGetProxyUrl;
+                urlUtils.overrideGetProxyUrl(storedGetProxyUrl);
             });
     });
 }

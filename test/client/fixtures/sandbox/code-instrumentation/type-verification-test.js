@@ -6,14 +6,14 @@ test('is window instance', function () {
         location: ''
     };
 
-    urlUtils.getProxyUrl = function () {
+    urlUtils.overrideGetProxyUrl(function () {
         return 'http://proxy/';
-    };
+    });
 
     setProperty(fakeWin, 'location', 'location');
     strictEqual(fakeWin.location, 'location');
 
-    urlUtils.getProxyUrl = savedGetProxyUrl;
+    urlUtils.overrideGetProxyUrl(savedGetProxyUrl);
 });
 
 test('is location instance', function () {
@@ -22,13 +22,13 @@ test('is location instance', function () {
         href: ''
     };
 
-    urlUtils.getProxyUrl = function () {
+    urlUtils.overrideGetProxyUrl(function () {
         return 'http://proxy/';
-    };
+    });
 
     setProperty(fakeLocation, 'href', 'href');
     strictEqual(fakeLocation.href, 'href');
 
-    urlUtils.getProxyUrl = savedGetProxyUrl;
+    urlUtils.overrideGetProxyUrl(savedGetProxyUrl);
 });
 

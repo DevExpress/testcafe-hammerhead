@@ -12,13 +12,13 @@ asyncTest('prevent "error" event during image reloading', function () {
     var realImageUrl           = getSameDomainPageUrl('../../../data/node-sandbox/image.png');
     var fakeIamgeUrl           = 'fakeIamge.gif';
 
-    urlUtils.getProxyUrl = function () {
+    urlUtils.overrideGetProxyUrl(function () {
         return storedGetProxyUrl.call(urlUtils, realImageUrl);
-    };
+    });
 
-    urlUtils.resolveUrlAsDest = function (url) {
+    urlUtils.overrideResolveUrlAsDest(function (url) {
         return url;
-    };
+    });
 
     var img = document.createElement('img');
 
@@ -31,8 +31,8 @@ asyncTest('prevent "error" event during image reloading', function () {
         strictEqual(nativeMethods.imageSrcGetter.call(img), storedGetProxyUrl.call(urlUtils, realImageUrl));
 
         document.body.removeChild(img);
-        urlUtils.getProxyUrl      = storedGetProxyUrl;
-        urlUtils.resolveUrlAsDest = storedResolveUrlAsDest;
+        urlUtils.overrideGetProxyUrl(storedGetProxyUrl);
+        urlUtils.overrideResolveUrlAsDest(storedResolveUrlAsDest);
 
         start();
     });
@@ -112,9 +112,9 @@ test('process a text node when it is appended to script', function () {
     var storedGetProxyUrl = urlUtils.getProxyUrl;
     var proxyUrl          = 'http://example.proxy.com/';
 
-    urlUtils.getProxyUrl = function () {
+    urlUtils.overrideGetProxyUrl(function () {
         return proxyUrl;
-    };
+    });
 
     var url      = 'http://example.com';
     var scriptEl = document.createElement('script');
@@ -130,7 +130,7 @@ test('process a text node when it is appended to script', function () {
     ok(window.testAnchor.tagName && window.testAnchor.tagName.toLowerCase() === 'a');
     strictEqual(nativeMethods.anchorHrefGetter.call(window.testAnchor), proxyUrl);
 
-    urlUtils.getProxyUrl = storedGetProxyUrl;
+    urlUtils.overrideGetProxyUrl(storedGetProxyUrl);
 });
 
 test('iframe added to dom event', function () {

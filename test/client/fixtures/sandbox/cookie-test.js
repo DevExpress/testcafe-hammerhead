@@ -540,11 +540,11 @@ module('regression');
 test('overwrite (B239496)', function () {
     var savedUrlUtilParseProxyUrl = urlUtils.parseProxyUrl;
 
-    urlUtils.parseProxyUrl = function (url) {
+    urlUtils.overrideParseProxyUrl(function (url) {
         return {
             destResourceInfo: urlUtils.parseUrl(url)
         };
-    };
+    });
 
     document.cookie = 'TestKey1=TestVal1';
     document.cookie = 'TestKey2=TestVal2';
@@ -559,17 +559,17 @@ test('overwrite (B239496)', function () {
     document.cookie = 'TestKey1=NewValue';
     strictEqual(document.cookie, 'TestKey1=NewValue; TestKey2=12');
 
-    urlUtils.parseProxyUrl = savedUrlUtilParseProxyUrl;
+    urlUtils.overrideParseProxyUrl(savedUrlUtilParseProxyUrl);
 });
 
 test('delete (B239496)', function () {
     var savedUrlUtilParseProxyUrl = urlUtils.parseProxyUrl;
 
-    urlUtils.parseProxyUrl = function (url) {
+    urlUtils.overrideParseProxyUrl(function (url) {
         return {
             destResourceInfo: urlUtils.parseUrl(url)
         };
-    };
+    });
 
     document.cookie = 'CookieToDelete=DeleteMe';
     strictEqual(document.cookie, 'CookieToDelete=DeleteMe');
@@ -580,7 +580,7 @@ test('delete (B239496)', function () {
     document.cookie = 'CookieToDelete=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     strictEqual(document.cookie, '');
 
-    urlUtils.parseProxyUrl = savedUrlUtilParseProxyUrl;
+    urlUtils.overrideParseProxyUrl(savedUrlUtilParseProxyUrl);
 });
 
 test('hammerhead crashes if client-side code contains "document.cookie=null" or "document.cookie=undefined" (GH-444, T349254).', function () {

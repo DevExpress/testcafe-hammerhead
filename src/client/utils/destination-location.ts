@@ -58,11 +58,15 @@ export function resolveUrl (url: string, doc?: Document): string {
     }
 }
 
-export function get (): string {
+export let get = function (): string {
     const location       = getLocation();
     const parsedProxyUrl = sharedUrlUtils.parseProxyUrl(location);
 
     return parsedProxyUrl ? parsedProxyUrl.destUrl : location;
+}
+
+export function overrideGet (func: typeof get) {
+    get = func;
 }
 
 export function withHash (hash: string): string {

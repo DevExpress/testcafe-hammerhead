@@ -16,7 +16,7 @@
 
     var storedParseProxyUrl = urlUtils.parseProxyUrl;
 
-    urlUtils.parseProxyUrl = function (url) {
+    urlUtils.overrideParseProxyUrl(function (url) {
         if (url === parent.location.toString()) {
             return {
                 proxy: {
@@ -26,7 +26,7 @@
         }
 
         return storedParseProxyUrl.apply(this, arguments);
-    };
+    });
 
     window.onmessage = function (evt) {
         getLocation(location).href = evt.data;
