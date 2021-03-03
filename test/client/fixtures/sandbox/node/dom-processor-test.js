@@ -133,6 +133,26 @@ if (nativeMethods.append) {
     });
 }
 
+if (nativeMethods.prepend) {
+    test('Element.prototype.prepend', function () {
+        var div = document.createElement('div');
+
+        document.body.appendChild(div);
+
+        var isScriptElementAddedEventRaised = false;
+
+        elementSandbox.on(elementSandbox.SCRIPT_ELEMENT_ADDED_EVENT, function () {
+            isScriptElementAddedEventRaised = true;
+        });
+
+        div.prepend('text node', document.createTextNode('123'), document.createElement('script'));
+
+        ok(isScriptElementAddedEventRaised);
+
+        document.body.removeChild(div);
+    });
+}
+
 if (nativeMethods.remove) {
     test('Element.prototype.remove', function () {
         var div = document.createElement('div');

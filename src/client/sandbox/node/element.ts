@@ -562,6 +562,10 @@ export default class ElementSandbox extends SandboxBase {
                 return sandbox._addNodeCore(this, args, args, nativeMethods.append);
             },
 
+            prepend (this: Element, ...args: Parameters<Element['prepend']>) {
+                return sandbox._addNodeCore(this, args, args, nativeMethods.prepend, false);
+            },
+
             removeChild (this: Node) {
                 // NOTE: We are created the args array manually because of the test for the GH-1231 issue.
                 // Babel process the spread operator same as `for..of` loop, and IE11 throws an error
@@ -855,6 +859,9 @@ export default class ElementSandbox extends SandboxBase {
 
         if (nativeMethods.append)
             overrideFunction(window.Element.prototype, 'append', this.overriddenMethods.append);
+
+        if (nativeMethods.prepend)
+            overrideFunction(window.Element.prototype, 'prepend', this.overriddenMethods.prepend);
 
         if (nativeMethods.remove)
             overrideFunction(window.Element.prototype, 'remove', this.overriddenMethods.remove);
