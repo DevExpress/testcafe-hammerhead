@@ -1,6 +1,6 @@
 import net from 'net';
 import RequestOptions from '../request-options';
-import http from 'http';
+import http, { ClientRequest } from 'http';
 import https from 'https';
 import { noop } from 'lodash';
 import * as requestAgent from './agent';
@@ -11,8 +11,8 @@ import { MESSAGE, getText } from '../../messages';
 import logger from '../../utils/logger';
 import * as requestCache from '../cache';
 import IncomingMessageLike from '../incoming-message-like';
-import { formatRequestHttp2Headers, getHttp2Session, makePseudoResponse } from './http2';
-import { ClientHttp2Session } from 'http2';
+import { formatRequestHttp2Headers, getHttp2Session, Http2Response, makePseudoResponse } from './http2';
+import { ClientHttp2Session, ClientHttp2Stream } from 'http2';
 
 const TUNNELING_SOCKET_ERR_RE    = /tunneling socket could not be established/i;
 const TUNNELING_AUTHORIZE_ERR_RE = /statusCode=407/i;
@@ -28,7 +28,7 @@ interface DestinationRequestEvents {
 }
 
 export default class DestinationRequest extends EventEmitter implements DestinationRequestEvents {
-    private req: http.ClientRequest;
+    private req: ClientRequest | ClientHttp2Stream;
     private hasResponse = false;
     private credentialsSent = false;
     private aborted = false;
@@ -56,10 +56,9 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         stream.setTimeout(this.timeout, () => this._onTimeout());
         stream.on('error', (err: Error) => this._onError(err));
         stream.on('response', headers => {
-            makePseudoResponse(stream, headers);
+            const http2res = makePseudoResponse(stream, headers);
 
-            // @ts-ignore
-            this._onResponse(stream);
+            this._onResponse(http2res);
         });
 
         if (!endStream) {
@@ -67,7 +66,6 @@ export default class DestinationRequest extends EventEmitter implements Destinat
             stream.end();
         }
 
-        // @ts-ignore
         this.req = stream;
 
         logger.destination.onRequest(this.opts);
@@ -111,9 +109,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
 
             if (cachedResponse) {
                 // NOTE: To store async order of the 'response' event
-                setImmediate(() => {
-                    this._emitOnResponse(cachedResponse.res);
-                }, 0);
+                setImmediate(() => this._emitOnResponse(cachedResponse.res));
 
                 logger.destination.onCachedRequest(this.opts, cachedResponse.hitCount);
 
@@ -144,7 +140,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         return false;
     }
 
-    _onResponse (res: http.IncomingMessage): void {
+    _onResponse (res: http.IncomingMessage | Http2Response): void {
         logger.destination.onResponse(this.opts, res);
 
         if (this._shouldResendWithCredentials(res))
@@ -157,7 +153,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
             this._emitOnResponse(res);
     }
 
-    _emitOnResponse (res: http.IncomingMessage | IncomingMessageLike) {
+    _emitOnResponse (res: http.IncomingMessage | IncomingMessageLike | Http2Response) {
         this.hasResponse = true;
 
         this.emit('response', res);

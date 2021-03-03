@@ -1,6 +1,7 @@
 import http2, { ClientHttp2Session, Http2Stream, IncomingHttpHeaders, IncomingHttpStatusHeader } from 'http2';
 import LRUCache from 'lru-cache';
 import RequestOptions from '../request-options';
+import { isConnectionResetError } from '../connection-reset-guard';
 
 const {
     HTTP2_HEADER_PATH,
@@ -12,12 +13,12 @@ const {
     HTTP2_HEADER_KEEP_ALIVE,
     HTTP2_HEADER_PROXY_CONNECTION,
     HTTP2_HEADER_TRANSFER_ENCODING,
-    HTTP2_HEADER_HTTP2_SETTINGS
+    HTTP2_HEADER_HTTP2_SETTINGS,
+    HTTP2_HEADER_HOST
 } = http2.constants;
 
 const HTTP2_SESSIONS_CACHE_SIZE = 100;
-
-// google close unused session after 4min
+const HTTP2_SESSION_TIMEOUT     = 4 * 60 * 1000;
 
 const unsupportedOrigins = [] as string[];
 const pendingSessions    = new Map<string, Promise<ClientHttp2Session | null>>();
@@ -39,47 +40,30 @@ export async function getHttp2Session (origin: string): Promise<ClientHttp2Sessi
     const pendingSession = new Promise<ClientHttp2Session | null>(resolve => {
         const session = http2.connect(origin, { settings: { enablePush: false } });
 
-        const errorBeforeConnectedHandler = (err) => {
+        const errorHandler = (err: Error) => {
             pendingSessions.delete(origin);
 
-            if (err.code === 'ERR_HTTP2_ERROR')
+            if (err['code'] === 'ERR_HTTP2_ERROR')
                 unsupportedOrigins.push(origin);
-            // else
-            //     console.log('error', Date.now(), err); // eslint-disable-line
 
             resolve(null);
         };
 
-        const errorAfterConnectedHandler = (err) => {
-            console.log('error', Date.now(), err); // eslint-disable-line
-        };
-
-        const closeHandler = () => {
-            // console.log('close', Date.now(), origin); // eslint-disable-line
-            sessionsCache.del(origin);
-        };
-
-        session.on('error', errorBeforeConnectedHandler);
+        session.once('error', errorHandler);
         session.once('localSettings', () => {
-            // console.log('connected', Date.now(), origin); // eslint-disable-line
             pendingSessions.delete(origin);
             sessionsCache.set(origin, session);
-            session.off('error', errorBeforeConnectedHandler);
-            session.once('error', errorAfterConnectedHandler);
-            session.once('close', closeHandler);
+
+            session.off('error', errorHandler);
+            session.once('close', () => sessionsCache.del(origin));
+            session.once('error', (err: Error) => {
+                if (!isConnectionResetError(err))
+                    throw err;
+            })
+            session.setTimeout(HTTP2_SESSION_TIMEOUT, () => session.close());
 
             resolve(session);
         });
-
-        //setTimeout
-
-        // TODO: altsvc and origin events
-        // .on('altsvc', (alt: string, origin: string, streamId: number) => {
-        //     console.log('altsvc', Date.now(), alt, origin, streamId); // eslint-disable-line
-        // })
-        // .on('origin', (origins: string[]) => {
-        //     console.log('origin', Date.now(), origins); // eslint-disable-line
-        // })
     });
 
     pendingSessions.set(origin, pendingSession);
@@ -92,7 +76,7 @@ export function formatRequestHttp2Headers (opts: RequestOptions) {
 
     headers[HTTP2_HEADER_METHOD]    = opts.method;
     headers[HTTP2_HEADER_PATH]      = opts.path;
-    headers[HTTP2_HEADER_AUTHORITY] = opts.headers.host;
+    headers[HTTP2_HEADER_AUTHORITY] = headers.host;
 
     delete headers[HTTP2_HEADER_CONNECTION];
     delete headers[HTTP2_HEADER_UPGRADE];
@@ -100,19 +84,26 @@ export function formatRequestHttp2Headers (opts: RequestOptions) {
     delete headers[HTTP2_HEADER_KEEP_ALIVE];
     delete headers[HTTP2_HEADER_PROXY_CONNECTION];
     delete headers[HTTP2_HEADER_TRANSFER_ENCODING];
-    delete headers.host;
+    delete headers[HTTP2_HEADER_HOST];
 
     return headers;
 }
 
-export function makePseudoResponse (stream: Http2Stream, response: IncomingHttpHeaders & IncomingHttpStatusHeader) {
-    const headers = Object.assign({}, response);
+export interface Http2Response extends Http2Stream {
+    statusCode: number;
+    trailers:   { [key: string]: string };
+    headers:    IncomingHttpHeaders;
+}
+
+export function makePseudoResponse (stream: Http2Stream, response: IncomingHttpHeaders & IncomingHttpStatusHeader): Http2Response {
+    const statusCode = response[HTTP2_HEADER_STATUS] as unknown as number;
+    const headers    = Object.assign({}, response);
 
     delete headers[HTTP2_HEADER_STATUS];
 
-    Object.assign(stream, {
-        statusCode: response[HTTP2_HEADER_STATUS],
-        trailers:   {},
+    return Object.assign(stream, {
+        trailers: {},
+        statusCode,
         headers
     });
 }

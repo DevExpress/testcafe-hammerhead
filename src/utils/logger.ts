@@ -3,8 +3,8 @@ import RequestPipelineContext from '../request-pipeline/context';
 import { IncomingMessage, OutgoingHttpHeaders } from 'http';
 import { ServiceMessage } from '../typings/proxy';
 import RequestOptions from '../request-pipeline/request-options';
-import errToString from './err-to-string'
-import { stringify as stringifyJSON } from './json';
+import errToString from './err-to-string';
+import { Http2Response } from '../request-pipeline/destination-request/http2';
 
 function getIncorrectErrorTypeMessage (err: object) {
     const errType = typeof err;
@@ -121,7 +121,7 @@ const destination = {
         destinationLogger('Destination upgrade %s %d %j', opts.requestId, res.statusCode, res.headers);
     },
 
-    onResponse: (opts: RequestOptions, res: IncomingMessage) => {
+    onResponse: (opts: RequestOptions, res: IncomingMessage | Http2Response) => {
         destinationLogger('Destination response %s %d %j', opts.requestId, res.statusCode, res.headers);
     },
 
@@ -154,7 +154,8 @@ const destinationSocket = {
     enabled: destinationSocketLogger.enabled,
 
     onFirstChunk: (opts: RequestOptions, data: Buffer) => {
-        destinationSocketLogger('Destination request socket first chunk of data %s %d %s', opts.requestId, data.length, stringifyJSON(data.toString()));
+        destinationSocketLogger('Destination request socket first chunk of data %s %d %s',
+            opts.requestId, data.length, JSON.stringify(data.toString()));
     },
 
     onError: (opts: RequestOptions, err: Error) => {

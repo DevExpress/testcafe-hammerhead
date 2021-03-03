@@ -27,6 +27,7 @@ import { fetchBody } from '../utils/http';
 import * as requestCache from './cache';
 import requestIsMatchRule from '../request-pipeline/request-hooks/request-is-match-rule';
 import getMockResponse from '../request-pipeline/request-hooks/response-mock/get-response';
+import { Http2Response } from './destination-request/http2';
 
 interface DestInfo {
     url: string;
@@ -78,7 +79,7 @@ export default class RequestPipelineContext {
     session: Session = null;
     reqBody: Buffer = null;
     dest: DestInfo = null;
-    destRes: http.IncomingMessage | FileStream | IncomingMessageLike = null;
+    destRes: http.IncomingMessage | FileStream | IncomingMessageLike | IncomingMessageLike | Http2Response = null;
     isDestResReadableEnded = false;
     destResBody: Buffer = null;
     isAjax = false;
@@ -315,7 +316,7 @@ export default class RequestPipelineContext {
             .map(userScript => userScript.url);
     }
 
-    private async _getDestResBody (res: IncomingMessageLike | http.IncomingMessage | FileStream): Promise<Buffer> {
+    private async _getDestResBody (res: IncomingMessageLike | http.IncomingMessage | FileStream | Http2Response): Promise<Buffer> {
         if (IncomingMessageLike.isIncomingMessageLike(res))
             return res.getBody();
 
@@ -480,7 +481,7 @@ export default class RequestPipelineContext {
         this.res.end();
     }
 
-    createCacheEntry (res: http.IncomingMessage | IncomingMessageLike | FileStream): void {
+    createCacheEntry (res: http.IncomingMessage | IncomingMessageLike | FileStream | Http2Response): void {
         if (requestCache.shouldCache(this) && !IncomingMessageLike.isIncomingMessageLike(res))
             this.temporaryCacheEntry = requestCache.create(this.reqOpts, res);
     }
