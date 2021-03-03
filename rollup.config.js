@@ -18,19 +18,30 @@ const CONFIG = CHUNKS.map(chunk => ({
         format:  'iife',
         // NOTE: 'use strict' in our scripts can break user code
         // https://github.com/DevExpress/testcafe/issues/258
-        strict:  false,
-        // NOTE: we need it to modify behaviour of different modules in client tests
-        freeze:  false
+        strict:  false
     },
     plugins: [
         resolve(),
         typescript({
             tsconfig: 'src/client/tsconfig.json',
-            include: ['*.+(j|t)s', '**/*.+(j|t)s'],
+            include: [
+                'src/**/*.ts',
+                // NOTE: transpile the acorn-hammerhead package because it has non-ES5 compatible code
+                'node_modules/acorn-hammerhead/**/*.js'
+            ],
             rollupCommonJSResolveHack: true
         }),
         commonjs()
-    ]
+    ],
+    onwarn (warning, rollupWarn) {
+        if (warning.code === 'CIRCULAR_DEPENDENCY')
+            return;
+
+        if (warning.code === 'MISSING_NAME_OPTION_FOR_IIFE_EXPORT')
+            return;
+
+        rollupWarn(warning);
+    }
 }));
 
 export default CONFIG;
