@@ -48,6 +48,7 @@ class NativeMethods {
     appendChild: Node['appendChild'];
     attachShadow: Element['attachShadow'];
     append: Element['append'];
+    prepend: Element['prepend'];
     replaceChild: any;
     cloneNode: any;
     elementGetElementsByClassName: any;
@@ -511,6 +512,7 @@ class NativeMethods {
         // Dom
         this.appendChild                   = win.Node.prototype.appendChild;
         this.append                        = win.Element.prototype.append;
+        this.prepend                       = win.Element.prototype.prepend;
         this.attachShadow                  = win.Element.prototype.attachShadow;
         this.replaceChild                  = nativeElement.replaceChild;
         this.cloneNode                     = nativeElement.cloneNode;
