@@ -2,7 +2,6 @@ import { ServiceMessage } from '../../typings/proxy';
 import Promise from 'pinkie';
 import nativeMethods from '../sandbox/native-methods';
 import settings from '../settings';
-import { stringify as stringifyJSON, parse as parseJSON } from 'json-hammerhead';
 
 const SERVICE_MESSAGES_WAITING_INTERVAL = 50;
 
@@ -13,7 +12,7 @@ export default abstract class TransportLegacy {
         const nativeLocalStorage = nativeMethods.winLocalStorageGetter.call(window);
         const storedMessagesStr  = nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId);
 
-        return storedMessagesStr ? parseJSON(storedMessagesStr) : [];
+        return storedMessagesStr ? JSON.parse(storedMessagesStr) : [];
     }
 
     protected static _storeMessage (msg: ServiceMessage): void {
@@ -22,7 +21,7 @@ export default abstract class TransportLegacy {
 
         storedMessages.push(msg);
 
-        nativeMethods.storageSetItem.call(nativeLocalStorage, settings.get().sessionId, stringifyJSON(storedMessages));
+        nativeMethods.storageSetItem.call(nativeLocalStorage, settings.get().sessionId, JSON.stringify(storedMessages));
     }
 
     protected static _removeMessageFromStore (cmd: string): void {
@@ -37,7 +36,7 @@ export default abstract class TransportLegacy {
             }
         }
 
-        nativeMethods.storageSetItem.call(nativeLocalStorage, settings.get().sessionId, stringifyJSON(messages));
+        nativeMethods.storageSetItem.call(nativeLocalStorage, settings.get().sessionId, JSON.stringify(messages));
     }
 
     batchUpdate (): Promise<any> {

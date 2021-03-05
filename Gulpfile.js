@@ -31,8 +31,6 @@ ll
         'client-scripts-bundle'
     ]);
 
-const USE_STRICT_RE = /^(['"])use strict\1;?/;
-
 // Build
 gulp.task('clean-lib', () => {
     return del(['./lib']);
@@ -40,7 +38,7 @@ gulp.task('clean-lib', () => {
 
 gulp.step('client-scripts-bundle', () => {
     return childProcess
-        .spawn('rollup -c', { shell: true, stdio: 'inherit' });
+        .spawn('npx rollup -c', { shell: true, stdio: 'inherit' });
 });
 
 gulp.step('client-scripts-processing', () => {
@@ -95,8 +93,10 @@ gulp.step('server-scripts-add-exports', () => {
 });
 
 gulp.step('server-scripts', () => {
+    const generateSourceMap = util.env.dev ? '--inlineSourceMap true' : '';
+
     return childProcess
-        .spawn('tsc', { shell: true, stdio: 'inherit' });
+        .spawn(`npx tsc -p tsconfig.json ${generateSourceMap}`, { shell: true, stdio: 'inherit' });
 });
 
 gulp.step('templates', () => {

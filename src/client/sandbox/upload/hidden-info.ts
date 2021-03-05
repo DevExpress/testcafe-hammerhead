@@ -1,6 +1,5 @@
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import nativeMethods from '../native-methods';
-import * as JSON from 'json-hammerhead';
 import ShadowUI from '../shadow-ui';
 
 function createInput (form: HTMLFormElement) {

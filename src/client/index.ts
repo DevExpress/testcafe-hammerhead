@@ -21,7 +21,6 @@ import LocationInstrumentation from './sandbox/code-instrumentation/location';
 import LocationWrapper from './sandbox/code-instrumentation/location/wrapper';
 import settings from './settings';
 import Transport from './transport';
-import JSON from 'json-hammerhead';
 import * as browserUtils from './utils/browser';
 import * as destLocationUtils from './utils/destination-location';
 import * as domUtils from './utils/dom';
@@ -74,7 +73,7 @@ class Hammerhead {
     processScript: Function;
     get: Function;
     Promise: any;
-    json: any;
+    json: typeof JSON;
     transport: Transport;
     nativeMethods: any;
     shadowUI: ShadowUI;

@@ -3,7 +3,6 @@ import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import * as destLocation from '../../utils/destination-location';
 import { formatUrl } from '../../utils/url';
-import { parse as parseJSON, stringify as stringifyJSON } from 'json-hammerhead';
 import { isCrossDomainWindows, getTopSameDomainWindow, isWindow, isMessageEvent } from '../../utils/dom';
 import { callEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';
@@ -51,7 +50,7 @@ export default class MessageSandbox extends SandboxBase {
     private static _getMessageData (e) {
         const rawData = isMessageEvent(e) ? nativeMethods.messageEventDataGetter.call(e) : e.data;
 
-        return typeof rawData === 'string' ? parseJSON(rawData) : rawData;
+        return typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
     }
 
     // NOTE: some window may be unavailable for the sending message, for example, if it was removed.
@@ -203,7 +202,7 @@ export default class MessageSandbox extends SandboxBase {
                 try {
                     targetWindow[this.RECEIVE_MSG_FN]({
                         // NOTE: Cloning a message to prevent this modification.
-                        data:   parseJSON(stringifyJSON(message)),
+                        data:   JSON.parse(JSON.stringify(message)),
                         source: this.window,
                         ports
                     });

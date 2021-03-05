@@ -5,8 +5,6 @@
     "esModuleInterop": true,
     "allowJs": true,
     "checkJs": false,
-    "inlineSourceMap": true,
-    "inlineSources": true,
     "types": ["node"],
     "strict": false,
     "newLine": "lf",
