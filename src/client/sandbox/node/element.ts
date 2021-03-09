@@ -422,10 +422,11 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
-    private _addNodeCore<K, A extends (string | Node)[]> (parentNode: Element | Node & ParentNode,
+    private _addNodeCore<K, A extends (string | Node)[]> (parent: Element | Node & ParentNode,
+                                                          context: Element | Node & ParentNode,
                                                           newNodes: (string | Node)[], args: A,
                                                           nativeFn: (...args: A) => K, checkBody = true): K {
-        this._prepareNodesForInsertion(newNodes, parentNode);
+        this._prepareNodesForInsertion(newNodes, parent);
 
         let result            = null;
         const childNodesArray = [] as Node[];
@@ -444,10 +445,10 @@ export default class ElementSandbox extends SandboxBase {
         // some javascript frameworks create their own body element, perform
         // certain manipulations and then remove it.
         // Therefore, we need to check if the body element is present in DOM
-        if (checkBody && domUtils.isBodyElementWithChildren(parentNode) && domUtils.isElementInDocument(parentNode))
+        if (checkBody && domUtils.isBodyElementWithChildren(parent) && domUtils.isElementInDocument(parent))
             result = this._shadowUI.insertBeforeRoot(newNodes);
         else
-            result = nativeFn.apply(parentNode, args);
+            result = nativeFn.apply(context, args);
 
         for (const child of childNodesArray)
             this._onElementAdded(child);
@@ -551,19 +552,28 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             insertBefore (this: Node & ParentNode, ...args: Parameters<Node['insertBefore']>) {
-                return sandbox._addNodeCore(this, [args[0]], args, nativeMethods.insertBefore, !args[1]);
+                return sandbox._addNodeCore(this, this, [args[0]], args, nativeMethods.insertBefore, !args[1]);
             },
 
             appendChild (this: Node & ParentNode, ...args: Parameters<Node['appendChild']>) {
-                return sandbox._addNodeCore(this, [args[0]], args, nativeMethods.appendChild);
+                return sandbox._addNodeCore(this, this, [args[0]], args, nativeMethods.appendChild);
             },
 
             append (this: Element, ...args: Parameters<Element['append']>) {
-                return sandbox._addNodeCore(this, args, args, nativeMethods.append);
+                return sandbox._addNodeCore(this, this, args, args, nativeMethods.append);
             },
 
             prepend (this: Element, ...args: Parameters<Element['prepend']>) {
-                return sandbox._addNodeCore(this, args, args, nativeMethods.prepend, false);
+                return sandbox._addNodeCore(this, this, args, args, nativeMethods.prepend, false);
+            },
+
+            after (this: Element, ...args: Parameters<Element['after']>) {
+                const parent = nativeMethods.nodeParentNodeGetter.call(this);
+
+                if (!parent)
+                    return nativeMethods.after.apply(this, args);
+
+                return sandbox._addNodeCore(parent, this, args, args, nativeMethods.after, false);
             },
 
             removeChild (this: Node) {
@@ -862,6 +872,9 @@ export default class ElementSandbox extends SandboxBase {
 
         if (nativeMethods.prepend)
             overrideFunction(window.Element.prototype, 'prepend', this.overriddenMethods.prepend);
+
+        if (nativeMethods.after)
+            overrideFunction(window.Element.prototype, 'after', this.overriddenMethods.after);
 
         if (nativeMethods.remove)
             overrideFunction(window.Element.prototype, 'remove', this.overriddenMethods.remove);
