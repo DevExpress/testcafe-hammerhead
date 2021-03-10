@@ -1,10 +1,12 @@
 const fs                = require('fs');
+const WebSocket         = require('ws');
 const { noop }          = require('lodash');
 const ResponseMock      = require('../../../lib/request-pipeline/request-hooks/response-mock');
 const RequestFilterRule = require('../../../lib/request-pipeline/request-hooks/request-filter-rule');
 const { expect }        = require('chai');
 const request           = require('request-promise-native');
 const urlUtils          = require('../../../lib/utils/url');
+const promisifyEvent    = require('promisify-event');
 
 const {
     TEST_OBJ,
@@ -27,6 +29,7 @@ describe('Request Hooks', () => {
     let session    = null;
     let proxy      = null;
     let destServer = null;
+    let wsServer   = null;
 
     function getProxyUrl (url, resourceType, reqOrigin, credentials, isCrossDomain, currentSession = session) {
         return getBasicProxyUrl(url, resourceType, reqOrigin, credentials, isCrossDomain, currentSession);
@@ -37,6 +40,10 @@ describe('Request Hooks', () => {
         const { app }                     = sameDomainDestinationServer;
 
         destServer = sameDomainDestinationServer.server;
+        wsServer   = new WebSocket.Server({
+            server: destServer,
+            path:   '/web-socket'
+        });
 
         app.get('/page', (req, res) => {
             res.setHeader('content-type', 'text/html');
@@ -89,6 +96,7 @@ describe('Request Hooks', () => {
 
     after(() => {
         destServer.close();
+        wsServer.close();
     });
 
     beforeEach(() => {
@@ -503,6 +511,67 @@ describe('Request Hooks', () => {
                     expect(collectedErrorEvents[2].methodName).eql('onResponse');
 
                     session.removeRequestEventListeners(rule);
+                });
+        });
+
+        it('WebSocket request', () => {
+            let requestEventIsRaised           = false;
+            let configureResponseEventIsRaised = false;
+            let responseEventIsRaised          = false;
+
+            const rule = new RequestFilterRule('ws://127.0.0.1:2000/web-socket');
+
+            session.addRequestEventListeners(rule, {
+                onRequest: e => {
+                    return new Promise(resolve => {
+                        setTimeout(() => {
+                            expect(e.isAjax).to.be.false;
+                            expect(e._requestInfo.url).eql('ws://127.0.0.1:2000/web-socket');
+
+                            requestEventIsRaised = true;
+
+                            resolve();
+                        }, 100);
+                    });
+                },
+
+                onConfigureResponse: () => {
+                    return new Promise(resolve => {
+                        setTimeout(() => {
+                            configureResponseEventIsRaised = true;
+
+                            resolve();
+                        }, 100);
+                    });
+                },
+
+                onResponse: () => {
+                    return new Promise(resolve => {
+                        setTimeout(() => {
+                            responseEventIsRaised = true;
+
+                            resolve();
+                        }, 100);
+                    });
+                }
+            });
+
+            proxy.openSession('http://example.com', session);
+
+            const proxyUrl = getProxyUrl('http://127.0.0.1:2000/web-socket', { isWebSocket: true }, 'http://example.com');
+            const ws       = new WebSocket(proxyUrl, { origin: 'http://example.com' });
+
+            return new Promise(resolve => ws.on('open', resolve))
+                .then(() => {
+                    expect(requestEventIsRaised).to.be.true;
+                    expect(configureResponseEventIsRaised).to.be.false;
+                    expect(responseEventIsRaised).to.be.false;
+
+                    const wsCloseEventPromise = promisifyEvent(ws, 'close');
+
+                    ws.close();
+
+                    return wsCloseEventPromise;
                 });
         });
     });

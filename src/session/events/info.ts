@@ -15,7 +15,7 @@ export class RequestInfo {
     constructor (ctx: RequestPipelineContext) {
         this.requestId = ctx.requestId;
         this.userAgent = (ctx.reqOpts.headers['user-agent'] || '').toString();
-        this.url       = ctx.reqOpts.url;
+        this.url       = ctx.isWebSocket ? ctx.reqOpts.url.replace(/^http/, 'ws') : ctx.reqOpts.url;
         this.method    = ctx.reqOpts.method.toLowerCase();
         this.isAjax    = ctx.isAjax;
         this.headers   = ctx.reqOpts.headers;
