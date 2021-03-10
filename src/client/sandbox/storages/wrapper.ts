@@ -4,7 +4,7 @@ import { parseProxyUrl } from '../../utils/url';
 import * as destLocation from '../../utils/destination-location';
 import nativeMethods from '../native-methods';
 import { StorageProxy } from '../../../typings/client';
-import { parseJSON, stringifyJSON } from '../../../utils/json';
+import { parse as parseJSON, stringify as stringifyJSON } from '../../../utils/json';
 
 
 const STORAGE_WRAPPER_KEY = 'hammerhead|get-storage-wrapper';

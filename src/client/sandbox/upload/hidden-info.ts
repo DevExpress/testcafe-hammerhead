@@ -1,5 +1,5 @@
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
-import { parseJSON, stringifyJSON } from '../../../utils/json';
+import { parse as parseJSON, stringify as stringifyJSON } from '../../../utils/json';
 import nativeMethods from '../native-methods';
 import ShadowUI from '../shadow-ui';
 

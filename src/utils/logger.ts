@@ -4,7 +4,7 @@ import { IncomingMessage, OutgoingHttpHeaders } from 'http';
 import { ServiceMessage } from '../typings/proxy';
 import RequestOptions from '../request-pipeline/request-options';
 import errToString from './err-to-string'
-import { stringifyJSON } from './json';
+import { stringify as stringifyJSON } from './json';
 
 function getIncorrectErrorTypeMessage (err: object) {
     const errType = typeof err;

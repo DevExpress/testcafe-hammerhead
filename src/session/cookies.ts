@@ -2,7 +2,7 @@ import { CookieJar, Cookie } from 'tough-cookie';
 import BYTES_PER_COOKIE_LIMIT from './cookie-limit';
 import { castArray } from 'lodash';
 import { parseUrl } from '../utils/url';
-import { parseJSON, stringifyJSON } from '../utils/json';
+import { parse as parseJSON, stringify as stringifyJSON } from '../utils/json';
 
 const LOCALHOST_DOMAIN = 'localhost';
 const LOCALHOST_IP     = '127.0.0.1';

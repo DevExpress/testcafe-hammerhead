@@ -1,6 +1,6 @@
 import { IncomingHttpHeaders, IncomingMessage } from 'http';
 import { Readable } from 'stream';
-import { stringifyJSON } from '../utils/json';
+import { stringify as stringifyJSON } from '../utils/json';
 
 interface InitOptions {
     headers: { [name: string]: string|string[] };

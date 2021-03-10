@@ -3,7 +3,7 @@ import { ServerResponse, IncomingMessage } from 'http';
 import { defaultsDeep as defaultOptions } from 'lodash';
 import promisifyStream from '../utils/promisify-stream';
 import BUILTIN_HEADERS from '../request-pipeline/builtin-header-names';
-import { stringifyJSON } from './json';
+import { stringify as stringifyJSON } from './json';
 
 const STATIC_RESOURCES_DEFAULT_CACHING_OPTIONS = {
     maxAge:         30,

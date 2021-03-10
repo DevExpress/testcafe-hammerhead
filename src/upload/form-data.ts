@@ -2,7 +2,7 @@ import { FileInputInfo } from '../typings/upload';
 import INTERNAL_ATTRS from '../processing/dom/internal-attributes';
 import FormDataEntry from './form-data-entry';
 import * as bufferUtils from '../utils/buffer';
-import { parseJSON } from '../utils/json';
+import { parse as parseJSON } from '../utils/json';
 
 const BOUNDARY_RE = /;\s*boundary=([^;]*)/i;
 

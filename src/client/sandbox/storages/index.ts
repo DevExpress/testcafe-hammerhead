@@ -17,7 +17,7 @@ import UnloadSandbox from '../event/unload';
 import EventSimulator from '../event/simulator';
 import nativeMethods from '../native-methods';
 import { HammerheadStorageEventInit, StorageProxy } from '../../../typings/client';
-import { stringifyJSON } from '../../../utils/json';
+import { stringify as stringifyJSON } from '../../../utils/json';
 
 
 interface StoragesBackup {

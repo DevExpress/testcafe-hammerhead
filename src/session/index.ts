@@ -26,7 +26,7 @@ import COMMAND from './command';
 import generateUniqueId from '../utils/generate-unique-id';
 import SERVICE_ROUTES from '../proxy/service-routes';
 import DEFAULT_REQUEST_TIMEOUT from '../request-pipeline/destination-request/default-request-timeout';
-import { stringifyJSON } from '../utils/json';
+import { stringify as stringifyJSON } from '../utils/json';
 
 const TASK_TEMPLATE: string = read('../client/task.js.mustache');
 

@@ -7,7 +7,7 @@ import { isCrossDomainWindows, getTopSameDomainWindow, isWindow, isMessageEvent 
 import { callEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';
 import { overrideDescriptor } from '../../utils/overriding';
-import { parseJSON, stringifyJSON } from '../../../utils/json';
+import { parse as parseJSON, stringify as stringifyJSON } from '../../../utils/json';
 import Listeners from './listeners';
 import UnloadSandbox from './unload';
 

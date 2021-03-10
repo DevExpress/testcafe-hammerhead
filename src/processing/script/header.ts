@@ -7,7 +7,7 @@ import reEscape from '../../utils/regexp-escape';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import INSTRUCTION from './instruction';
 import SERVICE_ROUTES from '../../proxy/service-routes';
-import { stringifyJSON } from '../../utils/json';
+import { stringify as stringifyJSON } from '../../utils/json';
 
 export const SCRIPT_PROCESSING_START_COMMENT      = '/*hammerhead|script|start*/';
 export const SCRIPT_PROCESSING_END_COMMENT        = '/*hammerhead|script|end*/';
