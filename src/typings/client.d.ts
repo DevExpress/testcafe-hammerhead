@@ -1,4 +1,4 @@
-type StorageWrapper = any;
+import StorageWrapper from '../client/sandbox/storages/wrapper';
 
 export interface CheckByConditionOptions {
     win?: Window;

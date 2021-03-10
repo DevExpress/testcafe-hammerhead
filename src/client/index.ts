@@ -38,6 +38,7 @@ import * as sharedUrlUtils from '../utils/url';
 import * as sharedHeadersUtils from '../utils/headers';
 import * as sharedStackProcessingUtils from '../utils/stack-processing';
 import sharedSelfRemovingScripts from '../utils/self-removing-scripts';
+import { parseJSON, stringifyJSON } from '../utils/json';
 import * as urlUtils from './utils/url';
 import * as featureDetection from './utils/feature-detection';
 import * as htmlUtils from './utils/html';
@@ -135,7 +136,7 @@ class Hammerhead {
 
         // Modules
         this.Promise       = Promise;
-        this.json          = JSON;
+        this.json          = { parse: parseJSON, stringify: stringifyJSON } as JSON;
         this.nativeMethods = this.sandbox.nativeMethods;
         this.shadowUI      = this.sandbox.shadowUI;
         this.storages      = this.sandbox.storageSandbox;

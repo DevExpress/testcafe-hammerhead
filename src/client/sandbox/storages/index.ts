@@ -17,6 +17,7 @@ import UnloadSandbox from '../event/unload';
 import EventSimulator from '../event/simulator';
 import nativeMethods from '../native-methods';
 import { HammerheadStorageEventInit, StorageProxy } from '../../../typings/client';
+import { stringifyJSON } from '../../../utils/json';
 
 
 interface StoragesBackup {
@@ -141,8 +142,8 @@ export default class StorageSandbox extends SandboxBase {
 
     backup (): StoragesBackup {
         return {
-            localStorage:   JSON.stringify(this.localStorageProxy.unwrapProxy().getCurrentState()),
-            sessionStorage: JSON.stringify(this.sessionStorageProxy.unwrapProxy().getCurrentState())
+            localStorage:   stringifyJSON(this.localStorageProxy.unwrapProxy().getCurrentState()),
+            sessionStorage: stringifyJSON(this.sessionStorageProxy.unwrapProxy().getCurrentState())
         };
     }
 

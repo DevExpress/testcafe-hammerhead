@@ -4,6 +4,7 @@ import { parseProxyUrl } from '../../utils/url';
 import * as destLocation from '../../utils/destination-location';
 import nativeMethods from '../native-methods';
 import { StorageProxy } from '../../../typings/client';
+import { parseJSON, stringifyJSON } from '../../../utils/json';
 
 
 const STORAGE_WRAPPER_KEY = 'hammerhead|get-storage-wrapper';
@@ -88,7 +89,7 @@ class StorageWrapper extends StorageInheritor {
     }
 
     saveToNativeStorage () {
-        const state = JSON.stringify(this.getCurrentState());
+        const state = stringifyJSON(this.getCurrentState());
 
         if (this.internal.nativeStorage[this.internal.nativeStorageKey] !== state)
             this.internal.nativeStorage[this.internal.nativeStorageKey] = state;
@@ -130,7 +131,7 @@ class StorageWrapper extends StorageInheritor {
         if (!storageStateStr)
             storageStateStr = this.internal.nativeStorage[this.internal.nativeStorageKey];
 
-        const storageState       = JSON.parse(storageStateStr || '[[],[]]') as StorageState;
+        const storageState       = parseJSON(storageStateStr || '[[],[]]') as StorageState;
         const storageStateLength = storageState[KEY].length;
 
         for (let i = 0; i < storageStateLength; i++)

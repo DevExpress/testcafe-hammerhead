@@ -21,12 +21,13 @@ import SERVICE_ROUTES from './service-routes';
 import BUILTIN_HEADERS from '../request-pipeline/builtin-header-names';
 import logger from '../utils/logger';
 import errToString from '../utils/err-to-string';
+import { parseJSON } from '../utils/json';
 
 const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
 
 function parseAsJson (msg: Buffer): ServiceMessage | null {
     try {
-        return JSON.parse(msg.toString());
+        return parseJSON(msg.toString());
     }
     catch (err) {
         return null;

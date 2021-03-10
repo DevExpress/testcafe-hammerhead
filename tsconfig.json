@@ -22,6 +22,7 @@
     "src/**/*"
   ],
   "exclude": [
-    "src/client"
+    "src/client",
+    "src/typings/client.d.ts"
   ]
 }

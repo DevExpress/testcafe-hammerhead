@@ -4,6 +4,7 @@ import { IncomingMessage, OutgoingHttpHeaders } from 'http';
 import { ServiceMessage } from '../typings/proxy';
 import RequestOptions from '../request-pipeline/request-options';
 import errToString from './err-to-string'
+import { stringifyJSON } from './json';
 
 function getIncorrectErrorTypeMessage (err: object) {
     const errType = typeof err;
@@ -153,7 +154,7 @@ const destinationSocket = {
     enabled: destinationSocketLogger.enabled,
 
     onFirstChunk: (opts: RequestOptions, data: Buffer) => {
-        destinationSocketLogger('Destination request socket first chunk of data %s %d %s', opts.requestId, data.length, JSON.stringify(data.toString()));
+        destinationSocketLogger('Destination request socket first chunk of data %s %d %s', opts.requestId, data.length, stringifyJSON(data.toString()));
     },
 
     onError: (opts: RequestOptions, err: Error) => {

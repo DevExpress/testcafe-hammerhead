@@ -7,6 +7,7 @@ import { isCrossDomainWindows, getTopSameDomainWindow, isWindow, isMessageEvent 
 import { callEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';
 import { overrideDescriptor } from '../../utils/overriding';
+import { parseJSON, stringifyJSON } from '../../../utils/json';
 import Listeners from './listeners';
 import UnloadSandbox from './unload';
 
@@ -50,7 +51,7 @@ export default class MessageSandbox extends SandboxBase {
     private static _getMessageData (e) {
         const rawData = isMessageEvent(e) ? nativeMethods.messageEventDataGetter.call(e) : e.data;
 
-        return typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+        return typeof rawData === 'string' ? parseJSON(rawData) : rawData;
     }
 
     // NOTE: some window may be unavailable for the sending message, for example, if it was removed.
@@ -202,7 +203,7 @@ export default class MessageSandbox extends SandboxBase {
                 try {
                     targetWindow[this.RECEIVE_MSG_FN]({
                         // NOTE: Cloning a message to prevent this modification.
-                        data:   JSON.parse(JSON.stringify(message)),
+                        data:   parseJSON(stringifyJSON(message)),
                         source: this.window,
                         ports
                     });

@@ -2,6 +2,7 @@ import { FileInputInfo } from '../typings/upload';
 import INTERNAL_ATTRS from '../processing/dom/internal-attributes';
 import FormDataEntry from './form-data-entry';
 import * as bufferUtils from '../utils/buffer';
+import { parseJSON } from '../utils/json';
 
 const BOUNDARY_RE = /;\s*boundary=([^;]*)/i;
 
@@ -63,7 +64,7 @@ export default class FormData {
 
         if (uploadsEntry) {
             const body  = Buffer.concat(uploadsEntry.body).toString();
-            const files = JSON.parse(body) as FileInputInfo[];
+            const files = parseJSON(body) as FileInputInfo[];
 
             this._removeEntry(INTERNAL_ATTRS.uploadInfoHiddenInputName);
             files.forEach(fileInfo => this._injectFileInfo(fileInfo));
