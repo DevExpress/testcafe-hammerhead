@@ -1,23 +1,20 @@
-const babel                 = require('@babel/core');
-const gulpBabel             = require('gulp-babel');
-const gulpTypeScript        = require('gulp-typescript');
 const del                   = require('del');
 const eslint                = require('gulp-eslint');
 const fs                    = require('fs');
+const { Transform }         = require('stream');
+const childProcess          = require('child_process');
 const gulp                  = require('gulp');
 const gulpStep              = require('gulp-step');
 const qunitHarness          = require('gulp-qunit-harness');
 const mocha                 = require('gulp-mocha-simple');
 const mustache              = require('gulp-mustache');
 const rename                = require('gulp-rename');
-const webmake               = require('@belym.a.2105/gulp-webmake');
 const uglify                = require('gulp-uglify');
 const util                  = require('gulp-util');
 const ll                    = require('gulp-ll-next');
 const gulpRunCommand        = require('gulp-run-command').default;
 const clone                 = require('gulp-clone');
 const mergeStreams          = require('merge-stream');
-const path                  = require('path');
 const getClientTestSettings = require('./gulp/utils/get-client-test-settings');
 const SAUCELABS_SETTINGS    = require('./gulp/saucelabs-settings');
 const runPlayground         = require('./gulp/utils/run-playground');
@@ -34,70 +31,14 @@ ll
         'client-scripts-bundle'
     ]);
 
-const USE_STRICT_RE = /^(['"])use strict\1;?/;
-
 // Build
 gulp.task('clean-lib', () => {
     return del(['./lib']);
 });
 
-gulp.task('clean-outdated-js', () => {
-    // NOTE: It's necessary to prevent problems related to changing file structure in the 'src' folder
-    return del(['./src/**/*.js']);
-});
-
-gulp.step('client-scripts-transpile', () => {
-    const tsConfig = gulpTypeScript.createProject('tsconfig.json');
-
-    const sharedScripts = [
-        './src/processing/**/*.ts',
-        './src/request-pipeline/xhr/*.ts',
-        './src/request-pipeline/*-header-names.ts',
-        './src/shadow-ui/*.ts',
-        './src/typings/*.ts',
-        './src/upload/*.ts',
-        './src/utils/*.ts',
-        './src/session/*.ts',
-        './src/proxy/service-routes.ts'
-    ];
-
-    return gulp.src(['./src/client/**/*.ts'].concat(sharedScripts))
-        .pipe(tsConfig())
-        .pipe(gulp.dest(file => file.base));
-});
-
 gulp.step('client-scripts-bundle', () => {
-    const transform = (filename, code) => {
-        const transformed = babel.transform(code, {
-            sourceMap: false,
-            filename:  filename,
-            ast:       false,
-            // NOTE: force usage of client .babelrc for all
-            // files, regardless of their location
-            babelrc:   false,
-            extends:   path.join(__dirname, './src/client/.babelrc')
-        });
-
-        // HACK: babel-plugin-transform-es2015-modules-commonjs forces
-        // 'use strict' insertion. We need to remove it manually because
-        // of https://github.com/DevExpress/testcafe/issues/258
-        return { code: transformed.code.replace(USE_STRICT_RE, '') };
-    };
-
-    const hammerhead = gulp.src('./src/client/index.js')
-        .pipe(webmake({ sourceMap: false, transform }))
-        .pipe(rename('hammerhead.js'));
-
-    const transportWorker = gulp.src('./src/client/transport-worker/index.js')
-        .pipe(webmake({ sourceMap: false, transform }))
-        .pipe(rename('transport-worker.js'));
-
-    const workerHammerhead = gulp.src('./src/client/worker/index.js')
-        .pipe(webmake({ sourceMap: false, transform }))
-        .pipe(rename('worker-hammerhead.js'));
-
-    return mergeStreams(hammerhead, transportWorker, workerHammerhead)
-        .pipe(gulp.dest('./lib/client'));
+    return childProcess
+        .spawn('npx rollup -c', { shell: true, stdio: 'inherit' });
 });
 
 gulp.step('client-scripts-processing', () => {
@@ -121,16 +62,41 @@ gulp.step('client-scripts-processing', () => {
         .pipe(gulp.dest('./lib/client'));
 });
 
-gulp.step('client-scripts', gulp.series('client-scripts-transpile', 'client-scripts-bundle', 'client-scripts-processing'));
+gulp.step('client-scripts', gulp.series('client-scripts-bundle', 'client-scripts-processing'));
 
-gulp.step('server-scripts', () => {
+// TODO: get rid of this step when we migrate to proper ES6 default imports
+gulp.step('server-scripts-add-exports', () => {
+    const transform = new Transform({
+        objectMode: true,
+
+        transform (file, enc, cb) {
+            const fileSource = file.contents.toString();
+
+            if (fileSource.includes('exports.default =')) {
+                const sourceMapIndex = fileSource.indexOf('//# sourceMappingURL');
+                const modifiedSource = fileSource.slice(0, sourceMapIndex) + 'module.exports = exports.default;\n' + fileSource.slice(sourceMapIndex);
+
+                file.contents = Buffer.from(modifiedSource);
+            }
+
+            cb(null, file);
+        }
+    });
+
     return gulp
         .src([
-            './src/**/*.ts',
-            '!src/client/**/*.ts'
+            'lib/**/*.js',
+            '!lib/client/**/*.js'
         ])
-        .pipe(gulpBabel())
+        .pipe(transform)
         .pipe(gulp.dest('lib'));
+});
+
+gulp.step('server-scripts', () => {
+    const generateSourceMap = util.env.dev ? '--inlineSourceMap true' : '';
+
+    return childProcess
+        .spawn(`npx tsc -p tsconfig.json ${generateSourceMap}`, { shell: true, stdio: 'inherit' });
 });
 
 gulp.step('templates', () => {
@@ -165,8 +131,8 @@ gulp.task('lint', gulp.parallel('lint-js', 'lint-ts'));
 gulp.task('build',
     gulp.series(
         'clean-lib',
-        'clean-outdated-js',
         'server-scripts',
+        'server-scripts-add-exports',
         gulp.parallel(
             'client-scripts',
             'templates',

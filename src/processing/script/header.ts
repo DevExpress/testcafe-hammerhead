@@ -7,6 +7,7 @@ import reEscape from '../../utils/regexp-escape';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import INSTRUCTION from './instruction';
 import SERVICE_ROUTES from '../../proxy/service-routes';
+import { stringify as stringifyJSON } from '../../utils/json';
 
 export const SCRIPT_PROCESSING_START_COMMENT      = '/*hammerhead|script|start*/';
 export const SCRIPT_PROCESSING_END_COMMENT        = '/*hammerhead|script|end*/';
@@ -71,7 +72,7 @@ export function remove (code: string): string {
 export function add (code: string, isStrictMode: boolean, swScopeHeaderValue?: string): string {
     const header = HEADER
         .replace(STRICT_MODE_PLACEHOLDER, isStrictMode ? '"use strict";' : '')
-        .replace(SW_SCOPE_HEADER_VALUE, swScopeHeaderValue ? `var ${INSTRUCTION.swScopeHeaderValue} = ${JSON.stringify(swScopeHeaderValue)};` : '');
+        .replace(SW_SCOPE_HEADER_VALUE, swScopeHeaderValue ? `var ${INSTRUCTION.swScopeHeaderValue} = ${stringifyJSON(swScopeHeaderValue)};` : '');
 
     return header + code + '\n' + SCRIPT_PROCESSING_END_COMMENT;
 }

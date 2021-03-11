@@ -1,6 +1,6 @@
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
+import { parse as parseJSON, stringify as stringifyJSON } from '../../../utils/json';
 import nativeMethods from '../native-methods';
-import * as JSON from 'json-hammerhead';
 import ShadowUI from '../shadow-ui';
 
 function createInput (form: HTMLFormElement) {
@@ -70,14 +70,14 @@ export function addInputInfo (input, fileList, value) {
 }
 
 export function getFormInfo (input) {
-    return input.form ? JSON.parse(nativeMethods.inputValueGetter.call(getInput(input.form))) : null;
+    return input.form ? parseJSON(nativeMethods.inputValueGetter.call(getInput(input.form))) : null;
 }
 
 export function setFormInfo (input, info) {
     if (input.form) {
         const hiddenInput = getInput(input.form);
 
-        nativeMethods.inputValueSetter.call(hiddenInput, JSON.stringify(info));
+        nativeMethods.inputValueSetter.call(hiddenInput, stringifyJSON(info));
     }
 }
 

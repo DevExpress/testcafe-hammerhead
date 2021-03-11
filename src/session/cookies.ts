@@ -2,6 +2,7 @@ import { CookieJar, Cookie } from 'tough-cookie';
 import BYTES_PER_COOKIE_LIMIT from './cookie-limit';
 import { castArray } from 'lodash';
 import { parseUrl } from '../utils/url';
+import { parse as parseJSON, stringify as stringifyJSON } from '../utils/json';
 
 const LOCALHOST_DOMAIN = 'localhost';
 const LOCALHOST_IP     = '127.0.0.1';
@@ -57,12 +58,12 @@ export default class Cookies {
     }
 
     serializeJar (): string {
-        return JSON.stringify(this._cookieJar.serializeSync());
+        return stringifyJSON(this._cookieJar.serializeSync());
     }
 
     setJar (serializedJar): void {
         this._cookieJar = serializedJar
-            ? CookieJar.deserializeSync(JSON.parse(serializedJar))
+            ? CookieJar.deserializeSync(parseJSON(serializedJar))
             : new CookieJar();
     }
 

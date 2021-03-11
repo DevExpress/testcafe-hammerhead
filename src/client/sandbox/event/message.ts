@@ -3,11 +3,11 @@ import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import * as destLocation from '../../utils/destination-location';
 import { formatUrl } from '../../utils/url';
-import { parse as parseJSON, stringify as stringifyJSON } from 'json-hammerhead';
 import { isCrossDomainWindows, getTopSameDomainWindow, isWindow, isMessageEvent } from '../../utils/dom';
 import { callEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';
 import { overrideDescriptor } from '../../utils/overriding';
+import { parse as parseJSON, stringify as stringifyJSON } from '../../../utils/json';
 import Listeners from './listeners';
 import UnloadSandbox from './unload';
 

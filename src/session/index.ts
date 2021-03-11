@@ -26,6 +26,7 @@ import COMMAND from './command';
 import generateUniqueId from '../utils/generate-unique-id';
 import SERVICE_ROUTES from '../proxy/service-routes';
 import DEFAULT_REQUEST_TIMEOUT from '../request-pipeline/destination-request/default-request-timeout';
+import { stringify as stringifyJSON } from '../utils/json';
 
 const TASK_TEMPLATE: string = read('../client/task.js.mustache');
 
@@ -139,7 +140,7 @@ export default abstract class Session extends EventEmitter {
     }
 
     _fillTaskScriptTemplate ({ serverInfo, isFirstPageLoad, referer, cookie, iframeTaskScriptTemplate, payloadScript, allowMultipleWindows, isRecordMode, windowId }: TaskScriptTemplateOpts): string {
-        referer                  = referer && JSON.stringify(referer) || '{{{referer}}}';
+        referer                  = referer && stringifyJSON(referer) || '{{{referer}}}';
         cookie                   = cookie || '{{{cookie}}}';
         iframeTaskScriptTemplate = iframeTaskScriptTemplate || '{{{iframeTaskScriptTemplate}}}';
 
@@ -174,11 +175,11 @@ export default abstract class Session extends EventEmitter {
             isRecordMode:             this._recordMode
         });
 
-        return JSON.stringify(taskScriptTemplate);
+        return stringifyJSON(taskScriptTemplate);
     }
 
     async getTaskScript ({ referer, cookieUrl, serverInfo, isIframe, withPayload, windowId }: TaskScriptOpts): Promise<string> {
-        const cookies     = JSON.stringify(this.cookies.getClientString(cookieUrl));
+        const cookies     = stringifyJSON(this.cookies.getClientString(cookieUrl));
         let payloadScript = '';
 
         if (withPayload)

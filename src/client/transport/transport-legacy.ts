@@ -2,7 +2,7 @@ import { ServiceMessage } from '../../typings/proxy';
 import Promise from 'pinkie';
 import nativeMethods from '../sandbox/native-methods';
 import settings from '../settings';
-import { stringify as stringifyJSON, parse as parseJSON } from 'json-hammerhead';
+import { parse as parseJSON, stringify as stringifyJSON } from '../../utils/json';
 
 const SERVICE_MESSAGES_WAITING_INTERVAL = 50;
 

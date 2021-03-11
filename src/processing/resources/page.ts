@@ -12,6 +12,7 @@ import RequestPipelineContext from '../../request-pipeline/context';
 import Charset from '../encoding/charset';
 import BaseDomAdapter from '../dom/base-dom-adapter';
 import SERVICE_ROUTES from '../../proxy/service-routes';
+import { stringify as stringifyJSON } from '../../utils/json';
 
 const PARSED_BODY_CREATED_EVENT_SCRIPT                = parse5.parseFragment(SELF_REMOVING_SCRIPTS.onBodyCreated).childNodes[0];
 const PARSED_ORIGIN_FIRST_TITLE_ELEMENT_LOADED_SCRIPT = parse5.parseFragment(SELF_REMOVING_SCRIPTS.onOriginFirstTitleLoaded).childNodes[0];
@@ -37,8 +38,8 @@ class PageProcessor extends ResourceProcessorBase {
 
     private _createRestoreStoragesScript (storageKey: string, storages): ASTNode {
         const parsedDocumentFragment = parse5.parseFragment(util.format(SELF_REMOVING_SCRIPTS.restoreStorages,
-            storageKey, JSON.stringify(storages.localStorage),
-            storageKey, JSON.stringify(storages.sessionStorage)));
+            storageKey, stringifyJSON(storages.localStorage),
+            storageKey, stringifyJSON(storages.sessionStorage)));
 
         return parsedDocumentFragment.childNodes[0];
     }

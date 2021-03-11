@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "target": "ES5",
+        "module": "ES6",
+        "moduleResolution": "node",
+        "lib": ["DOM", "DOM.Iterable"],
+        "allowSyntheticDefaultImports": true,
+        "allowJs": true,
+        "esModuleInterop": true
+    },
+    "include": [
+        "./**/*.ts",
+        "../typings/*.ts",
+        "../processing/**/*.ts",
+        "../request-pipeline/xhr/*.ts",
+        "../request-pipeline/*-header-names.ts",
+        "../shadow-ui/*.ts",
+        "../upload/*.ts",
+        "../utils/*.ts",
+        "../session/*.ts",
+        "../proxy/service-routes.ts"
+    ]
+}

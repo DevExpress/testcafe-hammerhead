@@ -1,5 +1,6 @@
 import { IncomingHttpHeaders, IncomingMessage } from 'http';
 import { Readable } from 'stream';
+import { stringify as stringifyJSON } from '../utils/json';
 
 interface InitOptions {
     headers: { [name: string]: string|string[] };
@@ -43,7 +44,7 @@ export default class IncomingMessageLike extends Readable {
         else if (body instanceof Buffer)
             return body;
 
-        const bodyStr = typeof body === 'object' ? JSON.stringify(body) : String(body);
+        const bodyStr = typeof body === 'object' ? stringifyJSON(body) : String(body);
 
         return Buffer.from(bodyStr);
     }

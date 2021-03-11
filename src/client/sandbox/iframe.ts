@@ -5,10 +5,10 @@ import nativeMethods from '../sandbox/native-methods';
 import DomProcessor from '../../processing/dom';
 import { isShadowUIElement, isIframeWithoutSrc, isIframeElement, isFrameElement } from '../utils/dom';
 import { isFirefox, isWebKit, isIE } from '../utils/browser';
-import * as JSON from 'json-hammerhead';
 import NodeMutation from './node/mutation';
 import CookieSandbox from './cookie';
 import { isNativeFunction } from '../utils/overriding';
+import { stringify as stringifyJSON } from '../../utils/json';
 
 const IFRAME_WINDOW_INITED = 'hammerhead|iframe-window-inited';
 
@@ -132,12 +132,12 @@ export default class IframeSandbox extends SandboxBase {
         // If it is needed elsewhere in a certain place, we should consider using Mustache.
         const taskScriptTemplate       = settings.get().iframeTaskScriptTemplate;
         const escapeStringPatterns     = (str: string) => str.replace(/\$/g, '$$$$');
-        const cookie                   = JSON.stringify(this._cookieSandbox.getCookie());
+        const cookie                   = stringifyJSON(this._cookieSandbox.getCookie());
         const referer                  = settings.get().referer || this.window.location.toString();
-        const iframeTaskScriptTemplate = JSON.stringify(taskScriptTemplate);
+        const iframeTaskScriptTemplate = stringifyJSON(taskScriptTemplate);
         const taskScript               = taskScriptTemplate
             .replace('{{{cookie}}}', escapeStringPatterns(cookie))
-            .replace('{{{referer}}}', escapeStringPatterns(JSON.stringify(referer)))
+            .replace('{{{referer}}}', escapeStringPatterns(stringifyJSON(referer)))
             .replace('{{{iframeTaskScriptTemplate}}}', escapeStringPatterns(iframeTaskScriptTemplate));
 
         const contentWindow = nativeMethods.contentWindowGetter.call(iframe);

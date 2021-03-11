@@ -21,7 +21,6 @@ import LocationInstrumentation from './sandbox/code-instrumentation/location';
 import LocationWrapper from './sandbox/code-instrumentation/location/wrapper';
 import settings from './settings';
 import Transport from './transport';
-import * as JSON from 'json-hammerhead';
 import * as browserUtils from './utils/browser';
 import * as destLocationUtils from './utils/destination-location';
 import * as domUtils from './utils/dom';
@@ -39,6 +38,7 @@ import * as sharedUrlUtils from '../utils/url';
 import * as sharedHeadersUtils from '../utils/headers';
 import * as sharedStackProcessingUtils from '../utils/stack-processing';
 import sharedSelfRemovingScripts from '../utils/self-removing-scripts';
+import * as json from '../utils/json';
 import * as urlUtils from './utils/url';
 import * as featureDetection from './utils/feature-detection';
 import * as htmlUtils from './utils/html';
@@ -74,7 +74,7 @@ class Hammerhead {
     processScript: Function;
     get: Function;
     Promise: any;
-    json: any;
+    json: typeof json;
     transport: Transport;
     nativeMethods: any;
     shadowUI: ShadowUI;
@@ -134,14 +134,9 @@ class Hammerhead {
         this.createNativeXHR = XhrSandbox.createNativeXHR;
         this.processScript   = scriptProcessingUtils.processScript;
 
-        // NOTE: We should provide a function to retrieve modules, because hammerhead will be bundled into a single
-        // file and we will not have access to the internal modules by default.
-        // eslint-disable-next-line no-undef
-        this.get = require;
-
         // Modules
         this.Promise       = Promise;
-        this.json          = JSON;
+        this.json          = json;
         this.nativeMethods = this.sandbox.nativeMethods;
         this.shadowUI      = this.sandbox.shadowUI;
         this.storages      = this.sandbox.storageSandbox;

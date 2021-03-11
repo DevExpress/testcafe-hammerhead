@@ -17,9 +17,9 @@ module('clean up html');
 test('hover marker', function () {
     var storedGetProxyUrl = urlUtils.getProxyUrl;
 
-    urlUtils.getProxyUrl = function (url) {
+    urlUtils.overrideGetProxyUrl(function (url) {
         return url + '_proxy';
-    };
+    });
 
     var html = '<a href="http://domain.com"></a>' +
                '<div ' + INTERNAL_ATTRS.hoverPseudoClass + '></div>' +
@@ -30,7 +30,7 @@ test('hover marker', function () {
 
     strictEqual(htmlUtils.cleanUpHtml(processedHtml), expected);
 
-    urlUtils.getProxyUrl = storedGetProxyUrl;
+    urlUtils.overrideGetProxyUrl(storedGetProxyUrl);
 });
 
 test('focus marker', function () {
@@ -78,9 +78,9 @@ test('attribute with a special proxying logic (GH-1448)', function () {
 test('form', function () {
     var storedGetProxyUrl = urlUtils.getProxyUrl;
 
-    urlUtils.getProxyUrl = function (url) {
+    urlUtils.overrideGetProxyUrl(function (url) {
         return url + '_proxy';
-    };
+    });
 
     var url          = 'http://domain.com';
     var pocessedHtml = '<form action="' + urlUtils.getProxyUrl(url) + '" ' +
@@ -89,7 +89,7 @@ test('form', function () {
 
     strictEqual(htmlUtils.cleanUpHtml(pocessedHtml), expexted);
 
-    urlUtils.getProxyUrl = storedGetProxyUrl;
+    urlUtils.overrideGetProxyUrl(storedGetProxyUrl);
 });
 
 module('process html');
@@ -201,9 +201,9 @@ test('text nodes', function () {
 test('page html', function () {
     var storedConvertToProxyUrl = urlUtils.convertToProxyUrl;
 
-    urlUtils.convertToProxyUrl = function (url) {
+    urlUtils.overrideConvertToProxyUrl(function (url) {
         return 'replaced' + url;
-    };
+    });
 
     var check = function (html) {
         var processedHtml = htmlUtils.processHtml(html);
@@ -226,7 +226,7 @@ test('page html', function () {
     check('<body><script src="HeadScript.js"><' + '/script>\u2028\u2029<script src="BodyScript.js"><' + '/script></body>');
     check('<body><script src="HeadScript.js"><' + '/script>\u2028\u2029<script src="BodyScript.js"><' + '/script></body>');
 
-    urlUtils.convertToProxyUrl = storedConvertToProxyUrl;
+    urlUtils.overrideConvertToProxyUrl(storedConvertToProxyUrl);
 });
 
 test('noscript tag', function () {

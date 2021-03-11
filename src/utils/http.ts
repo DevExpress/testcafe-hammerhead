@@ -3,6 +3,7 @@ import { ServerResponse, IncomingMessage } from 'http';
 import { defaultsDeep as defaultOptions } from 'lodash';
 import promisifyStream from '../utils/promisify-stream';
 import BUILTIN_HEADERS from '../request-pipeline/builtin-header-names';
+import { stringify as stringifyJSON } from './json';
 
 const STATIC_RESOURCES_DEFAULT_CACHING_OPTIONS = {
     maxAge:         30,
@@ -40,7 +41,7 @@ export function respondWithJSON (res: ServerResponse, data: object, skipContentT
 
     // NOTE: GH-105
     addPreventCachingHeaders(res);
-    res.end(data ? JSON.stringify(data) : '');
+    res.end(data ? stringifyJSON(data) : '');
 }
 
 export function respondStatic (req: IncomingMessage, res: any, resource: any, cachingOptions: any = {}): void {

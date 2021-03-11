@@ -14,9 +14,7 @@ export default class ElectronSandbox extends SandboxBase {
     }
 
     static _overrideElectronModulePaths (window) {
-        // NOTE: Need this to avoid Webmake require
-        // eslint-disable-next-line no-eval
-        const electronRequire = eval('require');
+        const electronRequire = window.require;
         const path            = electronRequire('path');
         const destination     = destinationLocation.getParsed();
 

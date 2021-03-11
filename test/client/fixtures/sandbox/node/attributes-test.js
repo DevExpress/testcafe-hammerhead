@@ -479,13 +479,13 @@ test('crossdomain iframe', function () {
     var proxyUrl            = 'http://proxy.com/';
 
 
-    urlUtils.getProxyUrl = function () {
+    urlUtils.overrideGetProxyUrl(function () {
         return proxyUrl;
-    };
+    });
 
-    urlUtils.getCrossDomainIframeProxyUrl = function () {
+    urlUtils.overrideGetCrossDomainIframeProxyUrl(function () {
         return crossDomainProxyUrl;
-    };
+    });
 
     iframe.src = crossDomainUrl;
 
@@ -499,8 +499,8 @@ test('crossdomain iframe', function () {
     strictEqual(nativeMethods.getAttribute.call(iframe, 'src'), proxyUrl);
     strictEqual(iframe.getAttribute('src'), location.toString() + '?param');
 
-    urlUtils.getProxyUrl                  = savedGetProxyUrl;
-    urlUtils.getCrossDomainIframeProxyUrl = savedGetCrossDomainIframeProxyUrl;
+    urlUtils.overrideGetProxyUrl(savedGetProxyUrl);
+    urlUtils.overrideGetCrossDomainIframeProxyUrl(savedGetCrossDomainIframeProxyUrl);
 });
 
 test('input.autocomplete', function () {

@@ -192,9 +192,9 @@ test('setting the link.href attribute to "mailto" in iframe (T228218)', function
     var storedGetProxyUrl = urlUtils.getProxyUrl;
     var anchror           = document.createElement('a');
 
-    urlUtils.getProxyUrl = function () {
+    urlUtils.overrideGetProxyUrl(function () {
         return 'http://replaced';
-    };
+    });
 
     anchror.href = 'http://host.com/';
 
@@ -206,7 +206,7 @@ test('setting the link.href attribute to "mailto" in iframe (T228218)', function
     strictEqual(anchror.href, 'mailto:test@mail.com');
     strictEqual(anchror.getAttribute('href'), 'mailto:test@mail.com');
 
-    urlUtils.getProxyUrl = storedGetProxyUrl;
+    urlUtils.overrideGetProxyUrl(storedGetProxyUrl);
 });
 
 test('link without the href attrubute must return an empty value for href (B238838)', function () {

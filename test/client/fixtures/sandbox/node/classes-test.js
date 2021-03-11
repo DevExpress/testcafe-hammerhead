@@ -711,9 +711,9 @@ if (navigator.registerProtocolHandler) {
             }
         };
 
-        destLocation.get = function () {
+        destLocation.overrideGet(function () {
             return 'https://example.com:233';
-        };
+        });
 
         testUrl('https://example.com:233/?url=%s', false, 'Destination url');
         testUrl('http://example.com:233/?url=%s', !browserUtils.isFirefox, 'Another protocol');
@@ -721,7 +721,7 @@ if (navigator.registerProtocolHandler) {
         testUrl('https://example.com:934/?url=%s', !browserUtils.isFirefox, 'Another port');
         testUrl('https://subdomain.example.com:233/?url=%s', true, 'Sub domain');
 
-        destLocation.get = savedGetOriginLocation;
+        destLocation.overrideGet(savedGetOriginLocation);
     });
 }
 

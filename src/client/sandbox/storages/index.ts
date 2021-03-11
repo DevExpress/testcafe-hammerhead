@@ -5,7 +5,6 @@ import * as destLocation from '../../utils/destination-location';
 import { getTopSameDomainWindow } from '../../utils/dom';
 import getStorageKey from '../../../utils/get-storage-key';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
-import * as JSON from 'json-hammerhead';
 import {
     createOverriddenDescriptor,
     overrideConstructor,
@@ -18,6 +17,7 @@ import UnloadSandbox from '../event/unload';
 import EventSimulator from '../event/simulator';
 import nativeMethods from '../native-methods';
 import { HammerheadStorageEventInit, StorageProxy } from '../../../typings/client';
+import { stringify as stringifyJSON } from '../../../utils/json';
 
 
 interface StoragesBackup {
@@ -142,8 +142,8 @@ export default class StorageSandbox extends SandboxBase {
 
     backup (): StoragesBackup {
         return {
-            localStorage:   JSON.stringify(this.localStorageProxy.unwrapProxy().getCurrentState()),
-            sessionStorage: JSON.stringify(this.sessionStorageProxy.unwrapProxy().getCurrentState())
+            localStorage:   stringifyJSON(this.localStorageProxy.unwrapProxy().getCurrentState()),
+            sessionStorage: stringifyJSON(this.sessionStorageProxy.unwrapProxy().getCurrentState())
         };
     }
 
