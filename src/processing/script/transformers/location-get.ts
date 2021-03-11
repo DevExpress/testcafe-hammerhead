@@ -44,6 +44,10 @@ const transformer: Transformer<Identifier> = {
         if (parent.type === Syntax.Property && parent.key === node)
             return false;
 
+        // Skip: { location }
+        if (parent.type === Syntax.Property && parent.value === node && parent.shorthand)
+            return false;
+
         // Skip: location++ || location-- || ++location || --location
         if (parent.type === Syntax.UpdateExpression && (parent.operator === '++' || parent.operator === '--'))
             return false;

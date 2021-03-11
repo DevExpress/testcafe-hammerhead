@@ -49,6 +49,10 @@ const transformer: Transformer<Identifier> = {
         if (parent.type === Syntax.Property && parent.key === node)
             return false;
 
+        // Skip: { postMessage }
+        if (parent.type === Syntax.Property && parent.value === node && parent.shorthand)
+            return false;
+
         // Skip: postMessage = value || function x (postMessage = value) { ... }
         if ((parent.type === Syntax.AssignmentExpression || parent.type === Syntax.AssignmentPattern) &&
             parent.left === node)

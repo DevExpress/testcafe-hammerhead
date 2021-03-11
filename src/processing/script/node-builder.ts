@@ -51,7 +51,7 @@ export function createAssignmentExpression (left: Pattern | MemberExpression, op
 }
 
 export function createSimpleCallExpression (callee: Expression | Super, args: (Expression | SpreadElement)[]): SimpleCallExpression {
-    return { type: Syntax.CallExpression, callee, arguments: args };
+    return { type: Syntax.CallExpression, callee, arguments: args, optional: false };
 }
 
 export function createArrayExpression (elements: (Expression | SpreadElement)[]): ArrayExpression {
@@ -59,7 +59,7 @@ export function createArrayExpression (elements: (Expression | SpreadElement)[])
 }
 
 export function createMemberExpression (object: Expression | Super, property: Expression, computed: boolean): MemberExpression {
-    return { type: Syntax.MemberExpression, object, property, computed };
+    return { type: Syntax.MemberExpression, object, property, computed, optional: false };
 }
 
 export function createBinaryExpression (left: Expression, operator: BinaryOperator, right: Expression): BinaryExpression {
@@ -196,7 +196,7 @@ export function getProxyUrlLiteral (source: Literal, resolver: Function): Simple
     return createSimpleLiteral(proxyUrl);
 }
 
-export function createGetProxyUrlMethodCall (arg: Expression | SpreadElement, baseUrl?: string): CallExpression {
+export function createGetProxyUrlMethodCall (arg: Expression, baseUrl?: string): CallExpression {
     const getProxyUrlIdentifier                = createIdentifier(INSTRUCTION.getProxyUrl);
     const args: (Expression | SpreadElement)[] = [arg];
 

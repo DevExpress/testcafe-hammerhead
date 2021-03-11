@@ -57,7 +57,6 @@ function createTempIdentifierOrUseExisting (value: Expression, build: NodeBuilde
 
 function processObjectPattern (pattern: ObjectPattern, value: Expression, build: NodeBuilder, baseTempName?: string) {
     const properties     = pattern.properties;
-    // @ts-ignore
     const hasRest        = properties.length && properties[properties.length - 1].type === Syntax.RestElement;
     const tempIdentifier = createTempIdentifierOrUseExisting(value, build, baseTempName);
     const propNames      = [] as Expression[];
@@ -68,7 +67,7 @@ function processObjectPattern (pattern: ObjectPattern, value: Expression, build:
 
     if (hasRest) {
         for (let i = 0; i < properties.length - 1; i++) {
-            const prop = properties[i];
+            const prop = properties[i] as AssignmentProperty;
             const key  = prop.key;
 
             if (key.type === Syntax.Identifier)
@@ -89,20 +88,18 @@ function processObjectPattern (pattern: ObjectPattern, value: Expression, build:
     for (let i = 0; i < properties.length; i++) {
         const prop = properties[i];
 
-        // @ts-ignore
-        if (prop.type === Syntax.RestElement) {
-            // @ts-ignore
+        if (prop.type === Syntax.RestElement)
             build(prop.argument, createObjectRest(tempIdentifier, propNames));
-        }
         else {
-            let newBaseTempName = TempVariables.generateName(baseTempName, prop.key, i);
+            const assignmentProp = prop as AssignmentProperty;
+            let newBaseTempName  = TempVariables.generateName(baseTempName, assignmentProp.key, i);
 
             if (baseTempNames.indexOf(newBaseTempName) > -1)
                 newBaseTempName = TempVariables.generateName(newBaseTempName, void 0, i);
 
             baseTempNames.push(newBaseTempName);
 
-            processObjectProperty(prop, tempIdentifier, build, newBaseTempName);
+            processObjectProperty(assignmentProp, tempIdentifier, build, newBaseTempName);
         }
     }
 }
