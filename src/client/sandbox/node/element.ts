@@ -422,16 +422,19 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
-    private _addNodeCore<K, A extends (string | Node)[]> (parent: Element | Node & ParentNode,
-                                                          context: Element | Node & ParentNode,
-                                                          newNodes: (string | Node)[], args: A,
-                                                          nativeFn: (...args: A) => K, checkBody = true): K {
-        this._prepareNodesForInsertion(newNodes, parent);
+    private _addNodeCore<K, A extends (string | Node)[]> (
+        parent: Element | Node & ParentNode, context: Element | Node & ParentNode,
+        newNodesRange: [number, number], args: A, nativeFn: (...args: A) => K, checkBody = true): K {
+
+        this._prepareNodesForInsertion(args, newNodesRange, parent);
 
         let result            = null;
         const childNodesArray = [] as Node[];
+        const [start, end]    = newNodesRange;
 
-        for (const node of newNodes) {
+        for (let i = start; i < end; i++) {
+            const node = args[i];
+
             if (domUtils.isDocumentFragmentNode(node)) {
                 const childNodes = nativeMethods.nodeChildNodesGetter.call(node);
 
@@ -445,8 +448,11 @@ export default class ElementSandbox extends SandboxBase {
         // some javascript frameworks create their own body element, perform
         // certain manipulations and then remove it.
         // Therefore, we need to check if the body element is present in DOM
-        if (checkBody && domUtils.isBodyElementWithChildren(parent) && domUtils.isElementInDocument(parent))
+        if (checkBody && domUtils.isBodyElementWithChildren(parent) && domUtils.isElementInDocument(parent)) {
+            const newNodes = nativeMethods.arraySlice.apply(args, newNodesRange);
+
             result = this._shadowUI.insertBeforeRoot(newNodes);
+        }
         else
             result = nativeFn.apply(context, args);
 
@@ -467,17 +473,34 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
-    private _prepareNodesForInsertion (nodes: (string | Node)[], parentNode: Node): void {
-        for (let i = 0; i < nodes.length; i++) {
-            const node = nodes[i];
+    private _prepareNodesForInsertion (args: (string | Node)[], newNodesRange: [number, number], parentNode: Node): void {
+        const [start, end] = newNodesRange;
+
+        for (let i = start; i < end; i++) {
+            const node = args[i];
 
             if (typeof node === 'string')
-                nodes[i] = ElementSandbox._processTextContent(node, parentNode);
+                args[i] = ElementSandbox._processTextContent(node, parentNode);
             else if (domUtils.isTextNode(node))
                 node.data = ElementSandbox._processTextContent(node.data, parentNode);
             else
                 this._nodeSandbox.processNodes(node as Element | DocumentFragment);
         }
+    }
+
+    private _insertAdjacentTextOrElement<K, A extends [string, string | Element]> (
+        context: Element, args: A, nativeFn: (...args: A) => K): K {
+
+        const position = args[0]?.toLocaleLowerCase?.();
+        const parent   = position === InsertPosition.beforeBegin || position === InsertPosition.afterEnd
+            ? nativeMethods.nodeParentNodeGetter.call(context)
+            : context;
+
+        if (!parent)
+            return nativeMethods.insertAdjacentElement.apply(context, args);
+
+        return this._addNodeCore(parent, context, [1, 2], args,
+            nativeFn, position === InsertPosition.beforeEnd);
     }
 
     private _createOverriddenMethods () {
@@ -513,26 +536,35 @@ export default class ElementSandbox extends SandboxBase {
                 return cell;
             },
 
-            insertAdjacentHTML (...args) {
-                const position = args[0];
+            insertAdjacentHTML (this: Element, ...args: Parameters<Element['insertAdjacentHTML']>) {
+                const position = args[0]?.toLocaleLowerCase?.();
                 const html     = args[1];
-                const el       = this;
-                const parentEl = nativeMethods.nodeParentNodeGetter.call(el);
+                const parent   = position === InsertPosition.beforeBegin || position === InsertPosition.afterEnd
+                    ? nativeMethods.nodeParentNodeGetter.call(this)
+                    : this;
 
-                if (args.length > 1 && html !== null) {
+                if (args.length > 1 && html !== null && parent) {
                     args[1] = processHtml(String(html), {
-                        parentTag:        parentEl && parentEl['tagName'],
-                        processedContext: el[INTERNAL_PROPS.processedContext]
+                        parentTag:        parent['tagName'],
+                        processedContext: parent[INTERNAL_PROPS.processedContext]
                     });
                 }
 
-                nativeMethods.insertAdjacentHTML.apply(el, args);
-                sandbox._nodeSandbox.processNodes(parentEl || el);
+                nativeMethods.insertAdjacentHTML.apply(this, args);
 
-                if (position === InsertPosition.afterBegin || position === InsertPosition.beforeEnd)
-                    DOMMutationTracker.onChildrenChanged(el);
-                else if (parentEl)
-                    DOMMutationTracker.onChildrenChanged(parentEl);
+                if (!parent)
+                    return;
+
+                sandbox._nodeSandbox.processNodes(parent);
+                DOMMutationTracker.onChildrenChanged(parent);
+            },
+
+            insertAdjacentElement (this: Element, ...args: Parameters<Element['insertAdjacentElement']>) {
+                return sandbox._insertAdjacentTextOrElement(this, args, nativeMethods.insertAdjacentElement);
+            },
+
+            insertAdjacentText (this: Element, ...args: Parameters<Element['insertAdjacentText']>) {
+                return sandbox._insertAdjacentTextOrElement(this, args, nativeMethods.insertAdjacentText);
             },
 
             formSubmit () {
@@ -552,19 +584,19 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             insertBefore (this: Node & ParentNode, ...args: Parameters<Node['insertBefore']>) {
-                return sandbox._addNodeCore(this, this, [args[0]], args, nativeMethods.insertBefore, !args[1]);
+                return sandbox._addNodeCore(this, this, [0, 1], args, nativeMethods.insertBefore, !args[1]);
             },
 
             appendChild (this: Node & ParentNode, ...args: Parameters<Node['appendChild']>) {
-                return sandbox._addNodeCore(this, this, [args[0]], args, nativeMethods.appendChild);
+                return sandbox._addNodeCore(this, this, [0, 1], args, nativeMethods.appendChild);
             },
 
             append (this: Element, ...args: Parameters<Element['append']>) {
-                return sandbox._addNodeCore(this, this, args, args, nativeMethods.append);
+                return sandbox._addNodeCore(this, this, [0, args.length], args, nativeMethods.append);
             },
 
             prepend (this: Element, ...args: Parameters<Element['prepend']>) {
-                return sandbox._addNodeCore(this, this, args, args, nativeMethods.prepend, false);
+                return sandbox._addNodeCore(this, this, [0, args.length], args, nativeMethods.prepend, false);
             },
 
             after (this: Element, ...args: Parameters<Element['after']>) {
@@ -573,20 +605,11 @@ export default class ElementSandbox extends SandboxBase {
                 if (!parent)
                     return nativeMethods.after.apply(this, args);
 
-                return sandbox._addNodeCore(parent, this, args, args, nativeMethods.after, false);
+                return sandbox._addNodeCore(parent, this, [0, args.length], args, nativeMethods.after, false);
             },
 
-            removeChild (this: Node) {
-                // NOTE: We are created the args array manually because of the test for the GH-1231 issue.
-                // Babel process the spread operator same as `for..of` loop, and IE11 throws an error
-                // when array is created through `new Array(len)`.
-                const args   = [];
-                const length = arguments.length
-
-                for (let i = 0; i < length; i++)
-                    args.push(arguments[i]);
-
-                return sandbox._removeNodeCore(this, args as Parameters<Node['removeChild']>, args[0], nativeMethods.removeChild);
+            removeChild (this: Node, ...args: Parameters<Node['removeChild']>) {
+                return sandbox._removeNodeCore(this, args, args[0], nativeMethods.removeChild);
             },
 
             remove (this: Element, ...args: Parameters<Element['remove']>) {
@@ -897,10 +920,9 @@ export default class ElementSandbox extends SandboxBase {
         if (window.Document.prototype.registerElement)
             overrideFunction(window.Document.prototype, 'registerElement', this.overriddenMethods.registerElement);
 
-        if (window.Element.prototype.insertAdjacentHTML)
-            overrideFunction(window.Element.prototype, 'insertAdjacentHTML', this.overriddenMethods.insertAdjacentHTML);
-        else if (window.HTMLElement.prototype.insertAdjacentHTML)
-            overrideFunction(window.HTMLElement.prototype, 'insertAdjacentHTML', this.overriddenMethods.insertAdjacentHTML);
+        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentHTML', this.overriddenMethods.insertAdjacentHTML);
+        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentElement', this.overriddenMethods.insertAdjacentElement);
+        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentText', this.overriddenMethods.insertAdjacentText);
 
         this._setValidBrowsingContextOnElementClick(window);
 
