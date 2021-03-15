@@ -3,7 +3,7 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { CallExpression } from 'estree';
+import { ImportExpression } from 'estree';
 import { Transformer } from './index';
 import { createGetProxyUrlMethodCall } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
@@ -14,18 +14,17 @@ import replaceNode from './replace-node';
 // -->
 // import(__get$ProxyUrl(something)).then()
 
-const transformer: Transformer<CallExpression> = {
+const transformer: Transformer<ImportExpression> = {
     nodeReplacementRequireTransform: true,
 
-    nodeTypes: Syntax.CallExpression,
+    nodeTypes: Syntax.ImportExpression,
 
-    // @ts-ignore
-    condition: node => node.callee.type === Syntax.Import,
+    condition: () => true,
 
     run: node => {
-        const newArgs = createGetProxyUrlMethodCall(node.arguments[0], transformer.baseUrl);
+        const newSource = createGetProxyUrlMethodCall(node.source, transformer.baseUrl);
 
-        replaceNode(node.arguments[0], newArgs, node, 'arguments');
+        replaceNode(node.source, newSource, node, 'source');
 
         return null;
     }

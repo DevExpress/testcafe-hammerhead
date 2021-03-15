@@ -797,7 +797,8 @@ describe('Script processor', () => {
         testProcessing([
             {
                 src:      'import * as name from "module-name"',
-                expected: 'import * as name from "http://localhost:3000/ksadjo23/http://example.com/module-name"' },
+                expected: 'import * as name from "http://localhost:3000/ksadjo23/http://example.com/module-name"'
+            },
             {
                 src:      'import("/module-name.js").then(module => {})',
                 expected: 'import(__get$ProxyUrl("/module-name.js", "http://example.com/")).then(module => {})'
@@ -1391,7 +1392,7 @@ describe('Script processor', () => {
             });
         });
 
-        it('Should not lose await keyword in "for await...of" loop', () => {
+        it('Should not lose the await keyword in "for await...of" loop', () => {
             testProcessing({
                 src: 'i[j] = async () => {' +
                      '    for await (let num of asyncIterable)' +
@@ -1403,6 +1404,23 @@ describe('Script processor', () => {
                           '        x += num;' +
                           '});',
             });
+        });
+
+        it('Should not lose the optional operator', () => {
+            testProcessing([
+                {
+                    src:      'i[j] = a.b?.c;',
+                    expected: '__set$(i, j, a.b?.c);',
+                },
+                {
+                    src:      'i[j] = a.b?.["d"];',
+                    expected: '__set$(i, j, a.b?.["d"]);',
+                },
+                {
+                    src:      'i[j] = a.b?.();',
+                    expected: '__set$(i, j, (a.b?.()));',
+                }
+            ]);
         });
     });
 });
