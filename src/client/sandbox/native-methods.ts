@@ -50,6 +50,10 @@ class NativeMethods {
     append: Element['append'];
     prepend: Element['prepend'];
     after: Element['after'];
+    insertAdjacentMethodsOwner: Element;
+    insertAdjacentElement: Element['insertAdjacentElement'];
+    insertAdjacentHTML: Element['insertAdjacentHTML'];
+    insertAdjacentText: Element['insertAdjacentText'];
     replaceChild: any;
     cloneNode: any;
     elementGetElementsByClassName: any;
@@ -58,7 +62,6 @@ class NativeMethods {
     elementQuerySelectorAll: any;
     getAttribute: any;
     getAttributeNS: any;
-    insertAdjacentHTML: any;
     insertBefore: Node['insertBefore'];
     insertCell: any;
     insertTableRow: any;
@@ -524,7 +527,6 @@ class NativeMethods {
         this.elementQuerySelectorAll       = nativeElement.querySelectorAll;
         this.getAttribute                  = nativeElement.getAttribute;
         this.getAttributeNS                = nativeElement.getAttributeNS;
-        this.insertAdjacentHTML            = nativeElement.insertAdjacentHTML;
         this.insertBefore                  = nativeElement.insertBefore;
         this.insertCell                    = createElement('tr').insertCell;
         this.insertTableRow                = createElement('table').insertRow;
@@ -541,6 +543,14 @@ class NativeMethods {
         this.anchorToString                = win.HTMLAnchorElement.prototype.toString;
         this.matches                       = nativeElement.matches || nativeElement.msMatchesSelector;
         this.closest                       = nativeElement.closest;
+
+        // NOTE: The 'insertAdjacent...' methods is located in HTMLElement prototype in IE11 only
+        this.insertAdjacentMethodsOwner = win.Element.prototype.hasOwnProperty('insertAdjacentElement')
+            ? win.Element.prototype
+            : win.HTMLElement.prototype;
+        this.insertAdjacentElement      = this.insertAdjacentMethodsOwner.insertAdjacentElement;
+        this.insertAdjacentHTML         = this.insertAdjacentMethodsOwner.insertAdjacentHTML;
+        this.insertAdjacentText         = this.insertAdjacentMethodsOwner.insertAdjacentText;
 
         // Text node
         this.appendData = textNode.appendData;

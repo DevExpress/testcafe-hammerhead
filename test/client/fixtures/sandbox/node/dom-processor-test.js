@@ -198,6 +198,59 @@ if (nativeMethods.remove) {
     });
 }
 
+test('Element.prototype.insertAdjacentElement', function () {
+    var isScriptElementAddedEventRaised = false;
+
+    elementSandbox.on(elementSandbox.SCRIPT_ELEMENT_ADDED_EVENT, function () {
+        isScriptElementAddedEventRaised = true;
+    });
+
+    var parent = document.createElement('div');
+
+    parent.insertAdjacentElement('beforebegin', document.createElement('script'));
+    parent.insertAdjacentElement('afterend', document.createElement('script'));
+
+    notOk(isScriptElementAddedEventRaised);
+
+    var root   = shadowUI.getRoot();
+    var script = document.createElement('script');
+
+    document.body.appendChild(parent);
+    document.body.insertAdjacentElement('beforeend', script);
+
+    ok(isScriptElementAddedEventRaised);
+    strictEqual(nativeMethods.nodePrevSiblingGetter.call(root), script);
+    strictEqual(nativeMethods.nodePrevSiblingGetter.call(script), parent);
+
+    isScriptElementAddedEventRaised = false;
+    parent.insertAdjacentElement('beforeend', document.createElement('a'));
+    parent.insertAdjacentElement('afterbegin', document.createElement('script'));
+
+    ok(isScriptElementAddedEventRaised);
+    strictEqual(parent.children[0].tagName.toLowerCase(), 'script');
+    strictEqual(parent.children[1].tagName.toLowerCase(), 'a');
+
+    document.body.removeChild(script);
+    document.body.removeChild(parent);
+});
+
+test('Element.prototype.insertAdjacentText', function () {
+    var root   = shadowUI.getRoot();
+    var script = document.createElement('script');
+
+    script.insertAdjacentText('afterbegin', 'window["insertAdjacentText test data"] = location.host');
+    document.body.appendChild(script);
+
+    strictEqual(window['insertAdjacentText test data'], 'example.com');
+
+    document.body.insertAdjacentText('beforeend', 'text before root');
+
+    strictEqual(nativeMethods.nodePrevSiblingGetter.call(root).data, 'text before root');
+
+    document.body.removeChild(script);
+    document.body.removeChild(nativeMethods.nodePrevSiblingGetter.call(root));
+});
+
 test('comment inside script', function () {
     var testScript = function (scriptText) {
         var script = nativeMethods.createElement.call(document, 'script');
