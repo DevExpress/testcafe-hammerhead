@@ -2,6 +2,7 @@ import http2, { ClientHttp2Session, Http2Stream, IncomingHttpHeaders, IncomingHt
 import LRUCache from 'lru-cache';
 import RequestOptions from '../request-options';
 import { isConnectionResetError } from '../connection-reset-guard';
+import logger from '../../utils/logger';
 
 const {
     HTTP2_HEADER_PATH,
@@ -18,16 +19,19 @@ const {
 } = http2.constants;
 
 const HTTP2_SESSIONS_CACHE_SIZE = 100;
-const HTTP2_SESSION_TIMEOUT     = 4 * 60 * 1000;
+const HTTP2_SESSION_TIMEOUT     = 60_000;
 
 const unsupportedOrigins = [] as string[];
 const pendingSessions    = new Map<string, Promise<ClientHttp2Session | null>>();
 const sessionsCache      = new LRUCache<string, ClientHttp2Session>({
     max:     HTTP2_SESSIONS_CACHE_SIZE,
-    dispose: (_, session) => session.close()
+    dispose: (_, session) => {
+        if (!session.closed)
+            session.close();
+    }
 });
 
-export async function getHttp2Session (origin: string): Promise<ClientHttp2Session | null> {
+export async function getHttp2Session (requestId: string, origin: string): Promise<ClientHttp2Session | null> {
     if (sessionsCache.has(origin))
         return sessionsCache.get(origin);
 
@@ -46,6 +50,7 @@ export async function getHttp2Session (origin: string): Promise<ClientHttp2Sessi
             if (err['code'] === 'ERR_HTTP2_ERROR')
                 unsupportedOrigins.push(origin);
 
+            logger.destination.onHttp2Error(requestId, origin, err);
             resolve(null);
         };
 
@@ -54,13 +59,23 @@ export async function getHttp2Session (origin: string): Promise<ClientHttp2Sessi
             pendingSessions.delete(origin);
             sessionsCache.set(origin, session);
 
+            logger.destination.onHttp2SessionCreated(requestId, origin, sessionsCache.length, HTTP2_SESSIONS_CACHE_SIZE);
+
             session.off('error', errorHandler);
-            session.once('close', () => sessionsCache.del(origin));
+            session.once('close', () => {
+                sessionsCache.del(origin);
+                logger.destination.onHttp2SessionClosed(requestId, origin, sessionsCache.length, HTTP2_SESSIONS_CACHE_SIZE);
+            });
             session.once('error', (err: Error) => {
-                if (!isConnectionResetError(err))
+                if (!isConnectionResetError(err)) {
+                    logger.destination.onHttp2Error(requestId, origin, err);
                     throw err;
+                }
             })
-            session.setTimeout(HTTP2_SESSION_TIMEOUT, () => session.close());
+            session.setTimeout(HTTP2_SESSION_TIMEOUT, () => {
+                logger.destination.onHttp2SessionTimeout(origin, HTTP2_SESSION_TIMEOUT);
+                sessionsCache.del(origin);
+            });
 
             resolve(session);
         });

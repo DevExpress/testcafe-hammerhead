@@ -68,7 +68,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
 
         this.req = stream;
 
-        logger.destination.onRequest(this.opts);
+        logger.destination.onHttp2Stream(this.opts.requestId, reqHeaders);
     }
 
     private _sendReal (waitForData?: boolean) {
@@ -118,7 +118,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         }
 
         const http2Session = this.opts.isHttps && !this.opts.isWebSocket &&
-            await getHttp2Session(this.opts.protocol + '//' + this.opts.host);
+            await getHttp2Session(this.opts.requestId ,this.opts.protocol + '//' + this.opts.host);
 
         if (http2Session && !http2Session.destroyed)
             this._sendRealThroughHttp2(http2Session);

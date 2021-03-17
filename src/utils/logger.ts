@@ -61,6 +61,7 @@ debug.formatters.i = (ctx: RequestPipelineContext): string => {
 const hammerhead              = debug('hammerhead');
 const proxyLogger             = hammerhead.extend('proxy');
 const destinationLogger       = hammerhead.extend('destination');
+const http2DestinationLogger  = destinationLogger.extend('http2');
 const cachedDestinationLogger = destinationLogger.extend('cached');
 const destinationSocketLogger = destinationLogger.extend('socket');
 const serviceMsgLogger        = hammerhead.extend('service-message');
@@ -115,6 +116,26 @@ const destination = {
 
     onCachedRequest: (opts: RequestOptions, hitCount: number) => {
         cachedDestinationLogger('Cached destination request %s %s %s %j (hitCount: %d)', opts.requestId, opts.method, opts.url, opts.headers, hitCount);
+    },
+
+    onHttp2Stream: (requestId: string, headers: OutgoingHttpHeaders) => {
+        http2DestinationLogger('Destination stream %s %j', requestId, headers);
+    },
+
+    onHttp2SessionCreated: (requestId: string, origin: string, cacheSize: number, cacheTotalSize: number) => {
+        http2DestinationLogger('Destination session created %s %s (cache size %d of %d)', requestId, origin, cacheSize, cacheTotalSize);
+    },
+
+    onHttp2SessionClosed: (requestId: string, origin: string, cacheSize: number, cacheTotalSize: number) => {
+        http2DestinationLogger('Destination session closed %s %s (cache size %d of %d)', requestId, origin, cacheSize, cacheTotalSize);
+    },
+
+    onHttp2Error: (requestId: string, origin: string,  err: Error) => {
+        http2DestinationLogger('Destination error %s %s %o', requestId, origin, err);
+    },
+
+    onHttp2SessionTimeout: (origin: string, timeout: number) => {
+        http2DestinationLogger('Destination session is unused more than %d min and will be closed %s', timeout / 60_000, origin);
     },
 
     onUpgradeRequest: (opts: RequestOptions, res: IncomingMessage) => {
