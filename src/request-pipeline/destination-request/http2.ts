@@ -50,7 +50,6 @@ export async function getHttp2Session (requestId: string, origin: string): Promi
             if (err['code'] === 'ERR_HTTP2_ERROR')
                 unsupportedOrigins.push(origin);
 
-            logger.destination.onHttp2Error(requestId, origin, err);
             resolve(null);
         };
 

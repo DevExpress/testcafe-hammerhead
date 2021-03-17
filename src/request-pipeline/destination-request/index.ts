@@ -6,7 +6,7 @@ import { noop } from 'lodash';
 import * as requestAgent from './agent';
 import { EventEmitter } from 'events';
 import { getAuthInfo, addCredentials, requiresResBody } from 'webauth';
-import connectionResetGuard from '../connection-reset-guard';
+import { connectionResetGuard } from '../connection-reset-guard';
 import { MESSAGE, getText } from '../../messages';
 import logger from '../../utils/logger';
 import * as requestCache from '../cache';
@@ -215,7 +215,6 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     }
 
     _onError (err: Error): void {
-        // console.log(err); // eslint-disable-line
         logger.destination.onError(this.opts, err);
 
         if (this._isSocketHangUpErr(err))

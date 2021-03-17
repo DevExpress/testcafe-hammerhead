@@ -18,6 +18,6 @@ connectionResetDomain.on('error', err => {
     throw err;
 });
 
-export default function (fn: (...args: any[]) => unknown) {
+export function connectionResetGuard (fn: (...args: any[]) => unknown) {
     connectionResetDomain.run(fn);
 }
