@@ -70,6 +70,7 @@ class NativeMethods {
     removeAttributeNS: any;
     removeChild: Node['removeChild'];
     remove: Element['remove'];
+    elementReplaceWith: Element['replaceWith'];
     setAttribute: any;
     setAttributeNS: any;
     hasAttribute: any;
@@ -535,6 +536,7 @@ class NativeMethods {
         this.removeAttributeNS             = nativeElement.removeAttributeNS;
         this.removeChild                   = win.Node.prototype.removeChild;
         this.remove                        = win.Element.prototype.remove;
+        this.elementReplaceWith            = win.Element.prototype.replaceWith;
         this.setAttribute                  = nativeElement.setAttribute;
         this.setAttributeNS                = nativeElement.setAttributeNS;
         this.hasAttribute                  = nativeElement.hasAttribute;

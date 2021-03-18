@@ -251,6 +251,46 @@ test('Element.prototype.insertAdjacentText', function () {
     document.body.removeChild(nativeMethods.nodePrevSiblingGetter.call(root));
 });
 
+if (nativeMethods.elementReplaceWith) {
+    test('Element.prototype.replaceWith', function () {
+        var div      = document.createElement('div');
+        var childDiv = document.createElement('div');
+
+        div.appendChild(childDiv);
+
+        document.body.appendChild(div);
+
+        var script                          = document.createElement('script');
+        var isScriptElementAddedEventRaised = false;
+
+        elementSandbox.on(elementSandbox.SCRIPT_ELEMENT_ADDED_EVENT, function () {
+            isScriptElementAddedEventRaised = true;
+        });
+
+        childDiv.replaceWith(script);
+
+        ok(isScriptElementAddedEventRaised);
+        strictEqual(nativeMethods.nodeLastChildGetter.call(div), script);
+
+        var anchor2 = document.createElement('a');
+        var anchor3 = document.createElement('a');
+
+        script.replaceWith(anchor2, anchor3);
+
+        strictEqual(nativeMethods.nodeFirstChildGetter.call(div), anchor2);
+        strictEqual(nativeMethods.nodeLastChildGetter.call(div), anchor3);
+
+        div.removeChild(div.firstChild);
+
+        div.firstChild.replaceWith('Text 0', 'Text 1');
+
+        strictEqual(div.childNodes[0].data, 'Text 0');
+        strictEqual(div.childNodes[1].data, 'Text 1');
+
+        div.parentNode.removeChild(div);
+    });
+}
+
 test('comment inside script', function () {
     var testScript = function (scriptText) {
         var script = nativeMethods.createElement.call(document, 'script');

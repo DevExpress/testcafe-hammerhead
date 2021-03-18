@@ -422,15 +422,9 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
-    private _addNodeCore<K, A extends (string | Node)[]> (
-        parent: Element | Node & ParentNode, context: Element | Node & ParentNode,
-        newNodesRange: [number, number], args: A, nativeFn: (...args: A) => K, checkBody = true): K {
-
-        this._prepareNodesForInsertion(args, newNodesRange, parent);
-
-        let result            = null;
-        const childNodesArray = [] as Node[];
-        const [start, end]    = newNodesRange;
+    private static _getChildNodesArray (args: (string | Node)[], range: [number, number]): Node[] {
+        const result       = [] as Node[];
+        const [start, end] = range;
 
         for (let i = start; i < end; i++) {
             const node = args[i];
@@ -438,11 +432,23 @@ export default class ElementSandbox extends SandboxBase {
             if (domUtils.isDocumentFragmentNode(node)) {
                 const childNodes = nativeMethods.nodeChildNodesGetter.call(node);
 
-                childNodesArray.push.apply(childNodesArray, domUtils.nodeListToArray(childNodes));
+                result.push.apply(result, domUtils.nodeListToArray(childNodes));
             }
             else if (typeof node !== 'string')
-                childNodesArray.push(node);
+                result.push(node);
         }
+
+        return result;
+    }
+
+    private _addNodeCore<K, A extends (string | Node)[]> (
+        parent: Element | Node & ParentNode, context: Element | Node & ParentNode,
+        newNodesRange: [number, number], args: A, nativeFn: (...args: A) => K, checkBody = true): K {
+
+        this._prepareNodesForInsertion(args, newNodesRange, parent);
+
+        let result            = null;
+        const childNodesArray = ElementSandbox._getChildNodesArray(args, newNodesRange);
 
         // NOTE: Before the page's <body> is processed and added to DOM,
         // some javascript frameworks create their own body element, perform
@@ -614,6 +620,31 @@ export default class ElementSandbox extends SandboxBase {
 
             remove (this: Element, ...args: Parameters<Element['remove']>) {
                 return sandbox._removeNodeCore(this, args, this, nativeMethods.remove);
+            },
+
+            elementReplaceWith (this: Element, ...args: Parameters<Element['replaceWith']>) {
+                const parentNode = nativeMethods.nodeParentNodeGetter.call(this);
+
+                if (!parentNode)
+                    return nativeMethods.elementReplaceWith.apply(this, args);
+
+                const newNodesRange = [0, args.length] as [number, number];
+
+                sandbox._prepareNodesForInsertion(args, newNodesRange, parentNode);
+
+                const childNodesArray = ElementSandbox._getChildNodesArray(args, newNodesRange);
+
+                sandbox._onRemoveFileInputInfo(this);
+                sandbox._onRemoveIframe(this);
+
+                const result = nativeMethods.elementReplaceWith.apply(this, args);
+
+                sandbox._onElementRemoved(this);
+
+                for (const child of childNodesArray)
+                    sandbox._onElementAdded(child);
+
+                return result;
             },
 
             replaceChild (this: Node, ...args: Parameters<Node['replaceChild']>) {
@@ -901,6 +932,9 @@ export default class ElementSandbox extends SandboxBase {
 
         if (nativeMethods.remove)
             overrideFunction(window.Element.prototype, 'remove', this.overriddenMethods.remove);
+
+        if (nativeMethods.elementReplaceWith)
+            overrideFunction(window.Element.prototype, 'replaceWith', this.overriddenMethods.elementReplaceWith);
 
         overrideFunction(window.DocumentFragment.prototype, 'querySelector', this.overriddenMethods.querySelector);
         overrideFunction(window.DocumentFragment.prototype, 'querySelectorAll', this.overriddenMethods.querySelectorAll);
