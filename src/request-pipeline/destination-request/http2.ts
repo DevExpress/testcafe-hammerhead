@@ -47,8 +47,10 @@ export async function getHttp2Session (requestId: string, origin: string): Promi
         const errorHandler = (err: Error) => {
             pendingSessions.delete(origin);
 
-            if (err['code'] === 'ERR_HTTP2_ERROR')
+            if (err['code'] === 'ERR_HTTP2_ERROR') {
                 unsupportedOrigins.push(origin);
+                logger.destination.onHttp2Unsupported(requestId, origin);
+            }
 
             resolve(null);
         };
@@ -120,4 +122,8 @@ export function makePseudoResponse (stream: Http2Stream, response: IncomingHttpH
         statusCode,
         headers
     });
+}
+
+export function clearSessionsCache () {
+    sessionsCache.reset();
 }

@@ -122,6 +122,10 @@ const destination = {
         http2DestinationLogger('Destination stream %s %j', requestId, headers);
     },
 
+    onHttp2Unsupported: (requestId: string, origin: string) => {
+        http2DestinationLogger('Destination server does not support http2 %s %s', requestId, origin);
+    },
+
     onHttp2SessionCreated: (requestId: string, origin: string, cacheSize: number, cacheTotalSize: number) => {
         http2DestinationLogger('Destination session created %s %s (cache size %d of %d)', requestId, origin, cacheSize, cacheTotalSize);
     },
