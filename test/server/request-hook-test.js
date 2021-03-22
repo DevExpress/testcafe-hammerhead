@@ -1,10 +1,11 @@
 const url                           = require('url');
-const expect                        = require('chai').expect;
+const { expect }                    = require('chai');
 const ResponseMock                  = require('../../lib/request-pipeline/request-hooks/response-mock');
 const RequestFilterRule             = require('../../lib/request-pipeline/request-hooks/request-filter-rule');
 const ConfigureResponseEvent        = require('../../lib/session/events/configure-response-event');
 const ConfigureResponseEventOptions = require('../../lib/session/events/configure-response-event-options');
-const noop                          = require('lodash').noop;
+const requestIsMatchRule            = require('../../lib/request-pipeline/request-hooks/request-is-match-rule');
+const { noop }                      = require('lodash');
 
 describe('ResponseMock', () => {
     describe('Header names should be lowercased', () => {
@@ -189,8 +190,38 @@ describe('RequestFilterRule', () => {
         expect(hook.toString()).eql('{ <predicate> }');
     });
 
-    it('Match', async () => {
-        const requestInfo = {
+    it('.isANY', () => {
+        expect(RequestFilterRule.isANY()).to.be.false;
+        expect(RequestFilterRule.isANY(true)).to.be.false;
+        expect(RequestFilterRule.isANY(RequestFilterRule.ANY)).to.be.true;
+        expect(RequestFilterRule.isANY(new RequestFilterRule('https://example.com'))).to.be.false;
+    });
+
+    it('.from', () => {
+        const ruleInit = 'https://example.com';
+        const rule1    = new RequestFilterRule(ruleInit);
+        const rule2    = new RequestFilterRule(ruleInit);
+        const rule3    = { id: '1', url: ruleInit };
+
+        expect(RequestFilterRule.from()).eql([]);
+        expect(RequestFilterRule.from(rule1)).eql([rule1]);
+
+        const rules = RequestFilterRule.from([rule1, rule2, rule3, ruleInit]);
+
+        expect(rules.length).eql(4);
+
+        rules.forEach(rule => {
+            expect(rule).to.be.an.instanceOf(RequestFilterRule);
+        });
+
+        expect(rules[2].id).eql(rule3.id);
+        expect(rules[1].id).eql(rule2.id);
+    });
+});
+
+describe('Request is match rule', async () => {
+    describe('Rule initializer', async () => {
+        const requestInfoMock = {
             url:     'http://example.com/',
             method:  'post',
             isAjax:  true,
@@ -200,62 +231,87 @@ describe('RequestFilterRule', () => {
             }
         };
 
-        expect(await new RequestFilterRule('http://example.com').match(requestInfo)).to.be.true;
-        expect(await new RequestFilterRule('http://example.com/').match(requestInfo)).to.be.true;
-        expect(await new RequestFilterRule('http://example.com/index').match(requestInfo)).to.be.false;
-        expect(await new RequestFilterRule('https://example.com').match(requestInfo)).to.be.false;
-        expect(await new RequestFilterRule(/example.com/).match(requestInfo)).to.be.true;
-        expect(await new RequestFilterRule(/example1.com/).match(requestInfo)).to.be.false;
-        expect(await new RequestFilterRule({ url: 'http://example.com', method: 'Post' }).match(requestInfo)).to.be.true;
-        expect(await new RequestFilterRule({ url: 123, method: 'Post' }).match(requestInfo)).to.be.false;
-        expect(await new RequestFilterRule({ method: 'get' }).match(requestInfo)).to.be.false;
-        expect(await new RequestFilterRule({ method: 1 }).match(requestInfo)).to.be.false;
-        expect(await new RequestFilterRule({
-            url:    'http://example.com',
-            method: 'Post',
-            isAjax: false
-        }).match(requestInfo)).to.be.false;
-        expect(await new RequestFilterRule({
-            url:    'http://example.com',
-            method: 'Post',
-            isAjax: true
-        }).match(requestInfo)).to.be.true;
-        expect(await new RequestFilterRule({
-            url:    'http://example.com',
-            method: 'Post',
-            isAjax: 'test'
-        }).match(requestInfo)).to.be.false;
-        expect(await new RequestFilterRule(() => {}).match(requestInfo)).to.be.false;
-        expect(await new RequestFilterRule(request => request.url === 'wrong_url').match(requestInfo)).to.be.false;
-        expect(await new RequestFilterRule(request => {
-            return request.url === 'http://example.com/' &&
-                   request.method === 'post' &&
-                   request.isAjax &&
-                   request.body === '{ test: true }' &&
-                   request.headers['content-type'] === 'application/json';
-        }).match(requestInfo)).to.be.true;
-        expect(await new RequestFilterRule(async request => {
-            const resultPromise = new Promise(resolve => {
-                setTimeout(() => {
-                    resolve(request.url === 'http://example.com/');
-                }, 100);
-            });
+        async function isMatchRule (ruleInit) {
+            return requestIsMatchRule(new RequestFilterRule(ruleInit), requestInfoMock);
+        }
 
-            return resultPromise;
-        }).match(requestInfo)).to.be.true;
+        it('string', async () => {
+            expect(await isMatchRule('http://example.com')).to.be.true;
+            expect(await isMatchRule('http://example.com/')).to.be.true;
+            expect(await isMatchRule('http://example.com/index')).to.be.false;
+            expect(await isMatchRule('https://example.com')).to.be.false;
+        });
+
+        it('RegExp', async () => {
+            expect(await isMatchRule(/example.com/)).to.be.true;
+            expect(await isMatchRule(/example1.com/)).to.be.false;
+        });
+
+        it('Object', async () => {
+            expect(await isMatchRule({
+                url:    'http://example.com',
+                method: 'Post'
+            })).to.be.true;
+
+            expect(await isMatchRule({
+                url:    123,
+                method: 'Post'
+            })).to.be.false;
+
+            expect(await isMatchRule({ method: 'get' })).to.be.false;
+
+            expect(await isMatchRule({ method: 1 })).to.be.false;
+
+            expect(await isMatchRule({
+                url:    'http://example.com',
+                method: 'Post',
+                isAjax: false
+            })).to.be.false;
+
+            expect(await isMatchRule({
+                url:    'http://example.com',
+                method: 'Post',
+                isAjax: true
+            })).to.be.true;
+
+            expect(await isMatchRule({
+                url:    'http://example.com',
+                method: 'Post',
+                isAjax: 'test'
+            })).to.be.false;
+        });
+
+        it('Predicate', async () => {
+            expect(await isMatchRule(() => {})).to.be.false;
+
+            expect(await isMatchRule(request => {
+                return request.url === 'wrong_url';
+            })).to.be.false;
+
+            expect(await isMatchRule(request => {
+                return request.url === 'http://example.com/' &&
+                       request.method === 'post' &&
+                       request.isAjax &&
+                       request.body === '{ test: true }' &&
+                       request.headers['content-type'] === 'application/json';
+            })).to.be.true;
+
+            expect(await isMatchRule(async request => {
+                const resultPromise = new Promise(resolve => {
+                    setTimeout(() => {
+                        resolve(request.url === 'http://example.com/');
+                    }, 100);
+                });
+
+                return resultPromise;
+            })).to.be.true;
+        });
     });
 
-    it('Match all', async () => {
-        expect(await RequestFilterRule.ANY.match({ url: 'https://example.com' })).to.be.true;
-        expect(await RequestFilterRule.ANY.match({ url: 'https://example.com/index.html' })).to.be.true;
-        expect(await RequestFilterRule.ANY.match({ url: 'file://user/bin/data' })).to.be.true;
-    });
-
-    it('isANY', () => {
-        expect(RequestFilterRule.isANY()).to.be.false;
-        expect(RequestFilterRule.isANY(true)).to.be.false;
-        expect(RequestFilterRule.isANY(RequestFilterRule.ANY)).to.be.true;
-        expect(RequestFilterRule.isANY(new RequestFilterRule('https://example.com'))).to.be.false;
+    it('RequestFilterRule.ANY', async () => {
+        expect(await requestIsMatchRule(RequestFilterRule.ANY, { url: 'https://example.com' })).to.be.true;
+        expect(await requestIsMatchRule(RequestFilterRule.ANY, { url: 'https://example.com/index.html' })).to.be.true;
+        expect(await requestIsMatchRule(RequestFilterRule.ANY, { url: 'file://user/bin/data' })).to.be.true;
     });
 });
 

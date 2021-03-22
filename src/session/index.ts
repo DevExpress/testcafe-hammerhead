@@ -27,6 +27,7 @@ import generateUniqueId from '../utils/generate-unique-id';
 import SERVICE_ROUTES from '../proxy/service-routes';
 import DEFAULT_REQUEST_TIMEOUT from '../request-pipeline/destination-request/default-request-timeout';
 import { stringify as stringifyJSON } from '../utils/json';
+import requestIsMatchRule from '../request-pipeline/request-hooks/request-is-match-rule';
 
 const TASK_TEMPLATE: string = read('../client/task.js.mustache');
 
@@ -50,6 +51,7 @@ interface RequestEventListeners {
 interface RequestEventListenersData {
     listeners: RequestEventListeners;
     errorHandler: (event: RequestEventListenerError) => void;
+    rule: RequestFilterRule;
 }
 
 interface TaskScriptTemplateOpts {
@@ -89,7 +91,7 @@ export default abstract class Session extends EventEmitter {
     pageLoadCount = 0;
     pendingStateSnapshot: StateSnapshot | null = null;
     injectable: InjectableResources = { scripts: ['/hammerhead.js'], styles: [], userScripts: [] };
-    requestEventListeners: Map<RequestFilterRule, RequestEventListenersData> = new Map();
+    requestEventListeners: Map<string, RequestEventListenersData> = new Map();
     mocks: Map<RequestFilterRule, ResponseMock> = new Map();
     private _recordMode = false;
     options: SessionOptions;
@@ -249,17 +251,18 @@ export default abstract class Session extends EventEmitter {
         return !!this.requestEventListeners.size;
     }
 
-    addRequestEventListeners (requestFilterRule: RequestFilterRule, listeners: RequestEventListeners, errorHandler: (event: RequestEventListenerError) => void): void {
+    addRequestEventListeners (rule: RequestFilterRule, listeners: RequestEventListeners, errorHandler: (event: RequestEventListenerError) => void): void {
         const listenersData = {
             listeners,
-            errorHandler
+            errorHandler,
+            rule
         };
 
-        this.requestEventListeners.set(requestFilterRule, listenersData);
+        this.requestEventListeners.set(rule.id, listenersData);
     }
 
-    removeRequestEventListeners (requestFilterRule: RequestFilterRule): void {
-        this.requestEventListeners.delete(requestFilterRule);
+    removeRequestEventListeners (rule: RequestFilterRule): void {
+        this.requestEventListeners.delete(rule.id);
     }
 
     clearRequestEventListeners (): void {
@@ -267,10 +270,11 @@ export default abstract class Session extends EventEmitter {
     }
 
     async getRequestFilterRules (requestInfo: RequestInfo): Promise<RequestFilterRule[]> {
-        const rulesArray = Array.from(this.requestEventListeners.keys());
+        const rulesArray = Array.from(this.requestEventListeners.values())
+            .map(listenerData => listenerData.rule);
 
         const matchedRules = await Promise.all(rulesArray.map(async rule => {
-            if (await rule.match(requestInfo))
+            if (await requestIsMatchRule(rule, requestInfo))
                 return rule;
 
             return void 0;
@@ -280,7 +284,7 @@ export default abstract class Session extends EventEmitter {
     }
 
     async callRequestEventCallback (eventName: RequestEventNames, requestFilterRule: RequestFilterRule, eventData: RequestEvent | ResponseEvent | ConfigureResponseEvent) {
-        const requestEventListenersData = this.requestEventListeners.get(requestFilterRule);
+        const requestEventListenersData = this.requestEventListeners.get(requestFilterRule.id);
 
         if (!requestEventListenersData)
             return;

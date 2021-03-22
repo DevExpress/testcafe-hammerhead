@@ -16,8 +16,18 @@ interface Session {
     handleFileDownload (): void;
 }
 
+interface RequestFilterRuleObjectInitializer {
+    url: string | RegExp;
+    method: string;
+    isAjax: boolean;
+}
+
+type RequestFilterRulePredicate = (requestInfo: RequestInfo) => boolean | Promise<boolean>;
+
 declare module 'testcafe-hammerhead' {
     import { IncomingHttpHeaders } from 'http';
+
+    export type RequestFilterRuleInit = string | RegExp | Partial<RequestFilterRuleObjectInitializer> | RequestFilterRulePredicate;
 
     /** The Proxy class is used to create a web-proxy **/
     export class Proxy {
@@ -46,13 +56,16 @@ declare module 'testcafe-hammerhead' {
     /** The RequestFilterRule class is used to create URL filtering rules for request hook **/
     export class RequestFilterRule {
         /** Creates a request filter rule instance **/
-        constructor (options: any);
+        constructor (options: RequestFilterRuleInit);
 
         /** Returns the value that accepts any request  **/
         static ANY: RequestFilterRule;
 
         /** Check whether the specified RequestFilterRule instance accepts any request **/
         static isANY (instance: any): boolean;
+
+        /** Creates RequestFilterRule instances from RequestFilterRule initializers **/
+        static from (rules?: RequestFilterRuleInit | RequestFilterRuleInit[]): RequestFilterRule[];
     }
 
     /** The StateSnapshot class is used to create page state snapshot **/
