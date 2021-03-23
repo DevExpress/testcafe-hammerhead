@@ -25,6 +25,7 @@ import { Credentials } from '../utils/url';
 import createSpecialPageResponse from './create-special-page-response';
 import { fetchBody } from '../utils/http';
 import * as requestCache from './cache';
+import requestIsMatchRule from '../request-pipeline/request-hooks/request-is-match-rule';
 
 interface DestInfo {
     url: string;
@@ -302,7 +303,7 @@ export default class RequestPipelineContext {
     public async prepareInjectableUserScripts (): Promise<void> {
         const requestInfo        = new RequestInfo(this);
         const matchedUserScripts = await Promise.all(this.session.injectable.userScripts.map(async userScript => {
-            if (await userScript.page.match(requestInfo))
+            if (await requestIsMatchRule(userScript.page, requestInfo))
                 return userScript;
 
             return void 0;
