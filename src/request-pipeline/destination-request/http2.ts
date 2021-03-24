@@ -20,6 +20,10 @@ const {
 
 const HTTP2_SESSIONS_CACHE_SIZE = 100;
 const HTTP2_SESSION_TIMEOUT     = 60_000;
+const UNSUPPORTED_HEADERS       = [
+    HTTP2_HEADER_CONNECTION, HTTP2_HEADER_UPGRADE, HTTP2_HEADER_HTTP2_SETTINGS, HTTP2_HEADER_KEEP_ALIVE,
+    HTTP2_HEADER_PROXY_CONNECTION, HTTP2_HEADER_TRANSFER_ENCODING, HTTP2_HEADER_HOST
+];
 
 const unsupportedOrigins = [] as string[];
 const pendingSessions    = new Map<string, Promise<ClientHttp2Session | null>>();
@@ -88,21 +92,16 @@ export async function getHttp2Session (requestId: string, origin: string): Promi
 }
 
 export function formatRequestHttp2Headers (opts: RequestOptions) {
-    const headers = Object.assign({}, opts.headers);
+    return Object.keys(opts.headers).reduce((headers, key) => {
+        if(!UNSUPPORTED_HEADERS.includes(key))
+            headers[key] = opts.headers[key];
 
-    headers[HTTP2_HEADER_METHOD]    = opts.method;
-    headers[HTTP2_HEADER_PATH]      = opts.path;
-    headers[HTTP2_HEADER_AUTHORITY] = headers.host;
-
-    delete headers[HTTP2_HEADER_CONNECTION];
-    delete headers[HTTP2_HEADER_UPGRADE];
-    delete headers[HTTP2_HEADER_HTTP2_SETTINGS];
-    delete headers[HTTP2_HEADER_KEEP_ALIVE];
-    delete headers[HTTP2_HEADER_PROXY_CONNECTION];
-    delete headers[HTTP2_HEADER_TRANSFER_ENCODING];
-    delete headers[HTTP2_HEADER_HOST];
-
-    return headers;
+        return headers;
+    }, {
+        [HTTP2_HEADER_METHOD]:    opts.method,
+        [HTTP2_HEADER_PATH]:      opts.path,
+        [HTTP2_HEADER_AUTHORITY]: opts.headers.host
+    });
 }
 
 export interface Http2Response extends Http2Stream {

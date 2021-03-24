@@ -72,6 +72,8 @@ interface FlattenParsedProxyUrl {
     windowId?: string;
 }
 
+type DestinationResponse = http.IncomingMessage | FileStream | IncomingMessageLike | IncomingMessageLike | Http2Response;
+
 const REDIRECT_STATUS_CODES                  = [301, 302, 303, 307, 308];
 const CANNOT_BE_USED_WITH_WEB_SOCKET_ERR_MSG = 'The function cannot be used with a WebSocket request.';
 
@@ -79,7 +81,7 @@ export default class RequestPipelineContext {
     session: Session = null;
     reqBody: Buffer = null;
     dest: DestInfo = null;
-    destRes: http.IncomingMessage | FileStream | IncomingMessageLike | IncomingMessageLike | Http2Response = null;
+    destRes: DestinationResponse = null;
     isDestResReadableEnded = false;
     destResBody: Buffer = null;
     isAjax = false;
