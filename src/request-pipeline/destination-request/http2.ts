@@ -1,5 +1,6 @@
 import http2, { ClientHttp2Session, Http2Stream, IncomingHttpHeaders, IncomingHttpStatusHeader } from 'http2';
 import LRUCache from 'lru-cache';
+import { noop } from 'lodash';
 import RequestOptions from '../request-options';
 import { isConnectionResetError } from '../connection-reset-guard';
 import logger from '../../utils/logger';
@@ -61,15 +62,7 @@ export async function getHttp2Session (requestId: string, origin: string): Promi
         });
 
         session.once('connect', () => {
-            session.ping(err => {
-                if (!err)
-                    return;
-
-                unsupportedOrigins.push(origin);
-                logger.destination.onHttp2Unsupported(requestId, origin);
-
-                resolve(null);
-            });
+            session.ping(noop);
 
             session.once('localSettings', () => {
                 pendingSessions.delete(origin);
