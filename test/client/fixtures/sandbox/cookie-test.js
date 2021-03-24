@@ -467,7 +467,6 @@ test('synchronization cookies must be removed after the unload event of the top 
         });
 });
 
-/*eslint-disable*/
 test('iframe is not loaded', function () {
     var iframe                  = document.createElement('iframe');
     var timeouts                = [];

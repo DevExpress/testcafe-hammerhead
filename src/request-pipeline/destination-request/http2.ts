@@ -48,7 +48,7 @@ export async function getHttp2Session (requestId: string, origin: string): Promi
     const pendingSession = new Promise<ClientHttp2Session | null>(resolve => {
         const session = http2.connect(origin, { settings: { enablePush: false } });
 
-        const errorHandler = (err: Error) => {
+        session.once('error', err => {
             pendingSessions.delete(origin);
 
             if (err['code'] === 'ERR_HTTP2_ERROR') {
@@ -56,33 +56,45 @@ export async function getHttp2Session (requestId: string, origin: string): Promi
                 logger.destination.onHttp2Unsupported(requestId, origin);
             }
 
+            session.removeAllListeners();
             resolve(null);
-        };
+        });
 
-        session.once('error', errorHandler);
-        session.once('localSettings', () => {
-            pendingSessions.delete(origin);
-            sessionsCache.set(origin, session);
+        session.once('connect', () => {
+            session.ping(err => {
+                if (!err)
+                    return;
 
-            logger.destination.onHttp2SessionCreated(requestId, origin, sessionsCache.length, HTTP2_SESSIONS_CACHE_SIZE);
+                unsupportedOrigins.push(origin);
+                logger.destination.onHttp2Unsupported(requestId, origin);
 
-            session.off('error', errorHandler);
-            session.once('close', () => {
-                sessionsCache.del(origin);
-                logger.destination.onHttp2SessionClosed(requestId, origin, sessionsCache.length, HTTP2_SESSIONS_CACHE_SIZE);
-            });
-            session.once('error', (err: Error) => {
-                if (!isConnectionResetError(err)) {
-                    logger.destination.onHttp2Error(requestId, origin, err);
-                    throw err;
-                }
-            })
-            session.setTimeout(HTTP2_SESSION_TIMEOUT, () => {
-                logger.destination.onHttp2SessionTimeout(origin, HTTP2_SESSION_TIMEOUT);
-                sessionsCache.del(origin);
+                resolve(null);
             });
 
-            resolve(session);
+            session.once('localSettings', () => {
+                pendingSessions.delete(origin);
+                sessionsCache.set(origin, session);
+
+                logger.destination.onHttp2SessionCreated(requestId, origin, sessionsCache.length, HTTP2_SESSIONS_CACHE_SIZE);
+
+                session.once('close', () => {
+                    sessionsCache.del(origin);
+                    logger.destination.onHttp2SessionClosed(requestId, origin, sessionsCache.length, HTTP2_SESSIONS_CACHE_SIZE);
+                });
+                session.removeAllListeners('error');
+                session.once('error', (err: Error) => {
+                    if (!isConnectionResetError(err)) {
+                        logger.destination.onHttp2Error(requestId, origin, err);
+                        throw err;
+                    }
+                })
+                session.setTimeout(HTTP2_SESSION_TIMEOUT, () => {
+                    logger.destination.onHttp2SessionTimeout(origin, HTTP2_SESSION_TIMEOUT);
+                    sessionsCache.del(origin);
+                });
+
+                resolve(session);
+            });
         });
     });
 
