@@ -21,7 +21,8 @@ const {
 
 const HTTP2_SESSIONS_CACHE_SIZE = 100;
 const HTTP2_SESSION_TIMEOUT     = 60_000;
-const UNSUPPORTED_HEADERS       = [
+const HTTP2_CONNECTION_TIMEOUT  = 3_000;
+const HTTP2_UNSUPPORTED_HEADERS = [
     HTTP2_HEADER_CONNECTION, HTTP2_HEADER_UPGRADE, HTTP2_HEADER_HTTP2_SETTINGS, HTTP2_HEADER_KEEP_ALIVE,
     HTTP2_HEADER_PROXY_CONNECTION, HTTP2_HEADER_TRANSFER_ENCODING, HTTP2_HEADER_HOST
 ];
@@ -49,7 +50,7 @@ export async function getHttp2Session (requestId: string, origin: string): Promi
     const pendingSession = new Promise<ClientHttp2Session | null>(resolve => {
         const session = http2.connect(origin, { settings: { enablePush: false } });
 
-        session.once('error', err => {
+        const errorHandler = err => {
             pendingSessions.delete(origin);
 
             if (err['code'] === 'ERR_HTTP2_ERROR') {
@@ -59,12 +60,16 @@ export async function getHttp2Session (requestId: string, origin: string): Promi
 
             session.removeAllListeners();
             resolve(null);
-        });
+        }
+
+        session.once('error', errorHandler);
 
         session.once('connect', () => {
-            session.ping(noop);
+            const timeout = setTimeout(() => errorHandler({ code: 'ERR_HTTP2_ERROR' }), HTTP2_CONNECTION_TIMEOUT);
 
+            session.ping(noop);
             session.once('localSettings', () => {
+                clearTimeout(timeout);
                 pendingSessions.delete(origin);
                 sessionsCache.set(origin, session);
 
@@ -74,7 +79,7 @@ export async function getHttp2Session (requestId: string, origin: string): Promi
                     sessionsCache.del(origin);
                     logger.destination.onHttp2SessionClosed(requestId, origin, sessionsCache.length, HTTP2_SESSIONS_CACHE_SIZE);
                 });
-                session.removeAllListeners('error');
+                session.off('error', errorHandler);
                 session.once('error', (err: Error) => {
                     if (!isConnectionResetError(err)) {
                         logger.destination.onHttp2Error(requestId, origin, err);
@@ -98,7 +103,7 @@ export async function getHttp2Session (requestId: string, origin: string): Promi
 
 export function formatRequestHttp2Headers (opts: RequestOptions) {
     return Object.keys(opts.headers).reduce((headers, key) => {
-        if(!UNSUPPORTED_HEADERS.includes(key))
+        if(!HTTP2_UNSUPPORTED_HEADERS.includes(key))
             headers[key] = opts.headers[key];
 
         return headers;
