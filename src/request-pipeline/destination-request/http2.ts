@@ -58,12 +58,11 @@ export async function getHttp2Session (requestId: string, origin: string): Promi
                 logger.destination.onHttp2Unsupported(requestId, origin);
             }
 
-            session.removeAllListeners();
+            session.destroy();
             resolve(null);
         }
 
         session.once('error', errorHandler);
-
         session.once('connect', () => {
             const timeout = setTimeout(() => errorHandler({ code: 'ERR_HTTP2_ERROR' }), HTTP2_CONNECTION_TIMEOUT);
 
