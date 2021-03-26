@@ -28,7 +28,6 @@ interface RequestEventListenerError {
 }
 
 interface RequestFilterRuleObjectInitializer {
-    id?: string;
     url: string | RegExp;
     method: string;
     isAjax: boolean;
