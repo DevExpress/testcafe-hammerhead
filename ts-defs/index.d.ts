@@ -27,18 +27,6 @@ interface RequestEventListenerError {
     methodName: string;
 }
 
-declare enum RequestEventNames {
-    onRequest = 'onRequest',
-    onConfigureResponse = 'onConfigureResponse',
-    onResponse = 'onResponse'
-}
-
-interface RequestEventListeners {
-    [RequestEventNames.onRequest]: Function;
-    [RequestEventNames.onConfigureResponse]: Function;
-    [RequestEventNames.onResponse]: Function;
-}
-
 interface RequestFilterRuleObjectInitializer {
     id?: string;
     url: string | RegExp;
@@ -47,17 +35,6 @@ interface RequestFilterRuleObjectInitializer {
 }
 
 type RequestFilterRuleInit = string | RegExp | Partial<RequestFilterRuleObjectInitializer> | RequestFilterRulePredicate;
-
-export class RequestFilterRule {
-    readonly options: RequestFilterRuleInit;
-    id: string;
-
-    constructor (options: RequestFilterRuleInit);
-    static get ANY (): RequestFilterRule;
-    static isANY (instance: any): boolean;
-    static from (rules?: RequestFilterRuleInit | RequestFilterRuleInit[]): RequestFilterRule[];
-    toString (): string;
-}
 
 interface RequestFilterRuleObjectInitializer {
     url: string | RegExp;
@@ -71,6 +48,18 @@ declare module 'testcafe-hammerhead' {
     import { IncomingHttpHeaders } from 'http';
 
     export type RequestFilterRuleInit = string | RegExp | Partial<RequestFilterRuleObjectInitializer> | RequestFilterRulePredicate;
+
+    enum RequestEventNames {
+        onRequest = 'onRequest',
+        onConfigureResponse = 'onConfigureResponse',
+        onResponse = 'onResponse'
+    }
+
+    interface RequestEventListeners {
+        [RequestEventNames.onRequest]: Function;
+        [RequestEventNames.onConfigureResponse]: Function;
+        [RequestEventNames.onResponse]: Function;
+    }
 
     /** The Session class is used to create a web-proxy session **/
     export abstract class Session {
