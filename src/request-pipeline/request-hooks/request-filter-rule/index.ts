@@ -15,7 +15,7 @@ const MATCH_ANY_REQUEST_REG_EX = /.*/;
 // NOTE: RequestFilterRule is a data transfer object
 // It should contain only initialization and creation logic
 export default class RequestFilterRule {
-    public readonly options: RequestFilterRuleInit;
+    public options: RequestFilterRuleInit;
     public id: string;
 
     constructor (options: RequestFilterRuleInit) {
@@ -53,10 +53,23 @@ export default class RequestFilterRule {
         return id;
     }
 
-    private static _ensureRule (rule: RequestFilterRuleInit | RequestFilterRule) {
-        return rule instanceof RequestFilterRule ?
-            rule :
-            new RequestFilterRule(rule);
+    static _isRequestFilterRuleLike (rule: unknown): boolean {
+        return !!rule['id'] && !!rule['options'];
+    }
+
+    static _ensureRule (rule: RequestFilterRuleInit | RequestFilterRule) {
+        if (rule instanceof RequestFilterRule)
+            return rule;
+
+        else if (RequestFilterRule._isRequestFilterRuleLike(rule)) {
+            const id         = rule['id'];
+            const options    = rule['options'];
+            const newOptions = Object.assign({}, { id }, options);
+
+            return new RequestFilterRule(newOptions);
+        }
+
+        return new RequestFilterRule(rule);
     }
 
     static get ANY (): RequestFilterRule {
