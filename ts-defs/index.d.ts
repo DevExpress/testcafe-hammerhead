@@ -10,11 +10,30 @@ interface ExternalProxySettingsRaw {
     bypassRules?: string[]
 }
 
-interface Session {
-    getIframePayloadScript (iframeWithoutSrc: boolean): Promise<string>;
-    getPayloadScript (): Promise<string>;
-    handleFileDownload (): void;
+interface RequestTimeout {
+    page?: number;
+    ajax?: number;
 }
+
+interface SessionOptions {
+    disablePageCaching: boolean;
+    allowMultipleWindows: boolean;
+    windowId: string;
+    requestTimeout: RequestTimeout;
+}
+
+interface RequestEventListenerError {
+    error: Error;
+    methodName: string;
+}
+
+interface RequestFilterRuleObjectInitializer {
+    url: string | RegExp;
+    method: string;
+    isAjax: boolean;
+}
+
+type RequestFilterRuleInit = string | RegExp | Partial<RequestFilterRuleObjectInitializer> | RequestFilterRulePredicate;
 
 interface RequestFilterRuleObjectInitializer {
     url: string | RegExp;
@@ -28,6 +47,40 @@ declare module 'testcafe-hammerhead' {
     import { IncomingHttpHeaders } from 'http';
 
     export type RequestFilterRuleInit = string | RegExp | Partial<RequestFilterRuleObjectInitializer> | RequestFilterRulePredicate;
+
+    enum RequestEventNames {
+        onRequest = 'onRequest',
+        onConfigureResponse = 'onConfigureResponse',
+        onResponse = 'onResponse'
+    }
+
+    interface RequestEventListeners {
+        [RequestEventNames.onRequest]: Function;
+        [RequestEventNames.onConfigureResponse]: Function;
+        [RequestEventNames.onResponse]: Function;
+    }
+
+    /** The Session class is used to create a web-proxy session **/
+    export abstract class Session {
+        /** Creates a session instance **/
+        protected constructor (uploadRoots: string[], options: Partial<SessionOptions>)
+
+        /** Abstract method that must return a payload script for iframe **/
+        abstract getIframePayloadScript (iframeWithoutSrc: boolean): Promise<string>;
+
+        /** Abstract method that must return a payload script **/
+        abstract getPayloadScript (): Promise<string>;
+
+        /** Abstract method that must handle a file download **/
+        abstract handleFileDownload (): void;
+
+        /** Adds request event listeners **/
+        addRequestEventListeners (rule: RequestFilterRule, listeners: RequestEventListeners,
+                                  errorHandler: (event: RequestEventListenerError) => void): void;
+
+        /** Removes request event listeners **/
+        removeRequestEventListeners (rule: RequestFilterRule): void;
+    }
 
     /** The Proxy class is used to create a web-proxy **/
     export class Proxy {

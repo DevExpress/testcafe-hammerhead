@@ -23,7 +23,7 @@ export default class RequestFilterRule {
         this.id      = this._initializeId(this.options);
     }
 
-    _initializeOptions (options: RequestFilterRuleInit): RequestFilterRuleObjectInitializer {
+    private _initializeOptions (options: RequestFilterRuleInit): RequestFilterRuleObjectInitializer {
         let tmpOptions: any = Object.assign({}, DEFAULT_OPTIONS);
 
         if (typeof options === 'string' || isRegExp(options))
@@ -41,7 +41,7 @@ export default class RequestFilterRule {
         return tmpOptions;
     }
 
-    _initializeId (options: RequestFilterRuleInit): string {
+    private _initializeId (options: RequestFilterRuleInit): string {
         let id = generateUniqueId();
 
         if (isObject(options) && isString(options['id'])) {
@@ -53,7 +53,7 @@ export default class RequestFilterRule {
         return id;
     }
 
-    static _ensureRule (rule: RequestFilterRuleInit | RequestFilterRule) {
+    private static _ensureRule (rule: RequestFilterRuleInit | RequestFilterRule) {
         return rule instanceof RequestFilterRule ?
             rule :
             new RequestFilterRule(rule);
