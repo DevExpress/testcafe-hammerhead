@@ -120,7 +120,7 @@ declare module 'testcafe-hammerhead' {
         /** Creates RequestFilterRule instances from RequestFilterRule initializers **/
         static from (rules?: RequestFilterRuleInit | RequestFilterRuleInit[]): RequestFilterRule[];
 
-        /** Unique identified of the RequestFilterRule instance **/
+        /** Unique identifier of the RequestFilterRule instance **/
         id: string;
     }
 
