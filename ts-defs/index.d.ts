@@ -119,6 +119,9 @@ declare module 'testcafe-hammerhead' {
 
         /** Creates RequestFilterRule instances from RequestFilterRule initializers **/
         static from (rules?: RequestFilterRuleInit | RequestFilterRuleInit[]): RequestFilterRule[];
+
+        /** Unique identified of the RequestFilterRule instance **/
+        id: string;
     }
 
     /** The StateSnapshot class is used to create page state snapshot **/

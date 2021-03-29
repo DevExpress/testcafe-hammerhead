@@ -57,7 +57,7 @@ export default class RequestFilterRule {
         return !!rule['id'] && !!rule['options'];
     }
 
-    static _ensureRule (rule: RequestFilterRuleInit | RequestFilterRule) {
+    private static _ensureRule (rule: RequestFilterRuleInit | RequestFilterRule) {
         if (rule instanceof RequestFilterRule)
             return rule;
 
