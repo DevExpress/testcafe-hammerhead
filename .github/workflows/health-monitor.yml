@@ -1,0 +1,50 @@
+name: Health Monitor
+
+on:
+#  schedule:
+#    - cron: '0 19 * * *'
+  workflow_dispatch:
+
+jobs:
+  main-branch:
+    runs-on: windows-latest
+
+    steps:
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: Checkout the Health Monitor repository
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ secrets.HEALTH_MONITOR_REPO }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: ./HealthMonitor/health-monitor
+
+      - name: Checkout the testcafe-hammerhead repository
+        uses: actions/checkout@v2
+        with:
+          repository: DevExpress/testcafe-hammerhead
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: ./HealthMonitor/testcafe-hammerhead
+
+      - name: Write the current testcafe-hammerhead commit id txt
+        run: git log -1 --pretty=%%h > ..\health-monitor\last-commit-id.txt
+        working-directory: ./HealthMonitor/testcafe-hammerhead
+
+      - name: Install testcafe-hammerhead dependencies and run build taks
+        run: |
+          npm i
+          npx gulp build
+        working-directory: ./HealthMonitor/testcafe-hammerhead
+
+      - name: Install Health Monitor dependencies
+        run: |
+          npm i
+          npm i testcafe-hammerhead ../testcafe-hammerhead --save
+        working-directory: ./HealthMonitor/health-monitor
+
+      - name: Run Health Monitor
+        run: npx gulp health-monitor
+        working-directory: ./HealthMonitor/health-monitor
