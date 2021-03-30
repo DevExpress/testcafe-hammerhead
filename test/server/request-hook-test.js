@@ -203,12 +203,21 @@ describe('RequestFilterRule', () => {
         const rule2    = new RequestFilterRule(ruleInit);
         const rule3    = { id: '1', url: ruleInit };
 
+        const ruleLikeObject = {
+            id:      '1',
+            options: {
+                url:    'http://dummy.com',
+                method: void 0,
+                isAjax: void 0
+            }
+        };
+
         expect(RequestFilterRule.from()).eql([]);
         expect(RequestFilterRule.from(rule1)).eql([rule1]);
 
-        const rules = RequestFilterRule.from([rule1, rule2, rule3, ruleInit]);
+        const rules = RequestFilterRule.from([rule1, rule2, rule3, ruleInit, ruleLikeObject]);
 
-        expect(rules.length).eql(4);
+        expect(rules.length).eql(5);
 
         rules.forEach(rule => {
             expect(rule).to.be.an.instanceOf(RequestFilterRule);
