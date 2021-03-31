@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: ${{ secrets.HEALTH_MONITOR_REPO }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.CLONE_PRIVATE_REPOS_TOKEN }}
           path: ./HealthMonitor/health-monitor
 
       - name: Checkout the testcafe-hammerhead repository
