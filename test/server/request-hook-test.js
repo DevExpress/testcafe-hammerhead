@@ -6,13 +6,14 @@ const ConfigureResponseEvent        = require('../../lib/session/events/configur
 const ConfigureResponseEventOptions = require('../../lib/session/events/configure-response-event-options');
 const requestIsMatchRule            = require('../../lib/request-pipeline/request-hooks/request-is-match-rule');
 const { noop }                      = require('lodash');
+const getMockResponse               = require('../../lib/request-pipeline/request-hooks/response-mock/get-response');
 
 describe('ResponseMock', () => {
     describe('Header names should be lowercased', () => {
         it('"Headers" parameter', async () => {
             const body     = '<html><body><h1>Test</h1></body></html>';
             const mock     = new ResponseMock(body, 200, { 'Access-Control-Allow-Origin': '*' });
-            const response = await mock.getResponse();
+            const response = await getMockResponse(mock);
 
             expect(response.headers['access-control-allow-origin']).eql('*');
         });
@@ -22,7 +23,7 @@ describe('ResponseMock', () => {
                 res.headers['Access-Control-Allow-Origin'] = '*';
             });
 
-            const response = await mock.getResponse();
+            const response = await getMockResponse(mock);
 
             expect(response.headers['access-control-allow-origin']).eql('*');
         });
@@ -61,7 +62,7 @@ describe('ResponseMock', () => {
         it('JSON', async () => {
             const data     = { test: 1 };
             const mock     = new ResponseMock(data);
-            const response = await mock.getResponse();
+            const response = await getMockResponse(mock);
 
             expect(response.headers['content-type']).eql('application/json');
             expect(response.statusCode).eql(200);
@@ -71,7 +72,7 @@ describe('ResponseMock', () => {
         it('HTML page', async () => {
             const html     = '<html><body><h1>Test</h1></body></html>';
             const mock     = new ResponseMock(html);
-            const response = await mock.getResponse();
+            const response = await getMockResponse(mock);
 
             expect(response.headers['content-type']).to.include('text/html');
             expect(response.statusCode).eql(200);
@@ -81,7 +82,7 @@ describe('ResponseMock', () => {
         it('Binary data', async () => {
             const binaryData = Buffer.from([0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x01]);
             const mock       = new ResponseMock(binaryData);
-            const response   = await mock.getResponse();
+            const response   = await getMockResponse(mock);
 
             expect(response.statusCode).eql(200);
             expect(response.read()).eql(binaryData);
@@ -89,7 +90,7 @@ describe('ResponseMock', () => {
 
         it('Empty HTML page', async () => {
             const mock     = new ResponseMock();
-            const response = await mock.getResponse();
+            const response = await getMockResponse(mock);
 
             expect(response.headers['content-type']).to.include('text/html');
             expect(response.statusCode).eql(200);
@@ -98,7 +99,7 @@ describe('ResponseMock', () => {
 
         it('Custom status code', async () => {
             const mock     = new ResponseMock(null, 204);
-            const response = await mock.getResponse();
+            const response = await getMockResponse(mock);
 
             expect(response.headers['content-type']).to.include('text/html');
             expect(response.statusCode).eql(204);
@@ -108,7 +109,7 @@ describe('ResponseMock', () => {
         it('Custom headers', async () => {
             const script   = 'var t = 10';
             const mock     = new ResponseMock(script, 200, { 'content-type': 'application/javascript' });
-            const response = await mock.getResponse();
+            const response = await getMockResponse(mock);
 
             expect(response.headers['content-type']).eql('application/javascript');
             expect(response.statusCode).eql(200);
@@ -133,7 +134,7 @@ describe('ResponseMock', () => {
 
             mock.setRequestOptions(reqOptions);
 
-            const response = await mock.getResponse();
+            const response = await getMockResponse(mock);
 
             expect(response.setBody).to.be.indefined;
             expect(response.headers['content-type']).to.include('text/html');
@@ -155,10 +156,25 @@ describe('ResponseMock', () => {
                 res.setBody(body);
             });
 
-            const response = await mock.getResponse();
+            const response = await getMockResponse(mock);
 
             expect(response.read().toString()).eql('body');
         });
+    });
+
+    it('.from', () => {
+        expect(ResponseMock.from()).eql(null);
+
+        const mock = ResponseMock.from({
+            body:       'text',
+            statusCode: 200,
+            headers:    { 'header': 'value' }
+        });
+
+        expect(mock).be.instanceOf(ResponseMock);
+        expect(mock.body).eql('text');
+        expect(mock.statusCode).eql(200);
+        expect(mock.headers).eql({ 'header': 'value' });
     });
 });
 

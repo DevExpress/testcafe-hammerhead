@@ -80,6 +80,9 @@ declare module 'testcafe-hammerhead' {
 
         /** Removes request event listeners **/
         removeRequestEventListeners (rule: RequestFilterRule): void;
+
+        /** Set RequestMock for the specified RequestFilterRule **/
+        setMock (requestFilterRule: RequestFilterRule, mock: ResponseMock): void;
     }
 
     /** The Proxy class is used to create a web-proxy **/
