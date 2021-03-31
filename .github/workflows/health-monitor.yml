@@ -7,6 +7,8 @@ on:
 
 jobs:
   main-branch:
+    if: ${{ github.event.workflow == '.github/workflows/health-monitor.yml' }}
+
     runs-on: windows-latest
 
     steps:
@@ -25,8 +27,6 @@ jobs:
       - name: Checkout the testcafe-hammerhead repository
         uses: actions/checkout@v2
         with:
-          repository: DevExpress/testcafe-hammerhead
-          token: ${{ secrets.GITHUB_TOKEN }}
           path: ./HealthMonitor/testcafe-hammerhead
 
       - name: Write the current testcafe-hammerhead commit id txt
