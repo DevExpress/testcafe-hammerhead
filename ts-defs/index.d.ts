@@ -212,6 +212,9 @@ declare module 'testcafe-hammerhead' {
     export class ResponseMock {
         /** Creates a ResponseMock instance **/
         constructor(body: string | Function, statusCode?: number, headers?: object);
+
+        /** Creates an ResponseMock instance from object **/
+        static from (val: object): ResponseMock;
     }
 
     /** Generates an URL friendly string identifier **/
