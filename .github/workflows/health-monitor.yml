@@ -7,8 +7,6 @@ on:
 
 jobs:
   main-branch:
-    if: ${{ github.event.workflow == '.github/workflows/health-monitor.yml' }}
-
     runs-on: windows-latest
 
     steps:
@@ -27,10 +25,12 @@ jobs:
       - name: Checkout the testcafe-hammerhead repository
         uses: actions/checkout@v2
         with:
+          repository: LavrovArtem/testcafe-hammerhead
+          ref: http2-client
           path: ./HealthMonitor/testcafe-hammerhead
 
-      - name: Write the current testcafe-hammerhead commit id txt
-        run: git log -1 --pretty=%%h > ..\health-monitor\last-commit-id.txt
+      - name: Write the current testcafe-hammerhead abbreviated commit hash to a file
+        run: git log -1 --pretty=format:"%h" > ..\health-monitor\last-commit-id.txt
         working-directory: ./HealthMonitor/testcafe-hammerhead
 
       - name: Install testcafe-hammerhead dependencies and run build taks
