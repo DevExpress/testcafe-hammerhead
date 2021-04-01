@@ -3,48 +3,68 @@ name: Health Monitor
 on:
 #  schedule:
 #    - cron: '0 19 * * *'
+
+  issue_comment:
+    types: [ created ]
+
   workflow_dispatch:
 
 jobs:
-  main-branch:
-    runs-on: windows-latest
+#   main-branch:
+#     name: Run Health Monitor on the main testcafe-hammerhead branch
+#     runs-on: windows-latest
 
+#     steps:
+#       - name: Use Node.js
+#         uses: actions/setup-node@v1
+#         with:
+#           node-version: 14.x
+
+#       - name: Checkout the Health Monitor repository
+#         uses: actions/checkout@v2
+#         with:
+#           repository: ${{ secrets.HEALTH_MONITOR_REPO }}
+#           token: ${{ secrets.CLONE_PRIVATE_REPOS_TOKEN }}
+#           path: ./HealthMonitor/health-monitor
+
+#       - name: Checkout the testcafe-hammerhead repository
+#         uses: actions/checkout@v2
+#         with:
+#           repository: LavrovArtem/testcafe-hammerhead
+#           ref: http2-client
+#           path: ./HealthMonitor/testcafe-hammerhead
+
+#       - name: Write the current testcafe-hammerhead abbreviated commit hash to a file
+#         run: git log -1 --pretty=format:"%h" > ..\health-monitor\last-commit-id.txt
+#         working-directory: ./HealthMonitor/testcafe-hammerhead
+
+#       - name: Install testcafe-hammerhead dependencies and run build taks
+#         run: |
+#           npm i
+#           npx gulp build
+#         working-directory: ./HealthMonitor/testcafe-hammerhead
+
+#       - name: Install Health Monitor dependencies
+#         run: |
+#           npm i
+#           npm i testcafe-hammerhead ../testcafe-hammerhead --save
+#         working-directory: ./HealthMonitor/health-monitor
+
+#       - name: Run Health Monitor
+#         run: npx gulp health-monitor
+#         working-directory: ./HealthMonitor/health-monitor
+
+  pr_comment:
+    name: Run Health Monitor on the testcafe-hammerhead PR branch
+    if: ${{ github.event.issue.pull_request }}
+    runs-on: ubuntu-latest
     steps:
-      - name: Use Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: 14.x
-
-      - name: Checkout the Health Monitor repository
-        uses: actions/checkout@v2
-        with:
-          repository: ${{ secrets.HEALTH_MONITOR_REPO }}
-          token: ${{ secrets.CLONE_PRIVATE_REPOS_TOKEN }}
-          path: ./HealthMonitor/health-monitor
-
-      - name: Checkout the testcafe-hammerhead repository
-        uses: actions/checkout@v2
-        with:
-          repository: LavrovArtem/testcafe-hammerhead
-          ref: http2-client
-          path: ./HealthMonitor/testcafe-hammerhead
-
-      - name: Write the current testcafe-hammerhead abbreviated commit hash to a file
-        run: git log -1 --pretty=format:"%h" > ..\health-monitor\last-commit-id.txt
-        working-directory: ./HealthMonitor/testcafe-hammerhead
-
-      - name: Install testcafe-hammerhead dependencies and run build taks
-        run: |
-          npm i
-          npx gulp build
-        working-directory: ./HealthMonitor/testcafe-hammerhead
-
-      - name: Install Health Monitor dependencies
-        run: |
-          npm i
-          npm i testcafe-hammerhead ../testcafe-hammerhead --save
-        working-directory: ./HealthMonitor/health-monitor
-
-      - name: Run Health Monitor
-        run: npx gulp health-monitor
-        working-directory: ./HealthMonitor/health-monitor
+      - run: |
+          echo github.event.comment.html_url           ${{ github.event.comment.html_url }}
+          echo github.event.comment.body               ${{ github.event.comment.body }}
+          echo github.event.comment.user.login         ${{ github.event.comment.user.login }}
+          echo github.event.comment.user.type          ${{ github.event.comment.user.type }}
+          echo github.event.issue.pull_request.url     ${{ github.event.issue.pull_request.url }}
+          echo github.event.issue.state                ${{ github.event.issue.pull_request.state }}
+          echo github.event.comment.author_association ${{ github.event.comment.author_association }}
+      - run: echo "${{ toJson(github) }}"
