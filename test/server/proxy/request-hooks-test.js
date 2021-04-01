@@ -586,8 +586,8 @@ describe('Request Hooks', () => {
             session.addRequestEventListeners(rule, {
                 onRequest: e => {
                     return new Promise(resolve => {
-                        setTimeout(() => {
-                            e.setMock(mock);
+                        setTimeout(async () => {
+                            await e.setMock(mock);
 
                             resolve();
                         }, 100);
@@ -618,8 +618,8 @@ describe('Request Hooks', () => {
             session.addRequestEventListeners(rule, {
                 onRequest: e => {
                     return new Promise(resolve => {
-                        setTimeout(() => {
-                            e.setMock(mock);
+                        setTimeout(async () => {
+                            await e.setMock(mock);
 
                             resolve();
                         }, 100);
@@ -655,8 +655,8 @@ describe('Request Hooks', () => {
             session.addRequestEventListeners(rule, {
                 onRequest: e => {
                     return new Promise(resolve => {
-                        setTimeout(() => {
-                            e.setMock(mock);
+                        setTimeout(async () => {
+                            await e.setMock(mock);
 
                             resolve();
                         }, 100);
