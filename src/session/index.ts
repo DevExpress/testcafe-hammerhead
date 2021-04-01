@@ -311,7 +311,7 @@ export default abstract class Session extends EventEmitter {
         }
     }
 
-    setMock (requestFilterRule: RequestFilterRule, mock: ResponseMock): void {
+    async setMock (requestFilterRule: RequestFilterRule, mock: ResponseMock): Promise<void> {
         this.mocks.set(requestFilterRule.id, mock);
     }
 
