@@ -80,6 +80,9 @@ declare module 'testcafe-hammerhead' {
 
         /** Removes request event listeners **/
         removeRequestEventListeners (rule: RequestFilterRule): void;
+
+        /** Set RequestMock for the specified RequestFilterRule **/
+        setMock (requestFilterRule: RequestFilterRule, mock: ResponseMock): void;
     }
 
     /** The Proxy class is used to create a web-proxy **/
@@ -209,6 +212,9 @@ declare module 'testcafe-hammerhead' {
     export class ResponseMock {
         /** Creates a ResponseMock instance **/
         constructor(body: string | Function, statusCode?: number, headers?: object);
+
+        /** Creates an ResponseMock instance from object **/
+        static from (val: object): ResponseMock;
     }
 
     /** Generates an URL friendly string identifier **/

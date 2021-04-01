@@ -92,7 +92,7 @@ export default abstract class Session extends EventEmitter {
     pendingStateSnapshot: StateSnapshot | null = null;
     injectable: InjectableResources = { scripts: ['/hammerhead.js'], styles: [], userScripts: [] };
     requestEventListeners: Map<string, RequestEventListenersData> = new Map();
-    mocks: Map<RequestFilterRule, ResponseMock> = new Map();
+    mocks: Map<string, ResponseMock> = new Map();
     private _recordMode = false;
     options: SessionOptions;
 
@@ -312,11 +312,11 @@ export default abstract class Session extends EventEmitter {
     }
 
     setMock (requestFilterRule: RequestFilterRule, mock: ResponseMock): void {
-        this.mocks.set(requestFilterRule, mock);
+        this.mocks.set(requestFilterRule.id, mock);
     }
 
     getMock (requestFilterRule: RequestFilterRule): ResponseMock | undefined {
-        return this.mocks.get(requestFilterRule);
+        return this.mocks.get(requestFilterRule.id);
     }
 
     setRecordMode(): void {

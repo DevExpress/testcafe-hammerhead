@@ -26,6 +26,7 @@ import createSpecialPageResponse from './create-special-page-response';
 import { fetchBody } from '../utils/http';
 import * as requestCache from './cache';
 import requestIsMatchRule from '../request-pipeline/request-hooks/request-is-match-rule';
+import getMockResponse from '../request-pipeline/request-hooks/response-mock/get-response';
 
 interface DestInfo {
     url: string;
@@ -428,7 +429,7 @@ export default class RequestPipelineContext {
 
         this.mock.setRequestOptions(this.reqOpts);
 
-        this.destRes = await this.mock.getResponse();
+        this.destRes = await getMockResponse(this.mock);
 
         this.buildContentInfo();
     }
