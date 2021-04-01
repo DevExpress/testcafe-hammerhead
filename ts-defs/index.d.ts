@@ -82,7 +82,7 @@ declare module 'testcafe-hammerhead' {
         removeRequestEventListeners (rule: RequestFilterRule): void;
 
         /** Set RequestMock for the specified RequestFilterRule **/
-        setMock (requestFilterRule: RequestFilterRule, mock: ResponseMock): void;
+        setMock (requestFilterRule: RequestFilterRule, mock: ResponseMock): Promise<void>;
     }
 
     /** The Proxy class is used to create a web-proxy **/
@@ -184,7 +184,7 @@ declare module 'testcafe-hammerhead' {
         _requestFilterRule: RequestFilterRule;
 
         /** Set up the mock for the query response **/
-        setMock(mock: ResponseMock): void;
+        setMock(mock: ResponseMock): Promise<void>;
     }
 
     /** The ResponseEvent describes the response part of the query captured with request hook **/
