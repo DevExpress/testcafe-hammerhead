@@ -26,10 +26,10 @@ import COMMAND from './command';
 import generateUniqueId from '../utils/generate-unique-id';
 import SERVICE_ROUTES from '../proxy/service-routes';
 import DEFAULT_REQUEST_TIMEOUT from '../request-pipeline/destination-request/default-request-timeout';
-import { stringify as stringifyJSON } from '../utils/json';
 import requestIsMatchRule from '../request-pipeline/request-hooks/request-is-match-rule';
+import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
 
-const TASK_TEMPLATE: string = read('../client/task.js.mustache');
+const TASK_TEMPLATE = read('../client/task.js.mustache');
 
 interface UserScript {
     url: string;
@@ -95,6 +95,7 @@ export default abstract class Session extends EventEmitter {
     mocks: Map<string, ResponseMock> = new Map();
     private _recordMode = false;
     options: SessionOptions;
+    private _configureResponseEventOptions: Map<string, ConfigureResponseEventOptions> = new Map();
 
     protected constructor (uploadRoots: string[], options: Partial<SessionOptions>) {
         super();
@@ -142,7 +143,7 @@ export default abstract class Session extends EventEmitter {
     }
 
     _fillTaskScriptTemplate ({ serverInfo, isFirstPageLoad, referer, cookie, iframeTaskScriptTemplate, payloadScript, allowMultipleWindows, isRecordMode, windowId }: TaskScriptTemplateOpts): string {
-        referer                  = referer && stringifyJSON(referer) || '{{{referer}}}';
+        referer                  = referer && JSON.stringify(referer) || '{{{referer}}}';
         cookie                   = cookie || '{{{cookie}}}';
         iframeTaskScriptTemplate = iframeTaskScriptTemplate || '{{{iframeTaskScriptTemplate}}}';
 
@@ -177,11 +178,11 @@ export default abstract class Session extends EventEmitter {
             isRecordMode:             this._recordMode
         });
 
-        return stringifyJSON(taskScriptTemplate);
+        return JSON.stringify(taskScriptTemplate);
     }
 
     async getTaskScript ({ referer, cookieUrl, serverInfo, isIframe, withPayload, windowId }: TaskScriptOpts): Promise<string> {
-        const cookies     = stringifyJSON(this.cookies.getClientString(cookieUrl));
+        const cookies     = JSON.stringify(this.cookies.getClientString(cookieUrl));
         let payloadScript = '';
 
         if (withPayload)
@@ -283,8 +284,20 @@ export default abstract class Session extends EventEmitter {
         return matchedRules.filter(rule => !!rule);
     }
 
-    async callRequestEventCallback (eventName: RequestEventNames, requestFilterRule: RequestFilterRule, eventData: RequestEvent | ResponseEvent | ConfigureResponseEvent) {
-        const requestEventListenersData = this.requestEventListeners.get(requestFilterRule.id);
+    _patchOnConfigureResponseEvent (eventName: RequestEventNames, rule: RequestFilterRule, eventData: RequestEvent | ResponseEvent | ConfigureResponseEvent): void {
+        // At present, this way is used only in the TestCafe's 'compiler service' run mode.
+        // Later, we need to remove the old event-based mechanism and use this one.
+        if (eventName !== RequestEventNames.onConfigureResponse)
+            return;
+
+        const opts = this._configureResponseEventOptions.get(rule.id);
+
+        if (opts)
+            (eventData as ConfigureResponseEvent).opts = opts;
+    }
+
+    async callRequestEventCallback (eventName: RequestEventNames, rule: RequestFilterRule, eventData: RequestEvent | ResponseEvent | ConfigureResponseEvent): Promise<void> {
+        const requestEventListenersData = this.requestEventListeners.get(rule.id);
 
         if (!requestEventListenersData)
             return;
@@ -297,6 +310,8 @@ export default abstract class Session extends EventEmitter {
 
         try {
             await targetRequestEventCallback(eventData);
+
+            this._patchOnConfigureResponseEvent(eventName, rule, eventData);
         }
         catch (e) {
             if (typeof errorHandler !== 'function')
@@ -317,6 +332,14 @@ export default abstract class Session extends EventEmitter {
 
     getMock (requestFilterRule: RequestFilterRule): ResponseMock | undefined {
         return this.mocks.get(requestFilterRule.id);
+    }
+
+    async setConfigureResponseEventOptions (rule: RequestFilterRule, opts: ConfigureResponseEventOptions): Promise<void> {
+        this._configureResponseEventOptions.set(rule.id, opts);
+    }
+
+    async removeConfigureResponseEventOptions (rule: RequestFilterRule): Promise<void> {
+        this._configureResponseEventOptions.delete(rule.id);
     }
 
     setRecordMode(): void {

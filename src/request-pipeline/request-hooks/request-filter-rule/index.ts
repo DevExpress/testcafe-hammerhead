@@ -82,7 +82,14 @@ export default class RequestFilterRule {
             instance.options.url === MATCH_ANY_REQUEST_REG_EX);
     }
 
-    static from (rules?: RequestFilterRuleInit | RequestFilterRuleInit[]): RequestFilterRule[] {
+    static from (rule?: RequestFilterRuleInit): RequestFilterRule | null {
+        if (!rule)
+            return null;
+
+        return this._ensureRule(rule);
+    }
+
+    static fromArray (rules?: RequestFilterRuleInit[]): RequestFilterRule[] {
         if (!rules)
             return [];
 

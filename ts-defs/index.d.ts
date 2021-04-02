@@ -83,6 +83,9 @@ declare module 'testcafe-hammerhead' {
 
         /** Set RequestMock for the specified RequestFilterRule **/
         setMock (requestFilterRule: RequestFilterRule, mock: ResponseMock): Promise<void>;
+
+        /** Set ConfigureResponseEvent options which are applied during the request pipeline execution**/
+        setConfigureResponseEventOptions (rule: RequestFilterRule, opts: ConfigureResponseEventOptions): Promise<void>;
     }
 
     /** The Proxy class is used to create a web-proxy **/
@@ -120,8 +123,11 @@ declare module 'testcafe-hammerhead' {
         /** Check whether the specified RequestFilterRule instance accepts any request **/
         static isANY (instance: any): boolean;
 
+        /** Creates a RequestFilterRule instance from the RequestFilterRule initializer **/
+        static from (rule?: RequestFilterRuleInit): RequestFilterRule;
+
         /** Creates RequestFilterRule instances from RequestFilterRule initializers **/
-        static from (rules?: RequestFilterRuleInit | RequestFilterRuleInit[]): RequestFilterRule[];
+        static fromArray (rules?: RequestFilterRuleInit | RequestFilterRuleInit[]): RequestFilterRule[];
 
         /** Unique identifier of the RequestFilterRule instance **/
         id: string;
@@ -149,6 +155,9 @@ declare module 'testcafe-hammerhead' {
     export class ConfigureResponseEvent {
         /** The options to configure ResponseEvent **/
         opts: ConfigureResponseEventOptions;
+
+        /** RequestFilterRule associated with event **/
+        _requestFilterRule: RequestFilterRule;
     }
 
     /** The RequestInfo class contains information about query request **/
