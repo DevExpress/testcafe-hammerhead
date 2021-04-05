@@ -54,7 +54,7 @@ export async function getHttp2Session (requestId: string, origin: string): Promi
         const errorHandler = err => {
             pendingSessions.delete(origin);
 
-            if (err['code'] === 'ERR_HTTP2_ERROR' && err['code'] === 'ERR_HTTP2_PING_CANCEL') {
+            if (err['code'] === 'ERR_HTTP2_ERROR' || err['code'] === 'ERR_HTTP2_PING_CANCEL') {
                 unsupportedOrigins.push(origin);
                 logger.destination.onHttp2Unsupported(requestId, origin);
             }
