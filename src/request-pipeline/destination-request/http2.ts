@@ -19,10 +19,11 @@ const {
     HTTP2_HEADER_HOST
 } = http2.constants;
 
-const HTTP2_SESSIONS_CACHE_SIZE = 100;
-const HTTP2_SESSION_TIMEOUT     = 60_000;
-const HTTP2_CONNECTION_TIMEOUT  = 3_000;
-const HTTP2_UNSUPPORTED_HEADERS = [
+const HTTP2_SESSIONS_CACHE_SIZE    = 100;
+const HTTP2_SESSION_TIMEOUT        = 60_000;
+const HTTP2_CONNECT_TIMEOUT        = 5_000;
+const HTTP2_LOCAL_SETTINGS_TIMEOUT = 3_000;
+const HTTP2_UNSUPPORTED_HEADERS    = [
     HTTP2_HEADER_CONNECTION, HTTP2_HEADER_UPGRADE, HTTP2_HEADER_HTTP2_SETTINGS, HTTP2_HEADER_KEEP_ALIVE,
     HTTP2_HEADER_PROXY_CONNECTION, HTTP2_HEADER_TRANSFER_ENCODING, HTTP2_HEADER_HOST
 ];
@@ -62,13 +63,16 @@ export async function getHttp2Session (requestId: string, origin: string): Promi
             resolve(null);
         }
 
+        const connectTimeout = setTimeout(() => errorHandler({ code: 'ERR_HTTP2_ERROR' }), HTTP2_CONNECT_TIMEOUT);
+
         session.once('error', errorHandler);
         session.once('connect', () => {
-            const timeout = setTimeout(() => errorHandler({ code: 'ERR_HTTP2_ERROR' }), HTTP2_CONNECTION_TIMEOUT);
+            const localSettingsTimeout = setTimeout(() => errorHandler({ code: 'ERR_HTTP2_ERROR' }), HTTP2_LOCAL_SETTINGS_TIMEOUT);
 
+            clearTimeout(connectTimeout);
             session.ping(noop);
             session.once('localSettings', () => {
-                clearTimeout(timeout);
+                clearTimeout(localSettingsTimeout);
                 pendingSessions.delete(origin);
                 sessionsCache.set(origin, session);
 
@@ -125,11 +129,7 @@ export function makePseudoResponse (stream: Http2Stream, response: IncomingHttpH
 
     delete headers[HTTP2_HEADER_STATUS];
 
-    return Object.assign(stream, {
-        trailers: {},
-        statusCode,
-        headers
-    });
+    return Object.assign(stream, { trailers: {}, statusCode, headers });
 }
 
 export function clearSessionsCache () {

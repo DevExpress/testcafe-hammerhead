@@ -61,6 +61,6 @@ export function respondStatic (req: IncomingMessage, res: any, resource: any, ca
     }
 }
 
-export function fetchBody (r: Readable): Promise<Buffer> {
-    return promisifyStream(r);
+export function fetchBody (r: Readable, contentLength?: string): Promise<Buffer> {
+    return promisifyStream(r, contentLength);
 }

@@ -322,7 +322,7 @@ export default class RequestPipelineContext {
         if (IncomingMessageLike.isIncomingMessageLike(res))
             return res.getBody();
 
-        return fetchBody(this.destRes);
+        return fetchBody(this.destRes, this.destRes.headers[BUILTIN_HEADERS.contentLength] as string);
     }
 
     calculateIsDestResReadableEnded (): void {
