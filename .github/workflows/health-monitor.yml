@@ -1,8 +1,8 @@
 name: Health Monitor
 
 on:
-#  schedule:
-#    - cron: '0 19 * * *'
+  schedule:
+    - cron: '0 2 * * *' # '0 19 * * *'
 
   issue_comment:
     types: [ created ]
@@ -14,7 +14,7 @@ jobs:
     name: Run Health Monitor on the main testcafe-hammerhead branch
     if: |
       github.event_name == 'schedule' ||
-       github.event_name == 'workflow_dispatch'
+      github.event_name == 'workflow_dispatch'
     runs-on: windows-latest
 
     steps:
@@ -68,14 +68,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Get PR info to checkout hammerhead branch
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: Checkout the Health Monitor repository
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ secrets.HEALTH_MONITOR_REPO }}
+          token: ${{ secrets.CLONE_PRIVATE_REPOS_TOKEN }}
+          path: ./HealthMonitor/health-monitor
+
+      - name: Get PR info to checkout testcafe-hammerhead branch
         uses: actions/github-script@v3
         id: get-pr-to-checkout
         with:
           script: |
             const request = {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+              owner:       context.repo.owner,
+              repo:        context.repo.repo,
               pull_number: context.issue.number
             };
 
@@ -88,11 +100,29 @@ jobs:
               core.setFailed(`Request failed with error ${err}`);
             }
 
-      - run: |
-          echo repo.full_name ${{ fromJSON(steps.get-pr-to-checkout.outputs.result).head.repo.full_name }}
-          echo ref            ${{ fromJSON(steps.get-pr-to-checkout.outputs.result).head.ref }}
+      - name: Checkout the testcafe-hammerhead PR branch
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ fromJSON(steps.get-pr-to-checkout.outputs.result).head.repo.full_name }}
+          ref: ${{ fromJSON(steps.get-pr-to-checkout.outputs.result).head.ref }}
+          path: ./HealthMonitor/testcafe-hammerhead
 
-#      - uses: actions/checkout@v2
-#        with:
-#          repository: ${{ fromJSON(steps.get-pr-to-checkout.outputs.result).head.repo.full_name }}
-#          ref: ${{ fromJSON(steps.get-pr-to-checkout.outputs.result).head.ref }}
+      - name: Write the current testcafe-hammerhead abbreviated commit hash to a file
+        run: git log -1 --pretty=format:"%h" > ..\health-monitor\last-commit-id.txt
+        working-directory: ./HealthMonitor/testcafe-hammerhead
+
+      - name: Install testcafe-hammerhead dependencies and run build taks
+        run: |
+          npm i
+          npx gulp build
+        working-directory: ./HealthMonitor/testcafe-hammerhead
+
+      - name: Install Health Monitor dependencies
+        run: |
+          npm i
+          npm i testcafe-hammerhead ../testcafe-hammerhead --save
+        working-directory: ./HealthMonitor/health-monitor
+
+      - name: Run Health Monitor
+        run: npx gulp health-monitor
+        working-directory: ./HealthMonitor/health-monitor
