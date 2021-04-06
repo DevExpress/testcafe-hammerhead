@@ -65,7 +65,7 @@ jobs:
         github.event.comment.author_association == 'MEMBER'
       ) &&
       github.event.comment.body == 'run monitor'
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - name: Use Node.js
