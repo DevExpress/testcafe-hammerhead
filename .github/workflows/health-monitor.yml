@@ -55,7 +55,7 @@ jobs:
         run: npx gulp health-monitor
         working-directory: ./HealthMonitor/health-monitor
 
-  pr_comment:
+  pr-branch:
     name: Run Health Monitor on the testcafe-hammerhead PR branch
     if: |
       github.event.issue.pull_request &&
