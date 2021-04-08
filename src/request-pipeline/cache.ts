@@ -4,9 +4,8 @@ import RequestOptions from './request-options';
 import { IncomingMessage } from 'http';
 import CachePolicy from 'http-cache-semantics';
 import RequestPipelineContext from "./context";
-import { FileStream } from '../typings/session';
 import IncomingMessageLike from './incoming-message-like';
-import { Http2Response } from './destination-request/http2';
+import { DestinationResponse } from './context';
 
 const requestsCache = new LRUCache<string, ResponseCacheEntry>({
     max:    50 * 1024 * 1024, // Max cache size is 50 MBytes.
@@ -28,7 +27,7 @@ export function shouldCache (ctx: RequestPipelineContext): boolean {
         (ctx.contentInfo.isCSS || ctx.contentInfo.isScript || !ctx.contentInfo.requireProcessing);
 }
 
-export function create (reqOptions: RequestOptions, res: IncomingMessage | IncomingMessageLike | FileStream | Http2Response): RequestCacheEntry | undefined {
+export function create (reqOptions: RequestOptions, res: DestinationResponse): RequestCacheEntry | undefined {
     const cachePolicy = new CachePolicy(reqOptions, res);
 
     if (!cachePolicy.storable())

@@ -1,5 +1,5 @@
 import net from 'net';
-import http from 'http';
+import { IncomingMessage, ServerResponse, OutgoingHttpHeaders } from 'http';
 import Session from '../session';
 import { StoragesSnapshot, FileStream } from '../typings/session';
 import { ServerInfo } from '../typings/proxy';
@@ -72,7 +72,7 @@ interface FlattenParsedProxyUrl {
     windowId?: string;
 }
 
-type DestinationResponse = http.IncomingMessage | FileStream | IncomingMessageLike | IncomingMessageLike | Http2Response;
+export type DestinationResponse = IncomingMessage | FileStream | IncomingMessageLike | Http2Response;
 
 const REDIRECT_STATUS_CODES                  = [301, 302, 303, 307, 308];
 const CANNOT_BE_USED_WITH_WEB_SOCKET_ERR_MSG = 'The function cannot be used with a WebSocket request.';
@@ -108,8 +108,8 @@ export default class RequestPipelineContext {
     temporaryCacheEntry?: RequestCacheEntry;
     _injectableUserScripts: string[] = [];
 
-    constructor (readonly req: http.IncomingMessage,
-        readonly res: http.ServerResponse | net.Socket,
+    constructor (readonly req: IncomingMessage,
+        readonly res: ServerResponse | net.Socket,
         readonly serverInfo: ServerInfo) {
         this.parsedClientSyncCookie = req.headers.cookie && parseClientSyncCookieStr(req.headers.cookie);
     }
@@ -210,7 +210,7 @@ export default class RequestPipelineContext {
 
         this.dest               = flattenParsedReqUrl.dest;
         this.windowId           = flattenParsedReqUrl.windowId;
-        this.dest.partAfterHost = this._preparePartAfterHost(this.dest.partAfterHost);
+        this.dest.partAfterHost = RequestPipelineContext._preparePartAfterHost(this.dest.partAfterHost);
         this.dest.domain        = urlUtils.getDomain(this.dest);
 
         if (flattenParsedReferer) {
@@ -236,7 +236,7 @@ export default class RequestPipelineContext {
         this.session.cookies.setByClient(clientCookie);
     }
 
-    private _preparePartAfterHost (str: string): string {
+    private static _preparePartAfterHost (str: string): string {
         // Browsers add a leading slash to the pathname part of url (GH-608)
         // For example: url http://www.example.com?gd=GID12082014 will be converted
         // to http://www.example.com/?gd=GID12082014
@@ -318,7 +318,7 @@ export default class RequestPipelineContext {
             .map(userScript => userScript.url);
     }
 
-    private async _getDestResBody (res: IncomingMessageLike | http.IncomingMessage | FileStream | Http2Response): Promise<Buffer> {
+    private async _getDestResBody (res: DestinationResponse): Promise<Buffer> {
         if (IncomingMessageLike.isIncomingMessageLike(res))
             return res.getBody();
 
@@ -350,7 +350,7 @@ export default class RequestPipelineContext {
         if (this.isWebSocket)
             throw new Error(CANNOT_BE_USED_WITH_WEB_SOCKET_ERR_MSG);
 
-        const res: http.ServerResponse = this.res as http.ServerResponse;
+        const res = this.res as ServerResponse;
 
         res.statusCode = 302;
         res.setHeader(BUILTIN_HEADERS.location, url);
@@ -416,7 +416,7 @@ export default class RequestPipelineContext {
             throw new Error(CANNOT_BE_USED_WITH_WEB_SOCKET_ERR_MSG);
 
         const headers = headerTransforms.forResponse(this);
-        const res     = this.res as http.ServerResponse;
+        const res     = this.res as ServerResponse;
 
         if (this.isHTMLPage && this.session.options.disablePageCaching)
             headerTransforms.setupPreventCachingHeaders(headers);
@@ -424,7 +424,7 @@ export default class RequestPipelineContext {
         logger.proxy.onResponse(this, headers);
 
         res.writeHead(this.destRes.statusCode as number, headers);
-        res.addTrailers(this.destRes.trailers as http.OutgoingHttpHeaders);
+        res.addTrailers(this.destRes.trailers as OutgoingHttpHeaders);
     }
 
     async mockResponse (): Promise<void> {
@@ -483,7 +483,7 @@ export default class RequestPipelineContext {
         this.res.end();
     }
 
-    createCacheEntry (res: http.IncomingMessage | IncomingMessageLike | FileStream | Http2Response): void {
+    createCacheEntry (res: DestinationResponse): void {
         if (requestCache.shouldCache(this) && !IncomingMessageLike.isIncomingMessageLike(res))
             this.temporaryCacheEntry = requestCache.create(this.reqOpts, res);
     }

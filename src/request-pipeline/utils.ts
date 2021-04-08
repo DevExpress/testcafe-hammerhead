@@ -1,5 +1,3 @@
-import http from 'http';
-import { FileStream } from '../typings/session';
 import RequestPipelineContext from './context';
 import RequestFilterRule from './request-hooks/request-filter-rule';
 import { RequestInfo, ResponseInfo, PreparedResponseInfo } from '../session/events/info';
@@ -17,8 +15,7 @@ import { PassThrough } from 'stream';
 import { getText, MESSAGE } from '../messages';
 import logger from '../utils/logger';
 import { getFormattedInvalidCharacters } from './http-header-parser';
-import { Http2Response } from './destination-request/http2';
-import IncomingMessageLike from './incoming-message-like';
+import { DestinationResponse } from './context';
 
 // An empty line that indicates the end of the header section
 // https://tools.ietf.org/html/rfc7230#section-3
@@ -44,7 +41,7 @@ export function sendRequest (ctx: RequestPipelineContext) {
 
         ctx.goToNextStage = false;
 
-        req.on('response', (res: http.IncomingMessage | FileStream | IncomingMessageLike | Http2Response) => {
+        req.on('response', (res: DestinationResponse) => {
             if (ctx.isWebSocketConnectionReset) {
                 res.destroy();
                 resolve();

@@ -123,7 +123,7 @@ export interface Http2Response extends Http2Stream {
     headers:    IncomingHttpHeaders;
 }
 
-export function makePseudoResponse (stream: Http2Stream, response: IncomingHttpHeaders & IncomingHttpStatusHeader): Http2Response {
+export function createResponseLike (stream: Http2Stream, response: IncomingHttpHeaders & IncomingHttpStatusHeader): Http2Response {
     const statusCode = response[HTTP2_HEADER_STATUS] as unknown as number;
     const headers    = Object.assign({}, response);
 
