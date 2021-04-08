@@ -11,7 +11,7 @@ import { MESSAGE, getText } from '../../messages';
 import logger from '../../utils/logger';
 import * as requestCache from '../cache';
 import IncomingMessageLike from '../incoming-message-like';
-import { formatRequestHttp2Headers, getHttp2Session, Http2Response, makePseudoResponse } from './http2';
+import { formatRequestHttp2Headers, getHttp2Session, Http2Response, createResponseLike } from './http2';
 import { ClientHttp2Session, ClientHttp2Stream } from 'http2';
 
 const TUNNELING_SOCKET_ERR_RE    = /tunneling socket could not be established/i;
@@ -56,7 +56,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         stream.setTimeout(this.timeout, () => this._onTimeout());
         stream.on('error', (err: Error) => this._onError(err));
         stream.on('response', headers => {
-            const http2res = makePseudoResponse(stream, headers);
+            const http2res = createResponseLike(stream, headers);
 
             this._onResponse(http2res);
         });
