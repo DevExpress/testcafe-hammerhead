@@ -537,7 +537,7 @@ export function isInputWithNativeDialog (el: HTMLInputElement): boolean {
     return isInputElement(el) && INPUT_WITH_NATIVE_DIALOG.test(el.type.toLowerCase());
 }
 
-export function isBodyElementWithChildren (el: Element): boolean {
+export function isBodyElementWithChildren (el: Node): boolean {
     return isBodyElement(el) && nativeMethods.htmlCollectionLengthGetter.call(
         nativeMethods.elementChildrenGetter.call(el));
 }
