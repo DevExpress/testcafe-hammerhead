@@ -15,8 +15,8 @@ import destructuring from '../destructuring';
 // -->
 // var _hh$temp0, _hh$temp1, _hh$temp1$0;
 //
-// _hh$temp0 = window, loc = _hh$temp0.location;
-// _hh$temp1 = [window, 6], _hh$temp1$0 = _hh$temp1[0], location = _hh$temp1$0.location, item = _hh$temp1[1];
+// (_hh$temp0 = window, loc = _hh$temp0.location, _hh$temp0);
+// (_hh$temp1 = [window, 6], _hh$temp1$0 = _hh$temp1[0], location = _hh$temp1$0.location, item = _hh$temp1[1], _hh$temp1);
 
 const transformer: Transformer<AssignmentExpression> = {
     nodeReplacementRequireTransform: true,
@@ -26,14 +26,25 @@ const transformer: Transformer<AssignmentExpression> = {
     condition: node => node.operator === '=' && (node.left.type === Syntax.ObjectPattern || node.left.type === Syntax.ArrayPattern),
 
     run: (node, _parent, _key, tempVars) => {
-        const assignments = [] as AssignmentExpression[];
+        const assignments = [] as (AssignmentExpression | Identifier)[];
+        let firstTemp     = void 0;
 
         destructuring(node.left, node.right, (pattern, value, isTemp) => {
+            if (firstTemp === void 0) {
+                if (isTemp)
+                    firstTemp = pattern;
+                else
+                    firstTemp = null;
+            }
+
             assignments.push(createAssignmentExpression(pattern, '=', value));
 
             if (isTemp)
                 tempVars.append((pattern as Identifier).name);
         });
+
+        if (firstTemp)
+            assignments.push(firstTemp);
 
         return createSequenceExpression(assignments);
     }
