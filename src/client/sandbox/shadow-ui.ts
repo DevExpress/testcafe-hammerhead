@@ -367,9 +367,10 @@ export default class ShadowUI extends SandboxBase {
         const length   = nativeMethods.htmlCollectionLengthGetter.call(children);
 
         for (let i = 0; i < length; i++) {
-            const child = children[i];
+            const child = children[0];
 
             ShadowUI.markElementAsShadow(child);
+            this.nativeMethods.removeChild.call(parser, child)
             this.nativeMethods.appendChild.call(head, child);
         }
     }
