@@ -213,7 +213,7 @@ describe('RequestFilterRule', () => {
         expect(RequestFilterRule.isANY(new RequestFilterRule('https://example.com'))).to.be.false;
     });
 
-    it('.from', () => {
+    it('.from, .fromArray', () => {
         const ruleInit = 'https://example.com';
         const rule1    = new RequestFilterRule(ruleInit);
         const rule2    = new RequestFilterRule(ruleInit);
@@ -228,10 +228,10 @@ describe('RequestFilterRule', () => {
             }
         };
 
-        expect(RequestFilterRule.from()).eql([]);
-        expect(RequestFilterRule.from(rule1)).eql([rule1]);
+        expect(RequestFilterRule.fromArray()).eql([]);
+        expect(RequestFilterRule.fromArray(rule1)).eql([rule1]);
 
-        const rules = RequestFilterRule.from([rule1, rule2, rule3, ruleInit, ruleLikeObject]);
+        const rules = RequestFilterRule.fromArray([rule1, rule2, rule3, ruleInit, ruleLikeObject]);
 
         expect(rules.length).eql(5);
 
@@ -241,6 +241,13 @@ describe('RequestFilterRule', () => {
 
         expect(rules[2].id).eql(rule3.id);
         expect(rules[1].id).eql(rule2.id);
+
+        expect(RequestFilterRule.from()).eql(null);
+
+        const rule = RequestFilterRule.from(rule3);
+
+        expect(rule.id).eql('1');
+        expect(rule).be.instanceOf(RequestFilterRule);
     });
 });
 

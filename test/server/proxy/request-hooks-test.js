@@ -13,7 +13,6 @@ const {
     PAGE_ACCEPT_HEADER
 } = require('../common/constants');
 
-
 const {
     createSession,
     createProxy,
@@ -22,6 +21,8 @@ const {
     getBasicProxyUrl,
     createDestinationServer
 } = require('../common/utils');
+
+const ConfigureResponseEventOptions = require('../../../lib/session/events/configure-response-event-options');
 
 const Credentials = urlUtils.Credentials;
 
@@ -782,5 +783,44 @@ describe('Request Hooks', () => {
 
                 return testShouldProxyImageOptionValue(false);
             });
+    });
+
+    it('Should allow using the specified configure request options', async () => {
+        let responseEventIsRaised      = false;
+        const url                      = 'http://127.0.0.1:2000/script';
+        const rule                     = new RequestFilterRule(url);
+        const opts                     = new ConfigureResponseEventOptions(true, true);
+        const resourceContent          = fs.readFileSync('test/server/data/script/src.js').toString();
+        const processedResourceContent = fs.readFileSync('test/server/data/script/expected.js').toString();
+
+        await session.setConfigureResponseEventOptions(rule, opts);
+
+        session.addRequestEventListeners(rule, {
+            onConfigureResponse: noop,
+
+            onResponse: e => {
+                expect(e.statusCode).eql(200);
+                expect(e.headers).to.include({ 'content-type': 'application/javascript; charset=utf-8' });
+                expect(e.body.toString()).eql(resourceContent);
+
+                responseEventIsRaised = true;
+            }
+        });
+
+        const options = {
+            url:     proxy.openSession(url, session),
+            headers: {
+                'content-type': 'application/javascript; charset=utf-8'
+            }
+        };
+
+        const body = await request(options);
+
+        expect(body).eql(processedResourceContent);
+        expect(responseEventIsRaised, 'responseEventIsRaised').to.be.true;
+
+        await session.removeConfigureResponseEventOptions(rule);
+
+        session.removeRequestEventListeners(rule);
     });
 });

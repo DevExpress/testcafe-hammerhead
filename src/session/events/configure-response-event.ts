@@ -5,7 +5,7 @@ import ConfigureResponseEventOptions from './configure-response-event-options';
 export default class ConfigureResponseEvent {
     private readonly _requestContext: RequestPipelineContext;
     readonly _requestFilterRule: RequestFilterRule;
-    readonly opts: ConfigureResponseEventOptions;
+    public opts: ConfigureResponseEventOptions;
 
     constructor (requestContext: RequestPipelineContext, requestFilterRule: RequestFilterRule, opts: ConfigureResponseEventOptions) {
         this._requestContext    = requestContext;
