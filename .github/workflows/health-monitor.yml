@@ -84,7 +84,27 @@ jobs:
                 core.setFailed(`Request failed with error ${err}`);
               });
 
-            const currentJob = runJobs.find(job => job.name === context.job)
+            console.log('runJobs:');
+            console.log(runJobs);
+            console.log('------------------');
+            console.log('context.job:');
+            console.log(context.job);
+            console.log('------------------');
+            console.log('runJobs[0]:');
+            console.log(runJobs[0]);
+            console.log('------------------');
+            console.log('runJobs[1]:');
+            console.log(runJobs[1]);
+            console.log('------------------');
+
+            const currentJob = runJobs.find(job => job.name === context.job);
+
+            console.log('currentJob:');
+            console.log(currentJob);
+            console.log('------------------');
+            console.log('currentJob.html_url:');
+            console.log(currentJob.html_url);
+            console.log('------------------');
 
             github.issues.createComment({
               issue_number: context.issue.number,
