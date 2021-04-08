@@ -199,9 +199,9 @@ test('parameters passed to the native dom element function in its original form'
     checkNativeFunctionArgs('removeEventListener', 'removeEventListener', el);
 });
 
-module('resgression');
+module('regression');
 
-test('one handler for several events must be overriden correctly (B237402)', function () {
+test('one handler for several events must be overridden correctly (B237402)', function () {
     var div        = document.body.appendChild(document.createElement('div'));
     var mousemoved = false;
     var mouseuped  = false;

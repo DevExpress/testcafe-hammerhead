@@ -537,8 +537,9 @@ export function isInputWithNativeDialog (el: HTMLInputElement): boolean {
     return isInputElement(el) && INPUT_WITH_NATIVE_DIALOG.test(el.type.toLowerCase());
 }
 
-export function isBodyElementWithChildren (el: Node): boolean {
-    return isBodyElement(el) && nativeMethods.htmlCollectionLengthGetter.call(el.children);
+export function isBodyElementWithChildren (el: Element): boolean {
+    return isBodyElement(el) && nativeMethods.htmlCollectionLengthGetter.call(
+        nativeMethods.elementChildrenGetter.call(el));
 }
 
 export function isMapElement (el: HTMLElement): el is HTMLMapElement | HTMLAreaElement {
@@ -878,7 +879,10 @@ export function isInputWithoutSelectionProperties (el): boolean {
     return !hasSelectionProperties;
 }
 
-export function getAssociatedElement (el: HTMLLabelElement): HTMLElement {
+export function getAssociatedElement (el: HTMLElement): HTMLElement | null {
+    if (!isLabelElement(el))
+        return null;
+
     const doc = findDocument(el);
 
     return el.control || el.htmlFor && nativeMethods.getElementById.call(doc, el.htmlFor);

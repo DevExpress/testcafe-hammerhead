@@ -640,7 +640,7 @@ if (window.navigator.sendBeacon) {
     });
 }
 
-test('window.onerror must be overriden (B238830)', function () {
+test('window.onerror must be overridden (B238830)', function () {
     var error     = false;
     var windowObj = window.Window;
 

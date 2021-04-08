@@ -920,9 +920,10 @@ export default class WindowSandbox extends SandboxBase {
         overrideDescriptor(window.Element.prototype, 'childElementCount', {
             getter: function (this: Element) {
                 if (ShadowUI.isShadowContainer(this)) {
-                    const childrenLength = nativeMethods.htmlCollectionLengthGetter.call(this.children);
+                    const children = nativeMethods.elementChildrenGetter.call(this);
+                    const length   = nativeMethods.htmlCollectionLengthGetter.call(children);
 
-                    return windowSandbox.shadowUI.getShadowUICollectionLength(this.children, childrenLength);
+                    return windowSandbox.shadowUI.getShadowUICollectionLength(children, length);
                 }
 
                 return nativeMethods.elementChildElementCountGetter.call(this);

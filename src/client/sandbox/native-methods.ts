@@ -247,10 +247,11 @@ class NativeMethods {
     elementClassListPropOwnerName: string;
     elementClassListGetter: any;
     messageEventOriginGetter: any;
-    htmlCollectionLengthGetter: any;
-    nodeListLengthGetter: any;
-    nodeParentNodeGetter: () => Node['parentNode'];
-    nodeChildNodesGetter: any;
+    htmlCollectionLengthGetter: (this: HTMLCollection) => HTMLCollection['length'];
+    nodeListLengthGetter: (this: NodeListOf<ChildNode>) => NodeListOf<ChildNode>['length'];
+    nodeParentNodeGetter: (this: Node) => Node['parentNode'];
+    nodeChildNodesGetter: (this: Node) => Node['childNodes'];
+    elementChildrenGetter: (this: Element) => Element['children'];
     elementChildElementCountGetter: any;
     inputFilesGetter: any;
     styleSheetHrefGetter: any;
@@ -887,6 +888,7 @@ class NativeMethods {
         this.nodePrevSiblingGetter           = win.Object.getOwnPropertyDescriptor(win.Node.prototype, 'previousSibling').get;
         this.nodeParentNodeGetter            = win.Object.getOwnPropertyDescriptor(win.Node.prototype, 'parentNode').get;
         this.nodeChildNodesGetter            = win.Object.getOwnPropertyDescriptor(win.Node.prototype, 'childNodes').get;
+        this.elementChildrenGetter           = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'children').get;
         this.elementFirstElementChildGetter  = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'firstElementChild').get;
         this.elementLastElementChildGetter   = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'lastElementChild').get;
         this.elementNextElementSiblingGetter = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'nextElementSibling').get;

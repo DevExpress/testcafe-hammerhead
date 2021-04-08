@@ -1049,3 +1049,16 @@ test('should reprocess element if it is created in iframe window and it is not f
         });
 });
 
+test('should not throw an error if the `children` property is overridden by client (GH-2287)', function () {
+    expect(0);
+
+    Object.defineProperty(Element.prototype, 'children', {
+        get: function () {
+            throw new Error();
+        }
+    });
+
+    var div = document.createElement('div');
+
+    div.innerHTML = '<span></span>';
+});
