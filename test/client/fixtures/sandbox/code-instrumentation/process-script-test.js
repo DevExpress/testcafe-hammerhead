@@ -1,7 +1,6 @@
 var urlUtils      = hammerhead.utils.url;
 var processScript = hammerhead.utils.processing.script.processScript;
 var scriptHeader  = hammerhead.utils.processing.header;
-
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 
@@ -142,5 +141,9 @@ if (!browserUtils.isIE11) {
         eval(processScript(script));
 
         strictEqual(window.destructingResult, '12[3,4]');
+    });
+
+    test('should process script arg', function () {
+        strictEqual(execScript('({ a: b } = { a: null }).a'), null);
     });
 }

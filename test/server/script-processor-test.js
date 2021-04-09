@@ -844,7 +844,8 @@ describe('Script processor', () => {
                               '     var _hh$temp1 = _hh$temp0.location;' +
                               '     return __set$Loc(location, _hh$temp1) || (location = _hh$temp1);' +
                               ' }.call(this),' +
-                              ' href = __get$(_hh$temp0, "href"));'
+                              ' href = __get$(_hh$temp0, "href"),' +
+                              ' _hh$temp0);'
                 }
             ]);
         });
@@ -888,7 +889,8 @@ describe('Script processor', () => {
                               '        var _hh$temp1 = _hh$temp0$i0.location;' +
                               '        return __set$Loc(location, _hh$temp1) || (location = _hh$temp1);' +
                               '    }.call(this),' +
-                              '    args = __rest$Array(_hh$temp0, 1);' +
+                              '    args = __rest$Array(_hh$temp0, 1),' +
+                              '    _hh$temp0;' +
                               '}'
                 }
             ]);
@@ -946,7 +948,8 @@ describe('Script processor', () => {
                     expected: 'var _hh$temp0;' +
                               '_hh$temp0 = [__get$(shuffled, j), __get$(shuffled, i)],' +
                               '__set$(shuffled, i, _hh$temp0[0]),' +
-                              '__set$(shuffled, j, _hh$temp0[1]);'
+                              '__set$(shuffled, j, _hh$temp0[1]),' +
+                              '_hh$temp0;'
                 }
             ]);
         });
@@ -1118,7 +1121,7 @@ describe('Script processor', () => {
                 {
                     src:      'condition ? {x, y} = point : (x = 0, y = 0)',
                     expected: 'var _hh$temp0;' +
-                              'condition ? (_hh$temp0 = point, x = _hh$temp0.x, y = _hh$temp0.y) : (x = 0, y = 0)'
+                              'condition ? (_hh$temp0 = point, x = _hh$temp0.x, y = _hh$temp0.y, _hh$temp0) : (x = 0, y = 0)'
                 }
             ]);
         });
@@ -1145,7 +1148,7 @@ describe('Script processor', () => {
                               '    let _hh$temp0 = e,' +
                               '        a = _hh$temp0[0],' +
                               '        b = _hh$temp0[1];' +
-                              '    return (_hh$temp1 = e, a = _hh$temp1[0], b = _hh$temp1[1]);' +
+                              '    return (_hh$temp1 = e, a = _hh$temp1[0], b = _hh$temp1[1], _hh$temp1);' +
                               '}'
                 }
             ]);
