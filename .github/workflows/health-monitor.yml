@@ -38,7 +38,7 @@ jobs:
         run: git log -1 --pretty=format:"%h" > ..\health-monitor\last-commit-id.txt
         working-directory: ./HealthMonitor/testcafe-hammerhead
 
-      - name: Install testcafe-hammerhead dependencies and run build taks
+      - name: Install testcafe-hammerhead dependencies and run a build task
         run: |
           npm i
           npx gulp build
@@ -134,7 +134,7 @@ jobs:
         run: git log -1 --pretty=format:"%h" > ..\health-monitor\last-commit-id.txt
         working-directory: ./HealthMonitor/testcafe-hammerhead
 
-      - name: Install testcafe-hammerhead dependencies and run build taks
+      - name: Install testcafe-hammerhead dependencies and run a build task
         run: |
           npm i
           npx gulp build
