@@ -67,8 +67,9 @@ export default [
             ctx.requestFilterRules = await ctx.session.getRequestFilterRules(requestInfo);
 
             await ctx.forEachRequestFilterRule(async rule => {
-                await callOnRequestEventCallback(ctx, rule, requestInfo);
-                ctx.setupMockIfNecessary(rule);
+                const requestEvent = await callOnRequestEventCallback(ctx, rule, requestInfo);
+
+                ctx.setupMockIfNecessary(requestEvent);
             });
         }
 
@@ -85,7 +86,7 @@ export default [
         ctx.isSameOriginPolicyFailed = true;
 
         await ctx.forEachRequestFilterRule(async rule => {
-            const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
+            const configureResponseEvent = new ConfigureResponseEvent(rule, ctx, ConfigureResponseEventOptions.DEFAULT);
 
             await ctx.session.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
             await callOnResponseEventCallbackForFailedSameOriginCheck(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
@@ -161,7 +162,7 @@ export default [
 
     async function sendProxyResponse (ctx: RequestPipelineContext) {
         const configureResponseEvents = await Promise.all(ctx.requestFilterRules.map(async rule => {
-            const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
+            const configureResponseEvent = new ConfigureResponseEvent(rule, ctx, ConfigureResponseEventOptions.DEFAULT);
 
             await ctx.session.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
 

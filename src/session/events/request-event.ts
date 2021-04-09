@@ -2,20 +2,23 @@ import RequestFilterRule from '../../request-pipeline/request-hooks/request-filt
 import RequestPipelineContext from '../../request-pipeline/context';
 import ResponseMock from '../../request-pipeline/request-hooks/response-mock';
 import { RequestInfo } from './info';
+import generateUniqueId from '../../utils/generate-unique-id';
 
 export default class RequestEvent {
+    public readonly requestFilterRule: RequestFilterRule;
     private readonly _requestContext: RequestPipelineContext;
-    private readonly _requestFilterRule: RequestFilterRule;
     private readonly _requestInfo: RequestInfo;
+    public readonly id: string;
 
-    constructor (requestContext: RequestPipelineContext, requestFilterRule: RequestFilterRule, requestInfo: RequestInfo) {
+    constructor (requestFilterRule: RequestFilterRule, requestContext: RequestPipelineContext, requestInfo: RequestInfo) {
+        this.requestFilterRule  = requestFilterRule;
         this._requestContext    = requestContext;
-        this._requestFilterRule = requestFilterRule;
         this._requestInfo       = requestInfo;
+        this.id                 = generateUniqueId();
     }
 
     async setMock (mock: ResponseMock): Promise<void> {
-        await this._requestContext.session.setMock(this._requestFilterRule, mock);
+        await this._requestContext.session.setMock(this.id, mock);
     }
 
     get requestOptions () {

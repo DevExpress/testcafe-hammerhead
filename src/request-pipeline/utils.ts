@@ -109,15 +109,19 @@ export function error (ctx: RequestPipelineContext, err: string) {
 export async function callResponseEventCallbackForProcessedRequest (ctx: RequestPipelineContext, configureResponseEvent: ConfigureResponseEvent) {
     const responseInfo         = new ResponseInfo(ctx);
     const preparedResponseInfo = new PreparedResponseInfo(responseInfo, configureResponseEvent.opts);
-    const responseEvent        = new ResponseEvent(configureResponseEvent._requestFilterRule, preparedResponseInfo);
+    const responseEvent        = new ResponseEvent(configureResponseEvent.requestFilterRule, preparedResponseInfo);
 
-    await ctx.session.callRequestEventCallback(RequestEventNames.onResponse, configureResponseEvent._requestFilterRule, responseEvent);
+    await ctx.session.callRequestEventCallback(RequestEventNames.onResponse, configureResponseEvent.requestFilterRule, responseEvent);
+
+    return responseEvent;
 }
 
 export async function callOnRequestEventCallback (ctx: RequestPipelineContext, rule: RequestFilterRule, reqInfo: RequestInfo) {
-    const requestEvent = new RequestEvent(ctx, rule, reqInfo);
+    const requestEvent = new RequestEvent(rule, ctx, reqInfo);
 
     await ctx.session.callRequestEventCallback(RequestEventNames.onRequest, rule, requestEvent);
+
+    return requestEvent;
 }
 
 export async function callOnResponseEventCallbackForFailedSameOriginCheck (ctx: RequestPipelineContext, rule: RequestFilterRule, configureOpts: ConfigureResponseEventOptions) {
@@ -126,11 +130,13 @@ export async function callOnResponseEventCallbackForFailedSameOriginCheck (ctx: 
     const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
 
     await ctx.session.callRequestEventCallback(RequestEventNames.onResponse, rule, responseEvent);
+
+    return responseEvent;
 }
 
 export async function callOnConfigureResponseEventForNonProcessedRequest (ctx: RequestPipelineContext) {
     await ctx.forEachRequestFilterRule(async rule => {
-        const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
+        const configureResponseEvent = new ConfigureResponseEvent(rule, ctx, ConfigureResponseEventOptions.DEFAULT);
 
         await ctx.session.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
 

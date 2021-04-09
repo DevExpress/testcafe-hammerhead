@@ -81,11 +81,17 @@ declare module 'testcafe-hammerhead' {
         /** Removes request event listeners **/
         removeRequestEventListeners (rule: RequestFilterRule): void;
 
-        /** Set RequestMock for the specified RequestFilterRule **/
-        setMock (requestFilterRule: RequestFilterRule, mock: ResponseMock): Promise<void>;
+        /** Set RequestMock on the specified ResponseEvent event **/
+        setMock (responseEventId: string, mock: ResponseMock): Promise<void>;
 
         /** Set ConfigureResponseEvent options which are applied during the request pipeline execution**/
-        setConfigureResponseEventOptions (rule: RequestFilterRule, opts: ConfigureResponseEventOptions): Promise<void>;
+        setConfigureResponseEventOptions (eventId: string, opts: ConfigureResponseEventOptions): Promise<void>;
+
+        /** Change the header on the specified ConfigureResponseEvent **/
+        setHeaderOnConfigureResponseEvent (eventId: string, headerName: string, headerValue: string): Promise<void>;
+
+        /** Remove the header on the specified ConfigureResponseEvent **/
+        removeHeaderOnConfigureResponseEvent (eventId: string, headerName: string): Promise<void>;
     }
 
     /** The Proxy class is used to create a web-proxy **/
@@ -153,11 +159,20 @@ declare module 'testcafe-hammerhead' {
 
     /** The ConfigureResponseEvent is used to set up the ResponseEvent **/
     export class ConfigureResponseEvent {
+        /** The unique identifier of the event **/
+        id: string;
+
         /** The options to configure ResponseEvent **/
         opts: ConfigureResponseEventOptions;
 
         /** RequestFilterRule associated with event **/
-        _requestFilterRule: RequestFilterRule;
+        requestFilterRule: RequestFilterRule;
+
+        /** Set header of the result response **/
+        setHeader(name: string, value: string): Promise<void>;
+
+        /** Remove header from result response **/
+        removeHeader (name: string): Promise<void>;
     }
 
     /** The RequestInfo class contains information about query request **/
@@ -186,11 +201,14 @@ declare module 'testcafe-hammerhead' {
 
     /** The RequestEvent describes the request part of the query captured with request hook **/
     export class RequestEvent {
+        /** The unique identifier of the event **/
+        id: string;
+
         /** The information of the query request **/
         _requestInfo: RequestInfo;
 
         /** The filter rule for the query **/
-        _requestFilterRule: RequestFilterRule;
+        requestFilterRule: RequestFilterRule;
 
         /** Set up the mock for the query response **/
         setMock(mock: ResponseMock): Promise<void>;
@@ -198,8 +216,11 @@ declare module 'testcafe-hammerhead' {
 
     /** The ResponseEvent describes the response part of the query captured with request hook **/
     export class ResponseEvent {
+        /** The unique identifier of the event **/
+        id: string;
+
         /** The filter rule for the query **/
-        _requestFilterRule: RequestFilterRule;
+        requestFilterRule: RequestFilterRule;
 
         /** Request unique identifier **/
         requestId: string;
