@@ -220,8 +220,10 @@ export default class ShadowUI extends SandboxBase {
     }
 
     _markShadowUIContainerAndCollections (containerEl) {
+        const children = nativeMethods.elementChildrenGetter.call(containerEl);
+
         ShadowUI._markAsShadowContainer(containerEl);
-        ShadowUI.markAsShadowContainerCollection(containerEl.children);
+        ShadowUI.markAsShadowContainerCollection(children);
         ShadowUI.markAsShadowContainerCollection(nativeMethods.nodeChildNodesGetter.call(containerEl));
     }
 
@@ -353,7 +355,7 @@ export default class ShadowUI extends SandboxBase {
         return result;
     }
 
-    _restoreUIStyleSheets (head, uiStyleSheetsHtml: string) {
+    _restoreUIStyleSheets (head: HTMLHeadElement, uiStyleSheetsHtml: string) {
         if (!head || !uiStyleSheetsHtml)
             return;
 
@@ -361,29 +363,27 @@ export default class ShadowUI extends SandboxBase {
 
         nativeMethods.elementInnerHTMLSetter.call(parser, uiStyleSheetsHtml);
 
-        const length = nativeMethods.htmlCollectionLengthGetter.call(parser.children);
+        const children = nativeMethods.elementChildrenGetter.call(parser);
+        const length   = nativeMethods.htmlCollectionLengthGetter.call(children);
 
         for (let i = 0; i < length; i++) {
-            const refNode = head.children[i] || null;
-            const newNode = nativeMethods.cloneNode.call(parser.children[i]);
+            const child = children[0];
 
-            ShadowUI.markElementAsShadow(newNode);
-            this.nativeMethods.insertBefore.call(head, newNode, refNode);
+            ShadowUI.markElementAsShadow(child);
+            this.nativeMethods.removeChild.call(parser, child)
+            this.nativeMethods.appendChild.call(head, child);
         }
     }
 
-    _markScriptsAndStylesAsShadowInHead (head) {
-        // NOTE: document.head equals null after call 'document.open' function
-        if (!head)
-            return;
-
-        const length = nativeMethods.htmlCollectionLengthGetter.call(head.children);
+    _markScriptsAndStylesAsShadowInHead (head: HTMLHeadElement) {
+        const children = nativeMethods.elementChildrenGetter.call(head);
+        const length   = nativeMethods.htmlCollectionLengthGetter.call(children);
 
         for (let i = 0; i < length; i++) {
-            const headChild = head.children[i];
+            const child = children[i];
 
-            if (ShadowUI.containsShadowUIClassPostfix(headChild))
-                ShadowUI.markElementAsShadow(headChild);
+            if (ShadowUI.containsShadowUIClassPostfix(child))
+                ShadowUI.markElementAsShadow(child);
         }
     }
 
@@ -426,7 +426,11 @@ export default class ShadowUI extends SandboxBase {
         this.markShadowUIContainers(this.document.head, this.document.body);
         this._overrideDocumentMethods(window, window.document);
         this._overrideElementMethods(window);
-        this._markScriptsAndStylesAsShadowInHead(window.document.head);
+
+        // NOTE: document.head equals null after call 'document.open' function
+        if (window.document.head)
+            this._markScriptsAndStylesAsShadowInHead(window.document.head);
+
         this._initEvents();
     }
 
@@ -466,11 +470,11 @@ export default class ShadowUI extends SandboxBase {
         return filteredNodes[0] || null;
     }
 
-    getFirstElementChild (el) {
-        const length        = nativeMethods.htmlCollectionLengthGetter.call(el.children);
-        const filteredNodes = this._filterNodeList(el.children, length);
+    getFirstElementChild (el: Element) {
+        const children      = nativeMethods.elementChildrenGetter.call(el);
+        const length        = nativeMethods.htmlCollectionLengthGetter.call(children);
 
-        return filteredNodes[0] || null;
+        return this._filterNodeList(children, length)[0] || null;
     }
 
     getLastChild (el) {
@@ -482,10 +486,11 @@ export default class ShadowUI extends SandboxBase {
         return index >= 0 ? filteredNodes[index] : null;
     }
 
-    getLastElementChild (el) {
-        const length         = nativeMethods.htmlCollectionLengthGetter.call(el.children);
-        const filteredNodes  = this._filterNodeList(el.children, length);
-        const index          = el.children === filteredNodes ? length - 1 : filteredNodes.length - 1;
+    getLastElementChild (el: Element) {
+        const children      = nativeMethods.elementChildrenGetter.call(el);
+        const length        = nativeMethods.htmlCollectionLengthGetter.call(children);
+        const filteredNodes = this._filterNodeList(children, length);
+        const index         = children === filteredNodes ? length - 1 : filteredNodes.length - 1;
 
         return index >= 0 ? filteredNodes[index] : null;
     }
@@ -758,10 +763,12 @@ export default class ShadowUI extends SandboxBase {
     }
 
     // GH-2009
-    static markFormAsShadow (form) {
+    static markFormAsShadow (form: HTMLFormElement) {
+        const formChildren = nativeMethods.elementChildrenGetter.call(form);
+
         ShadowUI._markAsShadowContainer(form);
         ShadowUI.markAsShadowContainerCollection(form.elements);
-        ShadowUI.markAsShadowContainerCollection(form.children);
+        ShadowUI.markAsShadowContainerCollection(formChildren);
 
         const childNodes = nativeMethods.nodeChildNodesGetter.call(form);
 
@@ -786,7 +793,7 @@ export default class ShadowUI extends SandboxBase {
         nativeMethods.objectDefineProperty(container, IS_SHADOW_CONTAINER_FLAG, { value: true });
     }
 
-    static markAsShadowContainerCollection (collection) {
+    static markAsShadowContainerCollection (collection: HTMLCollection | HTMLFormControlsCollection) {
         nativeMethods.objectDefineProperty(collection, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: true, configurable: true });
     }
 

@@ -3,7 +3,6 @@ var INTERNAL_ATTRS = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_attributes;
 var hover            = hammerhead.sandbox.event.hover;
 var featureDetection = hammerhead.utils.featureDetection;
 var eventSimulator   = hammerhead.sandbox.event.eventSimulator;
-var hoverSandbox     = hammerhead.sandbox.event.hover;
 
 function hoverElement (el) {
     if (featureDetection.hasTouchEvents)
@@ -71,11 +70,11 @@ test('Hovering element which is not in the DOM (GH-345)', function () {
     var el2 = document.createElement('div');
 
     document.body.appendChild(el1);
-    hoverSandbox._hover(el1);
+    hover._hover(el1);
     ok(isHovered(el1));
     ok(!isHovered(el2));
 
-    hoverSandbox._hover(el2);
+    hover._hover(el2);
     ok(isHovered(el2));
     ok(!isHovered(el1));
 
@@ -148,5 +147,19 @@ test('Hovering label with associated control', function () {
     strictEqual('rgb(255, 0, 0)', getComputedStyle(label2, ':before').backgroundColor);
 
     document.body.removeChild(style);
+    document.body.removeChild(div);
+});
+
+module('regression');
+
+test('should not throw an error for the div element with the control property (GH-2287)', function () {
+    var div = document.createElement('div');
+
+    div.control = 'some';
+
+    document.body.appendChild(div);
+    hover._hover(div);
+    ok(isHovered(div));
+
     document.body.removeChild(div);
 });

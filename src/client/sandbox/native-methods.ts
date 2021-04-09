@@ -247,10 +247,11 @@ class NativeMethods {
     elementClassListPropOwnerName: string;
     elementClassListGetter: any;
     messageEventOriginGetter: any;
-    htmlCollectionLengthGetter: any;
-    nodeListLengthGetter: any;
-    nodeParentNodeGetter: () => Node['parentNode'];
-    nodeChildNodesGetter: any;
+    htmlCollectionLengthGetter: (this: HTMLCollection) => HTMLCollection['length'];
+    nodeListLengthGetter: (this: NodeListOf<ChildNode>) => NodeListOf<ChildNode>['length'];
+    nodeParentNodeGetter: (this: Node) => Node['parentNode'];
+    nodeChildNodesGetter: (this: Node) => Node['childNodes'];
+    elementChildrenGetter: (this: Element) => Element['children'];
     elementChildElementCountGetter: any;
     inputFilesGetter: any;
     styleSheetHrefGetter: any;
@@ -897,6 +898,13 @@ class NativeMethods {
             this.scriptIntegrityGetter = scriptIntegrityDescriptor.get;
             this.linkIntegrityGetter   = linkIntegrityDescriptor.get;
         }
+
+        // NOTE: In the Internet Explorer 11 the children property is located in HTMLElement.
+        const childrenPropOwner = win.Element.prototype.hasOwnProperty('children')
+            ? win.Element.prototype
+            : win.HTMLElement.prototype;
+
+        this.elementChildrenGetter = win.Object.getOwnPropertyDescriptor(childrenPropOwner, 'children').get;
 
         const anchorOriginDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'origin');
 

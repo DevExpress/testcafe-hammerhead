@@ -269,7 +269,7 @@ export function processHtml (html, options: ProcessHTMLOptions = {}) {
         if (prepareDom)
             prepareDom(container);
 
-        if (nativeMethods.htmlCollectionLengthGetter.call(container.children)) {
+        if (nativeMethods.htmlCollectionLengthGetter.call(nativeMethods.elementChildrenGetter.call(container))) {
             children = nativeMethods.elementQuerySelectorAll.call(container, '*');
             length   = nativeMethods.nodeListLengthGetter.call(children);
         }
