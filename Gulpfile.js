@@ -151,7 +151,12 @@ gulp.step('mocha', () => {
         }));
 });
 
-gulp.task('test-server', gulp.series('build', 'mocha'));
+gulp.step('disable-node-tls-reject-unauthorized', done => {
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    done();
+});
+
+gulp.task('test-server', gulp.series('build', 'disable-node-tls-reject-unauthorized', 'mocha'));
 
 gulp.step('qunit', () => {
     gulp.watch('./src/**/*.ts', gulp.series('build'));

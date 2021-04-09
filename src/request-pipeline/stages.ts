@@ -20,7 +20,7 @@ import RequestEventNames from '../session/events/names';
 import { respondOnWebSocket } from './websocket';
 import { noop } from 'lodash';
 import { process as processResource } from '../processing/resources';
-import connectionResetGuard from './connection-reset-guard';
+import { connectionResetGuard } from './connection-reset-guard';
 
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 

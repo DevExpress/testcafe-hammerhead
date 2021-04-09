@@ -1,16 +1,18 @@
 import net from 'net';
 import RequestOptions from '../request-options';
-import http from 'http';
+import http, { ClientRequest } from 'http';
 import https from 'https';
 import { noop } from 'lodash';
 import * as requestAgent from './agent';
 import { EventEmitter } from 'events';
 import { getAuthInfo, addCredentials, requiresResBody } from 'webauth';
-import connectionResetGuard from '../connection-reset-guard';
+import { connectionResetGuard } from '../connection-reset-guard';
 import { MESSAGE, getText } from '../../messages';
 import logger from '../../utils/logger';
 import * as requestCache from '../cache';
 import IncomingMessageLike from '../incoming-message-like';
+import { formatRequestHttp2Headers, getHttp2Session, Http2Response, createResponseLike } from './http2';
+import { ClientHttp2Session, ClientHttp2Stream } from 'http2';
 
 const TUNNELING_SOCKET_ERR_RE    = /tunneling socket could not be established/i;
 const TUNNELING_AUTHORIZE_ERR_RE = /statusCode=407/i;
@@ -26,7 +28,7 @@ interface DestinationRequestEvents {
 }
 
 export default class DestinationRequest extends EventEmitter implements DestinationRequestEvents {
-    private req: http.ClientRequest;
+    private req: ClientRequest | ClientHttp2Stream;
     private hasResponse = false;
     private credentialsSent = false;
     private aborted = false;
@@ -46,54 +48,82 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         this._send();
     }
 
-    _sendReal (waitForData?: boolean): void {
-        const preparedOptions = this.opts.prepare();
+    private _sendRealThroughHttp2 (session: ClientHttp2Session) {
+        const reqHeaders = formatRequestHttp2Headers(this.opts);
+        const endStream  = !this.opts.body.length;
+        const stream     = session.request(reqHeaders, { endStream });
 
-        this.req = this.protocolInterface.request(preparedOptions, res => {
-            if (waitForData) {
-                res.on('data', noop);
-                res.once('end', () => this._onResponse(res));
-            }
+        stream.setTimeout(this.timeout, () => this._onTimeout());
+        stream.on('error', (err: Error) => this._onError(err));
+        stream.on('response', headers => {
+            const http2res = createResponseLike(stream, headers);
+
+            this._onResponse(http2res);
         });
 
-        if (logger.destinationSocket.enabled) {
-            this.req.on('socket', socket => {
-                socket.once('data', data => logger.destinationSocket.onFirstChunk(this.opts, data));
-                socket.once('error', err => logger.destinationSocket.onError(this.opts, err));
-            });
+        if (!endStream) {
+            stream.write(this.opts.body);
+            stream.end();
         }
 
-        if (!waitForData)
-            this.req.on('response', (res: http.IncomingMessage) => this._onResponse(res));
+        this.req = stream;
 
-        this.req.on('error', (err: Error) => this._onError(err));
-        this.req.on('upgrade', (res: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgrade(res, socket, head));
-        this.req.setTimeout(this.timeout, () => this._onTimeout());
-        this.req.write(this.opts.body);
-        this.req.end();
-
-        logger.destination.onRequest(this.opts);
+        logger.destination.onHttp2Stream(this.opts.requestId, reqHeaders);
     }
 
-    _send (waitForData?: boolean): void {
+    private _sendReal (waitForData?: boolean) {
         connectionResetGuard(() => {
-            if (this.cache) {
-                const cachedResponse = requestCache.getResponse(this.opts);
+            const preparedOpts = this.opts.prepare();
 
-                if (cachedResponse) {
-                    // NOTE: To store async order of the 'response' event
-                    setImmediate(() => {
-                        this._emitOnResponse(cachedResponse.res);
-                    }, 0);
-
-                    logger.destination.onCachedRequest(this.opts, cachedResponse.hitCount);
-
-                    return;
+            this.req = this.protocolInterface.request(preparedOpts, res => {
+                if (waitForData) {
+                    res.on('data', noop);
+                    res.once('end', () => this._onResponse(res));
                 }
+            });
+
+            if (logger.destinationSocket.enabled) {
+                this.req.on('socket', socket => {
+                    socket.once('data', data => logger.destinationSocket.onFirstChunk(this.opts, data));
+                    socket.once('error', err => logger.destinationSocket.onError(this.opts, err));
+                });
             }
 
-            this._sendReal(waitForData);
+            if (!waitForData)
+                this.req.on('response', (res: http.IncomingMessage) => this._onResponse(res));
+
+            this.req.on('upgrade',
+                (res: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgrade(res, socket, head));
+            this.req.on('error', (err: Error) => this._onError(err));
+            this.req.setTimeout(this.timeout, () => this._onTimeout());
+            this.req.write(this.opts.body);
+            this.req.end();
+
+            logger.destination.onRequest(this.opts);
         });
+    }
+
+    async _send (waitForData?: boolean) {
+        if (this.cache) {
+            const cachedResponse = requestCache.getResponse(this.opts);
+
+            if (cachedResponse) {
+                // NOTE: To store async order of the 'response' event
+                setImmediate(() => this._emitOnResponse(cachedResponse.res));
+
+                logger.destination.onCachedRequest(this.opts, cachedResponse.hitCount);
+
+                return;
+            }
+        }
+
+        const http2Session = this.opts.isHttps && !this.opts.isWebSocket &&
+            await getHttp2Session(this.opts.requestId ,this.opts.protocol + '//' + this.opts.host);
+
+        if (http2Session && !http2Session.destroyed)
+            this._sendRealThroughHttp2(http2Session);
+        else
+            this._sendReal(waitForData);
     }
 
     _shouldResendWithCredentials (res): boolean {
@@ -110,7 +140,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         return false;
     }
 
-    _onResponse (res: http.IncomingMessage): void {
+    _onResponse (res: http.IncomingMessage | Http2Response): void {
         logger.destination.onResponse(this.opts, res);
 
         if (this._shouldResendWithCredentials(res))
@@ -123,7 +153,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
             this._emitOnResponse(res);
     }
 
-    _emitOnResponse (res: http.IncomingMessage | IncomingMessageLike) {
+    _emitOnResponse (res: http.IncomingMessage | IncomingMessageLike | Http2Response) {
         this.hasResponse = true;
 
         this.emit('response', res);
@@ -153,7 +183,8 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     _fatalError (msg: string, url?: string): void {
         if (!this.aborted) {
             this.aborted = true;
-            this.req.abort();
+
+            this.req.destroy();
             this.emit('fatalError', getText(msg, { url: url || this.opts.url }));
         }
     }

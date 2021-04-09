@@ -1,10 +1,14 @@
-const express            = require('express');
-const Session            = require('../../../lib/session');
-const { win: isWindows } = require('os-family');
-const path               = require('path');
-const { expect }         = require('chai');
-const urlUtils           = require('../../../lib/utils/url');
-const Proxy              = require('../../../lib/proxy');
+const express               = require('express');
+const http                  = require('http');
+const https                 = require('https');
+const http2                 = require('http2');
+const Session               = require('../../../lib/session');
+const { win: isWindows }    = require('os-family');
+const path                  = require('path');
+const { expect }            = require('chai');
+const urlUtils              = require('../../../lib/utils/url');
+const Proxy                 = require('../../../lib/proxy');
+const selfSignedCertificate = require('openssl-self-signed-certificate');
 
 const {
     PROXY_HOSTNAME,
@@ -13,11 +17,45 @@ const {
     SAME_DOMAIN_SERVER_PORT
 } = require('./constants');
 
-exports.createDestinationServer = function (port = SAME_DOMAIN_SERVER_PORT) {
+const { HTTP2_HEADER_METHOD, HTTP2_HEADER_PATH } = http2.constants;
+
+exports.createDestinationServer = function (port = SAME_DOMAIN_SERVER_PORT, isHttps = false) {
     const app    = express();
-    const server = app.listen(port);
+    const server = isHttps ? https.createServer(selfSignedCertificate, app) : http.createServer(app);
+
+    server.listen(port);
 
     return { server, app };
+};
+
+exports.createHttp2DestServer = function (port = SAME_DOMAIN_SERVER_PORT) {
+    const handlers = { get: {}, post: {} };
+    const server   = http2.createSecureServer(selfSignedCertificate).listen(port);
+
+    server.on('stream', (stream, headers) => {
+        const method = headers[HTTP2_HEADER_METHOD].toLowerCase();
+        const url    = headers[HTTP2_HEADER_PATH];
+
+        if (!handlers[method])
+            throw new Error('Unsupported method!');
+
+        const handler = handlers[method][url];
+
+        if (!handler)
+            throw new Error('Unknown path!');
+
+        handler(stream, headers);
+    });
+
+    return {
+        server,
+        get (url, handler) {
+            handlers.get[url] = handler;
+        },
+        post (url, handler) {
+            handlers.post[url] = handler;
+        }
+    };
 };
 
 exports.createSession = function (parameters) {
