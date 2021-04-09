@@ -888,7 +888,6 @@ class NativeMethods {
         this.nodePrevSiblingGetter           = win.Object.getOwnPropertyDescriptor(win.Node.prototype, 'previousSibling').get;
         this.nodeParentNodeGetter            = win.Object.getOwnPropertyDescriptor(win.Node.prototype, 'parentNode').get;
         this.nodeChildNodesGetter            = win.Object.getOwnPropertyDescriptor(win.Node.prototype, 'childNodes').get;
-        this.elementChildrenGetter           = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'children').get;
         this.elementFirstElementChildGetter  = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'firstElementChild').get;
         this.elementLastElementChildGetter   = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'lastElementChild').get;
         this.elementNextElementSiblingGetter = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'nextElementSibling').get;
@@ -899,6 +898,13 @@ class NativeMethods {
             this.scriptIntegrityGetter = scriptIntegrityDescriptor.get;
             this.linkIntegrityGetter   = linkIntegrityDescriptor.get;
         }
+
+        // NOTE: In the Internet Explorer 11 the children property is located in HTMLElement.
+        const childrenPropOwner = win.Element.prototype.hasOwnProperty('children')
+            ? win.Element.prototype
+            : win.HTMLElement.prototype;
+
+        this.elementChildrenGetter = win.Object.getOwnPropertyDescriptor(childrenPropOwner, 'children').get;
 
         const anchorOriginDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'origin');
 
