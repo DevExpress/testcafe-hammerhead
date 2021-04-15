@@ -28,6 +28,7 @@ import * as requestCache from './cache';
 import requestIsMatchRule from '../request-pipeline/request-hooks/request-is-match-rule';
 import getMockResponse from '../request-pipeline/request-hooks/response-mock/get-response';
 import { Http2Response } from './destination-request/http2';
+import RequestEvent from '../session/events/request-event';
 
 interface DestInfo {
     url: string;
@@ -437,8 +438,8 @@ export default class RequestPipelineContext {
         this.buildContentInfo();
     }
 
-    setupMockIfNecessary (rule: RequestFilterRule): void {
-        const mock = this.session.getMock(rule);
+    setupMockIfNecessary (event: RequestEvent): void {
+        const mock = this.session.getMock(event.id);
 
         if (mock && !this.mock)
             this.mock = mock;

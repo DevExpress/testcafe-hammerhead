@@ -1,23 +1,26 @@
-import RequestPipelineContext from '../../request-pipeline/context';
 import RequestFilterRule from '../../request-pipeline/request-hooks/request-filter-rule';
+import RequestPipelineContext from '../../request-pipeline/context';
 import ConfigureResponseEventOptions from './configure-response-event-options';
+import generateUniqueId from '../../utils/generate-unique-id';
 
 export default class ConfigureResponseEvent {
+    public readonly requestFilterRule: RequestFilterRule;
     private readonly _requestContext: RequestPipelineContext;
-    readonly _requestFilterRule: RequestFilterRule;
     public opts: ConfigureResponseEventOptions;
+    public id: string;
 
-    constructor (requestContext: RequestPipelineContext, requestFilterRule: RequestFilterRule, opts: ConfigureResponseEventOptions) {
+    constructor (requestFilterRule: RequestFilterRule, requestContext: RequestPipelineContext, opts: ConfigureResponseEventOptions) {
+        this.requestFilterRule  = requestFilterRule;
         this._requestContext    = requestContext;
-        this._requestFilterRule = requestFilterRule;
         this.opts               = opts;
+        this.id                 = generateUniqueId();
     }
 
-    setHeader (name: string, value: string) {
+    async setHeader (name: string, value: string): Promise<void> {
         this._requestContext.destRes.headers[name.toLowerCase()] = value;
     }
 
-    removeHeader (name: string) {
+    async removeHeader (name: string): Promise<void> {
         delete this._requestContext.destRes.headers[name.toLowerCase()];
     }
 }

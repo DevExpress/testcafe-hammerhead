@@ -54,6 +54,22 @@ interface RequestEventListenersData {
     rule: RequestFilterRule;
 }
 
+interface HeaderData {
+    name: string;
+    value: string;
+}
+
+interface ConfigureResponseEventData {
+    opts: ConfigureResponseEventOptions;
+    setHeaders: HeaderData[];
+    removedHeaders: string[];
+}
+
+interface RequestHookEventData {
+    mocks: Map<string, ResponseMock>;
+    configureResponse: Map<string, ConfigureResponseEventData>;
+}
+
 interface TaskScriptTemplateOpts {
     serverInfo: ServerInfo;
     isFirstPageLoad: boolean;
@@ -92,16 +108,23 @@ export default abstract class Session extends EventEmitter {
     pendingStateSnapshot: StateSnapshot | null = null;
     injectable: InjectableResources = { scripts: ['/hammerhead.js'], styles: [], userScripts: [] };
     requestEventListeners: Map<string, RequestEventListenersData> = new Map();
-    mocks: Map<string, ResponseMock> = new Map();
     private _recordMode = false;
     options: SessionOptions;
-    private _configureResponseEventOptions: Map<string, ConfigureResponseEventOptions> = new Map();
+    private _requestHookEventData: RequestHookEventData;
 
     protected constructor (uploadRoots: string[], options: Partial<SessionOptions>) {
         super();
 
-        this.uploadStorage = new UploadStorage(uploadRoots);
-        this.options       = this._getOptions(options);
+        this.uploadStorage         = new UploadStorage(uploadRoots);
+        this.options               = this._getOptions(options);
+        this._requestHookEventData = this._initRequestHookEventData();
+    }
+
+    private _initRequestHookEventData (): RequestHookEventData {
+        return {
+            mocks: new Map<string, ResponseMock>(),
+            configureResponse: new Map<string, ConfigureResponseEventData>()
+        };
     }
 
     private _getOptions (options: Partial<SessionOptions> = {}): SessionOptions {
@@ -284,16 +307,26 @@ export default abstract class Session extends EventEmitter {
         return matchedRules.filter(rule => !!rule);
     }
 
-    _patchOnConfigureResponseEvent (eventName: RequestEventNames, rule: RequestFilterRule, eventData: RequestEvent | ResponseEvent | ConfigureResponseEvent): void {
+    async _patchOnConfigureResponseEvent (eventName: RequestEventNames, event: RequestEvent | ResponseEvent | ConfigureResponseEvent): Promise<void> {
         // At present, this way is used only in the TestCafe's 'compiler service' run mode.
         // Later, we need to remove the old event-based mechanism and use this one.
         if (eventName !== RequestEventNames.onConfigureResponse)
             return;
+        const targetEvent = event as ConfigureResponseEvent;
+        const eventData   = this._requestHookEventData.configureResponse.get(targetEvent.id);
 
-        const opts = this._configureResponseEventOptions.get(rule.id);
+        if (!eventData)
+            return;
 
-        if (opts)
-            (eventData as ConfigureResponseEvent).opts = opts;
+        targetEvent.opts = eventData.opts;
+
+        await Promise.all(eventData.setHeaders.map(({ name, value }) => {
+            return targetEvent.setHeader(name, value);
+        }));
+
+        await Promise.all(eventData.removedHeaders.map( header => {
+            return targetEvent.removeHeader(header);
+        }));
     }
 
     async callRequestEventCallback (eventName: RequestEventNames, rule: RequestFilterRule, eventData: RequestEvent | ResponseEvent | ConfigureResponseEvent): Promise<void> {
@@ -311,7 +344,7 @@ export default abstract class Session extends EventEmitter {
         try {
             await targetRequestEventCallback(eventData);
 
-            this._patchOnConfigureResponseEvent(eventName, rule, eventData);
+            await this._patchOnConfigureResponseEvent(eventName, eventData);
         }
         catch (e) {
             if (typeof errorHandler !== 'function')
@@ -326,20 +359,56 @@ export default abstract class Session extends EventEmitter {
         }
     }
 
-    async setMock (requestFilterRule: RequestFilterRule, mock: ResponseMock): Promise<void> {
-        this.mocks.set(requestFilterRule.id, mock);
+    async setMock (responseEventId: string, mock: ResponseMock): Promise<void> {
+        this._requestHookEventData.mocks.set(responseEventId, mock);
     }
 
-    getMock (requestFilterRule: RequestFilterRule): ResponseMock | undefined {
-        return this.mocks.get(requestFilterRule.id);
+    getMock (responseEventId: string): ResponseMock | undefined {
+        return this._requestHookEventData.mocks.get(responseEventId);
     }
 
-    async setConfigureResponseEventOptions (rule: RequestFilterRule, opts: ConfigureResponseEventOptions): Promise<void> {
-        this._configureResponseEventOptions.set(rule.id, opts);
+    private _ensureConfigureResponseEventData (eventId: string): ConfigureResponseEventData {
+        let eventData = this._requestHookEventData.configureResponse.get(eventId);
+
+        if (!eventData) {
+            eventData = {
+                opts:           ConfigureResponseEventOptions.DEFAULT,
+                setHeaders: [],
+                removedHeaders: []
+            };
+        }
+
+        return eventData;
     }
 
-    async removeConfigureResponseEventOptions (rule: RequestFilterRule): Promise<void> {
-        this._configureResponseEventOptions.delete(rule.id);
+    private _updateConfigureResponseEventData (eventId: string, updateFn: (eventData: ConfigureResponseEventData) => void): void {
+        const eventData = this._ensureConfigureResponseEventData(eventId);
+
+        updateFn(eventData);
+
+        this._requestHookEventData.configureResponse.set(eventId, eventData);
+    }
+
+    public removeConfigureResponseEventData (eventId: string): void {
+        this._requestHookEventData.configureResponse.delete(eventId);
+    }
+
+    public async setConfigureResponseEventOptions (eventId: string, opts: ConfigureResponseEventOptions): Promise<void> {
+        this._updateConfigureResponseEventData(eventId,eventData => {
+            eventData.opts = opts;
+        });
+    }
+
+    public async setHeaderOnConfigureResponseEvent (eventId: string, headerName: string, headerValue: string): Promise<void> {
+        this._updateConfigureResponseEventData(eventId, eventData => {
+            eventData.setHeaders.push({ name: headerName, value: headerValue });
+        });
+    }
+
+    public async removeHeaderOnConfigureResponseEvent (eventId: string, headerName: string): Promise<void> {
+        this._updateConfigureResponseEventData(eventId, eventData => {
+            eventData.removedHeaders.push(headerName);
+        });
     }
 
     setRecordMode(): void {

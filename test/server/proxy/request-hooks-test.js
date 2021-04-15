@@ -93,6 +93,15 @@ describe('Request Hooks', () => {
             });
             res.end();
         });
+
+        app.post('/echo-custom-request-headers-in-response-headers', (req, res) => {
+            Object.keys(req.headers).forEach(headerName => {
+                if (headerName.startsWith('x-header-'))
+                    res.setHeader(headerName, req.headers[headerName]);
+            });
+
+            res.end();
+        });
     });
 
     after(() => {
@@ -716,9 +725,9 @@ describe('Request Hooks', () => {
         session.addRequestEventListeners(rule, {
             onConfigureResponse: e => {
                 return new Promise(resolve => {
-                    setTimeout(() => {
-                        e.setHeader('My-Custom-Header', 'My Custom value');
-                        e.removeHeader('Content-Type');
+                    setTimeout(async () => {
+                        await e.setHeader('My-Custom-Header', 'My Custom value');
+                        await e.removeHeader('Content-Type');
 
                         resolve();
                     }, 100);
@@ -785,42 +794,140 @@ describe('Request Hooks', () => {
             });
     });
 
-    it('Should allow using the specified configure request options', async () => {
-        let responseEventIsRaised      = false;
-        const url                      = 'http://127.0.0.1:2000/script';
-        const rule                     = new RequestFilterRule(url);
-        const opts                     = new ConfigureResponseEventOptions(true, true);
-        const resourceContent          = fs.readFileSync('test/server/data/script/src.js').toString();
-        const processedResourceContent = fs.readFileSync('test/server/data/script/expected.js').toString();
+    describe('Should allow specifying the configure request data', () => {
+        it('Options', async () => {
+            let responseEventIsRaised      = false;
+            let configureResponseEventId   = null;
+            const url                      = 'http://127.0.0.1:2000/script';
+            const rule                     = new RequestFilterRule(url);
+            const opts                     = new ConfigureResponseEventOptions(true, true);
+            const resourceContent          = fs.readFileSync('test/server/data/script/src.js').toString();
+            const processedResourceContent = fs.readFileSync('test/server/data/script/expected.js').toString();
 
-        await session.setConfigureResponseEventOptions(rule, opts);
+            session.addRequestEventListeners(rule, {
+                onConfigureResponse: async e => {
+                    configureResponseEventId = e.id;
 
-        session.addRequestEventListeners(rule, {
-            onConfigureResponse: noop,
+                    await session.setConfigureResponseEventOptions(configureResponseEventId, opts);
+                },
 
-            onResponse: e => {
-                expect(e.statusCode).eql(200);
-                expect(e.headers).to.include({ 'content-type': 'application/javascript; charset=utf-8' });
-                expect(e.body.toString()).eql(resourceContent);
+                onResponse: e => {
+                    expect(e.statusCode).eql(200);
+                    expect(e.headers).to.include({ 'content-type': 'application/javascript; charset=utf-8' });
+                    expect(e.body.toString()).eql(resourceContent);
 
-                responseEventIsRaised = true;
-            }
+                    responseEventIsRaised = true;
+                }
+            });
+
+            const options = {
+                url:     proxy.openSession(url, session),
+                headers: {
+                    'content-type': 'application/javascript; charset=utf-8'
+                }
+            };
+
+            const body = await request(options);
+
+            expect(body).eql(processedResourceContent);
+            expect(responseEventIsRaised, 'responseEventIsRaised').to.be.true;
+
+            session.removeConfigureResponseEventData(configureResponseEventId);
+            session.removeRequestEventListeners(rule);
         });
 
-        const options = {
-            url:     proxy.openSession(url, session),
-            headers: {
-                'content-type': 'application/javascript; charset=utf-8'
-            }
-        };
+        it('setHeader', async () => {
+            let responseEventIsRaised      = false;
+            let configureResponseEventId   = null;
+            const url                      = 'http://127.0.0.1:2000/echo-custom-request-headers-in-response-headers';
+            const rule                     = new RequestFilterRule(url);
 
-        const body = await request(options);
+            const options = {
+                url:     proxy.openSession(url, session),
+                method:  'POST',
+                headers: {
+                    'x-header-1': 'value-1'
+                },
 
-        expect(body).eql(processedResourceContent);
-        expect(responseEventIsRaised, 'responseEventIsRaised').to.be.true;
+                resolveWithFullResponse: true
+            };
 
-        await session.removeConfigureResponseEventOptions(rule);
+            session.addRequestEventListeners(rule, {
+                onConfigureResponse: async e => {
+                    configureResponseEventId = e.id;
 
-        session.removeRequestEventListeners(rule);
+                    await session.setHeaderOnConfigureResponseEvent(configureResponseEventId, 'x-header-1', 'another-value');
+                    await session.setHeaderOnConfigureResponseEvent(configureResponseEventId, 'x-header-2', 'value-2');
+                },
+
+                onResponse: e => {
+                    expect(e.statusCode).eql(200);
+
+                    responseEventIsRaised = true;
+                }
+            });
+
+            const res = await request(options);
+
+            expect(res.headers)
+                .to.have.property('x-header-1')
+                .that.equals('another-value');
+
+            expect(res.headers)
+                .to.have.property('x-header-2')
+                .that.equals('value-2');
+
+            expect(responseEventIsRaised, 'responseEventIsRaised').to.be.true;
+
+            session.removeConfigureResponseEventData(configureResponseEventId);
+            session.removeRequestEventListeners(rule);
+        });
+
+        it('removeHeader', async () => {
+            let responseEventIsRaised      = false;
+            let configureResponseEventId   = null;
+            const url                      = 'http://127.0.0.1:2000/echo-custom-request-headers-in-response-headers';
+            const rule                     = new RequestFilterRule(url);
+
+            const options = {
+                url:     proxy.openSession(url, session),
+                method:  'POST',
+                headers: {
+                    'x-header-1': 'value-1',
+                    'x-header-2': 'value-2',
+                    'x-header-3': 'value-3'
+                },
+
+                resolveWithFullResponse: true
+            };
+
+            session.addRequestEventListeners(rule, {
+                onConfigureResponse: async e => {
+                    configureResponseEventId = e.id;
+
+                    await session.removeHeaderOnConfigureResponseEvent(configureResponseEventId, 'x-header-1');
+                    await session.removeHeaderOnConfigureResponseEvent(configureResponseEventId, 'x-header-2');
+                },
+
+                onResponse: e => {
+                    expect(e.statusCode).eql(200);
+
+                    responseEventIsRaised = true;
+                }
+            });
+
+            const res = await request(options);
+
+            expect(res.headers).to.not.have.property('x-header-1');
+            expect(res.headers).to.not.have.property('x-header-2');
+            expect(responseEventIsRaised, 'responseEventIsRaised').to.be.true;
+
+            expect(res.headers)
+                .to.have.property('x-header-3')
+                .that.equals('value-3');
+
+            session.removeConfigureResponseEventData(configureResponseEventId);
+            session.removeRequestEventListeners(rule);
+        });
     });
 });

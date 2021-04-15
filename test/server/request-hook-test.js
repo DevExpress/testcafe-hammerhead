@@ -353,29 +353,31 @@ it('Default configure options for onResponseEvent', () => {
 });
 
 describe('ConfigureResponseEvent', () => {
-    it('Remove header', () => {
-        const mockCtx = {
-            destRes: {
-                headers: {
-                    'my-header': 'value'
-                }
-            }
-        };
-        const configureResponseEvent = new ConfigureResponseEvent(mockCtx);
+    const ruleMock = {};
 
-        configureResponseEvent.removeHeader('My-Header');
-        expect(mockCtx.destRes.headers).to.not.have.property('my-header');
+    const contextMock = {
+        destRes: {
+            headers: {
+                'my-header': 'value'
+            }
+        }
+    };
+
+    it('Remove header', async () => {
+        const configureResponseEvent = new ConfigureResponseEvent(ruleMock, Object.assign(contextMock));
+
+        await configureResponseEvent.removeHeader('My-Header');
+
+        expect(contextMock.destRes.headers).to.not.have.property('my-header');
     });
 
-    it('Set header', () => {
-        const mockCtx = {
-            destRes: {
-                headers: {}
-            }
-        };
-        const configureResponseEvent = new ConfigureResponseEvent(mockCtx);
+    it('Set header', async () => {
+        const configureResponseEvent = new ConfigureResponseEvent(ruleMock, Object.assign(contextMock));
 
-        configureResponseEvent.setHeader('My-Header', 'value');
-        expect(mockCtx.destRes.headers).to.have.property('my-header').that.equals('value');
+        await configureResponseEvent.setHeader('another-header', 'another-value');
+
+        expect(contextMock.destRes.headers)
+            .to.have.property('another-header')
+            .that.equals('another-value');
     });
 });
