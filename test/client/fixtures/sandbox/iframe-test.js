@@ -145,6 +145,29 @@ if (nativeMethods.iframeSrcdocGetter) {
         strictEqual(iframe.getAttribute('srcdoc'), html);
         strictEqual(nativeMethods.getAttribute.call(iframe, 'srcdoc'), htmlUtils.processHtml(html, { isPage: true }).replace(/(sessionId)/, '$1!i'));
     });
+
+    asyncTest('ready to init event should be raised after the document was initialized', function () {
+        var iframeLoadingEventRaised = false;
+
+        var handler = function (iframe) {
+            iframeLoadingEventRaised = true;
+
+            strictEqual(iframe.contentDocument.location.href, 'about:srcdoc');
+        };
+
+        iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
+
+        var $iframe = $('<iframe srcdoc="<h1>simple markup</h1>">').appendTo('body');
+
+        $iframe[0].addEventListener('load', function () {
+            ok(iframeLoadingEventRaised);
+
+            iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
+            $iframe.remove();
+
+            start();
+        });
+    });
 }
 
 test('should not call the contentWindow getter while cloning iframe/frame from XMLDocument (GH-2554)', function () {
