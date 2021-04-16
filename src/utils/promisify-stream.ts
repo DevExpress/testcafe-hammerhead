@@ -11,13 +11,14 @@ export default function (s: Readable, contentLength?: string): Promise<Buffer> {
         const finalLength  = typeof contentLength === 'string' ? parseInt(contentLength) : null;
         const http2session = finalLength === null && ('session' in s) && (s as ClientHttp2Stream).session || null;
         let timeout        = null;
+        let isResolved     = false;
 
         s.on('data', (chunk: Buffer) => {
             chunks.push(chunk);
             currentLength += chunk.length;
 
             if (currentLength === finalLength) {
-                s.removeAllListeners('end');
+                isResolved = true;
                 resolve(Buffer.concat(chunks));
             }
 
@@ -28,7 +29,9 @@ export default function (s: Readable, contentLength?: string): Promise<Buffer> {
         });
         s.once('end', () => {
             clearTimeout(timeout);
-            resolve(Buffer.concat(chunks));
+
+            if (!isResolved)
+                resolve(Buffer.concat(chunks));
         });
         s.once('error', error => {
             clearTimeout(timeout);
