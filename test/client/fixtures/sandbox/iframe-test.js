@@ -146,7 +146,7 @@ if (nativeMethods.iframeSrcdocGetter) {
         strictEqual(nativeMethods.getAttribute.call(iframe, 'srcdoc'), htmlUtils.processHtml(html, { isPage: true }).replace(/(sessionId)/, '$1!i'));
     });
 
-    asyncTest('ready to init event should be raised after the document was initialized', function () {
+    test('ready to init event should be raised after the document was initialized', function () {
         var iframeLoadingEventRaised = false;
 
         var handler = function (iframe) {
@@ -157,16 +157,25 @@ if (nativeMethods.iframeSrcdocGetter) {
 
         iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
 
-        var $iframe = $('<iframe srcdoc="<h1>simple markup</h1>">').appendTo('body');
+        var iframe = document.createElement('iframe');
 
-        $iframe[0].addEventListener('load', function () {
-            ok(iframeLoadingEventRaised);
+        iframe.setAttribute('srcdoc', '<h1>simple markup</h1>');
+        iframe.id = 'test' + Date.now();
 
-            iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
-            $iframe.remove();
+        document.body.appendChild(iframe);
 
-            start();
-        });
+        return window.QUnitGlobals.wait(function () {
+            return true;
+        })
+            .then(function () {
+                return window.QUnitGlobals.waitForIframe(iframe);
+            })
+            .then(function () {
+                ok(iframeLoadingEventRaised);
+
+                iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
+                document.body.removeChild(iframe);
+            });
     });
 }
 
