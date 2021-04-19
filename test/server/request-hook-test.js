@@ -194,6 +194,7 @@ describe('RequestFilterRule', () => {
         expect(hook.toString()).eql('{ url: /example.com/ }');
 
         hook = new RequestFilterRule({ url: 'http://example.com', method: 'GET', isAjax: false });
+
         expect(hook.options.url).eql('http://example.com');
         expect(hook.options.method).eql('get');
         expect(hook.options.isAjax).eql(false);
@@ -213,11 +214,13 @@ describe('RequestFilterRule', () => {
         expect(RequestFilterRule.isANY(new RequestFilterRule('https://example.com'))).to.be.false;
     });
 
-    it('.from, .fromArray', () => {
+    describe('from', () => {
         const ruleInit = 'https://example.com';
         const rule1    = new RequestFilterRule(ruleInit);
         const rule2    = new RequestFilterRule(ruleInit);
         const rule3    = { id: '1', url: ruleInit };
+        const rule4    = { id: '4', options: () => 123 };
+        const rule5    = { id: '5', options: { url: 'https://example.com', method: 'POST' } };
 
         const ruleLikeObject = {
             id:      '1',
@@ -228,26 +231,42 @@ describe('RequestFilterRule', () => {
             }
         };
 
-        expect(RequestFilterRule.fromArray()).eql([]);
-        expect(RequestFilterRule.fromArray(rule1)).eql([rule1]);
+        it('.from', () => {
+            expect(RequestFilterRule.from()).eql(null);
 
-        const rules = RequestFilterRule.fromArray([rule1, rule2, rule3, ruleInit, ruleLikeObject]);
+            const rule2Instance = RequestFilterRule.from(rule2);
+            const rule4Instance = RequestFilterRule.from(rule4);
 
-        expect(rules.length).eql(5);
+            expect(rule2Instance.id).eql(rule2.id);
+            expect(rule4Instance.id).eql(rule4.id);
+            expect(rule4Instance.options()).eql(123);
 
-        rules.forEach(rule => {
-            expect(rule).to.be.an.instanceOf(RequestFilterRule);
+            const rule3Instance = RequestFilterRule.from(rule3);
+
+            expect(rule3Instance.id).eql(rule3.id);
+
+            const rule5Instance = RequestFilterRule.from(rule5);
+
+            expect(rule5Instance.id).eql('5');
+            expect(rule5Instance.options).eql({
+                url:    'https://example.com',
+                method: 'post',
+                isAjax: void 0
+            });
         });
 
-        expect(rules[2].id).eql(rule3.id);
-        expect(rules[1].id).eql(rule2.id);
+        it('.fromArray', () => {
+            expect(RequestFilterRule.fromArray()).eql([]);
+            expect(RequestFilterRule.fromArray(rule1)).eql([rule1]);
 
-        expect(RequestFilterRule.from()).eql(null);
+            const rules = RequestFilterRule.fromArray([rule1, rule2, rule3, rule4, ruleInit, ruleLikeObject]);
 
-        const rule = RequestFilterRule.from(rule3);
+            expect(rules.length).eql(6);
 
-        expect(rule.id).eql('1');
-        expect(rule).be.instanceOf(RequestFilterRule);
+            rules.forEach(rule => {
+                expect(rule).to.be.an.instanceOf(RequestFilterRule);
+            });
+        });
     });
 });
 

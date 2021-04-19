@@ -1,4 +1,10 @@
-import { isRegExp, isString, isObject, castArray } from 'lodash';
+import {
+    isRegExp,
+    isString,
+    isObject,
+    castArray
+} from 'lodash';
+
 import { RequestFilterRuleInit } from './rule-init';
 import generateUniqueId from '../../../utils/generate-unique-id';
 import stringifyRule from './stringify';
@@ -18,56 +24,58 @@ export default class RequestFilterRule {
     public options: RequestFilterRuleInit;
     public id: string;
 
-    constructor (options: RequestFilterRuleInit) {
-        this.options = this._initializeOptions(options);
-        this.id      = this._initializeId(this.options);
+    constructor (init: RequestFilterRuleInit) {
+        this.options = this._initializeOptions(init);
+        this.id      = this._initializeId(init, this.options);
     }
 
-    private _initializeOptions (options: RequestFilterRuleInit): RequestFilterRuleObjectInitializer {
-        let tmpOptions: any = Object.assign({}, DEFAULT_OPTIONS);
+    private _initializeOptions (init: RequestFilterRuleInit): RequestFilterRuleObjectInitializer {
+        let tmpOptions   = Object.assign({}, DEFAULT_OPTIONS) as any;
+        const optionType = typeof init;
 
-        if (typeof options === 'string' || isRegExp(options))
-            tmpOptions.url = options;
-        else if (typeof options === 'function')
-            tmpOptions = options;
-        else if (typeof options === 'object')
-            tmpOptions = Object.assign(tmpOptions, options);
+        if (optionType === 'string' || isRegExp(init))
+            tmpOptions.url = init;
+        else if (optionType === 'function')
+            tmpOptions = init;
+        else if (optionType === 'object') {
+            if ('options' in (init as any))
+                return this._initializeOptions(init['options']);
+
+            tmpOptions = Object.assign(tmpOptions, init);
+        }
         else
-            throw new TypeError('Wrong options have been passed to a request filter.');
+            throw new TypeError('Wrong options have been passed to a request filter rule constructor.');
 
-        if (typeof tmpOptions.method === 'string')
-            tmpOptions.method = tmpOptions.method.toLowerCase();
+        this._ensureLowerCasedMethod(tmpOptions);
 
         return tmpOptions;
     }
 
-    private _initializeId (options: RequestFilterRuleInit): string {
+    private _ensureLowerCasedMethod (opts: any): void {
+        if (typeof opts.method === 'string')
+            opts.method = opts.method.toLowerCase();
+    }
+
+    private _initializeId (originInit: RequestFilterRuleInit, preparedInit: RequestFilterRuleInit): string {
+        const originId = originInit['id'];
+
+        if (isString(originId))
+            return originId;
+
         let id = generateUniqueId();
 
-        if (isObject(options) && isString(options['id'])) {
-            id = options['id'];
+        if (isObject(preparedInit) && isString(preparedInit['id'])) {
+            id = preparedInit['id'];
 
-            delete options['id'];
+            delete preparedInit['id'];
         }
 
         return id;
     }
 
-    static _isRequestFilterRuleLike (rule: unknown): boolean {
-        return !!rule['id'] && !!rule['options'];
-    }
-
     private static _ensureRule (rule: RequestFilterRuleInit | RequestFilterRule) {
         if (rule instanceof RequestFilterRule)
             return rule;
-
-        else if (RequestFilterRule._isRequestFilterRuleLike(rule)) {
-            const id         = rule['id'];
-            const options    = rule['options'];
-            const newOptions = Object.assign({}, { id }, options);
-
-            return new RequestFilterRule(newOptions);
-        }
 
         return new RequestFilterRule(rule);
     }
