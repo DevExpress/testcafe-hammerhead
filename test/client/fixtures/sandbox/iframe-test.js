@@ -145,6 +145,38 @@ if (nativeMethods.iframeSrcdocGetter) {
         strictEqual(iframe.getAttribute('srcdoc'), html);
         strictEqual(nativeMethods.getAttribute.call(iframe, 'srcdoc'), htmlUtils.processHtml(html, { isPage: true }).replace(/(sessionId)/, '$1!i'));
     });
+
+    test('ready to init event should be raised after the document was initialized', function () {
+        var iframeLoadingEventRaised = false;
+
+        var handler = function (iframe) {
+            iframeLoadingEventRaised = true;
+
+            strictEqual(iframe.contentDocument.location.href, 'about:srcdoc');
+        };
+
+        iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
+
+        var iframe = document.createElement('iframe');
+
+        iframe.setAttribute('srcdoc', '<h1>simple markup</h1>');
+        iframe.id = 'test' + Date.now();
+
+        document.body.appendChild(iframe);
+
+        return window.QUnitGlobals.wait(function () {
+            return true;
+        })
+            .then(function () {
+                return window.QUnitGlobals.waitForIframe(iframe);
+            })
+            .then(function () {
+                ok(iframeLoadingEventRaised);
+
+                iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
+                document.body.removeChild(iframe);
+            });
+    });
 }
 
 test('should not call the contentWindow getter while cloning iframe/frame from XMLDocument (GH-2554)', function () {

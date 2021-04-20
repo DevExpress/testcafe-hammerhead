@@ -3,7 +3,13 @@ import SandboxBase from './base';
 import settings from '../settings';
 import nativeMethods from '../sandbox/native-methods';
 import DomProcessor from '../../processing/dom';
-import { isShadowUIElement, isIframeWithoutSrc, isIframeElement, isFrameElement } from '../utils/dom';
+import {
+    isShadowUIElement,
+    isIframeWithoutSrc,
+    isIframeElement,
+    isFrameElement,
+    isIframeWithSrcdoc,
+} from '../utils/dom';
 import { isFirefox, isWebKit, isIE } from '../utils/browser';
 import NodeMutation from './node/mutation';
 import CookieSandbox from './cookie';
@@ -151,6 +157,10 @@ export default class IframeSandbox extends SandboxBase {
 
     processIframe (el: HTMLIFrameElement | HTMLFrameElement): void {
         if (isShadowUIElement(el))
+            return;
+
+        // NOTE: the ready to init event will be raised by the self removing script
+        if (isIframeWithSrcdoc(el))
             return;
 
         if (isIframeElement(el) && nativeMethods.contentWindowGetter.call(el) ||
