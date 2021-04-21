@@ -33,6 +33,8 @@ interface RequestFilterRuleObjectInitializer {
     isAjax: boolean;
 }
 
+interface RequestFilterRuleOptions extends RequestFilterRuleObjectInitializer {}
+
 type RequestFilterRuleInit = string | RegExp | Partial<RequestFilterRuleObjectInitializer> | RequestFilterRulePredicate;
 
 interface RequestFilterRuleObjectInitializer {
@@ -122,6 +124,9 @@ declare module 'testcafe-hammerhead' {
     export class RequestFilterRule {
         /** Creates a request filter rule instance **/
         constructor (options: RequestFilterRuleInit);
+
+        /** Prepared request filter rule options **/
+        options: (requestInfo: RequestInfo) => Promise<boolean> | RequestFilterRuleOptions;
 
         /** Returns the value that accepts any request  **/
         static ANY: RequestFilterRule;
