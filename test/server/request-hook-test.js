@@ -64,6 +64,7 @@ describe('ResponseMock', () => {
             const mock     = new ResponseMock(data);
             const response = await getMockResponse(mock);
 
+            expect(mock.isPredicate).eql(false);
             expect(response.headers['content-type']).eql('application/json');
             expect(response.statusCode).eql(200);
             expect(response.read().toString()).eql(JSON.stringify(data));
@@ -111,6 +112,7 @@ describe('ResponseMock', () => {
             const mock     = new ResponseMock(script, 200, { 'content-type': 'application/javascript' });
             const response = await getMockResponse(mock);
 
+            expect(mock.isPredicate).eql(false);
             expect(response.headers['content-type']).eql('application/javascript');
             expect(response.statusCode).eql(200);
             expect(response.read().toString()).eql(script);
@@ -158,6 +160,7 @@ describe('ResponseMock', () => {
 
             const response = await getMockResponse(mock);
 
+            expect(mock.isPredicate).eql(true);
             expect(response.read().toString()).eql('body');
         });
     });
@@ -182,6 +185,7 @@ describe('RequestFilterRule', () => {
     it('Argument types', () => {
         let hook = new RequestFilterRule('http://example.com');
 
+        expect(hook.isPredicate).eql(false);
         expect(hook.options.url).eql('http://example.com');
         expect(hook.options.method).to.be.undefined;
         expect(hook.options.isAjax).to.be.undefined;
@@ -203,6 +207,8 @@ describe('RequestFilterRule', () => {
         const filterFn = () => false;
 
         hook = new RequestFilterRule(filterFn);
+
+        expect(hook.isPredicate).eql(true);
         expect(hook.options).eql(filterFn);
         expect(hook.toString()).eql('{ <predicate> }');
     });

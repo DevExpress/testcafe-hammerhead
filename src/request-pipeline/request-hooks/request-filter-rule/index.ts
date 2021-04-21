@@ -9,6 +9,7 @@ import { RequestFilterRuleInit } from './rule-init';
 import generateUniqueId from '../../../utils/generate-unique-id';
 import stringifyRule from './stringify';
 import { RequestFilterRuleObjectInitializer } from './rule-init';
+import isPredicate from '../is-predicate';
 
 const DEFAULT_OPTIONS: RequestFilterRuleObjectInitializer = {
     url:    void 0,
@@ -23,10 +24,12 @@ const MATCH_ANY_REQUEST_REG_EX = /.*/;
 export default class RequestFilterRule {
     public options: RequestFilterRuleInit;
     public id: string;
+    public isPredicate: boolean;
 
     constructor (init: RequestFilterRuleInit) {
-        this.options = this._initializeOptions(init);
-        this.id      = this._initializeId(init, this.options);
+        this.options     = this._initializeOptions(init);
+        this.id          = this._initializeId(init, this.options);
+        this.isPredicate = isPredicate(this.options);
     }
 
     private _initializeOptions (init: RequestFilterRuleInit): RequestFilterRuleObjectInitializer {

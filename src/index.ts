@@ -8,6 +8,7 @@ import ConfigureResponseEventOptions from './session/events/configure-response-e
 import StateSnapshot from './session/state-snapshot';
 import { SPECIAL_BLANK_PAGE, SPECIAL_ERROR_PAGE } from './utils/url';
 import generateUniqueId from './utils/generate-unique-id';
+import * as responseMockSetBodyMethod from './request-pipeline/request-hooks/response-mock/set-body-method';
 
 export default {
     Proxy,
@@ -21,5 +22,6 @@ export default {
     StateSnapshot,
     SPECIAL_BLANK_PAGE,
     SPECIAL_ERROR_PAGE,
-    generateUniqueId
+    generateUniqueId,
+    responseMockSetBodyMethod
 };

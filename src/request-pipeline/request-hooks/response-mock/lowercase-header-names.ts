@@ -1,4 +1,4 @@
-export default function (headers?: Record<string, string>): Record<string, string> {
+export default function (headers?: Record<string, string | string[]>): Record<string, string | string[]> {
     if (!headers)
         return headers;
 
