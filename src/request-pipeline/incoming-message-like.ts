@@ -1,8 +1,7 @@
 import { IncomingHttpHeaders, IncomingMessage } from 'http';
 import { Readable } from 'stream';
-import { stringify as stringifyJSON } from '../utils/json';
 
-interface InitOptions {
+export interface IncomingMessageLikeInitOptions {
     headers: { [name: string]: string|string[] };
     trailers: { [key: string]: string | undefined };
     statusCode: number;
@@ -17,7 +16,7 @@ export default class IncomingMessageLike extends Readable {
     trailers: { [key: string]: string | undefined };
     statusCode: number;
 
-    constructor (init: Partial<InitOptions> = {}) {
+    constructor (init: Partial<IncomingMessageLikeInitOptions> = {}) {
         super();
 
         const { headers, trailers, statusCode, body } = this._initOptions(init);
@@ -28,7 +27,7 @@ export default class IncomingMessageLike extends Readable {
         this._body      = this._initBody(body);
     }
 
-    private _initOptions (init: Partial<InitOptions>): InitOptions {
+    private _initOptions (init: Partial<IncomingMessageLikeInitOptions>): IncomingMessageLikeInitOptions {
         return {
             headers:    Object.assign({}, init.headers),
             trailers:   Object.assign({}, init.trailers),
@@ -44,7 +43,7 @@ export default class IncomingMessageLike extends Readable {
         else if (body instanceof Buffer)
             return body;
 
-        const bodyStr = typeof body === 'object' ? stringifyJSON(body) : String(body);
+        const bodyStr = typeof body === 'object' ? JSON.stringify(body) : String(body);
 
         return Buffer.from(bodyStr);
     }

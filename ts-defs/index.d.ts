@@ -62,6 +62,19 @@ declare module 'testcafe-hammerhead' {
         [RequestEventNames.onResponse]: Function;
     }
 
+    /** Initialization options for the IncomingMessageLike object **/
+    export interface IncomingMessageLikeInitOptions {
+        headers: { [name: string]: string|string[] };
+        trailers: { [key: string]: string | undefined };
+        statusCode: number;
+        body: object|string|Buffer|null;
+    }
+
+    interface ResponseMockSetBodyMethod {
+        add(res: IncomingMessageLikeInitOptions): void;
+        remove(res: IncomingMessageLikeInitOptions): void;
+    }
+
     /** The Session class is used to create a web-proxy session **/
     export abstract class Session {
         /** Creates a session instance **/
@@ -142,6 +155,9 @@ declare module 'testcafe-hammerhead' {
 
         /** Unique identifier of the RequestFilterRule instance **/
         id: string;
+
+        /** Indicates that request filter rule defines as a function **/
+        isPredicate: boolean;
     }
 
     /** The StateSnapshot class is used to create page state snapshot **/
@@ -250,6 +266,15 @@ declare module 'testcafe-hammerhead' {
 
         /** Creates an ResponseMock instance from object **/
         static from (val: object): ResponseMock;
+
+        /** The unique identifier of the response mock **/
+        id: string;
+
+        /** Indicates that response defines as a function **/
+        isPredicate: boolean;
+
+        /** The body of the response mock **/
+        body:string | Function;
     }
 
     /** Generates an URL friendly string identifier **/
@@ -266,4 +291,7 @@ declare module 'testcafe-hammerhead' {
 
     /** The URL of the service error page **/
     export const SPECIAL_ERROR_PAGE: string;
+
+    /** The set of utility methods to manipulate with ResponseMock.setBody method **/
+    export const responseMockSetBodyMethod: ResponseMockSetBodyMethod;
 }
