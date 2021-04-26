@@ -375,7 +375,7 @@ export default class ShadowUI extends SandboxBase {
         }
     }
 
-    _markScriptsAndStylesAsShadowInHead (head: HTMLHeadElement) {
+    _markElementsAsShadowInHead (head: HTMLHeadElement) {
         const children = nativeMethods.elementChildrenGetter.call(head);
         const length   = nativeMethods.htmlCollectionLengthGetter.call(children);
 
@@ -429,7 +429,7 @@ export default class ShadowUI extends SandboxBase {
 
         // NOTE: document.head equals null after call 'document.open' function
         if (window.document.head)
-            this._markScriptsAndStylesAsShadowInHead(window.document.head);
+            this._markElementsAsShadowInHead(window.document.head);
 
         this._initEvents();
     }
