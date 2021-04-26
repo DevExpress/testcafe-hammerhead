@@ -931,6 +931,15 @@ test('an iframe should not contain self-removing scripts after document.close (G
         });
 });
 
+test('an iframe should not contain injected head scripts after loading (GH-2622)', function () {
+    return createTestIframe({ src: getSameDomainPageUrl('../../../data/iframe/simple-iframe.html') })
+        .then(function (iframe) {
+            var iframeHammerheadHeadScripts = nativeMethods.querySelectorAll.call(iframe.contentDocument, 'head > script.' + SHADOW_UI_CLASSNAME.script);
+
+            strictEqual(iframeHammerheadHeadScripts.length, 0);
+        });
+});
+
 test('should not throw an error when document.defaultView is null (GH-1272)', function () {
     return new Promise(function (resolve, reject) {
         var iframe         = document.createElement('iframe');

@@ -59,6 +59,7 @@ import domProcessor from './dom-processor';
 import { HammerheadInitSettings } from '../typings/client';
 import { Dictionary } from '../typings/common';
 import ShadowUI from './sandbox/shadow-ui';
+import removeInjectedHeadScript from './utils/remove-injected-head-script';
 
 class Hammerhead {
     win: Window & typeof globalThis;
@@ -161,23 +162,24 @@ class Hammerhead {
         };
 
         this.utils = {
-            browser:          browserUtils,
-            dom:              domUtils,
-            event:            eventUtils,
-            position:         positionUtils,
-            style:            styleUtils,
-            types:            typeUtils,
-            trim:             trim,
-            extend:           extend,
-            html:             htmlUtils,
-            url:              urlUtils,
-            featureDetection: featureDetection,
-            destLocation:     destLocationUtils,
-            overriding:       overridingUtils,
-            cookie:           cookieUtils,
-            getMimeType:      getMimeType,
-            urlResolver:      urlResolver,
-            processing:       processingUtils
+            browser:                  browserUtils,
+            dom:                      domUtils,
+            event:                    eventUtils,
+            position:                 positionUtils,
+            style:                    styleUtils,
+            types:                    typeUtils,
+            trim:                     trim,
+            extend:                   extend,
+            html:                     htmlUtils,
+            url:                      urlUtils,
+            featureDetection:         featureDetection,
+            destLocation:             destLocationUtils,
+            overriding:               overridingUtils,
+            cookie:                   cookieUtils,
+            getMimeType:              getMimeType,
+            urlResolver:              urlResolver,
+            processing:               processingUtils,
+            removeInjectedHeadScript: removeInjectedHeadScript
         };
 
         this.sharedUtils = {
