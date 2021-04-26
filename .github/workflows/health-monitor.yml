@@ -12,8 +12,11 @@ on:
 jobs:
   main-branch:
     if: |
-      github.event_name == 'schedule' ||
-      github.event_name == 'workflow_dispatch'
+      secrets.CLONE_PRIVATE_REPOS_TOKEN &&
+      (
+        github.event_name == 'schedule' ||
+        github.event_name == 'workflow_dispatch'
+      )
     runs-on: windows-latest
 
     steps:
@@ -56,6 +59,7 @@ jobs:
 
   pr-branch:
     if: |
+      secrets.CLONE_PRIVATE_REPOS_TOKEN &&
       github.event.issue.pull_request &&
       (
         github.event.comment.author_association == 'OWNER' ||
