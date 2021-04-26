@@ -16,7 +16,8 @@
     "noImplicitReturns": true,
     "strictFunctionTypes": true,
     "noImplicitThis": true,
-    "outDir": "lib"
+    "outDir": "lib",
+    "strictNullChecks": true
   },
   "include": [
     "src/**/*"
