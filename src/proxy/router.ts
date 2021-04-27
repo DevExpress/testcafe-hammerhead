@@ -57,7 +57,7 @@ export default abstract class Router {
     }
 
     _prepareParamInfo (tokens: string[], method: string) {
-        const paramNames = [];
+        const paramNames = [] as string[];
         const reParts    = tokens.map(token => {
             const paramMatch = token.match(PARAM_RE);
 
@@ -93,7 +93,7 @@ export default abstract class Router {
     }
 
     _route (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo): boolean {
-        const routerQuery = `${req.method} ${getPathname(req.url)}`;
+        const routerQuery = `${req.method} ${getPathname(req.url || '')}`;
         const route       = this.routes.get(routerQuery);
 
         if (route) {
