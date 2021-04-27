@@ -58,13 +58,7 @@ jobs:
           path: |
             ${{steps.package-name.outputs.packageName}}.tgz
             package-lock.json
-      - run: |
-          npx gulp docker-build
-          docker save -o ${{steps.package-name.outputs.packageName}}.tar ${{steps.package-name.outputs.imageName}} 
-      - uses: actions/upload-artifact@v2
-        with:
-          name: docker
-          path: ${{steps.package-name.outputs.packageName}}.tar
+            
   changes:
     # TODO: currently cannot generate a list of changes after rebase
     runs-on: ubuntu-latest
