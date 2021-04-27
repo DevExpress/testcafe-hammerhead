@@ -21,7 +21,7 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
         parse5Utils.removeAttr(el, attr);
     }
 
-    getAttr (el: ASTNode, attr: string): string {
+    getAttr (el: ASTNode, attr: string): string | null {
         return parse5Utils.getAttr(el, attr);
     }
 
@@ -59,11 +59,11 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
     }
 
     getScriptContent (script: ASTNode): string {
-        return script.childNodes.length ? script.childNodes[0].value : '';
+        return script.childNodes?.[0]?.value || '';
     }
 
     getStyleContent (style: ASTNode): string {
-        return style.childNodes.length ? style.childNodes[0].value : '';
+        return style.childNodes?.[0]?.value || '';
     }
 
     setStyleContent (style: ASTNode, content: string): void {
