@@ -9,17 +9,15 @@ import { promisify } from 'util';
 
 const hasBuiltInBrotliSupport = 'brotliCompress' in zlib;
 
-// @ts-ignore
 const builtInBrotliCompress = hasBuiltInBrotliSupport ? promisify(zlib.brotliCompress) : null;
-// @ts-ignore
 const builtInBrotliDecompress = hasBuiltInBrotliSupport ? promisify(zlib.brotliDecompress): null;
 
 export function brotliCompress(data: zlib.InputType): Promise<Buffer> | Buffer {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    return hasBuiltInBrotliSupport ? builtInBrotliCompress(data): Buffer.from(require('brotli').compress(data));
+    return builtInBrotliCompress ? builtInBrotliCompress(data): Buffer.from(require('brotli').compress(data));
 }
 
 export function brotliDecompress(data: zlib.InputType): Promise<Buffer> | Buffer {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    return hasBuiltInBrotliSupport ? builtInBrotliDecompress(data): Buffer.from(require('brotli').decompress(data));
+    return builtInBrotliDecompress ? builtInBrotliDecompress(data): Buffer.from(require('brotli').decompress(data));
 }
