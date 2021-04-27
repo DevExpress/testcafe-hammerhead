@@ -76,6 +76,9 @@ export default class Charset {
             const charsetMatch = contentTypeHeader && contentTypeHeader.match(CHARSET_RE);
             const charset      = charsetMatch && charsetMatch[1];
 
+            if (!charset)
+                return false;
+
             return this.set(getEncodingName(charset), CharsetPriority.CONTENT_TYPE);
         }
 
@@ -94,11 +97,11 @@ export default class Charset {
     // Each <meta> descriptor should contain values of the "http-equiv", "content" and "charset" attributes.
     fromMeta (metas) {
         if (this.priority < CharsetPriority.META && metas.length) {
-            let needPragma = null;
-            let charsetStr = null;
+            let needPragma = true;
+            let charsetStr = '';
 
             metas.forEach(attrs => {
-                const shouldParseFromContentAttr = needPragma !== false && attrs.content && attrs.httpEquiv &&
+                const shouldParseFromContentAttr = needPragma && attrs.content && attrs.httpEquiv &&
                                                    attrs.httpEquiv.toLowerCase() === BUILTIN_HEADERS.contentType;
 
                 if (shouldParseFromContentAttr) {
