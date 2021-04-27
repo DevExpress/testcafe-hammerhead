@@ -471,18 +471,6 @@ test('document.activeElement when it equals null (GH-1226)', function () {
     document.body.removeChild(parentDiv);
 });
 
-test('document.scripts', function () {
-    var scriptsLength = document.scripts.length;
-    var scriptEl      = document.createElement('script');
-
-    shadowUI.addClass(scriptEl, 'script');
-    document.body.appendChild(scriptEl);
-
-    strictEqual(scriptsLength, document.scripts.length);
-
-    document.body.removeChild(scriptEl);
-});
-
 if (nativeMethods.nodeBaseURIGetter) {
     test('document.baseURI (GH-920)', function () {
         var savedNodeBaseURIGetter = nativeMethods.nodeBaseURIGetter;

@@ -306,17 +306,6 @@ export default class DocumentSandbox extends SandboxBase {
             }
         });
 
-        const documentScriptsPropOwnerPrototype = window[nativeMethods.documentScriptsPropOwnerName].prototype;
-
-        overrideDescriptor(documentScriptsPropOwnerPrototype, 'scripts', {
-            getter: function () {
-                const scripts = nativeMethods.documentScriptsGetter.call(this);
-                const length  = nativeMethods.htmlCollectionLengthGetter.call(scripts);
-
-                return documentSandbox._shadowUI._filterNodeList(scripts, length);
-            }
-        });
-
         if (this._documentTitleStorageInitializer && !partialInitializationForNotLoadedIframe) {
             overrideDescriptor(docPrototype, 'title', {
                 getter: function () {
