@@ -143,7 +143,7 @@ gulp.task('build',
     )
 );
 
-const BUILD_TASK = noBuild ? noop : gulp.registry.get('build');
+const BUILD_TASK = noBuild ? noop : gulp.registry()ß.get('build');
 
 // Test
 gulp.step('test-server-run', () => {
