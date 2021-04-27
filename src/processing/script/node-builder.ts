@@ -66,7 +66,9 @@ export function createBinaryExpression (left: Expression, operator: BinaryOperat
     return { type: Syntax.BinaryExpression, left, right, operator };
 }
 
-export function createSequenceExpression (expressions: Expression[]): SequenceExpression {
+export function createSequenceExpression (expressions: (Expression | Pattern)[]): SequenceExpression {
+    //@ts-ignore SequenceExpression can actually
+    // TODO: To write to https://github.com/estree/estree that SequenceExpression must include Pattern
     return { type: Syntax.SequenceExpression, expressions };
 }
 
