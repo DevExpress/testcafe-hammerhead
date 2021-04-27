@@ -28,7 +28,7 @@ const transformer: Transformer<VariableDeclaration> = {
     // @ts-ignore
     condition: (node, parent) => {
         // Skip: for (let { x } in some);
-        if (parent.type === Syntax.ForInStatement)
+        if (parent?.type === Syntax.ForInStatement)
             return false;
 
         for (const declarator of node.declarations) {
@@ -43,6 +43,9 @@ const transformer: Transformer<VariableDeclaration> = {
         const declarations = [] as VariableDeclarator[];
 
         for (const declarator of node.declarations) {
+            if (!declarator.init)
+                continue;
+
             destructuring(declarator.id, declarator.init, (pattern, value) =>
                 declarations.push(createVariableDeclarator(pattern, value)));
         }
