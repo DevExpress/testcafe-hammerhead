@@ -931,12 +931,17 @@ test('an iframe should not contain self-removing scripts after document.close (G
         });
 });
 
-test('an iframe should not contain injected head scripts after loading (GH-2622)', function () {
-    return createTestIframe({ src: getSameDomainPageUrl('../../../data/iframe/simple-iframe.html') })
+test('an iframe should not contain injected scripts after loading (GH-2622)', function () {
+    // NOTE: here we use an iframe with an empty sandbox attribute because we lift some restrictions
+    // (allow-same-origin allow-scripts) in our internal iframe processing logic
+    return createTestIframe({
+        src:     getSameDomainPageUrl('../../../data/iframe/simple-iframe.html'),
+        sandbox: ''
+    })
         .then(function (iframe) {
-            var iframeHammerheadHeadScripts = nativeMethods.querySelectorAll.call(iframe.contentDocument, 'head > script.' + SHADOW_UI_CLASSNAME.script);
+            var iframeInjectedScripts = nativeMethods.querySelectorAll.call(iframe.contentDocument, '.' + SHADOW_UI_CLASSNAME.script);
 
-            strictEqual(iframeHammerheadHeadScripts.length, 0);
+            strictEqual(iframeInjectedScripts.length, 0);
         });
 });
 
