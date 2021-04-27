@@ -142,7 +142,7 @@ gulp.task('build',
 );
 
 // Test
-gulp.step('mocha', () => {
+gulp.step('test-server-run', () => {
     return gulp.src('./test/server/**/*-test.js', { read: false })
         .pipe(mocha({
             // NOTE: Disable timeouts in debug mode.
@@ -156,9 +156,9 @@ gulp.step('disable-node-tls-reject-unauthorized', done => {
     done();
 });
 
-gulp.task('test-server', gulp.series('build', 'disable-node-tls-reject-unauthorized', 'mocha'));
+gulp.task('test-server', gulp.series('build', 'disable-node-tls-reject-unauthorized', 'test-server-run'));
 
-gulp.step('qunit', () => {
+gulp.step('test-client-run', () => {
     gulp.watch('./src/**/*.ts', gulp.series('build'));
 
     return gulp
@@ -166,7 +166,7 @@ gulp.step('qunit', () => {
         .pipe(qunitHarness(getClientTestSettings()));
 });
 
-gulp.task('test-client', gulp.series('build', 'qunit'));
+gulp.task('test-client', gulp.series('build', 'test-client-run'));
 
 gulp.step('set-dev-mode', done => {
     util.env.dev = true;
@@ -175,13 +175,13 @@ gulp.step('set-dev-mode', done => {
 
 gulp.task('test-client-dev', gulp.series('set-dev-mode', 'test-client'));
 
-gulp.step('travis-saucelabs-qunit', () => {
+gulp.step('test-client-cloud-run', () => {
     return gulp
         .src('./test/client/fixtures/**/*-test.js')
         .pipe(qunitHarness(getClientTestSettings(), SAUCELABS_SETTINGS));
 });
 
-gulp.task('test-client-travis', gulp.series('build', 'travis-saucelabs-qunit'));
+gulp.task('test-client-cloud', gulp.series('build', 'test-client-cloud-run'));
 
 gulp.step('http-playground-server', () => {
     return runPlayground({ needBeautifyScripts });
@@ -217,13 +217,11 @@ gulp.step('cached-http-playground-server', () => {
 
 gulp.task('cached-http-playground', gulp.series('build', 'cached-http-playground-server'));
 
-gulp.task('test-functional-testcafe-travis',
-    gulp.series('build',
-        gulpRunCommand([
-            'chmod +x ./test/functional/run-testcafe-functional-tests.sh',
-            './test/functional/run-testcafe-functional-tests.sh'
-        ])
-    )
-);
+gulp.step('test-functional-testcafe-run', gulpRunCommand([
+    'chmod +x ./test/functional/run-testcafe-functional-tests.sh',
+    './test/functional/run-testcafe-functional-tests.sh'
+]));
+
+gulp.task('test-functional-testcafe', gulp.series('build', 'test-functional-testcafe-run'));
 
 gulp.task('travis', process.env.GULP_TASK ? gulp.series(process.env.GULP_TASK) : () => {});
