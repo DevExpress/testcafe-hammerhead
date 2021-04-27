@@ -14,9 +14,9 @@ import BaseDomAdapter from '../dom/base-dom-adapter';
 import SERVICE_ROUTES from '../../proxy/service-routes';
 import { stringify as stringifyJSON } from '../../utils/json';
 
-const PARSED_BODY_CREATED_EVENT_SCRIPT                = parse5.parseFragment(SELF_REMOVING_SCRIPTS.onBodyCreated).childNodes[0];
-const PARSED_ORIGIN_FIRST_TITLE_ELEMENT_LOADED_SCRIPT = parse5.parseFragment(SELF_REMOVING_SCRIPTS.onOriginFirstTitleLoaded).childNodes[0];
-const PARSED_INIT_SCRIPT_FOR_IFRAME_TEMPLATE          = parse5.parseFragment(SELF_REMOVING_SCRIPTS.iframeInit).childNodes[0];
+const PARSED_BODY_CREATED_EVENT_SCRIPT                = parse5.parseFragment(SELF_REMOVING_SCRIPTS.onBodyCreated).childNodes![0];
+const PARSED_ORIGIN_FIRST_TITLE_ELEMENT_LOADED_SCRIPT = parse5.parseFragment(SELF_REMOVING_SCRIPTS.onOriginFirstTitleLoaded).childNodes![0];
+const PARSED_INIT_SCRIPT_FOR_IFRAME_TEMPLATE          = parse5.parseFragment(SELF_REMOVING_SCRIPTS.iframeInit).childNodes![0];
 
 interface PageProcessingOptions {
     crossDomainProxyPort: number;
@@ -25,6 +25,12 @@ interface PageProcessingOptions {
     scripts:              string[];
     urlReplacer:          Function;
     isIframeWithImageSrc: boolean;
+}
+
+interface MetaInfo {
+    httpEquiv: string | null;
+    content:   string | null;
+    charset:   string | null;
 }
 
 class PageProcessor extends ResourceProcessorBase {
@@ -41,7 +47,7 @@ class PageProcessor extends ResourceProcessorBase {
             storageKey, stringifyJSON(storages.localStorage),
             storageKey, stringifyJSON(storages.sessionStorage)));
 
-        return parsedDocumentFragment.childNodes[0];
+        return parsedDocumentFragment.childNodes![0];
     }
 
     private static _getPageProcessingOptions (ctx: RequestPipelineContext, urlReplacer: Function): PageProcessingOptions {
@@ -56,7 +62,7 @@ class PageProcessor extends ResourceProcessorBase {
     }
 
     private static _getPageMetas (metaEls, domAdapter: BaseDomAdapter) {
-        const metas = [];
+        const metas = [] as MetaInfo[];
 
         for (let i = 0; i < metaEls.length; i++) {
             metas.push({
