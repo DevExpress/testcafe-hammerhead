@@ -8,8 +8,7 @@ import {
     ServerInfo,
     ProxyOptions
 } from '../typings/proxy';
-
-import http from 'http';
+import http, { ServerOptions } from 'http';
 import https from 'https';
 import * as urlUtils from '../utils/url';
 import { readSync as read } from 'read-file-relative';
@@ -63,7 +62,7 @@ export default class Proxy extends Router {
     constructor (hostname: string, port1: number, port2: number, options: Partial<ProxyOptions> = { developmentMode: false, cache: false }) {
         super(options);
 
-        const { ssl, developmentMode, cache } = options;
+        const { ssl, developmentMode = false, cache = false } = options;
 
         const protocol     = ssl ? 'https:' : 'http:';
         const opts         = this._getOpts(ssl);
@@ -88,8 +87,8 @@ export default class Proxy extends Router {
         this._registerServiceRoutes(developmentMode);
     }
 
-    _getOpts (ssl: {}): {} {
-        let opts: { maxHeaderSize?: number } = {};
+    _getOpts (ssl?: {}): ServerOptions {
+        let opts = {} as ServerOptions;
 
         if (ssl)
             opts = ssl;
@@ -99,7 +98,7 @@ export default class Proxy extends Router {
         return opts;
     }
 
-    _getCreateServerMethod (ssl: {}) {
+    _getCreateServerMethod (ssl?: {}) {
         return ssl ? https.createServer : http.createServer;
     }
 
@@ -152,7 +151,7 @@ export default class Proxy extends Router {
         const msg     = parseAsJson(body);
         const session = msg && this.openSessions.get(msg.sessionId);
 
-        if (session) {
+        if (msg && session) {
             try {
                 const result = await session.handleServiceMessage(msg, serverInfo);
 
@@ -174,7 +173,7 @@ export default class Proxy extends Router {
         const referer     = req.headers[BUILTIN_HEADERS.referer] as string;
         const refererDest = referer && urlUtils.parseProxyUrl(referer);
         const session     = refererDest && this.openSessions.get(refererDest.sessionId);
-        const windowId    = refererDest && refererDest.windowId;
+        const windowId    = refererDest && refererDest.windowId || void 0;
 
         if (session) {
             res.setHeader(BUILTIN_HEADERS.contentType, 'application/x-javascript');
@@ -182,7 +181,7 @@ export default class Proxy extends Router {
 
             const taskScript = await session.getTaskScript({
                 referer,
-                cookieUrl:   refererDest.destUrl,
+                cookieUrl:   refererDest ? refererDest.destUrl : '',
                 serverInfo,
                 isIframe,
                 withPayload: true,
