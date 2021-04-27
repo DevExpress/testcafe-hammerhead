@@ -14,6 +14,7 @@ const util                  = require('gulp-util');
 const ll                    = require('gulp-ll-next');
 const gulpRunCommand        = require('gulp-run-command').default;
 const clone                 = require('gulp-clone');
+const { noop }              = require('lodash');
 const mergeStreams          = require('merge-stream');
 const getClientTestSettings = require('./gulp/utils/get-client-test-settings');
 const SAUCELABS_SETTINGS    = require('./gulp/saucelabs-settings');
@@ -22,6 +23,7 @@ const runPlayground         = require('./gulp/utils/run-playground');
 gulpStep.install();
 
 const needBeautifyScripts = process.argv.includes('--beautify');
+const noBuild             = process.argv.includes('--no-build');
 
 ll
     .install()
@@ -141,6 +143,8 @@ gulp.task('build',
     )
 );
 
+const BUILD_TASK = noBuild ? noop : gulp.registry.get('build');
+
 // Test
 gulp.step('test-server-run', () => {
     return gulp.src('./test/server/**/*-test.js', { read: false })
@@ -156,17 +160,17 @@ gulp.step('disable-node-tls-reject-unauthorized', done => {
     done();
 });
 
-gulp.task('test-server', gulp.series('build', 'disable-node-tls-reject-unauthorized', 'test-server-run'));
+gulp.task('test-server', gulp.series(BUILD_TASK, 'disable-node-tls-reject-unauthorized', 'test-server-run'));
 
 gulp.step('test-client-run', () => {
-    gulp.watch('./src/**/*.ts', gulp.series('build'));
+    gulp.watch('./src/**/*.ts', BUILD_TASK);
 
     return gulp
         .src('./test/client/fixtures/**/*-test.js')
         .pipe(qunitHarness(getClientTestSettings()));
 });
 
-gulp.task('test-client', gulp.series('build', 'test-client-run'));
+gulp.task('test-client', gulp.series(BUILD_TASK, 'test-client-run'));
 
 gulp.step('set-dev-mode', done => {
     util.env.dev = true;
@@ -181,7 +185,7 @@ gulp.step('test-client-cloud-run', () => {
         .pipe(qunitHarness(getClientTestSettings(), SAUCELABS_SETTINGS));
 });
 
-gulp.task('test-client-cloud', gulp.series('build', 'test-client-cloud-run'));
+gulp.task('test-client-cloud', gulp.series(BUILD_TASK, 'test-client-cloud-run'));
 
 gulp.step('http-playground-server', () => {
     return runPlayground({ needBeautifyScripts });
@@ -193,9 +197,9 @@ gulp.step('set-multi-browser-mode', done => {
     done();
 });
 
-gulp.task('multi-window-http-playground', gulp.series('build', 'set-multi-browser-mode', 'http-playground-server'));
+gulp.task('multi-window-http-playground', gulp.series(BUILD_TASK, 'set-multi-browser-mode', 'http-playground-server'));
 
-gulp.task('http-playground', gulp.series('build', 'http-playground-server'));
+gulp.task('http-playground', gulp.series(BUILD_TASK, 'http-playground-server'));
 
 gulp.step('https-playground-server', () => {
     const selfSignedCertificate = require('openssl-self-signed-certificate');
@@ -209,19 +213,19 @@ gulp.step('https-playground-server', () => {
     });
 });
 
-gulp.task('https-playground', gulp.series('build', 'https-playground-server'));
+gulp.task('https-playground', gulp.series(BUILD_TASK, 'https-playground-server'));
 
 gulp.step('cached-http-playground-server', () => {
     return runPlayground({ cache: true, needBeautifyScripts });
 });
 
-gulp.task('cached-http-playground', gulp.series('build', 'cached-http-playground-server'));
+gulp.task('cached-http-playground', gulp.series(BUILD_TASK, 'cached-http-playground-server'));
 
 gulp.step('test-functional-testcafe-run', gulpRunCommand([
     'chmod +x ./test/functional/run-testcafe-functional-tests.sh',
     './test/functional/run-testcafe-functional-tests.sh'
 ]));
 
-gulp.task('test-functional-testcafe', gulp.series('build', 'test-functional-testcafe-run'));
+gulp.task('test-functional-testcafe', gulp.series(BUILD_TASK, 'test-functional-testcafe-run'));
 
 gulp.task('travis', process.env.GULP_TASK ? gulp.series(process.env.GULP_TASK) : () => {});

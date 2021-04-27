@@ -74,7 +74,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
       - run: npm ci
-      - run: npx gulp test-server-run --steps-as-tasks
+      - run: npx gulp test-server --no-build
         timeout-minutes: 60
       - uses: actions/github-script@v3
         with:
