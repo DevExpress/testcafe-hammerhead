@@ -14,7 +14,6 @@ const util                  = require('gulp-util');
 const ll                    = require('gulp-ll-next');
 const gulpRunCommand        = require('gulp-run-command').default;
 const clone                 = require('gulp-clone');
-const { noop }              = require('lodash');
 const mergeStreams          = require('merge-stream');
 const getClientTestSettings = require('./gulp/utils/get-client-test-settings');
 const SAUCELABS_SETTINGS    = require('./gulp/saucelabs-settings');
@@ -143,7 +142,7 @@ gulp.task('build',
     )
 );
 
-const BUILD_TASK = noBuild ? noop : gulp.registry().get('build');
+const BUILD_TASK = noBuild ? () => Promise.resolve() : gulp.registry().get('build');
 
 // Test
 gulp.step('test-server-run', () => {
