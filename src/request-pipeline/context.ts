@@ -327,7 +327,9 @@ export default class RequestPipelineContext {
     }
 
     calculateIsDestResReadableEnded (): void {
-        if (!this.contentInfo.isNotModified && !this.contentInfo.isRedirect) {
+        if (!this.contentInfo.isNotModified &&
+            !this.contentInfo.isRedirect &&
+            !IncomingMessageLike.isIncomingMessageLike(this.destRes)) {
             this.destRes.once('end', () => {
                 this.isDestResReadableEnded = true;
             });
