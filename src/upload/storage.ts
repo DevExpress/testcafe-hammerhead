@@ -20,6 +20,20 @@ interface ResolvePathError {
     resolvedPaths: string[];
 }
 
+interface ResolvePathResult extends Partial<ResolvePathError> {
+    data?: string;
+    info?: {
+        [key: string]: unknown
+    };
+    resolvedPath?: string;
+}
+
+interface StoredFiles {
+    err?: string;
+    path: string;
+    file: string;
+}
+
 export default class UploadStorage {
     uploadRoots: string[];
 
@@ -67,7 +81,7 @@ export default class UploadStorage {
     }
 
     async store (fileNames: string[], data: string[]) {
-        const storedFiles    = [];
+        const storedFiles    = [] as StoredFiles[];
         const mainUploadRoot = this.uploadRoots[0];
         const err            = await UploadStorage.ensureUploadsRoot(mainUploadRoot);
 
@@ -94,13 +108,13 @@ export default class UploadStorage {
         return storedFiles;
     }
 
-    async _resolvePath (filePath: string, result: ResolvePathError[]): Promise<string | null> {
-        let resolvedPath = null;
+    async _resolvePath (filePath: string, result: Partial<ResolvePathError>[]): Promise<string | null> {
+        let resolvedPath = null as string | null;
 
         if (path.isAbsolute(filePath))
             resolvedPath = filePath;
         else {
-            const nonExistingPaths = [];
+            const nonExistingPaths = [] as string[];
 
             for (const uploadRoot of this.uploadRoots) {
                 resolvedPath = path.resolve(uploadRoot, filePath);
@@ -124,10 +138,10 @@ export default class UploadStorage {
     }
 
     async get (filePathList: string[]) {
-        const result = [];
+        const result = [] as ResolvePathResult[];
 
         for (const filePath of filePathList) {
-            const resolvedPath: string | null = await this._resolvePath(filePath, result);
+            const resolvedPath = await this._resolvePath(filePath, result) as string | null;
 
             if (resolvedPath === null)
                 continue;
