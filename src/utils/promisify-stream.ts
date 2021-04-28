@@ -9,9 +9,10 @@ export default function (s: Readable, contentLength?: string): Promise<Buffer> {
         let currentLength  = 0;
         const chunks       = [] as Buffer[];
         const finalLength  = typeof contentLength === 'string' ? parseInt(contentLength) : null;
-        const http2session = finalLength === null && ('session' in s) && (s as ClientHttp2Stream).session || null;
-        let timeout        = null;
+        const http2session = finalLength === null && ('session' in s) &&
+                             (s as ClientHttp2Stream).session || null;
         let isResolved     = false;
+        let timeout: NodeJS.Timeout;
 
         s.on('data', (chunk: Buffer) => {
             chunks.push(chunk);
