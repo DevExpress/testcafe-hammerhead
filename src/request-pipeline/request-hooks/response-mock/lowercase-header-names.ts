@@ -1,7 +1,6 @@
-export default function (headers?: Record<string, string | string[]>): Record<string, string | string[]> {
-    if (!headers)
-        return headers;
+import { IncomingHttpHeaders } from 'http';
 
+export default function (headers: IncomingHttpHeaders): Record<string, string | string[]> {
     const lowerCaseHeaders = {};
 
     Object.keys(headers).forEach(headerName => {
