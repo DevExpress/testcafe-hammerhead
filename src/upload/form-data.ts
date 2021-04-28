@@ -25,8 +25,8 @@ export default class FormData {
     }
 
     private _injectFileInfo (fileInfo: FileInputInfo): void {
-        const entries: FormDataEntry[]   = this._getEntriesByName(fileInfo.name);
-        let previousEntry: FormDataEntry = null;
+        const entries     = this._getEntriesByName(fileInfo.name);
+        let previousEntry = null as FormDataEntry | null;
 
         for (let idx = 0; idx < fileInfo.files.length; idx++) {
             let entry = entries[idx];
@@ -86,9 +86,9 @@ export default class FormData {
     }
 
     parseBody (body: Buffer): void {
-        let state                       = ParserState.inPreamble;
-        const lines                     = bufferUtils.createLineIterator(body);
-        let currentEntry: FormDataEntry = null;
+        let state        = ParserState.inPreamble;
+        const lines      = bufferUtils.createLineIterator(body);
+        let currentEntry = null as FormDataEntry | null;
 
         for (const line of lines) {
             if (this._isBoundary(line)) {
@@ -111,7 +111,7 @@ export default class FormData {
 
             else if (state === ParserState.inHeaders) {
                 if (line.length)
-                    currentEntry.setRawHeader(line.toString());
+                    currentEntry?.setRawHeader(line.toString());
                 else
                     state = ParserState.inBody;
             }
@@ -119,7 +119,7 @@ export default class FormData {
             else if (state === ParserState.inEpilogue)
                 bufferUtils.appendLine(this._epilogue, line);
 
-            else if (state === ParserState.inBody)
+            else if (state === ParserState.inBody && currentEntry)
                 bufferUtils.appendLine(currentEntry.body, line);
         }
     }
