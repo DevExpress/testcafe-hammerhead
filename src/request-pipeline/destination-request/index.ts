@@ -39,7 +39,8 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         super();
 
         this.protocolInterface = this.opts.isHttps ? https : http;
-        this.timeout           = this.opts.isAjax ? opts.requestTimeout.ajax : opts.requestTimeout.page;
+
+        this.timeout = this.opts.isAjax ? opts.requestTimeout.ajax : opts.requestTimeout.page;
 
         if (this.opts.isHttps)
             opts.ignoreSSLAuth();
@@ -195,7 +196,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     }
 
     _isTunnelingErr (err): boolean {
-        return this.opts.isHttps && this.opts.proxy && err.message && TUNNELING_SOCKET_ERR_RE.test(err.message);
+        return this.opts.isHttps && err.message && TUNNELING_SOCKET_ERR_RE.test(err.message);
     }
 
     _isSocketHangUpErr (err): boolean {
@@ -225,7 +226,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
             this._send();
         }
 
-        else if (this._isTunnelingErr(err)) {
+        else if (this.opts.proxy && this._isTunnelingErr(err)) {
             if (TUNNELING_AUTHORIZE_ERR_RE.test(err.message))
                 this._fatalError(MESSAGE.cantAuthorizeToProxy, this.opts.proxy.host);
             else
