@@ -75,7 +75,7 @@ interface TaskScriptTemplateOpts {
     isFirstPageLoad: boolean;
     referer: string | null;
     cookie: string | null;
-    iframeTaskScriptTemplate: string;
+    iframeTaskScriptTemplate: string | null;
     payloadScript: string;
     allowMultipleWindows: boolean;
     isRecordMode: boolean;
@@ -237,12 +237,12 @@ export default abstract class Session extends EventEmitter {
 
         const { url, bypassRules } = proxySettings;
         const parsedUrl            = parseUrl('http://' + url);
-        let settings               = null;
+        let settings               = null as ExternalProxySettings | null;
 
         if (parsedUrl && parsedUrl.host) {
             settings = {
                 host:     parsedUrl.host,
-                hostname: parsedUrl.hostname
+                hostname: parsedUrl.hostname || ''
             };
 
             if (bypassRules)
@@ -266,7 +266,9 @@ export default abstract class Session extends EventEmitter {
 
         this.cookies.setJar(this.pendingStateSnapshot.cookies);
 
-        ctx.restoringStorages     = this.pendingStateSnapshot.storages;
+        if (this.pendingStateSnapshot.storages)
+            ctx.restoringStorages     = this.pendingStateSnapshot.storages;
+
         this.pendingStateSnapshot = null;
     }
 
@@ -304,7 +306,7 @@ export default abstract class Session extends EventEmitter {
             return void 0;
         }));
 
-        return matchedRules.filter(rule => !!rule);
+        return matchedRules.filter(rule => !!rule) as RequestFilterRule[];
     }
 
     async _patchOnConfigureResponseEvent (eventName: RequestEventNames, event: RequestEvent | ResponseEvent | ConfigureResponseEvent): Promise<void> {
