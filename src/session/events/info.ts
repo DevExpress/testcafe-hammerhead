@@ -28,7 +28,7 @@ export class ResponseInfo {
     readonly requestId: string;
     readonly statusCode: number;
     readonly sessionId: string;
-    readonly headers: { [name: string]: string|string[] };
+    readonly headers: OutgoingHttpHeaders;
     readonly body: Buffer;
     readonly isSameOriginPolicyFailed: boolean;
 
@@ -36,8 +36,10 @@ export class ResponseInfo {
         this.requestId  = ctx.requestId;
         this.headers    = ctx.destRes.headers;
         this.body       = ctx.nonProcessedDestResBody;
-        this.statusCode = ctx.destRes.statusCode;
         this.sessionId  = ctx.session.id;
+
+        if (ctx.destRes.statusCode)
+            this.statusCode = ctx.destRes.statusCode;
 
         this.isSameOriginPolicyFailed = ctx.isSameOriginPolicyFailed;
     }
@@ -47,7 +49,7 @@ export class PreparedResponseInfo {
     readonly requestId: string;
     readonly statusCode: number;
     readonly sessionId: string;
-    readonly headers?: { [name: string]: string|string[] };
+    readonly headers?: OutgoingHttpHeaders;
     readonly body?: Buffer;
     readonly isSameOriginPolicyFailed: boolean;
 
