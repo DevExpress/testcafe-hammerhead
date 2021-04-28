@@ -40,7 +40,7 @@ This opens a playground page where you can specify a webpage to proxy. Enter the
 
 Read our [Contributing Guide](https://github.com/DevExpress/testcafe-hammerhead/blob/master/CONTRIBUTING.md) to learn how to contribute to the project.
 
-[![Build Status](https://travis-ci.org/DevExpress/testcafe-hammerhead.svg)](https://travis-ci.org/DevExpress/testcafe-hammerhead)
+[![Build Status](https://img.shields.io/github/checks-status/DevExpress/testcafe-hammerhead/master?label=Tests)](https://github.com/DevExpress/testcafe-hammerhead/commits/master)
 
 [![Sauce Test Status](https://saucelabs.com/browser-matrix/testcafebot.svg)](https://saucelabs.com/u/testcafebot)
 
