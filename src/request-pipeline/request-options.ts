@@ -49,7 +49,7 @@ export default class RequestOptions {
         this.port           = ctx.dest.port;
         this.path           = ctx.dest.partAfterHost;
         this.auth           = ctx.dest.auth;
-        this.method         = ctx.req.method;
+        this.method         = ctx.req.method || '';
         this.credentials    = ctx.session.getAuthCredentials();
         this.body           = ctx.reqBody;
         this.isAjax         = ctx.isAjax;
