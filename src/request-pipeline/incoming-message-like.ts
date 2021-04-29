@@ -2,7 +2,7 @@ import { IncomingHttpHeaders, IncomingMessage } from 'http';
 import { Readable } from 'stream';
 
 export interface IncomingMessageLikeInitOptions {
-    headers: { [name: string]: string|string[] };
+    headers: IncomingHttpHeaders;
     trailers: { [key: string]: string | undefined };
     statusCode: number;
     body: object|string|Buffer|null;
@@ -11,7 +11,7 @@ export interface IncomingMessageLikeInitOptions {
 const DEFAULT_STATUS_CODE = 200;
 
 export default class IncomingMessageLike extends Readable {
-    private _body: Buffer;
+    private _body: Buffer | null;
     headers: IncomingHttpHeaders;
     trailers: { [key: string]: string | undefined };
     statusCode: number;
@@ -57,12 +57,12 @@ export default class IncomingMessageLike extends Readable {
         this._body = value;
     }
 
-    getBody (): Buffer {
+    getBody (): Buffer | null {
         return this._body;
     }
 
     static createFrom (res: IncomingMessage): IncomingMessageLike {
-        const { headers, trailers, statusCode } = res;
+        const { headers = {}, trailers, statusCode } = res;
 
         return new IncomingMessageLike({
             headers,
