@@ -51,6 +51,11 @@ describe('Request Hooks', () => {
             res.end(fs.readFileSync('test/server/data/page/src.html').toString());
         });
 
+        app.get('/page-with-img', (req, res) => {
+            res.setHeader('content-type', 'text/html');
+            res.end(fs.readFileSync('test/server/data/page-with-img/src.html').toString());
+        });
+
         app.get('/script', (req, res) => {
             res.setHeader('content-type', 'application/javascript; charset=utf-8');
             res.set('sourcemap', '/src.js.map');
@@ -714,6 +719,40 @@ describe('Request Hooks', () => {
                 const expected = fs.readFileSync('test/server/data/script/expected.js').toString();
 
                 expect(normalizeNewLine(body)).eql(normalizeNewLine(expected));
+
+                session.removeRequestEventListeners(rule);
+            });
+    });
+
+    it('TODO: naming', () => {
+        const rule = new RequestFilterRule('http://127.0.0.1:2000/page');
+
+        session.addRequestEventListeners(rule, {
+            onRequest: e => {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        e.requestOptions.path = '/page-with-img';
+
+                        resolve();
+                    }, 100);
+                });
+            }
+        });
+
+        session.id = 'sessionId';
+
+        const options = {
+            url:     proxy.openSession('http://127.0.0.1:2000/page', session),
+            headers: {
+                accept: PAGE_ACCEPT_HEADER
+            }
+        };
+
+        return request(options)
+            .then(body => {
+                const expected = fs.readFileSync('test/server/data/page-with-img/expected.html').toString();
+
+                compareCode(body, expected);
 
                 session.removeRequestEventListeners(rule);
             });
