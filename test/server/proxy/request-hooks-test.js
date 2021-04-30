@@ -724,25 +724,18 @@ describe('Request Hooks', () => {
             });
     });
 
-    it('TODO: naming', () => {
-        const rule = new RequestFilterRule('http://127.0.0.1:2000/page');
+    it('should proxy images if there are registered request filter rules', () => {
+        const url = 'http://127.0.0.1:2000/page-with-img';
+        const rule = new RequestFilterRule(url);
 
         session.addRequestEventListeners(rule, {
-            onRequest: e => {
-                return new Promise(resolve => {
-                    setTimeout(() => {
-                        e.requestOptions.path = '/page-with-img';
-
-                        resolve();
-                    }, 100);
-                });
-            }
+            onRequest: noop
         });
 
         session.id = 'sessionId';
 
         const options = {
-            url:     proxy.openSession('http://127.0.0.1:2000/page', session),
+            url:     proxy.openSession(url, session),
             headers: {
                 accept: PAGE_ACCEPT_HEADER
             }

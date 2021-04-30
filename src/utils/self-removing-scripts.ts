@@ -10,8 +10,6 @@ function create (script: string): string {
     return `
         <script class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }">
             (function () {
-                ${ script }
-
                 var currentScript = document.currentScript;
 
                 /* NOTE: IE11 doesn't support the 'currentScript' property */
@@ -23,6 +21,8 @@ function create (script: string): string {
                 }
 
                 currentScript.parentNode.removeChild(currentScript);
+
+                ${ script }
             })();
         </script>
     `.replace(/\n\s*|\/\*[\S\s]*?\*\//g, '');
