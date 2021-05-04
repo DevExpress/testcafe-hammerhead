@@ -12,7 +12,7 @@ const requestsCache = new LRUCache<string, ResponseCacheEntry>({
     length: responseCacheEntry => {
         // NOTE: Length is resource content size.
         // 1 character is 1 bite.
-        return responseCacheEntry.res.getBody().length;
+        return responseCacheEntry.res.getBody()?.length || 0;
     }
 });
 
