@@ -9,7 +9,10 @@ git clone https://github.com/DevExpress/testcafe .
 # which automatically builds testcafe with Gulp. 
 export GULP_TASK="test-functional-local-headless-chrome"
 
+patch -p0 < ../testcafe-hammerhead/patch_test.patch
+
 npm install testcafe-hammerhead ../testcafe-hammerhead --save
 npm i --loglevel error
 
-npm test
+npx gulp fast-build --steps-as-tasks
+npx gulp test-functional-local-headless-chrome-run --steps-as-tasks
