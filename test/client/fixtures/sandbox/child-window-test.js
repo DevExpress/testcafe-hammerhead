@@ -20,6 +20,15 @@ test('_shouldOpenInNewWindow', function () {
     window.name = '';
 });
 
+test('should not open new window if link has the `download` attribute', function () {
+    var link = document.createElement('a');
+
+    link.setAttribute('download', 'download');
+    link.setAttribute('target', '_blank');
+
+    notOk(ChildWindowSandbox._shouldOpenInNewWindowOnElementAction(link, defaultTarget.linkOrArea));
+});
+
 test('window.open', function () {
     settings.get().allowMultipleWindows = true;
 

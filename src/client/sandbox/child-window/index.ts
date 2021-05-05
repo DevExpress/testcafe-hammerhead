@@ -28,6 +28,11 @@ export default class ChildWindowSandbox extends SandboxBase {
     }
 
     private static _shouldOpenInNewWindowOnElementAction (el: HTMLLinkElement | HTMLAreaElement | HTMLFormElement, defaultTarget: string): boolean {
+        const hasDownloadAttribute = nativeMethods.getAttribute.call(el, 'download');
+
+        if (hasDownloadAttribute)
+            return false;
+
         const target = this._calculateTargetForElement(el);
 
         return this._shouldOpenInNewWindow(target, defaultTarget);
