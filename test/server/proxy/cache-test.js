@@ -2,6 +2,7 @@ const request       = require('request-promise-native');
 const fs            = require('fs');
 const { expect }    = require('chai');
 const requestsCache = require('../../../lib/request-pipeline/cache');
+const EventEmitter  = require('events');
 
 const {
     PAGE_ACCEPT_HEADER,
@@ -16,12 +17,14 @@ const {
     getBasicProxyUrl
 } = require('../common/utils');
 
-const SESSION_COUNT = 3;
+const emitter       = new EventEmitter();
+const SESSION_COUNT = emitter.getMaxListeners() + 3;
 
 describe('Cache', () => {
     let destServer       = null;
     let proxy            = null;
     let serverRouteCalls = 0;
+    const warnings       = [];
 
     function readFileContentAsString (path) {
         return fs.readFileSync(path).toString();
@@ -67,12 +70,22 @@ describe('Cache', () => {
         });
     }
 
+    function collectWarnings (warning) {
+        warnings.push(warning);
+    }
+
     before(() => {
         setupSameDomainServer();
+
+        process.on('warning', collectWarnings);
     });
 
     after(() => {
         destServer.close();
+
+        process.off('warning', collectWarnings);
+
+        expect(warnings.length).eql(0);
     });
 
     beforeEach(() => {
