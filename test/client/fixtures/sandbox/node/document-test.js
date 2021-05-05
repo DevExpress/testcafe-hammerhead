@@ -471,18 +471,6 @@ test('document.activeElement when it equals null (GH-1226)', function () {
     document.body.removeChild(parentDiv);
 });
 
-test('document.scripts', function () {
-    var scriptsLength = document.scripts.length;
-    var scriptEl      = document.createElement('script');
-
-    shadowUI.addClass(scriptEl, 'script');
-    document.body.appendChild(scriptEl);
-
-    strictEqual(scriptsLength, document.scripts.length);
-
-    document.body.removeChild(scriptEl);
-});
-
 if (nativeMethods.nodeBaseURIGetter) {
     test('document.baseURI (GH-920)', function () {
         var savedNodeBaseURIGetter = nativeMethods.nodeBaseURIGetter;
@@ -928,6 +916,20 @@ test('an iframe should not contain self-removing scripts after document.close (G
                 '.' + SHADOW_UI_CLASSNAME.selfRemovingScript);
 
             strictEqual(selfRemovingScripts.length, 0);
+        });
+});
+
+test('an iframe should not contain injected scripts after loading (GH-2622)', function () {
+    // NOTE: here we use an iframe with an empty sandbox attribute because we lift some restrictions
+    // (allow-same-origin allow-scripts) in our internal iframe processing logic
+    return createTestIframe({
+        src:     getSameDomainPageUrl('../../../data/iframe/simple-iframe.html'),
+        sandbox: ''
+    })
+        .then(function (iframe) {
+            var iframeInjectedScripts = nativeMethods.querySelectorAll.call(iframe.contentDocument, '.' + SHADOW_UI_CLASSNAME.script);
+
+            strictEqual(iframeInjectedScripts.length, 0);
         });
 });
 

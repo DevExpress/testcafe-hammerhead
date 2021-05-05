@@ -25,15 +25,7 @@
     var script = document.currentScript;
 
     if (!currentScript) {
-        var scripts;
-
-        try {
-            var hammerhead = window["%hammerhead%"] || parent["%hammerhead%"];
-
-            scripts = hammerhead ? hammerhead.nativeMethods.documentScriptsGetter.call(document) : document.scripts;
-        } catch (e) {
-            scripts = document.scripts;
-        }
+        var scripts = document.scripts;
 
         currentScript = scripts[scripts.length - 1];
     }
