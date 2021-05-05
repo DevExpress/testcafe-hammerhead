@@ -15,7 +15,7 @@ const STYLESHEET_PROCESSING_END_COMMENT   = '/*hammerhead|stylesheet|end*/';
 const HOVER_PSEUDO_CLASS_RE               = /:\s*hover(\W)/gi;
 const PSEUDO_CLASS_RE                     = new RegExp(`\\[${ INTERNAL_ATTRS.hoverPseudoClass }\\](\\W)`, 'ig');
 const IS_STYLE_SHEET_PROCESSED_RE         = new RegExp(`\\s*${ reEscape(STYLESHEET_PROCESSING_START_COMMENT) }`, 'gi');
-const STYLESHEET_PROCESSING_COMMENTS_RE   = new RegExp(`\\s*${ reEscape(STYLESHEET_PROCESSING_START_COMMENT) }\n?|` +
+const STYLESHEET_PROCESSING_COMMENTS_RE   = new RegExp(`${ reEscape(STYLESHEET_PROCESSING_START_COMMENT) }\n?|` +
                                                        `\n?${ reEscape(STYLESHEET_PROCESSING_END_COMMENT) }\\s*`, 'gi');
 
 class StyleProcessor {
@@ -46,14 +46,53 @@ class StyleProcessor {
             return css;
 
         css = css
-            .replace(PSEUDO_CLASS_RE, ':hover$1')
-            .replace(STYLESHEET_PROCESSING_COMMENTS_RE, '');
+            .replace(PSEUDO_CLASS_RE, ':hover$1');
+
+        css = this._removeStylesheetProcessingComments(css);
 
         return this._replaceStylsheetUrls(css, (url: string) => {
             const parsedProxyUrl = parseProxyUrl(url);
 
             return parsedProxyUrl ? parsedProxyUrl.destUrl : url;
         });
+    }
+
+    _removeStylesheetProcessingComments (css: string): string {
+        let regexpRes = [];
+        const matches = [];
+
+        const re = new RegExp(STYLESHEET_PROCESSING_COMMENTS_RE);
+
+        while (regexpRes = re.exec(css))
+            matches.push(regexpRes);
+
+        let indexOffset = 0;
+
+        for (let i = 0; i < matches.length; i++) {
+            let whitespaceCount = 0;
+
+            const index = matches[i].index - indexOffset;
+
+            if (matches[i][0].indexOf(STYLESHEET_PROCESSING_START_COMMENT) === 0) {
+                let leftIndexLimit = 0;
+
+                if (matches[i - 1])
+                    leftIndexLimit = matches[i - 1].index + matches[i - 1][0].length - indexOffset;
+
+                for (let j = index - 1; j > leftIndexLimit - 1; j--) {
+                    if (!(/\s/.test(css[j])))
+                        break;
+
+                    whitespaceCount++;
+                }
+            }
+
+            css = css.substring(0, index - whitespaceCount) + css.substring(index + matches[i][0].length);
+
+            indexOffset += whitespaceCount + matches[i][0].length;
+        }
+
+        return css;
     }
 
     _replaceStylsheetUrls (css: string, processor: Function): string {

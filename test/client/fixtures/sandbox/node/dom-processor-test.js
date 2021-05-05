@@ -490,6 +490,77 @@ test('clean up stylesheet', function () {
     check('@import \'\'', '@import \'\'');
 });
 
+test('style processor clean up edge cases', function () {
+    var STYLESHEET_PROCESSING_START_COMMENT = '/*hammerhead|stylesheet|start*/';
+    var STYLESHEET_PROCESSING_END_COMMENT   = '/*hammerhead|stylesheet|end*/';
+
+    var css1 = 'START';
+    var css2 = 'START';
+    var css3 = 'START';
+
+    for (var i = 0; i < 5; i++) {
+        css1 += '     ';
+        css1 += STYLESHEET_PROCESSING_START_COMMENT;
+        css1 += '   *   ';
+        css1 += STYLESHEET_PROCESSING_END_COMMENT;
+        css1 += '   +   ';
+
+        css2 += '     ';
+        css2 += STYLESHEET_PROCESSING_START_COMMENT;
+        css2 += '      ';
+        css2 += STYLESHEET_PROCESSING_END_COMMENT;
+        css2 += '      ';
+
+        css3 += '     ';
+        css3 += STYLESHEET_PROCESSING_START_COMMENT;
+        css3 += '  1  2  ';
+        css3 += STYLESHEET_PROCESSING_END_COMMENT;
+        css3 += ' 3   4  ';
+    }
+
+    css1 += 'END';
+    css2 += 'END';
+    css3 += 'END';
+
+    css1 = styleProcessor.cleanUp(css1, urlUtils.parseProxyUrl);
+    css2 = styleProcessor.cleanUp(css2, urlUtils.parseProxyUrl);
+    css3 = styleProcessor.cleanUp(css3, urlUtils.parseProxyUrl);
+
+    strictEqual(css1, 'START   *   +   *   +   *   +   *   +   *   +   END');
+    strictEqual(css2, 'START                              END');
+    strictEqual(css3, 'START  1  2  3   4  1  2  3   4  1  2  3   4  1  2  3   4  1  2  3   4  END');
+});
+
+test('style processor clean up performance', function () {
+    var STYLESHEET_PROCESSING_START_COMMENT = '/*hammerhead|stylesheet|start*/';
+    var STYLESHEET_PROCESSING_END_COMMENT   = '/*hammerhead|stylesheet|end*/';
+
+    var css = 'START';
+
+    for (var i = 0; i < 10000; i++) {
+        for (var j = 0; j < 500; j++)
+            css += ' ';
+
+        css += '<td data-cell-id="168_216§40_279"></td>';
+
+        for (var j = 0; j < 500; j++)
+            css += ' ';
+    }
+
+    css += STYLESHEET_PROCESSING_START_COMMENT;
+    css += '\n \n';
+    css += STYLESHEET_PROCESSING_END_COMMENT;
+    css += 'END';
+
+    var start = Date.now();
+
+    styleProcessor.cleanUp(css, urlUtils.parseProxyUrl);
+
+    var end = Date.now();
+
+    ok(end - start < 5000);
+});
+
 test('special pages (GH-339)', function () {
     var anchor = document.createElement('a');
     var image  = document.createElement('img');
