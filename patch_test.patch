@@ -8,7 +8,7 @@
 +    it.only('Should raise multiple warnings when awaiting multiple selector properties in one assertion', async function () {
          await runTests('./testcafe-fixtures/assertions-test.js', 'Multiple awaited selector properties in one assertion', { only: 'chrome' });
  
-+        console.log(getSnapshotWarnings());
++        console.log(testReport.warnings);
 +
          expect(getSnapshotWarnings().length).to.eql(2);
          expect(getSnapshotWarnings()[0]).contains("> 259 |    await t.expect(await selector.innerText + await selector.innerText).eql('');");
