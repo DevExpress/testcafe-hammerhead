@@ -16,6 +16,7 @@ npm i --loglevel error
 
 npx gulp fast-build --steps-as-tasks
 
+pwd
 cp ../testcafe-hammerhead/test_with_warnings.js test_with_warnings.js
 node bin/testcafe chrome:headless test_with_warnings.js
 
