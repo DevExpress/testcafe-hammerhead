@@ -58,41 +58,25 @@ class StyleProcessor {
     }
 
     _removeStylesheetProcessingComments (css: string): string {
-        let regexpRes = [];
-        const matches = [];
+        const parts = css.split(STYLESHEET_PROCESSING_COMMENTS_RE);
 
-        const re = new RegExp(STYLESHEET_PROCESSING_COMMENTS_RE);
+        for (let i = 0; i < parts.length; i += 2) {
+            let whiteSpaceCount = 0;
 
-        while (regexpRes = re.exec(css))
-            matches.push(regexpRes);
+            // NOTE: search for whitespaces from the end of the string
+            // we do not use /\s*$/ regex intentionally to improve performance
+            for (let j = parts[i].length - 1; j >= 0; j--) {
+                if (!(/\s/.test(parts[i][j])))
+                    break;
 
-        let indexOffset = 0;
-
-        for (let i = 0; i < matches.length; i++) {
-            let whitespaceCount = 0;
-
-            const index = matches[i].index - indexOffset;
-
-            if (matches[i][0].indexOf(STYLESHEET_PROCESSING_START_COMMENT) === 0) {
-                let leftIndexLimit = 0;
-
-                if (matches[i - 1])
-                    leftIndexLimit = matches[i - 1].index + matches[i - 1][0].length - indexOffset;
-
-                for (let j = index - 1; j > leftIndexLimit - 1; j--) {
-                    if (!(/\s/.test(css[j])))
-                        break;
-
-                    whitespaceCount++;
-                }
+                whiteSpaceCount++;
             }
 
-            css = css.substring(0, index - whitespaceCount) + css.substring(index + matches[i][0].length);
-
-            indexOffset += whitespaceCount + matches[i][0].length;
+            parts[i] = parts[i].substring(0, parts[i].length - whiteSpaceCount);
         }
 
-        return css;
+
+        return parts.join('');
     }
 
     _replaceStylsheetUrls (css: string, processor: Function): string {
