@@ -58,7 +58,11 @@ class StyleProcessor {
     }
 
     _removeStylesheetProcessingComments (css: string): string {
-        const parts = css.split(STYLESHEET_PROCESSING_COMMENTS_RE);
+        const parts                = css.split(STYLESHEET_PROCESSING_COMMENTS_RE);
+        const stylesheepPartsFound = parts.length >= 3;
+
+        if (!stylesheepPartsFound)
+            return css;
 
         for (let i = 0; i < parts.length; i += 2) {
             let whiteSpaceCount = 0;
