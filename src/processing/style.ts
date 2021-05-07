@@ -15,7 +15,7 @@ const STYLESHEET_PROCESSING_END_COMMENT   = '/*hammerhead|stylesheet|end*/';
 const HOVER_PSEUDO_CLASS_RE               = /:\s*hover(\W)/gi;
 const PSEUDO_CLASS_RE                     = new RegExp(`\\[${ INTERNAL_ATTRS.hoverPseudoClass }\\](\\W)`, 'ig');
 const IS_STYLE_SHEET_PROCESSED_RE         = new RegExp(`\\s*${ reEscape(STYLESHEET_PROCESSING_START_COMMENT) }`, 'gi');
-const STYLESHEET_PROCESSING_COMMENTS_RE   = new RegExp(`\\s*${ reEscape(STYLESHEET_PROCESSING_START_COMMENT) }\n?|` +
+const STYLESHEET_PROCESSING_COMMENTS_RE   = new RegExp(`${ reEscape(STYLESHEET_PROCESSING_START_COMMENT) }\n?|` +
                                                        `\n?${ reEscape(STYLESHEET_PROCESSING_END_COMMENT) }\\s*`, 'gi');
 
 class StyleProcessor {
@@ -46,14 +46,41 @@ class StyleProcessor {
             return css;
 
         css = css
-            .replace(PSEUDO_CLASS_RE, ':hover$1')
-            .replace(STYLESHEET_PROCESSING_COMMENTS_RE, '');
+            .replace(PSEUDO_CLASS_RE, ':hover$1');
+
+        css = this._removeStylesheetProcessingComments(css);
 
         return this._replaceStylsheetUrls(css, (url: string) => {
             const parsedProxyUrl = parseProxyUrl(url);
 
             return parsedProxyUrl ? parsedProxyUrl.destUrl : url;
         });
+    }
+
+    _removeStylesheetProcessingComments (css: string): string {
+        const parts                = css.split(STYLESHEET_PROCESSING_COMMENTS_RE);
+        const stylesheepPartsFound = parts.length >= 3;
+
+        if (!stylesheepPartsFound)
+            return css;
+
+        for (let i = 0; i < parts.length; i += 2) {
+            let whiteSpaceCount = 0;
+
+            // NOTE: search for whitespaces from the end of the string
+            // we do not use /\s*$/ regex intentionally to improve performance
+            for (let j = parts[i].length - 1; j >= 0; j--) {
+                if (!(/\s/.test(parts[i][j])))
+                    break;
+
+                whiteSpaceCount++;
+            }
+
+            parts[i] = parts[i].substring(0, parts[i].length - whiteSpaceCount);
+        }
+
+
+        return parts.join('');
     }
 
     _replaceStylsheetUrls (css: string, processor: Function): string {
