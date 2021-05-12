@@ -617,7 +617,7 @@ export function isWindow (instance: any): instance is Window {
     }
 
     try {
-        nativeMethods.winLocationGetter.call(instance);
+        nativeMethods.winLocalStorageGetter.call(instance);
     }
     catch {
         return false;

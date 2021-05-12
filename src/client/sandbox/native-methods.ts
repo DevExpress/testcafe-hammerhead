@@ -243,7 +243,6 @@ class NativeMethods {
     winOnErrorSetter: any;
     winOnUnhandledRejectionSetter: any;
     winOnHashChangeSetter: any;
-    winLocationGetter: (this: Window) => Location;
     webSocketUrlGetter: any;
     elementClassListPropOwnerName: string;
     elementClassListGetter: any;
@@ -1092,10 +1091,6 @@ class NativeMethods {
 
         // NOTE: this section relates to getting properties from DOM classes
         if (!isInWorker) {
-            const locationOwner = win.hasOwnProperty('location') ? win : winProto;
-
-            this.winLocationGetter = win.Object.getOwnPropertyDescriptor(locationOwner, 'location').get;
-
             // DOMTokenList
             this.tokenListAdd      = win.DOMTokenList.prototype.add;
             this.tokenListRemove   = win.DOMTokenList.prototype.remove;
