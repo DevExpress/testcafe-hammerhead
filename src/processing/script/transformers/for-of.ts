@@ -25,9 +25,10 @@ import {
 import replaceNode from './replace-node';
 import TempVariables from './temp-variables';
 
-function findDeclarator (node: BlockStatement, predicate: Function): Node {
+function findDeclarators (node: BlockStatement, predicate: Function): Node[] {
     const declarators = [];
     const identifiers = [];
+    const result      = [];
 
     for (const statement of node.body) {
         if (statement.type === Syntax.VariableDeclaration)
@@ -50,15 +51,15 @@ function findDeclarator (node: BlockStatement, predicate: Function): Node {
 
     for (const identifier of identifiers) {
         if (predicate(identifier))
-            return identifier;
+            result.push(identifier);
     }
 
-    return null;
+    return result;
 }
 
 function replaceDuplicateDeclarators (forOfNode: ForOfStatement) {
-    const forOfLeft   = forOfNode.left as VariableDeclaration;
-    let nodeToReplace = null;
+    const forOfLeft      = forOfNode.left as VariableDeclaration;
+    const nodesToReplace = [];
 
     if (!forOfLeft.declarations.length || forOfLeft.declarations[0].id.type !== Syntax.ArrayPattern)
         return;
@@ -68,13 +69,13 @@ function replaceDuplicateDeclarators (forOfNode: ForOfStatement) {
 
     const leftIdentifiers = Object.values(forOfLeft.declarations[0].id.elements || []) as Array<Identifier>;
 
-    const duplicateDeclator = findDeclarator(forOfNode.body as BlockStatement, node => {
+    const duplicateDeclarators = findDeclarators(forOfNode.body as BlockStatement, node => {
         if (node.type !== Syntax.Identifier)
             return false;
 
         for (const identifier of leftIdentifiers) {
             if (identifier.name === node.name) {
-                nodeToReplace = identifier;
+                nodesToReplace.push(identifier);
 
                 return true;
             }
@@ -83,10 +84,10 @@ function replaceDuplicateDeclarators (forOfNode: ForOfStatement) {
         return false;
     });
 
-    if (duplicateDeclator) {
+    for (let i = 0; i < duplicateDeclarators.length; i++) {
         const destIdentifier = createIdentifier(TempVariables.generateName());
 
-        replaceNode(nodeToReplace, destIdentifier, forOfLeft.declarations[0].id, 'elements');
+        replaceNode(nodesToReplace[i], destIdentifier, forOfLeft.declarations[0].id, 'elements');
     }
 }
 
