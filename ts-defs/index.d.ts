@@ -62,6 +62,22 @@ declare module 'testcafe-hammerhead' {
         [RequestEventNames.onResponse]: Function;
     }
 
+    interface UserScript {
+        url: string;
+        page: RequestFilterRule;
+    }
+
+    interface InjectableResources {
+        scripts: string[];
+        styles: string[];
+        userScripts: UserScript[];
+    }
+
+    interface StoragesSnapshot {
+        localStorage: string;
+        sessionStorage: string;
+    }
+
     /** Initialization options for the IncomingMessageLike object **/
     export interface IncomingMessageLikeInitOptions {
         headers: { [name: string]: string|string[] };
@@ -77,6 +93,12 @@ declare module 'testcafe-hammerhead' {
 
     /** The Session class is used to create a web-proxy session **/
     export abstract class Session {
+        /** Unique identifier of the Session instance **/
+        id: string;
+
+        /** Session's injectable resources **/
+        injectable: InjectableResources;
+
         /** Creates a session instance **/
         protected constructor (uploadRoots: string[], options: Partial<SessionOptions>)
 
@@ -95,6 +117,15 @@ declare module 'testcafe-hammerhead' {
 
         /** Removes request event listeners **/
         removeRequestEventListeners (rule: RequestFilterRule): void;
+
+        /** Remove request event listeners for all request filter rules **/
+        clearRequestEventListeners(): void;
+
+        /** Apply the cookie, sessionStorage and localStorage snapshot to the session **/
+        useStateSnapshot (snapshot: StateSnapshot): void;
+
+        /** Get the cookie, sessionStorage and localStorage snapshot of current session **/
+        getStateSnapshot (): StateSnapshot;
 
         /** Set RequestMock on the specified ResponseEvent event **/
         setMock (responseEventId: string, mock: ResponseMock): Promise<void>;
@@ -164,6 +195,12 @@ declare module 'testcafe-hammerhead' {
     export class StateSnapshot {
         /** Creates a empty page state snapshot **/
         static empty (): StateSnapshot;
+
+        /** The cookie part of snapshot **/
+        cookies: string;
+
+        /** The storages part of snapshot **/
+        storages: StoragesSnapshot;
     }
 
     /** The ConfigureResponseEventOptions contains options to set up ResponseEvent **/
@@ -275,6 +312,15 @@ declare module 'testcafe-hammerhead' {
 
         /** The body of the response mock **/
         body:string | Function;
+    }
+
+    /** RequestHookMethodError raises on error occurred during request hook method execution **/
+    export class RequestHookMethodError {
+        /** The origin error **/
+        error: Error;
+
+        /** The executed request hook method name **/
+        methodName: string;
     }
 
     /** Generates an URL friendly string identifier **/
