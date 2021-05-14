@@ -233,6 +233,8 @@ test('isWindow', function () {
     ]));
 
     window.toString = storedToString;
+
+    ok(!domUtils.isWindow(Object.create(Window.prototype)));
 });
 
 test('isWindow for a cross-domain window', function () {

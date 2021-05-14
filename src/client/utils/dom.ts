@@ -595,9 +595,6 @@ export function isShadowUIElement (element: any): boolean {
 }
 
 export function isWindow (instance: any): instance is Window {
-    if (instance instanceof nativeMethods.windowClass)
-        return true;
-
     try {
         // NOTE: The instanceToString call result has a strange values for the MessageEvent.target property:
         // * [object DispHTMLWindow2] for IE11
@@ -605,7 +602,8 @@ export function isWindow (instance: any): instance is Window {
         if ((isIE || isMSEdge) && instance && instance === instance.window)
             instance = instance.window;
 
-        return instance && instance.toString && NATIVE_WINDOW_STR === instanceToString(instance);
+        if (!instance || !instance.toString || NATIVE_WINDOW_STR !== instanceToString(instance))
+            return false;
     }
     catch (e) {
         try {
@@ -613,10 +611,19 @@ export function isWindow (instance: any): instance is Window {
             // (not a document or location).
             return !!instance.top;
         }
-        catch (x) {
+        catch {
             return false;
         }
     }
+
+    try {
+        nativeMethods.winLocalStorageGetter.call(instance);
+    }
+    catch {
+        return false;
+    }
+
+    return true;
 }
 
 export function isDocument (instance: any): instance is Document {
