@@ -1191,6 +1191,12 @@ describe('Script processor', () => {
 
                     expected: 'for (let _hh$temp0 of q) { let _hh$temp1 = _hh$temp0[0]; let _hh$temp2 = q, a =_hh$temp2.a; }'
                 },
+                // NOTE: we should replace only if body is `BlockStatement`
+                {
+                    src: 'for (let [a] of q) if (true) { let a = 1; }',
+
+                    expected: 'for (let _hh$temp0 of q) { let a = _hh$temp0[0]; if (true) { let a = 1; }}'
+                },
                 // NOTE: it's ok that we do not replace the `a` variable inside the `console.log` method`
                 // since we expect to get the `Cannot access 'a' before initialization` error message
                 {

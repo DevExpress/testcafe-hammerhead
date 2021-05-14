@@ -63,6 +63,9 @@ function replaceDuplicateDeclarators (forOfNode: ForOfStatement) {
     if (!forOfLeft.declarations.length || forOfLeft.declarations[0].id.type !== Syntax.ArrayPattern)
         return;
 
+    if (forOfNode.body.type !== Syntax.BlockStatement)
+        return;
+
     const leftIdentifiers = Object.values(forOfLeft.declarations[0].id.elements || []) as Array<Identifier>;
 
     const duplicateDeclator = findDeclarator(forOfNode.body as BlockStatement, node => {
