@@ -1191,6 +1191,11 @@ describe('Script processor', () => {
 
                     expected: 'for (let _hh$temp0 of q) { let _hh$temp1 = _hh$temp0[0]; let _hh$temp2 = q, a =_hh$temp2.a; }'
                 },
+                {
+                    src: 'for (let [a] of q) { let { t: a } = q; }',
+
+                    expected: 'for (let _hh$temp0 of q) { let _hh$temp1 = _hh$temp0[0]; let _hh$temp2 = q, a = _hh$temp2.t; }'
+                },
                 // NOTE: we should replace only if body is `BlockStatement`
                 {
                     src: 'for (let [a] of q) if (true) { let a = 1; }',

@@ -44,7 +44,7 @@ function findDeclarator (node: BlockStatement, predicate: Function): Node {
 
             if (declarator.id.type === Syntax.ObjectPattern)
                 for (const prop of declarator.id.properties)
-                    identifiers.push(prop.key);
+                    identifiers.push(prop.value);
         }
     }
 
