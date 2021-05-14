@@ -3,11 +3,11 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 import {
+    ArrayPattern,
     BlockStatement,
     Declaration,
     ForOfStatement,
     Identifier,
-    Node,
     Pattern,
     Statement,
     VariableDeclaration
@@ -25,10 +25,9 @@ import {
 import replaceNode from './replace-node';
 import TempVariables from './temp-variables';
 
-function findDeclarators (node: BlockStatement, predicate: Function): Node[] {
+function walkDeclarators (node: BlockStatement, action: Function): void {
     const declarators = [];
     const identifiers = [];
-    const result      = [];
 
     for (const statement of node.body) {
         if (statement.type === Syntax.VariableDeclaration)
@@ -50,44 +49,34 @@ function findDeclarators (node: BlockStatement, predicate: Function): Node[] {
     }
 
     for (const identifier of identifiers) {
-        if (predicate(identifier))
-            result.push(identifier);
+        if (identifier.type === Syntax.Identifier)
+            action(identifier);
     }
-
-    return result;
 }
 
 function replaceDuplicateDeclarators (forOfNode: ForOfStatement) {
     const forOfLeft      = forOfNode.left as VariableDeclaration;
     const nodesToReplace = [];
 
-    if (!forOfLeft.declarations.length || forOfLeft.declarations[0].id.type !== Syntax.ArrayPattern)
+    const isArrayPatternDeclaration = forOfLeft.declarations.length && forOfLeft.declarations[0].id.type === Syntax.ArrayPattern;
+    const isBlockStatement          = forOfNode.body.type === Syntax.BlockStatement;
+
+    if (!isArrayPatternDeclaration || !isBlockStatement)
         return;
 
-    if (forOfNode.body.type !== Syntax.BlockStatement)
-        return;
+    const leftDeclaration = forOfLeft.declarations[0].id as ArrayPattern;
+    const leftIdentifiers = leftDeclaration.elements as Array<Identifier>;
 
-    const leftIdentifiers = Object.values(forOfLeft.declarations[0].id.elements || []) as Array<Identifier>;
-
-    const duplicateDeclarators = findDeclarators(forOfNode.body as BlockStatement, node => {
-        if (node.type !== Syntax.Identifier)
-            return false;
-
-        for (const identifier of leftIdentifiers) {
-            if (identifier.name === node.name) {
+    walkDeclarators(forOfNode.body as BlockStatement, (node: Identifier) => {
+        for (const identifier of leftIdentifiers)
+            if (identifier.name === node.name)
                 nodesToReplace.push(identifier);
-
-                return true;
-            }
-        }
-
-        return false;
     });
 
-    for (let i = 0; i < duplicateDeclarators.length; i++) {
+    for (const nodeToReplace of nodesToReplace) {
         const destIdentifier = createIdentifier(TempVariables.generateName());
 
-        replaceNode(nodesToReplace[i], destIdentifier, forOfLeft.declarations[0].id, 'elements');
+        replaceNode(nodeToReplace, destIdentifier, leftDeclaration, 'elements');
     }
 }
 
