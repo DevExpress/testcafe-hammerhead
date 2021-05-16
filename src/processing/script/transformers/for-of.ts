@@ -25,7 +25,7 @@ import {
 import replaceNode from './replace-node';
 import TempVariables from './temp-variables';
 
-function walkDeclarators (node: BlockStatement, action: Function): void {
+function walkDeclarators (node: BlockStatement, action: (identifier: Identifier) => void): void {
     const declarators = [];
     const identifiers = [];
 
@@ -58,14 +58,14 @@ function replaceDuplicateDeclarators (forOfNode: ForOfStatement) {
     const forOfLeft      = forOfNode.left as VariableDeclaration;
     const nodesToReplace = [];
 
-    const isArrayPatternDeclaration = forOfLeft.declarations.length && forOfLeft.declarations[0].id.type === Syntax.ArrayPattern;
+    const isArrayPatternDeclaration = forOfLeft.declarations[0]?.id.type === Syntax.ArrayPattern;
     const isBlockStatement          = forOfNode.body.type === Syntax.BlockStatement;
 
     if (!isArrayPatternDeclaration || !isBlockStatement)
         return;
 
     const leftDeclaration = forOfLeft.declarations[0].id as ArrayPattern;
-    const leftIdentifiers = leftDeclaration.elements as Array<Identifier>;
+    const leftIdentifiers = leftDeclaration.elements as Identifier[];
 
     walkDeclarators(forOfNode.body as BlockStatement, (node: Identifier) => {
         for (const identifier of leftIdentifiers)
