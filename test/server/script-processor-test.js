@@ -1154,6 +1154,80 @@ describe('Script processor', () => {
             ]);
         });
 
+        it('destructuring and duplicate declaration', () => {
+            testProcessing([
+                {
+                    src: 'for (let [a] of q) { let a = 1; }',
+
+                    expected: 'for (let_hh$temp0 of q) { let _hh$temp1 = _hh$temp0[0]; let a = 1;}'
+                },
+                {
+                    src: 'for (let [a, b] of q) { let a = 1; }',
+
+                    expected: 'for (let _hh$temp0 of q) { let _hh$temp1 = _hh$temp0[0], b =_hh$temp0[1]; let a = 1;}'
+                },
+                {
+                    src: 'for (let [b, a] of q) { let a = 1; }',
+
+                    expected: 'for (let _hh$temp0 of q) { let b = _hh$temp0[0], _hh$temp1 = _hh$temp0[1]; let a = 1;}'
+                },
+                {
+                    src: 'for (let [a, b] of q) { let a = 1; let b = 2; }',
+
+                    expected: 'for (let _hh$temp0 of q) { let _hh$temp1 = _hh$temp0[0], _hh$temp2=_hh$temp0[1]; let a = 1; let b = 2;}'
+                },
+                {
+                    src: 'for (let [a, b] of q) { let a = 1, b = 2; }',
+
+                    expected: 'for (let _hh$temp0 of q) { let _hh$temp1 = _hh$temp0[0], _hh$temp2=_hh$temp0[1]; let a = 1, b = 2;}'
+                },
+                {
+                    src: 'for (let [a] of q) { let [a] = q; }',
+
+                    expected: 'for (let _hh$temp0 of q) { let _hh$temp1 = _hh$temp0[0]; let _hh$temp2 = q, a =_hh$temp2[0]; }'
+                },
+                {
+                    src: 'for (let [a] of q) { let { a } = q; }',
+
+                    expected: 'for (let _hh$temp0 of q) { let _hh$temp1 = _hh$temp0[0]; let _hh$temp2 = q, a =_hh$temp2.a; }'
+                },
+                {
+                    src: 'for (let [a, b] of q) { let { a, b } = q; }',
+
+                    expected: 'for (let _hh$temp0 of q) { let _hh$temp1 = _hh$temp0[0], _hh$temp2 = _hh$temp0[1]; let _hh$temp3 = q, a = _hh$temp3.a, b=_hh$temp3.b; }'
+                },
+                {
+                    src: 'for (let [a] of q) { let { t: a } = q; }',
+
+                    expected: 'for (let _hh$temp0 of q) { let _hh$temp1 = _hh$temp0[0]; let _hh$temp2 = q, a = _hh$temp2.t; }'
+                },
+                // NOTE: we should replace only if body is `BlockStatement`
+                {
+                    src: 'for (let [a] of q) if (true) { let a = 1; }',
+
+                    expected: 'for (let _hh$temp0 of q) { let a = _hh$temp0[0]; if (true) { let a = 1; }}'
+                },
+                // NOTE: it's ok that we do not replace the `a` variable inside the `console.log` method`
+                // since we expect to get the `Cannot access 'a' before initialization` error message
+                {
+                    src: 'for (let [b, a] of q) { console.log(a); let a = 1; }',
+
+                    expected: 'for (let _hh$temp0 of q) { let b = _hh$temp0[0], _hh$temp1 = _hh$temp0[1]; console.log(a); let a = 1;}'
+                },
+                // NOTE: we should not rename the `for-of left` var if it is redeclared in the deeper statement
+                {
+                    src: 'for (let [a] of q) { if (true) { let a = 1; } }',
+
+                    expected: 'for (let _hh$temp0 of q) { let a = _hh$temp0[0]; if (true) { let a = 1; }}'
+                },
+                {
+                    src: 'for (let [a] of q) { for (let a = 1; a < 5; a++) {} }',
+
+                    expected: 'for (let _hh$temp0 of q) { let a = _hh$temp0[0]; for (let a = 1; a < 5; a++) { } }'
+                }
+            ]);
+        });
+
         it('duplicate destructuring', () => {
             testProcessing([
                 {
