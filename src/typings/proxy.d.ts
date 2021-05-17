@@ -27,8 +27,8 @@ interface RouterOptions {
 }
 
 interface RequestTimeout {
-    page?: number;
-    ajax?: number;
+    page: number;
+    ajax: number;
 }
 
 interface ProxyOptions extends RouterOptions {
