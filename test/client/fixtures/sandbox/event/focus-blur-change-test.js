@@ -1470,8 +1470,8 @@ asyncTest('an active input should not be blurred after a call of the focus on a 
     document.body.appendChild(activeInput);
     document.body.appendChild(notFocusableDiv);
 
-    var isActiveInputFocused     = false;
-    var isActiveInputBlurred     = false;
+    var isActiveInputFocused = false;
+    var isActiveInputBlurred = false;
 
     activeInput.onfocus = function () {
         isActiveInputFocused = true;
