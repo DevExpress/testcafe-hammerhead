@@ -560,12 +560,16 @@ export function getTabIndex (el: HTMLElement): number | null {
     return isNaN(tabIndex) ? null : tabIndex;
 }
 
+export function isElementDisabled (el: HTMLElement): boolean {
+    return matches(el, ':disabled');
+}
+
 export function isElementFocusable (el: HTMLElement): boolean {
     if (!el)
         return false;
 
     const tabIndex              = getTabIndex(el);
-    const isDisabledElement     = matches(el, ':disabled');
+    const isDisabledElement     = isElementDisabled(el);
     const isInvisibleElement    = getStyle(el, 'visibility') === 'hidden';
     const isNotDisplayedElement = getStyle(el, 'display') === 'none';
     const isHiddenElement       = isWebKit ? isHidden(el) && !isOptionElement(el) : isHidden(el);
