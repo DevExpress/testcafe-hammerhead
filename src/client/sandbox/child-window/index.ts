@@ -28,7 +28,7 @@ export default class ChildWindowSandbox extends SandboxBase {
     }
 
     private static _shouldOpenInNewWindowOnElementAction (el: HTMLLinkElement | HTMLAreaElement | HTMLFormElement, defaultTarget: string): boolean {
-        const hasDownloadAttribute = nativeMethods.getAttribute.call(el, 'download');
+        const hasDownloadAttribute = typeof nativeMethods.getAttribute.call(el, 'download') === 'string';
 
         if (hasDownloadAttribute)
             return false;
