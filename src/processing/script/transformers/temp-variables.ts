@@ -19,7 +19,7 @@ export default class TempVariables {
             if (key.type === Syntax.Identifier)
                 return baseName + '$' + key.name;
 
-            if (key.type === Syntax.Literal)
+            if (key.type === Syntax.Literal && key.value)
                 return baseName + '$' + key.value.toString().replace(/[^a-zA-Z0-9]/g, '');
         }
 

@@ -10,7 +10,9 @@ import {
     Identifier,
     Pattern,
     Statement,
-    VariableDeclaration
+    VariableDeclaration,
+    VariableDeclarator,
+    Node
 } from 'estree';
 
 import { Transformer } from './index';
@@ -26,8 +28,8 @@ import replaceNode from './replace-node';
 import TempVariables from './temp-variables';
 
 function walkDeclarators (node: BlockStatement, action: (identifier: Identifier) => void): void {
-    const declarators = [];
-    const identifiers = [];
+    const declarators = [] as VariableDeclarator[];
+    const identifiers = [] as (Node | null)[];
 
     for (const statement of node.body) {
         if (statement.type === Syntax.VariableDeclaration)
@@ -44,19 +46,20 @@ function walkDeclarators (node: BlockStatement, action: (identifier: Identifier)
 
             if (declarator.id.type === Syntax.ObjectPattern)
                 for (const prop of declarator.id.properties)
-                    identifiers.push(prop.value);
+                    if ('value' in prop)
+                        identifiers.push(prop.value);
         }
     }
 
     for (const identifier of identifiers) {
-        if (identifier.type === Syntax.Identifier)
+        if (identifier && identifier.type === Syntax.Identifier)
             action(identifier);
     }
 }
 
 function replaceDuplicateDeclarators (forOfNode: ForOfStatement) {
     const forOfLeft      = forOfNode.left as VariableDeclaration;
-    const nodesToReplace = [];
+    const nodesToReplace = [] as Node[];
 
     const isArrayPatternDeclaration = forOfLeft.declarations[0]?.id.type === Syntax.ArrayPattern;
     const isBlockStatement          = forOfNode.body.type === Syntax.BlockStatement;
@@ -84,7 +87,7 @@ function replaceDuplicateDeclarators (forOfNode: ForOfStatement) {
 // for (let {href, postMessage} of wins) {} -->
 // for (let _hh$temp0 of wins) { let {href, postMessage} = _hh$temp0; }
 
-const transformer: Transformer<ForOfStatement> = {
+const forOfTransformer: Transformer<ForOfStatement> = {
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.ForOfStatement,
@@ -132,4 +135,4 @@ const transformer: Transformer<ForOfStatement> = {
     }
 };
 
-export default transformer;
+export default forOfTransformer;

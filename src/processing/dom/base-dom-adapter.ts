@@ -17,7 +17,7 @@ export default abstract class BaseDomAdapter {
     ];
 
     abstract removeAttr (el: HTMLElement | ASTNode, attr: string): void;
-    abstract getAttr (el: HTMLElement | ASTNode, attr: string): string;
+    abstract getAttr (el: HTMLElement | ASTNode, attr: string): string | null;
     abstract hasAttr (el: HTMLElement | ASTNode, attr: string): boolean;
     abstract isSVGElement (el: HTMLElement | ASTNode): boolean;
     abstract hasEventHandler (el: HTMLElement | ASTNode): boolean;

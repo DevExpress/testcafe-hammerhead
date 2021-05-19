@@ -73,18 +73,26 @@ interface FlattenParsedProxyUrl {
     windowId?: string;
 }
 
+interface Socket extends net.Socket {
+    // TODO: we have to override the net.Socket.write method due to conflicting definitions:
+    // https://github.com/DefinitelyTyped/DefinitelyTyped/blob/019dfa1bde9d1549e9f3d8c5ef61aaeba9bfa53a/types/node/net.d.ts#L64
+    // https://github.com/DefinitelyTyped/DefinitelyTyped/blob/019dfa1bde9d1549e9f3d8c5ef61aaeba9bfa53a/types/node/stream.d.ts#L159
+    // To get rid of it, we should inform https://github.com/DefinitelyTyped/DefinitelyTyped about the problem or fix it by ourselves in upstream
+    write(chunk: Uint8Array | string): boolean;
+}
+
 export type DestinationResponse = IncomingMessage | FileStream | IncomingMessageLike | Http2Response;
 
 const REDIRECT_STATUS_CODES                  = [301, 302, 303, 307, 308];
 const CANNOT_BE_USED_WITH_WEB_SOCKET_ERR_MSG = 'The function cannot be used with a WebSocket request.';
 
 export default class RequestPipelineContext {
-    session: Session = null;
-    reqBody: Buffer = null;
-    dest: DestInfo = null;
-    destRes: DestinationResponse = null;
+    session: Session;
+    reqBody: Buffer;
+    dest: DestInfo;
+    destRes: DestinationResponse;
     isDestResReadableEnded = false;
-    destResBody: Buffer = null;
+    destResBody: Buffer;
     isAjax = false;
     isPage = false;
     isHTMLPage = false;
@@ -93,15 +101,15 @@ export default class RequestPipelineContext {
     isIframe = false;
     isSpecialPage = false;
     isWebSocketConnectionReset = false;
-    contentInfo: ContentInfo = null;
-    restoringStorages: StoragesSnapshot = null;
+    contentInfo: ContentInfo;
+    restoringStorages: StoragesSnapshot;
     requestId: string = generateUniqueId();
     requestFilterRules: RequestFilterRule[] = [];
     onResponseEventData: OnResponseEventData[] = [];
-    reqOpts: RequestOptions = null;
+    reqOpts: RequestOptions;
     parsedClientSyncCookie: ParsedClientSyncCookie;
     isFileProtocol: boolean;
-    nonProcessedDestResBody: Buffer = null;
+    nonProcessedDestResBody: Buffer;
     goToNextStage = true;
     mock: ResponseMock;
     isSameOriginPolicyFailed = false;
@@ -110,24 +118,29 @@ export default class RequestPipelineContext {
     _injectableUserScripts: string[] = [];
 
     constructor (readonly req: IncomingMessage,
-        readonly res: ServerResponse | net.Socket,
+        readonly res: ServerResponse | Socket,
         readonly serverInfo: ServerInfo) {
-        this.parsedClientSyncCookie = req.headers.cookie && parseClientSyncCookieStr(req.headers.cookie);
+        if (req.headers.cookie) {
+            const parsedClientSyncCookieStr = parseClientSyncCookieStr(req.headers.cookie)
+            if (parsedClientSyncCookieStr) {
+                this.parsedClientSyncCookie = parsedClientSyncCookieStr;
+            }
+        }
     }
 
     // TODO: Rewrite parseProxyUrl instead.
-    private static _flattenParsedProxyUrl (parsed: ParsedProxyUrl): FlattenParsedProxyUrl {
+    private static _flattenParsedProxyUrl (parsed: ParsedProxyUrl | null): FlattenParsedProxyUrl | null {
         if (!parsed)
             return null;
 
         const parsedResourceType = urlUtils.parseResourceType(parsed.resourceType);
         const dest               = {
             url:             parsed.destUrl,
-            protocol:        parsed.destResourceInfo.protocol,
-            host:            parsed.destResourceInfo.host,
-            hostname:        parsed.destResourceInfo.hostname,
-            port:            parsed.destResourceInfo.port,
-            partAfterHost:   parsed.destResourceInfo.partAfterHost,
+            protocol:        parsed.destResourceInfo.protocol || '',
+            host:            parsed.destResourceInfo.host || '',
+            hostname:        parsed.destResourceInfo.hostname || '',
+            port:            parsed.destResourceInfo.port || '',
+            partAfterHost:   parsed.destResourceInfo.partAfterHost || '',
             auth:            parsed.destResourceInfo.auth,
             isIframe:        !!parsedResourceType.isIframe,
             isForm:          !!parsedResourceType.isForm,
@@ -137,8 +150,8 @@ export default class RequestPipelineContext {
             isWebSocket:     !!parsedResourceType.isWebSocket,
             isServiceWorker: !!parsedResourceType.isServiceWorker,
             isAjax:          !!parsedResourceType.isAjax,
-            charset:         parsed.charset,
-            reqOrigin:       parsed.reqOrigin,
+            charset:         parsed.charset || '',
+            reqOrigin:       parsed.reqOrigin || '',
             credentials:     parsed.credentials
         };
 
@@ -174,13 +187,16 @@ export default class RequestPipelineContext {
     private _getDestFromReferer (parsedReferer: FlattenParsedProxyUrl): FlattenParsedProxyUrl {
         const dest = parsedReferer.dest;
 
-        dest.partAfterHost = this.req.url;
+        dest.partAfterHost = this.req.url || '';
         dest.url           = urlUtils.formatUrl(dest);
 
         return { dest, sessionId: parsedReferer.sessionId, windowId: parsedReferer.windowId };
     }
 
     private _addTemporaryEntryToCache (): void {
+        if (!this.temporaryCacheEntry)
+            return;
+
         this.temporaryCacheEntry.value.res.setBody(this.destResBody);
         requestCache.add(this.temporaryCacheEntry);
 
@@ -189,9 +205,9 @@ export default class RequestPipelineContext {
 
     // API
     dispatch (openSessions: Map<string, Session>): boolean {
-        const parsedReqUrl  = urlUtils.parseProxyUrl(this.req.url);
+        const parsedReqUrl  = urlUtils.parseProxyUrl(this.req.url || '');
         const referer       = this.req.headers[BUILTIN_HEADERS.referer] as string;
-        const parsedReferer = referer && urlUtils.parseProxyUrl(referer);
+        const parsedReferer = referer && urlUtils.parseProxyUrl(referer) || null;
 
         // TODO: Remove it after parseProxyURL is rewritten.
         let flattenParsedReqUrl    = RequestPipelineContext._flattenParsedProxyUrl(parsedReqUrl);
@@ -204,7 +220,10 @@ export default class RequestPipelineContext {
         if (!flattenParsedReqUrl)
             return false;
 
-        this.session = openSessions.get(flattenParsedReqUrl.sessionId);
+        const session = openSessions.get(flattenParsedReqUrl.sessionId);
+
+        if (session)
+            this.session = session;
 
         if (!this.session)
             return false;
@@ -259,7 +278,9 @@ export default class RequestPipelineContext {
         const isFormWithEmptyResponse = isForm && this.destRes.statusCode === 204;
 
         const isRedirect              = this.destRes.headers[BUILTIN_HEADERS.location] &&
-                                        REDIRECT_STATUS_CODES.includes(this.destRes.statusCode);
+                                        this.destRes.statusCode &&
+                                        REDIRECT_STATUS_CODES.includes(this.destRes.statusCode) ||
+                                        false;
         const requireAssetsProcessing = (isCSS || isScript || isManifest) && this.destRes.statusCode !== 204;
         const isNotModified           = this.req.method === 'GET' && this.destRes.statusCode === 304 &&
                                         !!(this.req.headers[BUILTIN_HEADERS.ifModifiedSince] ||
@@ -268,22 +289,18 @@ export default class RequestPipelineContext {
                                         !isNotModified && (this.isPage || this.isIframe || requireAssetsProcessing);
         const isFileDownload          = this._isFileDownload() && !this.dest.isScript;
         const isIframeWithImageSrc    = this.isIframe && !this.isPage && /^\s*image\//.test(contentType);
+        const charset                 = new Charset();
 
-        let charset               = null;
-        const contentTypeUrlToken = urlUtils.getResourceTypeString({
+        const contentTypeUrlToken        = urlUtils.getResourceTypeString({
             isIframe: this.isIframe,
             isAjax:   this.isAjax,
 
             isForm, isScript
-        });
+        }) || '';
 
         // NOTE: We need charset information if we are going to process the resource.
-        if (requireProcessing) {
-            charset = new Charset();
-
-            if (!charset.fromContentType(contentType))
-                charset.fromUrl(this.dest.charset);
-        }
+        if (requireProcessing && !charset.fromContentType(contentType))
+            charset.fromUrl(this.dest.charset);
 
         if (isFileDownload)
             this.session.handleFileDownload();
@@ -314,14 +331,20 @@ export default class RequestPipelineContext {
             return void 0;
         } ));
 
-        this._injectableUserScripts = matchedUserScripts
+        const injectableUserScripts = matchedUserScripts
             .filter(userScript => !!userScript)
-            .map(userScript => userScript.url);
+            .map(userScript => userScript?.url || '');
+
+        if (injectableUserScripts)
+            this._injectableUserScripts = injectableUserScripts;
     }
 
     private async _getDestResBody (res: DestinationResponse): Promise<Buffer> {
-        if (IncomingMessageLike.isIncomingMessageLike(res))
-            return res.getBody();
+        if (IncomingMessageLike.isIncomingMessageLike(res)) {
+            const body = res.getBody();
+            if (body)
+                return body;
+        }
 
         return fetchBody(this.destRes, this.destRes.headers[BUILTIN_HEADERS.contentLength] as string);
     }
@@ -483,6 +506,7 @@ export default class RequestPipelineContext {
             this._addTemporaryEntryToCache();
 
         this.res.write(this.destResBody);
+
         this.res.end();
     }
 

@@ -40,10 +40,10 @@ const sessionsCache      = new LRUCache<string, ClientHttp2Session>({
 
 export async function getHttp2Session (requestId: string, origin: string): Promise<ClientHttp2Session | null> {
     if (sessionsCache.has(origin))
-        return sessionsCache.get(origin);
+        return sessionsCache.get(origin) || null;
 
     if (pendingSessions.has(origin))
-        return pendingSessions.get(origin);
+        return pendingSessions.get(origin) || null;
 
     if (unsupportedOrigins.includes(origin))
         return null;

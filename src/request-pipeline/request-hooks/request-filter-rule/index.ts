@@ -11,7 +11,7 @@ import stringifyRule from './stringify';
 import { RequestFilterRuleObjectInitializer } from './rule-init';
 import isPredicate from '../is-predicate';
 
-const DEFAULT_OPTIONS: RequestFilterRuleObjectInitializer = {
+const DEFAULT_OPTIONS: Partial<RequestFilterRuleObjectInitializer> = {
     url:    void 0,
     method: void 0,
     isAjax: void 0

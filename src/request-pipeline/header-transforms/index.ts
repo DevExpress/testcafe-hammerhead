@@ -64,7 +64,7 @@ function calculateForcedHeadersCase (headers: OutgoingHttpHeaders, processedHead
     }
 }
 
-function transformOriginHeaders (headers: OutgoingHttpHeaders, processedHeaders: object, headersNames: string[], rawHeaders: string[]): void {
+function transformOriginHeaders (headers: OutgoingHttpHeaders, processedHeaders: object, headersNames: (string | undefined)[], rawHeaders: string[]): void {
     for (let i = 0; i < rawHeaders.length; i += 2) {
         const rawHeaderName           = rawHeaders[i];
         const lowerCasedRawHeaderName = rawHeaderName.toLowerCase();

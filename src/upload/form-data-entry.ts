@@ -23,8 +23,12 @@ export default class FormDataEntry {
     private _setHeader(name: string, value: string, rawHeader?: string) {
         if (!this._headers.has(name))
             this._headers.set(name, { rawName: typeof rawHeader === 'string' ? rawHeader : name, value });
-        else
-            this._headers.get(name).value = value;
+        else {
+            const header = this._headers.get(name);
+
+            if (header)
+                header.value = value;
+        }
     }
 
     private _setContentDisposition (name: string, fileName: string) {
@@ -46,7 +50,7 @@ export default class FormDataEntry {
     }
 
     setRawHeader (rawHeader: string) {
-        const [, rawName = '', value = ''] = rawHeader.match(HEADER_RE);
+        const [, rawName = '', value = ''] = rawHeader.match(HEADER_RE) || [];
         const name                         = rawName.toLowerCase();
 
         this._headers.set(name, { rawName, value });

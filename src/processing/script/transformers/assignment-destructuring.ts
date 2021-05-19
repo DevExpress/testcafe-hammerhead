@@ -27,19 +27,21 @@ const transformer: Transformer<AssignmentExpression> = {
 
     run: (node, _parent, _key, tempVars) => {
         const assignments = [] as (AssignmentExpression | Identifier)[];
-        let firstTemp     = void 0;
+        let isFirstTemp   = true;
+        let firstTemp     = null as Identifier | null;
 
         destructuring(node.left, node.right, (pattern, value, isTemp) => {
-            if (firstTemp === void 0) {
+
+            if (isFirstTemp) {
+                isFirstTemp = false;
+
                 if (isTemp)
-                    firstTemp = pattern;
-                else
-                    firstTemp = null;
+                    firstTemp = pattern as Identifier;
             }
 
             assignments.push(createAssignmentExpression(pattern, '=', value));
 
-            if (isTemp)
+            if (isTemp && tempVars)
                 tempVars.append((pattern as Identifier).name);
         });
 

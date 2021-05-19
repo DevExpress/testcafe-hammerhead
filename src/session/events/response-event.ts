@@ -1,13 +1,14 @@
 import RequestFilterRule from '../../request-pipeline/request-hooks/request-filter-rule';
 import { PreparedResponseInfo } from './info';
 import generateUniqueId from '../../utils/generate-unique-id';
+import { OutgoingHttpHeaders } from 'http';
 
 export default class ResponseEvent {
     public requestFilterRule: RequestFilterRule;
     public readonly requestId: string;
     public readonly statusCode: number;
     public readonly sessionId: string;
-    public readonly headers?: { [name: string]: string|string[] };
+    public readonly headers?: OutgoingHttpHeaders;
     public readonly body?: Buffer;
     public readonly isSameOriginPolicyFailed: boolean;
     public readonly id: string;

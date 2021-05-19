@@ -123,7 +123,7 @@ function processArrayPattern (pattern: ArrayPattern, value: Expression, build: N
         else
             value = createMemberExpression(tempIdentifier, createSimpleLiteral(i), true);
 
-        process(elem, value, build, TempVariables.generateName(baseTempName, null, i));
+        process(elem, value, build, TempVariables.generateName(baseTempName, void 0, i));
     }
 }
 

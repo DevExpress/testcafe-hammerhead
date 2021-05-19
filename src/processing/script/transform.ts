@@ -96,7 +96,7 @@ function addChangeForTransformedNode (state: State, changes: CodeChange[], repla
     if (hasTransformedAncestor)
         return;
 
-    if (state.newExpressionAncestor) {
+    if (state.newExpressionAncestor && state.newExpressionAncestorParent) {
         replaceNode(state.newExpressionAncestor, state.newExpressionAncestor, state.newExpressionAncestorParent!, state.newExpressionAncestorKey!);
         changes.push(getChange(state.newExpressionAncestor, state.newExpressionAncestorParent.type));
     }
@@ -165,7 +165,7 @@ function transform<T extends Node> (node: Node, changes: CodeChange[], state: St
     else {
         const storedNode = node;
         let transformer  = findTransformer(node, parent);
-        let replacement  = null;
+        let replacement  = null as Node | null;
 
         while (transformer) {
             replacement = transformer.run(replacement || node, parent, key, tempVars);
@@ -182,7 +182,7 @@ function transform<T extends Node> (node: Node, changes: CodeChange[], state: St
             node        = replacement;
         }
 
-        if (nodeTransformed) {
+        if (nodeTransformed && replacement) {
             replaceNode(storedNode, replacement, parent, key);
             addChangeForTransformedNode(state, changes, replacement, parent.type);
         }

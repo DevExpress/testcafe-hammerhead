@@ -43,19 +43,19 @@ export function createElement (tagName: string, attrs: ASTAttribute[]): ASTNode 
         nodeName:   tagName,
         tagName:    tagName,
         attrs:      attrs,
-        childNodes: []
+        childNodes: [] as ASTNode[],
     } as ASTNode;
 }
 
 export function unshiftElement (el: ASTNode, parent: ASTNode): void {
     el.namespaceURI = parent.namespaceURI;
     el.parentNode   = parent;
-    parent.childNodes.unshift(el);
+    parent.childNodes?.unshift(el);
 }
 
 export function insertBeforeFirstScript (el: ASTNode, parent: ASTNode): void {
     const firstScriptIndex = findNodeIndex(parent, node => node.tagName === 'script');
-    const insertIndex      = firstScriptIndex !== -1 ? firstScriptIndex : parent.childNodes.length;
+    const insertIndex      = firstScriptIndex !== -1 ? firstScriptIndex : parent.childNodes?.length || 0;
 
     appendNode(el, parent, insertIndex);
 }
@@ -67,7 +67,10 @@ export function findNodeIndex (parent: ASTNode, predicate: (value: ASTNode, inde
 }
 
 export function findNextNonTextNode (parent: ASTNode, startIndex: number): ASTNode | null {
-    let currentNode = null;
+    if (!parent.childNodes)
+        return null;
+
+    let currentNode: ASTNode;
 
     while (currentNode = parent.childNodes[startIndex]){
         if (currentNode.nodeName !== '#text')
@@ -83,11 +86,15 @@ export function appendNode (node: ASTNode, parent: ASTNode, index: number): void
     node.namespaceURI = parent.namespaceURI;
     node.parentNode   = parent;
 
-    parent.childNodes.splice(index, 0, node);
+    parent.childNodes?.splice(index, 0, node);
 }
 
 export function removeNode (node: ASTNode): void {
     const parent  = node.parentNode;
+
+    if (!parent || !parent.childNodes)
+        return
+
     const elIndex = parent.childNodes.indexOf(node);
 
     parent.childNodes.splice(elIndex, 1);

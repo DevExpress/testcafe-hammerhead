@@ -11,7 +11,7 @@ export default class ResponseMock {
     public readonly body?: ResponseMockBodyInit;
     public readonly statusCode: number;
     public readonly headers: Record<string, string | string[]>;
-    public requestOptions: RequestOptions = null;
+    public requestOptions: RequestOptions;
     public readonly id: string;
     public isPredicate: boolean;
 
@@ -20,16 +20,20 @@ export default class ResponseMock {
 
         this.id          = generateUniqueId();
         this.body        = body;
-        this.statusCode  = statusCode;
-        this.headers     = lowerCaseHeaderNames(headers);
         this.isPredicate = isPredicate(body);
+
+        if (headers)
+            this.headers = lowerCaseHeaderNames(headers);
+
+        if (statusCode)
+            this.statusCode = statusCode;
     }
 
     setRequestOptions (opts: RequestOptions): void {
         this.requestOptions = opts;
     }
 
-    public static from (val: object): ResponseMock {
+    public static from (val: object): ResponseMock | null {
         if (!val)
             return null;
 
