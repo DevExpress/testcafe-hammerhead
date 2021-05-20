@@ -65,6 +65,8 @@ interface ContentInfo {
     isFileDownload: boolean;
     isNotModified: boolean;
     isRedirect: boolean;
+    isAttachment: boolean;
+    isTextPage: boolean;
 }
 
 interface FlattenParsedProxyUrl {
@@ -268,7 +270,9 @@ export default class RequestPipelineContext {
         const accept      = this.req.headers[BUILTIN_HEADERS.accept] as string || '';
         const encoding    = (this.destRes.headers[BUILTIN_HEADERS.contentEncoding] as string || '').toLowerCase();
 
-        if (this.isPage && contentType)
+        const isTextPage = this.isPage && contentTypeUtils.isTextPage(contentType);
+
+        if (this.isPage && contentType && !isTextPage)
             this.isPage = !this.isAjax && contentTypeUtils.isPage(contentType);
 
         const isCSS                   = contentTypeUtils.isCSSResource(contentType, accept);
@@ -289,6 +293,10 @@ export default class RequestPipelineContext {
                                         !isNotModified && (this.isPage || this.isIframe || requireAssetsProcessing);
         const isFileDownload          = this._isFileDownload() && !this.dest.isScript;
         const isIframeWithImageSrc    = this.isIframe && !this.isPage && /^\s*image\//.test(contentType);
+        const isAttachment            = !this.isPage && !this.isAjax && !this.isWebSocket && !this.isIframe &&
+                                        !isTextPage &&
+                                        !isManifest && !isScript && !isForm;
+
         const charset                 = new Charset();
 
         const contentTypeUrlToken        = urlUtils.getResourceTypeString({
@@ -316,7 +324,9 @@ export default class RequestPipelineContext {
             contentTypeUrlToken,
             isFileDownload,
             isNotModified,
-            isRedirect
+            isRedirect,
+            isAttachment,
+            isTextPage
         };
 
         logger.proxy.onContentInfoBuilt(this);
