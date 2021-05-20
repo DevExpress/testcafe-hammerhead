@@ -56,3 +56,8 @@ it('Should detect page', () => {
     expect(contentTypeUtils.isPage('application/xml')).to.be.true;
     expect(contentTypeUtils.isPage('application/x-ms-application')).to.be.true;
 });
+
+it('Should detect text page', () => {
+    expect(contentTypeUtils.isTextPage('')).to.be.true;
+    expect(contentTypeUtils.isTextPage('text/plain')).to.be.true;
+});
