@@ -25,8 +25,13 @@ test('should not open new window if link has the `download` attribute', function
 
     link.setAttribute('download', 'download');
     link.setAttribute('target', '_blank');
-
     notOk(ChildWindowSandbox._shouldOpenInNewWindowOnElementAction(link, defaultTarget.linkOrArea));
+
+    link.setAttribute('download', '');
+    notOk(ChildWindowSandbox._shouldOpenInNewWindowOnElementAction(link, defaultTarget.linkOrArea));
+
+    link.removeAttribute('download');
+    ok(ChildWindowSandbox._shouldOpenInNewWindowOnElementAction(link, defaultTarget.linkOrArea));
 });
 
 test('window.open', function () {
