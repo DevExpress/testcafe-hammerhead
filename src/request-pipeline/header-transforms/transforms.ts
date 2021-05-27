@@ -84,6 +84,10 @@ function processSetCookieHeader (src: string | string[], ctx: RequestPipelineCon
     return generateSyncCookie(ctx, parsedCookies);
 }
 
+function transformContentDispositionHeader (src: string, ctx: RequestPipelineContext) {
+    return ctx.contentInfo.isAttachment && !(src && src.includes('attachment')) ? 'attachment;' + src || '' : src;
+}
+
 // Request headers
 export const requestTransforms = {
     [BUILTIN_HEADERS.host]:               (_src, ctx) => ctx.dest.host,
@@ -121,7 +125,7 @@ export const responseTransforms = {
     // NOTE: Change the transform type if we have an iframe with an image as src,
     // because it was transformed to HTML with the image tag.
     [BUILTIN_HEADERS.contentType]: (src: string, ctx: RequestPipelineContext) =>
-        ctx.contentInfo.isIframeWithImageSrc ? 'text/html' : src,
+        ctx.contentInfo.isIframeWithImageSrc || ctx.contentInfo.isTextPage ? 'text/html' : src,
 
     [BUILTIN_HEADERS.contentLength]: (src: string, ctx: RequestPipelineContext) =>
         ctx.contentInfo.requireProcessing ? ctx.destResBody.length.toString() : src,
@@ -167,5 +171,6 @@ export const responseTransforms = {
 export const forcedResponseTransforms = {
     [BUILTIN_HEADERS.setCookie]: processSetCookieHeader,
 
-    [BUILTIN_HEADERS.serviceWorkerAllowed]: (_src: string, ctx: RequestPipelineContext) => ctx.dest.isServiceWorker ? '/' : void 0
+    [BUILTIN_HEADERS.serviceWorkerAllowed]: (_src: string, ctx: RequestPipelineContext) => ctx.dest.isServiceWorker ? '/' : void 0,
+    [BUILTIN_HEADERS.contentDisposition]:   (_src: string, ctx: RequestPipelineContext) => transformContentDispositionHeader(_src, ctx),
 };

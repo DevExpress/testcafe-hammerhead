@@ -30,10 +30,20 @@ const SCRIPT_MIMES = [
     'text/x-javascript'
 ];
 
+const TEXT_PAGE_MIMES = [
+    'text/plain',
+];
+
 export function isPage (header: string): boolean {
     header = header.toLowerCase();
 
     return PAGE_MIMES.some(mime => header.includes(mime));
+}
+
+export function isTextPage (contentTypeHeader: string): boolean {
+    contentTypeHeader = contentTypeHeader.toLowerCase();
+
+    return (TEXT_PAGE_MIMES.some(mime => contentTypeHeader.includes(mime)) || !contentTypeHeader);
 }
 
 export function isCSSResource (contentTypeHeader: string, acceptHeader: string) {
