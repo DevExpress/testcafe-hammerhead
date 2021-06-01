@@ -3,29 +3,46 @@ import RequestPipelineContext from '../../request-pipeline/context';
 import ResponseMock from '../../request-pipeline/request-hooks/response-mock';
 import { RequestInfo } from './info';
 import generateUniqueId from '../../utils/generate-unique-id';
+import RequestOptions from '../../request-pipeline/request-options';
+
+interface SerializedRequestEvent {
+    requestFilterRule: RequestFilterRule;
+    _requestInfo: RequestInfo;
+    id: string;
+}
 
 export default class RequestEvent {
     public readonly requestFilterRule: RequestFilterRule;
-    private readonly _requestContext: RequestPipelineContext;
+    private readonly _requestContext: RequestPipelineContext | null;
     private readonly _requestInfo: RequestInfo;
-    public readonly id: string;
+    public id: string;
 
-    constructor (requestFilterRule: RequestFilterRule, requestContext: RequestPipelineContext, requestInfo: RequestInfo) {
+    public constructor (requestFilterRule: RequestFilterRule, requestContext: RequestPipelineContext | null, requestInfo: RequestInfo) {
         this.requestFilterRule  = requestFilterRule;
         this._requestContext    = requestContext;
         this._requestInfo       = requestInfo;
         this.id                 = generateUniqueId();
     }
 
-    async setMock (mock: ResponseMock): Promise<void> {
-        await this._requestContext.session.setMock(this.id, mock);
+    public async setMock (mock: ResponseMock): Promise<void> {
+        await this._requestContext?.session.setMock(this.id, mock);
     }
 
-    get requestOptions () {
-        return this._requestContext.reqOpts;
+    public get requestOptions (): RequestOptions | undefined {
+        return this._requestContext?.reqOpts;
     }
 
-    get isAjax (): boolean {
+    public get isAjax (): boolean {
         return this._requestInfo.isAjax;
+    }
+
+    public static from (data: unknown): RequestEvent {
+        const { id, requestFilterRule, _requestInfo } = data as SerializedRequestEvent;
+
+        const requestEvent = new RequestEvent(requestFilterRule, null, _requestInfo);
+
+        requestEvent.id = id;
+
+        return requestEvent;
     }
 }

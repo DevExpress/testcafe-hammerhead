@@ -2,11 +2,23 @@ const url                           = require('url');
 const { expect }                    = require('chai');
 const ResponseMock                  = require('../../lib/request-pipeline/request-hooks/response-mock');
 const RequestFilterRule             = require('../../lib/request-pipeline/request-hooks/request-filter-rule');
+const RequestEvent                  = require('../../lib/session/events/request-event');
+const ResponseEvent                 = require('../../lib/session/events/response-event');
 const ConfigureResponseEvent        = require('../../lib/session/events/configure-response-event');
 const ConfigureResponseEventOptions = require('../../lib/session/events/configure-response-event-options');
 const requestIsMatchRule            = require('../../lib/request-pipeline/request-hooks/request-is-match-rule');
 const { noop }                      = require('lodash');
 const getMockResponse               = require('../../lib/request-pipeline/request-hooks/response-mock/get-response');
+
+const requestInfoMock = {
+    url:     'http://example.com/',
+    method:  'post',
+    isAjax:  true,
+    body:    '{ test: true }',
+    headers: {
+        'content-type': 'application/json'
+    }
+};
 
 describe('ResponseMock', () => {
     describe('Header names should be lowercased', () => {
@@ -278,16 +290,6 @@ describe('RequestFilterRule', () => {
 
 describe('Request is match rule', async () => {
     describe('Rule initializer', async () => {
-        const requestInfoMock = {
-            url:     'http://example.com/',
-            method:  'post',
-            isAjax:  true,
-            body:    '{ test: true }',
-            headers: {
-                'content-type': 'application/json'
-            }
-        };
-
         async function isMatchRule (ruleInit) {
             return requestIsMatchRule(new RequestFilterRule(ruleInit), requestInfoMock);
         }
@@ -404,5 +406,62 @@ describe('ConfigureResponseEvent', () => {
         expect(contextMock.destRes.headers)
             .to.have.property('another-header')
             .that.equals('another-value');
+    });
+});
+
+describe('<RequestHookEvent>.from method', () => {
+    it('RequestEvent', () => {
+        const requestEventInit = {
+            id:                '1',
+            requestFilterRule: RequestFilterRule.ANY,
+            _requestInfo:      requestInfoMock
+        };
+
+        const requestEvent = RequestEvent.from(requestEventInit);
+
+        expect(requestEvent).instanceOf(RequestEvent);
+        expect(requestEvent.id).eql(requestEventInit.id);
+        expect(requestEvent._requestInfo).eql(requestEventInit._requestInfo);
+        expect(requestEvent.requestFilterRule).eql(requestEventInit.requestFilterRule);
+    });
+
+    it('ConfigureResponseEvent', () => {
+        const configureResponseEventInit = {
+            id:                '2',
+            requestFilterRule: RequestFilterRule.ANY,
+            opts:              ConfigureResponseEventOptions.DEFAULT
+        };
+
+        const configureResponseEvent = ConfigureResponseEvent.from(configureResponseEventInit);
+
+        expect(configureResponseEvent).instanceOf(ConfigureResponseEvent);
+        expect(configureResponseEvent.id).eql(configureResponseEventInit.id);
+        expect(configureResponseEvent.requestFilterRule).eql(configureResponseEventInit.requestFilterRule);
+        expect(JSON.stringify(configureResponseEvent.opts)).eql(JSON.stringify(configureResponseEventInit.opts));
+    });
+
+    it('ResponseEvent', () => {
+        const bodyBuffer = Buffer.from([0x62, 0x75, 0x66, 0x66, 0x65, 0x72]);
+
+        const responseEventInit = {
+            id:                       3,
+            requestId:                'requestId',
+            statusCode:               200,
+            sessionId:                'sessionId',
+            isSameOriginPolicyFailed: false,
+            headers:                  { 'header': 'value' },
+            body:                     bodyBuffer
+        };
+
+        const responseEvent = ResponseEvent.from(responseEventInit);
+
+        expect(responseEvent).instanceOf(ResponseEvent);
+        expect(responseEvent.id).eql(responseEventInit.id);
+        expect(responseEvent.requestId).eql(responseEventInit.requestId);
+        expect(responseEvent.statusCode).eql(responseEventInit.statusCode);
+        expect(responseEvent.sessionId).eql(responseEventInit.sessionId);
+        expect(responseEvent.isSameOriginPolicyFailed).eql(responseEventInit.isSameOriginPolicyFailed);
+        expect(responseEvent.headers).eql(responseEventInit.headers);
+        expect(responseEvent.body).eql(responseEventInit.body);
     });
 });
