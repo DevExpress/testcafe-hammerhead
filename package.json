@@ -91,12 +91,12 @@
     "rollup-plugin-typescript2": "^0.29.0",
     "tmp": "0.0.26",
     "typescript": "3.7.5",
-    "ws": "^5.2.0"
+    "ws": "^7.4.6"
   },
   "main": "lib/index",
   "types": "ts-defs/index.d.ts",
   "engines": {
-    "node": ">= 8.0.0"
+    "node": ">=12.0.0"
   },
   "files": [
     "lib",
