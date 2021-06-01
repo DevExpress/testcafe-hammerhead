@@ -785,7 +785,7 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.navigator.sendBeacon) {
-            overrideFunction(window.navigator, 'sendBeacon', function (this: Navigator) {
+            overrideFunction(window.Navigator.prototype, 'sendBeacon', function (this: Navigator) {
                 if (typeof arguments[0] === 'string')
                     arguments[0] = getProxyUrl(arguments[0]);
 
