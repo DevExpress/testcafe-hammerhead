@@ -2,7 +2,6 @@ const Session          = require('../../lib/session');
 const generateUniqueId = require('../../lib/utils/generate-unique-id');
 
 
-
 function createSession () {
     const opts = {
         allowMultipleWindows: !!global.process.env.allowMultipleWindows
