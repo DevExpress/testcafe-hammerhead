@@ -650,7 +650,7 @@ if (window.navigator.sendBeacon) {
             nativeMethods.sendBeacon = nativeMethod;
         };
 
-        window.Navigator.prototype.sendBeacon.call(originUrl, originData);
+        window.Navigator.prototype.sendBeacon.call(window.navigator, originUrl, originData);
     });
 }
 
