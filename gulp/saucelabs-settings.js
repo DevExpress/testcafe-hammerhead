@@ -75,7 +75,7 @@ const SAUCELABS_SETTINGS = {
     tags:      [process.env.TRAVIS_BRANCH || 'master'],
     browsers:  CLIENT_TESTS_BROWSERS,
     name:      'testcafe-hammerhead client tests',
-    timeout:   360
+    timeout:   720
 };
 
 module.exports = SAUCELABS_SETTINGS;
