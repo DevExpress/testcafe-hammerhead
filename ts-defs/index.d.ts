@@ -231,6 +231,9 @@ declare module 'testcafe-hammerhead' {
 
         /** Remove header from result response **/
         removeHeader (name: string): Promise<void>;
+
+        /** Creates a new ConfigureResponseEvent using the passed data **/
+        static from (data: unknown): ConfigureResponseEvent;
     }
 
     /** The RequestInfo class contains information about query request **/
@@ -270,6 +273,9 @@ declare module 'testcafe-hammerhead' {
 
         /** Set up the mock for the query response **/
         setMock(mock: ResponseMock): Promise<void>;
+
+        /** Creates a new RequestEvent using the passed data **/
+        static from (data: unknown): RequestEvent;
     }
 
     /** The ResponseEvent describes the response part of the query captured with request hook **/
@@ -294,6 +300,9 @@ declare module 'testcafe-hammerhead' {
 
         /** The same origin policy check **/
         isSameOriginPolicyFailed: boolean;
+
+        /** Creates a new ResponseEvent using the passed data **/
+        static from (data: unknown): ResponseEvent;
     }
 
     /** The ResponseMock class is used to construct the response of the mocked request **/
