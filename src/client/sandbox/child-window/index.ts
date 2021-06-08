@@ -88,8 +88,39 @@ export default class ChildWindowSandbox extends SandboxBase {
 
             e.preventDefault();
 
-            this._openUrlInNewWindow(url);
+            this._openNewWindowAfterAllEventHandlers(url, e);
         });
+    }
+
+    private _openNewWindowAfterAllEventHandlers (url, e) {
+        let eventBubbledToTop  = false;
+        let isDefaultPrevented = false;
+
+        const openUrlInNewWindowIfNotPrevented = () => {
+            eventBubbledToTop = true;
+
+            nativeMethods.removeEventListener.call(window, 'click', openUrlInNewWindowIfNotPrevented);
+
+            if (!isDefaultPrevented)
+                this._openUrlInNewWindow(url);
+        };
+
+        nativeMethods.addEventListener.call(window, 'click', openUrlInNewWindowIfNotPrevented);
+
+        // NOTE: additional attempt to open a new window if window.handler was prevented by
+        // `stopPropagation` or `stopImmediatePropagation` methods
+        const origPreventDefault = e.preventDefault;
+
+        e.preventDefault = () => {
+            isDefaultPrevented = true;
+
+            return origPreventDefault.call(e);
+        };
+
+        setTimeout(() => {
+            if (!eventBubbledToTop)
+                openUrlInNewWindowIfNotPrevented();
+        }, 0);
     }
 
     handleWindowOpen (window: Window, args: [string?, string?, string?, boolean?]): Window {

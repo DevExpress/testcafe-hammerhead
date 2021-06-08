@@ -1,9 +1,16 @@
 var ChildWindowSandbox = hammerhead.sandboxes.ChildWindowSandbox;
 var defaultTarget      = hammerhead.sandboxUtils.defaultTarget;
 var settings           = hammerhead.settings;
+var Promise            = hammerhead.Promise;
 
 var windowSandbox = hammerhead.sandbox.node.win;
 var nativeMethods = hammerhead.nativeMethods;
+
+var delay = function (ms) {
+    return new Promise(function (resolve) {
+        setTimeout(resolve, ms);
+    });
+};
 
 test('_shouldOpenInNewWindow', function () {
     window.name = 'test-window-name';
@@ -142,6 +149,75 @@ test('Should not open in window if the default behavior was prevented', function
     settings.get().allowMultipleWindows = false;
 
     document.body.removeChild(link);
+});
+
+test('Should not open in window if the default behavior was prevented in parent element handler', function () {
+    settings.get().allowMultipleWindows = true;
+
+    var windowOpenCounter        = 0;
+    var storedOpenUrlInNewWindow = windowSandbox._childWindowSandbox._openUrlInNewWindow;
+
+    hammerhead.sandbox.childWindow._openUrlInNewWindow = function () {
+        windowOpenCounter++;
+
+        return {
+            windowId: Date.now()
+        };
+    };
+
+    var link  = document.createElement('a');
+    var div1  = document.createElement('div');
+    var div2  = document.createElement('div');
+    var div3  = document.createElement('div');
+
+    link.innerText = 'link';
+    link.href      = 'http://example.com';
+    link.target    = '_blank';
+
+    div1.addEventListener('click', function (e) {
+        e.preventDefault();
+    });
+
+    div2.addEventListener('click', function (e) {
+        e.stopPropagation();
+
+        e.preventDefault();
+    });
+
+    div3.addEventListener('click', function (e) {
+        e.stopPropagation();
+    });
+
+    div1.appendChild(link);
+    document.body.appendChild(div1);
+    nativeMethods.click.call(link);
+
+    document.body.removeChild(div1);
+    strictEqual(windowOpenCounter, 0);
+
+    div2.appendChild(link);
+    document.body.appendChild(div2);
+    nativeMethods.click.call(link);
+
+    return delay(10)
+        .then(() => {
+            document.body.removeChild(div2);
+            strictEqual(windowOpenCounter, 0);
+
+            div3.appendChild(link);
+            document.body.appendChild(div3);
+            nativeMethods.click.call(link);
+
+            return delay(10);
+        })
+        .then(() => {
+            document.body.removeChild(div3);
+            strictEqual(windowOpenCounter, 1);
+
+            windowSandbox._childWindowSandbox._openUrlInNewWindow = storedOpenUrlInNewWindow;
+
+            settings.get().allowMultipleWindows = false;
+        });
 });
 
 module('regression');
