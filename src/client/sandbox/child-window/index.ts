@@ -93,19 +93,22 @@ export default class ChildWindowSandbox extends SandboxBase {
     }
 
     private _openNewWindowAfterAllEventHandlers (url, e) {
+        const nativeAddEventListener    = nativeMethods.windowAddEventListener || nativeMethods.addEventListener;
+        const nativeRemoveEventListener = nativeMethods.windowRemoveEventListener || nativeMethods.removeEventListener;
+
         let eventBubbledToTop  = false;
         let isDefaultPrevented = false;
 
         const openUrlInNewWindowIfNotPrevented = () => {
             eventBubbledToTop = true;
 
-            nativeMethods.removeEventListener.call(window, 'click', openUrlInNewWindowIfNotPrevented);
+            nativeRemoveEventListener.call(window, 'click', openUrlInNewWindowIfNotPrevented);
 
             if (!isDefaultPrevented)
                 this._openUrlInNewWindow(url);
         };
 
-        nativeMethods.addEventListener.call(window, 'click', openUrlInNewWindowIfNotPrevented);
+        nativeAddEventListener.call(window, 'click', openUrlInNewWindowIfNotPrevented);
 
         // NOTE: additional attempt to open a new window if window.handler was prevented by
         // `stopPropagation` or `stopImmediatePropagation` methods

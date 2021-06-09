@@ -200,7 +200,7 @@ test('Should not open in window if the default behavior was prevented in parent 
     nativeMethods.click.call(link);
 
     return delay(10)
-        .then(() => {
+        .then(function () {
             document.body.removeChild(div2);
             strictEqual(windowOpenCounter, 0);
 
@@ -210,7 +210,7 @@ test('Should not open in window if the default behavior was prevented in parent 
 
             return delay(10);
         })
-        .then(() => {
+        .then(function () {
             document.body.removeChild(div3);
             strictEqual(windowOpenCounter, 1);
 
