@@ -976,7 +976,7 @@ class NativeMethods {
         this.clearInterval       = win.clearInterval || winProto.clearInterval;
 
         this.registerProtocolHandler = win.navigator.registerProtocolHandler;
-        this.sendBeacon              = win.navigator.sendBeacon;
+        this.sendBeacon              = win.Navigator.prototype.sendBeacon;
 
         if (win.XMLHttpRequest) {
             // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
