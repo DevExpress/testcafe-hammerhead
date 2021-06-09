@@ -1461,3 +1461,33 @@ asyncTest('Should not change active element after source element was focused on 
         });
 });
 
+asyncTest('an active input should not be blurred after a call of the focus on a not focusable element', function () {
+    var activeInput     = document.createElement('input');
+    var notFocusableDiv = document.createElement('div');
+
+    activeInput.className = notFocusableDiv.className = TEST_ELEMENT_CLASS;
+
+    document.body.appendChild(activeInput);
+    document.body.appendChild(notFocusableDiv);
+
+    var isActiveInputFocused = false;
+    var isActiveInputBlurred = false;
+
+    activeInput.onfocus = function () {
+        isActiveInputFocused = true;
+    };
+
+    activeInput.onblur = function () {
+        isActiveInputBlurred = true;
+    };
+
+    focusBlur.focus(activeInput, function () {
+        ok(isActiveInputFocused);
+
+        focusBlur.focus(notFocusableDiv, function () {
+            ok(!isActiveInputBlurred);
+
+            startNext();
+        });
+    });
+});
