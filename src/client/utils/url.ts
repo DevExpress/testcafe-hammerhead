@@ -102,7 +102,7 @@ export let getProxyUrl = function (url: string, opts?): string {
         return url;
 
     charset = charset || (parsedResourceType.isScript || parsedResourceType.isServiceWorker) &&
-        document[INTERNAL_PROPS.documentCharset];
+        self.document && document[INTERNAL_PROPS.documentCharset];
 
     // NOTE: It seems that the relative URL had the leading slash or dots, so that the proxy info path part was
     // removed by the resolver and we have an origin URL with the incorrect host and protocol.

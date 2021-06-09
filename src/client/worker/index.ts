@@ -1,5 +1,6 @@
 import Promise from 'pinkie';
-import * as sharedUrlUtils from '../../utils/url';
+import { parseProxyUrl } from '../../utils/url';
+import { getProxyUrl, stringifyResourceType } from '../utils/url';
 import XhrSandbox from '../sandbox/xhr';
 import FetchSandbox from '../sandbox/fetch';
 import CookieSandbox from '../sandbox/cookie';
@@ -11,13 +12,14 @@ import nativeMethods from '../sandbox/native-methods';
 import { SET_BLOB_WORKER_SETTINGS } from './set-settings-command';
 import { forceLocation } from '../utils/destination-location';
 import { stopPropagation } from '../utils/event';
+import { overrideFunction } from '../utils/overriding';
 
 class WorkerHammerhead {
     readonly xhr: XhrSandbox;
     readonly fetch: FetchSandbox;
 
     constructor () {
-        const parsedLocation    = sharedUrlUtils.parseProxyUrl(location.toString());
+        const parsedLocation    = parseProxyUrl(location.toString());
         const cookieSandboxMock = { syncCookie: noop } as CookieSandbox;
 
         let waitHammerheadSettings: Promise<void> = null;
@@ -46,6 +48,8 @@ class WorkerHammerhead {
         this.fetch = new FetchSandbox(cookieSandboxMock, waitHammerheadSettings);
         this.fetch.attach(self);
 
+        WorkerHammerhead._overrideImportScripts();
+
         if (!globalContextInfo.isServiceWorker) {
             this.xhr = new XhrSandbox(cookieSandboxMock, waitHammerheadSettings);
             this.xhr.attach(self);
@@ -61,6 +65,16 @@ class WorkerHammerhead {
         currentSettings.windowId  = windowId;
 
         settings.set(currentSettings);
+    }
+
+    private static _overrideImportScripts () {
+        // @ts-ignore
+        overrideFunction(self, 'importScripts', (...urls: any[]) => {
+            for (let i = 0; i < urls.length; i++)
+                urls[i] = getProxyUrl(urls[i], { resourceType: stringifyResourceType({ isScript: true }) });
+
+            return nativeMethods.importScripts.apply(self, urls);
+        });
     }
 }
 

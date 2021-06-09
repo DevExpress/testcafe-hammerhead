@@ -1,6 +1,7 @@
-var urlParser = require('url');
-var fs        = require('fs');
-var CookieJar = require('tough-cookie').CookieJar;
+var urlParser     = require('url');
+var fs            = require('fs');
+var CookieJar     = require('tough-cookie').CookieJar;
+var processScript = require('../../lib/processing/script').processScript;
 
 var unchangeableUrlSession = 'unchangeableUrlSession';
 var cookies                = {};
@@ -36,6 +37,10 @@ function fetchContent (req) {
         req.on('data', chunk => chunks.push(chunk));
         req.on('end', () => resolve(Buffer.concat(chunks).toString()));
     });
+}
+
+function processServerScript (script) {
+    return processScript(script, true, false);
 }
 
 module.exports = function (app) {
@@ -126,6 +131,10 @@ module.exports = function (app) {
     app.get('/cors/', (req, res) => res
         .set('access-control-allow-origin', req.headers.origin)
         .send());
+
+    app.get('/:variable/script-url.js', (req, res) => res
+        .set('content-type', 'application/javascript')
+        .send(processServerScript('self.' + req.params.variable + ' = "' + req.originalUrl + '";')));
 
     app.get('/redirect/', function (req, res) {
         res.statusCode = 302;

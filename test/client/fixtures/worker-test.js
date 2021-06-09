@@ -5,6 +5,16 @@ var browserUtils  = hammerhead.utils.browser;
 var Promise       = hammerhead.Promise;
 
 
+function waitForMessage (worker) {
+    return new Promise(function (resolve) {
+        worker.onmessage = function (e) {
+            worker.onmessage = void 0;
+
+            resolve(e.data);
+        };
+    });
+}
+
 module('Web Worker');
 
 test('window.Worker should be overridden', function () {
@@ -127,15 +137,21 @@ if (!browserUtils.isIE) {
     test('send xhr from worker', function () {
         var worker = new Worker(window.QUnitGlobals.getResourceUrl('../data/web-worker/xhr.js'));
 
-        return new Promise(function (resolve) {
-            worker.onmessage = function (e) {
-                worker.onmessage = void 0;
-
-                resolve(e.data);
-            };
-        })
+        return waitForMessage(worker)
             .then(function (proxyUrl) {
                 strictEqual(proxyUrl, '/sessionId!a!1/https://example.com/xhr-test/100');
+
+                worker.terminate();
+            });
+    });
+
+    test('importScripts', function () {
+        var worker = new Worker(window.QUnitGlobals.getResourceUrl('../data/web-worker/import-scripts.js'));
+
+        return waitForMessage(worker)
+            .then(function (requestUrls) {
+                strictEqual(requestUrls[0], '/sessionId!s/https://example.com/url1/script-url.js');
+                strictEqual(requestUrls[1], '/sessionId!s/https://example.com/url2/script-url.js');
 
                 worker.terminate();
             });
@@ -146,13 +162,7 @@ if (nativeMethods.fetch) {
     test('send fetch from worker', function () {
         var worker = new Worker(window.QUnitGlobals.getResourceUrl('../data/web-worker/fetch.js'));
 
-        return new Promise(function (resolve) {
-            worker.onmessage = function (e) {
-                worker.onmessage = void 0;
-
-                resolve(e.data);
-            };
-        })
+        return waitForMessage(worker)
             .then(function (proxyUrl) {
                 strictEqual(proxyUrl, '/sessionId!a!2/https://example.com/xhr-test/50');
 
@@ -202,15 +212,15 @@ if (!browserUtils.isIE && !browserUtils.isSafari) {
         ].join('\n');
         var scriptWithUrlWithoutProtocol = scriptWithRelativeUrl.replace('/echo-request-headers/', '//example.com/echo-request-headers/');
         var runBlob                      = function (blob) {
-            return new Promise(function (resolve) {
-                var fileURL = URL.createObjectURL(blob);
-                var worker  = new Worker(fileURL);
+            var fileURL = URL.createObjectURL(blob);
+            var worker  = new Worker(fileURL);
 
-                worker.onmessage = function (e) {
+            return waitForMessage(worker)
+                .then(function (msg) {
                     worker.terminate();
-                    resolve(e.data);
-                };
-            });
+
+                    return msg;
+                });
         };
 
         return Promise.all([
@@ -237,13 +247,7 @@ if (!browserUtils.isIE && !browserUtils.isSafari) {
         var fileURL = URL.createObjectURL(new File([script], 'script.js'));
         var worker  = new Worker(fileURL);
 
-        return new Promise(function (resolve) {
-            worker.onmessage = function (e) {
-                worker.onmessage = void 0;
-
-                resolve(e.data);
-            };
-        })
+        return waitForMessage(worker)
             .then(function (proxyUrl) {
                 strictEqual(proxyUrl, '/sessionId!a!1/https://example.com/xhr-test/20');
 
@@ -260,13 +264,7 @@ if (!browserUtils.isIE && !browserUtils.isSafari) {
         var fileURL = URL.createObjectURL(new File([script], 'script.js'));
         var worker  = new Worker(fileURL);
 
-        return new Promise(function (resolve) {
-            worker.onmessage = function (e) {
-                worker.onmessage = void 0;
-
-                resolve(e.data);
-            };
-        })
+        return waitForMessage(worker)
             .then(function (proxyUrl) {
                 strictEqual(proxyUrl, '/sessionId!a!1/https://example.com/xhr-test/30');
 

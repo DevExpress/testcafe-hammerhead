@@ -64,6 +64,7 @@ class NativeMethods {
     insertCell: any;
     insertTableRow: any;
     insertTBodyRow: any;
+    importScripts: (...urls: string[]) => void
     removeAttribute: any;
     removeAttributeNS: any;
     removeChild: Node['removeChild'];
@@ -398,6 +399,7 @@ class NativeMethods {
         win = win || globalContextInfo.global;
 
         this.refreshWindowMeths(win, globalContextInfo.isInWorker);
+        this.refreshWorkerMeths(win);
 
         if (globalContextInfo.isInWorker)
             return;
@@ -412,6 +414,10 @@ class NativeMethods {
 
     getStoragesPropsOwner (win: Window & typeof globalThis) {
         return this.isStoragePropsLocatedInProto ? win.Window.prototype : win;
+    }
+
+    refreshWorkerMeths (scope: any /* WorkerGlobalScope */) {
+        this.importScripts = scope.importScripts;
     }
 
     refreshDocumentMeths (doc: Document, win: Window & typeof globalThis) {
