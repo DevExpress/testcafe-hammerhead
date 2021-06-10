@@ -98,8 +98,8 @@ export default class UnloadSandbox extends SandboxBase {
     }
 
     private _reattachListener (eventProperties: EventProperties) {
-        const nativeAddEventListener    = nativeMethods.windowAddEventListener || nativeMethods.addEventListener;
-        const nativeRemoveEventListener = nativeMethods.windowRemoveEventListener || nativeMethods.removeEventListener;
+        const nativeAddEventListener    = Listeners.getNativeAddEventListener(this.window);
+        const nativeRemoveEventListener = Listeners.getNativeRemoveEventListener(this.window);
 
         // NOTE: reattach the Listener, it'll be the last in the queue.
         nativeRemoveEventListener.call(this.window, eventProperties.nativeEventName, this);
@@ -111,7 +111,7 @@ export default class UnloadSandbox extends SandboxBase {
     }
 
     private _addEventListener (eventProperties: EventProperties) {
-        const nativeAddEventListener = nativeMethods.windowAddEventListener || nativeMethods.addEventListener;
+        const nativeAddEventListener = Listeners.getNativeAddEventListener(window);
 
         nativeAddEventListener.call(window, eventProperties.nativeEventName, this);
 

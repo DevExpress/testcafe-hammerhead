@@ -14,6 +14,7 @@ import Listeners from '../event/listeners';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import getTopOpenerWindow from '../../utils/get-top-opener-window';
 import { isIframeWindow } from '../../utils/dom';
+import nextTick from '../../utils/next-tick';
 
 const DEFAULT_WINDOW_PARAMETERS = 'width=500px, height=500px';
 const STORE_CHILD_WINDOW_CMD    = 'hammerhead|command|store-child-window';
@@ -88,27 +89,24 @@ export default class ChildWindowSandbox extends SandboxBase {
 
             e.preventDefault();
 
-            this._openNewWindowAfterAllEventHandlers(url, e);
+            this._openUrlInNewWindowIfNotPrevented(url, e);
         });
     }
 
-    private _openNewWindowAfterAllEventHandlers (url, e) {
-        const nativeAddEventListener    = nativeMethods.windowAddEventListener || nativeMethods.addEventListener;
-        const nativeRemoveEventListener = nativeMethods.windowRemoveEventListener || nativeMethods.removeEventListener;
-
+    private _openUrlInNewWindowIfNotPrevented (url, e) {
         let eventBubbledToTop  = false;
         let isDefaultPrevented = false;
 
-        const openUrlInNewWindowIfNotPrevented = () => {
+        const openUrlInNewWindowIfNotPreventedHandler = () => {
             eventBubbledToTop = true;
 
-            nativeRemoveEventListener.call(window, 'click', openUrlInNewWindowIfNotPrevented);
+            Listeners.getNativeRemoveEventListener(window).call(window, 'click', openUrlInNewWindowIfNotPreventedHandler);
 
             if (!isDefaultPrevented)
                 this._openUrlInNewWindow(url);
         };
 
-        nativeAddEventListener.call(window, 'click', openUrlInNewWindowIfNotPrevented);
+        Listeners.getNativeAddEventListener(window).call(window, 'click', openUrlInNewWindowIfNotPreventedHandler);
 
         // NOTE: additional attempt to open a new window if window.handler was prevented by
         // `stopPropagation` or `stopImmediatePropagation` methods
@@ -120,10 +118,10 @@ export default class ChildWindowSandbox extends SandboxBase {
             return origPreventDefault.call(e);
         };
 
-        setTimeout(() => {
+        nextTick().then(() => {
             if (!eventBubbledToTop)
-                openUrlInNewWindowIfNotPrevented();
-        }, 0);
+                openUrlInNewWindowIfNotPreventedHandler();
+        });
     }
 
     handleWindowOpen (window: Window, args: [string?, string?, string?, boolean?]): Window {

@@ -40,7 +40,7 @@ export default class Listeners extends EventEmitter {
         this.removeInternalEventBeforeListener   = this.listeningCtx.removeInternalBeforeHandler;
     }
 
-    private static _getNativeAddEventListener (el: any) {
+    static getNativeAddEventListener (el: any) {
         if (isIE11) {
             if (isWindow(el))
                 return nativeMethods.windowAddEventListener;
@@ -51,7 +51,7 @@ export default class Listeners extends EventEmitter {
         return nativeMethods.addEventListener;
     }
 
-    private static _getNativeRemoveEventListener (el) {
+    static getNativeRemoveEventListener (el) {
         if (isIE11) {
             if (isWindow(el))
                 return nativeMethods.windowRemoveEventListener;
@@ -154,7 +154,7 @@ export default class Listeners extends EventEmitter {
                 const el                     = this;
                 const useCapture             = Listeners._getUseCaptureParam(args[2]);
                 const eventCtx               = listeningCtx.getEventCtx(el, eventType);
-                const nativeAddEventListener = Listeners._getNativeAddEventListener(el);
+                const nativeAddEventListener = Listeners.getNativeAddEventListener(el);
 
                 if (!eventCtx || !isValidEventListener(listener))
                     return nativeAddEventListener.apply(el, args);
@@ -183,7 +183,7 @@ export default class Listeners extends EventEmitter {
                 const [eventType, listener]     = args;
                 const el                        = this;
                 const useCapture                = Listeners._getUseCaptureParam(args[2]);
-                const nativeRemoveEventListener = Listeners._getNativeRemoveEventListener(el);
+                const nativeRemoveEventListener = Listeners.getNativeRemoveEventListener(el);
                 const eventCtx                  = listeningCtx.getEventCtx(el, eventType);
 
                 if (!eventCtx || !isValidEventListener(listener))
@@ -203,7 +203,7 @@ export default class Listeners extends EventEmitter {
     }
 
     initElementListening (el: HTMLElement|Window|Document, events: string[] = LISTENED_EVENTS) {
-        const nativeAddEventListener = Listeners._getNativeAddEventListener(el);
+        const nativeAddEventListener = Listeners.getNativeAddEventListener(el);
 
         for (const event of events) {
             if (!this.listeningCtx.getEventCtx(el, event))
@@ -242,7 +242,7 @@ export default class Listeners extends EventEmitter {
     }
 
     restartElementListening (el: HTMLElement) {
-        const nativeAddEventListener = Listeners._getNativeAddEventListener(el);
+        const nativeAddEventListener = Listeners.getNativeAddEventListener(el);
         const elementCtx             = this.listeningCtx.getElementCtx(el);
 
         if (elementCtx) {
