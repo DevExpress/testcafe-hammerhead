@@ -14,6 +14,7 @@ import Listeners from '../event/listeners';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import getTopOpenerWindow from '../../utils/get-top-opener-window';
 import { isIframeWindow } from '../../utils/dom';
+import nextTick from '../../utils/next-tick';
 
 const DEFAULT_WINDOW_PARAMETERS = 'width=500px, height=500px';
 const STORE_CHILD_WINDOW_CMD    = 'hammerhead|command|store-child-window';
@@ -88,7 +89,38 @@ export default class ChildWindowSandbox extends SandboxBase {
 
             e.preventDefault();
 
-            this._openUrlInNewWindow(url);
+            this._openUrlInNewWindowIfNotPrevented(url, e);
+        });
+    }
+
+    private _openUrlInNewWindowIfNotPrevented (url, e) {
+        let eventBubbledToTop  = false;
+        let isDefaultPrevented = false;
+
+        const openUrlInNewWindowIfNotPreventedHandler = () => {
+            eventBubbledToTop = true;
+
+            Listeners.getNativeRemoveEventListener(window).call(window, 'click', openUrlInNewWindowIfNotPreventedHandler);
+
+            if (!isDefaultPrevented)
+                this._openUrlInNewWindow(url);
+        };
+
+        Listeners.getNativeAddEventListener(window).call(window, 'click', openUrlInNewWindowIfNotPreventedHandler);
+
+        // NOTE: additional attempt to open a new window if window.handler was prevented by
+        // `stopPropagation` or `stopImmediatePropagation` methods
+        const origPreventDefault = e.preventDefault;
+
+        e.preventDefault = () => {
+            isDefaultPrevented = true;
+
+            return origPreventDefault.call(e);
+        };
+
+        nextTick().then(() => {
+            if (!eventBubbledToTop)
+                openUrlInNewWindowIfNotPreventedHandler();
         });
     }
 
