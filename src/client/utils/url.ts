@@ -34,6 +34,13 @@ export const DEFAULT_PROXY_SETTINGS = (function () {
 
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = sharedUrlUtils.REQUEST_DESCRIPTOR_VALUES_SEPARATOR;
 
+function getCharsetFromDocument (parsedResourceType: ResourceType): string | null {
+    if (!parsedResourceType.isScript && !parsedResourceType.isServiceWorker)
+        return null;
+
+    return self.document && document[INTERNAL_PROPS.documentCharset] || null;
+}
+
 export let getProxyUrl = function (url: string, opts?): string {
     url = sharedUrlUtils.getURLString(url);
 
@@ -101,8 +108,7 @@ export let getProxyUrl = function (url: string, opts?): string {
     if (!parsedUrl.protocol) // eslint-disable-line no-restricted-properties
         return url;
 
-    charset = charset || (parsedResourceType.isScript || parsedResourceType.isServiceWorker) &&
-        document[INTERNAL_PROPS.documentCharset];
+    charset = charset || getCharsetFromDocument(parsedResourceType);
 
     // NOTE: It seems that the relative URL had the leading slash or dots, so that the proxy info path part was
     // removed by the resolver and we have an origin URL with the incorrect host and protocol.
