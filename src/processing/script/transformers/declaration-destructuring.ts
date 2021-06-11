@@ -43,10 +43,7 @@ const transformer: Transformer<VariableDeclaration> = {
         const declarations = [] as VariableDeclarator[];
 
         for (const declarator of node.declarations) {
-            if (!declarator.init)
-                continue;
-
-            destructuring(declarator.id, declarator.init, (pattern, value) =>
+            destructuring(declarator.id, declarator.init || null, (pattern, value) =>
                 declarations.push(createVariableDeclarator(pattern, value)));
         }
 
