@@ -784,7 +784,7 @@ export default class WindowSandbox extends SandboxBase {
             overrideFunction(window.history, 'replaceState', createWrapperForHistoryStateManipulationFn(nativeMethods.historyReplaceState));
         }
 
-        if (window.navigator.sendBeacon) {
+        if (nativeMethods.sendBeacon) {
             overrideFunction(window.Navigator.prototype, 'sendBeacon', function (this: Navigator) {
                 if (typeof arguments[0] === 'string')
                     arguments[0] = getProxyUrl(arguments[0]);

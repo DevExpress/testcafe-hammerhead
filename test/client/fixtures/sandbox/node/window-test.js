@@ -624,7 +624,7 @@ if (nativeMethods.windowOriginGetter) {
 
 module('regression');
 
-if (window.navigator.sendBeacon) {
+if (nativeMethods.sendBeacon) {
     test('navigator.sendBeacon must be overriden (GH-1035)', function () {
         var originUrl    = 'http://example.com/index.html';
         var originData   = 'some data';
