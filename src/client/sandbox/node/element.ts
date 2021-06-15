@@ -201,6 +201,14 @@ export default class ElementSandbox extends SandboxBase {
                     ? urlUtils.getProxyUrl(value)
                     : urlUtils.resolveUrlAsDest(value);
             }
+
+            if (!nativeMethods.nodeParentNodeGetter.call(el)) {
+                nativeMethods.objectDefineProperty(el, INTERNAL_PROPS.currentBaseUrl, {
+                    value:        urlResolver.getBaseUrl(document),
+                    configurable: true,
+                    writable:     true
+                });
+            }
         }
         else if (loweredAttr === 'autocomplete') {
             const storedAutocompleteAttr = DomProcessor.getStoredAttrName(attr);

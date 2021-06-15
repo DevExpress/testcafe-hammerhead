@@ -21,6 +21,7 @@ import ChildWindowSandbox from '../child-window';
 import DocumentTitleStorage from './document/title-storage';
 import DocumentTitleStorageInitializer from './document/title-storage-initializer';
 import { isIframeWindow } from '../../utils/dom';
+import urlResolver from '../../utils/url-resolver';
 
 const ATTRIBUTE_SELECTOR_REG_EX          = /\[([\w-]+)(\^?=.+?)]/g;
 const ATTRIBUTE_OPERATOR_WITH_HASH_VALUE = /^\W+\s*#/;
@@ -75,8 +76,10 @@ export default class NodeSandbox extends SandboxBase {
 
     private _processElement (el: Element): void {
         const processedContext = el[INTERNAL_PROPS.processedContext];
+        const isBaseUrlChanged = !!el[INTERNAL_PROPS.currentBaseUrl] &&
+                                 el[INTERNAL_PROPS.currentBaseUrl] !== urlResolver.getBaseUrl(this.document);
 
-        if (domUtils.isShadowUIElement(el) || processedContext === this.window)
+        if (!isBaseUrlChanged && (domUtils.isShadowUIElement(el) || processedContext === this.window))
             return;
 
         let urlAttrName = null;
@@ -97,8 +100,12 @@ export default class NodeSandbox extends SandboxBase {
         }
 
         // NOTE: We need to reprocess url attribute of element, if it's moved to different window (GH-564)
+        // or a base element is added dynamically (GH-1965)
         if (urlAttrName)
             el.setAttribute(urlAttrName, el.getAttribute(urlAttrName));
+
+        if (isBaseUrlChanged)
+            delete el[INTERNAL_PROPS.currentBaseUrl];
 
         this.element.processElement(el);
     }
