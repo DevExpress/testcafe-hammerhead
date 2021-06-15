@@ -114,8 +114,8 @@ test('wrappers of native functions should return the correct string representati
             'history.replaceState');
     }
 
-    if (window.navigator.sendBeacon)
-        window.checkStringRepresentation(window.navigator.sendBeacon, nativeMethods.sendBeacon);
+    if (nativeMethods.sendBeacon)
+        window.checkStringRepresentation(window.Navigator.prototype.sendBeacon, nativeMethods.sendBeacon, 'Navigator.prototype.sendBeacon');
 
     if (window.navigator.registerProtocolHandler) {
         window.checkStringRepresentation(window.navigator.registerProtocolHandler,
