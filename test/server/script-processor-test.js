@@ -1499,5 +1499,14 @@ describe('Script processor', () => {
                 }
             ]);
         });
+
+        it('Should not lose empty var assignment with destructuring', () => {
+            testProcessing([
+                {
+                    src:      'var n, { q } = e; n();',
+                    expected: 'var n,_hh$temp0 = e, q = _hh$temp0.q; n();'
+                }
+            ]);
+        });
     });
 });

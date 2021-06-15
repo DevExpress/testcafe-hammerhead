@@ -22,7 +22,7 @@ import {
 import TempVariables from './transformers/temp-variables';
 import INSTRUCTION from './instruction';
 
-type NodeBuilder = (pattern: Pattern, value: Expression, isTemp?: boolean) => void;
+type NodeBuilder = (pattern: Pattern, value: Expression | null, isTemp?: boolean) => void;
 
 function processObjectProperty (prop: AssignmentProperty, temp: Identifier, build: NodeBuilder, baseTempName: string) {
     const pattern  = prop.value;
@@ -55,7 +55,10 @@ function createTempIdentifierOrUseExisting (value: Expression, build: NodeBuilde
     return tempIdentifier;
 }
 
-function processObjectPattern (pattern: ObjectPattern, value: Expression, build: NodeBuilder, baseTempName?: string) {
+function processObjectPattern (pattern: ObjectPattern, value: Expression | null, build: NodeBuilder, baseTempName?: string) {
+    if (!value)
+        return;
+
     const properties     = pattern.properties;
     const hasRest        = properties.length && properties[properties.length - 1].type === Syntax.RestElement;
     const tempIdentifier = createTempIdentifierOrUseExisting(value, build, baseTempName);
@@ -104,7 +107,10 @@ function processObjectPattern (pattern: ObjectPattern, value: Expression, build:
     }
 }
 
-function processArrayPattern (pattern: ArrayPattern, value: Expression, build: NodeBuilder, baseTempName?: string) {
+function processArrayPattern (pattern: ArrayPattern, value: Expression | null, build: NodeBuilder, baseTempName?: string) {
+    if (!value)
+        return;
+
     const tempIdentifier = createTempIdentifierOrUseExisting(value, build, baseTempName);
 
     if (!baseTempName)
@@ -127,7 +133,10 @@ function processArrayPattern (pattern: ArrayPattern, value: Expression, build: N
     }
 }
 
-function processAssignmentPattern (pattern: AssignmentPattern, value: Expression, build: NodeBuilder, baseTempName?: string) {
+function processAssignmentPattern (pattern: AssignmentPattern, value: Expression | null, build: NodeBuilder, baseTempName?: string) {
+    if (!value)
+        return;
+
     const { left, right } = pattern;
     const tempIdentifier  = createTempIdentifierOrUseExisting(value, build, baseTempName);
     const tempCondition   = createBinaryExpression(tempIdentifier, '===', createUndefined());
@@ -141,7 +150,7 @@ function processAssignmentPattern (pattern: AssignmentPattern, value: Expression
     process(left, tempConditional, build, baseTempName);
 }
 
-export default function process(pattern: Pattern, value: Expression, build: NodeBuilder, baseTempName?: string) {
+export default function process(pattern: Pattern, value: Expression | null, build: NodeBuilder, baseTempName?: string) {
     if (pattern.type === Syntax.ObjectPattern)
         processObjectPattern(pattern, value, build, baseTempName);
     else if (pattern.type === Syntax.ArrayPattern)
