@@ -3,7 +3,7 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { AssignmentExpression, Expression, Identifier } from 'estree';
+import { AssignmentExpression, Identifier } from 'estree';
 import { Transformer } from './index';
 import { createAssignmentExpression, createSequenceExpression } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
@@ -39,7 +39,7 @@ const transformer: Transformer<AssignmentExpression> = {
                     firstTemp = pattern as Identifier;
             }
 
-            assignments.push(createAssignmentExpression(pattern, '=', value as Expression));
+            assignments.push(createAssignmentExpression(pattern, '=', value));
 
             if (isTemp && tempVars)
                 tempVars.append((pattern as Identifier).name);

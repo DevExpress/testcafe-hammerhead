@@ -46,7 +46,9 @@ export function createExpressionStatement (expression: Expression): ExpressionSt
     return { type: Syntax.ExpressionStatement, expression };
 }
 
-export function createAssignmentExpression (left: Pattern | MemberExpression, operator: AssignmentOperator, right: Expression): AssignmentExpression {
+export function createAssignmentExpression (left: Pattern | MemberExpression, operator: AssignmentOperator, right: Expression | null): AssignmentExpression {
+    //@ts-ignore the `right` value can actually be null, but the AssignmentExpression type definition
+    // does not allow to the `right` value be null
     return { type: Syntax.AssignmentExpression, operator, left, right };
 }
 
