@@ -215,3 +215,10 @@ test('[registerElement] the lifecycle callbacks should not be called twice (GH-6
 
     document.body.removeChild(testDiv);
 });
+
+test('dynamic base (GH-1965)', function () {
+    return createTestIframe({ src: getSameDomainPageUrl('../../../data/node-sandbox/dynamic-base-tag.html') })
+        .then(function (iframe) {
+            strictEqual(iframe.contentWindow.testpassed, '/sessionId!s/https://example.com/testpassed/script-url.js');
+        });
+});

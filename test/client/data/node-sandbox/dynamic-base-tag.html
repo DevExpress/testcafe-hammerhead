@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+    <script type="text/javascript">
+        var hammerhead = window['%hammerhead%'];
+
+        hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/https://example.com');
+        hammerhead.start({ sessionId: 'sessionId' });
+    </script>
+</head>
+<body>
+<script type="text/javascript">
+    var base   = document.createElement('base');
+    var script = document.createElement('script');
+
+    base.href  = 'https://example.com/testpassed/';
+    script.src = './script-url.js';
+
+    document.head.appendChild(base);
+    document.body.appendChild(script);
+</script>
+</body>
+</html>
