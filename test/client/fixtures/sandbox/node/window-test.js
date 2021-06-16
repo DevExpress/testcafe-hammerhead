@@ -114,8 +114,8 @@ test('wrappers of native functions should return the correct string representati
             'history.replaceState');
     }
 
-    if (window.navigator.sendBeacon)
-        window.checkStringRepresentation(window.navigator.sendBeacon, nativeMethods.sendBeacon);
+    if (nativeMethods.sendBeacon)
+        window.checkStringRepresentation(window.Navigator.prototype.sendBeacon, nativeMethods.sendBeacon, 'Navigator.prototype.sendBeacon');
 
     if (window.navigator.registerProtocolHandler) {
         window.checkStringRepresentation(window.navigator.registerProtocolHandler,
@@ -624,8 +624,8 @@ if (nativeMethods.windowOriginGetter) {
 
 module('regression');
 
-if (window.navigator.sendBeacon) {
-    test('Navigator.sendBeacon must be overriden (GH-1035)', function () {
+if (nativeMethods.sendBeacon) {
+    test('navigator.sendBeacon must be overriden (GH-1035)', function () {
         var originUrl    = 'http://example.com/index.html';
         var originData   = 'some data';
         var nativeMethod = nativeMethods.sendBeacon;
@@ -637,6 +637,20 @@ if (window.navigator.sendBeacon) {
         };
 
         window.navigator.sendBeacon(originUrl, originData);
+    });
+
+    test('Navigator.prototype.sendBeacon must be overriden (GH-2642)', function () {
+        var originUrl    = 'http://example.com/index.html';
+        var originData   = 'some data';
+        var nativeMethod = nativeMethods.sendBeacon;
+
+        nativeMethods.sendBeacon = function (url, data) {
+            strictEqual(url, urlUtils.getProxyUrl(originUrl));
+            strictEqual(data, originData);
+            nativeMethods.sendBeacon = nativeMethod;
+        };
+
+        window.Navigator.prototype.sendBeacon.call(window.navigator, originUrl, originData);
     });
 }
 
