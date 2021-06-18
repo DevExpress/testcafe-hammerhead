@@ -49,13 +49,24 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         this._send();
     }
 
+    private static _isHttp2ProtocolError (err: Error) {
+        return err['code'] === 'ERR_HTTP2_STREAM_ERROR' && err.message.includes('NGHTTP2_PROTOCOL_ERROR');
+    }
+
     private _sendRealThroughHttp2 (session: ClientHttp2Session) {
         const reqHeaders = formatRequestHttp2Headers(this.opts);
         const endStream  = !this.opts.body.length;
         const stream     = session.request(reqHeaders, { endStream });
 
         stream.setTimeout(this.timeout, () => this._onTimeout());
-        stream.on('error', (err: Error) => this._onError(err));
+        stream.on('error', (err: Error) => {
+            if (DestinationRequest._isHttp2ProtocolError(err)) {
+                session.destroy();
+                this._sendReal();
+            }
+            else
+                this._onError(err);
+        });
         stream.on('response', headers => {
             const http2res = createResponseLike(stream, headers);
 
