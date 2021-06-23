@@ -589,6 +589,35 @@ describe('Request Hooks', () => {
                     return wsCloseEventPromise;
                 });
         });
+
+        it('about:blank referer (GH-2607)', () => {
+            let requestHeaders;
+
+            const rule = new RequestFilterRule('http://127.0.0.1:2000/script');
+
+            session.addRequestEventListeners(rule, {
+                onRequest: e => {
+                    requestHeaders = e._requestInfo.headers;
+                }
+            });
+
+            const options = {
+                url:     getProxyUrl('http://127.0.0.1:2000/script', { isScript: true }),
+                headers: { referer: getProxyUrl('about:blank') },
+
+                resolveWithFullResponse: true
+            };
+
+            proxy.openSession('http://example.com', session);
+
+            return request(options)
+                .then(res => {
+                    expect(res.statusCode).eql(200);
+                    expect(requestHeaders).to.not.have.property('referer');
+
+                    session.removeRequestEventListeners(rule);
+                });
+        });
     });
 
     describe('Response mock', () => {
