@@ -7,10 +7,8 @@ import trim from './string-trim';
 import { ParsedUrl, ResourceType, RequestDescriptor, ParsedProxyUrl, ProxyUrlOptions } from '../typings/url';
 import { ServerInfo } from '../typings/proxy';
 
+const URL_RE              = /^\s*([\w-]+?:)?(?:\/\/(?:([^/]+)@)?(([^/%?;#: ]*)(?::(\d+))?))?(.*?)\s*$/
 const PROTOCOL_RE         = /^([\w-]+?:)(\/\/|[^\\/]|$)/;
-const LEADING_SLASHES_RE  = /^(\/\/)/;
-const HOST_RE             = /^(.*?)(\/|%|\?|;|#|$)/;
-const PORT_RE             = /:([0-9]*)$/;
 const QUERY_AND_HASH_RE   = /(\?.+|#[^#]*)$/;
 const PATH_AFTER_HOST_RE  = /^\/([^/]+?)\/([\S\s]+)$/;
 const HTTP_RE             = /^https?:/;
@@ -146,7 +144,7 @@ export function getURLString (url: string | URL): string {
     if (url === null && /iPad|iPhone/i.test(window.navigator.userAgent))
         return '';
 
-    return String(url).replace(/\n|\t/g, '');
+    return String(url).replace(/[\n\t]/g, '');
 }
 
 export function getProxyUrl (url: string, opts: ProxyUrlOptions): string {
@@ -277,56 +275,21 @@ export function getPathname (path: string): string {
 }
 
 export function parseUrl (url: string | URL): ParsedUrl {
-    const parsed: any = {};
-
     url = processSpecialChars(url);
 
     if (!url)
-        return parsed;
+        return {};
 
-    url = trim(url);
+    const urlMatch = url.match(URL_RE) as (string | undefined)[];
 
-    // Protocol
-    let hasImplicitProtocol = false;
-    const remainder         = url
-        .replace(PROTOCOL_RE, (_str, protocol, strAfterProtocol) => {
-            parsed.protocol = protocol;
-            return strAfterProtocol;
-        })
-        .replace(LEADING_SLASHES_RE, () => {
-            hasImplicitProtocol = true;
-            return '';
-        });
-
-    // NOTE: the URL is relative.
-    if (!parsed.protocol && !hasImplicitProtocol) {
-        parsed.partAfterHost = url;
-        return parsed;
-    }
-
-    // Host
-    parsed.partAfterHost = remainder
-        .replace(HOST_RE, (_str, host, restPartSeparator) => {
-            parsed.host = host;
-            parsed.port = '';
-            return restPartSeparator;
-        });
-
-    if (typeof parsed.host === 'string') {
-        const authHostArr = parsed.host.split('@');
-
-        if (authHostArr.length === 2) {
-            parsed.auth = authHostArr[0];
-            parsed.host = authHostArr[1];
-        }
-    }
-
-    parsed.hostname = parsed.host ? parsed.host.replace(PORT_RE, (_str: string, port: string) => {
-        parsed.port = port;
-        return '';
-    }) : '';
-
-    return parsed;
+    return urlMatch ? {
+        protocol:      urlMatch[1],
+        auth:          urlMatch[2],
+        host:          urlMatch[3],
+        hostname:      urlMatch[4],
+        port:          urlMatch[5],
+        partAfterHost: urlMatch[6]
+    } : {};
 }
 
 export function isSupportedProtocol (url: string): boolean {
@@ -360,7 +323,8 @@ export function resolveUrlAsDest (url: string, getProxyUrlMeth: Function): strin
 
 export function formatUrl (parsedUrl: ParsedUrl): string {
     // NOTE: the URL is relative.
-    if (parsedUrl.protocol !== 'file:' && !parsedUrl.host && (!parsedUrl.hostname || !parsedUrl.port))
+    if (parsedUrl.protocol !== 'file:' && parsedUrl.protocol !== 'about:' &&
+        !parsedUrl.host && (!parsedUrl.hostname || !parsedUrl.port))
         return parsedUrl.partAfterHost || '';
 
     let url = parsedUrl.protocol || '';
@@ -374,7 +338,7 @@ export function formatUrl (parsedUrl: ParsedUrl): string {
     if (parsedUrl.host)
         url += parsedUrl.host;
 
-    else {
+    else if (parsedUrl.hostname) {
         url += parsedUrl.hostname;
 
         if (parsedUrl.port)
@@ -443,7 +407,8 @@ function isValidPort (port: string): boolean {
 export function isValidUrl (url: string): boolean {
     const parsedUrl = parseUrl(url);
 
-    return parsedUrl.protocol === 'file:' || !!parsedUrl.hostname && (!parsedUrl.port || isValidPort(parsedUrl.port));
+    return parsedUrl.protocol === 'file:' || parsedUrl.protocol === 'about:' ||
+        !!parsedUrl.hostname && (!parsedUrl.port || isValidPort(parsedUrl.port));
 }
 
 export function ensureOriginTrailingSlash (url: string): string {
