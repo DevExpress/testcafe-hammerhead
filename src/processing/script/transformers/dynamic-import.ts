@@ -22,7 +22,7 @@ const transformer: Transformer<ImportExpression> = {
     condition: () => true,
 
     run: node => {
-        const newSource = createGetProxyUrlMethodCall(node.source, transformer.baseUrl);
+        const newSource = createGetProxyUrlMethodCall(node.source, transformer.getBaseUrl?.());
 
         replaceNode(node.source, newSource, node, 'source');
 

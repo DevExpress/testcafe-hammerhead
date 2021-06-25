@@ -36,6 +36,7 @@ export interface Transformer<C extends Node> {
     nodeTypes: C['type'];
     condition: (node: C, parent?: Node) => boolean;
     run: <P extends Node>(node: C, parent?: P, key?: keyof P, tempVars?: TempVariables) => Node|null;
+    getBaseUrl?: () => string;
     baseUrl?: string;
     wrapLastExpr?: boolean;
     resolver?: Function;
