@@ -7,6 +7,8 @@ const STACK_FRAME_REG_EXPS = [
     /(.+)/ // Any string
 ];
 
+const STACK_FRAME_REGEX = /(?:^|\n)(?:\s*at |.*@)(?:.*\()?(\S+?):\d+:\d+\)?/g;
+
 const ROW_COLUMN_NUMBER_REG_EX = /:\d+:\d+$/;
 
 function getDestSource (source: string): string | null {
@@ -48,25 +50,18 @@ export function getFirstDestUrl (stack: string | null | void): string | null {
     if (!stack)
         return null;
 
-    const stackFrames = stack.split('\n');
+    let searchResult = STACK_FRAME_REGEX.exec(stack);
 
-    for (const stackFrame of stackFrames) {
-        for (const stackFrameRegExp of STACK_FRAME_REG_EXPS) {
-            if (!stackFrameRegExp.test(stackFrame))
-                continue;
+    while (searchResult) {
+        const destUrl = getDestSource(searchResult[1])
 
-            let destSource = null as string | null;
+        if (destUrl) {
+            STACK_FRAME_REGEX.lastIndex = 0;
 
-            stackFrame.replace(stackFrameRegExp, (str: string, source: string) => {
-                source     = source.replace(ROW_COLUMN_NUMBER_REG_EX, '');
-                destSource = getDestSource(source);
-
-                return str;
-            });
-
-            if (destSource)
-                return destSource;
+            return destUrl;
         }
+        else
+            searchResult = STACK_FRAME_REGEX.exec(stack);
     }
 
     return null;

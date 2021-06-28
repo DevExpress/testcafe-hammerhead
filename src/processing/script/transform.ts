@@ -123,12 +123,23 @@ function beforeTransform (wrapLastExprWithProcessHtml = false, resolver?: Functi
     const isServerSide = typeof window === 'undefined';
 
     if (isServerSide)
-        dynamicImportTransformer.baseUrl = resolver ? parseProxyUrl(resolver('./'))!.destUrl : '';
-    else {
-        const currentStack = new Error().stack;
+        dynamicImportTransformer.getBaseUrl = () => {
+            if (typeof dynamicImportTransformer.baseUrl === 'undefined')
+                dynamicImportTransformer.baseUrl = resolver ? parseProxyUrl(resolver('./'))!.destUrl : '';
 
-        // NOTE: IE11 doesn't give the error stack without the 'throw' statement and doesn't support the 'import' statement
-        dynamicImportTransformer.baseUrl = currentStack && getFirstDestUrl(currentStack) || '';
+            return dynamicImportTransformer.baseUrl;
+        }
+    else {
+        dynamicImportTransformer.getBaseUrl = () => {
+            if (typeof dynamicImportTransformer.baseUrl === 'undefined') {
+                const currentStack = new Error().stack;
+
+                // NOTE: IE11 doesn't give the error stack without the 'throw' statement and doesn't support the 'import' statement
+                dynamicImportTransformer.baseUrl = currentStack && getFirstDestUrl(currentStack) || '';
+            }
+
+            return dynamicImportTransformer.baseUrl;
+        }
     }
 }
 

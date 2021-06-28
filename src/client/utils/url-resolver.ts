@@ -81,7 +81,7 @@ export default {
 
         /*eslint-disable no-restricted-properties*/
         const parsedUrl             = parseUrl(url);
-        const isRelativeUrl         = parsedUrl.protocol !== 'file:' && !parsedUrl.host;
+        const isRelativeUrl         = parsedUrl.protocol !== 'file:' && parsedUrl.protocol !== 'about:' && !parsedUrl.host;
         const isProtocolRelativeUrl = /^\/\//.test(url) && !!parsedUrl.host;
         /*eslint-enable no-restricted-properties*/
 
