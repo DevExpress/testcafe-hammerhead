@@ -17,7 +17,6 @@ export default class CodeInstrumentation extends SandboxBase {
     _methodCallInstrumentation: MethodCallInstrumentation;
     _locationAccessorsInstrumentation: LocationAccessorsInstrumentation;
     _propertyAccessorsInstrumentation: PropertyAccessorsInstrumentation;
-    elementPropertyAccessors: any;
 
     constructor (eventSandbox: EventSandbox, messageSandbox: MessageSandbox) {
         super();
@@ -32,7 +31,7 @@ export default class CodeInstrumentation extends SandboxBase {
 
         this._methodCallInstrumentation.attach(window);
         this._locationAccessorsInstrumentation.attach(window);
-        this.elementPropertyAccessors = this._propertyAccessorsInstrumentation.attach(window);
+        this._propertyAccessorsInstrumentation.attach(window);
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.

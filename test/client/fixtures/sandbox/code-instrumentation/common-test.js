@@ -3,14 +3,12 @@ var codeInstrumentation     = hammerhead.sandbox.codeInstrumentation;
 var nativeMethods           = hammerhead.nativeMethods;
 
 test('wrapped properties equal accessors properties', function () {
-    codeInstrumentation.attach(window);
+    var propertyAccessorsKeys = Object.keys(codeInstrumentation._propertyAccessorsInstrumentation.constructor._ACCESSORS);
 
-    var elementPropertyAccessorsKeys = Object.keys(codeInstrumentation.elementPropertyAccessors);
-
-    strictEqual(elementPropertyAccessorsKeys.length, INSTRUMETNED_PROPERTIES.length);
+    strictEqual(propertyAccessorsKeys.length, INSTRUMETNED_PROPERTIES.length);
 
     for (var i = 0; i < INSTRUMETNED_PROPERTIES.length; i++)
-        ok(elementPropertyAccessorsKeys.indexOf(INSTRUMETNED_PROPERTIES[i]) > -1, INSTRUMETNED_PROPERTIES[i]);
+        ok(propertyAccessorsKeys.indexOf(INSTRUMETNED_PROPERTIES[i]) > -1, INSTRUMETNED_PROPERTIES[i]);
 });
 
 if (nativeMethods.Proxy) {

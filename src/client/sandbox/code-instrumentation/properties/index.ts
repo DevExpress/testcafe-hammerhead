@@ -1,9 +1,8 @@
-import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import LocationAccessorsInstrumentation from '../location';
 import LocationWrapper from '../location/wrapper';
 import SandboxBase from '../../base';
 import * as domUtils from '../../../utils/dom';
-import * as typeUtils from '../../../utils/types';
+import { isNullOrUndefined, inaccessibleTypeToStr } from '../../../utils/types';
 import * as urlUtils from '../../../utils/url';
 import { prepareUrl } from '../../../../utils/url';
 import INSTRUCTION from '../../../../processing/script/instruction';
@@ -13,7 +12,6 @@ import DomProcessor from '../../../../processing/dom';
 import settings from '../../../settings';
 import { isIE } from '../../../utils/browser';
 import WindowSandbox from '../../node/window';
-import ShadowUISandbox from '../../shadow-ui';
 import noop from '../../../utils/noop';
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
@@ -21,20 +19,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
     // JS engine doesn't optimize such functions.
     private static _error (msg: string) {
         throw new Error(msg);
-    }
-
-    private static _safeIsShadowUIElement<T extends any> (owner: T, propName: keyof T): boolean {
-        const el = owner[propName];
-
-        if (!el || !ShadowUISandbox.isShadowContainerCollection(owner))
-            return false;
-
-        try {
-            return !WindowSandbox.isProxyObject(el) && domUtils.isShadowUIElement(el);
-        }
-        catch (e) {
-            return false;
-        }
     }
 
     private static _setCrossDomainLocation (location: Location, value: any) {
@@ -60,112 +44,87 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         return value;
     }
 
-    _createPropertyAccessors () {
-        return {
-            href: {
-                condition: domUtils.isLocation,
+    private static _getLocation (owner: Window | Document) {
+        const locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(owner);
 
-                // eslint-disable-next-line no-restricted-properties
-                get: (crossDomainLocation: Location) => crossDomainLocation.href,
+        if (locationWrapper)
+            return locationWrapper;
+        else if (!owner.location)
+            return owner.location;
 
-                set: PropertyAccessorsInstrumentation._setCrossDomainLocation
-            },
+        const wnd = domUtils.isWindow(owner) ? owner : owner.defaultView;
 
-            location: {
-                condition: (owner: any) => domUtils.isDocument(owner) || domUtils.isWindow(owner),
-
-                get: (owner: Window | Document) => {
-                    const locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(owner);
-
-                    if (locationWrapper)
-                        return locationWrapper;
-                    else if (!owner.location)
-                        return owner.location;
-
-                    const wnd = domUtils.isWindow(owner) ? owner : owner.defaultView;
-
-                    return new LocationWrapper(wnd, null, noop);
-                },
-
-                set: (owner: Window | Document, location: Location) => {
-                    //@ts-ignore
-                    const ownerWindow     = domUtils.isWindow(owner) ? owner : owner.defaultView;
-                    const locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(ownerWindow);
-
-                    if (!locationWrapper || locationWrapper === owner.location ||
-                        isIE && domUtils.isCrossDomainWindows(window, ownerWindow))
-                        PropertyAccessorsInstrumentation._setCrossDomainLocation(owner.location, location);
-                    else if (locationWrapper)
-                        locationWrapper.href = location; // eslint-disable-line no-restricted-properties
-
-                    return location;
-                }
-            }
-        };
+        return new LocationWrapper(wnd, null, noop);
     }
 
-    static _getSetPropertyInstructionByOwner (owner, window: Window) {
-        try {
-            return owner && owner[INTERNAL_PROPS.processedContext] &&
-                   owner[INTERNAL_PROPS.processedContext] !== window &&
-                   owner[INTERNAL_PROPS.processedContext][INSTRUCTION.setProperty];
+    private static _setLocation (owner: Window | Document, location: Location) {
+        //@ts-ignore
+        const ownerWindow     = domUtils.isWindow(owner) ? owner : owner.defaultView;
+        const locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(ownerWindow);
+
+        if (!locationWrapper || locationWrapper === owner.location ||
+            isIE && domUtils.isCrossDomainWindows(window, ownerWindow))
+            PropertyAccessorsInstrumentation._setCrossDomainLocation(owner.location, location);
+        else if (locationWrapper)
+            locationWrapper.href = location; // eslint-disable-line no-restricted-properties
+
+        return location;
+    }
+
+    private static _ACCESSORS = {
+        href: {
+            condition: domUtils.isLocation,
+
+            // eslint-disable-next-line no-restricted-properties
+            get: (crossDomainLocation: Location) => crossDomainLocation.href,
+            set: PropertyAccessorsInstrumentation._setCrossDomainLocation
+        },
+
+        location: {
+            condition: (owner: any) => domUtils.isDocument(owner) || domUtils.isWindow(owner),
+            get: PropertyAccessorsInstrumentation._getLocation,
+            set: PropertyAccessorsInstrumentation._setLocation
         }
-        catch (e) {
-            return null;
+    };
+
+    private static _propertyGetter (owner: any, propName: any) {
+        if (isNullOrUndefined(owner))
+            PropertyAccessorsInstrumentation._error(`Cannot read property '${propName}' of ${inaccessibleTypeToStr(owner)}`);
+
+        if (typeof propName === 'string' && shouldInstrumentProperty(propName)) {
+            if (!WindowSandbox.isProxyObject(owner) && PropertyAccessorsInstrumentation._ACCESSORS[propName].condition(owner))
+                return PropertyAccessorsInstrumentation._ACCESSORS[propName].get(owner);
         }
+
+        return owner[propName];
+    }
+
+    private static _propertySetter (owner: any, propName: any, value: any) {
+        if (isNullOrUndefined(owner))
+            PropertyAccessorsInstrumentation._error(`Cannot set property '${propName}' of ${inaccessibleTypeToStr(owner)}`);
+
+        if (typeof propName === 'string' && shouldInstrumentProperty(propName)) {
+            if (!WindowSandbox.isProxyObject(owner) && PropertyAccessorsInstrumentation._ACCESSORS[propName].condition(owner))
+                return PropertyAccessorsInstrumentation._ACCESSORS[propName].set(owner, value);
+        }
+
+        return owner[propName] = value; // eslint-disable-line no-return-assign
     }
 
     attach (window: Window & typeof globalThis) {
         super.attach(window);
 
-        const accessors = this._createPropertyAccessors();
-
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
-        nativeMethods.objectDefineProperty(window, INSTRUCTION.getProperty, {
-            value: (owner, propName) => {
-                if (typeUtils.isNullOrUndefined(owner))
-                    PropertyAccessorsInstrumentation._error(`Cannot read property '${propName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
-
-                if (WindowSandbox.isProxyObject(owner))
-                    return owner[propName];
-
-                if (typeof propName === 'string' && shouldInstrumentProperty(propName) &&
-                    accessors[propName].condition(owner))
-                    return accessors[propName].get(owner);
-
-                if (PropertyAccessorsInstrumentation._safeIsShadowUIElement(owner, propName))
-                    return void 0;
-
-                return owner[propName];
+        nativeMethods.objectDefineProperties(window, {
+            [INSTRUCTION.getProperty]: {
+                value:        PropertyAccessorsInstrumentation._propertyGetter,
+                configurable: true
             },
-
-            configurable: true
+            [INSTRUCTION.setProperty]: {
+                value:        PropertyAccessorsInstrumentation._propertySetter,
+                configurable: true
+            }
         });
-
-        nativeMethods.objectDefineProperty(window, INSTRUCTION.setProperty, {
-            value: (owner, propName, value) => {
-                if (typeUtils.isNullOrUndefined(owner))
-                    PropertyAccessorsInstrumentation._error(`Cannot set property '${propName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
-
-                if (WindowSandbox.isProxyObject(owner))
-                    return owner[propName] = value; // eslint-disable-line no-return-assign
-
-                const ownerSetPropertyInstruction = PropertyAccessorsInstrumentation._getSetPropertyInstructionByOwner(owner, window);
-
-                if (ownerSetPropertyInstruction)
-                    return ownerSetPropertyInstruction(owner, propName, value);
-
-                if (typeof propName === 'string' && shouldInstrumentProperty(propName) &&
-                    accessors[propName].condition(owner))
-                    return accessors[propName].set(owner, value);
-
-                return owner[propName] = value; // eslint-disable-line no-return-assign
-            },
-
-            configurable: true
-        });
-
-        return accessors;
     }
 }
