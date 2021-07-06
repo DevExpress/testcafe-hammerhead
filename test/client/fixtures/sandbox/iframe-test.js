@@ -146,7 +146,7 @@ if (nativeMethods.iframeSrcdocGetter) {
         strictEqual(nativeMethods.getAttribute.call(iframe, 'srcdoc'), htmlUtils.processHtml(html, { isPage: true }).replace(/(sessionId)/, '$1!i'));
     });
 
-    test('ready to init event should be raised after the document was initialized', function () {
+    test('ready to init event should be raised after the document was initialized (added to dom)', function () {
         var iframeLoadingEventRaised = false;
 
         var handler = function (iframe) {
@@ -157,25 +157,43 @@ if (nativeMethods.iframeSrcdocGetter) {
 
         iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
 
-        var iframe = document.createElement('iframe');
-
-        iframe.setAttribute('srcdoc', '<h1>simple markup</h1>');
-        iframe.id = 'test' + Date.now();
-
-        document.body.appendChild(iframe);
-
-        return window.QUnitGlobals.wait(function () {
-            return true;
-        })
-            .then(function () {
-                return window.QUnitGlobals.waitForIframe(iframe);
-            })
+        return createTestIframe({ srcdoc: '<h1>simple markup</h1>' })
             .then(function () {
                 ok(iframeLoadingEventRaised);
 
                 iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
-                document.body.removeChild(iframe);
             });
+    });
+
+    test('ready to init event should be raised after the document was initialized (already in dom)', function () {
+        createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/iframe-with-srcdoc.html') });
+
+        return waitForMessage(window)
+            .then(function (iframeRunTaskScriptEventUrl) {
+                strictEqual(iframeRunTaskScriptEventUrl, 'about:srcdoc');
+            });
+    });
+
+    test('document\'s methods should be rewritten immediately after an iframe added to dom (GH-2647)', function () {
+        var iframe = document.createElement('iframe');
+
+        iframe.id     = 'test' + Date.now();
+        iframe.srcdoc = '<h1>test</h1>';
+
+        document.body.appendChild(iframe);
+
+        iframe.contentDocument.open();
+        iframe.contentDocument.write('<script>parent.postMessage("message", "*")<' + '/script>');
+        iframe.contentDocument.close();
+
+        return new Promise(function (resolve) {
+            window.addEventListener('message', function (e) {
+                strictEqual(e.data, 'message');
+
+                document.body.removeChild(iframe);
+                resolve();
+            });
+        });
     });
 }
 

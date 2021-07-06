@@ -121,12 +121,20 @@ export default class IframeSandbox extends SandboxBase {
     }
 
     static isIframeInitialized (iframe: HTMLIFrameElement | HTMLFrameElement): boolean {
-        const contentWindow           = nativeMethods.contentWindowGetter.call(iframe);
-        const contentDocument         = nativeMethods.contentDocumentGetter.call(iframe);
-        const isFFIframeUninitialized = isFirefox && contentWindow.document.readyState === 'uninitialized';
+        const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
+        const contentDocument = nativeMethods.contentDocumentGetter.call(iframe);
 
-        return !isFFIframeUninitialized && !!contentDocument.documentElement ||
-               isIE && contentWindow[INTERNAL_PROPS.documentWasCleaned];
+        if (isFirefox)
+            return contentDocument.readyState !== 'uninitialized';
+
+        if (isIE)
+            return !!contentDocument.documentElement || contentWindow[INTERNAL_PROPS.documentWasCleaned];
+
+        if (!contentWindow[INTERNAL_PROPS.documentWasCleaned] && isIframeWithSrcdoc(iframe))
+            // eslint-disable-next-line no-restricted-properties
+            return contentWindow.location.href === 'about:srcdoc';
+
+        return true;
     }
 
     static isWindowInited (window: Window): boolean {
@@ -157,10 +165,6 @@ export default class IframeSandbox extends SandboxBase {
 
     processIframe (el: HTMLIFrameElement | HTMLFrameElement): void {
         if (isShadowUIElement(el))
-            return;
-
-        // NOTE: the ready to init event will be raised by the self removing script
-        if (isIframeWithSrcdoc(el))
             return;
 
         if (isIframeElement(el) && nativeMethods.contentWindowGetter.call(el) ||

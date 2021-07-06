@@ -208,6 +208,16 @@
         strictEqual(wrappedFn.name, originalFn.name, fnName + ': the function names should be the same');
     };
 
+    window.waitForMessage = function (receiver) {
+        return new Promise(function (resolve) {
+            receiver.onmessage = function (e) {
+                receiver.onmessage = void 0;
+
+                resolve(e.data);
+            };
+        });
+    };
+
     QUnitGlobals.WAIT_FOR_IFRAME_TIMEOUT = 20000;
     QUnit.config.testTimeout             = window.QUnitGlobals.WAIT_FOR_IFRAME_TIMEOUT * 2 + 5000;
 
