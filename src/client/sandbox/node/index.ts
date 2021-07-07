@@ -55,7 +55,7 @@ export default class NodeSandbox extends SandboxBase {
 
         this._documentTitleStorageInitializer = NodeSandbox._createDocumentTitleStorageInitializer();
 
-        this.doc     = new DocumentSandbox(this, this.shadowUI, this._cookieSandbox, this._documentTitleStorageInitializer);
+        this.doc     = new DocumentSandbox(this, this.shadowUI, this._cookieSandbox, this.iframeSandbox, this._documentTitleStorageInitializer);
         this.win     = new WindowSandbox(this, this._eventSandbox, this._uploadSandbox, this.mutation, this._childWindowSandbox, this._documentTitleStorageInitializer);
         this.element = new ElementSandbox(this, this._uploadSandbox, this.iframeSandbox, this.shadowUI, this._eventSandbox, this._childWindowSandbox);
     }

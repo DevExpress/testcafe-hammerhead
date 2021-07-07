@@ -29,6 +29,7 @@
     "initIframeTestHandler": true,
     "checkNativeFunctionArgs": true,
     "createTestIframe": true,
+    "waitForMessage": true,
     "getCrossDomainPageUrl": true,
     "getSameDomainPageUrl": true,
     "removeDoubleQuotes": true

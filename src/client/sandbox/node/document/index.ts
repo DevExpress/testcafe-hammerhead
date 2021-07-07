@@ -14,13 +14,15 @@ import { overrideDescriptor, createOverriddenDescriptor, overrideFunction } from
 import NodeSandbox from '../index';
 import { getDestinationUrl, isSpecialPage } from '../../../utils/url';
 import DocumentTitleStorageInitializer from './title-storage-initializer';
+import CookieSandbox from '../../cookie';
 
 export default class DocumentSandbox extends SandboxBase {
     documentWriter: DocumentWriter;
 
     constructor (private readonly _nodeSandbox: NodeSandbox,
         private readonly _shadowUI: ShadowUI,
-        private readonly _cookieSandbox,
+        private readonly _cookieSandbox: CookieSandbox,
+        private readonly _iframeSandbox: IframeSandbox,
         private readonly _documentTitleStorageInitializer?: DocumentTitleStorageInitializer) {
 
         super();
@@ -151,10 +153,12 @@ export default class DocumentSandbox extends SandboxBase {
 
                 if (!isUninitializedIframe)
                     documentSandbox._nodeSandbox.mutation.onDocumentCleaned(window, this);
-                else
-                // NOTE: If iframe initialization is in progress, we need to override the document.write and document.open
-                // methods once again, because they were cleaned after the native document.open method call.
-                    documentSandbox.attach(window, this);
+                else {
+                    const iframe = getFrameElement(window);
+
+                    if (iframe)
+                        documentSandbox._iframeSandbox.processIframe(iframe);
+                }
 
                 return result;
             },

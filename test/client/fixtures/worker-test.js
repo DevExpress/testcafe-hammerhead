@@ -5,16 +5,6 @@ var browserUtils  = hammerhead.utils.browser;
 var Promise       = hammerhead.Promise;
 
 
-function waitForMessage (worker) {
-    return new Promise(function (resolve) {
-        worker.onmessage = function (e) {
-            worker.onmessage = void 0;
-
-            resolve(e.data);
-        };
-    });
-}
-
 module('Web Worker');
 
 test('window.Worker should be overridden', function () {
