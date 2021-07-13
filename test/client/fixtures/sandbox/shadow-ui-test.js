@@ -639,7 +639,7 @@ module('childNodes', function () {
         ok(!ShadowUI.isShadowContainerCollection(collection));
     });
 
-    test('access by index (GH-1747)', function () {
+    QUnit.skip('access by index (GH-1747)', function () {
         expect(0);
 
         var root = shadowUI.getRoot();
