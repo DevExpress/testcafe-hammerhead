@@ -183,6 +183,7 @@ class NativeMethods {
     arrayReverse: any;
     arrayReduce: any;
     arrayFrom: any;
+    isArray: ArrayConstructor['isArray']
     DOMParserParseFromString: any;
     arrayBufferIsView: any;
     elementHTMLPropOwnerName: string;
@@ -1086,6 +1087,7 @@ class NativeMethods {
         this.arrayReverse = win.Array.prototype.reverse;
         this.arrayReduce  = win.Array.prototype.reduce;
         this.arrayFrom    = win.Array.from;
+        this.isArray      = win.Array.isArray;
 
         this.DOMParserParseFromString = win.DOMParser && win.DOMParser.prototype.parseFromString;
 
