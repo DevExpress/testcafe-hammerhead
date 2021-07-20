@@ -78,6 +78,8 @@ test('url attributes overridden by descriptor', function () {
             resourceType = 's';
         else if (tagName === 'form' || attr === 'formAction')
             resourceType = 'f';
+        else if (tagName === 'object')
+            resourceType = 'o';
 
         var proxy = urlUtils.getProxyUrl(dest, { resourceType: resourceType });
 
