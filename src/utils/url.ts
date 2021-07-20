@@ -46,7 +46,8 @@ const RESOURCE_TYPES = [
     { name: 'isHtmlImport', flag: 'h'},
     { name: 'isWebSocket', flag: 'w'},
     { name: 'isServiceWorker', flag: 'c'},
-    { name: 'isAjax', flag: 'a'}
+    { name: 'isAjax', flag: 'a'},
+    { name: 'isObject', flag: 'o'}
 ] as { name: keyof ResourceType, flag: string }[];
 
 export function parseResourceType (resourceType: string): ResourceType {

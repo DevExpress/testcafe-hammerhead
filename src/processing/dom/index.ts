@@ -297,7 +297,8 @@ export default class DomProcessor {
             isIframe:     tagName === 'iframe' || tagName === 'frame' || this._isOpenLinkInIframe(el),
             isForm:       tagName === 'form' || tagName === 'input' || tagName === 'button',
             isScript:     tagName === 'script',
-            isHtmlImport: tagName === 'link' && this._getRelAttribute(el) === 'import'
+            isHtmlImport: tagName === 'link' && this._getRelAttribute(el) === 'import',
+            isObject:     tagName === 'object'
         });
     }
 

@@ -9,6 +9,7 @@ export interface ResourceType {
     isWebSocket?: boolean;
     isServiceWorker?: boolean;
     isAjax?: boolean;
+    isObject?: boolean;
 }
 
 export interface ParsedUrl {
