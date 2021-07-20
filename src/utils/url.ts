@@ -15,6 +15,7 @@ const HTTP_RE             = /^https?:/;
 const FILE_RE             = /^file:/i;
 const SHORT_ORIGIN_RE     = /^http(s)?:\/\//;
 const IS_SECURE_ORIGIN_RE = /^s\*/;
+const META_REFRESH_RE     = /^(.+?[;,]\s*(?:url\s*=\s*)?(['"])?)(.+?)?(\2)?$/i;
 
 export const SUPPORTED_PROTOCOL_RE                            = /^(?:https?|file):/i;
 export const HASH_RE                                          = /^#/;
@@ -453,4 +454,13 @@ export function updateScriptImportUrls (cachedScript: string, serverInfo: Server
     const pattern = '$1' + sessionId + (windowId ? REQUEST_DESCRIPTOR_SESSION_INFO_VALUES_SEPARATOR + windowId : '');
 
     return cachedScript.replace(regExp, pattern);
+}
+
+export function processMetaRefreshContent (content: string, urlReplacer: (url: string) => string): string {
+    const match = content.match(META_REFRESH_RE);
+
+    if (!match || !match[3])
+        return content;
+
+    return match[1] + urlReplacer(match[3]) + (match[4] || '');
 }

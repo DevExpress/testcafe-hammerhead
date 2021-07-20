@@ -76,7 +76,7 @@ function resolveAndGetProxyUrl (url: string, ctx: RequestPipelineContext): strin
 }
 
 function transformRefreshHeader (src: string, ctx: RequestPipelineContext) {
-    return src.replace(/(url=)(.*)$/i, (_match, prefix, url) => prefix + resolveAndGetProxyUrl(url, ctx));
+    return urlUtils.processMetaRefreshContent(src, url => resolveAndGetProxyUrl(url, ctx));
 }
 
 function processSetCookieHeader (src: string | string[], ctx: RequestPipelineContext) {
