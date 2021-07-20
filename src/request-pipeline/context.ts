@@ -45,6 +45,7 @@ interface DestInfo {
     isWebSocket: boolean;
     isServiceWorker: boolean;
     isAjax: boolean;
+    isObject: boolean;
     charset: string;
     reqOrigin: string;
     referer?: string;
@@ -67,6 +68,7 @@ interface ContentInfo {
     isRedirect: boolean;
     isAttachment: boolean;
     isTextPage: boolean;
+    isObject: boolean;
 }
 
 interface FlattenParsedProxyUrl {
@@ -152,6 +154,7 @@ export default class RequestPipelineContext {
             isWebSocket:     !!parsedResourceType.isWebSocket,
             isServiceWorker: !!parsedResourceType.isServiceWorker,
             isAjax:          !!parsedResourceType.isAjax,
+            isObject:        !!parsedResourceType.isObject,
             charset:         parsed.charset || '',
             reqOrigin:       parsed.reqOrigin || '',
             credentials:     parsed.credentials
@@ -279,6 +282,7 @@ export default class RequestPipelineContext {
         const isManifest              = contentTypeUtils.isManifest(contentType);
         const isScript                = this.dest.isScript || contentTypeUtils.isScriptResource(contentType, accept);
         const isForm                  = this.dest.isForm;
+        const isObject                = this.dest.isObject;
         const isFormWithEmptyResponse = isForm && this.destRes.statusCode === 204;
 
         const isRedirect              = this.destRes.headers[BUILTIN_HEADERS.location] &&
@@ -294,8 +298,7 @@ export default class RequestPipelineContext {
         const isFileDownload          = this._isFileDownload() && !this.dest.isScript;
         const isIframeWithImageSrc    = this.isIframe && !this.isPage && /^\s*image\//.test(contentType);
         const isAttachment            = !this.isPage && !this.isAjax && !this.isWebSocket && !this.isIframe &&
-                                        !isTextPage &&
-                                        !isManifest && !isScript && !isForm;
+                                        !isTextPage && !isManifest && !isScript && !isForm && !isObject;
 
         const charset                 = new Charset();
 
@@ -320,6 +323,7 @@ export default class RequestPipelineContext {
             isCSS,
             isScript,
             isManifest,
+            isObject,
             encoding,
             contentTypeUrlToken,
             isFileDownload,

@@ -14,7 +14,8 @@ import {
     resolveUrlAsDest,
     parseUrl,
     isSpecialPage,
-    isSupportedProtocol
+    isSupportedProtocol,
+    processMetaRefreshContent
 } from '../../utils/url';
 import trim from '../../utils/string-trim';
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
@@ -296,7 +297,8 @@ export default class DomProcessor {
             isIframe:     tagName === 'iframe' || tagName === 'frame' || this._isOpenLinkInIframe(el),
             isForm:       tagName === 'form' || tagName === 'input' || tagName === 'button',
             isScript:     tagName === 'script',
-            isHtmlImport: tagName === 'link' && this._getRelAttribute(el) === 'import'
+            isHtmlImport: tagName === 'link' && this._getRelAttribute(el) === 'import',
+            isObject:     tagName === 'object'
         });
     }
 
@@ -463,7 +465,7 @@ export default class DomProcessor {
         if (httpEquivAttrValue === BUILTIN_HEADERS.refresh && pattern.urlAttr) {
             let attr = this.adapter.getAttr(el, pattern.urlAttr) || '';
 
-            attr = attr.replace(/(url=)(.*)$/i, (_match, prefix, url) => prefix + urlReplacer(url));
+            attr = processMetaRefreshContent(attr, urlReplacer);
 
             this.adapter.setAttr(el, pattern.urlAttr, attr);
         }
