@@ -488,6 +488,7 @@ test('clean up stylesheet', function () {
     check('@import \'' + proxyUrl + '\'', '@import \'' + url + '\'');
     check('@import ""', '@import ""');
     check('@import \'\'', '@import \'\'');
+    check('img[src' + INTERNAL_ATTRS.storedAttrPostfix + '="url.png"] {}', 'img[src="url.png"] {}');
 });
 
 test('style processor clean up edge cases', function () {

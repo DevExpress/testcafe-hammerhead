@@ -37,5 +37,29 @@ select {
 #item {
     background-image:url('about:blank');
 }
+
+img[src='123.png'] {
+    width: 10px;
+}
+
+.img[src='123.png'] {
+    width: 10px;
+}
+
+#img[src='123.png'] {
+    width: 10px;
+}
+
+img[src^='123.png'] {
+    width: 10px;
+}
+
+img[src$='123.png'] {
+    width: 10px;
+}
+
+[src='123.png'] {
+    width: 10px;
+}
 // # sourceMappingURL = https://example.com/test.css.map
 //  @  sourceMappingURL=

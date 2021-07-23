@@ -30,3 +30,27 @@ select {
 #item {
     background-image:url('about:blank');
 }
+
+img[src-hammerhead-stored-value='123.png'] {
+    width: 10px;
+}
+
+.img[src='123.png'] {
+    width: 10px;
+}
+
+#img[src='123.png'] {
+    width: 10px;
+}
+
+img[src-hammerhead-stored-value^='123.png'] {
+    width: 10px;
+}
+
+img[src$='123.png'] {
+    width: 10px;
+}
+
+[src='123.png'] {
+    width: 10px;
+}
