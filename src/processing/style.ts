@@ -7,9 +7,12 @@
 import reEscape from '../utils/regexp-escape';
 import INTERNAL_ATTRS from '../processing/dom/internal-attributes';
 import { isSpecialPage } from '../utils/url';
+import { URL_ATTR_TAGS } from './dom/attributes';
+import DomProcessor from './dom';
 
-const SOURCE_MAP_RE                       = /(?:\/\*\s*(?:#|@)\s*sourceMappingURL\s*=[\s\S]*?\*\/)|(?:\/\/[\t ]*(?:#|@)[\t ]*sourceMappingURL[\t ]*=.*)/ig;
-const CSS_URL_PROPERTY_VALUE_PATTERN      = /(url\s*\(\s*)(?:(')([^\s']*)(')|(")([^\s"]*)(")|([^\s)]*))(\s*\))|(@import\s+)(?:(')([^\s']*)(')|(")([^\s"]*)("))/g;
+const SOURCE_MAP_RE                       = /\/\*\s*[#@]\s*sourceMappingURL\s*=[\s\S]*?\*\/|\/\/[\t ]*[#@][\t ]*sourceMappingURL[\t ]*=.*/ig;
+const CSS_URL_PROPERTY_VALUE_RE           = /(url\s*\(\s*(['"]?))([^\s]*?)(\2\s*\))|(@import\s+(['"]))([^\s]*?)(\6)/g;
+const ATTRIBUTE_SELECTOR_RE               = /((?:(\W?)(\w+))?\[\s*)(\w+)(\s*\^?=)/g;
 const STYLESHEET_PROCESSING_START_COMMENT = '/*hammerhead|stylesheet|start*/';
 const STYLESHEET_PROCESSING_END_COMMENT   = '/*hammerhead|stylesheet|end*/';
 const HOVER_PSEUDO_CLASS_RE               = /:\s*hover(\W)/gi;
@@ -19,8 +22,8 @@ const STYLESHEET_PROCESSING_COMMENTS_RE   = new RegExp(`${ reEscape(STYLESHEET_P
                                                        `\n?${ reEscape(STYLESHEET_PROCESSING_END_COMMENT) }\\s*`, 'gi');
 
 class StyleProcessor {
-    STYLESHEET_PROCESSING_START_COMMENT: string = STYLESHEET_PROCESSING_START_COMMENT;
-    STYLESHEET_PROCESSING_END_COMMENT: string = STYLESHEET_PROCESSING_END_COMMENT;
+    STYLESHEET_PROCESSING_START_COMMENT = STYLESHEET_PROCESSING_START_COMMENT;
+    STYLESHEET_PROCESSING_END_COMMENT = STYLESHEET_PROCESSING_END_COMMENT;
 
     process (css: string, urlReplacer: Function, shouldIncludeProcessingComments?: boolean): string {
         if (!css || typeof css !== 'string' || shouldIncludeProcessingComments && IS_STYLE_SHEET_PROCESSED_RE.test(css))
@@ -33,7 +36,10 @@ class StyleProcessor {
         css = css.replace(SOURCE_MAP_RE, '');
 
         // NOTE: Replace URLs in CSS rules with proxy URLs.
-        css = this._replaceStylsheetUrls(css, urlReplacer);
+        css = this._replaceStylesheetUrls(css, urlReplacer);
+
+        // NOTE: Replace url attributes to stored attributes
+        css = this._replaceUrlAttributes(css);
 
         if (shouldIncludeProcessingComments)
             css = `${STYLESHEET_PROCESSING_START_COMMENT}\n${css}\n${STYLESHEET_PROCESSING_END_COMMENT}`;
@@ -46,22 +52,23 @@ class StyleProcessor {
             return css;
 
         css = css
-            .replace(PSEUDO_CLASS_RE, ':hover$1');
+            .replace(PSEUDO_CLASS_RE, ':hover$1')
+            .replace(INTERNAL_ATTRS.storedAttrPostfix, '');
 
         css = this._removeStylesheetProcessingComments(css);
 
-        return this._replaceStylsheetUrls(css, (url: string) => {
+        return this._replaceStylesheetUrls(css, (url: string) => {
             const parsedProxyUrl = parseProxyUrl(url);
 
             return parsedProxyUrl ? parsedProxyUrl.destUrl : url;
         });
     }
 
-    _removeStylesheetProcessingComments (css: string): string {
+    private _removeStylesheetProcessingComments (css: string): string {
         const parts                = css.split(STYLESHEET_PROCESSING_COMMENTS_RE);
-        const stylesheepPartsFound = parts.length >= 3;
+        const stylesheetPartsFound = parts.length >= 3;
 
-        if (!stylesheepPartsFound)
+        if (!stylesheetPartsFound)
             return css;
 
         for (let i = 0; i < parts.length; i += 2) {
@@ -83,23 +90,26 @@ class StyleProcessor {
         return parts.join('');
     }
 
-    _replaceStylsheetUrls (css: string, processor: Function): string {
-        return css.replace(
-            CSS_URL_PROPERTY_VALUE_PATTERN,
-            (match, prefix1, openQuote1, url1, closeQuote1, openQuote2, url2, closeQuote2, url3, postfix,
-                prefix2, openQuote3, url4, closeQuote3, openQuote4, url5, closeQuote4) => {
-                const prefix     = prefix1 || prefix2;
-                const openQuote  = openQuote1 || openQuote2 || openQuote3 || openQuote4 || '';
-                const url        = url1 || url2 || url3 || url4 || url5;
-                const closeQuote = closeQuote1 || closeQuote2 || closeQuote3 || closeQuote4 || '';
+    private _replaceStylesheetUrls (css: string, processor: Function): string {
+        return css.replace(CSS_URL_PROPERTY_VALUE_RE, (match, prefix1, _q1, url1, postfix1, prefix2, _q2, url2, postfix2) => {
+            const prefix       = prefix1 || prefix2;
+            const url          = url1 || url2;
+            const processedUrl = isSpecialPage(url) ? url : processor(url);
+            const postfix      = postfix1 || postfix2;
 
-                postfix = postfix || '';
+            return url ? prefix + processedUrl + postfix : match;
+        });
+    }
 
-                const processedUrl = isSpecialPage(url) ? url : processor(url);
+    private _replaceUrlAttributes (css: string): string {
+        return css.replace(ATTRIBUTE_SELECTOR_RE, (match, prefix, prev, possibleTag, attribute, postfix) => {
+            const tagName = prev === '.' || prev === '#' ? '' : possibleTag;
 
-                return url ? prefix + openQuote + processedUrl + closeQuote + postfix : match;
-            }
-        );
+            if (!tagName || !URL_ATTR_TAGS[attribute] || URL_ATTR_TAGS[attribute].indexOf(tagName) === -1)
+                return match;
+
+            return prefix + DomProcessor.getStoredAttrName(attribute) + postfix;
+        });
     }
 }
 
