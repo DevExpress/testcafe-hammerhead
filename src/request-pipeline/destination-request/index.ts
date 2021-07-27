@@ -67,7 +67,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
             else
                 this._onError(err);
         });
-        stream.once('response', headers => {
+        stream.on('response', headers => {
             const http2res = createResponseLike(stream, headers);
 
             this._onResponse(http2res);
