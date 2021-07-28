@@ -51,10 +51,10 @@ export async function getHttp2Session (requestId: string, origin: string): Promi
     const pendingSession = new Promise<ClientHttp2Session | null>(resolve => {
         const session = http2.connect(origin, { settings: { enablePush: false } });
 
-        const errorHandler = err => {
+        const errorHandler = (err: NodeJS.ErrnoException | { code: string }) => {
             pendingSessions.delete(origin);
 
-            if (err['code'] === 'ERR_HTTP2_ERROR' || err['code'] === 'ERR_HTTP2_PING_CANCEL') {
+            if (err.code === 'ERR_HTTP2_ERROR' || err.code === 'ERR_HTTP2_PING_CANCEL') {
                 unsupportedOrigins.push(origin);
                 logger.destination.onHttp2Unsupported(requestId, origin);
             }
@@ -83,12 +83,12 @@ export async function getHttp2Session (requestId: string, origin: string): Promi
                     logger.destination.onHttp2SessionClosed(requestId, origin, sessionsCache.length, HTTP2_SESSIONS_CACHE_SIZE);
                 });
                 session.off('error', errorHandler);
-                session.once('error', (err: Error) => {
+                session.once('error', (err: NodeJS.ErrnoException) => {
                     if (!isConnectionResetError(err)) {
                         logger.destination.onHttp2Error(requestId, origin, err);
                         throw err;
                     }
-                })
+                });
                 session.setTimeout(HTTP2_SESSION_TIMEOUT, () => {
                     logger.destination.onHttp2SessionTimeout(origin, HTTP2_SESSION_TIMEOUT);
                     sessionsCache.del(origin);
