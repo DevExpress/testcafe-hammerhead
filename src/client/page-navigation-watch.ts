@@ -39,8 +39,9 @@ export default class PageNavigationWatch extends EventEmiter {
         eventSandbox.listeners.initElementListening(window, ['submit']);
         eventSandbox.listeners.addInternalEventBeforeListener(window, ['submit'], (e: Event) => {
             let prevented = false;
+            const target  = nativeMethods.eventTargetGetter.call(e);
 
-            if (!isFormElement(e.target as HTMLElement))
+            if (!isFormElement(target))
                 return;
 
             const onPreventDefault = (preventedEvent: Event) => {
@@ -56,7 +57,7 @@ export default class PageNavigationWatch extends EventEmiter {
                     // NOTE: the defaultPrevented flag is saved between event raises in all browsers
                     // except IE. In IE, it is reset to false before the next handler is executed.
                     if (!e.defaultPrevented && !prevented)
-                        onFormSubmit(e.target as HTMLFormElement);
+                        onFormSubmit(target as HTMLFormElement);
                 });
         });
     }
@@ -80,8 +81,9 @@ export default class PageNavigationWatch extends EventEmiter {
 
     _linkWatch (eventSandbox: EventSandbox): void {
         eventSandbox.listeners.initElementListening(window, ['click']);
-        eventSandbox.listeners.addInternalEventBeforeListener(window, ['click'], (e: Event) => {
-            const link = isAnchorElement(e.target) ? e.target : closest(e.target, 'a');
+        eventSandbox.listeners.addInternalEventBeforeListener(window, ['click'], (e: MouseEvent) => {
+            const target = nativeMethods.eventTargetGetter.call(e);
+            const link   = isAnchorElement(target) ? target : closest(target, 'a');
 
             if (link && !isShadowUIElement(link)) {
                 let prevented      = false;

@@ -149,7 +149,7 @@ export default class MessageSandbox extends SandboxBase {
         // @ts-ignore
         overrideDescriptor(window.MessageEvent.prototype, 'data', {
             getter: function (this: MessageEvent) {
-                const target = this.target;
+                const target = nativeMethods.eventTargetGetter.call(this);
                 const data   = nativeMethods.messageEventDataGetter.call(this);
 
                 if (data && data.type !== MessageType.Service && isWindow(target))

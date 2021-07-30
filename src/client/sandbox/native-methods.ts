@@ -395,6 +395,7 @@ class NativeMethods {
     storageClear: Storage['clear'];
     storageKey: Storage['key'];
     storageLengthGetter: (this: Storage) => Storage['length'];
+    eventTargetGetter: (this: Event) => Event['target'];
 
     constructor (doc?: Document, win?: Window & typeof globalThis) {
         win = win || globalContextInfo.global;
@@ -1043,6 +1044,7 @@ class NativeMethods {
         this.WindowTextEvent      = win.TextEvent || winProto.TextEvent;
         this.WindowInputEvent     = win.InputEvent || winProto.InputEvent;
         this.WindowMouseEvent     = win.MouseEvent || winProto.MouseEvent;
+        this.eventTargetGetter    = win.Object.getOwnPropertyDescriptor(win.Event.prototype, 'target').get;
 
         this.canvasContextDrawImage = win.CanvasRenderingContext2D && win.CanvasRenderingContext2D.prototype.drawImage;
 

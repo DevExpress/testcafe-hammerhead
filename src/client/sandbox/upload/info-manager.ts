@@ -5,6 +5,7 @@ import * as HiddenInfo from './hidden-info';
 import Promise from 'pinkie';
 import { GetUploadedFilesServiceMessage, StoreUploadedFilesServiceMessage } from '../../../typings/upload';
 import Transport from '../../transport';
+import nativeMethods from '../native-methods';
 
 // NOTE: https://html.spec.whatwg.org/multipage/forms.html#fakepath-srsly.
 const FAKE_PATH_STRING = 'C:\\fakepath\\';
@@ -133,7 +134,7 @@ export default class UploadInfoManager {
             let index         = 0;
             let file          = fileList[index];
 
-            fileReader.addEventListener('load', (e: any) => {
+            fileReader.addEventListener('load', (e: ProgressEvent<FileReader>) => {
                 const info: any = {
                     type: file.type,
                     name: file.name
@@ -145,8 +146,10 @@ export default class UploadInfoManager {
                 if (file.lastModifiedDate)
                     info.lastModifiedDate = file.lastModifiedDate;
 
+                const dataUrl = nativeMethods.eventTargetGetter.call(e).result as string;
+
                 readedFiles.push({
-                    data: e.target.result.substr(e.target.result.indexOf(',') + 1),
+                    data: dataUrl.substr(dataUrl.indexOf(',') + 1),
                     blob: file.slice(0, file.size),
                     info
                 });

@@ -1491,3 +1491,31 @@ asyncTest('an active input should not be blurred after a call of the focus on a 
         });
     });
 });
+
+if (!browserUtils.isIE11) {
+    asyncTest('the target property of the Event prototype can be overridden (GH-2662)', function () {
+        var activeInput            = document.createElement('input');
+        var storedTargetDescriptor = Object.getOwnPropertyDescriptor(window.Event.prototype, 'target');
+
+        activeInput.className = TEST_ELEMENT_CLASS;
+
+        document.body.appendChild(activeInput);
+
+        activeInput.onfocus = function () {
+            Object.defineProperty(window.Event.prototype, 'target', storedTargetDescriptor);
+            ok(true);
+            document.body.removeChild(activeInput);
+            start();
+        };
+
+        Object.defineProperty(window.Event.prototype, 'target', {
+            configurable: true,
+
+            get: function () {
+                return null;
+            }
+        });
+
+        activeInput.dispatchEvent(new CustomEvent('focus'));
+    });
+}

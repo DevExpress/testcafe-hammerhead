@@ -111,8 +111,8 @@ export default class Selection {
 
             let result         = null;
             let focusRaised    = false;
-            const focusHandler = e => {
-                if (e.target === element || element.style.display === 'none')
+            const focusHandler = (e: FocusEvent) => {
+                if (nativeMethods.eventTargetGetter.call(e) === element || element.style.display === 'none')
                     focusRaised = true;
             };
 
@@ -162,8 +162,8 @@ export default class Selection {
         // if element has been focused already (TestCafe GH-2301)
         needFocus = needFocus && activeElement !== el;
 
-        const focusHandler = e => {
-            if (e.target === el || el.style.display === 'none')
+        const focusHandler = (e: FocusEvent) => {
+            if (nativeMethods.eventTargetGetter.call(e) === el || el.style.display === 'none')
                 focusRaised = true;
         };
 

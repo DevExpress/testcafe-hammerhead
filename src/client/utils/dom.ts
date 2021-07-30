@@ -529,11 +529,11 @@ export function isFormElement (el: any): el is HTMLFormElement {
     return instanceToString(el) === '[object HTMLFormElement]';
 }
 
-export function isFileInput (el: Node): el is HTMLInputElement {
+export function isFileInput (el: any): el is HTMLInputElement {
     return isInputElement(el) && el.type.toLowerCase() === 'file';
 }
 
-export function isInputWithNativeDialog (el: HTMLInputElement): boolean {
+export function isInputWithNativeDialog (el: any): boolean {
     return isInputElement(el) && INPUT_WITH_NATIVE_DIALOG.test(el.type.toLowerCase());
 }
 

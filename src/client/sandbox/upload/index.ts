@@ -39,8 +39,8 @@ export default class UploadSandbox extends SandboxBase {
     attach (window: Window & typeof globalThis) {
         super.attach(window);
 
-        this._listeners.addInternalEventBeforeListener(window, ['change'], (e, dispatched) => {
-            const input              = e.target;
+        this._listeners.addInternalEventBeforeListener(window, ['change'], (e: Event, dispatched: boolean) => {
+            const input              = nativeMethods.eventTargetGetter.call(e);
             const currentInfoManager = UploadSandbox._getCurrentInfoManager(input);
 
             if (!dispatched && isFileInput(input)) {
@@ -75,7 +75,7 @@ export default class UploadSandbox extends SandboxBase {
             // Another browsers open the native browser dialog in this case.
             // This is why, we are forced to prevent the browser's open file dialog.
             this._listeners.addInternalEventBeforeListener(window, ['click'], (e: Event, dispatched: boolean) => {
-                if (dispatched && isFileInput(e.target as HTMLInputElement))
+                if (dispatched && isFileInput(nativeMethods.eventTargetGetter.call(e)))
                     preventDefault(e, true);
             });
         }

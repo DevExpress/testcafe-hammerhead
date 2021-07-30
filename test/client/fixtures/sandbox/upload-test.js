@@ -434,11 +434,13 @@ test('upload error', function () {
 });
 
 asyncTest('get uploaded file error: single file', function () {
-    var stFiles                = files;
-    var storedObjectToString   = nativeMethods.objectToString;
-    var storedInputFilesGetter = nativeMethods.inputFilesGetter;
-    var storedInputValueGetter = nativeMethods.inputValueGetter;
-    var inputMock              = getInputMock(['error']);
+    var stFiles                 = files;
+    var storedObjectToString    = nativeMethods.objectToString;
+    var storedInputFilesGetter  = nativeMethods.inputFilesGetter;
+    var storedInputValueGetter  = nativeMethods.inputValueGetter;
+    var storedEventTargetGetter = nativeMethods.eventTargetGetter;
+    var inputMock               = getInputMock(['error']);
+    var eventMock               = { target: inputMock };
 
     var eventHandler = function (err) {
         strictEqual(err.length, 1);
@@ -447,9 +449,10 @@ asyncTest('get uploaded file error: single file', function () {
         uploadSandbox.off(uploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
         files = stFiles;
 
-        nativeMethods.objectToString   = storedObjectToString;
-        nativeMethods.inputFilesGetter = storedInputFilesGetter;
-        nativeMethods.inputValueGetter = storedInputValueGetter;
+        nativeMethods.objectToString    = storedObjectToString;
+        nativeMethods.inputFilesGetter  = storedInputFilesGetter;
+        nativeMethods.inputValueGetter  = storedInputValueGetter;
+        nativeMethods.eventTargetGetter = storedEventTargetGetter;
 
         start();
     };
@@ -469,16 +472,25 @@ asyncTest('get uploaded file error: single file', function () {
         return inputMock.value;
     };
 
+    nativeMethods.eventTargetGetter = function () {
+        if (this === eventMock)
+            return inputMock;
+
+        return storedEventTargetGetter.call(this);
+    };
+
     uploadSandbox.on(uploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
-    listeningContext.getElementCtx(window).change.internalBeforeHandlers[1].call(inputMock, { target: inputMock });
+    listeningContext.getElementCtx(window).change.internalBeforeHandlers[1].call(inputMock, eventMock);
 });
 
 asyncTest('get uploaded file error: multi file', function () {
-    var stFiles                = files;
-    var storedObjectToString   = nativeMethods.objectToString;
-    var storedInputFilesGetter = nativeMethods.inputFilesGetter;
-    var storedInputValueGetter = nativeMethods.inputValueGetter;
-    var inputMock              = getInputMock(['file1.txt', 'error', 'file2.txt']);
+    var stFiles                 = files;
+    var storedObjectToString    = nativeMethods.objectToString;
+    var storedInputFilesGetter  = nativeMethods.inputFilesGetter;
+    var storedInputValueGetter  = nativeMethods.inputValueGetter;
+    var storedEventTargetGetter = nativeMethods.eventTargetGetter;
+    var inputMock               = getInputMock(['file1.txt', 'error', 'file2.txt']);
+    var eventMock               = { target: inputMock };
 
     var eventHandler = function (err) {
         strictEqual(err.length, 3);
@@ -489,9 +501,10 @@ asyncTest('get uploaded file error: multi file', function () {
         uploadSandbox.off(uploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
         files = stFiles;
 
-        nativeMethods.objectToString   = storedObjectToString;
-        nativeMethods.inputFilesGetter = storedInputFilesGetter;
-        nativeMethods.inputValueGetter = storedInputValueGetter;
+        nativeMethods.objectToString    = storedObjectToString;
+        nativeMethods.inputFilesGetter  = storedInputFilesGetter;
+        nativeMethods.inputValueGetter  = storedInputValueGetter;
+        nativeMethods.eventTargetGetter = storedEventTargetGetter;
 
         start();
     };
@@ -511,8 +524,15 @@ asyncTest('get uploaded file error: multi file', function () {
         return inputMock.value;
     };
 
+    nativeMethods.eventTargetGetter = function () {
+        if (this === eventMock)
+            return inputMock;
+
+        return storedEventTargetGetter.call(this);
+    };
+
     uploadSandbox.on(uploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
-    listeningContext.getElementCtx(window).change.internalBeforeHandlers[1].call(inputMock, { target: inputMock });
+    listeningContext.getElementCtx(window).change.internalBeforeHandlers[1].call(inputMock, eventMock);
 });
 
 module('upload');

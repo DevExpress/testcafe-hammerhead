@@ -129,8 +129,8 @@ export default class EventSandbox extends SandboxBase {
         const document       = this.document;
         const eventSimulator = this.eventSimulator;
 
-        this._onFocus = function (e: Event) {
-            const focusedEl = e.target;
+        this._onFocus = function (e: FocusEvent) {
+            const focusedEl = nativeMethods.eventTargetGetter.call(e);
             const activeEl  = domUtils.getActiveElement(document);
 
             if (!domUtils.isShadowUIElement(focusedEl) && !domUtils.isShadowUIElement(activeEl))
@@ -146,9 +146,9 @@ export default class EventSandbox extends SandboxBase {
             // So we should prevent both events
             const eventType         = FocusBlurSandbox.getNonBubblesEventType(e.type) || e.type;
             const internalEventFlag = FocusBlurSandbox.getInternalEventFlag(eventType);
+            const target            = nativeMethods.eventTargetGetter.call(e);
 
-            //@ts-ignore
-            if (e.target[internalEventFlag] && !e[eventSimulator.DISPATCHED_EVENT_FLAG])
+            if (target[internalEventFlag] && !e[eventSimulator.DISPATCHED_EVENT_FLAG])
                 stopPropagation();
         };
     }
@@ -164,7 +164,7 @@ export default class EventSandbox extends SandboxBase {
         // Another browsers open the native browser dialog in this case.
         // This is why, we are forced to prevent the browser's open file dialog.
         this.listeners.addInternalEventBeforeListener(window, ['click'], (e: Event, dispatched: boolean) => {
-            if (dispatched && domUtils.isInputWithNativeDialog(e.target as HTMLInputElement))
+            if (dispatched && domUtils.isInputWithNativeDialog(nativeMethods.eventTargetGetter.call(e)))
                 preventDefault(e, true);
         });
     }
