@@ -11,16 +11,17 @@ const EDITING_OBSERVED_FLAG   = 'hammerhead|editing-observed';
 const PREVIOUS_VALUE_PROPERTY = 'hammerhead|previous-value';
 
 export default class ElementEditingWatcher {
+    private _onBlur: (e: FocusEvent) => void;
+    private _onChange: (e: FocusEvent) => void;
+
     constructor (private readonly _eventSimulator: EventSimulator) {
-    }
+        this._onChange = (e: FocusEvent): void => this.stopWatching(nativeMethods.eventTargetGetter.call(e));
+        this._onBlur   = (e: FocusEvent): void => {
+            const target = nativeMethods.eventTargetGetter.call(e);
 
-    private _onBlur (e): void {
-        if (!this.processElementChanging(e.target))
-            this.stopWatching(e.target);
-    }
-
-    private _onChange (e): void {
-        this.stopWatching(e.target);
+            if (!this.processElementChanging(target))
+                this.stopWatching(target);
+        }
     }
 
     private static _getValue (el): string {
@@ -37,8 +38,8 @@ export default class ElementEditingWatcher {
         if (!el)
             return;
 
-        nativeMethods.removeEventListener.call(el, 'blur', e => this._onBlur(e));
-        nativeMethods.removeEventListener.call(el, 'change', e => this._onChange(e));
+        nativeMethods.removeEventListener.call(el, 'blur', this._onBlur);
+        nativeMethods.removeEventListener.call(el, 'change', this._onChange);
 
         if (el[EDITING_OBSERVED_FLAG] !== void 0)
             delete el[EDITING_OBSERVED_FLAG];
@@ -56,8 +57,8 @@ export default class ElementEditingWatcher {
             [PREVIOUS_VALUE_PROPERTY]: { value: ElementEditingWatcher._getValue(el), configurable: true, writable: true }
         });
 
-        nativeMethods.addEventListener.call(el, 'blur', e => this._onBlur(e));
-        nativeMethods.addEventListener.call(el, 'change', e => this._onChange(e));
+        nativeMethods.addEventListener.call(el, 'blur', this._onBlur);
+        nativeMethods.addEventListener.call(el, 'change', this._onChange);
     }
 
     restartWatchingElementEditing (el: HTMLElement): void {

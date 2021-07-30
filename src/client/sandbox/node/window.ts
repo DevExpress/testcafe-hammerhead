@@ -603,7 +603,7 @@ export default class WindowSandbox extends SandboxBase {
 
         if (window.MutationObserver) {
             overrideConstructor(window, 'MutationObserver', callback => {
-                const wrapper = function (this: MutationObserver, mutations) {
+                const wrapper = function (this: MutationObserver, mutations: MutationRecord[]) {
                     const result = [];
 
                     for (const mutation of mutations) {
@@ -874,7 +874,7 @@ export default class WindowSandbox extends SandboxBase {
 
         overrideDescriptor(window.MessageEvent.prototype, 'origin', {
             getter: function (this: MessageEvent) {
-                const target = this.target;
+                const target = nativeMethods.eventTargetGetter.call(this);
                 const origin = nativeMethods.messageEventOriginGetter.call(this);
 
                 if (isWebSocket(target)) {

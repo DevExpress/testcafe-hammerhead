@@ -410,8 +410,8 @@ export default class FocusBlurSandbox extends SandboxBase {
         let focusedOnChange = false;
 
         if (!withoutHandlers) {
-            const focusOnChangeHandler = e => {
-                focusedOnChange = e.target === el;
+            const focusOnChangeHandler = (e: FocusEvent) => {
+                focusedOnChange = nativeMethods.eventTargetGetter.call(e) === el;
             };
 
             if (PREVENT_FOCUS_ON_CHANGE)

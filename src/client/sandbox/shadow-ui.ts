@@ -610,7 +610,7 @@ export default class ShadowUI extends SandboxBase {
             : ShadowUI._hasFlag(collection, IS_SHADOW_CONTAINER_COLLECTION_FLAG);
     }
 
-    static _isShadowUIChildListMutation (mutation) {
+    static _isShadowUIChildListMutation (mutation: MutationRecord) {
         if (domUtils.isShadowUIElement(mutation.target))
             return true;
 
@@ -631,15 +631,15 @@ export default class ShadowUI extends SandboxBase {
         return false;
     }
 
-    static _isShadowUIAttributeMutation (mutation) {
+    static _isShadowUIAttributeMutation (mutation: MutationRecord) {
         return domUtils.isShadowUIElement(mutation.target) || domUtils.isHammerheadAttr(mutation.attributeName);
     }
 
-    static _isShadowUICharacterDataMutation (mutation) {
+    static _isShadowUICharacterDataMutation (mutation: MutationRecord) {
         return domUtils.isShadowUIElement(mutation.target);
     }
 
-    static isShadowUIMutation (mutation) {
+    static isShadowUIMutation (mutation: MutationRecord) {
         switch (mutation.type) {
             case 'childList':
                 return ShadowUI._isShadowUIChildListMutation(mutation);

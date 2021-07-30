@@ -141,13 +141,11 @@ export default class ChildWindowSandbox extends SandboxBase {
             return;
 
         this._listeners.initElementListening(window, ['submit']);
-        this._listeners.addInternalEventBeforeListener(window, ['submit'], e => {
-            if (!domUtils.isFormElement(e.target))
-                return;
+        this._listeners.addInternalEventBeforeListener(window, ['submit'], (e: Event) => {
+            const form = nativeMethods.eventTargetGetter.call(e);
 
-            const form = e.target;
-
-            if (!ChildWindowSandbox._shouldOpenInNewWindowOnElementAction(form, DefaultTarget.form))
+            if (!domUtils.isFormElement(form) ||
+                !ChildWindowSandbox._shouldOpenInNewWindowOnElementAction(form, DefaultTarget.form))
                 return;
 
             const aboutBlankUrl = urlUtils.getProxyUrl(SPECIAL_BLANK_PAGE);

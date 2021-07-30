@@ -511,8 +511,9 @@ if (window.WebSocket) {
     });
 
     test('origin property of MessageEvent', function () {
-        var event                  = nativeMethods.documentCreateEvent.call(document, 'MessageEvent');
-        var storedAddEventListener = WebSocket.prototype.addEventListener;
+        var event                   = nativeMethods.documentCreateEvent.call(document, 'MessageEvent');
+        var storedAddEventListener  = WebSocket.prototype.addEventListener;
+        var storedEventTargetGetter = nativeMethods.eventTargetGetter;
 
         WebSocket.prototype.addEventListener = function (type, fn) {
             fn(event);
@@ -520,15 +521,16 @@ if (window.WebSocket) {
 
         var socket = new WebSocket('ws://example.com');
 
-        event.__defineGetter__('target', function () {
+        nativeMethods.eventTargetGetter = function () {
             return socket;
-        });
+        };
 
         strictEqual(event.origin, 'ws://example.com');
 
         socket.close();
 
         WebSocket.prototype.addEventListener = storedAddEventListener;
+        nativeMethods.eventTargetGetter      = storedEventTargetGetter;
     });
 
     test('checking parameters', function () {
