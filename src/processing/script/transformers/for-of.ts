@@ -68,11 +68,11 @@ function replaceDuplicateDeclarators (forOfNode: ForOfStatement) {
         return;
 
     const leftDeclaration = forOfLeft.declarations[0].id as ArrayPattern;
-    const leftIdentifiers = leftDeclaration.elements as Identifier[];
+    const leftIdentifiers = leftDeclaration.elements as (Identifier | null)[];
 
     walkDeclarators(forOfNode.body as BlockStatement, (node: Identifier) => {
         for (const identifier of leftIdentifiers)
-            if (identifier.name === node.name)
+            if (identifier && identifier.name === node.name)
                 nodesToReplace.push(identifier);
     });
 

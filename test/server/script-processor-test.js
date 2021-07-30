@@ -1101,6 +1101,16 @@ describe('Script processor', () => {
                               '    }.call(this);' +
                               '    a = b;' +
                               '}'
+                },
+                {
+                    src: 'for (const [,a] of some) {' +
+                         '    const b = 123;' +
+                         '}',
+
+                    expected: 'for (const _hh$temp0 of some) {' +
+                              '    const a = _hh$temp0[1];' +
+                              '    const b = 123;' +
+                              '}'
                 }
             ]);
         });
