@@ -119,6 +119,14 @@ export default class DomProcessor {
         return !!tagName && !!relAttr && tagName === 'link' && relAttr === 'import';
     }
 
+    static isElementProcessed (el: Element): boolean {
+        return el[ELEMENT_PROCESSED];
+    }
+
+    static setElementProcessed (el: Element, processed: boolean) {
+        el[ELEMENT_PROCESSED] = processed;
+    }
+
     _getRelAttribute (el: HTMLElement | ASTNode): string {
         return String(this.adapter.getAttr(el, 'rel')).toLowerCase();
     }
@@ -270,8 +278,7 @@ export default class DomProcessor {
 
     // API
     processElement (el: Element, urlReplacer: UrlReplacer): void {
-        // @ts-ignore
-        if (el[ELEMENT_PROCESSED])
+        if (DomProcessor.isElementProcessed(el))
             return;
 
         for (const pattern of this.elementProcessorPatterns) {
@@ -279,8 +286,7 @@ export default class DomProcessor {
                 for (const processor of pattern.elementProcessors)
                     processor.call(this, el, urlReplacer, pattern);
 
-                // @ts-ignore
-                el[ELEMENT_PROCESSED] = true;
+                DomProcessor.setElementProcessed(el, true);
             }
         }
     }

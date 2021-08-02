@@ -845,10 +845,8 @@ export default class ElementSandbox extends SandboxBase {
         if ((domUtils.isDomElement(el) || domUtils.isDocument(el)) && domUtils.isElementInDocument(el)) {
             const iframes = domUtils.getIframes(el);
 
-            for (const iframe of iframes) {
+            for (const iframe of iframes)
                 this.onIframeAddedToDOM(iframe);
-                windowsStorage.add(nativeMethods.contentWindowGetter.call(iframe));
-            }
 
             const scripts = domUtils.getScripts(el);
 
@@ -900,6 +898,20 @@ export default class ElementSandbox extends SandboxBase {
     onIframeAddedToDOM (iframe: HTMLIFrameElement | HTMLFrameElement): void {
         if (!domUtils.isCrossDomainIframe(iframe, true))
             this._nodeSandbox.mutation.onIframeAddedToDOM(iframe);
+
+        windowsStorage.add(nativeMethods.contentWindowGetter.call(iframe));
+
+        const elementsWithTarget = nativeMethods.querySelectorAll.call(this.document, `*[target="${iframe.name}"]`);
+
+        for (const el of elementsWithTarget) {
+            const urlAttrName       = domProcessor.getUrlAttr(el);
+            const storedUrlAttrName = DomProcessor.getStoredAttrName(urlAttrName);
+
+            nativeMethods.removeAttribute.call(el, storedUrlAttrName);
+            DomProcessor.setElementProcessed(el, false);
+
+            domProcessor.processElement(el, urlUtils.convertToProxyUrl);
+        }
     }
 
     attach (window) {
