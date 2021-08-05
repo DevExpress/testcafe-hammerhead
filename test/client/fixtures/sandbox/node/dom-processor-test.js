@@ -85,6 +85,26 @@ test('anchor in iframe', function () {
     anchor.parentNode.removeChild(anchor);
 });
 
+test('form resoure type if target iframe added on client', function () {
+    var iframe = document.createElement('iframe');
+    var form   = document.createElement('form');
+
+    iframe.name = 'target-iframe';
+    iframe.src  = 'http://localhost:2000/';
+
+    nativeMethods.setAttribute.call(form, 'target', 'target-iframe');
+
+    form.action = 'http://example.com';
+
+    nativeMethods.appendChild.call(document.body, form);
+    document.body.appendChild(iframe);
+
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.formActionGetter.call(form)).resourceType, 'if');
+
+    iframe.parentNode.removeChild(iframe);
+    form.parentNode.removeChild(form);
+});
+
 if (nativeMethods.append) {
     test('Element.prototype.append', function () {
         var div  = document.createElement('div');
