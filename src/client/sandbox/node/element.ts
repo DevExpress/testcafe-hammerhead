@@ -889,6 +889,26 @@ export default class ElementSandbox extends SandboxBase {
         DOMMutationTracker.onElementChanged(el);
     }
 
+    private _reprocessElementsAssociatedWithIframe (iframe: HTMLIFrameElement | HTMLFrameElement): void {
+        if (!iframe.name)
+            return;
+
+        const elementsWithTarget = nativeMethods.querySelectorAll.call(this.document, `*[target="${iframe.name}"]`);
+
+        for (const el of elementsWithTarget)
+            this._reprocessElementAssociatedWithIframe(el);
+    }
+
+    private _reprocessElementAssociatedWithIframe (el: HTMLFormElement | HTMLLinkElement): void {
+        const urlAttrName = domProcessor.getUrlAttr(el);
+        const storedUrlAttrName = DomProcessor.getStoredAttrName(urlAttrName);
+
+        nativeMethods.removeAttribute.call(el, storedUrlAttrName);
+        DomProcessor.setElementProcessed(el, false);
+
+        domProcessor.processElement(el, urlUtils.convertToProxyUrl);
+    }
+
     addFileInputInfo (el: HTMLElement): void {
         const infoManager = this._uploadSandbox.infoManager;
 
@@ -901,17 +921,7 @@ export default class ElementSandbox extends SandboxBase {
 
         windowsStorage.add(nativeMethods.contentWindowGetter.call(iframe));
 
-        const elementsWithTarget = nativeMethods.querySelectorAll.call(this.document, `*[target="${iframe.name}"]`);
-
-        for (const el of elementsWithTarget) {
-            const urlAttrName       = domProcessor.getUrlAttr(el);
-            const storedUrlAttrName = DomProcessor.getStoredAttrName(urlAttrName);
-
-            nativeMethods.removeAttribute.call(el, storedUrlAttrName);
-            DomProcessor.setElementProcessed(el, false);
-
-            domProcessor.processElement(el, urlUtils.convertToProxyUrl);
-        }
+        this._reprocessElementsAssociatedWithIframe(iframe);
     }
 
     attach (window) {
