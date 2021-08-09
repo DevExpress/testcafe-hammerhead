@@ -355,6 +355,7 @@ class NativeMethods {
     svgElementClass: any;
     Worker: typeof Worker;
     MessageChannel: typeof MessageChannel;
+    Array: typeof Array;
     ArrayBuffer: any;
     Uint8Array: typeof Uint8Array;
     Uint16Array: typeof Uint16Array;
@@ -1153,6 +1154,7 @@ class NativeMethods {
         this.svgElementClass      = win.SVGElement;
         this.Worker               = win.Worker;
         this.MessageChannel       = win.MessageChannel;
+        this.Array                = win.Array;
         this.ArrayBuffer          = win.ArrayBuffer;
         this.Uint8Array           = win.Uint8Array;
         this.Uint16Array          = win.Uint16Array;

@@ -105,6 +105,11 @@ test('the script processor should process eval\'s global', function () {
 module('destructuring');
 
 if (!browserUtils.isIE11) {
+    var defaultRestArrayStr = 'var ' + scriptHeader.add('')
+        .replace(/[\s\S]+(__rest\$Array\s*=\s*function[^}]+})[\s\S]+/g, '$1');
+    var defaultArrayFromStr = 'var ' + scriptHeader.add('')
+        .replace(/[\s\S]+(__arrayFrom\$\s*=\s*function[^}]+})[\s\S]+/g, '$1');
+
     test('destructuring object with rest element', function () {
         var script = 'let obj = { a: 1, b: 2, c: 3, d: 4 };' +
                      'let { a, "b": i, j = 7, ...other } = obj;' +
@@ -129,10 +134,8 @@ if (!browserUtils.isIE11) {
                      'let [ a, b = 9, ...other ] = arr;' +
                      'window.destructingResult = "" + a + b + JSON.stringify(other);';
 
-        var defaultRestObjectStr = 'var ' + scriptHeader.add('')
-            .replace(/[\s\S]+(__rest\$Array\s*=\s*function[^}]+})[\s\S]+/g, '$1');
 
-        eval(defaultRestObjectStr + ';' + processScript(script));
+        eval(defaultRestArrayStr + ';' + processScript(script));
 
         strictEqual(window.destructingResult, '12[3,4]');
 
@@ -141,6 +144,40 @@ if (!browserUtils.isIE11) {
         eval(processScript(script));
 
         strictEqual(window.destructingResult, '12[3,4]');
+    });
+
+    test('destructuring iterable with rest element', function () {
+        var script = 'const iterable = {};' +
+            'iterable[Symbol.iterator] = function* () { yield 1; yield 2; yield 3; yield 4; };' +
+            'let [ a, b = 9, ...other ] = iterable;' +
+            'window.destructingResult = "" + a + b + JSON.stringify(other);';
+
+        eval(defaultRestArrayStr + ';' + defaultArrayFromStr + ';' + processScript(script));
+
+        strictEqual(window.destructingResult, '12[3,4]');
+
+        window.destructingResult = void 0;
+
+        eval(processScript(script));
+
+        strictEqual(window.destructingResult, '12[3,4]');
+    });
+
+    test('destructuring for...of iterable', function () {
+        var script = 'window.destructingResult = "";' +
+            'const iterable = {};' +
+            'iterable[Symbol.iterator] = function* () { yield 1; yield 2; yield 3; yield 4; };' +
+            'for (item of iterable) window.destructingResult += item;';
+
+        eval(defaultArrayFromStr + ';' + processScript(script));
+
+        strictEqual(window.destructingResult, '1234');
+
+        window.destructingResult = void 0;
+
+        eval(processScript(script));
+
+        strictEqual(window.destructingResult, '1234');
     });
 
     test('should process script arg', function () {

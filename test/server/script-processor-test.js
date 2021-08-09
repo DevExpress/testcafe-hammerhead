@@ -964,8 +964,9 @@ describe('Script processor', () => {
                     expected: 'function x (_hh$temp0, _hh$temp1 = [1, 2], e = 5) {' +
                               '    var a = _hh$temp0.a,' +
                               '        href = __get$(_hh$temp0, "href"),' +
-                              '        c = _hh$temp1[0],' +
-                              '        d = _hh$temp1[1];' +
+                              '        _hh$temp2 = __arrayFrom$(_hh$temp1),' +
+                              '        c = _hh$temp2[0],' +
+                              '        d = _hh$temp2[1];' +
                               '    func = "body";' +
                               '}'
                 }
@@ -1073,8 +1074,9 @@ describe('Script processor', () => {
                          '}',
 
                     expected: 'for (const _hh$temp0 of some) {' +
-                              '    const href = _hh$temp0[0],' +
-                              '        location = _hh$temp0[1];' +
+                              '    const _hh$temp1 = __arrayFrom$(_hh$temp0),' +
+                              '        href = _hh$temp1[0],' +
+                              '        location = _hh$temp1[1];' +
                               '    a = b;' +
                               '}'
                 },
@@ -1108,7 +1110,8 @@ describe('Script processor', () => {
                          '}',
 
                     expected: 'for (const _hh$temp0 of some) {' +
-                              '    const a = _hh$temp0[1];' +
+                              '    const_hh$temp1 = __arrayFrom$(_hh$temp0),' +
+                              '        a = _hh$temp1[1];' +
                               '    const b = 123;' +
                               '}'
                 }
@@ -1155,7 +1158,7 @@ describe('Script processor', () => {
 
                     expected: 'function k () {' +
                               '    var _hh$temp1;' +
-                              '    let _hh$temp0 = e,' +
+                              '    let _hh$temp0 = __arrayFrom$(e),' +
                               '        a = _hh$temp0[0],' +
                               '        b = _hh$temp0[1];' +
                               '    return (_hh$temp1 = e, a = _hh$temp1[0], b = _hh$temp1[1], _hh$temp1);' +
@@ -1169,71 +1172,71 @@ describe('Script processor', () => {
                 {
                     src: 'for (let [a] of q) { let a = 1; }',
 
-                    expected: 'for (let_hh$temp0 of q) { let _hh$temp1 = _hh$temp0[0]; let a = 1;}'
+                    expected: 'for (let_hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp2[0]; let a = 1;}'
                 },
                 {
                     src: 'for (let [a, b] of q) { let a = 1; }',
 
-                    expected: 'for (let _hh$temp0 of q) { let _hh$temp1 = _hh$temp0[0], b =_hh$temp0[1]; let a = 1;}'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp2[0], b =_hh$temp2[1]; let a = 1;}'
                 },
                 {
                     src: 'for (let [b, a] of q) { let a = 1; }',
 
-                    expected: 'for (let _hh$temp0 of q) { let b = _hh$temp0[0], _hh$temp1 = _hh$temp0[1]; let a = 1;}'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), b = _hh$temp2[0], _hh$temp1 = _hh$temp2[1]; let a = 1;}'
                 },
                 {
                     src: 'for (let [a, b] of q) { let a = 1; let b = 2; }',
 
-                    expected: 'for (let _hh$temp0 of q) { let _hh$temp1 = _hh$temp0[0], _hh$temp2=_hh$temp0[1]; let a = 1; let b = 2;}'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp3 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp3[0], _hh$temp2 = _hh$temp3[1]; let a = 1; let b = 2;}'
                 },
                 {
                     src: 'for (let [a, b] of q) { let a = 1, b = 2; }',
 
-                    expected: 'for (let _hh$temp0 of q) { let _hh$temp1 = _hh$temp0[0], _hh$temp2=_hh$temp0[1]; let a = 1, b = 2;}'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp3 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp3[0], _hh$temp2 = _hh$temp3[1]; let a = 1, b = 2;}'
                 },
                 {
                     src: 'for (let [a] of q) { let [a] = q; }',
 
-                    expected: 'for (let _hh$temp0 of q) { let _hh$temp1 = _hh$temp0[0]; let _hh$temp2 = q, a =_hh$temp2[0]; }'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp2[0]; let_hh$temp3 = __arrayFrom$(q), a =_hh$temp3[0]; }'
                 },
                 {
                     src: 'for (let [a] of q) { let { a } = q; }',
 
-                    expected: 'for (let _hh$temp0 of q) { let _hh$temp1 = _hh$temp0[0]; let _hh$temp2 = q, a =_hh$temp2.a; }'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp2[0]; let _hh$temp3 = q, a =_hh$temp3.a; }'
                 },
                 {
                     src: 'for (let [a, b] of q) { let { a, b } = q; }',
 
-                    expected: 'for (let _hh$temp0 of q) { let _hh$temp1 = _hh$temp0[0], _hh$temp2 = _hh$temp0[1]; let _hh$temp3 = q, a = _hh$temp3.a, b=_hh$temp3.b; }'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp3 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp3[0], _hh$temp2 = _hh$temp3[1]; let _hh$temp4 = q, a = _hh$temp4.a, b = _hh$temp4.b; }'
                 },
                 {
                     src: 'for (let [a] of q) { let { t: a } = q; }',
 
-                    expected: 'for (let _hh$temp0 of q) { let _hh$temp1 = _hh$temp0[0]; let _hh$temp2 = q, a = _hh$temp2.t; }'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp2[0]; let _hh$temp3 = q, a = _hh$temp3.t; }'
                 },
                 // NOTE: we should replace only if body is `BlockStatement`
                 {
                     src: 'for (let [a] of q) if (true) { let a = 1; }',
 
-                    expected: 'for (let _hh$temp0 of q) { let a = _hh$temp0[0]; if (true) { let a = 1; }}'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp1 = __arrayFrom$(_hh$temp0), a = _hh$temp1[0]; if (true) { let a = 1; }}'
                 },
                 // NOTE: it's ok that we do not replace the `a` variable inside the `console.log` method`
                 // since we expect to get the `Cannot access 'a' before initialization` error message
                 {
                     src: 'for (let [b, a] of q) { console.log(a); let a = 1; }',
 
-                    expected: 'for (let _hh$temp0 of q) { let b = _hh$temp0[0], _hh$temp1 = _hh$temp0[1]; console.log(a); let a = 1;}'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), b = _hh$temp2[0], _hh$temp1 = _hh$temp2[1]; console.log(a); let a = 1;}'
                 },
                 // NOTE: we should not rename the `for-of left` var if it is redeclared in the deeper statement
                 {
                     src: 'for (let [a] of q) { if (true) { let a = 1; } }',
 
-                    expected: 'for (let _hh$temp0 of q) { let a = _hh$temp0[0]; if (true) { let a = 1; }}'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp1 = __arrayFrom$(_hh$temp0), a = _hh$temp1[0]; if (true) { let a = 1; }}'
                 },
                 {
                     src: 'for (let [a] of q) { for (let a = 1; a < 5; a++) {} }',
 
-                    expected: 'for (let _hh$temp0 of q) { let a = _hh$temp0[0]; for (let a = 1; a < 5; a++) { } }'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp1 = __arrayFrom$(_hh$temp0), a = _hh$temp1[0]; for (let a = 1; a < 5; a++) { } }'
                 }
             ]);
         });

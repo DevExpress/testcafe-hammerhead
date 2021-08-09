@@ -10,6 +10,7 @@ import { getProxyUrl, stringifyResourceType } from '../../utils/url';
 import urlResolver from '../../utils/url-resolver';
 import EventSandbox from '../event';
 import MessageSandbox from '../event/message';
+import ensureArrayInDeclarationDestructuring from '../../utils/ensure-array-in-declaration-destructuring';
 
 export default class CodeInstrumentation extends SandboxBase {
     static readonly WRAPPED_EVAL_FN = 'hammerhead|code-instrumentation|wrapped-eval-fn';
@@ -112,6 +113,11 @@ export default class CodeInstrumentation extends SandboxBase {
 
         nativeMethods.objectDefineProperty(window, INSTRUCTION.restArray, {
             value:        (array: any[], startIndex: number) => nativeMethods.arraySlice.call(array, startIndex),
+            configurable: true
+        });
+
+        nativeMethods.objectDefineProperty(window, INSTRUCTION.arrayFrom, {
+            value:        (array: any) => ensureArrayInDeclarationDestructuring(array),
             configurable: true
         });
 
