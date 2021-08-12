@@ -49,8 +49,9 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         this._send();
     }
 
-    private static _isHttp2ProtocolError (err: Error) {
-        return err['code'] === 'ERR_HTTP2_STREAM_ERROR' && err.message.includes('NGHTTP2_PROTOCOL_ERROR');
+    private static _isHttp2ProtocolError (err: NodeJS.ErrnoException) {
+        return err.code === 'ERR_HTTP2_STREAM_ERROR' &&
+            (err.message.includes('NGHTTP2_PROTOCOL_ERROR') || err.message.includes('NGHTTP2_HTTP_1_1_REQUIRED'));
     }
 
     private _sendRealThroughHttp2 (session: ClientHttp2Session) {
@@ -59,7 +60,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         const stream     = session.request(reqHeaders, { endStream });
 
         stream.setTimeout(this.timeout, () => this._onTimeout());
-        stream.on('error', (err: Error) => {
+        stream.on('error', (err: NodeJS.ErrnoException) => {
             if (DestinationRequest._isHttp2ProtocolError(err)) {
                 session.destroy();
                 this._sendReal();

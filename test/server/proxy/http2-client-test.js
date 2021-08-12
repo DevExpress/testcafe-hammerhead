@@ -1,11 +1,16 @@
 const fs                           = require('fs');
-const { HTTP2_HEADER_STATUS }      = require('http2').constants;
 const { expect }                   = require('chai');
 const request                      = require('request-promise-native');
 const logger                       = require('../../../lib/utils/logger');
 const { noop }                     = require('lodash');
 const http2Utils                   = require('../../../lib/request-pipeline/destination-request/http2');
 const { CROSS_DOMAIN_SERVER_PORT } = require('../common/constants');
+
+const {
+    HTTP2_HEADER_STATUS,
+    NGHTTP2_HTTP_1_1_REQUIRED,
+} = require('http2').constants;
+
 
 const {
     createSession,
@@ -24,19 +29,21 @@ describe('https proxy', () => {
     let httpsServer = null;
     let logs        = null;
 
+    const nativeLoggerFns = [];
+
     function getProxyUrl (url, resourceType) {
         return getBasicProxyUrl(url, resourceType, null, null, false, session);
     }
 
-    function overrideLoggerFn (loggerObj, fnName) {
-        const loggerFn = loggerObj[fnName];
+    function overrideLoggerFn (loggerObj, fnName, wrapper = (_, ...args) => logs.push(fnName, args)) {
+        nativeLoggerFns.push({ obj: loggerObj, name: fnName, fn: wrapper });
 
-        loggerObj[fnName]        = (_, ...args) => logs.push(fnName, args);
-        loggerObj[fnName].native = loggerFn;
+        loggerObj[fnName] = wrapper;
     }
 
-    function restoreLoggerFn (loggerObj, fnName) {
-        loggerObj[fnName] = loggerObj[fnName].native;
+    function restoreLoggerFns () {
+        for (const { obj, fn, name } of nativeLoggerFns)
+            obj[name] = fn;
     }
 
     before(() => {
@@ -63,17 +70,20 @@ describe('https proxy', () => {
             stream.end(fs.readFileSync('test/server/data/script/src.js'));
         });
 
+        http2App.get('/http1.1-required', stream => {
+            stream.on('error', noop);
+            stream.close(NGHTTP2_HTTP_1_1_REQUIRED);
+        });
+
         overrideLoggerFn(logger.destination, 'onHttp2Stream');
         overrideLoggerFn(logger.destination, 'onHttp2SessionCreated');
         overrideLoggerFn(logger.destination, 'onHttp2Unsupported');
+        overrideLoggerFn(logger.destination, 'onRequest', opts => logs.push('onRequest', opts.url));
     });
 
     after(() => {
-        restoreLoggerFn(logger.destination, 'onHttp2Stream');
-        restoreLoggerFn(logger.destination, 'onHttp2SessionCreated');
-        restoreLoggerFn(logger.destination, 'onHttp2Unsupported');
+        restoreLoggerFns();
         http2Server.close();
-        http2Utils.clearSessionsCache();
         httpsServer.close();
     });
 
@@ -83,7 +93,10 @@ describe('https proxy', () => {
         logs    = [];
     });
 
-    afterEach(() => proxy.close());
+    afterEach(() => {
+        proxy.close();
+        http2Utils.clearSessionsCache();
+    });
 
     it('Should send request through http2', () => {
         const proxyUrl = getProxyUrl('https://127.0.0.1:2000/script', { isScript: true });
@@ -119,9 +132,11 @@ describe('https proxy', () => {
                 const expected = fs.readFileSync('test/server/data/stylesheet/expected.css').toString();
 
                 compareCode(body, expected);
-                expect(logs.length).eql(2);
+                expect(logs.length).eql(4);
                 expect(logs[0]).eql('onHttp2Unsupported');
                 expect(logs[1][0]).eql('https://127.0.0.1:2002');
+                expect(logs[2]).eql('onRequest');
+                expect(logs[3]).eql('https://127.0.0.1:2002/stylesheet');
             });
     });
 
@@ -170,6 +185,25 @@ describe('https proxy', () => {
                 compareCode(body, expected);
                 expect(logs[0]).eql('onHttp2Stream');
                 expect(sessionMock.destroyCalled).to.be.true;
+            });
+    });
+
+    it('Should resend a request through https if http2 stream is emitted that http 1.1 required', () => {
+        session.id = 'sessionId';
+
+        const proxyUrl = getProxyUrl('https://127.0.0.1:2000/http1.1-required');
+
+        proxy.openSession('https://127.0.0.1:2000', session);
+
+        return request(proxyUrl)
+            .catch(() => {
+                expect(logs.length).eql(6);
+                expect(logs[0]).eql('onHttp2SessionCreated');
+                expect(logs[1][0]).eql('https://127.0.0.1:2000');
+                expect(logs[2]).eql('onHttp2Stream');
+                expect(logs[3][0][':path']).eql('/http1.1-required');
+                expect(logs[4]).eql('onRequest');
+                expect(logs[5]).eql('https://127.0.0.1:2000/http1.1-required');
             });
     });
 });
