@@ -111,6 +111,7 @@ export default abstract class Session extends EventEmitter {
     private _recordMode = false;
     options: SessionOptions;
     private _requestHookEventData: RequestHookEventData;
+    private _disableHttp2 = false;
 
     protected constructor (uploadRoots: string[], options: Partial<SessionOptions>) {
         super();
@@ -415,6 +416,14 @@ export default abstract class Session extends EventEmitter {
 
     setRecordMode(): void {
         this._recordMode = true;
+    }
+
+    disableHttp2 () {
+        this._disableHttp2 = true;
+    }
+
+    isHttp2Disabled () {
+        return this._disableHttp2;
     }
 
     abstract async getIframePayloadScript (iframeWithoutSrc: boolean): Promise<string>;

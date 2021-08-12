@@ -687,13 +687,14 @@ describe('Regression', () => {
             isAjax:  false,
             session: {
                 getAuthCredentials: noop,
+                isHttp2Disabled:    () => false,
 
                 options: {
                     requestTimeout: { page: 100 }
                 },
                 cookies: {
                     getHeader: noop
-                }
+                },
             }
         });
 
