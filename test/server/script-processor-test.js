@@ -868,7 +868,7 @@ describe('Script processor', () => {
                     src:      'var {x: [y] = z} = some;',
                     expected: 'var _hh$temp0 = some,' +
                               '    _hh$temp0$x = _hh$temp0.x,' +
-                              '    _hh$temp0$x$assign = _hh$temp0$x === void 0 ? z : _hh$temp0$x,' +
+                              '    _hh$temp0$x$assign = __arrayFrom$(_hh$temp0$x === void 0 ? z : _hh$temp0$x),' +
                               '    y = _hh$temp0$x$assign[0];'
                 }
             ]);
@@ -1161,7 +1161,7 @@ describe('Script processor', () => {
                               '    let _hh$temp0 = __arrayFrom$(e),' +
                               '        a = _hh$temp0[0],' +
                               '        b = _hh$temp0[1];' +
-                              '    return (_hh$temp1 = e, a = _hh$temp1[0], b = _hh$temp1[1], _hh$temp1);' +
+                              '    return (_hh$temp1 = __arrayFrom$(e), a = _hh$temp1[0], b = _hh$temp1[1], _hh$temp1);' +
                               '}'
                 }
             ]);
