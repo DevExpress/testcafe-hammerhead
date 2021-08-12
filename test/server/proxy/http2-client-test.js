@@ -206,4 +206,23 @@ describe('https proxy', () => {
                 expect(logs[5]).eql('https://127.0.0.1:2000/http1.1-required');
             });
     });
+
+    it('Should send request through https if http2 is disabled', () => {
+        session.id = 'sessionId';
+        session.disableHttp2();
+
+        const proxyUrl = getProxyUrl('https://127.0.0.1:2002/stylesheet');
+
+        proxy.openSession('https://127.0.0.1:2000', session);
+
+        return request(proxyUrl)
+            .then(body => {
+                const expected = fs.readFileSync('test/server/data/stylesheet/expected.css').toString();
+
+                compareCode(body, expected);
+                expect(logs.length).eql(2);
+                expect(logs[0]).eql('onRequest');
+                expect(logs[1]).eql('https://127.0.0.1:2002/stylesheet');
+            });
+    });
 });

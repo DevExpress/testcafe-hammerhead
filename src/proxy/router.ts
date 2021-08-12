@@ -27,7 +27,7 @@ function buildRouteParamsMap (routeMatch, paramNames) {
 }
 
 export default abstract class Router {
-    private readonly options: any;
+    protected readonly options: any;
     private readonly routes: Map<string, Route> = new Map();
     private readonly routesWithParams: RouteWithParams[] = [];
 

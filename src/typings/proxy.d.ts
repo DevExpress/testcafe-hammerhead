@@ -35,4 +35,5 @@ interface ProxyOptions extends RouterOptions {
     ssl: object;
     developmentMode: boolean;
     cache: boolean;
+    disableHttp2: boolean;
 }

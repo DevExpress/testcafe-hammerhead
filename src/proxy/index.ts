@@ -228,6 +228,9 @@ export default class Proxy extends Router {
         if (externalProxySettings)
             session.setExternalProxySettings(externalProxySettings);
 
+        if (this.options.disableHttp2)
+            session.disableHttp2();
+
         url = urlUtils.prepareUrl(url);
 
         return urlUtils.getProxyUrl(url, {
