@@ -219,7 +219,7 @@ export function createGetPostMessageMethodCall (node: Expression): CallExpressio
     return createSimpleCallExpression(getPostMessageIdentifier, args);
 }
 
-export function createArrayWrapper (array: Identifier): CallExpression {
+export function createArrayWrapper (array: any): CallExpression {
     const arrayIdentifier = createIdentifier(INSTRUCTION.arrayFrom);
 
     return createSimpleCallExpression(arrayIdentifier, [array]);

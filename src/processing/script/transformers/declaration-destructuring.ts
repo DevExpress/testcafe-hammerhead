@@ -5,10 +5,9 @@
 
 import { VariableDeclaration, VariableDeclarator } from 'estree';
 import { Transformer } from './index';
-import {createArrayWrapper, createVariableDeclaration, createVariableDeclarator} from '../node-builder';
+import {createVariableDeclaration, createVariableDeclarator} from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
 import destructuring from '../destructuring';
-import replaceNode from "./replace-node";
 
 // Transform:
 
@@ -51,10 +50,6 @@ const transformer: Transformer<VariableDeclaration> = {
         const declarations = [] as VariableDeclarator[];
 
         for (const declarator of node.declarations) {
-            // NOTE: support iterable objects (GH-2669)
-            if (declarator.id.type === Syntax.ArrayPattern && declarator.init?.type === Syntax.Identifier)
-                replaceNode(declarator.init, createArrayWrapper(declarator.init), declarator, 'init');
-
             destructuring(declarator.id, declarator.init || null, (pattern, value) =>
                 declarations.push(createVariableDeclarator(pattern, value)));
         }

@@ -11,6 +11,7 @@ import {
 import { Syntax } from 'esotope-hammerhead';
 import {
     createArrayExpression,
+    createArrayWrapper,
     createBinaryExpression,
     createConditionalExpression,
     createIdentifier,
@@ -110,6 +111,10 @@ function processObjectPattern (pattern: ObjectPattern, value: Expression | null,
 function processArrayPattern (pattern: ArrayPattern, value: Expression | null, build: NodeBuilder, baseTempName?: string) {
     if (!value)
         return;
+
+    // NOTE: support iterable objects (GH-2669)
+    if (value.type !== Syntax.ArrayExpression)
+        value = createArrayWrapper(value);
 
     const tempIdentifier = createTempIdentifierOrUseExisting(value, build, baseTempName);
 
