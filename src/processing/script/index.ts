@@ -140,7 +140,8 @@ function applyChanges (script: string, changes: CodeChange[], isObject: boolean)
     if (!changes.length)
         return script;
 
-    changes.sort((a, b) => (a.start - b.start) || (a.end - b.end));
+    changes.sort((a, b) => (a.start - b.start) || (a.end - b.end) ||
+        ((a.node.type === Syntax.VariableDeclaration ? 0 : 1) - (b.node.type === Syntax.VariableDeclaration ? 0 : 1)));
 
     for (const change of changes) {
         const changeStart = change.start + indexOffset;

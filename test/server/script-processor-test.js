@@ -1086,12 +1086,12 @@ describe('Script processor', () => {
                          '}',
 
                     expected: 'for (var _hh$temp0 of some) {' +
+                              '    var_hh$temp1;' +
                               '    _hh$temp1=__arrayFrom$(_hh$temp0),' +
                               '        href = _hh$temp1[0], function () {' +
                               '            var _hh$temp2 = _hh$temp1[1];' +
                               '            return __set$Loc(location, _hh$temp2) || (location = _hh$temp2);' +
                               '        }.call(this),_hh$temp1;' +
-                              '    var_hh$temp1;' +
                               '    h = href;' +
                               '}'
                 },
