@@ -468,6 +468,12 @@ export function isBodyElement (el: any): el is HTMLBodyElement {
     return instanceToString(el) === '[object HTMLBodyElement]';
 }
 
+export function isPageBody (el: HTMLBodyElement): boolean {
+    const parent = nativeMethods.nodeParentNodeGetter.call(el);
+
+    return getTagName(parent) === 'html' && nativeMethods.nodeParentNodeGetter.call(parent)?.nodeName === '#document';
+}
+
 export function isHeadElement (el: any): el is HTMLHeadElement {
     return instanceToString(el) === '[object HTMLHeadElement]';
 }
@@ -538,7 +544,7 @@ export function isInputWithNativeDialog (el: any): boolean {
 }
 
 export function isBodyElementWithChildren (el: Node): boolean {
-    return isBodyElement(el) && nativeMethods.htmlCollectionLengthGetter.call(
+    return isBodyElement(el) && isPageBody(el) && nativeMethods.htmlCollectionLengthGetter.call(
         nativeMethods.elementChildrenGetter.call(el));
 }
 
