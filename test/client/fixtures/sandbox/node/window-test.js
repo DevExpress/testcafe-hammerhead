@@ -965,3 +965,21 @@ if (!browserUtils.isIE11) {
         });
     });
 }
+
+if (!browserUtils.isIE11) {
+    test('An instance of a class that extends Function should contains class methods (GH-2439)', function () {
+        var functionInheritorInstance = nativeMethods.eval([
+            'class A extends Function {',
+            '    methodA () {}',
+            '}',
+            'class B extends A {',
+            '    methodB () {}',
+            '}',
+            'new B("return \'hello\'");'
+        ].join('\n'));
+
+        ok(!!functionInheritorInstance.methodA);
+        ok(!!functionInheritorInstance.methodB);
+        strictEqual(functionInheritorInstance(), 'hello');
+    });
+}

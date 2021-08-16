@@ -168,6 +168,7 @@ class NativeMethods {
     objectHasOwnProperty: ObjectConstructor['hasOwnProperty'];
     objectGetOwnPropertyNames: ObjectConstructor['getOwnPropertyNames'];
     objectGetPrototypeOf: ObjectConstructor['getPrototypeOf'];
+    objectSetPrototypeOf: ObjectConstructor['setPrototypeOf'];
     objectGetOwnPropertySymbols: ObjectConstructor['getOwnPropertySymbols'];
     arraySlice: any;
     arrayConcat: any;
@@ -1072,6 +1073,7 @@ class NativeMethods {
         this.objectHasOwnProperty           = win.Object.hasOwnProperty;
         this.objectGetOwnPropertyNames      = win.Object.getOwnPropertyNames;
         this.objectGetPrototypeOf           = win.Object.getPrototypeOf;
+        this.objectSetPrototypeOf           = win.Object.setPrototypeOf;
         this.objectGetOwnPropertySymbols    = win.Object.getOwnPropertySymbols;
 
         // Array

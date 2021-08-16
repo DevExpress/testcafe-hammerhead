@@ -52,7 +52,11 @@ import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-cal
 import INSTRUCTION from '../../../processing/script/instruction';
 import Promise from 'pinkie';
 import getMimeType from '../../utils/get-mime-type';
-import { overrideDescriptor, overrideFunction, overrideConstructor } from '../../utils/overriding';
+import {
+    overrideDescriptor,
+    overrideFunction,
+    overrideConstructor,
+} from '../../utils/overriding';
 import { emptyActionAttrFallbacksToTheLocation } from '../../utils/feature-detection';
 import { HASH_RE, isValidUrl } from '../../../utils/url';
 import UploadSandbox from '../upload';
@@ -363,6 +367,31 @@ export default class WindowSandbox extends SandboxBase {
 
             return executionResult;
         };
+    }
+
+    private static _patchFunctionPrototype (fn: Function, ctx: any): void {
+        if (!ctx || typeof ctx === 'function')
+            return;
+
+        const inheritorProto = nativeMethods.objectGetPrototypeOf(ctx);
+
+        if (!inheritorProto)
+            return;
+
+        let fnProto = nativeMethods.objectGetPrototypeOf(inheritorProto);
+
+        while (fnProto && fnProto !== nativeMethods.Function.prototype)
+            fnProto = nativeMethods.objectGetPrototypeOf(fnProto);
+
+        if (!fnProto)
+            return;
+
+        // NOTE: Warning: Changing the [[Prototype]] of an object is currently a very slow operation in every browser
+        // and JavaScript engine. In addition, the effects of altering inheritance are subtle and far-flung, and are not
+        // limited to the time spent in the Object.setPrototypeOf(...) statement, but may extend to any code that has
+        // access to any object whose [[Prototype]] has been altered.
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/setPrototypeOf
+        nativeMethods.objectSetPrototypeOf(fn, inheritorProto);
     }
 
     static _isSecureOrigin (url: string): boolean {
@@ -758,10 +787,14 @@ export default class WindowSandbox extends SandboxBase {
             if (typeof args[functionBodyArgIndex] === 'string')
                 args[functionBodyArgIndex] = processScript(args[functionBodyArgIndex], false, false, convertToProxyUrl);
 
-            return nativeMethods.Function.apply(this, args);
+            const fn = nativeMethods.Function.apply(this, args);
+
+            WindowSandbox._patchFunctionPrototype(fn, this);
+
+            return fn;
         }, true);
 
-        overrideFunction(window.Function.prototype, 'toString', function (this: Function) {
+        overrideFunction(nativeMethods.Function.prototype, 'toString', function (this: Function) {
             if (nativeMethods.objectHasOwnProperty.call(this, INTERNAL_PROPS.nativeStrRepresentation))
                 return this[INTERNAL_PROPS.nativeStrRepresentation];
 

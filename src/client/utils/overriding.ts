@@ -101,10 +101,10 @@ export function overrideConstructor<O extends object, K extends keyof O> (obj: O
     overrideFunction(obj, fnName, wrapper);
 
     // NOTE: restore native prototype (to make `instanceof` work as expected)
-    obj[fnName]['prototype'] = nativePrototype;
+    wrapper.prototype = nativePrototype;
 
     // NOTE: we need to override the `constructor` property of a prototype
     // because sometimes native constructor can be retrieved from it
     if (overrideProtoConstructor)
-        obj[fnName]['prototype']['constructor'] = wrapper;
+        nativePrototype.constructor = wrapper;
 }
