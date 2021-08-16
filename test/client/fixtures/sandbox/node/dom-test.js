@@ -229,3 +229,18 @@ test('one handler for several events must be overridden correctly (B237402)', fu
 
     div.parentNode.removeChild(div);
 });
+
+test('an element should correctly be added to a nested body (T1020710)', function () {
+    var nestedBody = document.createElement('body');
+
+    nestedBody.appendChild(document.createElement('a'));
+    nestedBody.appendChild(document.createElement('p'));
+    document.body.appendChild(nestedBody);
+    nestedBody.appendChild(document.createElement('div'));
+
+    strictEqual(nestedBody.children[0].nodeName, 'A');
+    strictEqual(nestedBody.children[1].nodeName, 'P');
+    strictEqual(nestedBody.children[2].nodeName, 'DIV');
+
+    document.body.removeChild(nestedBody);
+});
