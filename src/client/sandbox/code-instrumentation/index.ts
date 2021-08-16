@@ -115,6 +115,19 @@ export default class CodeInstrumentation extends SandboxBase {
             configurable: true
         });
 
+        nativeMethods.objectDefineProperty(window, INSTRUCTION.arrayFrom, {
+            value:        (target: any) => {
+                if (!target)
+                    return target;
+
+                const shouldConvertToArray = !nativeMethods.isArray.call(nativeMethods.Array, target) &&
+                    typeof target[Symbol.iterator] === 'function';
+
+                return shouldConvertToArray ? nativeMethods.arrayFrom.call(nativeMethods.Array, target) : target;
+            },
+            configurable: true
+        });
+
         nativeMethods.objectDefineProperty(window, INSTRUCTION.restObject, {
             value: (obj: object, excludeProps: string[]) => {
                 const rest = {};

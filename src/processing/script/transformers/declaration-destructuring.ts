@@ -5,13 +5,14 @@
 
 import { VariableDeclaration, VariableDeclarator } from 'estree';
 import { Transformer } from './index';
-import { createVariableDeclaration, createVariableDeclarator } from '../node-builder';
+import {createVariableDeclaration, createVariableDeclarator} from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
 import destructuring from '../destructuring';
 
 // Transform:
+
 // var { location: loc } = window,
-//     [{ location }, item] = [window, 6]
+//     [{ location }, item] = [window, 6],
 // -->
 // var _hh$temp0 = window,
 //     loc = _hh$temp0.location,
@@ -19,6 +20,12 @@ import destructuring from '../destructuring';
 //     _hh$temp1$0 = _hh$temp1[0],
 //     location = _hh$temp1$0.location,
 //     item = _hh$temp1[1];
+
+// var [a, b] = c;
+// -->
+// var _hh$temp0 = __arrayFrom$(c),
+//     a = _hh$temp0[0],
+//     b = _hh$temp0[1];
 
 const transformer: Transformer<VariableDeclaration> = {
     nodeReplacementRequireTransform: true,

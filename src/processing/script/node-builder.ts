@@ -219,6 +219,12 @@ export function createGetPostMessageMethodCall (node: Expression): CallExpressio
     return createSimpleCallExpression(getPostMessageIdentifier, args);
 }
 
+export function createArrayWrapper (array: any): CallExpression {
+    const arrayIdentifier = createIdentifier(INSTRUCTION.arrayFrom);
+
+    return createSimpleCallExpression(arrayIdentifier, [array]);
+}
+
 export function createExpandedConcatOperation (left: Identifier | MemberExpression, right: Expression): AssignmentExpression {
     return createAssignmentExpression(left, '=', createBinaryExpression(left, '+', right));
 }

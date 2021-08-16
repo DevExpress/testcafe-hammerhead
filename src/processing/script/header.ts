@@ -36,7 +36,8 @@ const HEADER: string = `
                 ${INSTRUCTION.getPostMessage} = window.${INSTRUCTION.getPostMessage},
                 ${INSTRUCTION.getProxyUrl} = window.${INSTRUCTION.getProxyUrl},
                 ${INSTRUCTION.restArray} = window.${INSTRUCTION.restArray},
-                ${INSTRUCTION.restObject} = window.${INSTRUCTION.restObject};
+                ${INSTRUCTION.restObject} = window.${INSTRUCTION.restObject},
+                ${INSTRUCTION.arrayFrom} = window.${INSTRUCTION.arrayFrom};
     } else {
         if (typeof ${INSTRUCTION.getProperty} === 'undefined')
             var ${INSTRUCTION.getLocation} = function(l){return l},
@@ -50,8 +51,8 @@ const HEADER: string = `
                 ${INSTRUCTION.getPostMessage} = function(w,p){return arguments.length===1?w.postMessage:p},
                 ${INSTRUCTION.getProxyUrl} = function(u,d){return u},
                 ${INSTRUCTION.restArray} = function(a,i){return Array.prototype.slice.call(a, i)},
-                ${INSTRUCTION.restObject} = function(o,p){var k=Object.keys(o),n={};for(var i=0;i<k.length;++i)if(p.indexOf(k[i])<0)n[k[i]]=o[k[i]];return n};
-        
+                ${INSTRUCTION.restObject} = function(o,p){var k=Object.keys(o),n={};for(var i=0;i<k.length;++i)if(p.indexOf(k[i])<0)n[k[i]]=o[k[i]];return n},
+                ${INSTRUCTION.arrayFrom} = function(r){if(!r)return r;return!Array.isArray(r)&&"function"==typeof r[Symbol.iterator]?Array.from(r):r};
         if (typeof importScripts !== "undefined" && /\\[native code]/g.test(importScripts.toString()))
             importScripts((location.origin || (location.protocol + "//" + location.host)) + "${SERVICE_ROUTES.workerHammerhead}");
     }
