@@ -471,7 +471,7 @@ export function isBodyElement (el: any): el is HTMLBodyElement {
 export function isPageBody (el: HTMLBodyElement): boolean {
     const parent = nativeMethods.nodeParentNodeGetter.call(el);
 
-    return getTagName(parent) === 'html' && nativeMethods.nodeParentNodeGetter.call(el)?.nodeName === '#document';
+    return getTagName(parent) === 'html' && nativeMethods.nodeParentNodeGetter.call(parent)?.nodeName === '#document';
 }
 
 export function isHeadElement (el: any): el is HTMLHeadElement {
