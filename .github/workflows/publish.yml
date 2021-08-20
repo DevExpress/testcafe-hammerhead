@@ -16,6 +16,6 @@ jobs:
           node-version: 14
           registry-url: 'https://registry.npmjs.org'
       - run: npm install
-      - run: npx publish-please-only
+      - run: npm run publish-please-only
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
