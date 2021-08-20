@@ -11,6 +11,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.release.target_commitish }}
+      - run: git fetch --force --tags
       - uses: actions/setup-node@v2
         with:
           node-version: 14
