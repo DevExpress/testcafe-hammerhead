@@ -100,6 +100,23 @@ test('CSSStyleSheet.href', function () {
     document.body.removeChild(style);
 });
 
+if (browserUtils.isIE11) {
+    test('Getting CSSStyleSheet by property id', function () {
+        var id    = 'test';
+        var style = document.createElement('style');
+
+        style.id = id;
+
+        document.body.appendChild(style);
+
+        var styleSheet = document.styleSheets[id];
+
+        strictEqual(styleSheet.id, id);
+
+        document.body.removeChild(style);
+    });
+}
+
 test('input.formaction, button.formaction', function () {
     var button = document.createElement('button');
     var input  = document.createElement('input');
