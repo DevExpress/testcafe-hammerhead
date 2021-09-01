@@ -3,16 +3,16 @@ import IframeSandbox from '../../iframe';
 import nativeMethods from '../../native-methods';
 import domProcessor from '../../../dom-processor';
 import * as urlUtils from '../../../utils/url';
+import { getDestinationUrl, isSpecialPage } from '../../../utils/url';
 import settings from '../../../settings';
 import { isIE } from '../../../utils/browser';
-import { isIframeWithoutSrc, getFrameElement, isImgElement, isShadowUIElement } from '../../../utils/dom';
+import { getFrameElement, isIframeWithoutSrc, isImgElement, isShadowUIElement } from '../../../utils/dom';
 import DocumentWriter from './writer';
 import ShadowUI from './../../shadow-ui';
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import LocationAccessorsInstrumentation from '../../code-instrumentation/location';
-import { overrideDescriptor, createOverriddenDescriptor, overrideFunction } from '../../../utils/overriding';
+import { createOverriddenDescriptor, overrideDescriptor, overrideFunction } from '../../../utils/overriding';
 import NodeSandbox from '../index';
-import { getDestinationUrl, isSpecialPage } from '../../../utils/url';
 import DocumentTitleStorageInitializer from './title-storage-initializer';
 import CookieSandbox from '../../cookie';
 
@@ -107,14 +107,17 @@ export default class DocumentSandbox extends SandboxBase {
             nativeMethods.objectDefineProperty(owner, prop, overriddenDescriptor);
     }
 
-    private static _createFakeStyleSheets (styleSheets, props) {
-        const fakeStyleSheets = Object.create(Object.getPrototypeOf(styleSheets), { length: { value: props.length } });
+    private static _createFakeStyleSheets (styleSheets) {
+        const fakeStyleSheets = nativeMethods.objectCreate(StyleSheetList, {
+            item:   nativeMethods.objectGetOwnPropertyDescriptor(styleSheets, 'item'),
+            length: nativeMethods.objectGetOwnPropertyDescriptor(styleSheets, 'length'),
+        });
 
-        for (let i = 0; i < props.length; i++) {
-            Object.defineProperty(fakeStyleSheets, i, { enumerable: true, value: props[i] });
+        for (let i = 0; i < styleSheets.length; i++) {
+            nativeMethods.objectDefineProperty(fakeStyleSheets, i, { enumerable: true, value: styleSheets[i] });
 
-            if (props[i].id)
-                Object.defineProperty(fakeStyleSheets, props[i].id, { get: () => props[i] });
+            if (styleSheets[i].id)
+                nativeMethods.objectDefineProperty(fakeStyleSheets, styleSheets[i].id, { get: () => styleSheets[i] });
         }
 
         return fakeStyleSheets;
@@ -303,7 +306,7 @@ export default class DocumentSandbox extends SandboxBase {
 
                 //HACK: Sometimes client scripts want to get StyleSheet by one's property 'id' and by index. Real StyleSheetList can provide this possibility.
                 //We can't create a new StyleSheetList or change current yet, so we need to create a fake StyleSheetList.
-                return DocumentSandbox._createFakeStyleSheets(styleSheets, documentSandbox._shadowUI._filterStyleSheetList(styleSheets, styleSheets.length));
+                return DocumentSandbox._createFakeStyleSheets(documentSandbox._shadowUI._filterStyleSheetList(styleSheets, styleSheets.length));
             }
         });
 
