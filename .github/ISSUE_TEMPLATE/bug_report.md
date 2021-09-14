@@ -25,7 +25,10 @@ Before submitting an issue, please check existing issues in this repository (ht
 <!-- Describe what you expected to happen. -->
  
 ### What is your public web site URL?
-<!-- Share a public accessible link to your web site or provide a simple app which we can run. -->
+<!--
+Share a public accessible link to your application or provide a simple app which we can run.
+Refer to this article to create the best example: [How To: Create a Minimal Working Example When You Submit an Issue](https://testcafe.io/402636/faq#how-to-create-a-minimal-working-example-when-you-submit-an-issue)
+-->
 
 Your website URL (or attach your complete example): 
 
