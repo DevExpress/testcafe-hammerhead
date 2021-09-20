@@ -3,15 +3,25 @@ import BYTES_PER_COOKIE_LIMIT from './cookie-limit';
 import { castArray } from 'lodash';
 import { parseUrl } from '../utils/url';
 import { parse as parseJSON, stringify as stringifyJSON } from '../utils/json';
+import { promisify } from 'util';
 
 const LOCALHOST_DOMAIN = 'localhost';
 const LOCALHOST_IP     = '127.0.0.1';
 
 export default class Cookies {
     private _cookieJar: any;
+    private _getCookiesPromisified: any;
+    private _getAllCookiesPromisified: any;
+    private _removeCookiePromisified: any;
+    private _removeCookiesPromisified: any;
 
     constructor () {
         this._cookieJar = new CookieJar();
+
+        this._getCookiesPromisified    = promisify(this._cookieJar.getCookies);
+        this._getAllCookiesPromisified = promisify(this._cookieJar.store.getAllCookies);
+        this._removeCookiePromisified  = promisify(this._cookieJar.store.removeCookie);
+        this._removeCookiesPromisified = promisify(this._cookieJar.store.removeCookies);
     }
 
     static _hasLocalhostDomain (cookie): boolean {
@@ -69,6 +79,38 @@ export default class Cookies {
 
     setByServer (url: string, cookies) {
         return this._set(url, cookies, false);
+    }
+
+    getCookiesByApi (urls: string) {
+        return this._getCookiesPromisified.call(this._cookieJar, urls);
+    }
+
+    async getAllCookiesByApi () {
+        return await this._getAllCookiesPromisified.call(this._cookieJar.store);
+    }
+
+    setCookiesByApi (url: string, apiCookies) {
+        const cookiesToSet: string[] = apiCookies.map(apiCookie => {
+            apiCookie.key = apiCookie.name;
+
+            delete apiCookie.name;
+
+            return new Cookie(apiCookie).toString();
+        })
+
+        this._set(url, cookiesToSet, false);
+    }
+
+    async deleteCookieByApi () {
+        await this._removeCookiePromisified.apply(this._cookieJar.store, arguments);
+    }
+
+    async deleteCookiesByApi () {
+        await this._removeCookiesPromisified.apply(this._cookieJar.store, arguments);
+    }
+
+    deleteAllCookiesByApi () {
+        this._cookieJar.removeAllCookiesSync();
     }
 
     setByClient (syncCookies) {
