@@ -214,7 +214,9 @@ describe('External proxy', () => {
 
     it('Should raise the tunneling error', done => {
         session.handlePageError = (ctx, err) => {
-            expect(err).eql('Failed to connect to the proxy. Cannot establish tunneling connection to the host at <a href="127.0.0.1:2055">127.0.0.1:2055</a>.');
+
+            expect(err).eql('Cannot establish a tunnel to <a href="127.0.0.1:2055">127.0.0.1:2055</a>.' +
+                            ' The proxy may be unresponsive or unable to handle HTTPS connections.');
             ctx.res.end();
             done();
         };
