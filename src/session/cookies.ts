@@ -90,6 +90,8 @@ export default class Cookies {
     }
 
     setCookiesByApi (url: string, apiCookies) {
+        apiCookies = castArray(apiCookies);
+
         const cookiesToSet: string[] = apiCookies.map(apiCookie => {
             apiCookie.key = apiCookie.name;
 
@@ -105,6 +107,7 @@ export default class Cookies {
         await this._removeCookiePromisified.apply(this._cookieJar.store, arguments);
     }
 
+    // TODO: unused in the second API variant, remove it
     async deleteCookiesByApi () {
         await this._removeCookiesPromisified.apply(this._cookieJar.store, arguments);
     }
