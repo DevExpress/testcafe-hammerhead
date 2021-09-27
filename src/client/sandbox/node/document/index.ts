@@ -107,25 +107,6 @@ export default class DocumentSandbox extends SandboxBase {
             nativeMethods.objectDefineProperty(owner, prop, overriddenDescriptor);
     }
 
-    private static _createFakeStyleSheets (styleSheets) {
-        if (styleSheets instanceof StyleSheetList)
-            return styleSheets;
-
-        const fakeStyleSheets = nativeMethods.objectCreate(StyleSheetList, {
-            item:   nativeMethods.objectGetOwnPropertyDescriptor(styleSheets, 'item'),
-            length: nativeMethods.objectGetOwnPropertyDescriptor(styleSheets, 'length'),
-        });
-
-        for (let i = 0; i < styleSheets.length; i++) {
-            nativeMethods.objectDefineProperty(fakeStyleSheets, i, { enumerable: true, value: styleSheets[i] });
-
-            if (styleSheets[i].id)
-                nativeMethods.objectDefineProperty(fakeStyleSheets, styleSheets[i].id, { get: () => styleSheets[i] });
-        }
-
-        return fakeStyleSheets;
-    }
-
     iframeDocumentOpen (window, document, args) {
         const iframe = window.frameElement;
         const result = nativeMethods.documentOpen.apply(document, args);
@@ -307,9 +288,7 @@ export default class DocumentSandbox extends SandboxBase {
             getter: function () {
                 const styleSheets = nativeMethods.documentStyleSheetsGetter.call(this);
 
-                //HACK: Sometimes client scripts want to get StyleSheet by one's property 'id' and by index. Real StyleSheetList can provide this possibility.
-                //We can't create a new StyleSheetList or change current yet, so we need to create a fake StyleSheetList.
-                return DocumentSandbox._createFakeStyleSheets(documentSandbox._shadowUI._filterStyleSheetList(styleSheets, styleSheets.length));
+                return documentSandbox._shadowUI._filterStyleSheetList(styleSheets, styleSheets.length);
             }
         });
 
