@@ -108,6 +108,9 @@ export default class DocumentSandbox extends SandboxBase {
     }
 
     private static _createFakeStyleSheets (styleSheets) {
+        if (styleSheets instanceof StyleSheetList)
+            return styleSheets;
+
         const fakeStyleSheets = nativeMethods.objectCreate(StyleSheetList, {
             item:   nativeMethods.objectGetOwnPropertyDescriptor(styleSheets, 'item'),
             length: nativeMethods.objectGetOwnPropertyDescriptor(styleSheets, 'length'),
