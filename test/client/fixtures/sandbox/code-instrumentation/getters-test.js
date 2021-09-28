@@ -100,6 +100,28 @@ test('CSSStyleSheet.href', function () {
     document.body.removeChild(style);
 });
 
+test('CSSStyleSheet structure', function () {
+    var id    = 'test';
+    var style = document.createElement('style');
+
+    style.id = id;
+
+    document.body.appendChild(style);
+
+    ok(typeof document.styleSheets === 'object');
+
+    for (let i = 0; i < document.styleSheets.length; i++)
+        ok(document.styleSheets[i] instanceof CSSStyleSheet);
+
+    if (browserUtils.isIE11) {
+        var styleSheet = document.styleSheets[id];
+
+        strictEqual(styleSheet.id, id);
+    }
+
+    document.body.removeChild(style);
+});
+
 test('input.formaction, button.formaction', function () {
     var button = document.createElement('button');
     var input  = document.createElement('input');
