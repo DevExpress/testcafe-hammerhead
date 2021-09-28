@@ -127,7 +127,7 @@ export default class ShadowUI extends SandboxBase {
 
             //HACK: Sometimes client scripts want to get StyleSheet by one's property 'id' and by index. Real StyleSheetList can provide this possibility.
             //We can't create a new StyleSheetList or change current yet, so we need to create a fake StyleSheetList.
-            if (isIE && filteredList[filteredList.length - 1].id)
+            if (isIE && list instanceof StyleSheetList && filteredList[filteredList.length - 1].id)
                 nativeMethods.objectDefineProperty(filteredList, filteredList[filteredList.length - 1].id, { get: () => filteredList[filteredList.length - 1] });
         }
 
