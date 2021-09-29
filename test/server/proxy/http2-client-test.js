@@ -5,6 +5,11 @@ const logger                       = require('../../../lib/utils/logger');
 const { noop }                     = require('lodash');
 const http2Utils                   = require('../../../lib/request-pipeline/destination-request/http2');
 const { CROSS_DOMAIN_SERVER_PORT } = require('../common/constants');
+const selfSignedCertificate        = require('openssl-self-signed-certificate');
+const http                         = require('http');
+const http2                        = require('http2');
+const urlLib                       = require('url');
+const net                          = require('net');
 
 const {
     HTTP2_HEADER_STATUS,
@@ -23,11 +28,13 @@ const {
 
 
 describe('https proxy', () => {
-    let session     = null;
-    let proxy       = null;
-    let http2Server = null;
-    let httpsServer = null;
-    let logs        = null;
+    let session               = null;
+    let proxy                 = null;
+    let http2Server           = null;
+    let http2CompatibleServer = null;
+    let httpsServer           = null;
+    let proxyServer           = null;
+    let logs                  = null;
 
     const nativeLoggerFns = [];
 
@@ -46,11 +53,56 @@ describe('https proxy', () => {
             obj[name] = fn;
     }
 
+    function createHttp2CompatibleServer (port) {
+        const { cert, key } = selfSignedCertificate;
+
+        function onRequest (req, res) {
+            res.writeHead(200, { 'content-type': 'application/json' });
+
+            res.end(JSON.stringify({
+                httpVersion: req.httpVersion
+            }));
+        }
+
+        return http2.createSecureServer({ cert, key, allowHTTP1: true }, onRequest).listen(port);
+    }
+
+    function createProxyServer (port) {
+        return http
+            .createServer((req, res) => {
+                const reqOptions = urlLib.parse(req.url);
+
+                reqOptions.method  = req.method;
+                reqOptions.headers = req.headers;
+
+                const serverReq = http.request(reqOptions, serverRes => {
+                    res.writeHead(serverRes.statusCode, serverRes.headers);
+                    serverRes.pipe(res);
+                });
+
+                req.pipe(serverReq);
+            })
+            .on('connect', (req, clientSocket, head) => {
+                const serverUrl    = urlLib.parse('http://' + req.url);
+                const serverSocket = net.connect(serverUrl.port, serverUrl.hostname, () => {
+                    clientSocket.write('HTTP/1.1 200 Connection Established\r\n' +
+                                       'Proxy-agent: Node.js-Proxy\r\n' +
+                                       '\r\n');
+                    serverSocket.write(head);
+                    serverSocket.pipe(clientSocket);
+                    clientSocket.pipe(serverSocket);
+                });
+            })
+            .listen(port);
+    }
+
     before(() => {
         const crossDomainDestinationServer = createDestinationServer(CROSS_DOMAIN_SERVER_PORT, true);
         const { app: httpsApp }            = crossDomainDestinationServer;
 
-        httpsServer = crossDomainDestinationServer.server;
+        http2CompatibleServer = createHttp2CompatibleServer(2005);
+        proxyServer           = createProxyServer(2003);
+        httpsServer           = crossDomainDestinationServer.server;
 
         httpsApp.get('/stylesheet', (_req, res) => res
             .status(200)
@@ -85,6 +137,8 @@ describe('https proxy', () => {
         restoreLoggerFns();
         http2Server.close();
         httpsServer.close();
+        http2CompatibleServer.close();
+        proxyServer.close();
     });
 
     beforeEach(() => {
@@ -223,6 +277,23 @@ describe('https proxy', () => {
                 expect(logs.length).eql(2);
                 expect(logs[0]).eql('onRequest');
                 expect(logs[1]).eql('https://127.0.0.1:2002/stylesheet');
+            });
+    });
+
+    it('Should use http1 if external proxy is enabled', () => {
+        const proxyUrl = proxy.openSession('https://127.0.0.1:2005', session);
+
+        return request(proxyUrl)
+            .then(body => {
+                expect(JSON.parse(body.toString()).httpVersion).eql('2.0');
+            })
+            .then(() => {
+                session.setExternalProxySettings('127.0.0.1:2003');
+
+                return request(proxyUrl);
+            })
+            .then(body => {
+                expect(JSON.parse(body.toString()).httpVersion).eql('1.1');
             });
     });
 });

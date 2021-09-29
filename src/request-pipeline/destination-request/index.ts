@@ -130,7 +130,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
             }
         }
 
-        const http2Session = !this.opts.disableHttp2 && this.opts.isHttps && !this.opts.isWebSocket &&
+        const http2Session = !this.opts.disableHttp2 && this.opts.isHttps && !this.opts.isWebSocket && !this.opts.proxy &&
             await getHttp2Session(this.opts.requestId ,this.opts.protocol + '//' + this.opts.host);
 
         if (http2Session && !http2Session.closed)
