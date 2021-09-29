@@ -135,6 +135,10 @@ export const responseTransforms = {
     [BUILTIN_HEADERS.contentLength]: (src: string, ctx: RequestPipelineContext) =>
         ctx.contentInfo.requireProcessing ? ctx.destResBody.length.toString() : src,
 
+    // NOTE: We should skip an invalid trailer header (GH-2692).
+    [BUILTIN_HEADERS.trailer]: (src: string, ctx: RequestPipelineContext) =>
+        ctx.destRes.headers[BUILTIN_HEADERS.transferEncoding] === 'chunked' ? src : void 0,
+
     [BUILTIN_HEADERS.location]: (src: string, ctx: RequestPipelineContext) => {
         // NOTE: The RFC 1945 standard requires location URLs to be absolute. However, most popular browsers
         // accept relative URLs. We transform relative URLs to absolute to correctly handle this situation.

@@ -1521,4 +1521,48 @@ describe('Regression', () => {
                 expect(res.headers.location).eql('http://127.0.0.1:1837/sid*12345!a!2!example.com/http://localhost/');
             });
     });
+
+    it('Should remove an invalid trailer header (GH-2692)', () => {
+        const server = net.createServer(socket => {
+            socket.on('data', data => {
+                const url = data.toString().match(/GET (.+) HTTP/)[1];
+
+                if (url === '/ok') {
+                    socket.end([
+                        'HTTP/1.1 200 Ok',
+                        'Trailer: baz',
+                        'Transfer-Encoding: chunked',
+                        '',
+                        '0',
+                        '',
+                        ''
+                    ].join('\r\n'));
+                }
+                else {
+                    socket.end([
+                        'HTTP/1.1 200 Ok',
+                        'Trailer: baz',
+                        'Content-Length: 0',
+                        '',
+                        ''
+                    ].join('\r\n'));
+                }
+            });
+        });
+
+        return getFreePort()
+            .then(port => new Promise(resolve => server.listen(port, () => resolve(port))))
+            .then(port => Promise.all([
+                request({ url: proxy.openSession(`http://127.0.0.1:${port}/ok`, session), resolveWithFullResponse: true }),
+                request({ url: proxy.openSession(`http://127.0.0.1:${port}/err`, session), resolveWithFullResponse: true }),
+            ]))
+            .then(([okRes, errRes]) => {
+                expect(okRes.headers.trailer).eql('baz');
+                expect(okRes.headers['transfer-encoding']).eql('chunked');
+
+                expect(errRes.headers.trailer).eql(void 0);
+                expect(errRes.headers['content-length']).eql('0');
+            })
+            .then(() => new Promise(resolve => server.close(() => resolve())));
+    });
 });
