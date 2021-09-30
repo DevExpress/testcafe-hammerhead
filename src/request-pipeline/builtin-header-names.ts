@@ -31,6 +31,8 @@ export default {
     accept:             'accept',
     contentEncoding:    'content-encoding',
     expires:            'expires',
+    trailer:            'trailer',
+    transferEncoding:   'transfer-encoding',
 
     serviceWorkerAllowed: 'service-worker-allowed',
 
