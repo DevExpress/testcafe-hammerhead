@@ -44,14 +44,20 @@ export default class StyleSandbox extends SandboxBase {
         // NOTE: The CSS2Properties class is supported only in the Firefox
         // and its prototype contains all property descriptors
         // @ts-ignore
-        features.protoContainsAllProps = !!window.CSS2Properties;
+        features.css2PropertiesProtoContainsAllProps = !!window.CSS2Properties;
 
         // NOTE: The CSSStyleDeclaration class contains not dashed url properties only in the IE
-        features.protoContainsUrlProps = this.nativeMethods.objectHasOwnProperty
+        features.cssStyleDeclarationProtoContainsUrlProps = this.nativeMethods.objectHasOwnProperty
             // @ts-ignore
             .call(window.CSSStyleDeclaration.prototype, 'background');
 
-        if (!features.protoContainsAllProps && !features.protoContainsUrlProps) {
+        features.cssStyleDeclarationProtoContainsDashedProps = this.nativeMethods.objectHasOwnProperty
+            .call(window.CSSStyleDeclaration.prototype, 'background-image');
+
+        features.cssStyleDeclarationContainsAllProps = features.cssStyleDeclarationProtoContainsUrlProps &&
+            features.cssStyleDeclarationProtoContainsDashedProps;
+
+        if (!features.css2PropertiesProtoContainsAllProps && !features.cssStyleDeclarationProtoContainsUrlProps) {
             const testDiv              = this.nativeMethods.createElement.call(document, 'div');
             let propertySetterIsCalled = false;
             const testDivDescriptor    = this.nativeMethods.objectGetOwnPropertyDescriptor
@@ -125,7 +131,7 @@ export default class StyleSandbox extends SandboxBase {
             for (const prop of this.DASHED_URL_PROPS)
                 this._overrideStyleInstanceProp(style, prop);
 
-            if (!this.FEATURES.protoContainsUrlProps) {
+            if (!this.FEATURES.cssStyleDeclarationProtoContainsUrlProps) {
                 for (const prop of this.URL_PROPS)
                     this._overrideStyleInstanceProp(style, prop);
             }
@@ -193,14 +199,16 @@ export default class StyleSandbox extends SandboxBase {
         const styleSandbox  = this;
 
         overrideDescriptor(window[nativeMethods.htmlElementStylePropOwnerName].prototype, 'style', {
-            getter: this.FEATURES.protoContainsAllProps ? null : function (this: Window) {
-                const style = nativeMethods.htmlElementStyleGetter.call(this);
+            getter: this.FEATURES.css2PropertiesProtoContainsAllProps || this.FEATURES.cssStyleDeclarationContainsAllProps
+                ? null
+                : function (this: Window) {
+                    const style = nativeMethods.htmlElementStyleGetter.call(this);
 
-                if (styleSandbox.FEATURES.propsCannotBeOverridden)
-                    return styleSandbox._getStyleProxy(style);
+                    if (styleSandbox.FEATURES.propsCannotBeOverridden)
+                        return styleSandbox._getStyleProxy(style);
 
-                return styleSandbox._processStyleInstance(style);
-            },
+                    return styleSandbox._processStyleInstance(style);
+                },
             setter: nativeMethods.htmlElementStyleSetter ? function (this: Window, value) {
                 const processedCss = styleProcessor.process(value, getProxyUrl);
 
@@ -208,7 +216,7 @@ export default class StyleSandbox extends SandboxBase {
             } : null
         });
 
-        if (this.FEATURES.protoContainsAllProps) {
+        if (this.FEATURES.css2PropertiesProtoContainsAllProps) {
             for (const prop of this.URL_PROPS)
                 // @ts-ignore
                 this._overrideStyleProp(window.CSS2Properties.prototype, prop);
@@ -217,9 +225,15 @@ export default class StyleSandbox extends SandboxBase {
                 // @ts-ignore
                 this._overrideStyleProp(window.CSS2Properties.prototype, prop);
         }
-        else if (this.FEATURES.protoContainsUrlProps) {
-            for (const prop of this.URL_PROPS)
-                this._overrideStyleProp(window.CSSStyleDeclaration.prototype, prop);
+        else {
+            if (this.FEATURES.cssStyleDeclarationProtoContainsUrlProps) {
+                for (const prop of this.URL_PROPS)
+                    this._overrideStyleProp(window.CSSStyleDeclaration.prototype, prop);
+            }
+            if (this.FEATURES.cssStyleDeclarationProtoContainsDashedProps) {
+                for (const prop of this.DASHED_URL_PROPS)
+                    this._overrideStyleProp(window.CSSStyleDeclaration.prototype, prop);
+            }
         }
 
         overrideDescriptor(window.CSSStyleDeclaration.prototype, 'cssText', {
