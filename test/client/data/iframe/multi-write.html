@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+    <script type="text/javascript">
+        var hammerhead = window['%hammerhead%'];
+
+        hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/https://example.com');
+        hammerhead.start({
+            crossDomainProxyPort:     2000,
+            iframeTaskScriptTemplate: window.top.getIframeTaskScript('', '/service-msg/100', 'http://localhost/sessionId/https://example.com')
+        });
+    </script>
+</head>
+<body>
+<iframe id="first-iframe"></iframe>
+<iframe id="second-iframe"></iframe>
+<script>
+    const firstIframe  = document.getElementById('first-iframe');
+    const secondIframe = document.getElementById('second-iframe');
+
+    document.write('<h1>Current iframe!</h1>');
+    firstIframe.contentDocument.write('<h1>First iframe!</h1>');
+    firstIframe.contentDocument.close();
+    secondIframe.contentDocument.write('<h1>Second iframe!</h1>');
+    secondIframe.contentDocument.close();
+</script>
+</body>
+</html>

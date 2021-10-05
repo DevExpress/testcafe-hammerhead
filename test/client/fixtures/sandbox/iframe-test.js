@@ -664,3 +664,16 @@ test('the internal anchor element should be restored after the reusing hammerhea
             strictEqual(anchor.hostname, 'example.com');
         });
 });
+
+test('Uninitialized iframes should correctly behave when they are rewritten (GH-2694 & GH-2693)', function () {
+    return createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/multi-write.html') })
+        .then(function (iframe) {
+            var idoc    = iframe.contentDocument;
+            var iframe1 = idoc.querySelector('#first-iframe');
+            var iframe2 = idoc.querySelector('#second-iframe');
+
+            strictEqual(idoc.body.lastElementChild.textContent, 'Current iframe!');
+            strictEqual(iframe1.contentDocument.body.lastChild.textContent, 'First iframe!');
+            strictEqual(iframe2.contentDocument.body.lastChild.textContent, 'Second iframe!');
+        });
+});

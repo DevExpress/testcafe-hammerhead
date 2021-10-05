@@ -17,7 +17,7 @@ import DocumentTitleStorageInitializer from './title-storage-initializer';
 import CookieSandbox from '../../cookie';
 
 export default class DocumentSandbox extends SandboxBase {
-    documentWriter: DocumentWriter;
+    writers = new Map<Document, DocumentWriter>();
 
     constructor (private readonly _nodeSandbox: NodeSandbox,
         private readonly _shadowUI: ShadowUI,
@@ -26,8 +26,6 @@ export default class DocumentSandbox extends SandboxBase {
         private readonly _documentTitleStorageInitializer?: DocumentTitleStorageInitializer) {
 
         super();
-
-        this.documentWriter = null;
     }
 
     static forceProxySrcForImageIfNecessary (element: Element): void {
@@ -72,28 +70,19 @@ export default class DocumentSandbox extends SandboxBase {
         return doc.readyState !== 'loading' && doc.readyState !== 'uninitialized';
     }
 
-    private _performDocumentWrite (args, ln?: boolean) {
+    private _performDocumentWrite (doc: Document, args, ln?: boolean) {
         const shouldEmitEvents = DocumentSandbox._shouldEmitDocumentCleanedEvents(this.document);
 
         if (shouldEmitEvents)
             this._beforeDocumentCleaned();
 
-        const result = this.documentWriter.write(args, ln, shouldEmitEvents);
+        const result = this.writers.get(doc).write(args, ln, shouldEmitEvents);
 
         // NOTE: B234357
         if (!shouldEmitEvents)
             this._nodeSandbox.processNodes(null, this.document);
 
         return result;
-    }
-
-    private _needToUpdateDocumentWriter (window, document): boolean {
-        try {
-            return !this.documentWriter || this.window !== window || this.document !== document;
-        }
-        catch (e) {
-            return true;
-        }
     }
 
     private static _definePropertyDescriptor (owner, childOfOwner, prop, overriddenDescriptor) {
@@ -118,15 +107,16 @@ export default class DocumentSandbox extends SandboxBase {
     }
 
     attach (window, document, partialInitializationForNotLoadedIframe = false) {
-        if (this._needToUpdateDocumentWriter(window, document)) {
-            this.documentWriter = new DocumentWriter(window, document);
+        if (!this.writers.size)
+            super.attach(window, document);
+
+        if (!this.writers.has(document)) {
+            this.writers.set(document, new DocumentWriter(window, document));
 
             this._nodeSandbox.mutation.on(this._nodeSandbox.mutation.BEFORE_DOCUMENT_CLEANED_EVENT, () => {
-                this.documentWriter = new DocumentWriter(window, document);
+                this.writers.set(document, new DocumentWriter(window, document));
             });
         }
-
-        super.attach(window, document);
 
         const documentSandbox = this;
         const docPrototype    = window.Document.prototype;
@@ -189,11 +179,11 @@ export default class DocumentSandbox extends SandboxBase {
             },
 
             write: function () {
-                return documentSandbox._performDocumentWrite(arguments);
+                return documentSandbox._performDocumentWrite(this, arguments);
             },
 
             writeln: function () {
-                return documentSandbox._performDocumentWrite(arguments, true);
+                return documentSandbox._performDocumentWrite(this, arguments, true);
             }
         };
 
