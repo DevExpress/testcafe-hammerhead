@@ -22,6 +22,11 @@ import logger from '../utils/logger';
 import errToString from '../utils/err-to-string';
 import { parse as parseJSON } from '../utils/json';
 
+
+interface TaskScriptParams {
+    referer: string;
+}
+
 const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
 
 function parseAsJson (msg: Buffer): ServiceMessage | null {
@@ -141,9 +146,12 @@ export default class Proxy extends Router {
             content:     workerHammerheadContent
         });
 
-        this.POST(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onServiceMessage(req, res, serverInfo));
-        this.GET(SERVICE_ROUTES.task, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onTaskScriptRequest(req, res, serverInfo, false));
-        this.GET(SERVICE_ROUTES.iframeTask, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onTaskScriptRequest(req, res, serverInfo, true));
+        this.POST(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) =>
+            this._onServiceMessage(req, res, serverInfo));
+        this.GET(SERVICE_ROUTES.task, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo, params: TaskScriptParams) =>
+            this._onTaskScriptRequest(req, res, serverInfo, params.referer, false));
+        this.GET(SERVICE_ROUTES.iframeTask, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo, params: TaskScriptParams) =>
+            this._onTaskScriptRequest(req, res, serverInfo, params.referer, true));
     }
 
     async _onServiceMessage (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo): Promise<void> {
@@ -169,29 +177,31 @@ export default class Proxy extends Router {
             respond500(res, SESSION_IS_NOT_OPENED_ERR);
     }
 
-    async _onTaskScriptRequest (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo, isIframe: boolean): Promise<void> {
-        const referer     = req.headers[BUILTIN_HEADERS.referer] as string;
-        const refererDest = referer && urlUtils.parseProxyUrl(referer);
-        const session     = refererDest && this.openSessions.get(refererDest.sessionId);
-        const windowId    = refererDest && refererDest.windowId || void 0;
+    async _onTaskScriptRequest (_req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo, referer: string, isIframe: boolean): Promise<void> {
+        const decodedReferer = decodeURIComponent(referer);
+        const refererDest    = urlUtils.parseProxyUrl(decodedReferer);
+        const session        = refererDest && this.openSessions.get(refererDest.sessionId);
+        const windowId       = refererDest && refererDest.windowId || void 0;
 
-        if (session) {
-            res.setHeader(BUILTIN_HEADERS.contentType, 'application/x-javascript');
-            addPreventCachingHeaders(res);
-
-            const taskScript = await session.getTaskScript({
-                referer,
-                cookieUrl:   refererDest ? refererDest.destUrl : '',
-                serverInfo,
-                isIframe,
-                withPayload: true,
-                windowId
-            });
-
-            res.end(taskScript);
-        }
-        else
+        if (!session) {
             respond500(res, SESSION_IS_NOT_OPENED_ERR);
+
+            return;
+        }
+
+        res.setHeader(BUILTIN_HEADERS.contentType, 'application/x-javascript');
+        addPreventCachingHeaders(res);
+
+        const taskScript = await session.getTaskScript({
+            referer:     decodedReferer,
+            cookieUrl:   refererDest ? refererDest.destUrl : '',
+            withPayload: true,
+            serverInfo,
+            isIframe,
+            windowId
+        });
+
+        res.end(taskScript);
     }
 
     _onRequest (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo): void {

@@ -11,7 +11,6 @@ import SELF_REMOVING_SCRIPTS from '../../utils/self-removing-scripts';
 import RequestPipelineContext from '../../request-pipeline/context';
 import Charset from '../encoding/charset';
 import BaseDomAdapter from '../dom/base-dom-adapter';
-import SERVICE_ROUTES from '../../proxy/service-routes';
 import { stringify as stringifyJSON } from '../../utils/json';
 
 const PARSED_BODY_CREATED_EVENT_SCRIPT                = parse5.parseFragment(SELF_REMOVING_SCRIPTS.onBodyCreated).childNodes![0];
@@ -87,7 +86,6 @@ class PageProcessor extends ResourceProcessorBase {
                     { name: 'href', value: stylesheetUrl }
                 ]));
             });
-
         }
 
         if (processingOptions.scripts) {
@@ -108,15 +106,12 @@ class PageProcessor extends ResourceProcessorBase {
     }
 
     private static _getTaskScriptNodeIndex (head: ASTNode, ctx: RequestPipelineContext): number {
-        const taskScriptUrls = [
-            ctx.resolveInjectableUrl(SERVICE_ROUTES.task),
-            ctx.resolveInjectableUrl(SERVICE_ROUTES.iframeTask)
-        ];
+        const taskScriptUrl = ctx.resolveInjectableUrl(ctx.getInjectableTaskScript());
 
         return parse5Utils.findNodeIndex(head, node => {
             return node.tagName === 'script' &&
                 !!node.attrs.find(attr => attr.name === 'class' && attr.value === SHADOW_UI_CLASSNAME.script) &&
-                !!node.attrs.find(attr => attr.name === 'src' && taskScriptUrls.includes(attr.value));
+                !!node.attrs.find(attr => attr.name === 'src' && taskScriptUrl === attr.value);
         });
     }
 

@@ -31,6 +31,11 @@ export const HTTPS_DEFAULT_PORT = '443';
 
 export enum Credentials { include, sameOrigin, omit, unknown }
 
+interface SessionInfo {
+    sessionId: string;
+    windowId?: string;
+}
+
 const SPECIAL_PAGE_DEST_RESOURCE_INFO = {
     protocol:      'about:',
     host:          '',
@@ -149,13 +154,27 @@ export function getURLString (url: string | URL): string {
     return String(url).replace(/[\n\t]/g, '');
 }
 
+export function formatSessionInfo (info: SessionInfo): string {
+    let sessionInfo = info.sessionId;
+
+    if (info.windowId)
+        sessionInfo += REQUEST_DESCRIPTOR_SESSION_INFO_VALUES_SEPARATOR + info.windowId;
+
+    return sessionInfo;
+}
+
+export function parseSessionInfo (info: string): SessionInfo {
+    const [sessionId, windowId] = info.split(REQUEST_DESCRIPTOR_SESSION_INFO_VALUES_SEPARATOR);
+    const sessionInfo           = { sessionId } as SessionInfo;
+
+    if (windowId)
+        sessionInfo.windowId = windowId;
+
+    return sessionInfo;
+}
+
 export function getProxyUrl (url: string, opts: ProxyUrlOptions): string {
-    const sessionInfo = [opts.sessionId];
-
-    if (opts.windowId)
-        sessionInfo.push(opts.windowId);
-
-    const params = [sessionInfo.join(REQUEST_DESCRIPTOR_SESSION_INFO_VALUES_SEPARATOR)];
+    const params = [formatSessionInfo(opts)];
 
     if (opts.resourceType)
         params.push(opts.resourceType);
@@ -193,11 +212,9 @@ function parseRequestDescriptor (desc: string): RequestDescriptor | null {
     if (!sessionInfo)
         return null;
 
-    const [sessionId, windowId] = sessionInfo.split(REQUEST_DESCRIPTOR_SESSION_INFO_VALUES_SEPARATOR);
-    const parsedDesc            = { sessionId, resourceType: resourceType || null } as RequestDescriptor;
+    const parsedDesc = parseSessionInfo(sessionInfo) as RequestDescriptor;
 
-    if (windowId)
-        parsedDesc.windowId = windowId;
+    parsedDesc.resourceType = resourceType || null;
 
     if (resourceType && resourceData.length) {
         const parsedResourceType = parseResourceType(resourceType);

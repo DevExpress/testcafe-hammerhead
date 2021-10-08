@@ -375,9 +375,14 @@ export default class RequestPipelineContext {
             this.isDestResReadableEnded = true;
     }
 
+    getInjectableTaskScript (): string {
+        const taskScriptRaw = this.isIframe ? SERVICE_ROUTES.iframeTask : SERVICE_ROUTES.task;
+
+        return taskScriptRaw.replace('{referer}', encodeURIComponent(this.req.url!));
+    }
+
     getInjectableScripts (): string[] {
-        const taskScript = this.isIframe ? SERVICE_ROUTES.iframeTask : SERVICE_ROUTES.task;
-        const scripts    = this.session.injectable.scripts.concat(taskScript, this._injectableUserScripts);
+        const scripts = this.session.injectable.scripts.concat(this.getInjectableTaskScript(), this._injectableUserScripts);
 
         return this._resolveInjectableUrls(scripts);
     }
