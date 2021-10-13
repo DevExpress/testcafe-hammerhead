@@ -28,9 +28,18 @@ function writeWebSocketHead (socket: net.Socket, destRes: IncomingMessage, heade
 export function respondOnWebSocket (ctx: RequestPipelineContext): void {
     const headers = headerTransforms.forResponse(ctx);
     const destRes = ctx.destRes as IncomingMessage;
+    const res     = ctx.res as net.Socket;
 
-    writeWebSocketHead(ctx.res as net.Socket, destRes, headers);
+    writeWebSocketHead(res, destRes, headers);
 
-    destRes.socket.pipe(ctx.res);
-    ctx.res.pipe(destRes.socket);
+    const unpipe = () => {
+        res.unpipe(destRes.socket);
+        destRes.socket.unpipe(res);
+    };
+
+    destRes.socket.on('end', unpipe);
+    res.on('end', unpipe);
+
+    destRes.socket.pipe(res);
+    res.pipe(destRes.socket);
 }
