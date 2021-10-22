@@ -316,6 +316,9 @@ export default class RequestPipelineContext {
         if (isFileDownload)
             this.session.handleFileDownload();
 
+        if (isAttachment)
+            this.session.handleAttachment();
+
         this.contentInfo = {
             charset,
             requireProcessing,

@@ -138,6 +138,7 @@ describe('Content charset', () => {
 
         session                    = new Session();
         session.getAuthCredentials = () => null;
+        session.handleAttachment   = () => void 0;
         session.id                 = 'sessionId';
 
         proxy = new Proxy('127.0.0.1', 1836, 1837);

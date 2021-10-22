@@ -67,6 +67,7 @@ exports.createSession = function (parameters) {
 
     session.getAuthCredentials = () => null;
     session.handleFileDownload = () => void 0;
+    session.handleAttachment   = () => void 0;
 
     return session;
 };
