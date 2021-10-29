@@ -3,15 +3,28 @@ import BYTES_PER_COOKIE_LIMIT from './cookie-limit';
 import { castArray } from 'lodash';
 import { parseUrl } from '../utils/url';
 import { parse as parseJSON, stringify as stringifyJSON } from '../utils/json';
+import { promisify } from 'util';
 
 const LOCALHOST_DOMAIN = 'localhost';
 const LOCALHOST_IP     = '127.0.0.1';
 
 export default class Cookies {
     private _cookieJar: any;
+    private _findCookiePromisified: any;
+    private _findCookiesPromisified: any;
+    private _getAllCookiesPromisified: any;
+    private _putCookiePromisified: any;
+    private _removeCookiePromisified: any;
+    private _removeCookiesPromisified: any;
 
     constructor () {
-        this._cookieJar = new CookieJar();
+        this._cookieJar                = new CookieJar();
+        this._findCookiePromisified    = promisify(this._cookieJar.store.findCookie);
+        this._findCookiesPromisified   = promisify(this._cookieJar.store.findCookies);
+        this._getAllCookiesPromisified = promisify(this._cookieJar.store.getAllCookies);
+        this._putCookiePromisified     = promisify(this._cookieJar.store.putCookie);
+        this._removeCookiePromisified  = promisify(this._cookieJar.store.removeCookie);
+        this._removeCookiesPromisified = promisify(this._cookieJar.store.removeCookies);
     }
 
     static _hasLocalhostDomain (cookie): boolean {
@@ -65,6 +78,42 @@ export default class Cookies {
         this._cookieJar = serializedJar
             ? CookieJar.deserializeSync(parseJSON(serializedJar))
             : new CookieJar();
+    }
+
+    findCookieByApi () {
+        return this._findCookiePromisified.apply(this._cookieJar.store, arguments);
+    }
+
+    findCookiesByApi () {
+        return this._findCookiesPromisified.apply(this._cookieJar.store, arguments);
+    }
+
+    getAllCookiesByApi () {
+        return this._getAllCookiesPromisified.call(this._cookieJar.store);
+    }
+
+    setCookiesByApi (apiCookies) {
+        for (const apiCookie of apiCookies) {
+            const cookieToSet = new Cookie(apiCookie);
+            const cookieStr   = cookieToSet.toString();
+
+            if (cookieStr.length > BYTES_PER_COOKIE_LIMIT)
+                break;
+
+            this._putCookiePromisified.call(this._cookieJar.store, cookieToSet);
+        }
+    }
+
+    deleteCookieByApi () {
+        this._removeCookiePromisified.apply(this._cookieJar.store, arguments);
+    }
+
+    deleteCookiesByApi () {
+        this._removeCookiesPromisified.apply(this._cookieJar.store, arguments);
+    }
+
+    deleteAllCookiesByApi () {
+        this._cookieJar.removeAllCookiesSync();
     }
 
     setByServer (url: string, cookies) {
