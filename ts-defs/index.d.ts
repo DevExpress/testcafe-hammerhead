@@ -99,6 +99,9 @@ declare module 'testcafe-hammerhead' {
         /** Session's injectable resources **/
         injectable: InjectableResources;
 
+        /** Session's cookie API **/
+        cookies: any;
+
         /** Creates a session instance **/
         protected constructor (uploadRoots: string[], options: Partial<SessionOptions>)
 
