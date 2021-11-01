@@ -15,6 +15,7 @@ function createSession () {
     session.getPayloadScript       = async () => '';
     session.getAuthCredentials      = () => ({});
     session.handleFileDownload      = () => void 0;
+    session.handleAttachment        = () => void 0;
     session.handlePageError         = (ctx, err) => {
         console.error(ctx.req.url);
         console.error(err);
