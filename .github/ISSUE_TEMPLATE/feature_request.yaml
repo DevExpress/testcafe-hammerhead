@@ -7,9 +7,7 @@ body:
       value: |
         If you have an idea you think might be useful for others, please share as much detail as possible in the sections below.
         
-        Before submitting an issue, please check existing issues in this repository in case a similar issue exists:
-        https://github.com/DevExpress/testcafe-hammerhead/issues
-        This may save your time (and ours).
+        Before submitting an issue, please check existing issues in [this repository](https://github.com/DevExpress/testcafe-hammerhead/issues) in case a similar issue exists. This may save your time (and ours).
 
   - type: textarea
     id: scenario
