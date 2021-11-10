@@ -317,7 +317,7 @@ export default class RequestPipelineContext {
             this.session.handleFileDownload();
 
         if (isAttachment)
-            this.session.handleAttachment();
+            this._handleAttachment();
 
         this.contentInfo = {
             charset,
@@ -354,6 +354,19 @@ export default class RequestPipelineContext {
 
         if (injectableUserScripts)
             this._injectableUserScripts = injectableUserScripts;
+    }
+
+    private _handleAttachment (): void {
+        let isOpenedInNewWindow = false;
+
+        if (this.req.url) {
+            const url1 = urlUtils.parseProxyUrl(this.req.url);
+            const url2 = urlUtils.parseProxyUrl(this.req.headers[BUILTIN_HEADERS.referer] as string);
+
+            isOpenedInNewWindow = url1?.windowId !== url2?.windowId;
+        }
+
+        this.session.handleAttachment({ isOpenedInNewWindow });
     }
 
     private async _getDestResBody (res: DestinationResponse): Promise<Buffer> {
