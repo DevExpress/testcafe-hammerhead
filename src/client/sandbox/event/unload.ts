@@ -88,7 +88,8 @@ export default class UnloadSandbox extends SandboxBase {
                 set: () => void 0
             }));
 
-            const res = originListener(e);
+            // NOTE: need to pass `this` scope for https://github.com/DevExpress/testcafe/issues/6563
+            const res = originListener.call(this, e)
 
             if (res !== void 0) {
                 eventProperties.storedReturnValue = res;
