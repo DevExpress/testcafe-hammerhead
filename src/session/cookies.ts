@@ -93,6 +93,8 @@ export default class Cookies {
     }
 
     setCookiesByApi (apiCookies) {
+        const cookiesPromises: Promise<void>[] = [];
+
         for (const apiCookie of apiCookies) {
             const cookieToSet = new Cookie(apiCookie);
             const cookieStr   = cookieToSet.toString();
@@ -100,20 +102,22 @@ export default class Cookies {
             if (cookieStr.length > BYTES_PER_COOKIE_LIMIT)
                 break;
 
-            this._putCookiePromisified.call(this._cookieJar.store, cookieToSet);
+            cookiesPromises.push(this._putCookiePromisified.call(this._cookieJar.store, cookieToSet));
         }
+
+        return Promise.all(cookiesPromises);
     }
 
     deleteCookieByApi () {
-        this._removeCookiePromisified.apply(this._cookieJar.store, arguments);
+        return this._removeCookiePromisified.apply(this._cookieJar.store, arguments);
     }
 
     deleteCookiesByApi () {
-        this._removeCookiesPromisified.apply(this._cookieJar.store, arguments);
+        return this._removeCookiesPromisified.apply(this._cookieJar.store, arguments);
     }
 
     deleteAllCookiesByApi () {
-        this._cookieJar.removeAllCookiesSync();
+        return this._cookieJar.removeAllCookiesSync();
     }
 
     setByServer (url: string, cookies) {
