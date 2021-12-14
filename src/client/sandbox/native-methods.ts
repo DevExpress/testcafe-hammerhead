@@ -1251,9 +1251,7 @@ class NativeMethods {
         };
 
         const needToRefreshDocumentMethods = tryToExecuteCode(
-            () => !doc.createElement ||
-                  isNativeFunction(document.createElement)
-        );
+            () => !doc.createElement || isNativeFunction(document.createElement));
 
         const needToRefreshElementMethods = tryToExecuteCode(() => {
             const nativeElement = this.createElement.call(doc, 'div');
@@ -1280,7 +1278,7 @@ class NativeMethods {
     }
 
     isNativeCode (fn: Function): boolean {
-        return NATIVE_CODE_RE.test(fn.toString());
+        return NATIVE_CODE_RE.test(this.functionToString.call(fn));
     }
 }
 

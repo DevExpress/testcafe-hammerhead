@@ -28,6 +28,9 @@ const ATTRIBUTE_OPERATOR_WITH_HASH_VALUE = /^\W+\s*#/;
 const PSEUDO_CLASS_FOCUS_REG_EX          = /\s*:focus\b/gi;
 const PSEUDO_CLASS_HOVER_REG_EX          = /:hover\b/gi;
 
+// NOTE: for IE11 only
+const DOCUMENT_FRAGMENT_NODE_TYPE = Node.DOCUMENT_FRAGMENT_NODE;
+
 export default class NodeSandbox extends SandboxBase {
     raiseBodyCreatedEvent: Function;
     doc: DocumentSandbox;
@@ -123,7 +126,7 @@ export default class NodeSandbox extends SandboxBase {
                 this.processNodes(doc.documentElement);
         }
         else if (el.querySelectorAll) {
-            if (el.nodeType !== Node.DOCUMENT_FRAGMENT_NODE)
+            if (el.nodeType !== DOCUMENT_FRAGMENT_NODE_TYPE)
                 this._processElement(el as Element);
 
             const children = getNativeQuerySelectorAll(el).call(el, '*');
