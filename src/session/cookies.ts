@@ -16,15 +16,17 @@ export default class Cookies {
     private _putCookiePromisified: any;
     private _removeCookiePromisified: any;
     private _removeCookiesPromisified: any;
+    private _removeAllCookiesPromisified: any;
 
     constructor () {
-        this._cookieJar                = new CookieJar();
-        this._findCookiePromisified    = promisify(this._cookieJar.store.findCookie);
-        this._findCookiesPromisified   = promisify(this._cookieJar.store.findCookies);
-        this._getAllCookiesPromisified = promisify(this._cookieJar.store.getAllCookies);
-        this._putCookiePromisified     = promisify(this._cookieJar.store.putCookie);
-        this._removeCookiePromisified  = promisify(this._cookieJar.store.removeCookie);
-        this._removeCookiesPromisified = promisify(this._cookieJar.store.removeCookies);
+        this._cookieJar                   = new CookieJar();
+        this._findCookiePromisified       = promisify(this._cookieJar.store.findCookie);
+        this._findCookiesPromisified      = promisify(this._cookieJar.store.findCookies);
+        this._getAllCookiesPromisified    = promisify(this._cookieJar.store.getAllCookies);
+        this._putCookiePromisified        = promisify(this._cookieJar.store.putCookie);
+        this._removeCookiePromisified     = promisify(this._cookieJar.store.removeCookie);
+        this._removeCookiesPromisified    = promisify(this._cookieJar.store.removeCookies);
+        this._removeAllCookiesPromisified = promisify(this._cookieJar.removeAllCookies);
     }
 
     static _hasLocalhostDomain (cookie): boolean {
@@ -117,7 +119,7 @@ export default class Cookies {
     }
 
     deleteAllCookiesByApi () {
-        return this._cookieJar.removeAllCookiesSync();
+        return this._removeAllCookiesPromisified.call(this._cookieJar);
     }
 
     setByServer (url: string, cookies) {
