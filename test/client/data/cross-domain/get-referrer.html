@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+    <script type="text/javascript">
+        var hammerhead = window['%hammerhead%'];
+
+        //hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/http://origin_iframe_host');
+        hammerhead.start({ crossDomainProxyPort: 2000 });
+
+        var INSTRUCTION = hammerhead.PROCESSING_INSTRUCTIONS.dom.script;
+        var callMethod  = window[INSTRUCTION.callMethod];
+
+        callMethod(top, 'postMessage', [document.referrer, '*']);
+    </script>
+</head>
+<body>
+</body>
+</html>

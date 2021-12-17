@@ -430,7 +430,7 @@ module('regression');
 test('setAttribute: frame src (GH-1070)', function () {
     var frame    = document.createElement('frame');
     var proxyUrl = 'http://' + location.hostname + ':' + settings.get().crossDomainProxyPort +
-                   '/sessionId!i/https://example.com/';
+                   '/sessionId!i!s*example.com/https://example.com/';
 
     frame.setAttribute('src', 'https://example.com/');
 

@@ -95,9 +95,9 @@ test('form', function () {
 module('process html');
 
 test('iframe', function () {
-    var processedHtml = htmlUtils.processHtml('<iframe src="http://example.com/">');
+    var processedHtml = htmlUtils.processHtml('<iframe src="https://example.com/">');
 
-    ok(processedHtml.indexOf('sessionId!i/http://example.com/"') !== -1);
+    ok(processedHtml.indexOf('sessionId!i/https://example.com/"') !== -1);
 });
 
 test('element with error in attribute', function () {

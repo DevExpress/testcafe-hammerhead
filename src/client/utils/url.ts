@@ -134,7 +134,7 @@ export let getProxyUrl = function (url: string, opts?): string {
         reqOrigin   = reqOrigin || destLocation.getOriginHeader();
     }
 
-    if (parsedResourceType.isIframe)
+    if (parsedResourceType.isIframe && proxyPort === settings.get().crossDomainProxyPort)
         reqOrigin = reqOrigin || destLocation.getOriginHeader();
 
     return sharedUrlUtils.getProxyUrl(resolvedUrl, {

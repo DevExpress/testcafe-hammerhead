@@ -30,7 +30,7 @@ test('getCrossDomainIframeProxyUrl (GH-749)', function () {
     settings.get().crossDomainProxyPort = '5555';
 
     strictEqual(urlUtils.getCrossDomainIframeProxyUrl(destUrl),
-        'http://' + location.hostname + ':5555' + '/sessionId!i/https://example.com/' + destUrl);
+        'http://' + location.hostname + ':5555' + '/sessionId!i!s*example.com/https://example.com/' + destUrl);
 
     settings.get().crossDomainProxyPort = storedCrossDomainport;
 });
