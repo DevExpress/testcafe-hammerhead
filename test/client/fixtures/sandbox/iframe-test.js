@@ -681,11 +681,13 @@ test('Uninitialized iframes should correctly behave when they are rewritten (GH-
         });
 });
 
-test('the correct referrer for cross-domain iframes', function () {
-    createTestIframe({ src: getCrossDomainPageUrl('../../data/cross-domain/get-referrer.html') });
+if (browserUtils.isChrome && browserUtils.version > 88 || browserUtils.isFirefox) {
+    test('the correct referrer for cross-domain iframes', function () {
+        createTestIframe({ src: getCrossDomainPageUrl('../../data/cross-domain/get-referrer.html') });
 
-    return waitForMessage(window)
-        .then(function (referrer) {
-            strictEqual(referrer, 'https://example.com/');
-        });
-});
+        return waitForMessage(window)
+            .then(function (referrer) {
+                strictEqual(referrer, 'https://example.com/');
+            });
+    });
+}

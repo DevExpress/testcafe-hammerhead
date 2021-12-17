@@ -209,7 +209,7 @@
     };
 
     window.waitForMessage = function (receiver) {
-        return new Promise(function (resolve) {
+        return new hammerhead.Promise(function (resolve) {
             receiver.onmessage = function (e) {
                 receiver.onmessage = void 0;
 
