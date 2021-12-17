@@ -3,6 +3,7 @@ import nativeMethods from '../native-methods';
 import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
 import * as eventUtils from '../../utils/event';
+import { isTouchDevice } from '../../utils/feature-detection';
 import { getOffsetPosition, offsetToClientCoords, shouldIgnoreMouseEventInsideIframe } from '../../utils/position';
 import { getBordersWidth } from '../../utils/style';
 import { HammerheadStorageEventInit } from '../../../typings/client';
@@ -623,7 +624,7 @@ export default class EventSimulator {
             }
         }
 
-        if (eventUtils.hasPointerEvents)
+        if (eventUtils.hasPointerEvents && !isTouchDevice)
             this._dispatchPointerEvent(el, args);
 
         return this._dispatchMouseEvent(el, args, userOptions);
