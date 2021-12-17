@@ -802,7 +802,7 @@ describe('Regression', () => {
 
     it('Should process "x-frame-options" header (GH-1017)', () => {
         const getIframeProxyUrl            = url => getProxyUrl(url, { isIframe: true });
-        const getCrossDomainIframeProxyUrl = url => getProxyUrl(url, { isIframe: true }, void 0, void 0, true);
+        const getCrossDomainIframeProxyUrl = url => getProxyUrl(url, { isIframe: true }, 'http://127.0.0.1:2000', void 0, true);
 
         proxy.openSession('http://127.0.0.1:2000/', session);
 

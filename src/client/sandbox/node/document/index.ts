@@ -2,7 +2,6 @@ import SandboxBase from '../../base';
 import IframeSandbox from '../../iframe';
 import nativeMethods from '../../native-methods';
 import domProcessor from '../../../dom-processor';
-import * as urlUtils from '../../../utils/url';
 import settings from '../../../settings';
 import { isIE } from '../../../utils/browser';
 import { isIframeWithoutSrc, getFrameElement, isImgElement, isShadowUIElement } from '../../../utils/dom';
@@ -12,7 +11,8 @@ import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import LocationAccessorsInstrumentation from '../../code-instrumentation/location';
 import { overrideDescriptor, createOverriddenDescriptor, overrideFunction } from '../../../utils/overriding';
 import NodeSandbox from '../index';
-import { getDestinationUrl, isSpecialPage } from '../../../utils/url';
+import { getDestinationUrl, isSpecialPage, convertToProxyUrl, getCrossDomainProxyOrigin } from '../../../utils/url';
+import { getReferrer } from '../../../utils/destination-location';
 import DocumentTitleStorageInitializer from './title-storage-initializer';
 import CookieSandbox from '../../cookie';
 
@@ -204,7 +204,7 @@ export default class DocumentSandbox extends SandboxBase {
             const el = nativeMethods.createElement.apply(this, args);
 
             DocumentSandbox.forceProxySrcForImageIfNecessary(el);
-            domProcessor.processElement(el, urlUtils.convertToProxyUrl);
+            domProcessor.processElement(el, convertToProxyUrl);
             documentSandbox._nodeSandbox.processNodes(el);
 
             return el;
@@ -214,7 +214,7 @@ export default class DocumentSandbox extends SandboxBase {
             const el = nativeMethods.createElementNS.apply(this, args);
 
             DocumentSandbox.forceProxySrcForImageIfNecessary(el);
-            domProcessor.processElement(el, urlUtils.convertToProxyUrl);
+            domProcessor.processElement(el, convertToProxyUrl);
             documentSandbox._nodeSandbox.processNodes(el);
 
             return el;
@@ -242,6 +242,9 @@ export default class DocumentSandbox extends SandboxBase {
         const referrerOverriddenDescriptor = createOverriddenDescriptor(docPrototype, 'referrer', {
             getter: function () {
                 const referrer = getDestinationUrl(nativeMethods.documentReferrerGetter.call(this));
+
+                if (referrer === getCrossDomainProxyOrigin() + '/')
+                    return getReferrer();
 
                 return isSpecialPage(referrer) ? '' : referrer;
             }
