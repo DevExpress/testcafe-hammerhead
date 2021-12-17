@@ -1,10 +1,11 @@
-var browserUtils   = hammerhead.utils.browser;
-var eventUtils     = hammerhead.utils.event;
-var nativeMethods  = hammerhead.nativeMethods;
-var listeners      = hammerhead.sandbox.event.listeners;
-var focusBlur      = hammerhead.sandbox.event.focusBlur;
-var eventSimulator = hammerhead.sandbox.event.eventSimulator;
-var listeningCtx   = hammerhead.sandboxUtils.listeningContext;
+var browserUtils     = hammerhead.utils.browser;
+var featureDetection = hammerhead.utils.featureDetection;
+var eventUtils       = hammerhead.utils.event;
+var nativeMethods    = hammerhead.nativeMethods;
+var listeners        = hammerhead.sandbox.event.listeners;
+var focusBlur        = hammerhead.sandbox.event.focusBlur;
+var eventSimulator   = hammerhead.sandbox.event.eventSimulator;
+var listeningCtx     = hammerhead.sandboxUtils.listeningContext;
 
 asyncTest('override setTimeout error (T203986)', function () {
     var str = 'success';
@@ -392,92 +393,204 @@ test('event.preventDefault call should change the event.defaultPrevented propert
     eventSimulator.keydown(input);
 });
 
-asyncTest('mouse events in iframe', function () {
-    return createTestIframe()
-        .then(function (iframe) {
-            iframe.style.width = '300px';
-            iframe.style.height = '100px';
-            iframe.style.border = '5px solid black';
-            iframe.style.padding = '20px';
-            iframe.style.backgroundColor = 'yellow';
+if (featureDetection.isTouchDevice) {
+    asyncTest('mouse events in iframe (Touch)', function () {
+        return createTestIframe()
+            .then(function (iframe) {
+                iframe.style.width           = '300px';
+                iframe.style.height          = '100px';
+                iframe.style.border          = '5px solid black';
+                iframe.style.padding         = '20px';
+                iframe.style.backgroundColor = 'yellow';
 
-            var div = document.createElement('div');
+                var div = document.createElement('div');
 
-            div.style.display = 'inline-block';
+                div.style.display = 'inline-block';
 
-            div.appendChild(iframe);
-            document.body.appendChild(div);
+                div.appendChild(iframe);
+                document.body.appendChild(div);
 
-            var actualEvents = [];
+                var actualEvents = [];
 
-            var simulatorMethods = [
-                'mousedown',
-                'mouseup',
-                'mousemove',
-                'mouseover',
-                'mouseenter',
-                'click',
-                'dblclick',
-                'contextmenu'
-            ];
+                var simulatorMethods = [
+                    'touchstart',
+                    'touchend',
+                    'touchmove',
+                    'mousedown',
+                    'mouseup',
+                    'mousemove',
+                    'mouseover',
+                    'mouseenter',
+                    'click',
+                    'dblclick',
+                    'contextmenu'
+                ];
 
-            var allEvents = [
-                'pointerdown',
-                'mousedown',
-                'pointerup',
-                'mouseup',
-                'pointermove',
-                'mousemove',
-                'pointerover',
-                'mouseover',
-                'pointerenter',
-                'mouseenter',
-                'click',
-                'dblclick',
-                'contextmenu'
-            ];
+                var allEvents = [
+                    'touchstart',
+                    'touchend',
+                    'touchmove',
+                    'pointerdown',
+                    'mousedown',
+                    'pointerup',
+                    'mouseup',
+                    'pointermove',
+                    'mousemove',
+                    'pointerover',
+                    'mouseover',
+                    'pointerenter',
+                    'mouseenter',
+                    'click',
+                    'dblclick',
+                    'contextmenu'
+                ];
 
-            var eventsInsideFrame = ['pointerover', 'mouseover', 'pointerenter', 'mouseenter'];
+                var eventsInsideFrame = ['pointerover', 'mouseover', 'pointerenter', 'mouseenter'];
 
-            if (!eventUtils.hasPointerEvents) {
-                const pointerRegExp = /pointer(down|up|move|over|enter)/;
+                if (!eventUtils.hasPointerEvents) {
+                    const pointerRegExp = /pointer(down|up|move|over|enter)/;
 
-                allEvents = allEvents.filter(function (eventName) {
-                    return !pointerRegExp.test(eventName);
-                });
+                    allEvents = allEvents.filter(function (eventName) {
+                        return !pointerRegExp.test(eventName);
+                    });
 
-                eventsInsideFrame = eventsInsideFrame.filter(function (eventName) {
-                    return !pointerRegExp.test(eventName);
-                });
-            }
+                    eventsInsideFrame = eventsInsideFrame.filter(function (eventName) {
+                        return !pointerRegExp.test(eventName);
+                    });
+                }
 
-            var getHandler = function (i) {
-                return function () {
-                    actualEvents.push(allEvents[i]);
+                var getHandler = function (i) {
+                    return function (e) {
+                        actualEvents.push(allEvents[i]);
+                        console.log(e.type);
+                    };
                 };
-            };
 
-            for (var i = 0; i < allEvents.length; i++)
-                iframe.addEventListener(allEvents[i], getHandler(i));
+                for (var i = 0; i < allEvents.length; i++)
+                    iframe.addEventListener(allEvents[i], getHandler(i));
 
-            for (i = 0; i < simulatorMethods.length; i++)
-                eventSimulator[simulatorMethods[i]](iframe, { clientX: 190, clientY: 130 });
+                for (i = 0; i < simulatorMethods.length; i++)
+                    eventSimulator[simulatorMethods[i]](iframe, { clientX: 190, clientY: 130 });
 
-            deepEqual(actualEvents, eventsInsideFrame);
+                deepEqual(actualEvents, eventsInsideFrame);
 
-            actualEvents = [];
+                actualEvents = [];
 
-            for (i = 0; i < simulatorMethods.length; i++)
-                eventSimulator[simulatorMethods[i]](iframe, { clientX: 190, clientY: 70 });
+                for (i = 0; i < simulatorMethods.length; i++)
+                    eventSimulator[simulatorMethods[i]](iframe, { clientX: 190, clientY: 70 });
 
-            deepEqual(actualEvents, allEvents);
+                deepEqual(actualEvents, [
+                    'pointerdown',
+                    'touchstart',
+                    'pointerup',
+                    'touchend',
+                    'pointermove',
+                    'touchmove',
+                    'mousedown',
+                    'mouseup',
+                    'mousemove',
+                    'pointerover',
+                    'mouseover',
+                    'pointerenter',
+                    'mouseenter',
+                    'click',
+                    'dblclick',
+                    'contextmenu',
+                ]);
 
-            document.body.removeChild(div);
+                document.body.removeChild(div);
 
-            start();
-        });
+                start();
+            });
+    });
+}
+else {
+    asyncTest('mouse events in iframe (No touch)', function () {
+        return createTestIframe()
+            .then(function (iframe) {
+                iframe.style.width           = '300px';
+                iframe.style.height          = '100px';
+                iframe.style.border          = '5px solid black';
+                iframe.style.padding         = '20px';
+                iframe.style.backgroundColor = 'yellow';
 
-});
+                var div = document.createElement('div');
+
+                div.style.display = 'inline-block';
+
+                div.appendChild(iframe);
+                document.body.appendChild(div);
+
+                var actualEvents = [];
+
+                var simulatorMethods = [
+                    'mousedown',
+                    'mouseup',
+                    'mousemove',
+                    'mouseover',
+                    'mouseenter',
+                    'click',
+                    'dblclick',
+                    'contextmenu'
+                ];
+
+                var allEvents = [
+                    'pointerdown',
+                    'mousedown',
+                    'pointerup',
+                    'mouseup',
+                    'pointermove',
+                    'mousemove',
+                    'pointerover',
+                    'mouseover',
+                    'pointerenter',
+                    'mouseenter',
+                    'click',
+                    'dblclick',
+                    'contextmenu'
+                ];
+
+                var eventsInsideFrame = ['pointerover', 'mouseover', 'pointerenter', 'mouseenter'];
+
+                if (!eventUtils.hasPointerEvents) {
+                    const pointerRegExp = /pointer(down|up|move|over|enter)/;
+
+                    allEvents = allEvents.filter(function (eventName) {
+                        return !pointerRegExp.test(eventName);
+                    });
+
+                    eventsInsideFrame = eventsInsideFrame.filter(function (eventName) {
+                        return !pointerRegExp.test(eventName);
+                    });
+                }
+
+                var getHandler = function (i) {
+                    return function () {
+                        actualEvents.push(allEvents[i]);
+                    };
+                };
+
+                for (var i = 0; i < allEvents.length; i++)
+                    iframe.addEventListener(allEvents[i], getHandler(i));
+
+                for (i = 0; i < simulatorMethods.length; i++)
+                    eventSimulator[simulatorMethods[i]](iframe, { clientX: 190, clientY: 130 });
+
+                deepEqual(actualEvents, eventsInsideFrame);
+
+                actualEvents = [];
+
+                for (i = 0; i < simulatorMethods.length; i++)
+                    eventSimulator[simulatorMethods[i]](iframe, { clientX: 190, clientY: 70 });
+
+                deepEqual(actualEvents, allEvents);
+
+                document.body.removeChild(div);
+
+                start();
+            });
+    });
+}
 
 asyncTest('hover style in iframe', function () {
     return createTestIframe()

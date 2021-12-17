@@ -226,7 +226,7 @@ export function getElementRectangle (el) {
     return rectangle;
 }
 
-export function shouldIgnoreMouseEventInsideIframe (el, x, y) {
+export function shouldIgnoreEventInsideIframe (el, x, y) {
     if (domUtils.getTagName(el) !== 'iframe')
         return false;
 
