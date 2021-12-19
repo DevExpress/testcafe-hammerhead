@@ -206,6 +206,8 @@ function parseRequestDescriptor (desc: string): RequestDescriptor | null {
             parsedDesc.charset = resourceData[0];
         else if (parsedResourceType.isWebSocket)
             parsedDesc.reqOrigin = decodeURIComponent(restoreShortOrigin(resourceData[0]));
+        else if (parsedResourceType.isIframe && resourceData[0])
+            parsedDesc.reqOrigin = decodeURIComponent(restoreShortOrigin(resourceData[0]));
         else if (parsedResourceType.isAjax) {
             parsedDesc.credentials = parseInt(resourceData[0]);
 

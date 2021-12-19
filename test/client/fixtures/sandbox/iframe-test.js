@@ -187,9 +187,10 @@ if (nativeMethods.iframeSrcdocGetter) {
         iframe.contentDocument.close();
 
         return new Promise(function (resolve) {
-            window.addEventListener('message', function (e) {
+            window.addEventListener('message', function onMessage (e) {
                 strictEqual(e.data, 'message');
 
+                window.removeEventListener('message', onMessage);
                 document.body.removeChild(iframe);
                 resolve();
             });
@@ -502,6 +503,8 @@ test('self-removing script shouldn\'t throw an error (GH-TC-2469)', function () 
     };
     iframeDocument.write('<html><head></head><body></body></html>');
     iframeDocument.close();
+
+    document.body.removeChild(iframe);
 });
 
 test('write "doctype" markup without head and body tags (GH-TC-2639)', function () {
@@ -677,3 +680,14 @@ test('Uninitialized iframes should correctly behave when they are rewritten (GH-
             strictEqual(iframe2.contentDocument.body.lastChild.textContent, 'Second iframe!');
         });
 });
+
+if (browserUtils.isChrome && browserUtils.version > 88 || browserUtils.isFirefox) {
+    test('the correct referrer for cross-domain iframes', function () {
+        createTestIframe({ src: getCrossDomainPageUrl('../../data/cross-domain/get-referrer.html') });
+
+        return waitForMessage(window)
+            .then(function (referrer) {
+                strictEqual(referrer, 'https://example.com/');
+            });
+    });
+}

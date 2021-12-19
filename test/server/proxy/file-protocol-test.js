@@ -54,7 +54,8 @@ describe('file:// protocol', () => {
                 // NOTE: The host property is empty in url with file: protocol.
                 // The expected.html template is used for both tests with http: and file: protocol.
                 const expected = fs.readFileSync('test/server/data/page/expected.html').toString()
-                    .replace(/(hammerhead\|storage-wrapper\|sessionId\|)127\.0\.0\.1:2000/g, '$1');
+                    .replace(/(hammerhead\|storage-wrapper\|sessionId\|)127\.0\.0\.1:2000/g, '$1')
+                    .replace('!127.0.0.1%3A2000', '!');
 
                 compareCode(body, expected);
             });

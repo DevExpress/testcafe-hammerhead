@@ -436,6 +436,9 @@ export default class RequestPipelineContext {
         const sessionId     = this.session.id;
         const windowId      = this.windowId;
 
+        if (isCrossDomain)
+            reqOrigin = this.dest.domain;
+
         return urlUtils.getProxyUrl(url, {
             proxyHostname,
             proxyProtocol,

@@ -65,6 +65,13 @@ export let get = function (): string {
     return parsedProxyUrl ? parsedProxyUrl.destUrl : location;
 }
 
+export function getReferrer () {
+    const location       = getLocation();
+    const parsedProxyUrl = sharedUrlUtils.parseProxyUrl(location);
+
+    return parsedProxyUrl?.reqOrigin ? parsedProxyUrl.reqOrigin + '/' : '';
+}
+
 export function overrideGet (func: typeof get) {
     get = func;
 }

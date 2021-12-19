@@ -134,6 +134,9 @@ export let getProxyUrl = function (url: string, opts?): string {
         reqOrigin   = reqOrigin || destLocation.getOriginHeader();
     }
 
+    if (parsedResourceType.isIframe && proxyPort === settings.get().crossDomainProxyPort)
+        reqOrigin = reqOrigin || destLocation.getOriginHeader();
+
     return sharedUrlUtils.getProxyUrl(resolvedUrl, {
         proxyProtocol,
         proxyHostname,
@@ -245,6 +248,14 @@ export let convertToProxyUrl = function (url: string, resourceType, charset, isC
         resourceType, charset,
         // eslint-disable-next-line no-restricted-properties
         proxyPort: isCrossDomain ? settings.get().crossDomainProxyPort : DEFAULT_PROXY_SETTINGS.port
+    });
+}
+
+export function getCrossDomainProxyOrigin () {
+    return sharedUrlUtils.getDomain({
+        protocol: location.protocol, // eslint-disable-line no-restricted-properties
+        hostname: location.hostname, // eslint-disable-line no-restricted-properties
+        port:     settings.get().crossDomainProxyPort,
     });
 }
 

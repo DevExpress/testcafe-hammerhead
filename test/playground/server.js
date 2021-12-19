@@ -59,6 +59,7 @@ exports.start = (options = {}) => {
 
             res
                 .status(301)
+                .set('referrer-policy', 'no-referrer')
                 .set('location', proxy.openSession(url, createSession()))
                 .end();
         }
