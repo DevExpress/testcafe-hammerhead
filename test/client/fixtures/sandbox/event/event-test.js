@@ -427,14 +427,14 @@ if (featureDetection.isTouchDevice) {
                 ];
 
                 var allEvents = [
-                    'touchstart',
-                    'touchend',
-                    'touchmove',
                     'pointerdown',
-                    'mousedown',
+                    'touchstart',
                     'pointerup',
-                    'mouseup',
+                    'touchend',
                     'pointermove',
+                    'touchmove',
+                    'mousedown',
+                    'mouseup',
                     'mousemove',
                     'pointerover',
                     'mouseover',
@@ -479,40 +479,7 @@ if (featureDetection.isTouchDevice) {
                 for (i = 0; i < simulatorMethods.length; i++)
                     eventSimulator[simulatorMethods[i]](iframe, { clientX: 190, clientY: 70 });
 
-                const expectedEvents = [];
-
-                if (eventUtils.hasPointerEvents)
-                    expectedEvents.push('pointerdown');
-
-                expectedEvents.push('touchstart');
-
-                if (eventUtils.hasPointerEvents)
-                    expectedEvents.push('pointerup');
-
-                expectedEvents.push('touchend');
-
-                if (eventUtils.hasPointerEvents)
-                    expectedEvents.push('pointermove');
-
-                expectedEvents.push('touchmove');
-                expectedEvents.push('mousedown');
-                expectedEvents.push('mouseup');
-                expectedEvents.push('mousemove');
-
-                if (eventUtils.hasPointerEvents)
-                    expectedEvents.push('pointerover');
-
-                expectedEvents.push('mouseover');
-
-                if (eventUtils.hasPointerEvents)
-                    expectedEvents.push('pointerenter');
-
-                expectedEvents.push('mouseenter');
-                expectedEvents.push('click');
-                expectedEvents.push('dblclick');
-                expectedEvents.push('contextmenu');
-
-                deepEqual(actualEvents, expectedEvents);
+                deepEqual(actualEvents, allEvents);
 
                 document.body.removeChild(div);
 
