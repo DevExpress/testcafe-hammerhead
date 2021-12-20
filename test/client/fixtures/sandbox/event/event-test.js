@@ -393,7 +393,73 @@ test('event.preventDefault call should change the event.defaultPrevented propert
     eventSimulator.keydown(input);
 });
 
-function testMouseEventsInIFrame (allEvents) {
+asyncTest('mouse events in iframe', function () {
+    let simulatorMethods = [];
+    let allEvents        = [];
+
+    if (featureDetection.isTouchDevice) {
+        simulatorMethods = [
+            'touchstart',
+            'touchend',
+            'touchmove',
+            'mousedown',
+            'mouseup',
+            'mousemove',
+            'mouseover',
+            'mouseenter',
+            'click',
+            'dblclick',
+            'contextmenu'
+        ];
+
+        allEvents = [
+            'pointerdown',
+            'touchstart',
+            'pointerup',
+            'touchend',
+            'pointermove',
+            'touchmove',
+            'mousedown',
+            'mouseup',
+            'mousemove',
+            'pointerover',
+            'mouseover',
+            'pointerenter',
+            'mouseenter',
+            'click',
+            'dblclick',
+            'contextmenu'
+        ];
+    }
+    else {
+        simulatorMethods = [
+            'mousedown',
+            'mouseup',
+            'mousemove',
+            'mouseover',
+            'mouseenter',
+            'click',
+            'dblclick',
+            'contextmenu'
+        ];
+
+        allEvents = [
+            'pointerdown',
+            'mousedown',
+            'pointerup',
+            'mouseup',
+            'pointermove',
+            'mousemove',
+            'pointerover',
+            'mouseover',
+            'pointerenter',
+            'mouseenter',
+            'click',
+            'dblclick',
+            'contextmenu'
+        ];
+    }
+
     return createTestIframe()
         .then(function (iframe) {
             iframe.style.width           = '300px';
@@ -410,20 +476,6 @@ function testMouseEventsInIFrame (allEvents) {
             document.body.appendChild(div);
 
             var actualEvents = [];
-
-            var simulatorMethods = [
-                'touchstart',
-                'touchend',
-                'touchmove',
-                'mousedown',
-                'mouseup',
-                'mousemove',
-                'mouseover',
-                'mouseenter',
-                'click',
-                'dblclick',
-                'contextmenu'
-            ];
 
             var eventsInsideFrame = ['pointerover', 'mouseover', 'pointerenter', 'mouseenter'];
 
@@ -465,50 +517,6 @@ function testMouseEventsInIFrame (allEvents) {
 
             start();
         });
-}
-
-asyncTest('mouse events in iframe', function () {
-    let allEvents = [];
-
-    if (featureDetection.isTouchDevice) {
-        allEvents = [
-            'pointerdown',
-            'touchstart',
-            'pointerup',
-            'touchend',
-            'pointermove',
-            'touchmove',
-            'mousedown',
-            'mouseup',
-            'mousemove',
-            'pointerover',
-            'mouseover',
-            'pointerenter',
-            'mouseenter',
-            'click',
-            'dblclick',
-            'contextmenu'
-        ];
-    }
-    else {
-        allEvents = [
-            'pointerdown',
-            'mousedown',
-            'pointerup',
-            'mouseup',
-            'pointermove',
-            'mousemove',
-            'pointerover',
-            'mouseover',
-            'pointerenter',
-            'mouseenter',
-            'click',
-            'dblclick',
-            'contextmenu'
-        ];
-    }
-
-    return testMouseEventsInIFrame(allEvents);
 });
 
 asyncTest('hover style in iframe', function () {
