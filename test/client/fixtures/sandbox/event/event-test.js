@@ -479,19 +479,25 @@ if (featureDetection.isTouchDevice) {
                 for (i = 0; i < simulatorMethods.length; i++)
                     eventSimulator[simulatorMethods[i]](iframe, { clientX: 190, clientY: 70 });
 
+                const pointerdown = eventUtils.hasPointerEvents ? ['pointerdown'] : [];
+                const pointerup = eventUtils.hasPointerEvents ? ['pointerup'] : [];
+                const pointermove = eventUtils.hasPointerEvents ? ['pointermove'] : [];
+                const pointerover = eventUtils.hasPointerEvents ? ['pointerover'] : [];
+                const pointerenter = eventUtils.hasPointerEvents ? ['pointerenter'] : [];
+
                 deepEqual(actualEvents, [
-                    ...(eventUtils.hasPointerEvents ? ['pointerdown'] : []),
+                    ...pointerdown,
                     'touchstart',
-                    ...(eventUtils.hasPointerEvents ? ['pointerup'] : []),
+                    ...pointerup,
                     'touchend',
-                    ...(eventUtils.hasPointerEvents ? ['pointerup'] : []),
+                    ...pointermove,
                     'touchmove',
                     'mousedown',
                     'mouseup',
                     'mousemove',
-                    ...(eventUtils.hasPointerEvents ? ['pointerover'] : []),
+                    ...pointerover,
                     'mouseover',
-                    ...(eventUtils.hasPointerEvents ? ['pointerenter'] : []),
+                    ...pointerenter,
                     'mouseenter',
                     'click',
                     'dblclick',
