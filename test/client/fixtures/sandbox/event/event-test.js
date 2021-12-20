@@ -479,30 +479,40 @@ if (featureDetection.isTouchDevice) {
                 for (i = 0; i < simulatorMethods.length; i++)
                     eventSimulator[simulatorMethods[i]](iframe, { clientX: 190, clientY: 70 });
 
-                const pointerdown = eventUtils.hasPointerEvents ? ['pointerdown'] : [];
-                const pointerup = eventUtils.hasPointerEvents ? ['pointerup'] : [];
-                const pointermove = eventUtils.hasPointerEvents ? ['pointermove'] : [];
-                const pointerover = eventUtils.hasPointerEvents ? ['pointerover'] : [];
-                const pointerenter = eventUtils.hasPointerEvents ? ['pointerenter'] : [];
+                const expectedEvents = [];
 
-                deepEqual(actualEvents, [
-                    ...pointerdown,
-                    'touchstart',
-                    ...pointerup,
-                    'touchend',
-                    ...pointermove,
-                    'touchmove',
-                    'mousedown',
-                    'mouseup',
-                    'mousemove',
-                    ...pointerover,
-                    'mouseover',
-                    ...pointerenter,
-                    'mouseenter',
-                    'click',
-                    'dblclick',
-                    'contextmenu',
-                ]);
+                if (eventUtils.hasPointerEvents)
+                    expectedEvents.push('pointerdown');
+
+                expectedEvents.push('touchstart');
+
+                if (eventUtils.hasPointerEvents)
+                    expectedEvents.push('pointerup');
+
+                expectedEvents.push('touchend');
+
+                if (eventUtils.hasPointerEvents)
+                    expectedEvents.push('pointermove');
+
+                expectedEvents.push('touchmove');
+                expectedEvents.push('mousedown');
+                expectedEvents.push('mouseup');
+                expectedEvents.push('mousemove');
+
+                if (eventUtils.hasPointerEvents)
+                    expectedEvents.push('pointerover');
+
+                expectedEvents.push('mouseover');
+
+                if (eventUtils.hasPointerEvents)
+                    expectedEvents.push('pointerenter');
+
+                expectedEvents.push('mouseenter');
+                expectedEvents.push('click');
+                expectedEvents.push('dblclick');
+                expectedEvents.push('contextmenu');
+
+                deepEqual(actualEvents, expectedEvents);
 
                 document.body.removeChild(div);
 
