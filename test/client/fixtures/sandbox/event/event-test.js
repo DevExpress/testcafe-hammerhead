@@ -480,18 +480,18 @@ if (featureDetection.isTouchDevice) {
                     eventSimulator[simulatorMethods[i]](iframe, { clientX: 190, clientY: 70 });
 
                 deepEqual(actualEvents, [
-                    'pointerdown',
+                    ...(eventUtils.hasPointerEvents ? ['pointerdown'] : []),
                     'touchstart',
-                    'pointerup',
+                    ...(eventUtils.hasPointerEvents ? ['pointerup'] : []),
                     'touchend',
-                    'pointermove',
+                    ...(eventUtils.hasPointerEvents ? ['pointerup'] : []),
                     'touchmove',
                     'mousedown',
                     'mouseup',
                     'mousemove',
-                    'pointerover',
+                    ...(eventUtils.hasPointerEvents ? ['pointerover'] : []),
                     'mouseover',
-                    'pointerenter',
+                    ...(eventUtils.hasPointerEvents ? ['pointerenter'] : []),
                     'mouseenter',
                     'click',
                     'dblclick',
