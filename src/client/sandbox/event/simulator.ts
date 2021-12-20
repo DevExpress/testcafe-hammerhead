@@ -520,7 +520,7 @@ export default class EventSimulator {
             };
         }
 
-        if (browserUtils.isChrome && TOUCH_TO_POINTER_EVENT_TYPE_MAP[type]) {
+        if (TOUCH_TO_POINTER_EVENT_TYPE_MAP[type]) {
             return {
                 eventType:   TOUCH_TO_POINTER_EVENT_TYPE_MAP[type],
                 pointerType: 'touch'
