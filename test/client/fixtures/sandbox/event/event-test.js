@@ -492,9 +492,8 @@ asyncTest('mouse events in iframe', function () {
             }
 
             var getHandler = function (i) {
-                return function (e) {
+                return function () {
                     actualEvents.push(allEvents[i]);
-                    console.log(e.type);
                 };
             };
 
