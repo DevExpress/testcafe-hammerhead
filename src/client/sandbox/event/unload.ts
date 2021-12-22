@@ -84,7 +84,7 @@ export default class UnloadSandbox extends SandboxBase {
                 set: value => {
                     // NOTE: In all browsers, if the property is set to any value, unload is prevented. In FireFox,
                     // only if a value is set to an empty string, the unload operation is prevented.
-                    eventProperties.storedReturnValue = value;
+                    eventProperties.storedReturnValue = UnloadSandbox._prepareStoredReturnValue(value);
 
                     eventProperties.prevented = isFirefox ? value !== '' : true;
                 }
@@ -101,12 +101,10 @@ export default class UnloadSandbox extends SandboxBase {
             }));
 
             // NOTE: need to pass `this` scope for https://github.com/DevExpress/testcafe/issues/6563
-            let res = originListener.call(this, e);
-
-            res = UnloadSandbox._prepareStoredReturnValue(res || e.returnValue);
+            const res = originListener.call(this, e);
 
             if (res !== void 0) {
-                eventProperties.storedReturnValue = res;
+                eventProperties.storedReturnValue = UnloadSandbox._prepareStoredReturnValue(res);
                 eventProperties.prevented         = true;
             }
         }
