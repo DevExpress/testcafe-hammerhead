@@ -64,6 +64,18 @@ export default class UnloadSandbox extends SandboxBase {
         });
     }
 
+    private static _prepareStoredReturnValue (returnValue: unknown): string {
+        if (typeof returnValue === 'string')
+            return returnValue;
+
+        try {
+            return String(returnValue);
+        }
+        catch {
+            return '';
+        }
+    }
+
     private _createEventHandler (eventProperties: EventProperties): Function {
         return function (e, originListener): void {
             // NOTE: Overriding the returnValue property to prevent a native dialog.
@@ -72,7 +84,7 @@ export default class UnloadSandbox extends SandboxBase {
                 set: value => {
                     // NOTE: In all browsers, if the property is set to any value, unload is prevented. In FireFox,
                     // only if a value is set to an empty string, the unload operation is prevented.
-                    eventProperties.storedReturnValue = value;
+                    eventProperties.storedReturnValue = UnloadSandbox._prepareStoredReturnValue(value);
 
                     eventProperties.prevented = isFirefox ? value !== '' : true;
                 }
@@ -89,10 +101,10 @@ export default class UnloadSandbox extends SandboxBase {
             }));
 
             // NOTE: need to pass `this` scope for https://github.com/DevExpress/testcafe/issues/6563
-            const res = originListener.call(this, e)
+            const res = originListener.call(this, e);
 
             if (res !== void 0) {
-                eventProperties.storedReturnValue = res;
+                eventProperties.storedReturnValue = UnloadSandbox._prepareStoredReturnValue(res);
                 eventProperties.prevented         = true;
             }
         }

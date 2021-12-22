@@ -1,4 +1,5 @@
 var browserUtils = hammerhead.utils.browser;
+var postMessage  = hammerhead.sandbox.event.message.postMessage;
 
 asyncTest('UNLOAD_EVENT must be called last (GH-400)', function () {
     createTestIframe({ src: getSameDomainPageUrl('../../../data/unload/iframe.html') })
@@ -73,5 +74,23 @@ if (browserUtils.isSafari && !browserUtils.isIOS) {
 
         window.addEventListener('message', onMessage);
         document.body.appendChild(iframe);
+    });
+}
+
+if (!browserUtils.isSafari) {
+    test('Should save the returnValue as string', function () {
+        return createTestIframe({ src: getCrossDomainPageUrl('../../../data/unload/iframe.html') })
+            .then(function (iframe) {
+                postMessage(iframe.contentWindow, [{
+                    cmd:         'reload',
+                    returnValue: 'Message',
+                    realReturn:  'return event object'
+                }, '*']);
+
+                return waitForMessage(window);
+            })
+            .then(function (returnValue) {
+                strictEqual(returnValue, '[object BeforeUnloadEvent]');
+            });
     });
 }
