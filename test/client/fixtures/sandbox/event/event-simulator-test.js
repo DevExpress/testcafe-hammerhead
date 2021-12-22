@@ -365,8 +365,23 @@ if (browserUtils.isIE) {
 if (eventUtils.hasPointerEvents) {
     test('pointer down', function () {
         bindMouseEvent('pointerdown', eventUtils.BUTTON.left);
+
+        if (featureDetection.isTouchDevice) {
+            eventSimulator.touchstart(domElement);
+
+            ok(raised);
+
+            raised = false;
+        }
+
         eventSimulator.mousedown(domElement);
-        ok(raised);
+
+        if (featureDetection.isTouchDevice)
+            notOk(raised);
+        else
+            ok(raised);
+
+        raised = false;
     });
 }
 

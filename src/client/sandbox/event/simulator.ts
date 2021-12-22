@@ -3,7 +3,8 @@ import nativeMethods from '../native-methods';
 import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
 import * as eventUtils from '../../utils/event';
-import { getOffsetPosition, offsetToClientCoords, shouldIgnoreMouseEventInsideIframe } from '../../utils/position';
+import { isTouchDevice } from '../../utils/feature-detection';
+import { getOffsetPosition, offsetToClientCoords, shouldIgnoreEventInsideIframe } from '../../utils/position';
 import { getBordersWidth } from '../../utils/style';
 import { HammerheadStorageEventInit } from '../../../typings/client';
 
@@ -32,6 +33,12 @@ const FOCUS_IN_OUT_EVENT_NAME_RE = /^focus(in|out)$/;
 
 // NOTE: initTextEvent method required INPUT_METHOD param in IE
 const DOM_INPUT_METHOD_KEYBOARD = 1;
+
+const MOUSE_EVENTS_TO_FORCE_POINTER_EVENTS = [
+    'mouseover',
+    'mouseenter',
+    'mouseout',
+];
 
 const MOUSE_TO_POINTER_EVENT_TYPE_MAP = {
     mousedown:  'pointerdown',
@@ -100,6 +107,9 @@ export default class EventSimulator {
     }
 
     _dispatchTouchEvent (el, args) {
+        if (shouldIgnoreEventInsideIframe(el, args.clientX, args.clientY))
+            return true;
+
         let ev = nativeMethods.documentCreateEvent.call(document, 'TouchEvent');
 
         // HACK: A test for iOS by using initTouchEvent arguments.
@@ -510,7 +520,7 @@ export default class EventSimulator {
             };
         }
 
-        if (browserUtils.isChrome && TOUCH_TO_POINTER_EVENT_TYPE_MAP[type]) {
+        if (TOUCH_TO_POINTER_EVENT_TYPE_MAP[type]) {
             return {
                 eventType:   TOUCH_TO_POINTER_EVENT_TYPE_MAP[type],
                 pointerType: 'touch'
@@ -605,7 +615,7 @@ export default class EventSimulator {
     }
 
     _dispatchMouseRelatedEvents (el, args, userOptions = {}) {
-        if (args.type !== 'mouseover' && args.type !== 'mouseenter' && shouldIgnoreMouseEventInsideIframe(el, args.clientX, args.clientY))
+        if (args.type !== 'mouseover' && args.type !== 'mouseenter' && shouldIgnoreEventInsideIframe(el, args.clientX, args.clientY))
             return true;
 
         // NOTE: In IE, submit doesn't work if a click is simulated for some submit button's children (for example,
@@ -623,7 +633,7 @@ export default class EventSimulator {
             }
         }
 
-        if (eventUtils.hasPointerEvents)
+        if (eventUtils.hasPointerEvents && (!isTouchDevice || MOUSE_EVENTS_TO_FORCE_POINTER_EVENTS.includes(args.type)))
             this._dispatchPointerEvent(el, args);
 
         return this._dispatchMouseEvent(el, args, userOptions);

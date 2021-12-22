@@ -72,7 +72,7 @@ export default class HoverSandbox extends SandboxBase {
         const target               = nativeMethods.eventTargetGetter.call(e);
         const { clientX, clientY } = e;
         const hoverIsDisabled      = browserUtils.isIE &&
-            positionUtils.shouldIgnoreMouseEventInsideIframe(target, clientX, clientY);
+            positionUtils.shouldIgnoreEventInsideIframe(target, clientX, clientY);
 
         if (!hoverIsDisabled)
             this._hover(target);
