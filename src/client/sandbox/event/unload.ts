@@ -64,6 +64,18 @@ export default class UnloadSandbox extends SandboxBase {
         });
     }
 
+    private static _prepareStoredReturnValue (returnValue: unknown): string {
+        if (typeof returnValue === 'string')
+            return returnValue;
+
+        try {
+            return String(returnValue);
+        }
+        catch {
+            return '';
+        }
+    }
+
     private _createEventHandler (eventProperties: EventProperties): Function {
         return function (e, originListener): void {
             // NOTE: Overriding the returnValue property to prevent a native dialog.
@@ -89,20 +101,13 @@ export default class UnloadSandbox extends SandboxBase {
             }));
 
             // NOTE: need to pass `this` scope for https://github.com/DevExpress/testcafe/issues/6563
-            const res = originListener.call(this, e);
+            let res = originListener.call(this, e);
+
+            res = UnloadSandbox._prepareStoredReturnValue(res || e.returnValue);
 
             if (res !== void 0) {
                 eventProperties.storedReturnValue = res;
                 eventProperties.prevented         = true;
-            }
-
-            if (typeof eventProperties.storedReturnValue !== 'string') {
-                try {
-                    eventProperties.storedReturnValue = '' + eventProperties.storedReturnValue;
-                }
-                catch {
-                    eventProperties.storedReturnValue = '';
-                }
             }
         }
     }

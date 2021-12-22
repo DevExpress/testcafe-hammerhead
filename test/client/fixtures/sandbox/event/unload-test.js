@@ -77,14 +77,20 @@ if (browserUtils.isSafari && !browserUtils.isIOS) {
     });
 }
 
-test('Should save the returnValue as string', function () {
-    return createTestIframe({ src: getCrossDomainPageUrl('../../../data/unload/iframe.html') })
-        .then(function (iframe) {
-            postMessage(iframe.contentWindow, [{ cmd: 'reload', returnValue: 'Message', realReturn: 'return event object' }, '*']);
+if (!browserUtils.isSafari) {
+    test('Should save the returnValue as string', function () {
+        return createTestIframe({ src: getCrossDomainPageUrl('../../../data/unload/iframe.html') })
+            .then(function (iframe) {
+                postMessage(iframe.contentWindow, [{
+                    cmd:         'reload',
+                    returnValue: 'Message',
+                    realReturn:  'return event object'
+                }, '*']);
 
-            return waitForMessage(window);
-        })
-        .then(function (returnValue) {
-            strictEqual(returnValue, '[object BeforeUnloadEvent]');
-        });
-});
+                return waitForMessage(window);
+            })
+            .then(function (returnValue) {
+                strictEqual(returnValue, '[object BeforeUnloadEvent]');
+            });
+    });
+}
