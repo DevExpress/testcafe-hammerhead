@@ -7,10 +7,31 @@
 </head>
 <body>
 <script type="text/javascript">
-    var hammerhead = window['%hammerhead%'];
+    var hammerhead    = window['%hammerhead%'];
+    var hhPostMessage = hammerhead.sandbox.event.message.postMessage;
+    var nativeMethods = hammerhead.nativeMethods;
 
     hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/https://example.com');
     hammerhead.start({ crossDomainProxyPort: 2000 });
+
+    window.addEventListener('message', function (e) {
+        const data = e.data;
+
+        if (data.cmd !== 'reload')
+            return;
+
+        window.addEventListener('beforeunload', function (e) {
+            e.returnValue = data.returnValue;
+
+            return data.realReturn === 'return event object' ? e : data.realReturn;
+        });
+
+        window.addEventListener('beforeunload', function (e) {
+            hhPostMessage(window.parent, [e.returnValue, '*']);
+        });
+
+        location.reload();
+    });
 </script>
 </body>
 </html>

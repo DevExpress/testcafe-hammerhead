@@ -89,11 +89,20 @@ export default class UnloadSandbox extends SandboxBase {
             }));
 
             // NOTE: need to pass `this` scope for https://github.com/DevExpress/testcafe/issues/6563
-            const res = originListener.call(this, e)
+            const res = originListener.call(this, e);
 
             if (res !== void 0) {
                 eventProperties.storedReturnValue = res;
                 eventProperties.prevented         = true;
+            }
+
+            if (typeof eventProperties.storedReturnValue !== 'string') {
+                try {
+                    eventProperties.storedReturnValue = '' + eventProperties.storedReturnValue;
+                }
+                catch {
+                    eventProperties.storedReturnValue = '';
+                }
             }
         }
     }
