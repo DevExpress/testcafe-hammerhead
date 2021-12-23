@@ -1096,6 +1096,7 @@ export default class WindowSandbox extends SandboxBase {
         ]);
 
         this._overrideAttrDescriptors('autocomplete', [window.HTMLInputElement]);
+        this._overrideAttrDescriptors('httpEquiv', [window.HTMLMetaElement]);
 
         // NOTE: Some browsers (for example, Edge, Internet Explorer 11, Safari) don't support the 'integrity' property.
         if (nativeMethods.scriptIntegrityGetter && nativeMethods.linkIntegrityGetter) {
