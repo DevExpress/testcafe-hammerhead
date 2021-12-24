@@ -326,6 +326,8 @@ class NativeMethods {
     htmlManifestSetter: any;
     titleElementTextGetter: Function;
     titleElementTextSetter: Function;
+    metaHttpEquivGetter: () => HTMLMetaElement['httpEquiv'];
+    metaHttpEquivSetter: (this: HTMLMetaElement, value: HTMLMetaElement['httpEquiv']) => void;
     responseStatusGetter: any;
     responseTypeGetter: any;
     responseUrlGetter: any;
@@ -752,6 +754,7 @@ class NativeMethods {
         const anchorTextDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'text');
         const titleElementTextDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLTitleElement.prototype, 'text');
         const iframeSandboxDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'sandbox');
+        const metaHttpEquivDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLMetaElement.prototype, 'httpEquiv');
         const windowOriginDescriptor         = win.Object.getOwnPropertyDescriptor(win, 'origin');
 
         if (windowOriginDescriptor) {
@@ -812,6 +815,7 @@ class NativeMethods {
         this.inputFormActionSetter   = inputFormActionDescriptor.set;
         this.buttonFormActionSetter  = buttonFormActionDescriptor.set;
         this.iframeSandboxSetter     = iframeSandboxDescriptor.set;
+        this.metaHttpEquivSetter     = metaHttpEquivDescriptor.set;
         this.htmlElementOnloadSetter = win.Object.getOwnPropertyDescriptor(win.HTMLElement.prototype, 'onload').set;
 
         this.nodeTextContentSetter      = nodeTextContentDescriptor.set;
@@ -877,6 +881,7 @@ class NativeMethods {
         this.inputFormActionGetter          = inputFormActionDescriptor.get;
         this.buttonFormActionGetter         = buttonFormActionDescriptor.get;
         this.iframeSandboxGetter            = iframeSandboxDescriptor.get;
+        this.metaHttpEquivGetter            = metaHttpEquivDescriptor.get;
         this.contentWindowGetter            = win.Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'contentWindow').get;
         this.contentDocumentGetter          = win.Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'contentDocument').get;
         this.frameContentWindowGetter       = win.Object.getOwnPropertyDescriptor(win.HTMLFrameElement.prototype, 'contentWindow').get;
