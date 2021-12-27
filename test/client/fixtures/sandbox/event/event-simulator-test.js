@@ -735,7 +735,7 @@ module('mouse events on disabled elements', {
         document.body.removeChild(div);
     });
 
-    test('<button disabled><span></span></button> (GH-TC-5147)', function () {
+    test('<button disabled><span></span></button> (GH-TC-5240)', function () {
         var button   = document.createElement('button');
         var span     = document.createElement('span');
 
@@ -761,7 +761,7 @@ module('mouse events on disabled elements', {
         document.body.removeChild(button);
     });
 
-    test('<button disabled><input></input></button>  (GH-TC-5147)', function () {
+    test('<button disabled><input></input></button>  (GH-TC-5240)', function () {
         var button   = document.createElement('button');
         var input    = document.createElement('input');
 
