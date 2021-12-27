@@ -696,93 +696,128 @@ if (!browserUtils.isIE) {
     });
 }
 
-test('mouse events on disabled elements', function () {
-    var button   = document.createElement('button');
-    var span     = document.createElement('span');
-    var div      = document.createElement('div');
-    var eventLog = [];
+module('mouse events on disabled elements', {
+    beforeEach: function () {
+        var eventLog = [];
 
-    document.body.appendChild(button);
-    document.body.appendChild(div);
-    button.appendChild(span);
-
-    var mouseEventHandler = function (event) {
-        eventLog.push(event.type);
-    };
-
-    button.disabled = true;
-    div.disabled    = true;
-    div.innerText   = 'text';
-
-    span.addEventListener('mousedown', mouseEventHandler);
-    span.addEventListener('mouseup', mouseEventHandler);
-    span.addEventListener('click', mouseEventHandler);
-
-    eventSimulator.mousedown(span);
-    eventSimulator.click(span);
-    eventSimulator.mouseup(span);
-
-    deepEqual(eventLog, []);
-
-    document.body.removeChild(button);
-
-    div.addEventListener('mousedown', mouseEventHandler);
-    div.addEventListener('mouseup', mouseEventHandler);
-    div.addEventListener('click', mouseEventHandler);
-
-    eventSimulator.mousedown(div);
-    eventSimulator.click(div);
-    eventSimulator.mouseup(div);
-
-    // NOTE: it's possible to disable the 'div' element in IE
-    if (browserUtils.isIE11)
-        deepEqual(eventLog, []);
-    else
-        deepEqual(eventLog, ['mousedown', 'click', 'mouseup']);
-
-
-    document.body.removeChild(div);
-});
-
-if (!browserUtils.isIE) {
-    test('mouse events on custom elements with "disabled" property should still work (GH-2346)', function () {
-        function DisabledCustomElement () {
-            return Reflect.construct(HTMLElement, [], this.constructor);
-        }
-
-        DisabledCustomElement.prototype             = Object.create(HTMLElement.prototype);
-        DisabledCustomElement.prototype.constructor = DisabledCustomElement;
-
-        Object.setPrototypeOf(DisabledCustomElement, HTMLElement);
-
-        customElements.define('disabled-cutsom-element', DisabledCustomElement);
-
-        var disabledCustomElement = document.createElement('disabled-cutsom-element');
-        var span                  = document.createElement('span');
-        var eventLog              = [];
-
-        document.body.appendChild(disabledCustomElement);
-        disabledCustomElement.appendChild(span);
-
-        var mouseEventHandler = function (event) {
+        this.mouseEventHandler = function (event) {
             eventLog.push(event.type);
         };
 
-        disabledCustomElement.setAttribute('disabled', true);
+        this.getEventLog = function () {
+            return eventLog;
+        };
+    }
+}, function () {
+    test('<div>', function () {
+        var div = document.createElement('div');
 
-        span.addEventListener('mousedown', mouseEventHandler);
-        span.addEventListener('mouseup', mouseEventHandler);
-        span.addEventListener('click', mouseEventHandler);
+        document.body.appendChild(div);
+
+        div.disabled    = true;
+        div.innerText   = 'text';
+
+        div.addEventListener('mousedown', this.mouseEventHandler);
+        div.addEventListener('mouseup', this.mouseEventHandler);
+        div.addEventListener('click', this.mouseEventHandler);
+
+        eventSimulator.mousedown(div);
+        eventSimulator.click(div);
+        eventSimulator.mouseup(div);
+
+        // NOTE: it's possible to disable the 'div' element in IE
+        if (browserUtils.isIE11)
+            deepEqual(this.getEventLog(), []);
+        else
+            deepEqual(this.getEventLog(), ['mousedown', 'click', 'mouseup']);
+
+
+        document.body.removeChild(div);
+    });
+
+    test('<button disabled><span></span></button> (GH-TC-5147)', function () {
+        var button   = document.createElement('button');
+        var span     = document.createElement('span');
+
+        document.body.appendChild(button);
+        button.appendChild(span);
+
+        button.disabled = true;
+
+        span.addEventListener('mousedown', this.mouseEventHandler);
+        span.addEventListener('mouseup', this.mouseEventHandler);
+        span.addEventListener('click', this.mouseEventHandler);
 
         eventSimulator.mousedown(span);
         eventSimulator.click(span);
         eventSimulator.mouseup(span);
 
-        deepEqual(eventLog, ['mousedown', 'click', 'mouseup']);
+        deepEqual(this.getEventLog(), [
+            'mousedown',
+            'click',
+            'mouseup'
+        ]);
 
-        document.body.removeChild(disabledCustomElement);
+        document.body.removeChild(button);
     });
-}
+
+    test('<button disabled><input></input></button>  (GH-TC-5147)', function () {
+        var button   = document.createElement('button');
+        var input    = document.createElement('input');
+
+        document.body.appendChild(button);
+        button.appendChild(input);
+
+        button.disabled = true;
+
+        input.addEventListener('mousedown', this.mouseEventHandler);
+        input.addEventListener('mouseup', this.mouseEventHandler);
+        input.addEventListener('click', this.mouseEventHandler);
+
+        eventSimulator.mousedown(input);
+        eventSimulator.click(input);
+        eventSimulator.mouseup(input);
+
+        deepEqual(this.getEventLog(), []);
+
+        document.body.removeChild(button);
+    });
+
+    if (!browserUtils.isIE) {
+        test('custom elements (GH-2346)', function () {
+            function DisabledCustomElement () {
+                return Reflect.construct(HTMLElement, [], this.constructor);
+            }
+
+            DisabledCustomElement.prototype = Object.create(HTMLElement.prototype);
+            DisabledCustomElement.prototype.constructor = DisabledCustomElement;
+
+            Object.setPrototypeOf(DisabledCustomElement, HTMLElement);
+
+            customElements.define('disabled-cutsom-element', DisabledCustomElement);
+
+            var disabledCustomElement = document.createElement('disabled-cutsom-element');
+            var span                  = document.createElement('span');
+
+            document.body.appendChild(disabledCustomElement);
+            disabledCustomElement.appendChild(span);
+
+            disabledCustomElement.setAttribute('disabled', true);
+
+            span.addEventListener('mousedown', this.mouseEventHandler);
+            span.addEventListener('mouseup', this.mouseEventHandler);
+            span.addEventListener('click', this.mouseEventHandler);
+
+            eventSimulator.mousedown(span);
+            eventSimulator.click(span);
+            eventSimulator.mouseup(span);
+
+            deepEqual(this.getEventLog(), ['mousedown', 'click', 'mouseup']);
+
+            document.body.removeChild(disabledCustomElement);
+        });
+    }
+});
 
 module('regression');
 

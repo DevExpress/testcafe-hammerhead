@@ -245,6 +245,10 @@ export default class EventSimulator {
         return options;
     }
 
+    static _isDisabled (node): boolean {
+        return node && node.hasAttribute && nativeMethods.hasAttribute.call(node, 'disabled');
+    }
+
     _simulateEvent (el, event, userOptions, options = {}) {
         let args     = null;
         let dispatch = null;
@@ -640,11 +644,15 @@ export default class EventSimulator {
     }
 
     _dispatchMouseEvent (el, args, { dataTransfer, timeStamp }: any) {
-        const disabledParent = domUtils.findParent(el, true, node => {
-            return this._elementCanBeDisabled(node) && node.hasAttribute && nativeMethods.hasAttribute.call(node, 'disabled');
+        const disabledParent = domUtils.findParent(el, false, node => {
+            return this._elementCanBeDisabled(node) && EventSimulator._isDisabled(node);
         });
 
-        if (disabledParent)
+        const shouldNotRaiseEvents =
+            (disabledParent && this._elementCanBeDisabled(el)) ||
+            (EventSimulator._isDisabled(el) && this._elementCanBeDisabled(el));
+
+        if (shouldNotRaiseEvents)
             return null;
 
         let event = null;
