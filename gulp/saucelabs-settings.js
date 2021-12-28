@@ -40,11 +40,11 @@ const CLIENT_TESTS_BROWSERS = [
     },
     {
         browserName: 'chrome',
-        platform:    'macOS 10.15'
+        platform:    'macOS 12'
     },
     {
         browserName: 'firefox',
-        platform:    'macOS 10.15'
+        platform:    'macOS 12'
     }
 ];
 
