@@ -28,8 +28,8 @@ const CLIENT_TESTS_BROWSERS = [
     },
     {
         browserName:     'Safari',
-        deviceName:      'iPhone 13 Simulator',
-        platformVersion: '15.0',
+        deviceName:      'iPhone 7 Plus Simulator',
+        platformVersion: '11.3',
         platformName:    'iOS'
     },
     {
