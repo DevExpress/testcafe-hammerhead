@@ -5,6 +5,9 @@ const { Transform }         = require('stream');
 const childProcess          = require('child_process');
 const gulp                  = require('gulp');
 const gulpStep              = require('gulp-step');
+
+fs.copyFileSync('gulp/qunit-harness-index.js', 'node_modules/qunit-harness/lib/index.js');
+
 const qunitHarness          = require('gulp-qunit-harness');
 const mocha                 = require('gulp-mocha-simple');
 const mustache              = require('gulp-mustache');
