@@ -497,7 +497,7 @@ var QUnitServer = (function (_EventEmitter) {
                         reports: []
                     };
 
-                    console.log(browserName);
+                    console.log('browserName:', browserName);
                     console.dir(task);
                     this.tasks[task.id] = task;
 

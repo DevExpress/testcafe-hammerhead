@@ -1,5 +1,5 @@
 const CLIENT_TESTS_BROWSERS = [
-    {
+    /*{
         platform:    'Windows 10',
         browserName: 'MicrosoftEdge'
     },
@@ -15,7 +15,7 @@ const CLIENT_TESTS_BROWSERS = [
         platform:    'Windows 10',
         browserName: 'internet explorer',
         version:     '11.0'
-    },
+    },*/
     {
         browserName: 'safari',
         platform:    'macOS 11.00',
