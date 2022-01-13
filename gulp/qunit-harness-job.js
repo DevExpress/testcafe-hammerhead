@@ -230,7 +230,7 @@ var Job = (function () {
                     initBrowserPromise = _promisifyEvent2.default(this.browser, 'status');
 
                     this.browser.init(initBrowserParams);
-                    console.dir('this.browser.init(initBrowserParams)', initBrowserParams);
+                    console.dir(initBrowserParams);
 
                     context$2$0.next = 10;
                     return _regeneratorRuntime.awrap(initBrowserPromise);
@@ -238,8 +238,7 @@ var Job = (function () {
                 case 10:
                     context$2$0.next = 12;
 
-                    console.log('this.browser.get(this.options.urls[0])');
-                    console.log(this.options.urls[0]);
+                    console.log('this.browser.get(this.options.urls[0])', this.options.urls);
                     return _regeneratorRuntime.awrap(this.browser.get(this.options.urls[0]));
 
                 case 12:
