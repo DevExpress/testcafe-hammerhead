@@ -209,7 +209,7 @@ var Job = (function () {
     };
 
     Job.prototype.run = function run() {
-        var jobResult, jobFailed, initBrowserParams, initBrowserPromise;
+        var jobResult, jobFailed, initBrowserParams;
         return _regeneratorRuntime.async(function run$(context$2$0) {
             while (1) switch (context$2$0.prev = context$2$0.next) {
                 case 0:
@@ -227,90 +227,102 @@ var Job = (function () {
                     this.status = Job.STATUSES.INIT_BROWSER;
 
                     context$2$0.prev = 5;
-                    initBrowserPromise = _promisifyEvent2.default(this.browser, 'status');
 
-                    this.browser.init(initBrowserParams);
-                    console.dir(initBrowserParams);
+                    console.log('initBrowserParams:', initBrowserParams);
+                    // optional extra logging
+                    this.browser.on('status', function (info) {
+                        console.log('browser:on:status', info.cyan);
+                    });
+                    this.browser.on('command', function (eventType, command, response) {
+                        console.log('browser:on:command', ' > ' + eventType.cyan, command, (response || '').grey);
+                    });
+                    this.browser.on('http', function (meth, path, data) {
+                        console.log('browser:on:http', ' > ' + meth.magenta, path, (data || '').grey);
+                    });
 
-                    context$2$0.next = 10;
-                    return _regeneratorRuntime.awrap(initBrowserPromise);
+                    //var initBrowserPromise = promisifyEvent(this.browser, 'status');
 
-                case 10:
-                    context$2$0.next = 12;
+                    console.log('before browser.init', new Date().toISOString());
+                    context$2$0.next = 13;
+                    return _regeneratorRuntime.awrap(this.browser.init(initBrowserParams));
 
-                    console.log('this.browser.get(this.options.urls[0])', this.options.urls);
+                case 13:
+
+                    console.log('after browser.init', new Date().toISOString());
+                    //await initBrowserPromise;
+                    context$2$0.next = 16;
                     return _regeneratorRuntime.awrap(this.browser.get(this.options.urls[0]));
 
-                case 12:
-                    context$2$0.next = 18;
+                case 16:
+                    context$2$0.next = 22;
                     break;
 
-                case 14:
-                    context$2$0.prev = 14;
+                case 18:
+                    context$2$0.prev = 18;
                     context$2$0.t0 = context$2$0['catch'](5);
 
-                    this._reportError('An error occured while the browser was being initialized: ' + context$2$0.t0);
+                    this._reportError('An error occurred while the browser was being initialized: ' + context$2$0.t0);
                     jobFailed = true;
 
-                case 18:
+                case 22:
                     if (jobFailed) {
-                        context$2$0.next = 37;
+                        context$2$0.next = 41;
                         break;
                     }
 
-                    context$2$0.prev = 19;
-                    context$2$0.next = 22;
+                    context$2$0.prev = 23;
+                    context$2$0.next = 26;
                     return _regeneratorRuntime.awrap(this._getJobResult());
 
-                case 22:
+                case 26:
                     jobResult = context$2$0.sent;
-                    context$2$0.next = 29;
+                    context$2$0.next = 33;
                     break;
 
-                case 25:
-                    context$2$0.prev = 25;
-                    context$2$0.t1 = context$2$0['catch'](19);
+                case 29:
+                    context$2$0.prev = 29;
+                    context$2$0.t1 = context$2$0['catch'](23);
 
                     this._reportError(context$2$0.t1);
                     jobFailed = true;
 
-                case 29:
-                    context$2$0.prev = 29;
-                    context$2$0.next = 32;
+                case 33:
+                    context$2$0.prev = 33;
+                    context$2$0.next = 36;
                     return _regeneratorRuntime.awrap(this.browser.quit());
 
-                case 32:
-                    context$2$0.next = 37;
+                case 36:
+                    context$2$0.next = 41;
                     break;
 
-                case 34:
-                    context$2$0.prev = 34;
-                    context$2$0.t2 = context$2$0['catch'](29);
+                case 38:
+                    context$2$0.prev = 38;
+                    context$2$0.t2 = context$2$0['catch'](33);
 
                     this._reportError('An error occured while the browser was being closed: ' + context$2$0.t2);
 
-                case 37:
+                case 41:
                     if (!jobFailed) {
-                        context$2$0.next = 48;
+                        context$2$0.next = 52;
                         break;
                     }
 
                     if (!(++this.restartCount < MAX_JOB_RESTART_COUNT)) {
-                        context$2$0.next = 45;
+                        context$2$0.next = 49;
                         break;
                     }
 
                     console.log('Attempt ' + this.restartCount + ' to restart the task (' + this.platform + ')');
 
-                    context$2$0.next = 42;
+                    context$2$0.next = 46;
                     return _regeneratorRuntime.awrap(this.run());
 
-                case 42:
+                case 46:
                     jobResult = context$2$0.sent;
-                    context$2$0.next = 48;
+                    context$2$0.next = 52;
                     break;
 
-                case 45:
+                case 49:
                     jobResult = {
                         platform: this.platform,
                         job_id: this.browser.sessionID
@@ -320,14 +332,14 @@ var Job = (function () {
 
                     this.status = Job.STATUSES.FAILED;
 
-                case 48:
+                case 52:
                     return context$2$0.abrupt('return', jobResult);
 
-                case 49:
+                case 53:
                 case 'end':
                     return context$2$0.stop();
             }
-        }, null, this, [[5, 14], [19, 25], [29, 34]]);
+        }, null, this, [[5, 18], [23, 29], [33, 38]]);
     };
 
     Job.prototype.getStatus = function getStatus() {
