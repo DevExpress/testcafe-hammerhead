@@ -8,6 +8,8 @@ var _regeneratorRuntime = require('babel-runtime/regenerator').default;
 
 var _Object$keys = require('babel-runtime/core-js/object/keys').default;
 
+var _Promise = require('babel-runtime/core-js/promise').default;
+
 var _interopRequireDefault = require('babel-runtime/helpers/interop-require-default').default;
 
 exports.__esModule = true;
@@ -209,7 +211,7 @@ var Job = (function () {
     };
 
     Job.prototype.run = function run() {
-        var jobResult, jobFailed, initBrowserParams;
+        var jobResult, jobFailed, initBrowserParams, delay;
         return _regeneratorRuntime.async(function run$(context$2$0) {
             while (1) switch (context$2$0.prev = context$2$0.next) {
                 case 0:
@@ -250,79 +252,91 @@ var Job = (function () {
 
                     console.log('after browser.init', new Date().toISOString());
                     //await initBrowserPromise;
-                    context$2$0.next = 16;
-                    return _regeneratorRuntime.awrap(this.browser.get(this.options.urls[0]));
+                    console.log('add timeout 30 sec');
 
-                case 16:
-                    context$2$0.next = 22;
-                    break;
+                    delay = function (ms) {
+                        return new _Promise(function (resolve) {
+                            return setTimeout(resolve, ms);
+                        });
+                    };
+
+                    context$2$0.next = 18;
+                    return _regeneratorRuntime.awrap(delay(30000));
 
                 case 18:
-                    context$2$0.prev = 18;
+                    context$2$0.next = 20;
+                    return _regeneratorRuntime.awrap(this.browser.get(this.options.urls[0]));
+
+                case 20:
+                    context$2$0.next = 26;
+                    break;
+
+                case 22:
+                    context$2$0.prev = 22;
                     context$2$0.t0 = context$2$0['catch'](5);
 
                     this._reportError('An error occurred while the browser was being initialized: ' + context$2$0.t0);
                     jobFailed = true;
 
-                case 22:
+                case 26:
                     if (jobFailed) {
-                        context$2$0.next = 41;
+                        context$2$0.next = 45;
                         break;
                     }
 
-                    context$2$0.prev = 23;
-                    context$2$0.next = 26;
+                    context$2$0.prev = 27;
+                    context$2$0.next = 30;
                     return _regeneratorRuntime.awrap(this._getJobResult());
 
-                case 26:
+                case 30:
                     jobResult = context$2$0.sent;
-                    context$2$0.next = 33;
+                    context$2$0.next = 37;
                     break;
 
-                case 29:
-                    context$2$0.prev = 29;
-                    context$2$0.t1 = context$2$0['catch'](23);
+                case 33:
+                    context$2$0.prev = 33;
+                    context$2$0.t1 = context$2$0['catch'](27);
 
                     this._reportError(context$2$0.t1);
                     jobFailed = true;
 
-                case 33:
-                    context$2$0.prev = 33;
-                    context$2$0.next = 36;
+                case 37:
+                    context$2$0.prev = 37;
+                    context$2$0.next = 40;
                     return _regeneratorRuntime.awrap(this.browser.quit());
 
-                case 36:
-                    context$2$0.next = 41;
+                case 40:
+                    context$2$0.next = 45;
                     break;
 
-                case 38:
-                    context$2$0.prev = 38;
-                    context$2$0.t2 = context$2$0['catch'](33);
+                case 42:
+                    context$2$0.prev = 42;
+                    context$2$0.t2 = context$2$0['catch'](37);
 
                     this._reportError('An error occured while the browser was being closed: ' + context$2$0.t2);
 
-                case 41:
+                case 45:
                     if (!jobFailed) {
-                        context$2$0.next = 52;
+                        context$2$0.next = 56;
                         break;
                     }
 
                     if (!(++this.restartCount < MAX_JOB_RESTART_COUNT)) {
-                        context$2$0.next = 49;
+                        context$2$0.next = 53;
                         break;
                     }
 
                     console.log('Attempt ' + this.restartCount + ' to restart the task (' + this.platform + ')');
 
-                    context$2$0.next = 46;
+                    context$2$0.next = 50;
                     return _regeneratorRuntime.awrap(this.run());
 
-                case 46:
+                case 50:
                     jobResult = context$2$0.sent;
-                    context$2$0.next = 52;
+                    context$2$0.next = 56;
                     break;
 
-                case 49:
+                case 53:
                     jobResult = {
                         platform: this.platform,
                         job_id: this.browser.sessionID
@@ -332,14 +346,14 @@ var Job = (function () {
 
                     this.status = Job.STATUSES.FAILED;
 
-                case 52:
+                case 56:
                     return context$2$0.abrupt('return', jobResult);
 
-                case 53:
+                case 57:
                 case 'end':
                     return context$2$0.stop();
             }
-        }, null, this, [[5, 18], [23, 29], [33, 38]]);
+        }, null, this, [[5, 22], [27, 33], [37, 42]]);
     };
 
     Job.prototype.getStatus = function getStatus() {
