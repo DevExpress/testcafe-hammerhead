@@ -8,8 +8,6 @@ var _regeneratorRuntime = require('babel-runtime/regenerator').default;
 
 var _Object$keys = require('babel-runtime/core-js/object/keys').default;
 
-var _Promise = require('babel-runtime/core-js/promise').default;
-
 var _interopRequireDefault = require('babel-runtime/helpers/interop-require-default').default;
 
 exports.__esModule = true;
@@ -17,10 +15,6 @@ exports.__esModule = true;
 var _wd = require('wd');
 
 var _wd2 = _interopRequireDefault(_wd);
-
-var _promisifyEvent = require('promisify-event');
-
-var _promisifyEvent2 = _interopRequireDefault(_promisifyEvent);
 
 var _lodash = require('lodash');
 
@@ -32,11 +26,19 @@ var _utilsWait = require('../utils/wait');
 
 var _utilsWait2 = _interopRequireDefault(_utilsWait);
 
+var _utilsIsSafari15 = require('../utils/is-safari-15');
+
+var _utilsIsSafari152 = _interopRequireDefault(_utilsIsSafari15);
+
 var CHECK_TEST_RESULT_DELAY = 10 * 1000;
 var MAX_JOB_RESTART_COUNT = 3;
 var BROWSER_INIT_RETRY_DELAY = 30 * 1000;
 var BROWSER_INIT_RETRIES = 3;
 var BROWSER_INIT_TIMEOUT = 9 * 60 * 1000;
+
+// NOTE: Saucelabs cannot start tests in Safari 15 immediately.
+// So, we are forced to add delay before test execution.
+var TEST_RUN_DELAY_FOR_SAFARI_15 = 30 * 1000;
 
 _wd2.default.configureHttp({
     retryDelay: BROWSER_INIT_RETRY_DELAY,
@@ -211,7 +213,7 @@ var Job = (function () {
     };
 
     Job.prototype.run = function run() {
-        var jobResult, jobFailed, initBrowserParams, delay;
+        var jobResult, jobFailed, initBrowserParams;
         return _regeneratorRuntime.async(function run$(context$2$0) {
             while (1) switch (context$2$0.prev = context$2$0.next) {
                 case 0:
@@ -229,114 +231,95 @@ var Job = (function () {
                     this.status = Job.STATUSES.INIT_BROWSER;
 
                     context$2$0.prev = 5;
-
-                    console.log('initBrowserParams:', initBrowserParams);
-                    // optional extra logging
-                    this.browser.on('status', function (info) {
-                        console.log('browser:on:status', info);
-                    });
-                    this.browser.on('command', function (eventType, command, response) {
-                        console.log('browser:on:command', ' > ' + eventType, command, response);
-                    });
-                    this.browser.on('http', function (meth, path, data) {
-                        console.log('browser:on:http', ' > ' + meth, path, data);
-                    });
-
-                    //var initBrowserPromise = promisifyEvent(this.browser, 'status');
-
-                    console.log('before browser.init', new Date().toISOString());
-                    context$2$0.next = 13;
+                    context$2$0.next = 8;
                     return _regeneratorRuntime.awrap(this.browser.init(initBrowserParams));
 
+                case 8:
+                    if (!_utilsIsSafari152.default(initBrowserParams)) {
+                        context$2$0.next = 13;
+                        break;
+                    }
+
+                    console.log('add delay between browser start for the browser');
+                    console.dir(initBrowserParams);
+
+                    context$2$0.next = 13;
+                    return _regeneratorRuntime.awrap(_utilsWait2.default(TEST_RUN_DELAY_FOR_SAFARI_15));
+
                 case 13:
-
-                    console.log('after browser.init', new Date().toISOString());
-                    //await initBrowserPromise;
-                    console.log('add timeout 30 sec');
-
-                    delay = function (ms) {
-                        return new _Promise(function (resolve) {
-                            return setTimeout(resolve, ms);
-                        });
-                    };
-
-                    context$2$0.next = 18;
-                    return _regeneratorRuntime.awrap(delay(30000));
-
-                case 18:
-                    context$2$0.next = 20;
+                    context$2$0.next = 15;
                     return _regeneratorRuntime.awrap(this.browser.get(this.options.urls[0]));
 
-                case 20:
-                    context$2$0.next = 26;
+                case 15:
+                    context$2$0.next = 21;
                     break;
 
-                case 22:
-                    context$2$0.prev = 22;
+                case 17:
+                    context$2$0.prev = 17;
                     context$2$0.t0 = context$2$0['catch'](5);
 
                     this._reportError('An error occurred while the browser was being initialized: ' + context$2$0.t0);
                     jobFailed = true;
 
-                case 26:
+                case 21:
                     if (jobFailed) {
-                        context$2$0.next = 45;
+                        context$2$0.next = 40;
                         break;
                     }
 
-                    context$2$0.prev = 27;
-                    context$2$0.next = 30;
+                    context$2$0.prev = 22;
+                    context$2$0.next = 25;
                     return _regeneratorRuntime.awrap(this._getJobResult());
 
-                case 30:
+                case 25:
                     jobResult = context$2$0.sent;
-                    context$2$0.next = 37;
+                    context$2$0.next = 32;
                     break;
 
-                case 33:
-                    context$2$0.prev = 33;
-                    context$2$0.t1 = context$2$0['catch'](27);
+                case 28:
+                    context$2$0.prev = 28;
+                    context$2$0.t1 = context$2$0['catch'](22);
 
                     this._reportError(context$2$0.t1);
                     jobFailed = true;
 
-                case 37:
-                    context$2$0.prev = 37;
-                    context$2$0.next = 40;
+                case 32:
+                    context$2$0.prev = 32;
+                    context$2$0.next = 35;
                     return _regeneratorRuntime.awrap(this.browser.quit());
 
-                case 40:
-                    context$2$0.next = 45;
+                case 35:
+                    context$2$0.next = 40;
                     break;
 
-                case 42:
-                    context$2$0.prev = 42;
-                    context$2$0.t2 = context$2$0['catch'](37);
+                case 37:
+                    context$2$0.prev = 37;
+                    context$2$0.t2 = context$2$0['catch'](32);
 
                     this._reportError('An error occured while the browser was being closed: ' + context$2$0.t2);
 
-                case 45:
+                case 40:
                     if (!jobFailed) {
-                        context$2$0.next = 56;
+                        context$2$0.next = 51;
                         break;
                     }
 
                     if (!(++this.restartCount < MAX_JOB_RESTART_COUNT)) {
-                        context$2$0.next = 53;
+                        context$2$0.next = 48;
                         break;
                     }
 
                     console.log('Attempt ' + this.restartCount + ' to restart the task (' + this.platform + ')');
 
-                    context$2$0.next = 50;
+                    context$2$0.next = 45;
                     return _regeneratorRuntime.awrap(this.run());
 
-                case 50:
+                case 45:
                     jobResult = context$2$0.sent;
-                    context$2$0.next = 56;
+                    context$2$0.next = 51;
                     break;
 
-                case 53:
+                case 48:
                     jobResult = {
                         platform: this.platform,
                         job_id: this.browser.sessionID
@@ -346,14 +329,14 @@ var Job = (function () {
 
                     this.status = Job.STATUSES.FAILED;
 
-                case 56:
+                case 51:
                     return context$2$0.abrupt('return', jobResult);
 
-                case 57:
+                case 52:
                 case 'end':
                     return context$2$0.stop();
             }
-        }, null, this, [[5, 22], [27, 33], [37, 42]]);
+        }, null, this, [[5, 17], [22, 28], [32, 37]]);
     };
 
     Job.prototype.getStatus = function getStatus() {
@@ -381,3 +364,23 @@ module.exports = exports.default;
 // NOTE: this error may occur while testing against internet explorer 11.
 // This may happen because the IE driver sometimes throws an unknown error
 // when executing an expression with the 'window' object.
+
+//console.log('initBrowserParams:', initBrowserParams);
+// optional extra logging
+/*this.browser.on('status', function (info) {
+    console.log('browser:on:status', info);
+});
+this.browser.on('command', function (eventType, command, response) {
+    console.log('browser:on:command', ' > ' + eventType, command, response);
+});
+this.browser.on('http', function (meth, path, data) {
+    console.log('browser:on:http', ' > ' + meth, path, data);
+});*/
+
+//var initBrowserPromise = promisifyEvent(this.browser, 'status');
+
+//console.log('before browser.init', new Date().toISOString())
+
+//console.log('after browser.init', new Date().toISOString())
+//await initBrowserPromise;
+//console.log('add timeout 30 sec');

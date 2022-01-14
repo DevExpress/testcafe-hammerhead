@@ -8,6 +8,7 @@ const gulpStep              = require('gulp-step');
 
 fs.copyFileSync('gulp/qunit-harness-index.js', 'node_modules/qunit-harness/lib/index.js');
 fs.copyFileSync('gulp/qunit-harness-job.js', 'node_modules/qunit-harness/lib/saucelabs/job.js');
+fs.copyFileSync('gulp/qunit-harness-is-safari-15.js', 'node_modules/qunit-harness/lib/utils/is-safari-15.js');
 
 const qunitHarness          = require('gulp-qunit-harness');
 const mocha                 = require('gulp-mocha-simple');
