@@ -231,13 +231,13 @@ var Job = (function () {
                     console.log('initBrowserParams:', initBrowserParams);
                     // optional extra logging
                     this.browser.on('status', function (info) {
-                        console.log('browser:on:status', info.cyan);
+                        console.log('browser:on:status', info);
                     });
                     this.browser.on('command', function (eventType, command, response) {
-                        console.log('browser:on:command', ' > ' + eventType.cyan, command, (response || '').grey);
+                        console.log('browser:on:command', ' > ' + eventType, command, response);
                     });
                     this.browser.on('http', function (meth, path, data) {
-                        console.log('browser:on:http', ' > ' + meth.magenta, path, (data || '').grey);
+                        console.log('browser:on:http', ' > ' + meth, path, data);
                     });
 
                     //var initBrowserPromise = promisifyEvent(this.browser, 'status');
