@@ -18,18 +18,13 @@ const CLIENT_TESTS_BROWSERS = [
     },
     {
         browserName: 'safari',
-        platform:    'macOS 10.14',
-        version:     '12.0'
-    },
-    {
-        browserName: 'safari',
-        platform:    'macOS 10.15',
-        version:     'latest'
-    },
-    {
-        browserName: 'safari',
         platform:    'macOS 11.00',
-        version:     'latest'
+        version:     '14.0'
+    },
+    {
+        browserName: 'safari',
+        platform:    'macOS 12',
+        version:     '15'
     },
     {
         browserName:     'Safari',
@@ -45,11 +40,11 @@ const CLIENT_TESTS_BROWSERS = [
     },
     {
         browserName: 'chrome',
-        platform:    'macOS 10.15'
+        platform:    'macOS 12'
     },
     {
         browserName: 'firefox',
-        platform:    'macOS 10.15'
+        platform:    'macOS 12'
     }
 ];
 
