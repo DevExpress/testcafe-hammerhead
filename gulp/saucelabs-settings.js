@@ -1,5 +1,5 @@
 const CLIENT_TESTS_BROWSERS = [
-    {
+    /*{
         platform:    'Windows 10',
         browserName: 'MicrosoftEdge'
     },
@@ -31,21 +31,21 @@ const CLIENT_TESTS_BROWSERS = [
         deviceName:      'iPhone 7 Plus Simulator',
         platformVersion: '11.3',
         platformName:    'iOS'
-    },
+    },*/
     {
         deviceName:      'Android GoogleAPI Emulator',
         browserName:     'Chrome',
         platformVersion: '11',
         platformName:    'Android'
     },
-    {
+    /*{
         browserName: 'chrome',
         platform:    'macOS 12'
     },
     {
         browserName: 'firefox',
         platform:    'macOS 12'
-    }
+    }*/
 ];
 
 const SAUCELABS_SETTINGS = {
