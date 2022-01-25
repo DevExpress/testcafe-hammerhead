@@ -18,9 +18,6 @@ jobs:
     env:
       SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
       SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
-      # NOTE: had to do that due to a condition in qunit-harness
-      # https://github.com/AlexanderMoskovkin/qunit-harness/blob/master/src/index.js#L119
-      TRAVIS: true
     steps:
       - uses: actions/github-script@v3
         with:
