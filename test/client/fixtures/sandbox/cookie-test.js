@@ -15,9 +15,9 @@ var validDateStr = validDate.toUTCString();
 // There is a browser bug with strange restoring deleted cookie in next tick after QUnit.testDone.
 // At present, we are forced to disable some test runs in Safari 15.2.
 // Need trying to turn on the disabled tests on the next Safari versions (15.3 and later)
-var isSafari_15_2 = browserUtils.isSafari && browserUtils.fullVersion === '15.2';
+var isSafari15_2 = browserUtils.isSafari && browserUtils.fullVersion === '15.2'; //eslint-disable-line camelcase
 
-if(!isSafari_15_2) {
+if (!isSafari15_2) { //eslint-disable-line camelcase
     QUnit.testDone(function () {
         nativeMethods.documentCookieGetter.call(document)
             .split(';')
