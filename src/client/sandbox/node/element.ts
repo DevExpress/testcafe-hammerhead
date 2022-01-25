@@ -487,14 +487,14 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
-    private _prepareNodesForInsertion (args: (string | Node)[], newNodesRange: [number, number], parentNode: Node): void {
+    private _prepareNodesForInsertion (args: (string | Node | any)[], newNodesRange: [number, number], parentNode: Node): void {
         const [start, end] = newNodesRange;
 
         for (let i = start; i < end; i++) {
             const node = args[i];
 
-            if (typeof node === 'string')
-                args[i] = ElementSandbox._processTextContent(node, parentNode);
+            if (!(node instanceof Node))
+                args[i] = ElementSandbox._processTextContent(node.toString(), parentNode);
             else if (domUtils.isTextNode(node))
                 node.data = ElementSandbox._processTextContent(node.data, parentNode);
             else
