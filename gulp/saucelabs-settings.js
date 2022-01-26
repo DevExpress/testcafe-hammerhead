@@ -33,10 +33,10 @@ const CLIENT_TESTS_BROWSERS = [
         platformName:    'iOS'
     },
     {
-        platform:    'Linux',
-        browserName: 'android',
-        version:     '8.0',
-        deviceName:  'Android Emulator'
+        deviceName:      'Android GoogleAPI Emulator',
+        browserName:     'Chrome',
+        platformVersion: '7.1',
+        platformName:    'Android'
     },
     {
         browserName: 'chrome',
