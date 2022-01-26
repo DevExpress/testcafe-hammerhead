@@ -227,4 +227,3 @@ gulp.step('test-functional-testcafe-run', gulpRunCommand([
 
 gulp.task('test-functional-testcafe', gulp.series(BUILD_TASK, 'test-functional-testcafe-run'));
 
-gulp.task('travis', process.env.GULP_TASK ? gulp.series(process.env.GULP_TASK) : () => {});
