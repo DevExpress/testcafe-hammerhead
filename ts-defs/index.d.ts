@@ -80,19 +80,19 @@ declare module 'testcafe-hammerhead' {
     }
 
     interface Cookies {
-        findCookieByApi(domain: string, path: string, key: string): Promise<Cookie.Properties | null>;
+        findCookie(domain: string, path: string, key: string): Promise<Cookie.Properties | null>;
 
-        findCookiesByApi(domain: string, path: string): Promise<Cookie.Properties[]>;
+        findCookies(domain: string, path: string): Promise<Cookie.Properties[]>;
 
-        getAllCookiesByApi(): Promise<Cookie.Properties[]>;
+        getAllCookies(): Promise<Cookie.Properties[]>;
 
-        setCookiesByApi(cookies: Cookie.Properties[]): Promise<void>;
+        setCookies(cookies: Cookie.Properties[]): Promise<void>;
 
-        deleteCookieByApi(domain: string, path: string, key: string): Promise<void>;
+        deleteCookie(domain: string, path: string, key: string): Promise<void>;
 
-        deleteCookiesByApi(domain: string, path: string): Promise<void>;
+        deleteCookies(domain: string, path: string): Promise<void>;
 
-        deleteAllCookiesByApi(): Promise<void>;
+        deleteAllCookies(): Promise<void>;
     }
 
     export type InternalCookie = Cookie.Properties;

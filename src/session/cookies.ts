@@ -82,19 +82,19 @@ export default class Cookies {
             : new CookieJar();
     }
 
-    findCookieByApi () {
+    findCookie () {
         return this._findCookiePromisified.apply(this._cookieJar.store, arguments);
     }
 
-    findCookiesByApi () {
+    findCookies () {
         return this._findCookiesPromisified.apply(this._cookieJar.store, arguments);
     }
 
-    getAllCookiesByApi () {
+    getAllCookies () {
         return this._getAllCookiesPromisified.call(this._cookieJar.store);
     }
 
-    setCookiesByApi (apiCookies: Cookie.Properties[]) {
+    setCookies (apiCookies: Cookie.Properties[]) {
         const cookiesPromises: Promise<void>[] = [];
 
         for (const apiCookie of apiCookies) {
@@ -110,15 +110,15 @@ export default class Cookies {
         return Promise.all(cookiesPromises);
     }
 
-    deleteCookieByApi () {
+    deleteCookie () {
         return this._removeCookiePromisified.apply(this._cookieJar.store, arguments);
     }
 
-    deleteCookiesByApi () {
+    deleteCookies () {
         return this._removeCookiesPromisified.apply(this._cookieJar.store, arguments);
     }
 
-    deleteAllCookiesByApi () {
+    deleteAllCookies () {
         return this._removeAllCookiesPromisified.call(this._cookieJar.store);
     }
 
