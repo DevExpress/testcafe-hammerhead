@@ -47,6 +47,7 @@ type RequestFilterRulePredicate = (requestInfo: RequestInfo) => boolean | Promis
 
 declare module 'testcafe-hammerhead' {
     import { IncomingHttpHeaders } from 'http';
+    import { Cookie } from 'tough-cookie';
 
     export type RequestFilterRuleInit = string | RegExp | Partial<RequestFilterRuleObjectInitializer> | RequestFilterRulePredicate;
 
@@ -78,6 +79,24 @@ declare module 'testcafe-hammerhead' {
         sessionStorage: string;
     }
 
+    interface Cookies {
+        findCookieByApi(domain: string, path: string, key: string): Promise<Cookie.Properties | null>;
+
+        findCookiesByApi(domain: string, path: string): Promise<Cookie.Properties[]>;
+
+        getAllCookiesByApi(): Promise<Cookie.Properties[]>;
+
+        setCookiesByApi(cookies: Cookie.Properties[]): Promise<void>;
+
+        deleteCookieByApi(domain: string, path: string, key: string): Promise<void>;
+
+        deleteCookiesByApi(domain: string, path: string): Promise<void>;
+
+        deleteAllCookiesByApi(): Promise<void>;
+    }
+
+    export type InternalCookie = Cookie.Properties;
+
     /** Initialization options for the IncomingMessageLike object **/
     export interface IncomingMessageLikeInitOptions {
         headers: { [name: string]: string|string[] };
@@ -100,7 +119,7 @@ declare module 'testcafe-hammerhead' {
         injectable: InjectableResources;
 
         /** Session's cookie API **/
-        cookies: any;
+        cookies: Cookies;
 
         /** Creates a session instance **/
         protected constructor (uploadRoots: string[], options: Partial<SessionOptions>)

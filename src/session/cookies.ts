@@ -26,7 +26,7 @@ export default class Cookies {
         this._putCookiePromisified        = promisify(this._cookieJar.store.putCookie);
         this._removeCookiePromisified     = promisify(this._cookieJar.store.removeCookie);
         this._removeCookiesPromisified    = promisify(this._cookieJar.store.removeCookies);
-        this._removeAllCookiesPromisified = promisify(this._cookieJar.removeAllCookies);
+        this._removeAllCookiesPromisified = promisify(this._cookieJar.store.removeAllCookies);
     }
 
     static _hasLocalhostDomain (cookie): boolean {
@@ -94,7 +94,7 @@ export default class Cookies {
         return this._getAllCookiesPromisified.call(this._cookieJar.store);
     }
 
-    setCookiesByApi (apiCookies) {
+    setCookiesByApi (apiCookies: Cookie.Properties[]) {
         const cookiesPromises: Promise<void>[] = [];
 
         for (const apiCookie of apiCookies) {
@@ -119,7 +119,7 @@ export default class Cookies {
     }
 
     deleteAllCookiesByApi () {
-        return this._removeAllCookiesPromisified.call(this._cookieJar);
+        return this._removeAllCookiesPromisified.call(this._cookieJar.store);
     }
 
     setByServer (url: string, cookies) {
