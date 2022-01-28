@@ -47,7 +47,6 @@ type RequestFilterRulePredicate = (requestInfo: RequestInfo) => boolean | Promis
 
 declare module 'testcafe-hammerhead' {
     import { IncomingHttpHeaders } from 'http';
-    import { Cookie } from 'tough-cookie';
 
     export type RequestFilterRuleInit = string | RegExp | Partial<RequestFilterRuleObjectInitializer> | RequestFilterRulePredicate;
 
@@ -80,13 +79,13 @@ declare module 'testcafe-hammerhead' {
     }
 
     interface Cookies {
-        findCookie(domain: string, path: string, key: string): Promise<Cookie.Properties | null>;
+        findCookie(domain: string, path: string, key: string): Promise<InternalCookie | null>;
 
-        findCookies(domain: string, path: string): Promise<Cookie.Properties[]>;
+        findCookies(domain: string, path: string): Promise<InternalCookie[]>;
 
-        getAllCookies(): Promise<Cookie.Properties[]>;
+        getAllCookies(): Promise<InternalCookie[]>;
 
-        setCookies(cookies: Cookie.Properties[]): Promise<void>;
+        setCookies(cookies: InternalCookie[]): Promise<void>;
 
         deleteCookie(domain: string, path: string, key: string): Promise<void>;
 
@@ -95,7 +94,24 @@ declare module 'testcafe-hammerhead' {
         deleteAllCookies(): Promise<void>;
     }
 
-    export type InternalCookie = Cookie.Properties;
+    export type InternalCookie = {
+        key?: string;
+        value?: string;
+        expires?: Date;
+        maxAge?: number | 'Infinity' | '-Infinity';
+        domain?: string;
+        path?: string;
+        secure?: boolean;
+        httpOnly?: boolean;
+        extensions?: string[];
+        creation?: Date;
+        creationIndex?: number;
+
+        hostOnly?: boolean;
+        pathIsDefault?: boolean;
+        lastAccessed?: Date;
+        sameSite?: string;
+    };
 
     /** Initialization options for the IncomingMessageLike object **/
     export interface IncomingMessageLikeInitOptions {
