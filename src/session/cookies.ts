@@ -160,29 +160,31 @@ export default class Cookies {
         }));
     }
 
-    async getCookies (externalCookies: ExternalCookies[], urls: string[]): Promise<Partial<ExternalCookies>[]> {
-        if (!externalCookies.length)
-            return this._getAllCookiesPromisified.call(this._cookieJar.store);
+    async getCookies (externalCookies?: ExternalCookies[], urls: string[] = []): Promise<Partial<ExternalCookies>[]> {
+        let resultCookies: Cookie.Properties[] = [];
 
-        const cookies = this._convertToInternalCookies(externalCookies);
+        if (!externalCookies || !externalCookies.length)
+            resultCookies = await this._getAllCookiesPromisified.call(this._cookieJar.store);
+        else {
+            const parsedUrls = urls.map(url => {
+                const { hostname, pathname } = new URL(url);
 
-        const resultCookies: Cookie.Properties[] = [];
-        const parsedUrls    = urls.map(url => {
-            const { hostname, pathname } = new URL(url);
+                return { domain: hostname, path: pathname };
+            });
 
-            return { domain: hostname, path: pathname };
-        });
+            const cookies = this._convertToInternalCookies(externalCookies);
 
-        for (const cookie of cookies) {
-            const receivedCookies = await this._getCookiesByApi(cookie, parsedUrls);
+            for (const cookie of cookies) {
+                const receivedCookies = await this._getCookiesByApi(cookie, parsedUrls);
 
-            resultCookies.push(...receivedCookies);
+                resultCookies.push(...receivedCookies);
+            }
         }
 
         return this._convertToExternalCookies(resultCookies);
     }
 
-    async setCookies (externalCookies: ExternalCookies[], url: string): Promise<void> {
+    async setCookies (externalCookies: ExternalCookies[], url?: string): Promise<void> {
         const cookies = this._convertToInternalCookies(externalCookies);
 
         const { hostname = '', pathname = '/' } = url ? new URL(url) : {};
@@ -201,17 +203,17 @@ export default class Cookies {
         }
     }
 
-    async deleteCookies (externalCookies: ExternalCookies[], urls: string[]): Promise<void> {
-        if (!externalCookies.length)
-            await this._removeAllCookiesPromisified.call(this._cookieJar.store);
-
-        const cookies = this._convertToInternalCookies(externalCookies);
+    async deleteCookies (externalCookies?: ExternalCookies[], urls: string[] = []): Promise<void> {
+        if (!externalCookies || !externalCookies.length)
+            return this._removeAllCookiesPromisified.call(this._cookieJar.store);
 
         const parsedUrls = urls.map(url => {
             const { hostname, pathname } = new URL(url);
 
             return { domain: hostname, path: pathname };
         });
+
+        const cookies = this._convertToInternalCookies(externalCookies);
 
         for (const cookie of cookies) {
             const { key, domain, path, ...filters } = cookie;
