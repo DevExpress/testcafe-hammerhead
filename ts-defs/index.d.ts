@@ -78,40 +78,25 @@ declare module 'testcafe-hammerhead' {
         sessionStorage: string;
     }
 
-    interface Cookies {
-        findCookie(domain: string, path: string, key: string): Promise<InternalCookie | null>;
-
-        findCookies(domain: string, path: string): Promise<InternalCookie[]>;
-
-        getAllCookies(): Promise<InternalCookie[]>;
-
-        setCookies(cookies: InternalCookie[]): Promise<void>;
-
-        deleteCookie(domain: string, path: string, key: string): Promise<void>;
-
-        deleteCookies(domain: string, path: string): Promise<void>;
-
-        deleteAllCookies(): Promise<void>;
+    interface ExternalCookies {
+        name: string;
+        value: string;
+        domain: string;
+        path: string;
+        expires: Date;
+        maxAge: number | 'Infinity' | '-Infinity';
+        secure: boolean;
+        httpOnly: boolean;
+        sameSite: string;
     }
 
-    export type InternalCookie = {
-        key?: string;
-        value?: string;
-        expires?: Date;
-        maxAge?: number | 'Infinity' | '-Infinity';
-        domain?: string;
-        path?: string;
-        secure?: boolean;
-        httpOnly?: boolean;
-        extensions?: string[];
-        creation?: Date;
-        creationIndex?: number;
+    interface Cookies {
+        getCookies (externalCookies: ExternalCookies[], urls: string[]): Promise<ExternalCookies[]>;
 
-        hostOnly?: boolean;
-        pathIsDefault?: boolean;
-        lastAccessed?: Date;
-        sameSite?: string;
-    };
+        setCookies (externalCookies: ExternalCookies[], url: string): Promise<void>;
+
+        deleteCookies (externalCookies: ExternalCookies[], urls: string[]): Promise<void>;
+    }
 
     /** Initialization options for the IncomingMessageLike object **/
     export interface IncomingMessageLikeInitOptions {
