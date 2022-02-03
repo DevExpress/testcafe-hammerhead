@@ -149,6 +149,14 @@ if (nativeMethods.append) {
         strictEqual(nativeMethods.nodeLastChildGetter.call(document.body), root);
         strictEqual(nativeMethods.nodePrevSiblingGetter.call(root).data, onlyText);
 
+        // tests for https://github.com/DevExpress/testcafe-hammerhead/pull/2730
+        var container = document.createElement('div');
+
+        container.append(null);
+        container.append({ test: 'hi' });
+        container.append(1234);
+        strictEqual(container.textContent, 'null[object Object]1234');
+
         document.body.removeChild(root.previousSibling);
     });
 }
