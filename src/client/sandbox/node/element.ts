@@ -494,7 +494,7 @@ export default class ElementSandbox extends SandboxBase {
             const node = args[i];
 
             if (!(node instanceof Node))
-                args[i] = ElementSandbox._processTextContent(node.toString(), parentNode);
+                args[i] = ElementSandbox._processTextContent(node + "", parentNode);
             else if (domUtils.isTextNode(node))
                 node.data = ElementSandbox._processTextContent(node.data, parentNode);
             else
