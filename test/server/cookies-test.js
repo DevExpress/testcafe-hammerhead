@@ -5,8 +5,8 @@ describe('Cookies', () => {
     const cookieJar = new Cookies();
 
     describe('Get cookies', () => {
-        beforeEach(async () => {
-            await cookieJar.setCookies([
+        beforeEach(() => {
+            cookieJar.setCookies([
                 { name: 'apiCookie1', value: 'value1', domain: 'domain1.com', path: '/' },
                 { name: 'apiCookie1', value: 'value1', domain: 'domain2.com', path: '/' },
                 { name: 'apiCookie2', value: 'value2', domain: 'domain2.com', path: '/' },
@@ -16,11 +16,11 @@ describe('Cookies', () => {
             ]);
         });
 
-        afterEach(async () => {
-            await cookieJar.deleteCookies();
+        afterEach(() => {
+            cookieJar.deleteCookies();
         });
 
-        it('Should get all cookies', async () => {
+        it('Should get all cookies', () => {
             const expectedCookies = [
                 {
                     'name':     'apiCookie1',
@@ -89,12 +89,12 @@ describe('Cookies', () => {
                     'sameSite': 'none',
                 },
             ];
-            const cookies         = await cookieJar.getCookies();
+            const cookies         = cookieJar.getCookies();
 
             expect(expectedCookies).eql(cookies);
         });
 
-        it('Should get cookies by name', async () => {
+        it('Should get cookies by name', () => {
             const expectedCookies = [
                 {
                     'name':     'apiCookie1',
@@ -119,12 +119,12 @@ describe('Cookies', () => {
                     'sameSite': 'none',
                 },
             ];
-            const cookies         = await cookieJar.getCookies([{ name: 'apiCookie1' }]);
+            const cookies         = cookieJar.getCookies([{ name: 'apiCookie1' }]);
 
             expect(expectedCookies).eql(cookies);
         });
 
-        it('Should get cookies by names', async () => {
+        it('Should get cookies by names', () => {
             const expectedCookies = [
                 {
                     'name':     'apiCookie1',
@@ -160,7 +160,7 @@ describe('Cookies', () => {
                     'sameSite': 'none',
                 },
             ];
-            const cookies         = await cookieJar.getCookies([
+            const cookies         = cookieJar.getCookies([
                 { name: 'apiCookie1' },
                 { name: 'apiCookie4' }
             ]);
@@ -168,7 +168,7 @@ describe('Cookies', () => {
             expect(expectedCookies).eql(cookies);
         });
 
-        it('Should get cookies by name and url', async () => {
+        it('Should get cookies by name and url', () => {
             const expectedCookies = [
                 {
                     'name':     'apiCookie4',
@@ -182,12 +182,12 @@ describe('Cookies', () => {
                     'sameSite': 'none',
                 },
             ];
-            const cookies         = await cookieJar.getCookies([{ name: 'apiCookie4' }], ['https://domain1.com/path-2']);
+            const cookies         = cookieJar.getCookies([{ name: 'apiCookie4' }], ['https://domain1.com/path-2']);
 
             expect(expectedCookies).eql(cookies);
         });
 
-        it('Should get cookies by names and url', async () => {
+        it('Should get cookies by names and url', () => {
             const expectedCookies = [
                 {
                     'name':     'apiCookie3',
@@ -212,7 +212,7 @@ describe('Cookies', () => {
                     'sameSite': 'none',
                 },
             ];
-            const cookies         = await cookieJar.getCookies([
+            const cookies         = cookieJar.getCookies([
                 { name: 'apiCookie3' },
                 { name: 'apiCookie5' }
             ], ['https://domain2.com/path-1']);
@@ -220,7 +220,7 @@ describe('Cookies', () => {
             expect(expectedCookies).eql(cookies);
         });
 
-        it('Should get cookies by name and urls', async () => {
+        it('Should get cookies by name and urls', () => {
             const expectedCookies = [
                 {
                     'name':     'apiCookie1',
@@ -245,12 +245,12 @@ describe('Cookies', () => {
                     'sameSite': 'none',
                 },
             ];
-            const cookies         = await cookieJar.getCookies([{ name: 'apiCookie1' }], ['https://domain1.com/', 'https://domain2.com/']);
+            const cookies         = cookieJar.getCookies([{ name: 'apiCookie1' }], ['https://domain1.com/', 'https://domain2.com/']);
 
             expect(expectedCookies).eql(cookies);
         });
 
-        it('Should get cookies by names and urls', async () => {
+        it('Should get cookies by names and urls', () => {
             const expectedCookies = [
                 {
                     'name':     'apiCookie1',
@@ -286,7 +286,7 @@ describe('Cookies', () => {
                     'sameSite': 'none',
                 },
             ];
-            const cookies         = await cookieJar.getCookies([
+            const cookies         = cookieJar.getCookies([
                 { name: 'apiCookie1' },
                 { name: 'apiCookie2' }
             ], ['https://domain1.com/', 'https://domain2.com/']);
@@ -294,7 +294,7 @@ describe('Cookies', () => {
             expect(expectedCookies).eql(cookies);
         });
 
-        it('Should get cookies by domain and path', async () => {
+        it('Should get cookies by domain and path', () => {
             const expectedCookies = [
                 {
                     'name':     'apiCookie1',
@@ -319,12 +319,12 @@ describe('Cookies', () => {
                     'sameSite': 'none',
                 },
             ];
-            const cookies         = await cookieJar.getCookies([{ domain: 'domain1.com', path: '/path-2' }]);
+            const cookies         = cookieJar.getCookies([{ domain: 'domain1.com', path: '/path-2' }]);
 
             expect(expectedCookies).eql(cookies);
         });
 
-        it('Should get cookies by name, domain and path', async () => {
+        it('Should get cookies by name, domain and path', () => {
             const expectedCookies = [
                 {
                     'name':     'apiCookie1',
@@ -371,7 +371,7 @@ describe('Cookies', () => {
                     'sameSite': 'none',
                 },
             ];
-            const cookies         = await cookieJar.getCookies([
+            const cookies         = cookieJar.getCookies([
                 { name: 'apiCookie1' },
                 { domain: 'domain2.com', path: '/' }
             ]);
@@ -381,11 +381,11 @@ describe('Cookies', () => {
     });
 
     describe('Set cookies', () => {
-        afterEach(async () => {
-            await cookieJar.deleteCookies();
+        afterEach(() => {
+            cookieJar.deleteCookies();
         });
 
-        it('Should set cookie', async () => {
+        it('Should set cookie', () => {
             const expectedCookies = [
                 {
                     domain:   'some-another-domain.com',
@@ -400,19 +400,19 @@ describe('Cookies', () => {
                 },
             ];
 
-            await cookieJar.setCookies([{
+            cookieJar.setCookies([{
                 name:   'apiCookie13',
                 value:  'value13',
                 domain: 'some-another-domain.com',
                 path:   '/',
             }]);
 
-            const cookies = await cookieJar.getCookies();
+            const cookies = cookieJar.getCookies();
 
             expect(cookies).eql(expectedCookies);
         });
 
-        it('Should set cookies', async () => {
+        it('Should set cookies', () => {
             const expectedCookies = [
                 {
                     domain:   'some-another-domain.com',
@@ -438,17 +438,17 @@ describe('Cookies', () => {
                 },
             ];
 
-            await cookieJar.setCookies([
+            cookieJar.setCookies([
                 { name: 'apiCookie13', value: 'value13', domain: 'some-another-domain.com', path: '/' },
                 { name: 'apiCookie14', value: 'value14', domain: 'some-another-domain.com', path: '/' },
             ]);
 
-            const cookies = await cookieJar.getCookies();
+            const cookies = cookieJar.getCookies();
 
             expect(cookies).eql(expectedCookies);
         });
 
-        it('Should set cookie with url', async () => {
+        it('Should set cookie with url', () => {
             const expectedCookies = [
                 {
                     domain:   'localhost',
@@ -463,17 +463,17 @@ describe('Cookies', () => {
                 },
             ];
 
-            await cookieJar.setCookies([{ name: 'apiCookie1', value: 'value1' }], 'http://localhost');
+            cookieJar.setCookies([{ name: 'apiCookie1', value: 'value1' }], 'http://localhost');
 
-            const cookies = await cookieJar.getCookies();
+            const cookies = cookieJar.getCookies();
 
             expect(cookies).eql(expectedCookies);
         });
     });
 
     describe('Delete cookies', () => {
-        beforeEach(async () => {
-            await cookieJar.setCookies([
+        beforeEach(() => {
+            cookieJar.setCookies([
                 { name: 'apiCookie1', value: 'value1', domain: 'domain1.com', path: '/' },
                 { name: 'apiCookie1', value: 'value1', domain: 'domain2.com', path: '/' },
                 { name: 'apiCookie2', value: 'value2', domain: 'domain2.com', path: '/' },
@@ -483,36 +483,36 @@ describe('Cookies', () => {
             ]);
         });
 
-        afterEach(async () => {
-            await cookieJar.deleteCookies();
+        afterEach(() => {
+            cookieJar.deleteCookies();
         });
 
-        it('Should delete all cookies', async () => {
-            expect((await cookieJar.getCookies()).length).eql(6);
-            await cookieJar.deleteCookies();
-            expect((await cookieJar.getCookies()).length).eql(0);
+        it('Should delete all cookies', () => {
+            expect(cookieJar.getCookies().length).eql(6);
+            cookieJar.deleteCookies();
+            expect(cookieJar.getCookies().length).eql(0);
 
         });
 
-        it('Should delete cookies by name', async () => {
-            expect((await cookieJar.getCookies()).length).eql(6);
-            await cookieJar.deleteCookies([{ name: 'apiCookie1' }]);
+        it('Should delete cookies by name', () => {
+            expect(cookieJar.getCookies().length).eql(6);
+            cookieJar.deleteCookies([{ name: 'apiCookie1' }]);
 
-            const currentCookies = await cookieJar.getCookies();
+            const currentCookies = cookieJar.getCookies();
 
             expect(currentCookies.length).eql(4);
             expect(currentCookies.some(c => c.name === 'apiCookie1')).not.ok;
 
         });
 
-        it('Should delete cookies by names', async () => {
-            expect((await cookieJar.getCookies()).length).eql(6);
-            await cookieJar.deleteCookies([
+        it('Should delete cookies by names', () => {
+            expect(cookieJar.getCookies().length).eql(6);
+            cookieJar.deleteCookies([
                 { name: 'apiCookie1' },
                 { name: 'apiCookie3' }
             ]);
 
-            const currentCookies = await cookieJar.getCookies();
+            const currentCookies = cookieJar.getCookies();
 
             expect(currentCookies.length).eql(3);
             expect(currentCookies.some(c => c.name === 'apiCookie1')).not.ok;
@@ -520,11 +520,11 @@ describe('Cookies', () => {
 
         });
 
-        it('Should delete cookies by name and url', async () => {
-            expect((await cookieJar.getCookies()).length).eql(6);
-            await cookieJar.deleteCookies([{ name: 'apiCookie1' }], ['https://domain1.com/']);
+        it('Should delete cookies by name and url', () => {
+            expect(cookieJar.getCookies().length).eql(6);
+            cookieJar.deleteCookies([{ name: 'apiCookie1' }], ['https://domain1.com/']);
 
-            const currentCookies = await cookieJar.getCookies();
+            const currentCookies = cookieJar.getCookies();
 
             expect(currentCookies.length).eql(5);
             expect(currentCookies.some(c => c.name === 'apiCookie1' && c.domain === 'domain1.com')).not.ok;
@@ -532,14 +532,14 @@ describe('Cookies', () => {
 
         });
 
-        it('Should delete cookies by names and url', async () => {
-            expect((await cookieJar.getCookies()).length).eql(6);
-            await cookieJar.deleteCookies([
+        it('Should delete cookies by names and url', () => {
+            expect(cookieJar.getCookies().length).eql(6);
+            cookieJar.deleteCookies([
                 { name: 'apiCookie1' },
                 { name: 'apiCookie2' }
             ], ['https://domain2.com/']);
 
-            const currentCookies = await cookieJar.getCookies();
+            const currentCookies = cookieJar.getCookies();
 
             expect(currentCookies.length).eql(4);
             expect(currentCookies.some(c => c.name === 'apiCookie1' && c.domain === 'domain2.com')).not.ok;
@@ -548,25 +548,25 @@ describe('Cookies', () => {
 
         });
 
-        it('Should delete cookies by name and urls', async () => {
-            expect((await cookieJar.getCookies()).length).eql(6);
-            await cookieJar.deleteCookies([{ name: 'apiCookie1' }], ['https://domain1.com/', 'https://domain2.com/']);
+        it('Should delete cookies by name and urls', () => {
+            expect(cookieJar.getCookies().length).eql(6);
+            cookieJar.deleteCookies([{ name: 'apiCookie1' }], ['https://domain1.com/', 'https://domain2.com/']);
 
-            const currentCookies = await cookieJar.getCookies();
+            const currentCookies = cookieJar.getCookies();
 
             expect(currentCookies.length).eql(4);
             expect(currentCookies.some(c => c.name === 'apiCookie1')).not.ok;
 
         });
 
-        it('Should delete cookies by names and urls', async () => {
-            expect((await cookieJar.getCookies()).length).eql(6);
-            await cookieJar.deleteCookies([
+        it('Should delete cookies by names and urls', () => {
+            expect(cookieJar.getCookies().length).eql(6);
+            cookieJar.deleteCookies([
                 { name: 'apiCookie1' },
                 { name: 'apiCookie3' }
             ], ['https://domain1.com/', 'https://domain2.com/path-1']);
 
-            const currentCookies = await cookieJar.getCookies();
+            const currentCookies = cookieJar.getCookies();
 
             expect(currentCookies.length).eql(4);
             expect(currentCookies.some(c => c.name === 'apiCookie1' && c.domain === 'domain1.com')).not.ok;
@@ -578,25 +578,25 @@ describe('Cookies', () => {
 
         });
 
-        it('Should delete cookies by domain and path', async () => {
-            expect((await cookieJar.getCookies()).length).eql(6);
-            await cookieJar.deleteCookies([{ domain: 'domain1.com', path: '/path-2' }]);
+        it('Should delete cookies by domain and path', () => {
+            expect(cookieJar.getCookies().length).eql(6);
+            cookieJar.deleteCookies([{ domain: 'domain1.com', path: '/path-2' }]);
 
-            const currentCookies = await cookieJar.getCookies();
+            const currentCookies = cookieJar.getCookies();
 
             expect(currentCookies.length).eql(5);
             expect(currentCookies.some(c => c.domain === 'domain1.com' && c.path === 'path-2')).not.ok;
 
         });
 
-        it('Should delete cookies by name, domain and path', async () => {
-            expect((await cookieJar.getCookies()).length).eql(6);
-            await cookieJar.deleteCookies([
+        it('Should delete cookies by name, domain and path', () => {
+            expect(cookieJar.getCookies().length).eql(6);
+            cookieJar.deleteCookies([
                 { name: 'apiCookie1' },
                 { domain: 'domain2.com', path: '/' },
             ]);
 
-            const currentCookies = await cookieJar.getCookies();
+            const currentCookies = cookieJar.getCookies();
 
             expect(currentCookies.length).eql(3);
             expect(currentCookies.some(c => c.name === 'apiCookie1')).not.ok;

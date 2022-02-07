@@ -141,14 +141,14 @@ export default class Cookies {
         });
     }
 
-    private async _findCookiesByApi (urls: Url[], key?: string): Promise<(Cookie | Cookie[])[]> {
-        return Promise.all(urls.map(async ({ domain, path }) => {
+    private _findCookiesByApi (urls: Url[], key?: string): (Cookie | Cookie[])[] {
+        return urls.map(({ domain, path }) => {
             const cookies = key
-                            ? await this._findCookieSync(domain, path, key)
-                            : await this._findCookiesSync(domain, path);
+                            ? this._findCookieSync(domain, path, key)
+                            : this._findCookiesSync(domain, path);
 
             return cookies || [];
-        }));
+        });
     }
 
     private _filterCookies (cookies: Cookie[], filters: Cookie.Properties): Cookie[] {
@@ -157,16 +157,16 @@ export default class Cookies {
         return cookies.filter(cookie => filterKeys.every(key => cookie[key] === filters[key]));
     }
 
-    private async _getCookiesByApi (cookie: Cookie.Properties, urls?: Url[]): Promise<Cookie[]> {
+    private _getCookiesByApi (cookie: Cookie.Properties, urls?: Url[]): Cookie[] {
         const { key, domain, path, ...filters } = cookie;
 
         const currentUrls = domain && path ? castArray({ domain, path }) : urls;
         let receivedCookies: Cookie[];
 
         if (currentUrls && currentUrls.length)
-            receivedCookies = flattenDeep(await this._findCookiesByApi(currentUrls, key));
+            receivedCookies = flattenDeep(this._findCookiesByApi(currentUrls, key));
         else {
-            receivedCookies = flattenDeep(await this._getAllCookiesSync());
+            receivedCookies = flattenDeep(this._getAllCookiesSync());
 
             Object.assign(filters, cookie);
         }
@@ -174,19 +174,19 @@ export default class Cookies {
         return Object.keys(filters).length ? this._filterCookies(receivedCookies, filters) : receivedCookies;
     }
 
-    private async _deleteCookiesByApi (urls: Url[], key?: string): Promise<void[]> {
-        return Promise.all(urls.map(async ({ domain, path }) => {
+    private _deleteCookiesByApi (urls: Url[], key?: string): void[] {
+        return urls.map(({ domain, path }) => {
             return key
                    ? this._removeCookieSync(domain, path, key)
                    : this._removeCookiesSync(domain, path);
-        }));
+        });
     }
 
-    async getCookies (externalCookies?: ExternalCookies[], urls: string[] = []): Promise<Partial<ExternalCookies>[]> {
+    getCookies (externalCookies?: ExternalCookies[], urls: string[] = []): Partial<ExternalCookies>[] {
         let resultCookies: Cookie[] = [];
 
         if (!externalCookies || !externalCookies.length)
-            resultCookies = await this._getAllCookiesSync();
+            resultCookies = this._getAllCookiesSync();
         else {
             const parsedUrls = urls.map(url => {
                 const { hostname, pathname } = new URL(url);
@@ -197,7 +197,7 @@ export default class Cookies {
             const cookies = this._convertToCookieProperties(externalCookies);
 
             for (const cookie of cookies) {
-                const receivedCookies = await this._getCookiesByApi(cookie, parsedUrls);
+                const receivedCookies = this._getCookiesByApi(cookie, parsedUrls);
 
                 resultCookies.push(...receivedCookies);
             }
@@ -206,7 +206,7 @@ export default class Cookies {
         return this._convertToExternalCookies(resultCookies);
     }
 
-    async setCookies (externalCookies: ExternalCookies[], url?: string): Promise<void> {
+    setCookies (externalCookies: ExternalCookies[], url?: string): void {
         const cookies = this._convertToCookieProperties(externalCookies);
 
         const { hostname = '', pathname = '/' } = url ? new URL(url) : {};
@@ -221,11 +221,11 @@ export default class Cookies {
             if (cookieStr.length > BYTES_PER_COOKIE_LIMIT)
                 break;
 
-            await this._putCookieSync(cookieToSet);
+            this._putCookieSync(cookieToSet);
         }
     }
 
-    async deleteCookies (externalCookies?: ExternalCookies[], urls: string[] = []): Promise<void> {
+    deleteCookies (externalCookies?: ExternalCookies[], urls: string[] = []): void {
         if (!externalCookies || !externalCookies.length)
             return this._removeAllCookiesSync();
 
@@ -243,13 +243,13 @@ export default class Cookies {
             const currentUrls  = domain && path ? castArray({ domain, path }) : parsedUrls;
 
             if (currentUrls.length && !Object.keys(filters).length)
-                await this._deleteCookiesByApi(currentUrls, key);
+                this._deleteCookiesByApi(currentUrls, key);
             else {
-                const deletedCookies = await this._getCookiesByApi(cookie, parsedUrls);
+                const deletedCookies = this._getCookiesByApi(cookie, parsedUrls);
 
                 for (const deletedCookie of deletedCookies) {
                     if (deletedCookie.domain && deletedCookie.path && deletedCookie.key)
-                        await this._removeCookieSync(deletedCookie.domain, deletedCookie.path, deletedCookie.key);
+                        this._removeCookieSync(deletedCookie.domain, deletedCookie.path, deletedCookie.key);
                 }
             }
         }
