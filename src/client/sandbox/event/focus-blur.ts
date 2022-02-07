@@ -239,7 +239,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             if (!options.focusedOnChange)
                 FocusBlurSandbox._getNativeMeth(el, type).call(el);
 
-            if (browserUtils.isSafari && parseFloat(browserUtils.fullVersion) >= 15) {
+            if (browserUtils.isSafari && parseFloat(browserUtils.fullVersion) >= 15 && options.preventScrolling) {
                 nextTick()
                     .then(() => {
                         this._restoreScrollStateAndRaiseEvent(el, type, callback, options, simulateEvent);
