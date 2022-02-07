@@ -20,6 +20,11 @@ interface ExternalCookies {
     sameSite?: string;
 }
 
+interface Url {
+    domain: string;
+    path: string;
+}
+
 export default class Cookies {
     private _cookieJar: any;
     private readonly _findCookieSync: any;
@@ -136,7 +141,7 @@ export default class Cookies {
         });
     }
 
-    private async _findCookiesByApi (urls: { domain: string; path: string }[], key?: string): Promise<(Cookie | Cookie[])[]> {
+    private async _findCookiesByApi (urls: Url[], key?: string): Promise<(Cookie | Cookie[])[]> {
         return Promise.all(urls.map(async ({ domain, path }) => {
             const cookies = key
                             ? await this._findCookieSync(domain, path, key)
@@ -152,7 +157,7 @@ export default class Cookies {
         return cookies.filter(cookie => filterKeys.every(key => cookie[key] === filters[key]));
     }
 
-    private async _getCookiesByApi (cookie: Cookie.Properties, urls?: { domain: string; path: string }[]): Promise<Cookie[]> {
+    private async _getCookiesByApi (cookie: Cookie.Properties, urls?: Url[]): Promise<Cookie[]> {
         const { key, domain, path, ...filters } = cookie;
 
         const currentUrls = domain && path ? castArray({ domain, path }) : urls;
@@ -169,7 +174,7 @@ export default class Cookies {
         return Object.keys(filters).length ? this._filterCookies(receivedCookies, filters) : receivedCookies;
     }
 
-    private async _deleteCookiesByApi (urls: { domain: string; path: string }[], key?: string): Promise<void[]> {
+    private async _deleteCookiesByApi (urls: Url[], key?: string): Promise<void[]> {
         return Promise.all(urls.map(async ({ domain, path }) => {
             return key
                    ? this._removeCookieSync(domain, path, key)
