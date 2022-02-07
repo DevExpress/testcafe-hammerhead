@@ -22,6 +22,7 @@ import BUILTIN_HEADERS from '../request-pipeline/builtin-header-names';
 import logger from '../utils/logger';
 import errToString from '../utils/err-to-string';
 import { parse as parseJSON } from '../utils/json';
+import { formatSyncCookie } from '../utils/cookie';
 
 const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
 
@@ -157,6 +158,32 @@ export default class Proxy extends Router {
                 const result = await session.handleServiceMessage(msg, serverInfo);
 
                 logger.serviceMsg.onMessage(msg, result);
+
+                const syncCookies       = session.cookies.getSyncCookies();
+                const parsedSyncCookies = [] as string[];
+
+                while (syncCookies.length) {
+                    const syncCookie = syncCookies.pop();
+
+                    if (!syncCookie)
+                        continue;
+
+                    const cookieRecord = {
+                        ...syncCookie,
+                        sid:          msg.sessionId,
+                        isServerSync: true,
+                        domain:       syncCookie.domain || '',
+                        path:         syncCookie.path || '',
+                        lastAccessed: new Date(),
+                        syncKey:      ''
+                    };
+
+                    const parsedSyncCookie = formatSyncCookie(cookieRecord);
+
+                    parsedSyncCookies.push(parsedSyncCookie);
+                }
+
+                res.setHeader('Set-Cookie', parsedSyncCookies);
 
                 respondWithJSON(res, result, false);
             }
