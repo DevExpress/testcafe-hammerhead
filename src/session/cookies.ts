@@ -3,7 +3,6 @@ import BYTES_PER_COOKIE_LIMIT from './cookie-limit';
 import { castArray, flattenDeep } from 'lodash';
 import { parseUrl } from '../utils/url';
 import { parse as parseJSON, stringify as stringifyJSON } from '../utils/json';
-import { promisify } from 'util';
 import { URL } from 'url';
 
 const LOCALHOST_DOMAIN = 'localhost';
@@ -23,23 +22,38 @@ interface ExternalCookies {
 
 export default class Cookies {
     private _cookieJar: any;
-    private _findCookiePromisified: any;
-    private _findCookiesPromisified: any;
-    private _getAllCookiesPromisified: any;
-    private _putCookiePromisified: any;
-    private _removeCookiePromisified: any;
-    private _removeCookiesPromisified: any;
-    private _removeAllCookiesPromisified: any;
+    private readonly _findCookieSync: any;
+    private readonly _findCookiesSync: any;
+    private readonly _getAllCookiesSync: any;
+    private readonly _putCookieSync: any;
+    private readonly _removeCookieSync: any;
+    private readonly _removeCookiesSync: any;
+    private readonly _removeAllCookiesSync: any;
 
     constructor () {
-        this._cookieJar                   = new CookieJar();
-        this._findCookiePromisified       = promisify(this._cookieJar.store.findCookie);
-        this._findCookiesPromisified      = promisify(this._cookieJar.store.findCookies);
-        this._getAllCookiesPromisified    = promisify(this._cookieJar.store.getAllCookies);
-        this._putCookiePromisified        = promisify(this._cookieJar.store.putCookie);
-        this._removeCookiePromisified     = promisify(this._cookieJar.store.removeCookie);
-        this._removeCookiesPromisified    = promisify(this._cookieJar.store.removeCookies);
-        this._removeAllCookiesPromisified = promisify(this._cookieJar.store.removeAllCookies);
+        this._cookieJar            = new CookieJar();
+        this._findCookieSync       = this._syncWrap('findCookie');
+        this._findCookiesSync      = this._syncWrap('findCookies');
+        this._getAllCookiesSync    = this._syncWrap('getAllCookies');
+        this._putCookieSync        = this._syncWrap('putCookie');
+        this._removeCookieSync     = this._syncWrap('removeCookie');
+        this._removeCookiesSync    = this._syncWrap('removeCookies');
+        this._removeAllCookiesSync = this._syncWrap('removeAllCookies');
+    }
+
+    _syncWrap(method: string) {
+        return (...args) => {
+            let syncErr, syncResult;
+            this._cookieJar.store[method](...args, (err, result) => {
+                syncErr = err;
+                syncResult = result;
+            });
+
+            if (syncErr) {
+                throw syncErr;
+            }
+            return syncResult;
+        };
     }
 
     static _hasLocalhostDomain (cookie): boolean {
@@ -108,8 +122,8 @@ export default class Cookies {
                 domain:  domain || void 0,
                 path:    path || void 0,
                 expires: expires === 'Infinity' ? void 0 : expires,
-                value, maxAge,
-                secure, httpOnly, sameSite,
+                maxAge:  maxAge || void 0,
+                value, secure, httpOnly, sameSite,
             };
         });
     }
@@ -125,8 +139,8 @@ export default class Cookies {
     private async _findCookiesByApi (urls: { domain: string; path: string }[], key?: string): Promise<(Cookie | Cookie[])[]> {
         return Promise.all(urls.map(async ({ domain, path }) => {
             const cookies = key
-                            ? await this._findCookiePromisified.call(this._cookieJar.store, domain, path, key)
-                            : await this._findCookiesPromisified.call(this._cookieJar.store, domain, path);
+                            ? await this._findCookieSync(domain, path, key)
+                            : await this._findCookiesSync(domain, path);
 
             return cookies || [];
         }));
@@ -147,7 +161,7 @@ export default class Cookies {
         if (currentUrls && currentUrls.length)
             receivedCookies = flattenDeep(await this._findCookiesByApi(currentUrls, key));
         else {
-            receivedCookies = flattenDeep(await this._getAllCookiesPromisified.call(this._cookieJar.store));
+            receivedCookies = flattenDeep(await this._getAllCookiesSync());
 
             Object.assign(filters, cookie);
         }
@@ -158,8 +172,8 @@ export default class Cookies {
     private async _deleteCookiesByApi (urls: { domain: string; path: string }[], key?: string): Promise<void[]> {
         return Promise.all(urls.map(async ({ domain, path }) => {
             return key
-                   ? this._removeCookiePromisified.call(this._cookieJar.store, domain, path, key)
-                   : this._removeCookiesPromisified.call(this._cookieJar.store, domain, path);
+                   ? this._removeCookieSync(domain, path, key)
+                   : this._removeCookiesSync(domain, path);
         }));
     }
 
@@ -167,7 +181,7 @@ export default class Cookies {
         let resultCookies: Cookie[] = [];
 
         if (!externalCookies || !externalCookies.length)
-            resultCookies = await this._getAllCookiesPromisified.call(this._cookieJar.store);
+            resultCookies = await this._getAllCookiesSync();
         else {
             const parsedUrls = urls.map(url => {
                 const { hostname, pathname } = new URL(url);
@@ -202,13 +216,13 @@ export default class Cookies {
             if (cookieStr.length > BYTES_PER_COOKIE_LIMIT)
                 break;
 
-            await this._putCookiePromisified.call(this._cookieJar.store, cookieToSet);
+            await this._putCookieSync(cookieToSet);
         }
     }
 
     async deleteCookies (externalCookies?: ExternalCookies[], urls: string[] = []): Promise<void> {
         if (!externalCookies || !externalCookies.length)
-            return this._removeAllCookiesPromisified.call(this._cookieJar.store);
+            return this._removeAllCookiesSync();
 
         const parsedUrls = urls.map(url => {
             const { hostname, pathname } = new URL(url);
@@ -230,7 +244,7 @@ export default class Cookies {
 
                 for (const deletedCookie of deletedCookies) {
                     if (deletedCookie.domain && deletedCookie.path && deletedCookie.key)
-                        await this._removeCookiePromisified.call(this._cookieJar.store, deletedCookie.domain, deletedCookie.path, deletedCookie.key);
+                        await this._removeCookieSync(deletedCookie.domain, deletedCookie.path, deletedCookie.key);
                 }
             }
         }
