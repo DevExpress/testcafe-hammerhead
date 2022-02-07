@@ -10,15 +10,15 @@ const LOCALHOST_DOMAIN = 'localhost';
 const LOCALHOST_IP     = '127.0.0.1';
 
 interface ExternalCookies {
-    name: string;
-    value: string;
-    domain: string;
-    path: string;
-    expires: Date;
-    maxAge: number | 'Infinity' | '-Infinity';
-    secure: boolean;
-    httpOnly: boolean;
-    sameSite: string;
+    name?: string;
+    value?: string;
+    domain?: string;
+    path?: string;
+    expires?: Date;
+    maxAge?: number | 'Infinity' | '-Infinity';
+    secure?: boolean;
+    httpOnly?: boolean;
+    sameSite?: string;
 }
 
 export default class Cookies {
@@ -95,7 +95,7 @@ export default class Cookies {
             : new CookieJar();
     }
 
-    private _convertToExternalCookies (internalCookies: Cookie.Properties[]): Partial<ExternalCookies>[] {
+    private _convertToExternalCookies (internalCookies: Cookie[]): ExternalCookies[] {
         return internalCookies.map(cookie => {
             const {
                       key, value, domain,
@@ -104,14 +104,17 @@ export default class Cookies {
                   } = cookie;
 
             return {
-                name: key, value, domain,
-                path, expires, maxAge,
+                name:    key,
+                domain:  domain || void 0,
+                path:    path || void 0,
+                expires: expires === 'Infinity' ? void 0 : expires,
+                value, maxAge,
                 secure, httpOnly, sameSite,
             };
         });
     }
 
-    private _convertToInternalCookies (externalCookie: ExternalCookies[]): Cookie.Properties[] {
+    private _convertToCookieProperties (externalCookie: ExternalCookies[]): Cookie.Properties[] {
         return externalCookie.map(cookie => {
             const { name, ...rest } = cookie;
 
@@ -119,7 +122,7 @@ export default class Cookies {
         });
     }
 
-    private async _findCookiesByApi (urls: { domain: string; path: string }[], key?: string): Promise<(Cookie.Properties | Cookie.Properties[])[]> {
+    private async _findCookiesByApi (urls: { domain: string; path: string }[], key?: string): Promise<(Cookie | Cookie[])[]> {
         return Promise.all(urls.map(async ({ domain, path }) => {
             const cookies = key
                             ? await this._findCookiePromisified.call(this._cookieJar.store, domain, path, key)
@@ -129,17 +132,17 @@ export default class Cookies {
         }));
     }
 
-    private _filterCookies (cookies: Cookie.Properties[], filters: Cookie.Properties): Cookie.Properties[] {
+    private _filterCookies (cookies: Cookie[], filters: Cookie.Properties): Cookie[] {
         const filterKeys = Object.keys(filters) as (keyof Cookie.Properties)[];
 
         return cookies.filter(cookie => filterKeys.every(key => cookie[key] === filters[key]));
     }
 
-    private async _getCookiesByApi (cookie: Cookie.Properties, urls?: { domain: string; path: string }[]): Promise<Cookie.Properties[]> {
+    private async _getCookiesByApi (cookie: Cookie.Properties, urls?: { domain: string; path: string }[]): Promise<Cookie[]> {
         const { key, domain, path, ...filters } = cookie;
 
         const currentUrls = domain && path ? castArray({ domain, path }) : urls;
-        let receivedCookies: Cookie.Properties[];
+        let receivedCookies: Cookie[];
 
         if (currentUrls && currentUrls.length)
             receivedCookies = flattenDeep(await this._findCookiesByApi(currentUrls, key));
@@ -161,7 +164,7 @@ export default class Cookies {
     }
 
     async getCookies (externalCookies?: ExternalCookies[], urls: string[] = []): Promise<Partial<ExternalCookies>[]> {
-        let resultCookies: Cookie.Properties[] = [];
+        let resultCookies: Cookie[] = [];
 
         if (!externalCookies || !externalCookies.length)
             resultCookies = await this._getAllCookiesPromisified.call(this._cookieJar.store);
@@ -172,7 +175,7 @@ export default class Cookies {
                 return { domain: hostname, path: pathname };
             });
 
-            const cookies = this._convertToInternalCookies(externalCookies);
+            const cookies = this._convertToCookieProperties(externalCookies);
 
             for (const cookie of cookies) {
                 const receivedCookies = await this._getCookiesByApi(cookie, parsedUrls);
@@ -185,7 +188,7 @@ export default class Cookies {
     }
 
     async setCookies (externalCookies: ExternalCookies[], url?: string): Promise<void> {
-        const cookies = this._convertToInternalCookies(externalCookies);
+        const cookies = this._convertToCookieProperties(externalCookies);
 
         const { hostname = '', pathname = '/' } = url ? new URL(url) : {};
 
@@ -213,7 +216,7 @@ export default class Cookies {
             return { domain: hostname, path: pathname };
         });
 
-        const cookies = this._convertToInternalCookies(externalCookies);
+        const cookies = this._convertToCookieProperties(externalCookies);
 
         for (const cookie of cookies) {
             const { key, domain, path, ...filters } = cookie;
