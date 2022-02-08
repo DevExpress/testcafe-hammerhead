@@ -495,3 +495,20 @@ test('should correctly send headers when the "withCredentials" property is chang
                 'http://' + location.host + '/sessionId!a!1/https://example.com/echo-request-headers/');
         });
 });
+
+test('should handle blob object urls (GH-1397)', function () {
+    return new Promise(function (resolve) {
+        var xhr = new XMLHttpRequest();
+        var blob = new Blob(['this is a text'], { type: 'plain/text' });
+        var url = URL.createObjectURL(blob);
+
+        xhr.open('get', url, false);
+        xhr.addEventListener('load', function () {
+            resolve(xhr);
+        });
+
+        xhr.send();
+    }).then(function (xhr) {
+        strictEqual(xhr.responseText, 'this is a text');
+    });
+});

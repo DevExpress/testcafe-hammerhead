@@ -159,7 +159,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
 
             const reqOpts = XhrSandbox.REQUESTS_OPTIONS.get(this);
 
-            if (reqOpts.withCredentials !== this.withCredentials)
+            if (reqOpts && reqOpts.withCredentials !== this.withCredentials)
                 XhrSandbox._reopenXhr(this, reqOpts);
 
             xhrSandbox.emit(xhrSandbox.BEFORE_XHR_SEND_EVENT, { xhr: this });
