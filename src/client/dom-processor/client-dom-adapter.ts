@@ -51,11 +51,11 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     }
 
     setScriptContent (script: HTMLElement, content: string): void {
-        nativeMethods.scriptTextSetter.call(script, content);
+        nativeMethods.nodeTextContentSetter.call(script, content);
     }
 
     getScriptContent (script: HTMLElement) {
-        return nativeMethods.scriptTextGetter.call(script);
+        return nativeMethods.nodeTextContentGetter.call(script);
     }
 
     getStyleContent (style: HTMLElement) {
