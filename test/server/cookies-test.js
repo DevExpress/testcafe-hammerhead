@@ -603,4 +603,48 @@ describe('Cookies', () => {
             expect(currentCookies.some(c => c.name === 'apiCookie2')).not.ok;
         });
     });
+
+    describe('Sync cookies', () => {
+        afterEach(() => {
+            cookieJar.deleteCookies();
+            cookieJar._syncCookies = [];
+        });
+
+        it('Should add cookie in syncCookies that was set', () => {
+            expect(cookieJar.syncCookies.length).eql(0);
+
+            cookieJar.setCookies([{
+                name:   'apiCookie13',
+                value:  'value13',
+                domain: 'some-another-domain.com',
+                path:   '/',
+            }]);
+
+            expect(cookieJar.syncCookies.length).eql(1);
+            expect(cookieJar.syncCookies[0]).include({
+                key:     'apiCookie13',
+                value:   'value13',
+                domain:  'some-another-domain.com',
+                path:    '/',
+                expires: void 0,
+            });
+        });
+
+        it('Should add cookie in syncCookies that was deleted', () => {
+            expect(cookieJar.syncCookies.length).eql(0);
+
+            cookieJar.setCookies([{
+                name:   'apiCookie13',
+                value:  'value13',
+                domain: 'some-another-domain.com',
+                path:   '/',
+            }]);
+
+            cookieJar.deleteCookies([{ name: 'apiCookie13' }]);
+
+            expect(cookieJar.syncCookies.length).eql(2);
+            expect(cookieJar.syncCookies[1].key).eql('apiCookie13');
+            expect(cookieJar.syncCookies[1].expires).eql(new Date(0));
+        });
+    });
 });
