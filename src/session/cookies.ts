@@ -33,7 +33,7 @@ export default class Cookies {
     private readonly _putCookieSync: any;
     private readonly _removeCookieSync: any;
     private readonly _removeAllCookiesSync: any;
-    private readonly _syncCookie: Cookie[];
+    private readonly _syncCookies: Cookie[];
 
     constructor () {
         this._cookieJar            = new CookieJar();
@@ -43,7 +43,7 @@ export default class Cookies {
         this._putCookieSync        = this._syncWrap('putCookie');
         this._removeCookieSync     = this._syncWrap('removeCookie');
         this._removeAllCookiesSync = this._syncWrap('removeAllCookies');
-        this._syncCookie           = [];
+        this._syncCookies          = [];
     }
 
     _syncWrap(method: string) {
@@ -219,7 +219,7 @@ export default class Cookies {
 
             this._putCookieSync(cookieToSet);
 
-            this._syncCookie.push(cookieToSet);
+            this._syncCookies.push(cookieToSet);
         }
     }
 
@@ -227,7 +227,7 @@ export default class Cookies {
         if (!externalCookies || !externalCookies.length) {
             const deletedCookies = this._getAllCookiesSync();
 
-            this._syncCookie.push(...deletedCookies);
+            this._syncCookies.push(...deletedCookies);
             return this._removeAllCookiesSync();
         }
 
@@ -247,14 +247,14 @@ export default class Cookies {
                      this._removeCookieSync(deletedCookie.domain, deletedCookie.path, deletedCookie.key);
 
                     deletedCookie.expires = new Date(0);
-                    this._syncCookie.push(deletedCookie);
+                    this._syncCookies.push(deletedCookie);
                 }
             }
         }
     }
 
-    getSyncCookies () {
-        return this._syncCookie;
+    get syncCookies () {
+        return this._syncCookies;
     }
 
     setByServer (url: string, cookies) {

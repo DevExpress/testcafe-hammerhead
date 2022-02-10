@@ -159,7 +159,7 @@ export default class Proxy extends Router {
 
                 logger.serviceMsg.onMessage(msg, result);
 
-                const syncCookies       = session.cookies.getSyncCookies();
+                const syncCookies       = session.cookies.syncCookies;
                 const parsedSyncCookies = [] as string[];
 
                 while (syncCookies.length) {
