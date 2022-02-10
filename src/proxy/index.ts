@@ -162,11 +162,11 @@ export default class Proxy extends Router {
                 const syncCookies       = session.cookies.syncCookies;
                 const parsedSyncCookies = [] as string[];
 
-                while (syncCookies.length) {
+                while (true) {
                     const syncCookie = syncCookies.pop();
 
                     if (!syncCookie)
-                        continue;
+                        break;
 
                     const cookieRecord = {
                         ...syncCookie,
