@@ -434,6 +434,9 @@ export default class ElementSandbox extends SandboxBase {
         const result       = [] as Node[];
         const [start, end] = range;
 
+        if (args.length === 0)
+            return result;
+
         for (let i = start; i < end; i++) {
             const node = args[i];
 
@@ -451,9 +454,9 @@ export default class ElementSandbox extends SandboxBase {
 
     private _addNodeCore<K, A extends (string | Node)[]> (
         parent: Element | Node & ParentNode, context: Element | Node & ParentNode,
-        newNodesRange: [number, number], args: A, nativeFn: (...args: A) => K, checkBody = true): K {
+        newNodesRange: [number, number], args: A, nativeFn: (...args: A) => K, checkBody = true, stringifyNode = false): K {
 
-        this._prepareNodesForInsertion(args, newNodesRange, parent);
+        this._prepareNodesForInsertion(args, newNodesRange, parent, stringifyNode);
 
         let result            = null;
         const childNodesArray = ElementSandbox._getChildNodesArray(args, newNodesRange);
@@ -487,18 +490,28 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
-    private _prepareNodesForInsertion (args: (string | Node)[], newNodesRange: [number, number], parentNode: Node): void {
+    private _prepareNodesForInsertion (args: (string | Node | any)[], newNodesRange: [number, number], parentNode: Node, stringifyNode = false): void {
+        if (args.length === 0)
+            return;
+
         const [start, end] = newNodesRange;
 
         for (let i = start; i < end; i++) {
-            const node = args[i];
+            let node = args[i];
 
-            if (typeof node === 'string')
-                args[i] = ElementSandbox._processTextContent(node, parentNode);
-            else if (domUtils.isTextNode(node))
+            if (domUtils.isTextNode(node))
                 node.data = ElementSandbox._processTextContent(node.data, parentNode);
-            else
+            else if (domUtils.isDomElement(node) ||
+                domUtils.isDocumentFragmentNode(node) ||
+                domUtils.isCommentNode(node))
                 this._nodeSandbox.processNodes(node as Element | DocumentFragment);
+            else {
+                if (stringifyNode)
+                    node = String(node);
+
+                if (typeof node === 'string')
+                    args[i] = ElementSandbox._processTextContent(node, parentNode);
+            }
         }
     }
 
@@ -606,7 +619,7 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             append (this: Element, ...args: Parameters<Element['append']>) {
-                return sandbox._addNodeCore(this, this, [0, args.length], args, nativeMethods.append);
+                return sandbox._addNodeCore(this, this, [0, args.length], args, nativeMethods.append, true, true);
             },
 
             prepend (this: Element, ...args: Parameters<Element['prepend']>) {

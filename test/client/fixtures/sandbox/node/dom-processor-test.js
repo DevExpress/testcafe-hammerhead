@@ -151,6 +151,19 @@ if (nativeMethods.append) {
 
         document.body.removeChild(root.previousSibling);
     });
+
+    test('Element.prototype.append for objects (GH-2730)', function () {
+        var container = document.createElement('div');
+
+
+        container.append(null);
+        container.append();
+        container.append(void 0);
+        container.append({ test: 'hi' });
+        container.append(1234);
+
+        strictEqual(container.textContent, 'nullundefined[object Object]1234');
+    });
 }
 
 if (nativeMethods.prepend) {
