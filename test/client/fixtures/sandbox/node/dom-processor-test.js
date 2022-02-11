@@ -152,8 +152,9 @@ if (nativeMethods.append) {
         document.body.removeChild(root.previousSibling);
     });
 
-    test('Element.prototype.append for objects(GH-2730)', function () {
+    test('Element.prototype.append for objects (GH-2730)', function () {
         var container = document.createElement('div');
+
 
         container.append(null);
         container.append();

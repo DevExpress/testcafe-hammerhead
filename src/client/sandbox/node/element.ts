@@ -454,9 +454,9 @@ export default class ElementSandbox extends SandboxBase {
 
     private _addNodeCore<K, A extends (string | Node)[]> (
         parent: Element | Node & ParentNode, context: Element | Node & ParentNode,
-        newNodesRange: [number, number], args: A, nativeFn: (...args: A) => K, checkBody = true, stringifyObjects = false): K {
+        newNodesRange: [number, number], args: A, nativeFn: (...args: A) => K, checkBody = true, stringifyNode = false): K {
 
-        this._prepareNodesForInsertion(args, newNodesRange, parent, stringifyObjects);
+        this._prepareNodesForInsertion(args, newNodesRange, parent, stringifyNode);
 
         let result            = null;
         const childNodesArray = ElementSandbox._getChildNodesArray(args, newNodesRange);
@@ -490,7 +490,7 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
-    private _prepareNodesForInsertion (args: (string | Node | any)[], newNodesRange: [number, number], parentNode: Node, stringifyObjects = false): void {
+    private _prepareNodesForInsertion (args: (string | Node | any)[], newNodesRange: [number, number], parentNode: Node, stringifyNode = false): void {
         if (args.length === 0)
             return;
 
@@ -506,7 +506,7 @@ export default class ElementSandbox extends SandboxBase {
                 domUtils.isCommentNode(node))
                 this._nodeSandbox.processNodes(node as Element | DocumentFragment);
             else {
-                if (stringifyObjects)
+                if (stringifyNode)
                     node = String(node);
 
                 if (typeof node === 'string')
