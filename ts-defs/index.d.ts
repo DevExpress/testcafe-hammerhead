@@ -78,6 +78,26 @@ declare module 'testcafe-hammerhead' {
         sessionStorage: string;
     }
 
+    interface ExternalCookies {
+        name: string;
+        value: string;
+        domain: string;
+        path: string;
+        expires: Date;
+        maxAge: number | 'Infinity' | '-Infinity';
+        secure: boolean;
+        httpOnly: boolean;
+        sameSite: string;
+    }
+
+    interface Cookies {
+        getCookies (externalCookies: ExternalCookies[], urls: string[]): Promise<ExternalCookies[]>;
+
+        setCookies (externalCookies: ExternalCookies[], url: string): Promise<void>;
+
+        deleteCookies (externalCookies: ExternalCookies[], urls: string[]): Promise<void>;
+    }
+
     /** Initialization options for the IncomingMessageLike object **/
     export interface IncomingMessageLikeInitOptions {
         headers: { [name: string]: string|string[] };
@@ -98,6 +118,9 @@ declare module 'testcafe-hammerhead' {
 
         /** Session's injectable resources **/
         injectable: InjectableResources;
+
+        /** Session's cookie API **/
+        cookies: Cookies;
 
         /** Creates a session instance **/
         protected constructor (uploadRoots: string[], options: Partial<SessionOptions>)

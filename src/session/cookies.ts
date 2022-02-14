@@ -1,17 +1,64 @@
 import { CookieJar, Cookie } from 'tough-cookie';
 import BYTES_PER_COOKIE_LIMIT from './cookie-limit';
-import { castArray } from 'lodash';
+import { castArray, flattenDeep } from 'lodash';
 import { parseUrl } from '../utils/url';
 import { parse as parseJSON, stringify as stringifyJSON } from '../utils/json';
+import { URL } from 'url';
 
 const LOCALHOST_DOMAIN = 'localhost';
 const LOCALHOST_IP     = '127.0.0.1';
 
+interface ExternalCookies {
+    name?: string;
+    value?: string;
+    domain?: string;
+    path?: string;
+    expires?: Date;
+    maxAge?: number | 'Infinity' | '-Infinity';
+    secure?: boolean;
+    httpOnly?: boolean;
+    sameSite?: string;
+}
+
+interface Url {
+    domain: string;
+    path: string;
+}
+
 export default class Cookies {
     private _cookieJar: any;
+    private readonly _findCookieSync: any;
+    private readonly _findCookiesSync: any;
+    private readonly _getAllCookiesSync: any;
+    private readonly _putCookieSync: any;
+    private readonly _removeCookieSync: any;
+    private readonly _removeCookiesSync: any;
+    private readonly _removeAllCookiesSync: any;
 
     constructor () {
-        this._cookieJar = new CookieJar();
+        this._cookieJar            = new CookieJar();
+        this._findCookieSync       = this._syncWrap('findCookie');
+        this._findCookiesSync      = this._syncWrap('findCookies');
+        this._getAllCookiesSync    = this._syncWrap('getAllCookies');
+        this._putCookieSync        = this._syncWrap('putCookie');
+        this._removeCookieSync     = this._syncWrap('removeCookie');
+        this._removeCookiesSync    = this._syncWrap('removeCookies');
+        this._removeAllCookiesSync = this._syncWrap('removeAllCookies');
+    }
+
+    _syncWrap(method: string) {
+        return (...args) => {
+            let syncErr, syncResult;
+            this._cookieJar.store[method](...args, (err, result) => {
+                syncErr = err;
+                syncResult = result;
+            });
+
+            if (syncErr) {
+                throw syncErr;
+            }
+            return syncResult;
+        };
     }
 
     static _hasLocalhostDomain (cookie): boolean {
@@ -65,6 +112,147 @@ export default class Cookies {
         this._cookieJar = serializedJar
             ? CookieJar.deserializeSync(parseJSON(serializedJar))
             : new CookieJar();
+    }
+
+    private _convertToExternalCookies (internalCookies: Cookie[]): ExternalCookies[] {
+        return internalCookies.map(cookie => {
+            const {
+                      key, value, domain,
+                      path, expires, maxAge,
+                      secure, httpOnly, sameSite,
+                  } = cookie;
+
+            return {
+                name:    key,
+                domain:  domain || void 0,
+                path:    path || void 0,
+                expires: expires === 'Infinity' ? void 0 : expires,
+                maxAge:  maxAge || void 0,
+                value, secure, httpOnly, sameSite,
+            };
+        });
+    }
+
+    private _convertToCookieProperties (externalCookie: ExternalCookies[]): Cookie.Properties[] {
+        return externalCookie.map(cookie => {
+            const { name, ...rest } = cookie;
+
+            return { key: name, ...rest };
+        });
+    }
+
+    private _findCookiesByApi (urls: Url[], key?: string): (Cookie | Cookie[])[] {
+        return urls.map(({ domain, path }) => {
+            const cookies = key
+                            ? this._findCookieSync(domain, path, key)
+                            : this._findCookiesSync(domain, path);
+
+            return cookies || [];
+        });
+    }
+
+    private _filterCookies (cookies: Cookie[], filters: Cookie.Properties): Cookie[] {
+        const filterKeys = Object.keys(filters) as (keyof Cookie.Properties)[];
+
+        return cookies.filter(cookie => filterKeys.every(key => cookie[key] === filters[key]));
+    }
+
+    private _getCookiesByApi (cookie: Cookie.Properties, urls?: Url[]): Cookie[] {
+        const { key, domain, path, ...filters } = cookie;
+
+        const currentUrls = domain && path ? castArray({ domain, path }) : urls;
+        let receivedCookies: Cookie[];
+
+        if (currentUrls && currentUrls.length)
+            receivedCookies = flattenDeep(this._findCookiesByApi(currentUrls, key));
+        else {
+            receivedCookies = flattenDeep(this._getAllCookiesSync());
+
+            Object.assign(filters, cookie);
+        }
+
+        return Object.keys(filters).length ? this._filterCookies(receivedCookies, filters) : receivedCookies;
+    }
+
+    private _deleteCookiesByApi (urls: Url[], key?: string): void[] {
+        return urls.map(({ domain, path }) => {
+            return key
+                   ? this._removeCookieSync(domain, path, key)
+                   : this._removeCookiesSync(domain, path);
+        });
+    }
+
+    getCookies (externalCookies?: ExternalCookies[], urls: string[] = []): Partial<ExternalCookies>[] {
+        let resultCookies: Cookie[] = [];
+
+        if (!externalCookies || !externalCookies.length)
+            resultCookies = this._getAllCookiesSync();
+        else {
+            const parsedUrls = urls.map(url => {
+                const { hostname, pathname } = new URL(url);
+
+                return { domain: hostname, path: pathname };
+            });
+
+            const cookies = this._convertToCookieProperties(externalCookies);
+
+            for (const cookie of cookies) {
+                const receivedCookies = this._getCookiesByApi(cookie, parsedUrls);
+
+                resultCookies.push(...receivedCookies);
+            }
+        }
+
+        return this._convertToExternalCookies(resultCookies);
+    }
+
+    setCookies (externalCookies: ExternalCookies[], url?: string): void {
+        const cookies = this._convertToCookieProperties(externalCookies);
+
+        const { hostname = '', pathname = '/' } = url ? new URL(url) : {};
+
+        for (const cookie of cookies) {
+            if (!cookie.domain && !cookie.path)
+                Object.assign(cookie, { domain: hostname, path: pathname });
+
+            const cookieToSet = new Cookie(cookie);
+            const cookieStr   = cookieToSet.toString();
+
+            if (cookieStr.length > BYTES_PER_COOKIE_LIMIT)
+                break;
+
+            this._putCookieSync(cookieToSet);
+        }
+    }
+
+    deleteCookies (externalCookies?: ExternalCookies[], urls: string[] = []): void {
+        if (!externalCookies || !externalCookies.length)
+            return this._removeAllCookiesSync();
+
+        const parsedUrls = urls.map(url => {
+            const { hostname, pathname } = new URL(url);
+
+            return { domain: hostname, path: pathname };
+        });
+
+        const cookies = this._convertToCookieProperties(externalCookies);
+
+        for (const cookie of cookies) {
+            const { key, domain, path, ...filters } = cookie;
+
+            const currentUrls  = domain && path ? castArray({ domain, path }) : parsedUrls;
+
+            if (currentUrls.length && !Object.keys(filters).length)
+                this._deleteCookiesByApi(currentUrls, key);
+            else {
+                const deletedCookies = this._getCookiesByApi(cookie, parsedUrls);
+
+                for (const deletedCookie of deletedCookies) {
+                    if (deletedCookie.domain && deletedCookie.path && deletedCookie.key)
+                        this._removeCookieSync(deletedCookie.domain, deletedCookie.path, deletedCookie.key);
+                }
+            }
+        }
     }
 
     setByServer (url: string, cookies) {
