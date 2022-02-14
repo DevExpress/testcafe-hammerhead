@@ -121,6 +121,46 @@ test('element.removeAttribute, element.removeAttributeNS', function () {
     ok(!nativeMethods.getAttributeNS.call(el, namespace, storedAttr));
 });
 
+test('element.removeAttributeNode', function () {
+    var el         = document.createElement('a');
+    var attr       = 'href';
+    var storedAttr = DomProcessor.getStoredAttrName(attr);
+    var namespace  = 'http://www.w3.org/1999/xhtml';
+    var url        = '/test.html';
+
+    el.setAttribute(attr, url);
+    el.setAttributeNS(namespace, attr, url);
+
+    ok(nativeMethods.getAttributeNode.call(el, attr));
+    ok(nativeMethods.getAttributeNode.call(el, storedAttr));
+    ok(nativeMethods.getAttributeNodeNS.call(el, namespace, attr));
+    ok(nativeMethods.getAttributeNodeNS.call(el, namespace, storedAttr));
+
+    wrapNativeFn('removeAttributeNode');
+
+    let node = nativeMethods.getAttributeNodeNS.call(el, namespace, attr);
+
+    el.removeAttributeNode(node);
+
+    ok(nativeMethodCalled);
+    ok(nativeMethods.getAttribute.call(el, attr));
+    ok(nativeMethods.getAttribute.call(el, storedAttr));
+    ok(!nativeMethods.getAttributeNS.call(el, namespace, attr));
+    ok(!nativeMethods.getAttributeNS.call(el, namespace, storedAttr));
+
+    wrapNativeFn('removeAttributeNode');
+
+    node = nativeMethods.getAttributeNode.call(el, attr);
+
+    el.removeAttributeNode(node);
+
+    ok(nativeMethodCalled);
+    ok(!nativeMethods.getAttributeNode.call(el, attr));
+    ok(!nativeMethods.getAttributeNode.call(el, storedAttr));
+    ok(!nativeMethods.getAttributeNodeNS.call(el, namespace, attr));
+    ok(!nativeMethods.getAttributeNodeNS.call(el, namespace, storedAttr));
+});
+
 test('element.getAttributeNS, element.setAttributeNS', function () {
     var image = document.createElementNS('xlink', 'image');
 

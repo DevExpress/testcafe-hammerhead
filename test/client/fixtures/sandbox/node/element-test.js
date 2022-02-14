@@ -83,6 +83,8 @@ test('wrappers of native functions should return the correct string representati
         'Element.prototype.removeAttribute');
     window.checkStringRepresentation(window.Element.prototype.removeAttributeNS, nativeMethods.removeAttributeNS,
         'Element.prototype.removeAttributeNS');
+    window.checkStringRepresentation(window.Element.prototype.removeAttributeNode, nativeMethods.removeAttributeNode,
+        'Element.prototype.removeAttributeNode');
     window.checkStringRepresentation(window.Element.prototype.cloneNode, nativeMethods.cloneNode,
         'Element.prototype.cloneNode');
     window.checkStringRepresentation(window.Element.prototype.querySelector, nativeMethods.elementQuerySelector,

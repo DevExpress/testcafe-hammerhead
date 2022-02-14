@@ -35,6 +35,11 @@ import { getDestinationUrl } from '../../utils/url';
 
 const RESTRICTED_META_HTTP_EQUIV_VALUES = [BUILTIN_HEADERS.refresh, BUILTIN_HEADERS.contentSecurityPolicy];
 
+enum IsNsNode {
+    Ns,
+    Node
+}
+
 export default class ElementSandbox extends SandboxBase {
     overriddenMethods: any;
 
@@ -377,10 +382,35 @@ export default class ElementSandbox extends SandboxBase {
         return hasAttrMeth.apply(el, args);
     }
 
-    removeAttributeCore (el: HTMLElement, args, isNs?: boolean) {
-        const attr           = String(args[isNs ? 1 : 0]);
+    private static _removeStoredAttrNode (node: Node & { name: string, namespaceURI: string }) {
+        let storedNode: Node;
+        const storedAttr = DomProcessor.getStoredAttrName(node.name);
+        if (node.namespaceURI)
+            storedNode = nativeMethods.getAttributeNodeNS.call(this, node.namespaceURI, storedAttr);
+        else
+            storedNode = nativeMethods.getAttributeNode.call(this, storedAttr);
+
+        if (storedNode)
+            nativeMethods.removeAttributeNode.call(this, storedNode);
+    }
+
+    removeAttributeCore (el: HTMLElement, args, isNsNode?: IsNsNode) {
+        let attr: string;
+        let node: Node & { name: string, namespaceURI: string };
+        let removeStoredAttrFunc: Function;
+        const isNs = isNsNode === IsNsNode.Ns;
+        const isNode = isNsNode === IsNsNode.Node;
+        if (isNode) {
+            node = args[0];
+            attr = node.name;
+            removeStoredAttrFunc = ElementSandbox._removeStoredAttrNode;
+        }
+        else {
+            attr = String(args[isNs ? 1 : 0]);
+            removeStoredAttrFunc = isNs ? nativeMethods.removeAttributeNS : nativeMethods.removeAttribute;
+        }
+
         const formatedAttr   = attr.toLowerCase();
-        const removeAttrFunc = isNs ? nativeMethods.removeAttributeNS : nativeMethods.removeAttribute;
         const tagName        = domUtils.getTagName(el);
         let result           = void 0;
 
@@ -394,17 +424,17 @@ export default class ElementSandbox extends SandboxBase {
             if (formatedAttr === 'autocomplete')
                 nativeMethods.setAttribute.call(el, storedAttr, domProcessor.AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER);
             else
-                removeAttrFunc.apply(el, isNs ? [args[0], storedAttr] : [storedAttr]);
+                removeStoredAttrFunc.apply(el, isNs ? [args[0], storedAttr] : [isNode ? node : storedAttr]);
         }
         else if (!isNs && formatedAttr === 'rel' && tagName === 'link') {
             const storedRelAttr = DomProcessor.getStoredAttrName(attr);
 
-            removeAttrFunc.apply(el, [storedRelAttr]);
+            removeStoredAttrFunc.apply(el, [isNode ? node : storedRelAttr]);
         }
         else if (!isNs && formatedAttr === 'required' && domUtils.isFileInput(el)) {
             const storedRequiredAttr = DomProcessor.getStoredAttrName(attr);
 
-            removeAttrFunc.call(el, storedRequiredAttr);
+            removeStoredAttrFunc.call(el, isNode ? node : storedRequiredAttr);
         }
         else if (!isNs && formatedAttr === 'type' && domUtils.isInputElement(el)) {
             const storedRequiredAttr = DomProcessor.getStoredAttrName('required');
@@ -420,8 +450,16 @@ export default class ElementSandbox extends SandboxBase {
         if (ElementSandbox._isHrefAttrForBaseElement(el, formatedAttr))
             urlResolver.updateBase(getDestLocation(), this.document);
 
-        if (formatedAttr !== 'autocomplete')
-            result = removeAttrFunc.apply(el, args);
+        if (formatedAttr !== 'autocomplete') {
+            if (isNode) {
+                const original = nativeMethods.getAttributeNodeNS.call(el, node.namespaceURI, node.name);
+                result = nativeMethods.removeAttributeNode.apply(el, [original].concat(Array.from(args).slice(1)));
+            }
+            else {
+                const removeAttrFunc = isNs ? nativeMethods.removeAttributeNS : nativeMethods.removeAttribute;
+                result = removeAttrFunc.apply(el, args);
+            }
+        }
 
         if (formatedAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName) ||
             formatedAttr === 'formtarget' && DomProcessor.isTagWithFormTargetAttr(tagName))
@@ -734,7 +772,15 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             removeAttributeNS () {
-                const result = sandbox.removeAttributeCore(this, arguments, true);
+                const result = sandbox.removeAttributeCore(this, arguments, IsNsNode.Ns);
+
+                refreshAttributesWrapper(this);
+
+                return result;
+            },
+
+            removeAttributeNode () {
+                const result = sandbox.removeAttributeCore(this, arguments, IsNsNode.Node);
 
                 refreshAttributesWrapper(this);
 
@@ -948,6 +994,7 @@ export default class ElementSandbox extends SandboxBase {
         overrideFunction(window.Element.prototype, 'getAttributeNS', this.overriddenMethods.getAttributeNS);
         overrideFunction(window.Element.prototype, 'removeAttribute', this.overriddenMethods.removeAttribute);
         overrideFunction(window.Element.prototype, 'removeAttributeNS', this.overriddenMethods.removeAttributeNS);
+        overrideFunction(window.Element.prototype, 'removeAttributeNode', this.overriddenMethods.removeAttributeNode);
         overrideFunction(window.Element.prototype, 'cloneNode', this.overriddenMethods.cloneNode);
         overrideFunction(window.Element.prototype, 'querySelector', this.overriddenMethods.querySelector);
         overrideFunction(window.Element.prototype, 'querySelectorAll', this.overriddenMethods.querySelectorAll);
