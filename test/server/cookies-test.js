@@ -1,7 +1,8 @@
 const Cookies = require('../../lib/session/cookies');
 const expect  = require('chai').expect;
 
-describe('Cookies', () => {
+/*eslint-disable*/
+describe.only('Cookies', () => {
     const cookieJar = new Cookies();
 
     describe('Get cookies', () => {
@@ -605,7 +606,7 @@ describe('Cookies', () => {
     });
 
     describe('Sync cookies', () => {
-        afterEach(() => {
+        beforeEach(() => {
             cookieJar.deleteCookies();
             cookieJar._syncCookies = [];
         });
