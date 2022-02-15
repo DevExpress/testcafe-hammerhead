@@ -158,7 +158,7 @@ export default class Proxy extends Router {
 
                 logger.serviceMsg.onMessage(msg, result);
 
-                res.setHeader('Set-Cookie', session.syncCookies);
+                res.setHeader(BUILTIN_HEADERS.setCookie, session.syncCookies);
 
                 respondWithJSON(res, result, false);
             }
