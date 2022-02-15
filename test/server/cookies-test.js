@@ -607,7 +607,7 @@ describe('Cookies', () => {
     describe('Sync cookies', () => {
         beforeEach(() => {
             cookieJar.deleteCookies();
-            cookieJar._syncCookies = [];
+            cookieJar.syncCookies = [];
         });
 
         it('Should add cookie in syncCookies that was set', () => {
