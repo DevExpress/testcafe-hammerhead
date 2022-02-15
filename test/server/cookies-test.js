@@ -1,8 +1,7 @@
 const Cookies = require('../../lib/session/cookies');
 const expect  = require('chai').expect;
 
-/*eslint-disable*/
-describe.only('Cookies', () => {
+describe('Cookies', () => {
     const cookieJar = new Cookies();
 
     describe('Get cookies', () => {
