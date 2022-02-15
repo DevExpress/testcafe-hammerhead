@@ -168,28 +168,17 @@ export default abstract class Session extends EventEmitter {
     }
 
     get syncCookies () {
-        const parsedSyncCookies = [] as string[];
+        const parsedSyncCookies = this.cookies.syncCookies.map(syncCookie => formatSyncCookie({
+            ...syncCookie,
+            sid:          this.id,
+            isServerSync: true,
+            domain:       syncCookie.domain || '',
+            path:         syncCookie.path || '',
+            lastAccessed: new Date(),
+            syncKey:      ''
+        }));
 
-        while (true) {
-            const syncCookie = this.cookies.syncCookies.pop();
-
-            if (!syncCookie)
-                break;
-
-            const cookieRecord = {
-                ...syncCookie,
-                sid:          this.id,
-                isServerSync: true,
-                domain:       syncCookie.domain || '',
-                path:         syncCookie.path || '',
-                lastAccessed: new Date(),
-                syncKey:      ''
-            };
-
-            const parsedSyncCookie = formatSyncCookie(cookieRecord);
-
-            parsedSyncCookies.push(parsedSyncCookie);
-        }
+        this.cookies.syncCookies = [];
 
         return parsedSyncCookies;
     }
