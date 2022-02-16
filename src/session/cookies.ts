@@ -33,7 +33,7 @@ export default class Cookies {
     private readonly _putCookieSync: any;
     private readonly _removeCookieSync: any;
     private readonly _removeAllCookiesSync: any;
-    public syncCookies: Cookie[];
+    private _pendingSyncCookies: Cookie[];
 
     constructor () {
         this._cookieJar            = new CookieJar();
@@ -43,7 +43,7 @@ export default class Cookies {
         this._putCookieSync        = this._syncWrap('putCookie');
         this._removeCookieSync     = this._syncWrap('removeCookie');
         this._removeAllCookiesSync = this._syncWrap('removeAllCookies');
-        this.syncCookies           = [];
+        this._pendingSyncCookies   = [];
     }
 
     _syncWrap(method: string) {
@@ -160,7 +160,7 @@ export default class Cookies {
     private _getCookiesByApi (cookie: Cookie.Properties, urls?: Url[], strict = false): Cookie[] {
         const { key, domain, path, ...filters } = cookie;
 
-        const currentUrls = domain && path ? castArray({ domain, path }) : urls;
+        const currentUrls = domain && path ? [{ domain, path }] : urls;
         let receivedCookies: Cookie[];
 
         if (currentUrls?.[0] && (!strict || key))
@@ -219,7 +219,7 @@ export default class Cookies {
 
             this._putCookieSync(cookieToSet);
 
-            this.syncCookies.push(cookieToSet);
+            this._pendingSyncCookies.push(cookieToSet);
         }
     }
 
@@ -227,7 +227,7 @@ export default class Cookies {
         if (!externalCookies || !externalCookies.length) {
             const deletedCookies = this._getAllCookiesSync();
 
-            this.syncCookies.push(...deletedCookies);
+            this._pendingSyncCookies.push(...deletedCookies);
             return this._removeAllCookiesSync();
         }
 
@@ -247,10 +247,18 @@ export default class Cookies {
                      this._removeCookieSync(deletedCookie.domain, deletedCookie.path, deletedCookie.key);
 
                     deletedCookie.expires = new Date(0);
-                    this.syncCookies.push(deletedCookie);
+                    this._pendingSyncCookies.push(deletedCookie);
                 }
             }
         }
+    }
+
+    takePendingSyncCookies () {
+        const cookies = this._pendingSyncCookies;
+
+        this._pendingSyncCookies = [];
+
+        return cookies;
     }
 
     setByServer (url: string, cookies) {

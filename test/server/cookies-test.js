@@ -18,6 +18,7 @@ describe('Cookies', () => {
 
         afterEach(() => {
             cookieJar.deleteCookies();
+            cookieJar._pendingSyncCookies = [];
         });
 
         it('Should get all cookies', () => {
@@ -383,6 +384,7 @@ describe('Cookies', () => {
     describe('Set cookies', () => {
         afterEach(() => {
             cookieJar.deleteCookies();
+            cookieJar._pendingSyncCookies = [];
         });
 
         it('Should set cookie', () => {
@@ -485,6 +487,7 @@ describe('Cookies', () => {
 
         afterEach(() => {
             cookieJar.deleteCookies();
+            cookieJar._pendingSyncCookies = [];
         });
 
         it('Should delete all cookies', () => {
@@ -605,13 +608,13 @@ describe('Cookies', () => {
     });
 
     describe('Sync cookies', () => {
-        beforeEach(() => {
+        afterEach(() => {
             cookieJar.deleteCookies();
-            cookieJar.syncCookies = [];
+            cookieJar.takePendingSyncCookies();
         });
 
         it('Should add cookie in syncCookies that was set', () => {
-            expect(cookieJar.syncCookies.length).eql(0);
+            expect(cookieJar.takePendingSyncCookies().length).eql(0);
 
             cookieJar.setCookies([{
                 name:   'apiCookie13',
@@ -620,8 +623,10 @@ describe('Cookies', () => {
                 path:   '/',
             }]);
 
-            expect(cookieJar.syncCookies.length).eql(1);
-            expect(cookieJar.syncCookies[0]).include({
+            const pendingSyncCookies = cookieJar.takePendingSyncCookies();
+
+            expect(pendingSyncCookies.length).eql(1);
+            expect(pendingSyncCookies[0]).include({
                 key:     'apiCookie13',
                 value:   'value13',
                 domain:  'some-another-domain.com',
@@ -631,7 +636,7 @@ describe('Cookies', () => {
         });
 
         it('Should add cookie in syncCookies that was deleted', () => {
-            expect(cookieJar.syncCookies.length).eql(0);
+            expect(cookieJar.takePendingSyncCookies().length).eql(0);
 
             cookieJar.setCookies([{
                 name:   'apiCookie13',
@@ -642,9 +647,11 @@ describe('Cookies', () => {
 
             cookieJar.deleteCookies([{ name: 'apiCookie13' }]);
 
-            expect(cookieJar.syncCookies.length).eql(2);
-            expect(cookieJar.syncCookies[1].key).eql('apiCookie13');
-            expect(cookieJar.syncCookies[1].expires).eql(new Date(0));
+            const pendingSyncCookies = cookieJar.takePendingSyncCookies();
+
+            expect(pendingSyncCookies.length).eql(2);
+            expect(pendingSyncCookies[1].key).eql('apiCookie13');
+            expect(pendingSyncCookies[1].expires).eql(new Date(0));
         });
     });
 });

@@ -167,8 +167,8 @@ export default abstract class Session extends EventEmitter {
         throw new Error('Malformed service message or message handler is not implemented');
     }
 
-    get syncCookies () {
-        const parsedSyncCookies = this.cookies.syncCookies.map(syncCookie => formatSyncCookie({
+    takePendingSyncCookies () {
+        return this.cookies.takePendingSyncCookies().map(syncCookie => formatSyncCookie({
             ...syncCookie,
             sid:          this.id,
             isServerSync: true,
@@ -177,10 +177,6 @@ export default abstract class Session extends EventEmitter {
             lastAccessed: new Date(),
             syncKey:      ''
         }));
-
-        this.cookies.syncCookies = [];
-
-        return parsedSyncCookies;
     }
 
     _fillTaskScriptTemplate ({ serverInfo, isFirstPageLoad, referer, cookie, iframeTaskScriptTemplate, payloadScript, allowMultipleWindows, isRecordMode, windowId }: TaskScriptTemplateOpts): string {
