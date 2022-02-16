@@ -849,7 +849,7 @@ describe('Proxy', () => {
                 path:   '/',
             }]);
 
-            expect(session.cookies.syncCookies.length).eql(1);
+            expect(session.cookies._pendingSyncCookies.length).eql(1);
 
             session['ServiceTestCmd'] = (msg, serverInfo) => {
                 expect(serverInfo).to.be.an('object');
@@ -858,7 +858,7 @@ describe('Proxy', () => {
 
             return request(options)
                 .then(() => {
-                    expect(session.cookies.syncCookies.length).eql(0);
+                    expect(session.cookies._pendingSyncCookies.length).eql(0);
                     expect(session.cookies.getClientString('https://example.com/')).eql('Test=Data');
                 });
         });
