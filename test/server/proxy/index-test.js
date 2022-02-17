@@ -827,6 +827,41 @@ describe('Proxy', () => {
                     });
             });
         });
+
+        it('Should put cookies to the request and remove from store', () => {
+            const options = {
+                method: 'POST',
+                url:    'http://localhost:1836/messaging',
+                json:   true,
+                body:   {
+                    cmd:       'ServiceTestCmd',
+                    data:      '42',
+                    sessionId: session.id
+                }
+            };
+
+            proxy.openSession('https://example.com', session);
+
+            session.cookies.setCookies([{
+                name:   'Test',
+                value:  'Data',
+                domain: 'example.com',
+                path:   '/',
+            }]);
+
+            expect(session.cookies._pendingSyncCookies.length).eql(1);
+
+            session['ServiceTestCmd'] = (msg, serverInfo) => {
+                expect(serverInfo).to.be.an('object');
+                return 'answer: ' + msg.data;
+            };
+
+            return request(options)
+                .then(() => {
+                    expect(session.cookies._pendingSyncCookies.length).eql(0);
+                    expect(session.cookies.getClientString('https://example.com/')).eql('Test=Data');
+                });
+        });
     });
 
     describe('Headers', () => {

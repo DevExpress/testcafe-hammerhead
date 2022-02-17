@@ -28,6 +28,7 @@ import SERVICE_ROUTES from '../proxy/service-routes';
 import DEFAULT_REQUEST_TIMEOUT from '../request-pipeline/destination-request/default-request-timeout';
 import requestIsMatchRule from '../request-pipeline/request-hooks/request-is-match-rule';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
+import { formatSyncCookie } from '../utils/cookie';
 
 const TASK_TEMPLATE = read('../client/task.js.mustache');
 
@@ -164,6 +165,18 @@ export default abstract class Session extends EventEmitter {
             return await this[msg.cmd](msg, serverInfo);
 
         throw new Error('Malformed service message or message handler is not implemented');
+    }
+
+    takePendingSyncCookies () {
+        return this.cookies.takePendingSyncCookies().map(syncCookie => formatSyncCookie({
+            ...syncCookie,
+            sid:          this.id,
+            isServerSync: true,
+            domain:       syncCookie.domain || '',
+            path:         syncCookie.path || '',
+            lastAccessed: new Date(),
+            syncKey:      ''
+        }));
     }
 
     _fillTaskScriptTemplate ({ serverInfo, isFirstPageLoad, referer, cookie, iframeTaskScriptTemplate, payloadScript, allowMultipleWindows, isRecordMode, windowId }: TaskScriptTemplateOpts): string {

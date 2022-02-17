@@ -32,8 +32,8 @@ export default class Cookies {
     private readonly _getAllCookiesSync: any;
     private readonly _putCookieSync: any;
     private readonly _removeCookieSync: any;
-    private readonly _removeCookiesSync: any;
     private readonly _removeAllCookiesSync: any;
+    private _pendingSyncCookies: Cookie[];
 
     constructor () {
         this._cookieJar            = new CookieJar();
@@ -42,8 +42,8 @@ export default class Cookies {
         this._getAllCookiesSync    = this._syncWrap('getAllCookies');
         this._putCookieSync        = this._syncWrap('putCookie');
         this._removeCookieSync     = this._syncWrap('removeCookie');
-        this._removeCookiesSync    = this._syncWrap('removeCookies');
         this._removeAllCookiesSync = this._syncWrap('removeAllCookies');
+        this._pendingSyncCookies   = [];
     }
 
     _syncWrap(method: string) {
@@ -157,29 +157,25 @@ export default class Cookies {
         return cookies.filter(cookie => filterKeys.every(key => cookie[key] === filters[key]));
     }
 
-    private _getCookiesByApi (cookie: Cookie.Properties, urls?: Url[]): Cookie[] {
+    private _getCookiesByApi (cookie: Cookie.Properties, urls?: Url[], strict = false): Cookie[] {
         const { key, domain, path, ...filters } = cookie;
 
-        const currentUrls = domain && path ? castArray({ domain, path }) : urls;
+        const currentUrls = domain && path ? [{ domain, path }] : urls;
         let receivedCookies: Cookie[];
 
-        if (currentUrls && currentUrls.length)
+        if (currentUrls?.[0] && (!strict || key))
             receivedCookies = flattenDeep(this._findCookiesByApi(currentUrls, key));
         else {
             receivedCookies = flattenDeep(this._getAllCookiesSync());
 
-            Object.assign(filters, cookie);
+            if (currentUrls?.[0])
+                Object.assign(filters, currentUrls[0]);
+
+            if (key)
+                Object.assign(filters, { key });
         }
 
         return Object.keys(filters).length ? this._filterCookies(receivedCookies, filters) : receivedCookies;
-    }
-
-    private _deleteCookiesByApi (urls: Url[], key?: string): void[] {
-        return urls.map(({ domain, path }) => {
-            return key
-                   ? this._removeCookieSync(domain, path, key)
-                   : this._removeCookiesSync(domain, path);
-        });
     }
 
     getCookies (externalCookies?: ExternalCookies[], urls: string[] = []): Partial<ExternalCookies>[] {
@@ -222,12 +218,18 @@ export default class Cookies {
                 break;
 
             this._putCookieSync(cookieToSet);
+
+            this._pendingSyncCookies.push(cookieToSet);
         }
     }
 
     deleteCookies (externalCookies?: ExternalCookies[], urls: string[] = []): void {
-        if (!externalCookies || !externalCookies.length)
+        if (!externalCookies || !externalCookies.length) {
+            const deletedCookies = this._getAllCookiesSync();
+
+            this._pendingSyncCookies.push(...deletedCookies);
             return this._removeAllCookiesSync();
+        }
 
         const parsedUrls = urls.map(url => {
             const { hostname, pathname } = new URL(url);
@@ -238,21 +240,25 @@ export default class Cookies {
         const cookies = this._convertToCookieProperties(externalCookies);
 
         for (const cookie of cookies) {
-            const { key, domain, path, ...filters } = cookie;
+            const deletedCookies = this._getCookiesByApi(cookie, parsedUrls, true);
 
-            const currentUrls  = domain && path ? castArray({ domain, path }) : parsedUrls;
+            for (const deletedCookie of deletedCookies) {
+                if (deletedCookie.domain && deletedCookie.path && deletedCookie.key) {
+                     this._removeCookieSync(deletedCookie.domain, deletedCookie.path, deletedCookie.key);
 
-            if (currentUrls.length && !Object.keys(filters).length)
-                this._deleteCookiesByApi(currentUrls, key);
-            else {
-                const deletedCookies = this._getCookiesByApi(cookie, parsedUrls);
-
-                for (const deletedCookie of deletedCookies) {
-                    if (deletedCookie.domain && deletedCookie.path && deletedCookie.key)
-                        this._removeCookieSync(deletedCookie.domain, deletedCookie.path, deletedCookie.key);
+                    deletedCookie.expires = new Date(0);
+                    this._pendingSyncCookies.push(deletedCookie);
                 }
             }
         }
+    }
+
+    takePendingSyncCookies () {
+        const cookies = this._pendingSyncCookies;
+
+        this._pendingSyncCookies = [];
+
+        return cookies;
     }
 
     setByServer (url: string, cookies) {
