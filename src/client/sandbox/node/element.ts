@@ -452,8 +452,9 @@ export default class ElementSandbox extends SandboxBase {
 
         if (formatedAttr !== 'autocomplete') {
             if (isNode) {
-                const original = nativeMethods.getAttributeNodeNS.call(el, node.namespaceURI, node.name);
-                result = nativeMethods.removeAttributeNode.apply(el, [original].concat(Array.from(args).slice(1)));
+                const removeArgs = [nativeMethods.getAttributeNodeNS.call(el, node.namespaceURI, node.name)];
+                for (let i = 1, ilen = args.length; i < ilen; ++i) removeArgs.push(args[i]);
+                result = nativeMethods.removeAttributeNode.apply(el, removeArgs);
             }
             else {
                 const removeAttrFunc = isNs ? nativeMethods.removeAttributeNS : nativeMethods.removeAttribute;
