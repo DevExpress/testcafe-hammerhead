@@ -35,7 +35,7 @@ import { getDestinationUrl } from '../../utils/url';
 
 const RESTRICTED_META_HTTP_EQUIV_VALUES = [BUILTIN_HEADERS.refresh, BUILTIN_HEADERS.contentSecurityPolicy];
 
-enum IsNsNode {
+enum AttributeType {
     Ns,
     Node
 }
@@ -394,12 +394,12 @@ export default class ElementSandbox extends SandboxBase {
             nativeMethods.removeAttributeNode.call(this, storedNode);
     }
 
-    removeAttributeCore (el: HTMLElement, args, isNsNode?: IsNsNode) {
+    removeAttributeCore (el: HTMLElement, args, isNsNode?: AttributeType) {
         let attr: string;
         let node: Node & { name: string, namespaceURI: string };
         let removeStoredAttrFunc: Function;
-        const isNs = isNsNode === IsNsNode.Ns;
-        const isNode = isNsNode === IsNsNode.Node;
+        const isNs = isNsNode === AttributeType.Ns;
+        const isNode = isNsNode === AttributeType.Node;
         if (isNode) {
             node = args[0];
             attr = node.name;
@@ -773,7 +773,7 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             removeAttributeNS () {
-                const result = sandbox.removeAttributeCore(this, arguments, IsNsNode.Ns);
+                const result = sandbox.removeAttributeCore(this, arguments, AttributeType.Ns);
 
                 refreshAttributesWrapper(this);
 
@@ -781,7 +781,7 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             removeAttributeNode () {
-                const result = sandbox.removeAttributeCore(this, arguments, IsNsNode.Node);
+                const result = sandbox.removeAttributeCore(this, arguments, AttributeType.Node);
 
                 refreshAttributesWrapper(this);
 

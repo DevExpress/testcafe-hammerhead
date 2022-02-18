@@ -140,7 +140,13 @@ test('element.removeAttributeNode', function () {
 
     let node = nativeMethods.getAttributeNodeNS.call(el, namespace, attr);
 
+    const attributes = el.attributes;
+
+    strictEqual(attributes.length, 2);
+
     el.removeAttributeNode(node);
+
+    strictEqual(attributes.length, 1);
 
     ok(nativeMethodCalled);
     ok(nativeMethods.getAttribute.call(el, attr));
@@ -153,6 +159,8 @@ test('element.removeAttributeNode', function () {
     node = nativeMethods.getAttributeNode.call(el, attr);
 
     el.removeAttributeNode(node);
+
+    strictEqual(attributes.length, 0);
 
     ok(nativeMethodCalled);
     ok(!nativeMethods.getAttributeNode.call(el, attr));
