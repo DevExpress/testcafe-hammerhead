@@ -60,6 +60,8 @@ class NativeMethods {
     elementQuerySelectorAll: any;
     getAttribute: any;
     getAttributeNS: any;
+    getAttributeNode: any;
+    getAttributeNodeNS: any;
     insertBefore: Node['insertBefore'];
     insertCell: any;
     insertTableRow: any;
@@ -67,6 +69,7 @@ class NativeMethods {
     importScripts: (...urls: string[]) => void
     removeAttribute: any;
     removeAttributeNS: any;
+    removeAttributeNode: any;
     removeChild: Node['removeChild'];
     remove: Element['remove'];
     elementReplaceWith: Element['replaceWith'];
@@ -537,12 +540,15 @@ class NativeMethods {
         this.elementQuerySelectorAll       = nativeElement.querySelectorAll;
         this.getAttribute                  = nativeElement.getAttribute;
         this.getAttributeNS                = nativeElement.getAttributeNS;
+        this.getAttributeNode              = nativeElement.getAttributeNode;
+        this.getAttributeNodeNS            = nativeElement.getAttributeNodeNS;
         this.insertBefore                  = nativeElement.insertBefore;
         this.insertCell                    = createElement('tr').insertCell;
         this.insertTableRow                = createElement('table').insertRow;
         this.insertTBodyRow                = createElement('tbody').insertRow;
         this.removeAttribute               = nativeElement.removeAttribute;
         this.removeAttributeNS             = nativeElement.removeAttributeNS;
+        this.removeAttributeNode           = nativeElement.removeAttributeNode;
         this.removeChild                   = win.Node.prototype.removeChild;
         this.remove                        = win.Element.prototype.remove;
         this.elementReplaceWith            = win.Element.prototype.replaceWith;
