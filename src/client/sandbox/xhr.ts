@@ -32,7 +32,15 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         super(waitHammerheadSettings);
     }
 
-    static createNativeXHR () {
+    static setRequestOptions (req: XMLHttpRequest, withCredentials: boolean, args: Parameters<XMLHttpRequest['open']>): void {
+        XhrSandbox.REQUESTS_OPTIONS.set(req, {
+            withCredentials,
+            openArgs: args,
+            headers:  []
+        });
+    }
+
+    static createNativeXHR (): XMLHttpRequest {
         const xhr = new nativeMethods.XMLHttpRequest();
 
         xhr.open                  = nativeMethods.xhrOpen;
@@ -49,7 +57,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         return xhr;
     }
 
-    static openNativeXhr (xhr, url, isAsync) {
+    private static openNativeXhr (xhr, url, isAsync): void {
         xhr.open('POST', url, isAsync);
         xhr.setRequestHeader(BUILTIN_HEADERS.cacheControl, 'no-cache, no-store, must-revalidate');
     }
@@ -69,7 +77,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             nativeMethods.xhrSetRequestHeader.apply(xhr, header);
     }
 
-    attach (window) {
+    attach (window): void {
         super.attach(window);
 
         const xhrSandbox          = this;
@@ -132,8 +140,11 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         overrideFunction(xmlHttpRequestProto, 'open', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['open']>) {
             let url = args[1];
 
-            if (getProxyUrl(url) === url)
+            if (getProxyUrl(url) === url) {
+                XhrSandbox.setRequestOptions(this, this.withCredentials, args);
+
                 return void nativeMethods.xhrOpen.apply(this, args);
+            }
 
             if (xhrSandbox.gettingSettingInProgress())
                 return void xhrSandbox.delayUntilGetSettings(() => this.open.apply(this, args));
@@ -146,11 +157,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
 
             args[1] = url;
 
-            XhrSandbox.REQUESTS_OPTIONS.set(this, {
-                withCredentials: this.withCredentials,
-                openArgs:        args,
-                headers:         []
-            });
+            XhrSandbox.setRequestOptions(this, this.withCredentials, args);
         });
 
         overrideFunction(xmlHttpRequestProto, 'send', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['send']>) {
@@ -159,7 +166,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
 
             const reqOpts = XhrSandbox.REQUESTS_OPTIONS.get(this);
 
-            if (reqOpts.withCredentials !== this.withCredentials)
+            if (reqOpts && reqOpts.withCredentials !== this.withCredentials)
                 XhrSandbox._reopenXhr(this, reqOpts);
 
             xhrSandbox.emit(xhrSandbox.BEFORE_XHR_SEND_EVENT, { xhr: this });
