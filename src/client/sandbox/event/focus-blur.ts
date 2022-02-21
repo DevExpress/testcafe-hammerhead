@@ -12,6 +12,7 @@ import MessageSandbox from './message';
 import TimersSandbox from '../timers';
 import ElementEditingWatcher from './element-editing-watcher';
 import { ScrollState } from '../../../typings/client';
+import nextTick from '../../utils/next-tick';
 
 const INTERNAL_FOCUS_BLUR_FLAG_PREFIX = 'hammerhead|event|internal-';
 
@@ -136,6 +137,38 @@ export default class FocusBlurSandbox extends SandboxBase {
             this._restoreElementNonScrollableParentsScrollState(this._scrollState.elementNonScrollableParentsScrollState);
     }
 
+    _restoreScrollStateAndRaiseEvent (el: HTMLElement, type: string, callback: Function, options: FocusBlurEventOptions, simulateEvent: Function) {
+        this._restoreScrollStateIfNecessary(options.preventScrolling);
+
+        const curDocument   = domUtils.findDocument(el);
+        const activeElement = domUtils.getActiveElement(curDocument);
+
+        // NOTE: If the element was not focused and has a parent with tabindex, we focus this parent.
+        const parent             = nativeMethods.nodeParentNodeGetter.call(el);
+        const parentWithTabIndex = parent === document ? null : domUtils.closest(parent, '[tabindex]');
+
+        if (type === 'focus' && activeElement !== el && parentWithTabIndex && options.forMouseEvent) {
+            // NOTE: In WebKit, Safari and MSEdge, calling the native focus event for a parent element
+            // raises page scrolling. We can't prevent it. Therefore, we need to restore a page scrolling value.
+            const needPreventScrolling = browserUtils.isWebKit || browserUtils.isSafari || browserUtils.isIE;
+
+            this._raiseEvent(parentWithTabIndex, 'focus', simulateEvent, {
+                preventScrolling: needPreventScrolling,
+                forMouseEvent:    options.forMouseEvent
+            });
+        }
+            // NOTE: Some browsers don't change document.activeElement after calling element.blur() if a browser
+            // window is in the background. That's why we call body.focus() without handlers. It should be called
+            // synchronously because client scripts may expect that document.activeElement will be changed immediately
+        // after element.blur() is called.
+        else if (type === 'blur' && activeElement === el && el !== curDocument.body)
+            this._raiseEvent(curDocument.body, 'focus', simulateEvent, { withoutHandlers: true });
+        else if (!domUtils.isElementDisabled(el))
+            simulateEvent();
+        else
+            callback();
+    }
+
     _raiseEvent (el: HTMLElement, type: string, callback: Function, options: FocusBlurEventOptions) {
         // NOTE: We cannot use Promise because 'resolve' will be called async, but we need to resolve
         // immediately in IE9 and IE10.
@@ -206,35 +239,15 @@ export default class FocusBlurSandbox extends SandboxBase {
             if (!options.focusedOnChange)
                 FocusBlurSandbox._getNativeMeth(el, type).call(el);
 
-            this._restoreScrollStateIfNecessary(options.preventScrolling);
-
-            const curDocument   = domUtils.findDocument(el);
-            const activeElement = domUtils.getActiveElement(curDocument);
-
-            // NOTE: If the element was not focused and has a parent with tabindex, we focus this parent.
-            const parent             = nativeMethods.nodeParentNodeGetter.call(el);
-            const parentWithTabIndex = parent === document ? null : domUtils.closest(parent, '[tabindex]');
-
-            if (type === 'focus' && activeElement !== el && parentWithTabIndex && options.forMouseEvent) {
-                // NOTE: In WebKit, Safari and MSEdge, calling the native focus event for a parent element
-                // raises page scrolling. We can't prevent it. Therefore, we need to restore a page scrolling value.
-                const needPreventScrolling = browserUtils.isWebKit || browserUtils.isSafari || browserUtils.isIE;
-
-                this._raiseEvent(parentWithTabIndex, 'focus', simulateEvent, {
-                    preventScrolling: needPreventScrolling,
-                    forMouseEvent:    options.forMouseEvent
-                });
+            if (browserUtils.isSafari && parseFloat(browserUtils.fullVersion) >= 15 && options.preventScrolling) {
+                nextTick()
+                    .then(() => {
+                        this._restoreScrollStateAndRaiseEvent(el, type, callback, options, simulateEvent);
+                    });
             }
-            // NOTE: Some browsers don't change document.activeElement after calling element.blur() if a browser
-            // window is in the background. That's why we call body.focus() without handlers. It should be called
-            // synchronously because client scripts may expect that document.activeElement will be changed immediately
-            // after element.blur() is called.
-            else if (type === 'blur' && activeElement === el && el !== curDocument.body)
-                this._raiseEvent(curDocument.body, 'focus', simulateEvent, { withoutHandlers: true });
-            else if (!domUtils.isElementDisabled(el))
-                simulateEvent();
-            else
-                callback();
+            else {
+                this._restoreScrollStateAndRaiseEvent(el, type, callback, options, simulateEvent);
+            }
         }
         else
             simulateEvent();
