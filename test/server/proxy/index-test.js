@@ -665,6 +665,22 @@ describe('Proxy', () => {
             expect(sessionWithUndefinedTimeouts.options.requestTimeout.page).eql(25000);
             expect(sessionWithUndefinedTimeouts.options.requestTimeout.ajax).eql(120000);
         });
+
+        it('Get proxied url via session', () => {
+            proxy.openSession('http://127.0.0.1:2000/', session);
+
+            const proxiedUrl = session.getProxyUrl('http://127.0.0.1:2000/page');
+            const options    = {
+                url:                     proxiedUrl,
+                resolveWithFullResponse: true
+            };
+
+            return request(options)
+                .then(res => {
+                    expect(res.statusCode).eql(200);
+                    expect(res.headers[BUILTIN_HEADERS.accessControlAllowOrigin]).to.be.empty;
+                });
+        });
     });
 
     describe('Cookies', () => {
