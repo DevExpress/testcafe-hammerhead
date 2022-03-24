@@ -56,8 +56,8 @@ function createServerInfo (hostname: string, port: number, crossDomainPort: numb
 
 export default class Proxy extends Router {
     private readonly openSessions: Map<string, Session> = new Map();
-    private readonly server1Info: ServerInfo;
-    private readonly server2Info: ServerInfo;
+    public readonly server1Info: ServerInfo;
+    public readonly server2Info: ServerInfo;
     private readonly server1: http.Server | https.Server;
     private readonly server2: http.Server | https.Server;
     private readonly sockets: Set<net.Socket>;

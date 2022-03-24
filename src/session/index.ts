@@ -35,6 +35,7 @@ import DEFAULT_REQUEST_TIMEOUT from '../request-pipeline/destination-request/def
 import requestIsMatchRule from '../request-pipeline/request-hooks/request-is-match-rule';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
 import { formatSyncCookie } from '../utils/cookie';
+import { getProxyUrl } from '../utils/url';
 
 const TASK_TEMPLATE = read('../client/task.js.mustache');
 
@@ -247,6 +248,19 @@ export default abstract class Session extends EventEmitter {
         this.pageLoadCount++;
 
         return taskScript;
+    }
+
+    getProxyUrl (url: string): string {
+        if (!this.proxy?.server2Info)
+            return url;
+
+        return getProxyUrl(url, {
+            sessionId:     this.id,
+            windowId:      this.options.windowId,
+            proxyHostname: this.proxy.server2Info.hostname,
+            proxyPort:     String(this.proxy.server2Info.port),
+            proxyProtocol: this.proxy.server2Info.protocol,
+        });
     }
 
     setExternalProxySettings (proxySettings: ExternalProxySettingsRaw | string | null) {
