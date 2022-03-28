@@ -291,6 +291,11 @@ export default class FocusBlurSandbox extends SandboxBase {
                                    !styleUtils.isElementInInvisibleIframe(el);
         const elDocument         = (el[INTERNAL_PROPS.processedContext] || this.window).document;
 
+        // NOTE: In some cases focus event can be raised for the element in the iframe at the moment when the iframe is removed from the document.
+        // For example, in React application by its internal mechanism: https://github.com/DevExpress/testcafe-hammerhead/issues/2178
+        if(!elDocument.defaultView)
+            return null;
+
         if (!raiseEventInIframe || isNativeFocus && !styleUtils.isElementVisible(el, elDocument))
             return null;
 
