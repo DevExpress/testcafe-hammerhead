@@ -161,6 +161,9 @@ declare module 'testcafe-hammerhead' {
 
         /** Remove the header on the specified ConfigureResponseEvent **/
         removeHeaderOnConfigureResponseEvent (eventId: string, headerName: string): Promise<void>;
+
+        /** Get proxied url **/
+        getProxyUrl (url: string): string;
     }
 
     /** The Proxy class is used to create a web-proxy **/
