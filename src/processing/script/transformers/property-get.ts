@@ -57,7 +57,7 @@ const transformer: Transformer<MemberExpression> = {
     },
 
     // eslint-disable-next-line
-    run: node => createPropertyGetWrapper((node.property as Identifier).name, node.object as Expression)
+    run: node => createPropertyGetWrapper((node.property as Identifier).name, node.object as Expression, node.optional)
 };
 
 export default transformer;

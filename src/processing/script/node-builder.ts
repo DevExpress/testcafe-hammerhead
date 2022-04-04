@@ -170,16 +170,24 @@ export function createMethodCallWrapper (owner: Expression, method: Literal, arg
     return createSimpleCallExpression(callMethodIdentifier, [owner, method, methodArgsArray]);
 }
 
-export function createPropertyGetWrapper (propertyName: string, owner: Expression): CallExpression {
+export function createPropertyGetWrapper (propertyName: string, owner: Expression, optional = false): CallExpression {
     const getPropertyIdentifier = createIdentifier(INSTRUCTION.getProperty);
+    const args                  = [owner, createSimpleLiteral(propertyName)];
 
-    return createSimpleCallExpression(getPropertyIdentifier,  [owner, createSimpleLiteral(propertyName)]);
+    if (optional)
+        args.push(createSimpleLiteral(optional));
+
+    return createSimpleCallExpression(getPropertyIdentifier,  args);
 }
 
-export function createComputedPropertyGetWrapper (property: Expression, owner: Expression): CallExpression {
+export function createComputedPropertyGetWrapper (property: Expression, owner: Expression, optional = false): CallExpression {
     const getPropertyIdentifier = createIdentifier(INSTRUCTION.getProperty);
+    const args                  = [owner, property];
 
-    return  createSimpleCallExpression(getPropertyIdentifier,  [owner, property]);
+    if (optional)
+        args.push(createSimpleLiteral(optional));
+
+    return createSimpleCallExpression(getPropertyIdentifier,  args);
 }
 
 export function createComputedPropertySetWrapper (property: Expression, owner: Expression, value: Expression): CallExpression {
