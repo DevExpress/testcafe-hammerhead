@@ -16,7 +16,8 @@ const OBJECT_RE             = /^\s*\{.*\}\s*$/;
 const TRAILING_SEMICOLON_RE = /;\s*$/;
 const OBJECT_WRAPPER_RE     = /^\s*\((.*)\);\s*$/;
 const SOURCEMAP_RE          = /(?:\/\/[@#][ \t]+sourceMappingURL=([^\s'"]+?)[ \t]*$)/gm;
-const PROCESSED_SCRIPT_RE   = new RegExp([
+
+const PROCESSED_SCRIPT_RE = new RegExp([
     reEscape(INSTRUCTION.getLocation),
     reEscape(INSTRUCTION.setLocation),
     reEscape(INSTRUCTION.getProperty),
@@ -30,7 +31,7 @@ const PROCESSED_SCRIPT_RE   = new RegExp([
 const PARSING_OPTIONS               = {
     allowReturnOutsideFunction:  true,
     allowImportExportEverywhere: true,
-    ecmaVersion:                 11
+    ecmaVersion:                 13
 };
 
 // Code pre/post-processing

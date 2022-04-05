@@ -1,11 +1,8 @@
-const expect                          = require('chai').expect;
-const multiline                       = require('multiline');
-const processScript                   = require('../../lib/processing/script').processScript;
-const isScriptProcessed               = require('../../lib/processing/script').isScriptProcessed;
-const HEADER                          = require('../../lib/processing/script/header').HEADER;
-const SCRIPT_PROCESSING_START_COMMENT = require('../../lib/processing/script/header').SCRIPT_PROCESSING_START_COMMENT;
-const INSTRUMENTED_PROPERTIES         = require('../../lib/processing/script/instrumented').PROPERTIES;
-
+const { expect }                                  = require('chai');
+const multiline                                   = require('multiline');
+const { processScript, isScriptProcessed }        = require('../../lib/processing/script');
+const { HEADER, SCRIPT_PROCESSING_START_COMMENT } = require('../../lib/processing/script/header');
+const { PROPERTIES: INSTRUMENTED_PROPERTIES }     = require('../../lib/processing/script/instrumented');
 
 const ACORN_UNICODE_PATCH_WARNING = multiline(function () {/*
  ATTENTION! If this test fails, this may happen because you have updated acorn.
@@ -819,6 +816,31 @@ describe('Script processor', () => {
                 src:      'export { x as y } from "module-name"',
                 expected: 'export { x as y } from "http://localhost:3000/ksadjo23/http://example.com/module-name"'
             }
+        ]);
+    });
+
+    it('Should process optional chaining', () => {
+        testPropertyProcessing([
+            {
+                src:      'obj?.{0}',
+                expected: '__get$(obj,"{0}",true)',
+            },
+            {
+                src:      'obj?.["{0}"]',
+                expected: '__get$(obj,"{0}",true)',
+            },
+            {
+                src:      'obj?.{0}?.{0}',
+                expected: '__get$(__get$(obj,"{0}",true),"{0}",true)'
+            },
+            {
+                src:      'arr?.[0]',
+                expected: 'arr?.[0]',
+            },
+            {
+                src:      'obj?.{0}?.method(args)',
+                expected: '__get$(obj,"{0}",true)?.method(args)',
+            },
         ]);
     });
 

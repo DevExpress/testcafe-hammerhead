@@ -91,7 +91,7 @@ test('the eval method should switch its own context to global', function () {
     strictEqual(execScript('window.t3="globalScope";(function(ev){ var t3 = "localScope"; return ev("t3"); })(eval)'), 'globalScope');
 });
 
-test('the script processor should process eval\'s global', function () {
+test("the script processor should process eval's global", function () {
     var link    = document.createElement('a');
     var testUrl = 'http://host/index.html';
 
@@ -102,9 +102,9 @@ test('the script processor should process eval\'s global', function () {
     strictEqual(execScript('var ev = eval; ev("test.href")'), testUrl);
 });
 
-module('destructuring');
-
 if (!browserUtils.isIE11) {
+    module('destructuring');
+
     var defaultRestArrayStr = 'var ' + scriptHeader.add('')
         .replace(/[\s\S]+(__rest\$Array\s*=\s*function[^}]+})[\s\S]+/g, '$1');
     var defaultArrayFromStr = 'var ' + scriptHeader.add('')
@@ -223,5 +223,39 @@ if (!browserUtils.isIE11) {
 
     test('should process script arg', function () {
         strictEqual(execScript('({ a: b } = { a: null }).a'), null);
+    });
+
+    module('others');
+
+    test('optional chaining', function () {
+        var testCases = [
+            {
+                src:      'var obj = null; window.optionChainingResult = obj?.href;',
+                expected: void 0,
+            },
+            {
+                src:      'var obj = { href: "123" }; window.optionChainingResult = obj?.href;',
+                expected: '123',
+            },
+            {
+                src:      'var obj = null; window.optionChainingResult = obj?.["href"];',
+                expected: void 0,
+            },
+            {
+                src:      'var obj = { href: "123" }; window.optionChainingResult = obj?.["href"];',
+                expected: '123',
+            }
+        ];
+
+        for (var i = 0; i < testCases.length; i++) {
+            var testCase = testCases[i];
+
+            eval(processScript(testCase.src));
+
+            strictEqual(window.optionChainingResult, testCase.expected);
+
+            delete window.optionChainingResult;
+            delete window.obj;
+        }
     });
 }
