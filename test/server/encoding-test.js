@@ -1,7 +1,7 @@
-const expect        = require('chai').expect;
-const encodeContent = require('../../lib/processing/encoding').encodeContent;
-const decodeContent = require('../../lib/processing/encoding').decodeContent;
-const Charset       = require('../../lib/processing/encoding/charset');
+const { expect }                       = require('chai');
+const { encodeContent, decodeContent } = require('../../lib/processing/encoding');
+const Charset                          = require('../../lib/processing/encoding/charset');
+const crypto                           = require('crypto');
 
 describe('Content encoding', () => {
     const src = Buffer.from('Answer to the Ultimate Question of Life, the Universe, and Everything.');
@@ -36,5 +36,23 @@ describe('Content encoding', () => {
             .catch(err => {
                 expect(err).to.be.an('object');
             });
+    });
+
+    it('Brotli decoding performance (GH-2743)', async () => {
+        const charset = new Charset();
+
+        charset.set('utf8', 2);
+
+        const content = crypto.randomBytes(10 * 1000 * 1000).toString('hex');
+
+        const start = Date.now();
+
+        const encoded = await encodeContent(content, 'br', charset);
+
+        await decodeContent(encoded, 'br', charset);
+
+        const executionTime = Date.now() - start;
+
+        expect(executionTime).below(5000);
     });
 });
