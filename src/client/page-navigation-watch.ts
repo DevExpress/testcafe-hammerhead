@@ -11,6 +11,7 @@ import EventSandbox from './sandbox/event';
 import CodeInstrumentation from './sandbox/code-instrumentation';
 import ElementSandbox from './sandbox/node/element';
 import { ElementSandboxBeforeFormSubmitEvent } from '../typings/client';
+import ChildWindowSandbox from './sandbox/child-window';
 
 export default class PageNavigationWatch extends EventEmiter {
     PAGE_NAVIGATION_TRIGGERED_EVENT = 'hammerhead|event|page-navigation-triggered';
@@ -19,7 +20,8 @@ export default class PageNavigationWatch extends EventEmiter {
 
     constructor (private readonly _eventSandbox: EventSandbox,
         private readonly _codeInstrumentation: CodeInstrumentation,
-        private readonly _elementSandbox: ElementSandbox) {
+        private readonly _elementSandbox: ElementSandbox,
+        private readonly _childWindowSandbox) {
         super();
 
         this._lastLocationValue = window.location.toString();
@@ -125,6 +127,14 @@ export default class PageNavigationWatch extends EventEmiter {
         }
     }
 
+    _childWindowWatch (childWindow: ChildWindowSandbox): void {
+        const self = this;
+
+        childWindow.on(childWindow.BEFORE_WINDOW_OPEN_IN_SAME_TAB, ({ url }) => {
+            self.onNavigationTriggered(url);
+        });
+    }
+
     onNavigationTriggered (url: string): void {
         const currentLocation = this._lastLocationValue;
 
@@ -146,5 +156,6 @@ export default class PageNavigationWatch extends EventEmiter {
         this._locationWatch(this._codeInstrumentation);
         this._linkWatch(this._eventSandbox);
         this._formWatch(this._elementSandbox, this._eventSandbox);
+        this._childWindowWatch(this._childWindowSandbox);
     }
 }

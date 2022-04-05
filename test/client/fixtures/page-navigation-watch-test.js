@@ -498,6 +498,15 @@ if (!browserUtils.isIE || browserUtils.isMSEdge) {
     });
 }
 
+if (browserUtils.isSafari && browserUtils.version >= 15) {
+    test('Navigation through the opening window in the same tab', function () {
+        return navigateIframe("window.open('./index.html')")
+            .then(function (url) {
+                strictEqual(url, iframeLocation + 'index.html');
+            });
+    });
+}
+
 module('regression');
 
 test('the onNavigationTriggered function should not throw an error when receives only hash (GH-917)', function () {

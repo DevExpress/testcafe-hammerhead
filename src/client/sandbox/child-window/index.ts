@@ -15,12 +15,14 @@ import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import getTopOpenerWindow from '../../utils/get-top-opener-window';
 import { isIframeWindow } from '../../utils/dom';
 import nextTick from '../../utils/next-tick';
+import { version, isSafari } from '../../utils/browser';
 
 const DEFAULT_WINDOW_PARAMETERS = 'width=500px, height=500px';
 const STORE_CHILD_WINDOW_CMD    = 'hammerhead|command|store-child-window';
 
 export default class ChildWindowSandbox extends SandboxBase {
-    readonly WINDOW_OPENED_EVENT = 'hammerhead|event|window-opened';
+    public readonly WINDOW_OPENED_EVENT = 'hammerhead|event|window-opened';
+    public readonly BEFORE_WINDOW_OPEN_IN_SAME_TAB = 'hammerhead|event|before-window-open-in-same-tab';
     private _childWindows: Set<Window> | null;
 
     constructor (private readonly _messageSandbox: MessageSandbox,
@@ -132,6 +134,11 @@ export default class ChildWindowSandbox extends SandboxBase {
 
             return openedWindowInfo.wnd;
         }
+
+        // NOTE: Safari stopped throwing the 'unload' event for this case starting from 14 version.
+        // We are forced using the pageNavigationWatch to guarantee working the storages transfer between pages.
+        if (isSafari && version >= 15)
+            this.emit(this.BEFORE_WINDOW_OPEN_IN_SAME_TAB, { url });
 
         return nativeMethods.windowOpen.apply(window, args);
     }
