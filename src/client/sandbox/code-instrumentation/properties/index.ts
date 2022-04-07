@@ -99,7 +99,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 return PropertyAccessorsInstrumentation._ACCESSORS[propName].get(owner);
         }
 
-        return owner[propName];
+        if (optional && isNullOrUndefined(owner))
+            return void 0;
+        else
+            return owner[propName];
     }
 
     private static _propertySetter (owner: any, propName: any, value: any) {
