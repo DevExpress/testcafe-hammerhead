@@ -242,15 +242,20 @@ if (!browserUtils.isIE11) {
                 expected: void 0,
             },
             {
+                src:      'var obj = null; var counter = 0; window.optionChainingResult = obj?.[counter -1];',
+                expected: void 0,
+            },
+            {
                 src:      'var obj = { href: "123" }; window.optionChainingResult = obj?.["href"];',
                 expected: '123',
-            }
+            },
         ];
 
         for (var i = 0; i < testCases.length; i++) {
             var testCase = testCases[i];
+            var script   = processScript(testCase.src);
 
-            eval(processScript(testCase.src));
+            eval(script);
 
             strictEqual(window.optionChainingResult, testCase.expected);
 
