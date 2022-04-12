@@ -669,7 +669,7 @@ describe('Regression', () => {
     it('Should abort destination request after fatal error (GH-937)', done => {
         let fatalErrorEventCount = 0;
 
-        const requestOptions = new RequestOptions({
+        const requestOptions = RequestOptions.createFrom({
             dest: {
                 url:      'http://127.0.0.1:2000/wait/150',
                 protocol: 'http:',
