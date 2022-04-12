@@ -9,19 +9,19 @@ QUnit.testStart(function () {
         runInContext:      window.noop,
         runInNewContext:   window.noop,
         runInThisContext:  window.noop,
-        runInDebugContext: window.noop
+        runInDebugContext: window.noop,
     };
 
     window.windowMock = {
         require: function () {
             return window.vmMock;
-        }
+        },
     };
 
     window.nativeMethodsMock = {
         refreshElectronMeths: function () {
             return true;
-        }
+        },
     };
 
     window.eval = function () {

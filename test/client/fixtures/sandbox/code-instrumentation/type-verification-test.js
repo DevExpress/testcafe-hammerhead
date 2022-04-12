@@ -3,7 +3,7 @@ var urlUtils = hammerhead.utils.url;
 test('is window instance', function () {
     var savedGetProxyUrl = urlUtils.getProxyUrl;
     var fakeWin          = {
-        location: ''
+        location: '',
     };
 
     urlUtils.overrideGetProxyUrl(function () {
@@ -19,7 +19,7 @@ test('is window instance', function () {
 test('is location instance', function () {
     var savedGetProxyUrl = urlUtils.getProxyUrl;
     var fakeLocation     = {
-        href: ''
+        href: '',
     };
 
     urlUtils.overrideGetProxyUrl(function () {

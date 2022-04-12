@@ -21,7 +21,7 @@ const dataFiles = [
     'epilogue-string',
     'special-chars-in-file-name',
     'missing-hyphens',
-    'empty-headers'
+    'empty-headers',
 ];
 
 const data = dataFiles.reduce((dataFile, filename) => {
@@ -52,7 +52,7 @@ describe('Upload', () => {
             const cases = [
                 'empty',
                 'empty-with-separator',
-                'empty-with-separator-and-newline'
+                'empty-with-separator-and-newline',
             ];
 
             cases.forEach(item => {
@@ -172,7 +172,7 @@ describe('Upload', () => {
                 { src: 'empty', expected: '--' + BOUNDARY + '--\r\n' },
                 { src: 'empty-with-separator', expected: '--' + BOUNDARY + '--\r\n' },
                 { src: 'empty-with-separator-and-newline', expected: '--' + BOUNDARY + '--\r\n' },
-                { src: 'missing-hyphens', expected: data['missing-hyphens'].toString() + '--\r\n' }
+                { src: 'missing-hyphens', expected: data['missing-hyphens'].toString() + '--\r\n' },
             ];
 
             cases.forEach(testCase => {
@@ -197,7 +197,7 @@ describe('Upload', () => {
                 'preamble-newline',
                 'preamble-string',
                 'epilogue-string',
-                'special-chars-in-file-name'
+                'special-chars-in-file-name',
             ];
 
             cases.forEach(dataName => {
@@ -307,7 +307,7 @@ describe('Upload', () => {
             return storage
                 .store(
                     ['expected.formdata', 'src.formdata'],
-                    [fs.readFileSync(file1Path).toString('base64'), fs.readFileSync(file2Path).toString('base64')]
+                    [fs.readFileSync(file1Path).toString('base64'), fs.readFileSync(file2Path).toString('base64')],
                 )
                 .then(result => {
                     expect(result.length).eql(2);
@@ -398,7 +398,7 @@ describe('Upload', () => {
                     { name: 'file-to-upload.txt', path: file1Path },
                     { name: 'expected.formdata', path: file2Path },
                     { name: 'file-does-not-exist', path: file3Path },
-                    { name: path.basename(SRC_PATH), path: SRC_PATH }
+                    { name: path.basename(SRC_PATH), path: SRC_PATH },
                 ])
                 .then(({ copiedFiles, errs }) => {
                     const copiedFile1Path = getStoredFilePath('file-to-upload.txt');
@@ -443,12 +443,12 @@ describe('Upload', () => {
         const testCases = [
             {
                 srcPath:      'test/server/data/upload/src.formdata',
-                expectedPath: 'test/server/data/upload/expected.formdata'
+                expectedPath: 'test/server/data/upload/expected.formdata',
             },
             {
                 srcPath:      'test/server/data/upload/multiple-inputs-and-one-file-src.formdata',
-                expectedPath: 'test/server/data/upload/multiple-inputs-and-one-file-expected.formdata'
-            }
+                expectedPath: 'test/server/data/upload/multiple-inputs-and-one-file-expected.formdata',
+            },
         ];
 
         testCases.forEach(({ srcPath, expectedPath }) => {

@@ -14,7 +14,7 @@ const TOUCH_EVENT_FORCE  = 0.5;
 const POINTER_EVENT_BUTTON = {
     noButton:    -1,
     leftButton:  0,
-    rightButton: 2
+    rightButton: 2,
 };
 
 // NOTE: (IE11 only) 'MouseEvent.detail' value always equals 0 for 'click' and 'dblclick' events.
@@ -23,7 +23,7 @@ const DEFAULT_MOUSE_EVENT_DETAIL_PROP_VALUE = {
     click:     browserUtils.isIE ? 0 : 1,
     dblclick:  browserUtils.isIE ? 0 : 2,
     mousedown: 1,
-    mouseup:   1
+    mouseup:   1,
 };
 
 const KEY_EVENT_NAME_RE          = /^key\w+$/;
@@ -52,7 +52,7 @@ const MOUSE_TO_POINTER_EVENT_TYPE_MAP = {
 const TOUCH_TO_POINTER_EVENT_TYPE_MAP = {
     touchstart: 'pointerdown',
     touchend:   'pointerup',
-    touchmove:  'pointermove'
+    touchmove:  'pointermove',
 };
 
 const DISABLEABLE_HTML_ELEMENT_TYPE_CHECKERS = [
@@ -62,7 +62,7 @@ const DISABLEABLE_HTML_ELEMENT_TYPE_CHECKERS = [
     domUtils.isOptGroupElement,
     domUtils.isOptionElement,
     domUtils.isSelectElement,
-    domUtils.isTextAreaElement
+    domUtils.isTextAreaElement,
 ];
 
 export default class EventSimulator {
@@ -93,13 +93,13 @@ export default class EventSimulator {
 
         nativeMethods.objectDefineProperty(ev, 'storageArea', {
             get:          () => args.storageArea,
-            configurable: true
+            configurable: true,
         });
 
         if (args.key === null) {
             nativeMethods.objectDefineProperty(ev, 'key', {
                 get:          () => null,
-                configurable: true
+                configurable: true,
             });
         }
 
@@ -152,7 +152,7 @@ export default class EventSimulator {
                 cancelBubble:     false,
                 defaultPrevented: false,
                 detail:           args.detail,
-                view:             args.view
+                view:             args.view,
             });
         }
 
@@ -175,14 +175,14 @@ export default class EventSimulator {
             ctrlKey:    options.ctrlKey || false,
             altKey:     options.altKey || false,
             shiftKey:   options.shiftKey || false,
-            metaKey:    options.metaKey || false
+            metaKey:    options.metaKey || false,
         };
     }
 
     static _getStorageEventArgs (options: any = {}) {
         return extend(options, {
             canBubble:  options.canBubble !== false,
-            cancelable: options.cancelable !== false
+            cancelable: options.cancelable !== false,
         });
     }
 
@@ -195,7 +195,7 @@ export default class EventSimulator {
             button:        options.button === void 0 ? eventUtils.BUTTON.left : options.button,
             buttons:       options.buttons === void 0 ? eventUtils.BUTTONS_PARAMETER.leftButton : options.buttons,
             relatedTarget: options.relatedTarget || null,
-            which:         options.which
+            which:         options.which,
         });
     }
 
@@ -203,7 +203,7 @@ export default class EventSimulator {
         const keyOptions: any = {
             keyCode:  options.keyCode || 0,
             charCode: options.charCode || 0,
-            which:    type === 'press' ? options.charCode : options.keyCode
+            which:    type === 'press' ? options.charCode : options.keyCode,
         };
 
         if ('keyIdentifier' in options)
@@ -268,7 +268,7 @@ export default class EventSimulator {
                 button:        userOptions.button,
                 which:         userOptions.which,
                 buttons:       userOptions.buttons,
-                relatedTarget: userOptions.relatedTarget
+                relatedTarget: userOptions.relatedTarget,
             } : {},
             options);
 
@@ -298,7 +298,7 @@ export default class EventSimulator {
                 opts = extend(opts, {
                     key:      userOptions.key || void 0,
                     keyCode:  userOptions.keyCode || 0,
-                    charCode: userOptions.charCode || 0
+                    charCode: userOptions.charCode || 0,
                 });
 
                 if ('keyIdentifier' in userOptions)
@@ -330,7 +330,7 @@ export default class EventSimulator {
             clientY:    options.clientY || 0,
             pageX:      options.clientX || 0,
             pageY:      options.clientY || 0,
-            identifier: this._getTouchIdentifier(type)
+            identifier: this._getTouchIdentifier(type),
         });
 
         if (nativeMethods.documentCreateTouch) {
@@ -356,7 +356,7 @@ export default class EventSimulator {
                 rotationAngle: 0,
                 radiusX:       TOUCH_EVENT_RADIUS,
                 radiusY:       TOUCH_EVENT_RADIUS,
-                force:         TOUCH_EVENT_FORCE
+                force:         TOUCH_EVENT_FORCE,
             });
         }
 
@@ -399,7 +399,7 @@ export default class EventSimulator {
         if (browserUtils.isIE11 && prevWindowEvent) {
             nativeMethods.objectDefineProperty(curWindow, 'event', {
                 get:          () => prevWindowEvent,
-                configurable: true
+                configurable: true,
             });
         }
     }
@@ -422,7 +422,7 @@ export default class EventSimulator {
                 metaKey:          args.metaKey,
                 keyCode:          args.keyCode,
                 charCode:         args.charCode,
-                which:            args.which
+                which:            args.which,
             };
 
             if ('keyIdentifier' in args)
@@ -445,26 +445,26 @@ export default class EventSimulator {
             nativeMethods.objectDefineProperty(ev, 'keyCode', {
                 configurable: true,
                 enumerable:   true,
-                get:          () => args.keyCode
+                get:          () => args.keyCode,
             });
 
             nativeMethods.objectDefineProperty(ev, 'charCode', {
                 configurable: true,
                 enumerable:   true,
-                get:          () => args.charCode
+                get:          () => args.charCode,
             });
 
             nativeMethods.objectDefineProperty(ev, 'which', {
                 configurable: true,
                 enumerable:   true,
-                get:          () => args.which
+                get:          () => args.which,
             });
 
             if ('key' in args) {
                 nativeMethods.objectDefineProperty(ev, 'key', {
                     configurable: true,
                     enumerable:   true,
-                    get:          () => args.key
+                    get:          () => args.key,
                 });
             }
 
@@ -472,7 +472,7 @@ export default class EventSimulator {
                 nativeMethods.objectDefineProperty(ev, 'keyIdentifier', {
                     configurable: true,
                     enumerable:   true,
-                    get:          () => args.keyIdentifier
+                    get:          () => args.keyIdentifier,
                 });
             }
 
@@ -499,7 +499,7 @@ export default class EventSimulator {
                             ev.preventDefault();
 
                         returnValue = value;
-                    }
+                    },
                 });
             }
 
@@ -520,14 +520,14 @@ export default class EventSimulator {
         if (MOUSE_TO_POINTER_EVENT_TYPE_MAP[type]) {
             return {
                 eventType:   MOUSE_TO_POINTER_EVENT_TYPE_MAP[type],
-                pointerType: 'mouse'
+                pointerType: 'mouse',
             };
         }
 
         if (TOUCH_TO_POINTER_EVENT_TYPE_MAP[type]) {
             return {
                 eventType:   TOUCH_TO_POINTER_EVENT_TYPE_MAP[type],
-                pointerType: 'touch'
+                pointerType: 'touch',
             };
         }
 
@@ -547,7 +547,7 @@ export default class EventSimulator {
         const elBorders        = getBordersWidth(el);
         const elClientPosition = offsetToClientCoords({
             x: elPosition.left + elBorders.left,
-            y: elPosition.top + elBorders.top
+            y: elPosition.top + elBorders.top,
         });
 
         const pointerArgs = extend({
@@ -560,7 +560,7 @@ export default class EventSimulator {
             pointerId: 1,
             pointerType,
             timeStamp: nativeMethods.dateNow(),
-            isPrimary: true
+            isPrimary: true,
         }, args);
 
         pointerArgs.type    = eventType;
@@ -586,16 +586,16 @@ export default class EventSimulator {
             // NOTE: After dispatching the pointer event, it doesn't contain the 'target' and 'relatedTarget' properties.
             nativeMethods.objectDefineProperty(pointEvent, 'target', {
                 get:          () => el,
-                configurable: true
+                configurable: true,
             });
 
             nativeMethods.objectDefineProperty(pointEvent, 'relatedTarget', {
                 get:          () => args.relatedTarget,
-                configurable: true
+                configurable: true,
             });
 
             nativeMethods.objectDefineProperty(pointEvent, 'buttons', {
-                get: () => args.buttons
+                get: () => args.buttons,
             });
         }
         else {
@@ -674,7 +674,7 @@ export default class EventSimulator {
                 metaKey:       args.metaKey,
                 button:        args.button,
                 buttons:       args.buttons,
-                relatedTarget: args.relatedTarget
+                relatedTarget: args.relatedTarget,
             });
         }
         else {
@@ -685,20 +685,20 @@ export default class EventSimulator {
                 args.button, args.relatedTarget);
 
             nativeMethods.objectDefineProperty(event, 'buttons', {
-                get: () => args.buttons
+                get: () => args.buttons,
             });
         }
 
         // NOTE: T188166 (act.hover triggers the mouseenter event with the "which" parameter set to 1).
         if (args.which !== void 0 && browserUtils.isWebKit) {
             nativeMethods.objectDefineProperty(event, 'which', {
-                get: () => args.which
+                get: () => args.which,
             });
         }
 
         if (timeStamp && !browserUtils.isIE) {
             nativeMethods.objectDefineProperty(event, 'timeStamp', {
-                get: () => timeStamp
+                get: () => timeStamp,
             });
         }
 
@@ -706,7 +706,7 @@ export default class EventSimulator {
             nativeMethods.objectDefineProperty(event, 'dataTransfer', {
                 configurable: true,
                 enumerable:   true,
-                get:          () => dataTransfer
+                get:          () => dataTransfer,
             });
         }
 
@@ -724,7 +724,7 @@ export default class EventSimulator {
                 cancelable:       false,
                 cancelBubble:     false,
                 relatedTarget:    relatedTarget,
-                defaultPrevented: false
+                defaultPrevented: false,
             });
         }
         else if (nativeMethods.documentCreateEvent) {
@@ -753,7 +753,7 @@ export default class EventSimulator {
                 view:        window,
                 data:        text,
                 inputMethod: DOM_INPUT_METHOD_KEYBOARD,
-                locale:      navigator.language
+                locale:      navigator.language,
             };
 
             event.initTextEvent(args.eventType, args.bubbles, args.cancelable, args.view, args.data, args.inputMethod, args.locale);
@@ -773,7 +773,7 @@ export default class EventSimulator {
             composed:   eventUtils.isComposedEvent(type),
             cancelable: true,
             view:       window,
-            inputType:  'insertText'
+            inputType:  'insertText',
         } as InputEventInit;
 
         if (data !== void 0)
@@ -820,7 +820,7 @@ export default class EventSimulator {
             // iframe's window.event object manually by using window.event (B254199).
             nativeMethods.objectDefineProperty(curWindow, 'event', {
                 get:          () => window.event,
-                configurable: true
+                configurable: true,
             });
         }
 
@@ -846,7 +846,7 @@ export default class EventSimulator {
     click (el, options) {
         return this._simulateEvent(el, 'click', options, {
             button:  eventUtils.BUTTON.left,
-            buttons: eventUtils.BUTTONS_PARAMETER.noButton
+            buttons: eventUtils.BUTTONS_PARAMETER.noButton,
         });
     }
 
@@ -857,21 +857,21 @@ export default class EventSimulator {
     dblclick (el, options) {
         return this._simulateEvent(el, 'dblclick', options, {
             button:  eventUtils.BUTTON.left,
-            buttons: eventUtils.BUTTONS_PARAMETER.noButton
+            buttons: eventUtils.BUTTONS_PARAMETER.noButton,
         });
     }
 
     rightclick (el, options) {
         return this._simulateEvent(el, 'click', options, {
             button:  eventUtils.BUTTON.right,
-            buttons: eventUtils.BUTTONS_PARAMETER.rightButton
+            buttons: eventUtils.BUTTONS_PARAMETER.rightButton,
         });
     }
 
     contextmenu (el, options) {
         return this._simulateEvent(el, 'contextmenu', options, {
             button:  eventUtils.BUTTON.right,
-            buttons: eventUtils.BUTTONS_PARAMETER.noButton
+            buttons: eventUtils.BUTTONS_PARAMETER.noButton,
         });
     }
 
@@ -890,7 +890,7 @@ export default class EventSimulator {
 
         return this._simulateEvent(el, 'mouseup', options, {
             button,
-            buttons: eventUtils.BUTTONS_PARAMETER.noButton
+            buttons: eventUtils.BUTTONS_PARAMETER.noButton,
         });
     }
 

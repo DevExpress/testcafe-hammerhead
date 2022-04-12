@@ -58,7 +58,7 @@ export default class DataTransferItemList {
                 nativeMethods.objectDefineProperty(this, idx, {
                     enumerable:   item !== void 0,
                     configurable: true,
-                    value:        item
+                    value:        item,
                 });
 
                 idx++;
@@ -138,7 +138,7 @@ export default class DataTransferItemList {
         nativeMethods.objectDefineProperty(this, 'length', {
             enumerable: true,
 
-            get: () => items.length
+            get: () => items.length,
         });
 
         nativeMethods.objectDefineProperty(this, 'remove', {
@@ -154,7 +154,7 @@ export default class DataTransferItemList {
                     itemsData.splice(idx, 1);
                     updateIndexes();
                 };
-            }
+            },
         });
 
         nativeMethods.objectDefineProperty(this, 'clear', {
@@ -170,7 +170,7 @@ export default class DataTransferItemList {
                     itemsData = [];
                     updateIndexes();
                 };
-            }
+            },
         });
 
         nativeMethods.objectDefineProperty(this, 'add', {
@@ -190,7 +190,7 @@ export default class DataTransferItemList {
 
                     return addItem(data, type, false);
                 };
-            }
+            },
         });
     }
 }

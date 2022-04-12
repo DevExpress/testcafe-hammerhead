@@ -23,7 +23,7 @@ const {
     createProxy,
     compareCode,
     getBasicProxyUrl,
-    createDestinationServer
+    createDestinationServer,
 } = require('../common/utils');
 
 const Credentials = urlUtils.Credentials;
@@ -32,7 +32,7 @@ const {
     PAGE_ACCEPT_HEADER,
     PROXY_HOSTNAME,
     CROSS_DOMAIN_SERVER_PORT,
-    EMPTY_PAGE_MARKUP
+    EMPTY_PAGE_MARKUP,
 } = require('../common/constants');
 
 let longResponseSocket = null;
@@ -84,7 +84,7 @@ describe('Regression', () => {
         app.get('/GH-306/empty-resource', (req, res) => {
             res.set({
                 'content-type':   req.headers['x-resource-type'],
-                'content-length': 0
+                'content-length': 0,
             });
             res.status(204);
             res.end();
@@ -116,7 +116,7 @@ describe('Regression', () => {
         app.get('/GH-390/redirect-302-with-body', (req, res) => {
             res.writeHead(302, {
                 'content-type': 'text/plain',
-                'location':     'http://127.0.0.1:2002/'
+                'location':     'http://127.0.0.1:2002/',
             });
 
             res.write('body');
@@ -136,7 +136,7 @@ describe('Regression', () => {
             res.set({
                 'content-type':     req.headers['x-content-type'],
                 'content-encoding': 'gzip',
-                'content-length':   0
+                'content-length':   0,
             });
             res.end();
         });
@@ -255,7 +255,7 @@ describe('Regression', () => {
     it('Should not send "Cookie" header if there are no cookies for the given URL (T232505)', () => {
         const options = {
             url:  proxy.openSession('http://127.0.0.1:2000/T232505/is-cookie-header-sent', session),
-            json: true
+            json: true,
         };
 
         return request(options)
@@ -287,8 +287,8 @@ describe('Regression', () => {
         const options = {
             url:     proxy.openSession('http://127.0.0.1:2000/T224541/hang-forever', session),
             headers: {
-                accept: PAGE_ACCEPT_HEADER
-            }
+                accept: PAGE_ACCEPT_HEADER,
+            },
         };
 
         request(options);
@@ -304,7 +304,7 @@ describe('Regression', () => {
         const options = {
             url: getProxyUrl('http://127.0.0.1:2000/T224541/hang-forever',
                 { isAjax: true }, void 0, Credentials.sameOrigin),
-            headers: { accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' }
+            headers: { accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' },
         };
 
         proxy.openSession('http://127.0.0.1:2000/', session);
@@ -330,8 +330,8 @@ describe('Regression', () => {
         const options = {
             url:     proxy.openSession('http://127.0.0.1:2000/B239430/empty-page', session),
             headers: {
-                accept: PAGE_ACCEPT_HEADER
-            }
+                accept: PAGE_ACCEPT_HEADER,
+            },
         };
 
         return request(options)
@@ -348,8 +348,8 @@ describe('Regression', () => {
             resolveWithFullResponse: true,
             headers:                 {
                 accept:            PAGE_ACCEPT_HEADER,
-                'x-resource-type': 'text/html; charset=utf-8'
-            }
+                'x-resource-type': 'text/html; charset=utf-8',
+            },
         };
 
         return request(options)
@@ -368,8 +368,8 @@ describe('Regression', () => {
             url:                     url.replace(/^(.*?\/\/.*?\/.*?)(\/.*)$/, '$1!script$2'),
             resolveWithFullResponse: true,
             headers:                 {
-                accept: PAGE_ACCEPT_HEADER
-            }
+                accept: PAGE_ACCEPT_HEADER,
+            },
         };
 
         return request(options)
@@ -385,8 +385,8 @@ describe('Regression', () => {
                 url:                     proxy.openSession('http://127.0.0.1:2000/GH-306/empty-resource', session),
                 resolveWithFullResponse: true,
                 headers:                 {
-                    'x-resource-type': mimeType
-                }
+                    'x-resource-type': mimeType,
+                },
             };
 
             return request(options)
@@ -399,7 +399,7 @@ describe('Regression', () => {
         return Promise.all([
             testSourceWithStatus204('application/javascript'),
             testSourceWithStatus204('text/cache-manifest'),
-            testSourceWithStatus204('text/css')
+            testSourceWithStatus204('text/css'),
         ]);
     });
 
@@ -407,7 +407,7 @@ describe('Regression', () => {
         const options = {
             url: getProxyUrl('http://127.0.0.1:2000/B234325,GH-284/reply-with-origin',
                 { isAjax: true }, 'http://example.com', Credentials.sameOrigin, true),
-            headers: { origin: 'http://127.0.0.1:1836' }
+            headers: { origin: 'http://127.0.0.1:1836' },
         };
 
         proxy.openSession('http://127.0.0.1:2000', session);
@@ -425,8 +425,8 @@ describe('Regression', () => {
             resolveWithFullResponse: true,
             headers:                 {
                 accept:            PAGE_ACCEPT_HEADER,
-                'x-resource-type': 'text/html; charset=utf-8'
-            }
+                'x-resource-type': 'text/html; charset=utf-8',
+            },
         };
 
         return request(options)
@@ -452,8 +452,8 @@ describe('Regression', () => {
                 const options = {
                     url:     proxy.openSession(host, session),
                     headers: {
-                        accept: PAGE_ACCEPT_HEADER
-                    }
+                        accept: PAGE_ACCEPT_HEADER,
+                    },
                 };
 
                 request(options);
@@ -499,7 +499,7 @@ describe('Regression', () => {
             url: getProxyUrl('http://127.0.0.1:2002/without-access-control-allow-origin-header',
                 { isAjax: true }, 'http://example.com', Credentials.sameOrigin, true),
 
-            resolveWithFullResponse: true
+            resolveWithFullResponse: true,
         };
 
         proxy.openSession('http://example.com', session);
@@ -517,7 +517,7 @@ describe('Regression', () => {
         const options = {
             url: getProxyUrl('http://127.0.0.1:2002/echo-headers', { isAjax: true },
                 'http://example.com', Credentials.sameOrigin, true),
-            json: true
+            json: true,
         };
 
         proxy.openSession('http://example.com', session);
@@ -564,12 +564,12 @@ describe('Regression', () => {
                 expectedPort:    '44344',
                 referer:         'https://1.example.com:44344',
                 expectedReferer: 'https://1.example.com:44344',
-            }
+            },
         ];
         const req = {
             headers: {
-                accept: PAGE_ACCEPT_HEADER
-            }
+                accept: PAGE_ACCEPT_HEADER,
+            },
         };
         const ctx = new RequestPipelineContext(req, {}, {});
 
@@ -596,8 +596,8 @@ describe('Regression', () => {
             url: proxy.openSession('about:blank', session),
 
             headers: {
-                accept: PAGE_ACCEPT_HEADER
-            }
+                accept: PAGE_ACCEPT_HEADER,
+            },
         };
 
         process.once('unhandledRejection', reason => {
@@ -615,8 +615,8 @@ describe('Regression', () => {
             url: proxy.openSession('about:blank', session),
 
             headers: {
-                accept: 'application/font'
-            }
+                accept: 'application/font',
+            },
         };
 
         return request(options)
@@ -628,7 +628,7 @@ describe('Regression', () => {
     it('Should not raise the error on dispatching a service url', () => {
         const req = {
             url:     `http://${PROXY_HOSTNAME}/browser/connect`,
-            headers: { accept: PAGE_ACCEPT_HEADER }
+            headers: { accept: PAGE_ACCEPT_HEADER },
         };
 
         const ctx = new RequestPipelineContext(req, {}, {});
@@ -641,8 +641,8 @@ describe('Regression', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/empty-response', session),
                 headers: {
-                    'content-type': 'application/javascript; charset=utf-8'
-                }
+                    'content-type': 'application/javascript; charset=utf-8',
+                },
             };
 
             return request(options)
@@ -655,8 +655,8 @@ describe('Regression', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/empty-response', session),
                 headers: {
-                    'content-type': 'text/css'
-                }
+                    'content-type': 'text/css',
+                },
             };
 
             return request(options)
@@ -677,11 +677,11 @@ describe('Regression', () => {
                 host:     '127.0.0.1:2000',
                 port:     2000,
                 path:     '/wait/150',
-                method:   'GET'
+                method:   'GET',
             },
             req: {
                 headers:    {},
-                rawHeaders: []
+                rawHeaders: [],
             },
             reqBody: Buffer.alloc(0),
             isAjax:  false,
@@ -690,12 +690,12 @@ describe('Regression', () => {
                 isHttp2Disabled:    () => false,
 
                 options: {
-                    requestTimeout: { page: 100 }
+                    requestTimeout: { page: 100 },
                 },
                 cookies: {
-                    getHeader: noop
+                    getHeader: noop,
                 },
-            }
+            },
         });
 
         const destReq = new DestinationRequest(requestOptions, false);
@@ -723,8 +723,8 @@ describe('Regression', () => {
         const options = {
             url:     proxy.openSession('http://127.0.0.1:2000/page-with-frameset', session),
             headers: {
-                accept: PAGE_ACCEPT_HEADER
-            }
+                accept: PAGE_ACCEPT_HEADER,
+            },
         };
 
         return request(options)
@@ -741,8 +741,8 @@ describe('Regression', () => {
         const options = {
             url:     proxy.openSession('http://127.0.0.1:2000/GH-1014/pdf-content-type', session),
             headers: {
-                accept: PAGE_ACCEPT_HEADER
-            }
+                accept: PAGE_ACCEPT_HEADER,
+            },
         };
 
         return request(options)
@@ -757,8 +757,8 @@ describe('Regression', () => {
         const options = {
             url:     proxy.openSession('http://127.0.0.1:2000/GH-1014/empty-page-without-content-type/', session),
             headers: {
-                accept: PAGE_ACCEPT_HEADER
-            }
+                accept: PAGE_ACCEPT_HEADER,
+            },
         };
 
         return request(options)
@@ -773,8 +773,8 @@ describe('Regression', () => {
             json:    true,
             headers: {
                 authorization:         'Basic origin==',
-                'proxy-authorization': 'Digital origin=='
-            }
+                'proxy-authorization': 'Digital origin==',
+            },
         };
 
         const options2 = {
@@ -782,8 +782,8 @@ describe('Regression', () => {
             json:    true,
             headers: {
                 authorization:         headersUtils.addAuthorizationPrefix('Basic 1243=='),
-                'proxy-authorization': headersUtils.addAuthorizationPrefix('Digital 423==')
-            }
+                'proxy-authorization': headersUtils.addAuthorizationPrefix('Digital 423=='),
+            },
         };
 
         return Promise.all([
@@ -796,7 +796,7 @@ describe('Regression', () => {
                 .then(parsedBody => {
                     expect(parsedBody['authorization']).eql('Basic 1243==');
                     expect(parsedBody['proxy-authorization']).eql('Digital 423==');
-                })
+                }),
         ]);
     });
 
@@ -809,36 +809,36 @@ describe('Regression', () => {
         const testCases = [
             {
                 url:                 proxy.openSession('http://127.0.0.1:2000/x-frame-options/DENY', session),
-                expectedHeaderValue: 'DENY'
+                expectedHeaderValue: 'DENY',
             },
             {
                 url:                 proxy.openSession('http://127.0.0.1:2000/x-frame-options/SAMEORIGIN', session),
-                expectedHeaderValue: 'SAMEORIGIN'
+                expectedHeaderValue: 'SAMEORIGIN',
             },
             {
                 url:                 proxy.openSession('http://127.0.0.1:2000/x-frame-options/ALLOW-FROM%20https%3A%2F%2Fexample.com', session),
                 expectedHeaderValue: 'ALLOW-FROM ' +
-                    proxy.openSession('https://example.com', session).replace(urlUtils.TRAILING_SLASH_RE, '')
+                    proxy.openSession('https://example.com', session).replace(urlUtils.TRAILING_SLASH_RE, ''),
             },
             {
                 url:                 proxy.openSession('http://127.0.0.1:2000/x-frame-options/ALLOW-FROM%20http%3A%2F%2F127.0.0.1%3A2000%2Fpage', session),
-                expectedHeaderValue: 'ALLOW-FROM ' + proxy.openSession('http://127.0.0.1:2000/page', session)
+                expectedHeaderValue: 'ALLOW-FROM ' + proxy.openSession('http://127.0.0.1:2000/page', session),
             },
             {
                 url:                 getIframeProxyUrl('http://127.0.0.1:2000/x-frame-options/ALLOW-FROM%20https%3A%2F%2Fexample.com'),
-                expectedHeaderValue: 'ALLOW-FROM ' + getCrossDomainIframeProxyUrl('https://example.com')
+                expectedHeaderValue: 'ALLOW-FROM ' + getCrossDomainIframeProxyUrl('https://example.com'),
             },
             {
                 url:                 getIframeProxyUrl('http://127.0.0.1:2000/x-frame-options/ALLOW-FROM%20http%3A%2F%2F127.0.0.1%3A2000'),
-                expectedHeaderValue: 'ALLOW-FROM ' + getIframeProxyUrl('http://127.0.0.1:2000')
-            }
+                expectedHeaderValue: 'ALLOW-FROM ' + getIframeProxyUrl('http://127.0.0.1:2000'),
+            },
         ];
 
 
         const testRequest = function (testCase) {
             const options = {
                 url:                     testCase.url,
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             return request(options)
@@ -853,7 +853,7 @@ describe('Regression', () => {
     it('Should not raise file download if resource is fetched by setting script src (GH-1062)', () => {
         const options                  = {
             url:     getProxyUrl('http://127.0.0.1:2000/download-script', { isScript: true }),
-            referer: proxy.openSession('http://127.0.0.1:2000', session)
+            referer: proxy.openSession('http://127.0.0.1:2000', session),
         };
         const storedHandleFileDownload = session.handleFileDownload;
         let handleFileDownloadIsRaised = false;
@@ -904,8 +904,8 @@ describe('Regression', () => {
             url:                     proxy.openSession('http://127.0.0.1:2000/script', session),
             resolveWithFullResponse: true,
             headers:                 {
-                'content-type': 'application/javascript; charset=utf-8'
-            }
+                'content-type': 'application/javascript; charset=utf-8',
+            },
         };
 
         return request(options)
@@ -926,8 +926,8 @@ describe('Regression', () => {
                 followRedirect:          false,
                 simple:                  false,
                 headers:                 {
-                    referer: getProxyUrl(opts.referer)
-                }
+                    referer: getProxyUrl(opts.referer),
+                },
             };
 
             return request(options)
@@ -942,23 +942,23 @@ describe('Regression', () => {
             testRedirectRequest({
                 redirectLocation:  'http://127.0.0.1:2001/',
                 referer:           'http://127.0.0.1:2002/',
-                expectedProxyPort: '1836'
+                expectedProxyPort: '1836',
             }),
             testRedirectRequest({
                 redirectLocation:  'http://127.0.0.1:2000/',
                 referer:           'http://127.0.0.1:2000/',
-                expectedProxyPort: '1836'
+                expectedProxyPort: '1836',
             }),
             testRedirectRequest({
                 redirectLocation:  'http://127.0.0.1:2001/',
                 referer:           'http://127.0.0.1:2001/',
-                expectedProxyPort: '1837'
+                expectedProxyPort: '1837',
             }),
             testRedirectRequest({
                 redirectLocation:  'http://127.0.0.1:2001/',
                 referer:           'http://127.0.0.1:2000/',
-                expectedProxyPort: '1837'
-            })
+                expectedProxyPort: '1837',
+            }),
         ]);
     });
 
@@ -967,8 +967,8 @@ describe('Regression', () => {
             url:                     proxy.openSession('http://127.0.0.1:2000/referrer-policy', session),
             resolveWithFullResponse: true,
             headers:                 {
-                accept: PAGE_ACCEPT_HEADER
-            }
+                accept: PAGE_ACCEPT_HEADER,
+            },
         };
 
         return request(options)
@@ -985,8 +985,8 @@ describe('Regression', () => {
 
                 resolveWithFullResponse: true,
                 headers:                 {
-                    accept: PAGE_ACCEPT_HEADER
-                }
+                    accept: PAGE_ACCEPT_HEADER,
+                },
             };
 
             return request(options)
@@ -1002,14 +1002,14 @@ describe('Regression', () => {
 
         return Promise.all([
             testRefreshHeader('/index.html', 'http://127.0.0.1:2000'),
-            testRefreshHeader('http://example.com/index.html')
+            testRefreshHeader('http://example.com/index.html'),
         ]);
     });
 
     it('Should close a proxy connection if a connection to destination server hang up (GH-1384)', () => {
         const agent        = new http.Agent({
             keepAlive:      true,
-            keepAliveMsecs: 10000
+            keepAliveMsecs: 10000,
         });
         let mainPageSocket = null;
         let reqOptions     = null;
@@ -1028,7 +1028,7 @@ describe('Regression', () => {
                         'Location: /redirect',
                         'Content-Length: 0',
                         '',
-                        ''
+                        '',
                     ].join('\r\n'));
                 }
                 else if (url === '/redirect') {
@@ -1043,7 +1043,7 @@ describe('Regression', () => {
                             'HTTP/1.1 200 Ok',
                             'Content-Length: 5',
                             '',
-                            'Hello'
+                            'Hello',
                         ].join('\r\n'));
                     }
                 }
@@ -1076,7 +1076,7 @@ describe('Regression', () => {
                 reqOptions = Object.assign(urlLib.parse(proxyUrl), {
                     method:  'GET',
                     agent:   agent,
-                    headers: { accept: 'text/html' }
+                    headers: { accept: 'text/html' },
                 });
 
                 return sendRequest(reqOptions);
@@ -1105,8 +1105,8 @@ describe('Regression', () => {
             url:                     proxy.openSession('http://127.0.0.1:2000/script', session),
             resolveWithFullResponse: true,
             headers:                 {
-                'content-type': 'application/javascript; charset=utf-8'
-            }
+                'content-type': 'application/javascript; charset=utf-8',
+            },
         };
         const storedProcessFn = resourceProcessor.process;
 
@@ -1135,7 +1135,7 @@ describe('Regression', () => {
 
                 resolveWithFullResponse: true,
                 followRedirect:          false,
-                simple:                  false
+                simple:                  false,
             };
 
             return request(options)
@@ -1154,7 +1154,7 @@ describe('Regression', () => {
             testRedirectRequestStatusCode(308, true),
             testRedirectRequestStatusCode(200, false),
             testRedirectRequestStatusCode(201, false),
-            testRedirectRequestStatusCode(202, false)
+            testRedirectRequestStatusCode(202, false),
         ]);
     });
 
@@ -1166,7 +1166,7 @@ describe('Regression', () => {
                         'HTTP/1.1 304 Not Modified',
                         'Content-Length: 5',
                         '',
-                        ''
+                        '',
                     ].join('\r\n'));
                 });
             });
@@ -1177,7 +1177,7 @@ describe('Regression', () => {
                     const proxyUrl   = proxy.openSession(`http://127.0.0.1:${port}/`, session);
                     const reqOptions = Object.assign(urlLib.parse(proxyUrl), {
                         method:  'GET',
-                        headers: { 'if-none-match': 'NQQ6Iyi1ttEATRNQs+U9yQ==' }
+                        headers: { 'if-none-match': 'NQQ6Iyi1ttEATRNQs+U9yQ==' },
                     });
 
                     const req = http.request(reqOptions, res => {
@@ -1208,8 +1208,8 @@ describe('Regression', () => {
             headers: {
                 'if-none-match':    'NQQ6Iyi1ttEATRNQs+U9yQ==',
                 'X-Requested-With': 'XMLHttpRequest',
-                'ConTEnt-tyPE':     'application/json'
-            }
+                'ConTEnt-tyPE':     'application/json',
+            },
         };
 
         return request(options)
@@ -1223,7 +1223,7 @@ describe('Regression', () => {
             url: getProxyUrl('http://127.0.0.1:2000/echo-raw-headers-names',
                 { isAjax: true }, void 0, Credentials.sameOrigin),
             json:    true,
-            headers: { Referer: getProxyUrl('http://127.0.0.1:2000/') }
+            headers: { Referer: getProxyUrl('http://127.0.0.1:2000/') },
         };
 
         proxy.openSession('http://127.0.0.1:2002/', session);
@@ -1246,7 +1246,7 @@ describe('Regression', () => {
             url:    proxy.openSession('http://127.0.0.1:2000/GH-1666', session),
             simple: false,
 
-            resolveWithFullResponse: true
+            resolveWithFullResponse: true,
         };
 
         return request(options)
@@ -1261,7 +1261,7 @@ describe('Regression', () => {
         const options = {
             url:     proxy.openSession('http://127.0.0.1:2000/GH-1915', session),
             gzip:    true,
-            headers: { accept: 'text/html' }
+            headers: { accept: 'text/html' },
         };
 
         session.handlePageError = (ctx, err) => expect(err).eql(null);
@@ -1301,7 +1301,7 @@ describe('Regression', () => {
 
         const options = {
             url:     proxy.openSession('http://127.0.0.1:2000/', session),
-            headers: { accept: PAGE_ACCEPT_HEADER }
+            headers: { accept: PAGE_ACCEPT_HEADER },
         };
 
         session.handlePageError = () => {
@@ -1328,8 +1328,8 @@ describe('Regression', () => {
             resolveWithFullResponse: true,
             headers:                 {
                 'if-modified-since': 'Thu, 01 Aug 2013 18:31:48 GMT',
-                accept:              PAGE_ACCEPT_HEADER
-            }
+                accept:              PAGE_ACCEPT_HEADER,
+            },
         };
 
         session.handlePageError = () => {
@@ -1379,7 +1379,7 @@ describe('Regression', () => {
             const options           = {
                 url:                     proxy.openSession(url, session),
                 resolveWithFullResponse: true,
-                simple:                  false
+                simple:                  false,
             };
 
             http.request = mockRequest(url, { message: 'Emulation of error!' });
@@ -1401,13 +1401,13 @@ describe('Regression', () => {
                 resolveWithFullResponse: true,
                 simple:                  false,
                 headers:                 {
-                    'header-name': 'header-value'
-                }
+                    'header-name': 'header-value',
+                },
             };
 
             http.request = mockRequest(url, {
                 code:      'HPE_HEADER_OVERFLOW',
-                rawPacket: Buffer.from('info\r\nheaders\r\n\r\nbody')
+                rawPacket: Buffer.from('info\r\nheaders\r\n\r\nbody'),
             });
 
             return request(options)
@@ -1431,7 +1431,7 @@ describe('Regression', () => {
             const options           = {
                 url:                     proxy.openSession(url, session),
                 resolveWithFullResponse: true,
-                simple:                  false
+                simple:                  false,
             };
 
             let allASCIIChars = '';
@@ -1444,7 +1444,7 @@ describe('Regression', () => {
 
             http.request = mockRequest(url, {
                 code:      'HPE_INVALID_HEADER_TOKEN',
-                rawPacket: Buffer.from(`info\r\n${headerName}:${headerBody}\r\n\r\nbody`)
+                rawPacket: Buffer.from(`info\r\n${headerName}:${headerBody}\r\n\r\nbody`),
             });
 
             return request(options)
@@ -1510,7 +1510,7 @@ describe('Regression', () => {
 
             resolveWithFullResponse: true,
             followRedirect:          false,
-            simple:                  false
+            simple:                  false,
         };
 
         proxy.openSession('http://127.0.0.1:2000/', session);
@@ -1535,7 +1535,7 @@ describe('Regression', () => {
                         '',
                         '0',
                         '',
-                        ''
+                        '',
                     ].join('\r\n'));
                 }
                 else {
@@ -1544,7 +1544,7 @@ describe('Regression', () => {
                         'Trailer: baz',
                         'Content-Length: 0',
                         '',
-                        ''
+                        '',
                     ].join('\r\n'));
                 }
             });

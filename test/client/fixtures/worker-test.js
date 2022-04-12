@@ -103,7 +103,7 @@ test('should call postMessage with settings only for urls with the "blob:" proto
         return {
             postMessage: function () {
                 ok(false);
-            }
+            },
         };
     };
 
@@ -217,7 +217,7 @@ if (!browserUtils.isIE && !browserUtils.isSafari) {
             runBlob(new nativeMethods.Blob([scriptWithRelativeUrl])),
             runBlob(new Blob([scriptWithRelativeUrl])),
             runBlob(new nativeMethods.Blob([scriptWithUrlWithoutProtocol])),
-            runBlob(new Blob([scriptWithUrlWithoutProtocol]))
+            runBlob(new Blob([scriptWithUrlWithoutProtocol])),
         ])
             .then(function (errors) {
                 strictEqual(errors[0], errors[1]);

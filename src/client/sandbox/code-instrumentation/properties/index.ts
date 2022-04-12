@@ -77,14 +77,14 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             // eslint-disable-next-line no-restricted-properties
             get: (crossDomainLocation: Location) => crossDomainLocation.href,
-            set: PropertyAccessorsInstrumentation._setCrossDomainLocation
+            set: PropertyAccessorsInstrumentation._setCrossDomainLocation,
         },
 
         location: {
             condition: (owner: any) => domUtils.isDocument(owner) || domUtils.isWindow(owner),
             get: PropertyAccessorsInstrumentation._getLocation,
-            set: PropertyAccessorsInstrumentation._setLocation
-        }
+            set: PropertyAccessorsInstrumentation._setLocation,
+        },
     };
 
     private static _propertyGetter (owner: any, propName: any, optional = false) {
@@ -125,12 +125,12 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         nativeMethods.objectDefineProperties(window, {
             [INSTRUCTION.getProperty]: {
                 value:        PropertyAccessorsInstrumentation._propertyGetter,
-                configurable: true
+                configurable: true,
             },
             [INSTRUCTION.setProperty]: {
                 value:        PropertyAccessorsInstrumentation._propertySetter,
-                configurable: true
-            }
+                configurable: true,
+            },
         });
     }
 }
