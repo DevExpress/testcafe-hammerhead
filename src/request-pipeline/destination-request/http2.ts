@@ -16,7 +16,7 @@ const {
     HTTP2_HEADER_PROXY_CONNECTION,
     HTTP2_HEADER_TRANSFER_ENCODING,
     HTTP2_HEADER_HTTP2_SETTINGS,
-    HTTP2_HEADER_HOST
+    HTTP2_HEADER_HOST,
 } = http2.constants;
 
 const HTTP2_SESSIONS_CACHE_SIZE    = 100;
@@ -25,7 +25,7 @@ const HTTP2_CONNECT_TIMEOUT        = 5_000;
 const HTTP2_LOCAL_SETTINGS_TIMEOUT = 3_000;
 const HTTP2_UNSUPPORTED_HEADERS    = [
     HTTP2_HEADER_CONNECTION, HTTP2_HEADER_UPGRADE, HTTP2_HEADER_HTTP2_SETTINGS, HTTP2_HEADER_KEEP_ALIVE,
-    HTTP2_HEADER_PROXY_CONNECTION, HTTP2_HEADER_TRANSFER_ENCODING, HTTP2_HEADER_HOST
+    HTTP2_HEADER_PROXY_CONNECTION, HTTP2_HEADER_TRANSFER_ENCODING, HTTP2_HEADER_HOST,
 ];
 
 const unsupportedOrigins = [] as string[];
@@ -35,7 +35,7 @@ const sessionsCache      = new LRUCache<string, ClientHttp2Session>({
     dispose: (_, session) => {
         if (!session.closed)
             session.close();
-    }
+    },
 });
 
 export async function getHttp2Session (requestId: string, origin: string): Promise<ClientHttp2Session | null> {
@@ -113,7 +113,7 @@ export function formatRequestHttp2Headers (opts: RequestOptions) {
     }, {
         [HTTP2_HEADER_METHOD]:    opts.method,
         [HTTP2_HEADER_PATH]:      opts.path,
-        [HTTP2_HEADER_AUTHORITY]: opts.headers.host
+        [HTTP2_HEADER_AUTHORITY]: opts.headers.host,
     });
 }
 

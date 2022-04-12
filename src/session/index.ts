@@ -12,7 +12,7 @@ import {
     Credentials,
     ExternalProxySettings,
     ExternalProxySettingsRaw,
-    RequestEventListenerError
+    RequestEventListenerError,
 } from '../typings/session';
 import { GetUploadedFilesServiceMessage, StoreUploadedFilesServiceMessage } from '../typings/upload';
 import StateSnapshot from './state-snapshot';
@@ -125,7 +125,7 @@ export default abstract class Session extends EventEmitter {
     private _initRequestHookEventData (): RequestHookEventData {
         return {
             mocks: new Map<string, ResponseMock>(),
-            configureResponse: new Map<string, ConfigureResponseEventData>()
+            configureResponse: new Map<string, ConfigureResponseEventData>(),
         };
     }
 
@@ -141,7 +141,7 @@ export default abstract class Session extends EventEmitter {
             disablePageCaching:   false,
             allowMultipleWindows: false,
             windowId:             '',
-            requestTimeout
+            requestTimeout,
         }, options);
     }
 
@@ -175,7 +175,7 @@ export default abstract class Session extends EventEmitter {
             domain:       syncCookie.domain || '',
             path:         syncCookie.path || '',
             lastAccessed: new Date(),
-            syncKey:      ''
+            syncKey:      '',
         }));
     }
 
@@ -199,7 +199,7 @@ export default abstract class Session extends EventEmitter {
             payloadScript,
             allowMultipleWindows,
             isRecordMode,
-            windowId: windowId || ''
+            windowId: windowId || '',
         });
     }
 
@@ -212,7 +212,7 @@ export default abstract class Session extends EventEmitter {
             iframeTaskScriptTemplate: null,
             payloadScript:            await this.getIframePayloadScript(true),
             allowMultipleWindows:     this.options.allowMultipleWindows,
-            isRecordMode:             this._recordMode
+            isRecordMode:             this._recordMode,
         });
 
         return JSON.stringify(taskScriptTemplate);
@@ -234,7 +234,7 @@ export default abstract class Session extends EventEmitter {
             payloadScript,
             allowMultipleWindows:     this.options.allowMultipleWindows,
             isRecordMode:             this._recordMode,
-            windowId
+            windowId,
         });
 
         this.pageLoadCount++;
@@ -256,7 +256,7 @@ export default abstract class Session extends EventEmitter {
         if (parsedUrl && parsedUrl.host) {
             settings = {
                 host:     parsedUrl.host,
-                hostname: parsedUrl.hostname || ''
+                hostname: parsedUrl.hostname || '',
             };
 
             if (bypassRules)
@@ -295,7 +295,7 @@ export default abstract class Session extends EventEmitter {
         const listenersData = {
             listeners,
             errorHandler,
-            rule
+            rule,
         };
 
         this.requestEventListeners.set(rule.id, listenersData);
@@ -368,7 +368,7 @@ export default abstract class Session extends EventEmitter {
 
             const event = {
                 error:      e,
-                methodName: eventName
+                methodName: eventName,
             };
 
             errorHandler(event);
@@ -390,7 +390,7 @@ export default abstract class Session extends EventEmitter {
             eventData = {
                 opts:           ConfigureResponseEventOptions.DEFAULT,
                 setHeaders: [],
-                removedHeaders: []
+                removedHeaders: [],
             };
         }
 

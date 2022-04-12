@@ -11,7 +11,7 @@ import {
     createVariableDeclarator,
     createVariableDeclaration,
     createBlockStatement,
-    createIdentifier
+    createIdentifier,
 } from '../node-builder';
 import replaceNode from './replace-node';
 import TempVariables from './temp-variables';
@@ -40,7 +40,7 @@ const transformer: Transformer<ForInStatement> = {
         replaceNode(node.left, varDeclaration, node, 'left');
 
         return null;
-    }
+    },
 };
 
 export default transformer;

@@ -5,8 +5,8 @@ export default function createSpecialPageResponse () {
     return new IncomingMessageLike({
         headers:    {
             [BUILTIN_HEADERS.contentType]:   'text/html',
-            [BUILTIN_HEADERS.contentLength]: '0'
-        }
+            [BUILTIN_HEADERS.contentLength]: '0',
+        },
     });
 }
 

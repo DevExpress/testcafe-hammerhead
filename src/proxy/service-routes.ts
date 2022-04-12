@@ -4,5 +4,5 @@ export default {
     iframeTask:       '/iframe-task.js',
     messaging:        '/messaging',
     transportWorker:  '/transport-worker.js',
-    workerHammerhead: '/worker-hammerhead.js'
+    workerHammerhead: '/worker-hammerhead.js',
 };

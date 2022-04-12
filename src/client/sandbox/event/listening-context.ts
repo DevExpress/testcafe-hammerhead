@@ -31,7 +31,7 @@ export function addListeningElement (el, events) {
                 outerHandlers:          [],
                 outerHandlersWrapper:   null,
                 wrappers:               [],
-                cancelOuterHandlers:    false
+                cancelOuterHandlers:    false,
             };
         }
     }
@@ -39,7 +39,7 @@ export function addListeningElement (el, events) {
     if (!isElementListening(el)) {
         nativeMethods.objectDefineProperty(el, ELEMENT_LISTENING_EVENTS_STORAGE_PROP, {
             value:    elementCtx,
-            writable: true
+            writable: true,
         });
     }
 }
@@ -86,7 +86,7 @@ export function removeInternalBeforeHandler (el, events, handler) {
 export function wrapEventListener (eventCtx, listener, wrapper, useCapture) {
     eventCtx.outerHandlers.push({
         fn:         listener,
-        useCapture: useCapture || false
+        useCapture: useCapture || false,
     });
     eventCtx.wrappers.push(wrapper);
 }

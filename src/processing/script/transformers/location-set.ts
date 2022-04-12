@@ -28,7 +28,7 @@ const transformer: Transformer<AssignmentExpression> = {
                                  (parent.type !== Syntax.SequenceExpression || parent.expressions[0] === node);
 
         return createLocationSetWrapper(node.left as Identifier, node.right, wrapWithSequence);
-    }
+    },
 };
 
 export default transformer;

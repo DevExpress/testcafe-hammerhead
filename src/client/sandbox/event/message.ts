@@ -97,7 +97,7 @@ export default class MessageSandbox extends SandboxBase {
         const originUrl  = formatUrl({
             /*eslint-disable no-restricted-properties*/
             protocol: parsedDest.protocol,
-            host:     parsedDest.host
+            host:     parsedDest.host,
             /*eslint-enable no-restricted-properties*/
         });
 
@@ -143,7 +143,7 @@ export default class MessageSandbox extends SandboxBase {
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
         nativeMethods.objectDefineProperty(window, this.RECEIVE_MSG_FN, {
             value:        onMessageHandler,
-            configurable: true
+            configurable: true,
         });
 
         // @ts-ignore
@@ -156,7 +156,7 @@ export default class MessageSandbox extends SandboxBase {
                     return data.message;
 
                 return data;
-            }
+            },
         });
 
         // @ts-ignore
@@ -170,7 +170,7 @@ export default class MessageSandbox extends SandboxBase {
                 nativeMethods.winOnMessageSetter.call(window, this.storedOnMessageHandler
                     ? e => this._onWindowMessage(e, handler)
                     : null);
-            }
+            },
         });
     }
 
@@ -205,7 +205,7 @@ export default class MessageSandbox extends SandboxBase {
                         // NOTE: Cloning a message to prevent this modification.
                         data:   parseJSON(stringifyJSON(message)),
                         source: this.window,
-                        ports
+                        ports,
                     });
                 }
                 // eslint-disable-next-line no-empty
@@ -242,7 +242,7 @@ export default class MessageSandbox extends SandboxBase {
                 if (targetWindow) {
                     this.sendServiceMsg({
                         cmd:           this.pingCmd,
-                        isPingRequest: true
+                        isPingRequest: true,
                     }, targetWindow);
                 }
             };

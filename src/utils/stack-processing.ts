@@ -4,7 +4,7 @@ const STACK_FRAME_REG_EXPS = [
     /^\s*at .*\((\S+)\)/, // Chrome, IE (with function name)
     /^\s*at (\S+)/, // Chrome, IE (without function name)
     /^.*@(\S+)/, // Safari
-    /(.+)/ // Any string
+    /(.+)/, // Any string
 ];
 
 const STACK_FRAME_REGEX = /(?:^|\n)(?:\s*at |.*@)(?:.*\()?(\S+?):\d+:\d+\)?/g;

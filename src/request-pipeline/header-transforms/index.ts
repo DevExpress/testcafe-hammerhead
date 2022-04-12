@@ -6,19 +6,19 @@ import {
     requestTransforms,
     forcedRequestTransforms,
     responseTransforms,
-    forcedResponseTransforms
+    forcedResponseTransforms,
 } from './transforms';
 
 
 const FORCED_REQ_HEADERS_BROWSER_CASES = [
     {
         lowerCase:   BUILTIN_HEADERS.cookie,
-        browserCase: 'Cookie'
+        browserCase: 'Cookie',
     },
     {
         lowerCase:   BUILTIN_HEADERS.origin,
-        browserCase: 'Origin'
-    }
+        browserCase: 'Origin',
+    },
 ];
 
 function transformHeaders (srcHeaders, ctx: RequestPipelineContext, transformList, forcedTransforms) {

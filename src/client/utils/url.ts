@@ -27,7 +27,7 @@ export const DEFAULT_PROXY_SETTINGS = (function () {
     return {
         hostname: proxyLocation.hostname,
         port:     proxyLocation.port.toString(),
-        protocol: proxyLocation.protocol
+        protocol: proxyLocation.protocol,
     };
     /*eslint-enable no-restricted-properties*/
 })();
@@ -99,7 +99,7 @@ export let getProxyUrl = function (url: string, opts?): string {
             resourceType,
             charset,
             reqOrigin,
-            credentials
+            credentials,
         });
     }
 
@@ -146,7 +146,7 @@ export let getProxyUrl = function (url: string, opts?): string {
         charset,
         reqOrigin,
         windowId,
-        credentials
+        credentials,
     });
 }
 
@@ -182,7 +182,7 @@ export function getNavigationUrl (url: string, win) {
 export let getCrossDomainIframeProxyUrl = function (url: string) {
     return getProxyUrl(url, {
         proxyPort:    settings.get().crossDomainProxyPort,
-        resourceType: sharedUrlUtils.getResourceTypeString({ isIframe: true })
+        resourceType: sharedUrlUtils.getResourceTypeString({ isIframe: true }),
     });
 }
 
@@ -247,7 +247,7 @@ export let convertToProxyUrl = function (url: string, resourceType, charset, isC
     return getProxyUrl(url, {
         resourceType, charset,
         // eslint-disable-next-line no-restricted-properties
-        proxyPort: isCrossDomain ? settings.get().crossDomainProxyPort : DEFAULT_PROXY_SETTINGS.port
+        proxyPort: isCrossDomain ? settings.get().crossDomainProxyPort : DEFAULT_PROXY_SETTINGS.port,
     });
 }
 
@@ -278,7 +278,7 @@ export function changeDestUrlPart (proxyUrl: string, nativePropSetter, value, re
             /*eslint-enable no-restricted-properties*/
 
             sessionId,
-            resourceType
+            resourceType,
         });
     }
 

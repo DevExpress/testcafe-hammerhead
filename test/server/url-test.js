@@ -8,7 +8,7 @@ const urlReplacer = resourceUrl => {
     return urlUtils.getProxyUrl(resourceUrl, {
         proxyHostname: 'localhost',
         proxyPort:     1836,
-        sessionId:     'sid'
+        sessionId:     'sid',
     });
 };
 
@@ -25,7 +25,7 @@ describe('Urls', () => {
             "1;URL=''":            "1;URL='http://localhost:1836/sid/http://example.com/%27",
             '1;""':                '1;"http://localhost:1836/sid/http://example.com/%22',
             '1;uRl=':              '1;uRl=',
-            '1;url="\'':           '1;url="http://localhost:1836/sid/http://example.com/%27'
+            '1;url="\'':           '1;url="http://localhost:1836/sid/http://example.com/%27',
         };
 
         for (const testCase of Object.keys(testCases))

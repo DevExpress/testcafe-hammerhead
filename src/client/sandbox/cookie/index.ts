@@ -13,7 +13,7 @@ import {
     formatSyncCookie,
     generateDeleteSyncCookieStr,
     parseClientSyncCookieStr,
-    prepareSyncCookieProperties
+    prepareSyncCookieProperties,
 } from '../../../utils/cookie';
 import { CookieRecord } from '../../../typings/cookie';
 import ChildWindowSandbox from '../child-window';

@@ -75,5 +75,5 @@ export default {
     restoreStorages: create(`
         window.localStorage.setItem("%s", %s);
         window.sessionStorage.setItem("%s", %s);
-    `)
+    `),
 };

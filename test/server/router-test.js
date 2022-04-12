@@ -61,12 +61,12 @@ describe('Router', () => {
 
         shouldRoute('/yo/something/awesome', 'GET', 'get-with-params', {
             param1: 'something',
-            param2: 'awesome'
+            param2: 'awesome',
         });
 
         shouldRoute('/yo/the/router', 'POST', 'post-with-params', {
             param1: 'the',
-            param2: 'router'
+            param2: 'router',
         });
 
         shouldNotRoute('/some/unknown/url', 'GET', 'no-trailing-slash');
@@ -82,8 +82,8 @@ describe('Router', () => {
                 url:     url,
                 method:  'GET',
                 headers: {
-                    'if-none-match': 'some-random-value'
-                }
+                    'if-none-match': 'some-random-value',
+                },
             };
 
             const resMock = {
@@ -97,7 +97,7 @@ describe('Router', () => {
 
                 end: function (content) {
                     this.content = content;
-                }
+                },
             };
 
 
@@ -109,12 +109,12 @@ describe('Router', () => {
 
         const jsHandler = {
             contentType: 'application/x-javascript',
-            content:     'js'
+            content:     'js',
         };
 
         const cssHandler = {
             contentType: 'text/css',
-            content:     'css'
+            content:     'css',
         };
 
         router.GET('/some/static/js', jsHandler);
@@ -134,8 +134,8 @@ describe('Router', () => {
                 url:     url,
                 method:  'GET',
                 headers: {
-                    'if-none-match': 'some-random-value'
-                }
+                    'if-none-match': 'some-random-value',
+                },
             };
 
             const resMock = {
@@ -149,7 +149,7 @@ describe('Router', () => {
 
                 end: function (content) {
                     this.content = content;
-                }
+                },
             };
 
 
@@ -161,12 +161,12 @@ describe('Router', () => {
 
         const jsHandler = {
             contentType: 'application/x-javascript',
-            content:     'js'
+            content:     'js',
         };
 
         const cssHandler = {
             contentType: 'text/css',
-            content:     'css'
+            content:     'css',
         };
 
         router.GET('/some/static/js', jsHandler);
@@ -185,8 +185,8 @@ describe('Router', () => {
             url:     '/some/static/js',
             method:  'GET',
             headers: {
-                'if-none-match': md5('some content')
-            }
+                'if-none-match': md5('some content'),
+            },
         };
 
         const resMock = {
@@ -200,12 +200,12 @@ describe('Router', () => {
 
             end: function (content) {
                 this.content = content;
-            }
+            },
         };
 
         router.GET('/some/static/js', {
             contentType: 'text/css',
-            content:     'some content'
+            content:     'some content',
         });
 
         router._route(reqMock, resMock);

@@ -94,7 +94,7 @@ export default class Cookies {
             const parsedCookie = this._cookieJar.setCookieSync(cookie, url, {
                 http:        !isClient,
                 ignoreError: true,
-                loose:       true
+                loose:       true,
             });
 
             if (parsedCookie)

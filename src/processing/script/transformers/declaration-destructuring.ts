@@ -55,7 +55,7 @@ const transformer: Transformer<VariableDeclaration> = {
         }
 
         return createVariableDeclaration(node.kind, declarations);
-    }
+    },
 };
 
 export default transformer;

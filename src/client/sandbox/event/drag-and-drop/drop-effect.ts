@@ -3,5 +3,5 @@ export default {
     none: 'none',
     copy: 'copy',
     link: 'link',
-    move: 'move'
+    move: 'move',
 };

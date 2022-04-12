@@ -20,18 +20,18 @@ const agents = {
     [TYPE.SSL3]: {
         instance:       null,
         Ctor:           https.Agent,
-        secureProtocol: 'SSLv3_method'
+        secureProtocol: 'SSLv3_method',
     },
 
     [TYPE.TLS]: {
         instance: null,
-        Ctor:     https.Agent
+        Ctor:     https.Agent,
     },
 
     [TYPE.HTTP]: {
         instance: null,
-        Ctor:     http.Agent
-    }
+        Ctor:     http.Agent,
+    },
 };
 
 
@@ -43,7 +43,7 @@ function getAgent (type: string) {
         // @ts-ignore: Cannot use 'new' with an expression whose type lacks a call or construct signature.
         agent.instance = new agent.Ctor({
             keepAlive:      true,
-            secureProtocol: agent.secureProtocol
+            secureProtocol: agent.secureProtocol,
         });
     }
 
@@ -62,7 +62,7 @@ export function assign (reqOpts: RequestOptions): void {
     if (proxy && reqOpts.protocol === 'https:') {
         reqOpts.agent = tunnel.httpsOverHttp({
             proxy,
-            rejectUnauthorized: false
+            rejectUnauthorized: false,
         });
 
         return;

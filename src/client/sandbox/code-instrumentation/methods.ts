@@ -17,7 +17,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
         this.methodWrappers = {
             postMessage: {
                 condition: isWindow,
-                method:    (contentWindow: Window, args: any[]) => _messageSandbox.postMessage(contentWindow, args)
+                method:    (contentWindow: Window, args: any[]) => _messageSandbox.postMessage(contentWindow, args),
             },
 
             // NOTE: We cannot get the location wrapper for a cross-domain window. Therefore, we need to
@@ -25,8 +25,8 @@ export default class MethodCallInstrumentation extends SandboxBase {
             replace: {
                 condition: isLocation,
                 method:    (location: Location, args: any[]) => location.replace(getProxyUrl(args[0], {
-                    resourceType: MethodCallInstrumentation._getLocationResourceType(location)
-                }))
+                    resourceType: MethodCallInstrumentation._getLocationResourceType(location),
+                })),
             },
 
             // NOTE: We cannot get the location wrapper for a cross-domain window. Therefore, we need to
@@ -34,9 +34,9 @@ export default class MethodCallInstrumentation extends SandboxBase {
             assign: {
                 condition: isLocation,
                 method:    (location: Location, args: any[]) => location.assign(getProxyUrl(args[0], {
-                    resourceType: MethodCallInstrumentation._getLocationResourceType(location)
-                }))
-            }
+                    resourceType: MethodCallInstrumentation._getLocationResourceType(location),
+                })),
+            },
         };
     }
 
@@ -80,7 +80,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
 
                 return fastApply(owner, methName, args);
             },
-            configurable: true
+            configurable: true,
         });
 
         const methodCallInstrumentation = this;
@@ -100,7 +100,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
                     return methodCallInstrumentation._messageSandbox.postMessage(this, args);
                 };
             },
-            configurable: true
+            configurable: true,
         });
     }
 }

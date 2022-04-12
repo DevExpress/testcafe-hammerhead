@@ -9,7 +9,7 @@ import {
     createOverriddenDescriptor,
     overrideConstructor,
     overrideDescriptor,
-    overrideFunction
+    overrideFunction,
 } from '../../utils/overriding';
 import hammerhead from '../../index';
 import Listeners from '../event/listeners';
@@ -118,7 +118,7 @@ export default class StorageSandbox extends SandboxBase {
             if (storedArea) {
                 nativeMethods.objectDefineProperty(event, 'storageArea', {
                     get: () => storedArea,
-                    set: () => void 0
+                    set: () => void 0,
                 });
             }
 
@@ -143,7 +143,7 @@ export default class StorageSandbox extends SandboxBase {
     backup (): StoragesBackup {
         return {
             localStorage:   stringifyJSON(this.localStorageProxy.unwrapProxy().getCurrentState()),
-            sessionStorage: stringifyJSON(this.sessionStorageProxy.unwrapProxy().getCurrentState())
+            sessionStorage: stringifyJSON(this.sessionStorageProxy.unwrapProxy().getCurrentState()),
         };
     }
 
@@ -215,7 +215,7 @@ export default class StorageSandbox extends SandboxBase {
             getter: function (this: StorageWrapper) {
                 return nativeMethods.objectKeys(this).length
             },
-            setter: null
+            setter: null,
         });
     }
 
@@ -238,7 +238,7 @@ export default class StorageSandbox extends SandboxBase {
                     this.localStorageProxy.unwrapProxy().setContext(window);
 
                     return this.localStorageProxy;
-                }
+                },
             }),
 
             'sessionStorage': createOverriddenDescriptor(storagesPropsOwner, 'sessionStorage', {
@@ -247,8 +247,8 @@ export default class StorageSandbox extends SandboxBase {
                     this.sessionStorageProxy.unwrapProxy().setContext(window);
 
                     return this.sessionStorageProxy;
-                }
-            })
+                },
+            }),
         });
     }
 

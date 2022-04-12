@@ -61,7 +61,7 @@ export default class Selection {
                     el[INTERNAL_PROPS.selection] = {
                         selectionStart:     el.selectionStart,
                         selectionEnd:       el.selectionEnd,
-                        selectionDirection: el.selectionDirection
+                        selectionDirection: el.selectionDirection,
                     };
 
                     el.setAttribute('type', savedType);
@@ -148,7 +148,7 @@ export default class Selection {
         return {
             start:     internalSelection ? internalSelection.selectionStart : el.selectionStart,
             end:       internalSelection ? internalSelection.selectionEnd : el.selectionEnd,
-            direction: internalSelection ? internalSelection.selectionDirection : el.selectionDirection
+            direction: internalSelection ? internalSelection.selectionDirection : el.selectionDirection,
         };
     }
 

@@ -8,7 +8,7 @@ const SAME_DOMAIN_SERVER_HOST   = `${PROXY_HOSTNAME}:${SAME_DOMAIN_SERVER_PORT}`
 
 const TEST_OBJ = {
     prop1: 'value1',
-    prop2: 'value2'
+    prop2: 'value2',
 };
 
 const EMPTY_PAGE_MARKUP = '<html></html>';
@@ -22,6 +22,6 @@ module.exports = {
     CROSS_DOMAIN_SERVER_PORT,
     TEST_OBJ,
     EMPTY_PAGE_MARKUP,
-    SAME_DOMAIN_SERVER_HOST
+    SAME_DOMAIN_SERVER_HOST,
 };
 

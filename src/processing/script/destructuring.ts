@@ -6,7 +6,7 @@ import {
     AssignmentPattern,
     AssignmentProperty,
     Identifier,
-    CallExpression
+    CallExpression,
 } from 'estree';
 import { Syntax } from 'esotope-hammerhead';
 import {
@@ -18,7 +18,7 @@ import {
     createMemberExpression,
     createSimpleCallExpression,
     createSimpleLiteral,
-    createUndefined
+    createUndefined,
 } from './node-builder';
 import TempVariables from './transformers/temp-variables';
 import INSTRUCTION from './instruction';

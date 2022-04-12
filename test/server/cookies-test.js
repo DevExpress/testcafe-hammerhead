@@ -163,7 +163,7 @@ describe('Cookies', () => {
             ];
             const cookies         = cookieJar.getCookies([
                 { name: 'apiCookie1' },
-                { name: 'apiCookie4' }
+                { name: 'apiCookie4' },
             ]);
 
             expect(expectedCookies).eql(cookies);
@@ -215,7 +215,7 @@ describe('Cookies', () => {
             ];
             const cookies         = cookieJar.getCookies([
                 { name: 'apiCookie3' },
-                { name: 'apiCookie5' }
+                { name: 'apiCookie5' },
             ], ['https://domain2.com/path-1']);
 
             expect(expectedCookies).eql(cookies);
@@ -289,7 +289,7 @@ describe('Cookies', () => {
             ];
             const cookies         = cookieJar.getCookies([
                 { name: 'apiCookie1' },
-                { name: 'apiCookie2' }
+                { name: 'apiCookie2' },
             ], ['https://domain1.com/', 'https://domain2.com/']);
 
             expect(expectedCookies).eql(cookies);
@@ -374,7 +374,7 @@ describe('Cookies', () => {
             ];
             const cookies         = cookieJar.getCookies([
                 { name: 'apiCookie1' },
-                { domain: 'domain2.com', path: '/' }
+                { domain: 'domain2.com', path: '/' },
             ]);
 
             expect(expectedCookies).eql(cookies);
@@ -512,7 +512,7 @@ describe('Cookies', () => {
             expect(cookieJar.getCookies().length).eql(6);
             cookieJar.deleteCookies([
                 { name: 'apiCookie1' },
-                { name: 'apiCookie3' }
+                { name: 'apiCookie3' },
             ]);
 
             const currentCookies = cookieJar.getCookies();
@@ -539,7 +539,7 @@ describe('Cookies', () => {
             expect(cookieJar.getCookies().length).eql(6);
             cookieJar.deleteCookies([
                 { name: 'apiCookie1' },
-                { name: 'apiCookie2' }
+                { name: 'apiCookie2' },
             ], ['https://domain2.com/']);
 
             const currentCookies = cookieJar.getCookies();
@@ -566,7 +566,7 @@ describe('Cookies', () => {
             expect(cookieJar.getCookies().length).eql(6);
             cookieJar.deleteCookies([
                 { name: 'apiCookie1' },
-                { name: 'apiCookie3' }
+                { name: 'apiCookie3' },
             ], ['https://domain1.com/', 'https://domain2.com/path-1']);
 
             const currentCookies = cookieJar.getCookies();

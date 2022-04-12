@@ -31,7 +31,7 @@ export default class UnloadSandbox extends SandboxBase {
             storedHandler:     null,
             nativeEventName:   UnloadSandbox._getBeforeUnloadEventName(),
             eventName:         this.BEFORE_UNLOAD_EVENT,
-            eventPropSetter:   UnloadSandbox._getBeforeUnloadPropSetter()
+            eventPropSetter:   UnloadSandbox._getBeforeUnloadPropSetter(),
         };
 
         this.unloadProperties = {
@@ -40,7 +40,7 @@ export default class UnloadSandbox extends SandboxBase {
             storedHandler:     null,
             nativeEventName:   'unload',
             eventName:         this.UNLOAD_EVENT,
-            eventPropSetter:   nativeMethods.winOnUnloadSetter
+            eventPropSetter:   nativeMethods.winOnUnloadSetter,
         };
     }
 
@@ -60,7 +60,7 @@ export default class UnloadSandbox extends SandboxBase {
     private _emitEvent (eventProperties: EventProperties): void {
         this.emit(eventProperties.eventName, {
             returnValue: eventProperties.storedReturnValue,
-            prevented:   eventProperties.prevented
+            prevented:   eventProperties.prevented,
         });
     }
 
@@ -87,7 +87,7 @@ export default class UnloadSandbox extends SandboxBase {
                     eventProperties.storedReturnValue = UnloadSandbox._prepareStoredReturnValue(value);
 
                     eventProperties.prevented = isFirefox ? value !== '' : true;
-                }
+                },
             }));
 
             nativeMethods.objectDefineProperty(e, 'preventDefault', createPropertyDesc({
@@ -97,7 +97,7 @@ export default class UnloadSandbox extends SandboxBase {
                     return true;
                 },
 
-                set: () => void 0
+                set: () => void 0,
             }));
 
             // NOTE: need to pass `this` scope for https://github.com/DevExpress/testcafe/issues/6563
@@ -141,7 +141,7 @@ export default class UnloadSandbox extends SandboxBase {
         // @ts-ignore
         overrideDescriptor(eventPropsOwner, 'on' + eventProperties.nativeEventName, {
             getter: () => eventProperties.storedHandler,
-            setter: handler => this.setOnEvent(eventProperties, window, handler)
+            setter: handler => this.setOnEvent(eventProperties, window, handler),
         });
     }
 

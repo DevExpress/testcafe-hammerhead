@@ -266,7 +266,7 @@ export default class DocumentWriter {
         htmlChunk = this._wrapHtmlChunk(htmlChunk);
         htmlChunk = htmlUtils.processHtml(htmlChunk, {
             prepareDom:       container => this._prepareDom(container, isDocumentCleaned),
-            processedContext: this.window
+            processedContext: this.window,
         });
         htmlChunk = this._unwrapHtmlChunk(htmlChunk);
 

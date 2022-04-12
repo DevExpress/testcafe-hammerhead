@@ -53,7 +53,7 @@ export default class CodeInstrumentation extends SandboxBase {
                 return evalWrapper;
             },
 
-            configurable: true
+            configurable: true,
         });
 
         nativeMethods.objectDefineProperty(window, INSTRUCTION.processScript, {
@@ -77,7 +77,7 @@ export default class CodeInstrumentation extends SandboxBase {
                 return script;
             },
 
-            configurable: true
+            configurable: true,
         });
 
         nativeMethods.objectDefineProperty(window, INSTRUCTION.processHtml, {
@@ -88,7 +88,7 @@ export default class CodeInstrumentation extends SandboxBase {
                 return html;
             },
 
-            configurable: true
+            configurable: true,
         });
 
         nativeMethods.objectDefineProperty(window, INSTRUCTION.getProxyUrl, {
@@ -107,12 +107,12 @@ export default class CodeInstrumentation extends SandboxBase {
                 return proxyUrl;
             },
 
-            configurable: true
+            configurable: true,
         });
 
         nativeMethods.objectDefineProperty(window, INSTRUCTION.restArray, {
             value:        (array: any[], startIndex: number) => nativeMethods.arraySlice.call(array, startIndex),
-            configurable: true
+            configurable: true,
         });
 
         nativeMethods.objectDefineProperty(window, INSTRUCTION.arrayFrom, {
@@ -125,7 +125,7 @@ export default class CodeInstrumentation extends SandboxBase {
 
                 return shouldConvertToArray ? nativeMethods.arrayFrom.call(nativeMethods.Array, target) : target;
             },
-            configurable: true
+            configurable: true,
         });
 
         nativeMethods.objectDefineProperty(window, INSTRUCTION.restObject, {
@@ -141,7 +141,7 @@ export default class CodeInstrumentation extends SandboxBase {
                 return rest;
             },
 
-            configurable: true
+            configurable: true,
         });
     }
 }

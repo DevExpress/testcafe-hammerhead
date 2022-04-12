@@ -29,7 +29,7 @@ ll
     .tasks('lint')
     .onlyInDebug([
         'server-scripts',
-        'client-scripts-bundle'
+        'client-scripts-bundle',
     ]);
 
 // Build
@@ -81,13 +81,13 @@ gulp.step('server-scripts-add-exports', () => {
             }
 
             cb(null, file);
-        }
+        },
     });
 
     return gulp
         .src([
             'lib/**/*.js',
-            '!lib/client/**/*.js'
+            '!lib/client/**/*.js',
         ])
         .pipe(transform)
         .pipe(gulp.dest('lib'));
@@ -113,7 +113,7 @@ gulp.step('lint-js', () => {
             './test/client/fixtures/**/*.js',
             './gulp/**/*.js',
             'Gulpfile.js',
-            '!./test/server/data/**/*.js'
+            '!./test/server/data/**/*.js',
         ])
         .pipe(eslint())
         .pipe(eslint.format())
@@ -150,7 +150,7 @@ gulp.step('test-server-run', () => {
         .pipe(mocha({
             // NOTE: Disable timeouts in debug mode.
             timeout:   typeof v8debug !== 'undefined' || !!process.debugPort ? Infinity : 2000,
-            fullTrace: true
+            fullTrace: true,
         }));
 });
 
@@ -207,8 +207,8 @@ gulp.step('https-playground-server', () => {
         ssl: {
             key:  selfSignedCertificate.key,
             cert: selfSignedCertificate.cert,
-            needBeautifyScripts
-        }
+            needBeautifyScripts,
+        },
     });
 });
 
@@ -222,7 +222,7 @@ gulp.task('cached-http-playground', gulp.series(BUILD_TASK, 'cached-http-playgro
 
 gulp.step('test-functional-testcafe-run', gulpRunCommand([
     'chmod +x ./test/functional/run-testcafe-functional-tests.sh',
-    './test/functional/run-testcafe-functional-tests.sh'
+    './test/functional/run-testcafe-functional-tests.sh',
 ]));
 
 gulp.task('test-functional-testcafe', gulp.series(BUILD_TASK, 'test-functional-testcafe-run'));

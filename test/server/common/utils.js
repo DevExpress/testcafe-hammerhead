@@ -14,7 +14,7 @@ const {
     PROXY_HOSTNAME,
     PROXY_PORT_1,
     PROXY_PORT_2,
-    SAME_DOMAIN_SERVER_PORT
+    SAME_DOMAIN_SERVER_PORT,
 } = require('./constants');
 
 const { HTTP2_HEADER_METHOD, HTTP2_HEADER_PATH } = http2.constants;
@@ -54,13 +54,13 @@ exports.createHttp2DestServer = function (port = SAME_DOMAIN_SERVER_PORT) {
         },
         post (url, handler) {
             handlers.post[url] = handler;
-        }
+        },
     };
 };
 
 exports.createSession = function (parameters) {
     parameters = parameters || {
-        windowId: '12345'
+        windowId: '12345',
     };
 
     const session = new Session('/test-upload-root', parameters);
@@ -104,7 +104,7 @@ exports.getBasicProxyUrl = function (url, resourceType, reqOrigin, credentials, 
         sessionId:     urlSession.id,
         windowId:      urlSession.options.windowId,
 
-        resourceType, reqOrigin, credentials
+        resourceType, reqOrigin, credentials,
     });
 };
 

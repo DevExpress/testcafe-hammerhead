@@ -91,7 +91,7 @@ const transformer: Transformer<Identifier> = {
         return false;
     },
 
-    run: createGetEvalMethodCall
+    run: createGetEvalMethodCall,
 };
 
 export default transformer;

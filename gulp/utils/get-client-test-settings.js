@@ -7,9 +7,9 @@ module.exports = function getClientTestSettings () {
         crossDomainPort: 2001,
         scripts:         [
             { src: '/hammerhead.js', path: util.env.dev ? './lib/client/hammerhead.js' : './lib/client/hammerhead.min.js' },
-            { src: '/before-test.js', path: './test/client/before-test.js' }
+            { src: '/before-test.js', path: './test/client/before-test.js' },
         ],
 
-        configApp: require('../../test/client/config-qunit-server-app')
+        configApp: require('../../test/client/config-qunit-server-app'),
     };
 };

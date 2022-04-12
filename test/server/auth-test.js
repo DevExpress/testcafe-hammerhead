@@ -7,7 +7,7 @@ const headersUtils = require('../../lib/utils/headers');
 
 const {
     createProxy,
-    createSession
+    createSession,
 } = require('./common/utils');
 
 describe('Authentication', () => { // eslint-disable-line
@@ -44,14 +44,14 @@ describe('Authentication', () => { // eslint-disable-line
                     username:    'username',
                     password:    'password',
                     workstation: 'workstation',
-                    domain:      'domain'
+                    domain:      'domain',
                 };
             };
 
             const options = {
                 url:                     proxy.openSession('http://127.0.0.1:1506/', session),
                 resolveWithFullResponse: true,
-                json:                    true
+                json:                    true,
             };
 
             return request(options)
@@ -93,14 +93,14 @@ describe('Authentication', () => { // eslint-disable-line
             session.getAuthCredentials = () => {
                 return {
                     username: 'username',
-                    password: 'password'
+                    password: 'password',
                 };
             };
 
             const options = {
                 url: proxy.openSession('http://127.0.0.1:1507/', session),
 
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             return request(options)
@@ -114,14 +114,14 @@ describe('Authentication', () => { // eslint-disable-line
             session.getAuthCredentials = () => {
                 return {
                     username: 'username',
-                    password: 'invalidPassword'
+                    password: 'invalidPassword',
                 };
             };
 
             const options = {
                 url: proxy.openSession('http://127.0.0.1:1507/', session),
 
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             return request(options)
@@ -139,7 +139,7 @@ describe('Authentication', () => { // eslint-disable-line
         it('Should authorize with correct credentials that passed through url', () => {
             const options = {
                 url:                     proxy.openSession('http://username:password@127.0.0.1:1507/', session),
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             return request(options)

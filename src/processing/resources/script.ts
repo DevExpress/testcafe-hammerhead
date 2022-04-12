@@ -14,7 +14,7 @@ class ScriptResourceProcessor extends ResourceProcessorBase {
 
         this.jsCache = new LRUCache({
             max:    50 * 1024 * 1024, // NOTE: Max cache size is 50 MBytes.
-            length: n => n.length // NOTE: 1 char ~ 1 byte.
+            length: n => n.length, // NOTE: 1 char ~ 1 byte.
         });
     }
 

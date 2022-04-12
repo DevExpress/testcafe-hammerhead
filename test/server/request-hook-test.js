@@ -16,8 +16,8 @@ const requestInfoMock = {
     isAjax:  true,
     body:    '{ test: true }',
     headers: {
-        'content-type': 'application/json'
-    }
+        'content-type': 'application/json',
+    },
 };
 
 describe('ResponseMock', () => {
@@ -143,7 +143,7 @@ describe('ResponseMock', () => {
             const reqOptions = {
                 protocol: 'http:',
                 host:     'example.com',
-                path:     '/index.html?param=3'
+                path:     '/index.html?param=3',
             };
 
             mock.setRequestOptions(reqOptions);
@@ -183,7 +183,7 @@ describe('ResponseMock', () => {
         const mock = ResponseMock.from({
             body:       'text',
             statusCode: 200,
-            headers:    { 'header': 'value' }
+            headers:    { 'header': 'value' },
         });
 
         expect(mock).be.instanceOf(ResponseMock);
@@ -245,8 +245,8 @@ describe('RequestFilterRule', () => {
             options: {
                 url:    'http://dummy.com',
                 method: void 0,
-                isAjax: void 0
-            }
+                isAjax: void 0,
+            },
         };
 
         it('.from', () => {
@@ -269,7 +269,7 @@ describe('RequestFilterRule', () => {
             expect(rule5Instance.options).eql({
                 url:    'https://example.com',
                 method: 'post',
-                isAjax: void 0
+                isAjax: void 0,
             });
         });
 
@@ -309,12 +309,12 @@ describe('Request is match rule', async () => {
         it('Object', async () => {
             expect(await isMatchRule({
                 url:    'http://example.com',
-                method: 'Post'
+                method: 'Post',
             })).to.be.true;
 
             expect(await isMatchRule({
                 url:    123,
-                method: 'Post'
+                method: 'Post',
             })).to.be.false;
 
             expect(await isMatchRule({ method: 'get' })).to.be.false;
@@ -324,19 +324,19 @@ describe('Request is match rule', async () => {
             expect(await isMatchRule({
                 url:    'http://example.com',
                 method: 'Post',
-                isAjax: false
+                isAjax: false,
             })).to.be.false;
 
             expect(await isMatchRule({
                 url:    'http://example.com',
                 method: 'Post',
-                isAjax: true
+                isAjax: true,
             })).to.be.true;
 
             expect(await isMatchRule({
                 url:    'http://example.com',
                 method: 'Post',
-                isAjax: 'test'
+                isAjax: 'test',
             })).to.be.false;
         });
 
@@ -385,9 +385,9 @@ describe('ConfigureResponseEvent', () => {
     const contextMock = {
         destRes: {
             headers: {
-                'my-header': 'value'
-            }
-        }
+                'my-header': 'value',
+            },
+        },
     };
 
     it('Remove header', async () => {
@@ -414,7 +414,7 @@ describe('<RequestHookEvent>.from method', () => {
         const requestEventInit = {
             id:                '1',
             requestFilterRule: RequestFilterRule.ANY,
-            _requestInfo:      requestInfoMock
+            _requestInfo:      requestInfoMock,
         };
 
         const requestEvent = RequestEvent.from(requestEventInit);
@@ -429,7 +429,7 @@ describe('<RequestHookEvent>.from method', () => {
         const configureResponseEventInit = {
             id:                '2',
             requestFilterRule: RequestFilterRule.ANY,
-            opts:              ConfigureResponseEventOptions.DEFAULT
+            opts:              ConfigureResponseEventOptions.DEFAULT,
         };
 
         const configureResponseEvent = ConfigureResponseEvent.from(configureResponseEventInit);
@@ -450,7 +450,7 @@ describe('<RequestHookEvent>.from method', () => {
             sessionId:                'sessionId',
             isSameOriginPolicyFailed: false,
             headers:                  { 'header': 'value' },
-            body:                     bodyBuffer
+            body:                     bodyBuffer,
         };
 
         const responseEvent = ResponseEvent.from(responseEventInit);

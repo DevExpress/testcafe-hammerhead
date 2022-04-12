@@ -101,7 +101,7 @@ export default class StyleSandbox extends SandboxBase {
                     value = styleProcessor.process(value, getProxyUrl);
 
                 nativeMethods.styleSetProperty.call(this, dashedProp, value);
-            }
+            },
         });
     }
 
@@ -120,7 +120,7 @@ export default class StyleSandbox extends SandboxBase {
                     value = styleProcessor.process(value, getProxyUrl);
 
                 nativeMethods.styleSetProperty.call(this, dashedProp, value);
-            }
+            },
         });
     }
 
@@ -165,7 +165,7 @@ export default class StyleSandbox extends SandboxBase {
                     target[prop] = value;
 
                     return true;
-                }
+                },
             });
 
             this.nativeMethods.objectDefineProperty(style, CSS_STYLE_PROXY_OBJECT, { value: proxyObject });
@@ -213,7 +213,7 @@ export default class StyleSandbox extends SandboxBase {
                 const processedCss = styleProcessor.process(value, getProxyUrl);
 
                 nativeMethods.htmlElementStyleSetter.call(this, processedCss);
-            } : null
+            } : null,
         });
 
         if (this.FEATURES.css2PropertiesProtoContainsAllProps) {
@@ -247,7 +247,7 @@ export default class StyleSandbox extends SandboxBase {
                     value = styleProcessor.process(value, getProxyUrl);
 
                 nativeMethods.styleCssTextSetter.call(this, value);
-            }
+            },
         });
 
         overrideFunction(window.CSSStyleSheet.prototype, 'insertRule', function (this: CSSStyleSheet, rule, index) {

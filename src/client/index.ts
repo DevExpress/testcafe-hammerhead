@@ -114,15 +114,15 @@ class Hammerhead {
             pageNavigationTriggered: this.pageNavigationWatch.PAGE_NAVIGATION_TRIGGERED_EVENT,
             scriptElementAdded:      this.sandbox.node.element.SCRIPT_ELEMENT_ADDED_EVENT,
             consoleMethCalled:       this.sandbox.console.CONSOLE_METH_CALLED_EVENT,
-            windowOpened:            this.sandbox.childWindow.WINDOW_OPENED_EVENT
+            windowOpened:            this.sandbox.childWindow.WINDOW_OPENED_EVENT,
         };
 
         this.PROCESSING_INSTRUCTIONS = {
             dom: {
                 script:              SCRIPT_PROCESSING_INSTRUCTIONS,
                 internal_attributes: INTERNAL_ATTRIBUTES,
-                internal_props:      INTERNAL_PROPS
-            }
+                internal_props:      INTERNAL_PROPS,
+            },
         };
 
         this.SHADOW_UI_CLASS_NAME = SHADOW_UI_CLASS_NAME;
@@ -152,13 +152,13 @@ class Hammerhead {
             message:               this.sandbox.event.message,
             timers:                this.sandbox.event.timers,
             DataTransfer:          this.sandbox.event.DataTransfer,
-            DragDataStore:         this.sandbox.event.DragDataStore
+            DragDataStore:         this.sandbox.event.DragDataStore,
         };
 
         const processingUtils = {
             script:          scriptProcessingUtils,
             header:          headerProcessingUtils,
-            instrumentation: instrumentationProcessingUtils
+            instrumentation: instrumentationProcessingUtils,
         };
 
         this.utils = {
@@ -179,7 +179,7 @@ class Hammerhead {
             getMimeType:          getMimeType,
             urlResolver:          urlResolver,
             processing:           processingUtils,
-            removeInjectedScript: removeInjectedScript
+            removeInjectedScript: removeInjectedScript,
         };
 
         this.sharedUtils = {
@@ -187,7 +187,7 @@ class Hammerhead {
             url:                 sharedUrlUtils,
             headers:             sharedHeadersUtils,
             stackProcessing:     sharedStackProcessingUtils,
-            selfRemovingScripts: sharedSelfRemovingScripts
+            selfRemovingScripts: sharedSelfRemovingScripts,
         };
 
         this.settings = settings;
@@ -198,7 +198,7 @@ class Hammerhead {
             ShadowUISandbox,
             ElectronSandbox,
             UploadSandbox,
-            ChildWindowSandbox
+            ChildWindowSandbox,
         };
 
         this.sandboxUtils = {
@@ -213,13 +213,13 @@ class Hammerhead {
             StorageWrapper,
             CodeInstrumentation,
             LocationInstrumentation,
-            LocationWrapper
+            LocationWrapper,
         };
 
         this.processors = {
             styleProcessor,
             domProcessor,
-            DomProcessor
+            DomProcessor,
         };
     }
 
@@ -330,7 +330,7 @@ const hammerhead = new Hammerhead();
 // So, we need to define the '%hammerhead%' variable as 'configurable' so that it can be redefined.
 nativeMethods.objectDefineProperty(window, INTERNAL_PROPS.hammerhead, {
     value:        hammerhead,
-    configurable: true
+    configurable: true,
 });
 
 export default hammerhead;

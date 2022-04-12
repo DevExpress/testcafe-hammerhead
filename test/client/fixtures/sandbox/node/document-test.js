@@ -538,7 +538,7 @@ module('document.title', {
     },
     afterEach: function () {
         strictEqual(nativeMethods.documentTitleGetter.call(document), 'Test title', 'check into afterEach hook');
-    }
+    },
 });
 
 test('basic', function () {
@@ -924,7 +924,7 @@ test('an iframe should not contain injected scripts after loading (GH-2622)', fu
     // (allow-same-origin allow-scripts) in our internal iframe processing logic
     return createTestIframe({
         src:     getSameDomainPageUrl('../../../data/iframe/simple-iframe.html'),
-        sandbox: ''
+        sandbox: '',
     })
         .then(function (iframe) {
             var iframeInjectedScripts = nativeMethods.querySelectorAll.call(iframe.contentDocument, '.' + SHADOW_UI_CLASSNAME.script);
@@ -988,8 +988,8 @@ if (document.registerElement) {
     test('should not raise an error if processed element is created via non-overriden way and it is locked (GH-1300)', function () {
         var CustomElementConstructor = document.registerElement('custom-element', {
             prototype: {
-                __proto__: HTMLElement.prototype
-            }
+                __proto__: HTMLElement.prototype,
+            },
         });
         var customElement1           = new CustomElementConstructor();
         var customElement2           = new CustomElementConstructor();
@@ -1057,7 +1057,7 @@ test('should not throw an error if the `children` property is overridden by clie
     Object.defineProperty(Element.prototype, 'children', {
         get: function () {
             throw new Error();
-        }
+        },
     });
 
     var div = document.createElement('div');

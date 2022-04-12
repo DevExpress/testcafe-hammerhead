@@ -18,7 +18,7 @@ export default class ActiveWindowTracker extends SandboxBase {
         try {
             if (this._activeWindow.top && this._activeWindow !== this._activeWindow.top) {
                 this._messageSandbox.sendServiceMsg({
-                    cmd: WINDOW_DEACTIVATED_EVENT
+                    cmd: WINDOW_DEACTIVATED_EVENT,
                 }, this._activeWindow);
             }
         }
@@ -60,7 +60,7 @@ export default class ActiveWindowTracker extends SandboxBase {
         }
         else {
             this._messageSandbox.sendServiceMsg({
-                cmd: WINDOW_ACTIVATED_EVENT
+                cmd: WINDOW_ACTIVATED_EVENT,
             }, this.window.top);
         }
     }

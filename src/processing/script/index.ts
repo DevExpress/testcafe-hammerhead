@@ -26,12 +26,12 @@ const PROCESSED_SCRIPT_RE = new RegExp([
     reEscape(INSTRUCTION.processScript),
     reEscape(INSTRUCTION.processHtml),
     reEscape(INSTRUCTION.getPostMessage),
-    reEscape(INSTRUCTION.getProxyUrl)
+    reEscape(INSTRUCTION.getProxyUrl),
 ].join('|'));
 const PARSING_OPTIONS               = {
     allowReturnOutsideFunction:  true,
     allowImportExportEverywhere: true,
-    ecmaVersion:                 13
+    ecmaVersion:                 13,
 };
 
 // Code pre/post-processing
@@ -92,8 +92,8 @@ function getCode (ast: Node, src: string): string {
         format: {
             quotes:     'double',
             escapeless: true,
-            compact:    true
-        }
+            compact:    true,
+        },
     });
 
     return src ? removeTrailingSemicolon(code, src) : code;

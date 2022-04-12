@@ -29,5 +29,5 @@ export default {
     responseMockSetBodyMethod,
     RequestEvent,
     ConfigureResponseEvent,
-    ResponseEvent
+    ResponseEvent,
 };

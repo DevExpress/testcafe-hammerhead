@@ -12,7 +12,7 @@ import {
     callOnResponseEventCallbackWithoutBodyForNonProcessedResource,
     callResponseEventCallbackForProcessedRequest,
     error,
-    sendRequest
+    sendRequest,
 } from './utils';
 import ConfigureResponseEvent from '../session/events/configure-response-event';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
@@ -179,5 +179,5 @@ export default [
             ctx.res.write(ctx.destResBody);
             ctx.res.end();
         });
-    }
+    },
 ];

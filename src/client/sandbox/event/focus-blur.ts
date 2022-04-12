@@ -21,12 +21,12 @@ const PREVENT_FOCUS_ON_CHANGE = browserUtils.isChrome;
 const eventsMap = {
     bubbles: {
         'focus': 'focusin',
-        'blur':  'focusout'
+        'blur':  'focusout',
     },
     nonBubbles: {
         'focusin':  'focus',
-        'focusout': 'blur'
-    }
+        'focusout': 'blur',
+    },
 };
 
 interface FocusBlurEventOptions {
@@ -108,7 +108,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             if (styleUtils.get(elementParent, 'overflow') === 'hidden') {
                 scrollState.push({
                     element: elementParent,
-                    state:   styleUtils.getElementScroll(elementParent)
+                    state:   styleUtils.getElementScroll(elementParent),
                 });
             }
         }
@@ -154,7 +154,7 @@ export default class FocusBlurSandbox extends SandboxBase {
 
             this._raiseEvent(parentWithTabIndex, 'focus', simulateEvent, {
                 preventScrolling: needPreventScrolling,
-                forMouseEvent:    options.forMouseEvent
+                forMouseEvent:    options.forMouseEvent,
             });
         }
             // NOTE: Some browsers don't change document.activeElement after calling element.blur() if a browser
@@ -330,7 +330,7 @@ export default class FocusBlurSandbox extends SandboxBase {
                 isAsync,
                 forMouseEvent,
                 preventScrolling,
-                relatedTarget:   activeElement
+                relatedTarget:   activeElement,
             };
 
             this._raiseEvent(el, 'focus', () => {
@@ -447,7 +447,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             withoutHandlers,
             isAsync,
             relatedTarget,
-            focusedOnChange
+            focusedOnChange,
         };
 
         this._raiseEvent(el, 'blur', () => {

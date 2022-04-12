@@ -13,7 +13,7 @@ const requestsCache = new LRUCache<string, ResponseCacheEntry>({
         // NOTE: Length is resource content size.
         // 1 character is 1 bite.
         return responseCacheEntry.res.getBody()?.length || 0;
-    }
+    },
 });
 
 function getCacheKey (requestOptions: RequestOptions): string {
@@ -38,8 +38,8 @@ export function create (reqOptions: RequestOptions, res: DestinationResponse): R
         value: {
             cachePolicy,
             res:      IncomingMessageLike.createFrom(res as IncomingMessage),
-            hitCount: 0
-        }
+            hitCount: 0,
+        },
     };
 }
 
@@ -67,7 +67,7 @@ export function getResponse (reqOptions: RequestOptions): ResponseCacheEntryBase
 
     return {
         res,
-        hitCount: cachedResponse.hitCount
+        hitCount: cachedResponse.hitCount,
     };
 }
 

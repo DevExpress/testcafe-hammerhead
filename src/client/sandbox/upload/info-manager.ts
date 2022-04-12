@@ -57,7 +57,7 @@ export default class UploadInfoManager {
     loadFilesInfoFromServer (filePaths: string | string[]) {
         return this._transport.asyncServiceMsg({
             cmd:       COMMAND.getUploadedFiles,
-            filePaths: typeof filePaths === 'string' ? [filePaths] : filePaths
+            filePaths: typeof filePaths === 'string' ? [filePaths] : filePaths,
         } as GetUploadedFilesServiceMessage);
     }
 
@@ -74,7 +74,7 @@ export default class UploadInfoManager {
 
         return {
             errs:     errs,
-            fileList: new FileListWrapper(validFilesInfo)
+            fileList: new FileListWrapper(validFilesInfo),
         };
     }
 
@@ -82,7 +82,7 @@ export default class UploadInfoManager {
         return this._transport.asyncServiceMsg({
             cmd:       COMMAND.uploadFiles,
             data:      UploadInfoManager._getFileListData(fileList),
-            fileNames: fileNames
+            fileNames: fileNames,
         } as StoreUploadedFilesServiceMessage);
     }
 
@@ -137,7 +137,7 @@ export default class UploadInfoManager {
             fileReader.addEventListener('load', (e: ProgressEvent<FileReader>) => {
                 const info: any = {
                     type: file.type,
-                    name: file.name
+                    name: file.name,
                 };
 
                 if (typeof file.lastModified === 'number')
@@ -151,7 +151,7 @@ export default class UploadInfoManager {
                 readedFiles.push({
                     data: dataUrl.substr(dataUrl.indexOf(',') + 1),
                     blob: file.slice(0, file.size),
-                    info
+                    info,
                 });
 
                 if (fileList[++index]) {

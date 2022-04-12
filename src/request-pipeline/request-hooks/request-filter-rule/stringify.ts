@@ -10,7 +10,7 @@ function stringifyObjectOptions (rule: RequestFilterRule) {
     const stringifiedOptions = [
         { name: 'url', value: ruleOptions.url },
         { name: 'method', value: ruleOptions.method },
-        { name: 'isAjax', value: ruleOptions.isAjax }
+        { name: 'isAjax', value: ruleOptions.isAjax },
     ];
 
     const msg = stringifiedOptions.filter(option => !!option.value)

@@ -27,7 +27,7 @@ const enum CONTENT_ENCODING {
 // GH-1915
 const GZIP_DECODING_OPTIONS = {
     flush:       zlib.Z_SYNC_FLUSH,
-    finishFlush: zlib.Z_SYNC_FLUSH
+    finishFlush: zlib.Z_SYNC_FLUSH,
 };
 
 // NOTE: https://github.com/DevExpress/testcafe-hammerhead/issues/2743
@@ -37,8 +37,8 @@ const GZIP_DECODING_OPTIONS = {
 
 const BROTLI_DECODING_OPTIONS = {
     params: {
-        [zlib.constants.BROTLI_PARAM_QUALITY]: 5
-    }
+        [zlib.constants.BROTLI_PARAM_QUALITY]: 5,
+    },
 };
 
 // NOTE: IIS has a bug when it sends 'raw deflate' compressed data for the 'Deflate' Accept-Encoding header.

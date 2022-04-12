@@ -15,7 +15,7 @@ import {
     stringifyResourceType,
     resolveUrlAsDest,
     getDestinationUrl,
-    getScope
+    getScope,
 } from '../../utils/url';
 
 import {
@@ -24,7 +24,7 @@ import {
     isIE,
     isAndroid,
     isMSEdge,
-    version as browserVersion
+    version as browserVersion,
 } from '../../utils/browser';
 
 import {
@@ -42,7 +42,7 @@ import {
     isBodyElement,
     isHtmlElement,
     isTitleElement,
-    getFrameElement
+    getFrameElement,
 } from '../../utils/dom';
 
 import { isPrimitiveType } from '../../utils/types';
@@ -304,7 +304,7 @@ export default class WindowSandbox extends SandboxBase {
                 },
                 setter: function (this: HTMLElement, value) {
                     windowSandbox.nodeSandbox.element.setAttributeCore(this, [attr, value]);
-                }
+                },
             });
         }
     }
@@ -319,7 +319,7 @@ export default class WindowSandbox extends SandboxBase {
                 },
                 setter: function (this: HTMLElement, value) {
                     windowSandbox.nodeSandbox.element.setAttributeCore(this, [attr, value]);
-                }
+                },
             });
         }
     }
@@ -332,7 +332,7 @@ export default class WindowSandbox extends SandboxBase {
             },
             setter: function (this: HTMLElement, value) {
                 setAnchorProperty(this, nativePropSetter, value);
-            }
+            },
         });
     }
 
@@ -348,9 +348,9 @@ export default class WindowSandbox extends SandboxBase {
                 this.listenersSandbox.emit(this.listenersSandbox.EVENT_LISTENER_ATTACHED_EVENT, {
                     el:        window,
                     listener:  handler,
-                    eventType: eventName
+                    eventType: eventName,
                 });
-            }
+            },
         });
     }
 
@@ -575,7 +575,7 @@ export default class WindowSandbox extends SandboxBase {
                         cmd:       SET_BLOB_WORKER_SETTINGS,
                         sessionId: settings.get().sessionId,
                         windowId:  settings.get().windowId,
-                        origin:    destLocation.getOriginHeader()
+                        origin:    destLocation.getOriginHeader(),
                     });
                 }
 
@@ -715,7 +715,7 @@ export default class WindowSandbox extends SandboxBase {
                             currentScope: getScope(url),
                             optsScope:    getScope(opts && opts.scope),
                             protocol:     parsedProxyUrl.destResourceInfo.protocol, // eslint-disable-line no-restricted-properties
-                            host:         parsedProxyUrl.destResourceInfo.host // eslint-disable-line no-restricted-properties
+                            host:         parsedProxyUrl.destResourceInfo.host, // eslint-disable-line no-restricted-properties
                         }, [channel.port1]);
 
                         channel.port2.onmessage = (e) => {
@@ -745,7 +745,7 @@ export default class WindowSandbox extends SandboxBase {
 
                 if (typeof tagString === 'string') {
                     args[0] = processHtml(tagString, {
-                        processedContext: this.startContainer && this.startContainer[INTERNAL_PROPS.processedContext]
+                        processedContext: this.startContainer && this.startContainer[INTERNAL_PROPS.processedContext],
                     });
                 }
 
@@ -900,7 +900,7 @@ export default class WindowSandbox extends SandboxBase {
                             return parsedUrl.destUrl.replace(HTTP_PROTOCOL_RE, 'ws');
 
                         return url;
-                    }
+                    },
                 });
             }
         }
@@ -925,7 +925,7 @@ export default class WindowSandbox extends SandboxBase {
                 }
 
                 return origin;
-            }
+            },
         });
 
         overrideDescriptor(window.HTMLCollection.prototype, 'length', {
@@ -936,7 +936,7 @@ export default class WindowSandbox extends SandboxBase {
                     return windowSandbox.shadowUI.getShadowUICollectionLength(this, length);
 
                 return length;
-            }
+            },
         });
 
         overrideDescriptor(window.NodeList.prototype, 'length', {
@@ -947,7 +947,7 @@ export default class WindowSandbox extends SandboxBase {
                     return windowSandbox.shadowUI.getShadowUICollectionLength(this, length);
 
                 return length;
-            }
+            },
         });
 
         overrideDescriptor(window.Element.prototype, 'childElementCount', {
@@ -960,7 +960,7 @@ export default class WindowSandbox extends SandboxBase {
                 }
 
                 return nativeMethods.elementChildElementCountGetter.call(this);
-            }
+            },
         });
 
         if (nativeMethods.performanceEntryNameGetter) {
@@ -976,7 +976,7 @@ export default class WindowSandbox extends SandboxBase {
                     }
 
                     return name;
-                }
+                },
             });
         }
 
@@ -986,7 +986,7 @@ export default class WindowSandbox extends SandboxBase {
                     return UploadSandbox.getFiles(this);
 
                 return nativeMethods.inputFilesGetter.call(this);
-            }
+            },
         });
 
         overrideDescriptor(window.HTMLInputElement.prototype, 'value', {
@@ -1006,7 +1006,7 @@ export default class WindowSandbox extends SandboxBase {
 
                 if (valueChanged && !isShadowUIElement(this) && isTextEditableElementAndEditingAllowed(this))
                     windowSandbox.elementEditingWatcher.restartWatchingElementEditing(this);
-            }
+            },
         });
 
         // NOTE: HTMLInputElement raises the `change` event on `disabled` only in Chrome
@@ -1025,7 +1025,7 @@ export default class WindowSandbox extends SandboxBase {
                     }
 
                     nativeMethods.inputDisabledSetter.call(this, value);
-                }
+                },
             });
         }
 
@@ -1040,7 +1040,7 @@ export default class WindowSandbox extends SandboxBase {
                     windowSandbox.nodeSandbox.element.setAttributeCore(this, ['required', '']);
                 else
                     windowSandbox.nodeSandbox.element.removeAttributeCore(this, ['required']);
-            }
+            },
         });
 
         overrideDescriptor(window.HTMLTextAreaElement.prototype, 'value', {
@@ -1050,7 +1050,7 @@ export default class WindowSandbox extends SandboxBase {
 
                 if (!isShadowUIElement(this) && isTextEditableElementAndEditingAllowed(this))
                     windowSandbox.elementEditingWatcher.restartWatchingElementEditing(this);
-            }
+            },
         });
 
         this._overrideUrlAttrDescriptors('data', [window.HTMLObjectElement]);
@@ -1063,21 +1063,21 @@ export default class WindowSandbox extends SandboxBase {
             window.HTMLMediaElement,
             window.HTMLInputElement,
             window.HTMLFrameElement,
-            window.HTMLIFrameElement
+            window.HTMLIFrameElement,
         ]);
 
         this._overrideUrlAttrDescriptors('action', [window.HTMLFormElement]);
 
         this._overrideUrlAttrDescriptors('formAction', [
             window.HTMLInputElement,
-            window.HTMLButtonElement
+            window.HTMLButtonElement,
         ]);
 
         this._overrideUrlAttrDescriptors('href', [
             window.HTMLAnchorElement,
             window.HTMLLinkElement,
             window.HTMLAreaElement,
-            window.HTMLBaseElement
+            window.HTMLBaseElement,
         ]);
 
         if (nativeMethods.htmlManifestGetter)
@@ -1087,12 +1087,12 @@ export default class WindowSandbox extends SandboxBase {
             window.HTMLAnchorElement,
             window.HTMLFormElement,
             window.HTMLAreaElement,
-            window.HTMLBaseElement
+            window.HTMLBaseElement,
         ]);
 
         this._overrideAttrDescriptors('formTarget', [
             window.HTMLInputElement,
-            window.HTMLButtonElement
+            window.HTMLButtonElement,
         ]);
 
         this._overrideAttrDescriptors('autocomplete', [window.HTMLInputElement]);
@@ -1113,7 +1113,7 @@ export default class WindowSandbox extends SandboxBase {
             getter: null,
             setter: function (this: HTMLInputElement, value) {
                 windowSandbox.nodeSandbox.element.setAttributeCore(this, ['type', value]);
-            }
+            },
         });
 
         overrideDescriptor(window.HTMLIFrameElement.prototype, 'sandbox', {
@@ -1131,7 +1131,7 @@ export default class WindowSandbox extends SandboxBase {
                     nativeMethods.objectDefineProperty(this, SANDBOX_DOM_TOKEN_LIST_UPDATE_FN, {
                         value: function (value) {
                             span.className = value;
-                        }
+                        },
                     });
                 }
 
@@ -1142,7 +1142,7 @@ export default class WindowSandbox extends SandboxBase {
 
                 if (this[SANDBOX_DOM_TOKEN_LIST_UPDATE_FN])
                     this[SANDBOX_DOM_TOKEN_LIST_UPDATE_FN](windowSandbox.nodeSandbox.element.getAttributeCore(this, ['sandbox']) || '');
-            }
+            },
         });
 
         if (nativeMethods.iframeSrcdocGetter) {
@@ -1152,7 +1152,7 @@ export default class WindowSandbox extends SandboxBase {
                 },
                 setter: function (this: HTMLIFrameElement, value) {
                     windowSandbox.nodeSandbox.element.setAttributeCore(this, ['srcdoc', value]);
-                }
+                },
             });
         }
 
@@ -1170,12 +1170,12 @@ export default class WindowSandbox extends SandboxBase {
                 if (!imageHref[CONTEXT_SVG_IMAGE_ELEMENT]) {
                     nativeMethods.objectDefineProperty(imageHref, CONTEXT_SVG_IMAGE_ELEMENT, {
                         value:        this,
-                        configurable: true
+                        configurable: true,
                     });
                 }
 
                 return imageHref;
-            }
+            },
         });
 
         overrideDescriptor(window.SVGAnimatedString.prototype, 'baseVal', {
@@ -1198,7 +1198,7 @@ export default class WindowSandbox extends SandboxBase {
                 }
 
                 nativeMethods.svgAnimStrBaseValSetter.call(this, value);
-            }
+            },
         });
 
         overrideDescriptor(window.SVGAnimatedString.prototype, 'animVal', {
@@ -1209,28 +1209,28 @@ export default class WindowSandbox extends SandboxBase {
                     return getDestinationUrl(animVal);
 
                 return animVal;
-            }
+            },
         });
 
         if (nativeMethods.anchorOriginGetter) {
             overrideDescriptor(window.HTMLAnchorElement.prototype, 'origin', {
                 getter: function (this: HTMLAnchorElement) {
                     return getAnchorProperty(this, nativeMethods.anchorOriginGetter);
-                }
+                },
             });
         }
 
         overrideDescriptor(window.StyleSheet.prototype, 'href', {
             getter: function () {
                 return getDestinationUrl(nativeMethods.styleSheetHrefGetter.call(this));
-            }
+            },
         });
 
         if (nativeMethods.cssStyleSheetHrefGetter) {
             overrideDescriptor(window.CSSStyleSheet.prototype, 'href', {
                 getter: function () {
                     return getDestinationUrl(nativeMethods.cssStyleSheetHrefGetter.call(this));
-                }
+                },
             });
         }
 
@@ -1238,7 +1238,7 @@ export default class WindowSandbox extends SandboxBase {
             overrideDescriptor(window.Node.prototype, 'baseURI', {
                 getter: function () {
                     return getDestinationUrl(nativeMethods.nodeBaseURIGetter.call(this));
-                }
+                },
             });
         }
 
@@ -1268,7 +1268,7 @@ export default class WindowSandbox extends SandboxBase {
                     return windowSandbox.shadowUI.getFirstChild(this);
 
                 return nativeMethods.nodeFirstChildGetter.call(this);
-            }
+            },
         });
 
         overrideDescriptor(window.Element.prototype, 'firstElementChild', {
@@ -1277,7 +1277,7 @@ export default class WindowSandbox extends SandboxBase {
                     return windowSandbox.shadowUI.getFirstElementChild(this);
 
                 return nativeMethods.elementFirstElementChildGetter.call(this);
-            }
+            },
         });
 
         overrideDescriptor(window.Node.prototype, 'lastChild', {
@@ -1286,7 +1286,7 @@ export default class WindowSandbox extends SandboxBase {
                     return windowSandbox.shadowUI.getLastChild(this);
 
                 return nativeMethods.nodeLastChildGetter.call(this);
-            }
+            },
         });
 
         overrideDescriptor(window.Element.prototype, 'lastElementChild', {
@@ -1295,31 +1295,31 @@ export default class WindowSandbox extends SandboxBase {
                     return windowSandbox.shadowUI.getLastElementChild(this);
 
                 return nativeMethods.elementLastElementChildGetter.call(this);
-            }
+            },
         });
 
         overrideDescriptor(window.Node.prototype, 'nextSibling', {
             getter: function () {
                 return windowSandbox.shadowUI.getNextSibling(this);
-            }
+            },
         });
 
         overrideDescriptor(window.Node.prototype, 'previousSibling', {
             getter: function () {
                 return windowSandbox.shadowUI.getPrevSibling(this);
-            }
+            },
         });
 
         overrideDescriptor(window.Element.prototype, 'nextElementSibling', {
             getter: function () {
                 return windowSandbox.shadowUI.getNextElementSibling(this);
-            }
+            },
         });
 
         overrideDescriptor(window.Element.prototype, 'previousElementSibling', {
             getter: function () {
                 return windowSandbox.shadowUI.getPrevElementSibling(this);
-            }
+            },
         });
 
         overrideDescriptor(window[nativeMethods.elementHTMLPropOwnerName].prototype, 'innerHTML', {
@@ -1357,7 +1357,7 @@ export default class WindowSandbox extends SandboxBase {
                     else {
                         processedValue = processHtml(processedValue, {
                             parentTag:        el.tagName,
-                            processedContext: el[INTERNAL_PROPS.processedContext]
+                            processedContext: el[INTERNAL_PROPS.processedContext],
                         });
                     }
                 }
@@ -1404,7 +1404,7 @@ export default class WindowSandbox extends SandboxBase {
                     if (isHtmlElement(el) || isBodyElement(el))
                         nativeMethods.setTimeout.call(window, () => windowSandbox.nodeMutation.onBodyContentChanged(el), 0);
                 }
-            }
+            },
         });
 
         overrideDescriptor(window[nativeMethods.elementHTMLPropOwnerName].prototype, 'outerHTML', {
@@ -1425,7 +1425,7 @@ export default class WindowSandbox extends SandboxBase {
 
                     nativeMethods.elementOuterHTMLSetter.call(el, processHtml(String(value), {
                         parentTag:        parentEl && parentEl['tagName'],
-                        processedContext: el[INTERNAL_PROPS.processedContext]
+                        processedContext: el[INTERNAL_PROPS.processedContext],
                     }));
 
                     windowSandbox._setSandboxedTextForTitleElements(parentEl);
@@ -1445,7 +1445,7 @@ export default class WindowSandbox extends SandboxBase {
                 }
                 else
                     nativeMethods.elementOuterHTMLSetter.call(el, value);
-            }
+            },
         });
 
         overrideDescriptor(window.HTMLElement.prototype, 'innerText', {
@@ -1469,7 +1469,7 @@ export default class WindowSandbox extends SandboxBase {
                 DOMMutationTracker.onChildrenChanged(this);
 
                 nativeMethods.htmlElementInnerTextSetter.call(this, processedValue);
-            }
+            },
         });
 
         overrideDescriptor(window.HTMLScriptElement.prototype, 'text', {
@@ -1482,7 +1482,7 @@ export default class WindowSandbox extends SandboxBase {
                 const processedValue = value ? processScript(String(value), true, false, convertToProxyUrl) : value;
 
                 nativeMethods.scriptTextSetter.call(this, processedValue);
-            }
+            },
         });
 
         overrideDescriptor(window.HTMLAnchorElement.prototype, 'text', {
@@ -1497,7 +1497,7 @@ export default class WindowSandbox extends SandboxBase {
                 DOMMutationTracker.onChildrenChanged(this);
 
                 nativeMethods.anchorTextSetter.call(this, processedValue);
-            }
+            },
         });
 
         overrideDescriptor(window.Node.prototype, 'textContent', {
@@ -1521,13 +1521,13 @@ export default class WindowSandbox extends SandboxBase {
                 DOMMutationTracker.onChildrenChanged(this);
 
                 nativeMethods.nodeTextContentSetter.call(this, processedValue);
-            }
+            },
         });
 
         overrideDescriptor(window[nativeMethods.elementAttributesPropOwnerName].prototype, 'attributes', {
             getter: function () {
                 return getAttributes(this);
-            }
+            },
         });
 
         overrideFunction(window.DOMTokenList.prototype, 'add', this._createOverriddenDOMTokenListMethod(nativeMethods.tokenListAdd));
@@ -1560,7 +1560,7 @@ export default class WindowSandbox extends SandboxBase {
                     if (tokenListOwner)
                         // eslint-disable-next-line no-restricted-properties
                         windowSandbox.nodeSandbox.element.setAttributeCore(tokenListOwner, ['sandbox', this.value]);
-                }
+                },
             });
         }
 
@@ -1577,7 +1577,7 @@ export default class WindowSandbox extends SandboxBase {
                 const originNextSibling = nativeMethods.mutationRecordNextSiblingGetter.call(this);
 
                 return windowSandbox.shadowUI.getMutationRecordNextSibling(originNextSibling);
-            }
+            },
         });
 
         overrideDescriptor(window.MutationRecord.prototype, 'previousSibling', {
@@ -1585,7 +1585,7 @@ export default class WindowSandbox extends SandboxBase {
                 const originPrevSibling = nativeMethods.mutationRecordPrevSiblingGetter.call(this);
 
                 return windowSandbox.shadowUI.getMutationRecordPrevSibling(originPrevSibling);
-            }
+            },
         });
 
         if (nativeMethods.windowOriginGetter) {
@@ -1616,7 +1616,7 @@ export default class WindowSandbox extends SandboxBase {
 
                 setter: function (this: Window, value) {
                     return nativeMethods.windowOriginSetter.call(this, value);
-                }
+                },
             });
         }
 
@@ -1627,7 +1627,7 @@ export default class WindowSandbox extends SandboxBase {
                 },
                 setter: function (this: HTMLTitleElement, value) {
                     windowSandbox._documentTitleStorageInitializer.storage.setTitleElementPropertyValue(this, value);
-                }
+                },
             });
         }
     }

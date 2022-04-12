@@ -5,7 +5,7 @@ export default class FileListWrapper {
 
     constructor (fileList) {
         nativeMethods.objectDefineProperty(this, 'length', {
-            get: () => fileList.length
+            get: () => fileList.length,
         });
 
         for (let i = 0; i < fileList.length; i++)
@@ -44,7 +44,7 @@ export default class FileListWrapper {
         if (!window.Blob) {
             wrapper = {
                 size: fileInfo.info.size,
-                type: fileInfo.info.type
+                type: fileInfo.info.type,
             };
         }
         else if (fileInfo.blob) {

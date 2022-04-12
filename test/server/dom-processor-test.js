@@ -24,7 +24,7 @@ function process (html, isIframe, replacer) {
             proxyHostname: testProxyHostName,
             proxyPort:     (isCrossDomain ? testCrossDomainPort : testProxyPort).toString(),
             sessionId:     'sessionId',
-            resourceType:  resourceType
+            resourceType:  resourceType,
         });
     });
 
@@ -69,12 +69,12 @@ describe('DOM processor', () => {
             'application/x-ecmascript', 'application/x-javascript', 'application/ecmascript', 'application/javascript',
             'text/x-ecmascript', 'text/ecmascript', 'text/x-javascript', 'text/jsscript', 'text/livescript',
             'text/javascript', 'text/javascript1.0', 'text/javascript1.1', 'text/javascript1.2',
-            'text/javascript1.3', 'text/javascript1.4', 'text/javascript1.5', '   text/javascript1.5   '
+            'text/javascript1.3', 'text/javascript1.4', 'text/javascript1.5', '   text/javascript1.5   ',
         ];
 
         const casesWithIncorrectType = [
             '123', 'aplication/x-ecmascript', 'application/avacript', 'applica/ecmascr', 'test/javacript',
-            'text/javascript2.0', 'text/javascript1.6', 'text/javascript1.7'
+            'text/javascript2.0', 'text/javascript1.6', 'text/javascript1.7',
         ];
 
         const script          = 'location.path = "/path";';
@@ -143,14 +143,14 @@ describe('DOM processor', () => {
             proxyHostname: testProxyHostName,
             proxyPort:     testCrossDomainPort,
             sessionId:     'sessionId',
-            resourceType:  'i'
+            resourceType:  'i',
         });
         const iframeSrc            = domAdapter.getAttr(iframes[1], 'src');
         const proxyUrl             = urlUtils.getProxyUrl('http://example.com/', {
             proxyHostname: testProxyHostName,
             proxyPort:     testProxyPort,
             sessionId:     'sessionId',
-            resourceType:  'i'
+            resourceType:  'i',
         });
 
         expect(crossDomainIframeSrc).eql(crossDomainProxyUrl);
@@ -176,7 +176,7 @@ describe('DOM processor', () => {
                 proxyPort:     testProxyPort,
                 proxyProtocol: 'https:',
                 sessionId:     'sessionId',
-                resourceType
+                resourceType,
             });
         };
 

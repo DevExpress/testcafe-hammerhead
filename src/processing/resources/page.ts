@@ -57,7 +57,7 @@ class PageProcessor extends ResourceProcessorBase {
             stylesheets:          ctx.getInjectableStyles(),
             scripts:              ctx.getInjectableScripts(),
             urlReplacer:          urlReplacer,
-            isIframeWithImageSrc: ctx.contentInfo && ctx.contentInfo.isIframeWithImageSrc
+            isIframeWithImageSrc: ctx.contentInfo && ctx.contentInfo.isIframeWithImageSrc,
         };
     }
 
@@ -68,7 +68,7 @@ class PageProcessor extends ResourceProcessorBase {
             metas.push({
                 httpEquiv: domAdapter.getAttr(metaEls[i], 'http-equiv'),
                 content:   domAdapter.getAttr(metaEls[i], 'content'),
-                charset:   domAdapter.getAttr(metaEls[i], 'charset')
+                charset:   domAdapter.getAttr(metaEls[i], 'charset'),
             });
         }
 
@@ -84,7 +84,7 @@ class PageProcessor extends ResourceProcessorBase {
                     { name: 'rel', value: 'stylesheet' },
                     { name: 'type', value: 'text/css' },
                     { name: 'class', value: SHADOW_UI_CLASSNAME.uiStylesheet },
-                    { name: 'href', value: stylesheetUrl }
+                    { name: 'href', value: stylesheetUrl },
                 ]));
             });
 
@@ -96,7 +96,7 @@ class PageProcessor extends ResourceProcessorBase {
                     { name: 'type', value: 'text/javascript' },
                     { name: 'class', value: SHADOW_UI_CLASSNAME.script },
                     { name: 'charset', value: 'UTF-8' },
-                    { name: 'src', value: scriptUrl }
+                    { name: 'src', value: scriptUrl },
                 ]));
             });
         }
@@ -110,7 +110,7 @@ class PageProcessor extends ResourceProcessorBase {
     private static _getTaskScriptNodeIndex (head: ASTNode, ctx: RequestPipelineContext): number {
         const taskScriptUrls = [
             ctx.resolveInjectableUrl(SERVICE_ROUTES.task),
-            ctx.resolveInjectableUrl(SERVICE_ROUTES.iframeTask)
+            ctx.resolveInjectableUrl(SERVICE_ROUTES.iframeTask),
         ];
 
         return parse5Utils.findNodeIndex(head, node => {
@@ -142,7 +142,7 @@ class PageProcessor extends ResourceProcessorBase {
     private static _addCharsetInfo (head: ASTNode, charset: string): void {
         parse5Utils.unshiftElement(parse5Utils.createElement('meta', [
             { name: 'class', value: SHADOW_UI_CLASSNAME.charset },
-            { name: 'charset', value: charset }
+            { name: 'charset', value: charset },
         ]), head);
     }
 

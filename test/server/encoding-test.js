@@ -27,7 +27,7 @@ describe('Content encoding', () => {
             testConfiguration('deflate', 'utf8'),
             testConfiguration('deflate', 'win1251'),
             testConfiguration(null, 'iso-8859-1'),
-            testConfiguration('br', 'utf8')
+            testConfiguration('br', 'utf8'),
         ]);
     }).timeout(5000);
 

@@ -129,7 +129,7 @@ export default class UploadStorage {
                 result.push({
                     err:           `Cannot find the ${filePath}. None path of these exists: ${nonExistingPaths.join(', ')}.`,
                     path:          filePath,
-                    resolvedPaths: nonExistingPaths
+                    resolvedPaths: nonExistingPaths,
                 });
             }
         }
@@ -156,8 +156,8 @@ export default class UploadStorage {
                         lastModifiedDate: fileStats.mtime,
                         lastModified:     fileStats.mtimeMs,
                         name:             path.basename(resolvedPath),
-                        type:             mime.lookup(resolvedPath)
-                    }
+                        type:             mime.lookup(resolvedPath),
+                    },
                 });
             }
             catch (e) {

@@ -48,14 +48,14 @@ describe('External proxy', () => {
         httpServer  = http.createServer((req, res) => res.end(req.url)).listen(2000);
         httpsServer = https.createServer({
             key:  selfSignedCertificate.key,
-            cert: selfSignedCertificate.cert
+            cert: selfSignedCertificate.cert,
         }, (req, res) => res.end(req.url)).listen(2001);
 
         proxyServer = http
             .createServer((req, res) => {
                 proxyLogs.push({
                     url:  req.url,
-                    auth: req.headers['proxy-authorization']
+                    auth: req.headers['proxy-authorization'],
                 });
 
                 if (proxyServerAuthorizationFail) {
@@ -79,7 +79,7 @@ describe('External proxy', () => {
             .on('connect', (req, clientSocket, head) => {
                 proxyLogs.push({
                     url:  req.url,
-                    auth: req.headers['proxy-authorization']
+                    auth: req.headers['proxy-authorization'],
                 });
 
                 if (proxyServerAuthorizationFail) {
@@ -136,13 +136,13 @@ describe('External proxy', () => {
             port:        '2002',
             proxyAuth:   'admin:admin',
             authHeader:  formatAuthHeader('admin:admin'),
-            bypassRules: ['localhost']
+            bypassRules: ['localhost'],
         });
 
         session.setExternalProxySettings('127.0.0.1');
         expect(session.externalProxySettings).eql({
             host:     '127.0.0.1',
-            hostname: '127.0.0.1'
+            hostname: '127.0.0.1',
         });
 
         session.setExternalProxySettings('login:pass@127.0.0.1');
@@ -150,14 +150,14 @@ describe('External proxy', () => {
             host:       '127.0.0.1',
             hostname:   '127.0.0.1',
             proxyAuth:  'login:pass',
-            authHeader: formatAuthHeader('login:pass')
+            authHeader: formatAuthHeader('login:pass'),
         });
 
         session.setExternalProxySettings('127.0.0.1:1920');
         expect(session.externalProxySettings).eql({
             host:     '127.0.0.1:1920',
             hostname: '127.0.0.1',
-            port:     '1920'
+            port:     '1920',
         });
     });
 
@@ -227,8 +227,8 @@ describe('External proxy', () => {
         request({
             url:     proxyUrl,
             headers: {
-                accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
-            }
+                accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
+            },
         });
     });
 
@@ -244,8 +244,8 @@ describe('External proxy', () => {
         request({
             url:     proxyUrl,
             headers: {
-                accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
-            }
+                accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
+            },
         });
     });
 
@@ -264,8 +264,8 @@ describe('External proxy', () => {
         request({
             url:     proxyUrl,
             headers: {
-                accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
-            }
+                accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
+            },
         });
     });
 
@@ -284,8 +284,8 @@ describe('External proxy', () => {
         request({
             url:     proxyUrl,
             headers: {
-                accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
-            }
+                accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
+            },
         });
     });
 
@@ -303,7 +303,7 @@ describe('External proxy', () => {
                         host:        '127.0.0.1:2002',
                         hostname:    '127.0.0.1',
                         port:        '2002',
-                        bypassRules: ['127.0.0.1:2000']
+                        bypassRules: ['127.0.0.1:2000'],
                     });
                 });
         });
@@ -321,7 +321,7 @@ describe('External proxy', () => {
                         host:        '127.0.0.1:2002',
                         hostname:    '127.0.0.1',
                         port:        '2002',
-                        bypassRules: ['127.0.0.1:2001']
+                        bypassRules: ['127.0.0.1:2001'],
                     });
                 });
         });

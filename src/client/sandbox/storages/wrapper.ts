@@ -41,7 +41,7 @@ class StorageWrapper extends StorageInheritor {
             ctx:          window,
             lastState:    null,
             eventEmitter: new EventEmitter(),
-            nativeStorage, nativeStorageKey
+            nativeStorage, nativeStorageKey,
         });
 
         this.loadStorage();
@@ -76,7 +76,7 @@ class StorageWrapper extends StorageInheritor {
                 target['removeItem'](key);
 
                 return true;
-            }
+            },
         }) as StorageProxy;
     }
 
@@ -215,7 +215,7 @@ for (const method of ourMethods) {
         value:        StorageWrapper.prototype[method],
         configurable: false,
         enumerable:   false,
-        writable:     false
+        writable:     false,
     });
 }
 

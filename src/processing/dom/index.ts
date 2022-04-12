@@ -15,7 +15,7 @@ import {
     parseUrl,
     isSpecialPage,
     isSupportedProtocol,
-    processMetaRefreshContent
+    processMetaRefreshContent,
 } from '../../utils/url';
 import trim from '../../utils/string-trim';
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
@@ -35,7 +35,7 @@ const SVG_XLINK_HREF_TAGS = [
     'animate', 'animateColor', 'animateMotion', 'animateTransform', 'mpath', 'set', //animation elements
     'linearGradient', 'radialGradient', 'stop', //gradient elements
     'a', 'altglyph', 'color-profile', 'cursor', 'feimage', 'filter', 'font-face-uri', 'glyphref', 'image',
-    'mpath', 'pattern', 'script', 'textpath', 'use', 'tref'
+    'mpath', 'pattern', 'script', 'textpath', 'use', 'tref',
 ];
 
 const INTEGRITY_ATTR_TAGS = ['script', 'link'];
@@ -195,68 +195,68 @@ export default class DomProcessor {
                        SVG_XLINK_HREF_TAGS.indexOf(adapter.getTagName(el)) !== -1;
             },
 
-            IS_SVG_ELEMENT_WITH_XML_BASE_ATTR: (el: HTMLElement) => adapter.isSVGElement(el) && adapter.hasAttr(el, 'xml:base')
+            IS_SVG_ELEMENT_WITH_XML_BASE_ATTR: (el: HTMLElement) => adapter.isSVGElement(el) && adapter.hasAttr(el, 'xml:base'),
         };
 
         return [
             {
                 selector:          selectors.HAS_FORMTARGET_ATTR,
                 targetAttr:        'formtarget',
-                elementProcessors: [this._processTargetBlank]
+                elementProcessors: [this._processTargetBlank],
             },
             {
                 selector:          selectors.HAS_HREF_ATTR,
                 urlAttr:           'href',
                 targetAttr:        'target',
-                elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
+                elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr],
             },
             {
                 selector:          selectors.HAS_SRC_ATTR,
                 urlAttr:           'src',
                 targetAttr:        'target',
-                elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
+                elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr],
             },
             {
                 selector:          selectors.HAS_ACTION_ATTR,
                 urlAttr:           'action',
                 targetAttr:        'target',
-                elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
+                elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr],
             },
             {
                 selector:          selectors.HAS_FORMACTION_ATTR,
                 urlAttr:           'formaction',
                 targetAttr:        'formtarget',
-                elementProcessors: [this._processUrlAttrs, this._processUrlJsAttr]
+                elementProcessors: [this._processUrlAttrs, this._processUrlJsAttr],
             },
             {
                 selector:          selectors.HAS_MANIFEST_ATTR,
                 urlAttr:           'manifest',
-                elementProcessors: [this._processUrlAttrs, this._processUrlJsAttr]
+                elementProcessors: [this._processUrlAttrs, this._processUrlJsAttr],
             },
             {
                 selector:          selectors.HAS_DATA_ATTR,
                 urlAttr:           'data',
-                elementProcessors: [this._processUrlAttrs, this._processUrlJsAttr]
+                elementProcessors: [this._processUrlAttrs, this._processUrlJsAttr],
             },
             {
                 selector:          selectors.HAS_SRCDOC_ATTR,
-                elementProcessors: [this._processSrcdocAttr]
+                elementProcessors: [this._processSrcdocAttr],
             },
             {
                 selector:          selectors.HTTP_EQUIV_META,
                 urlAttr:           'content',
-                elementProcessors: [this._processMetaElement]
+                elementProcessors: [this._processMetaElement],
             },
             {
                 selector:          selectors.IS_SCRIPT,
-                elementProcessors: [this._processScriptElement, this._processIntegrityAttr]
+                elementProcessors: [this._processScriptElement, this._processIntegrityAttr],
             },
 
             { selector: selectors.ALL, elementProcessors: [this._processStyleAttr] },
             {
                 selector:          selectors.IS_LINK,
                 relAttr:           'rel',
-                elementProcessors: [this._processIntegrityAttr, this._processRelPrefetch]
+                elementProcessors: [this._processIntegrityAttr, this._processRelPrefetch],
             },
             { selector: selectors.IS_STYLE, elementProcessors: [this._processStylesheetElement] },
             { selector: selectors.IS_INPUT, elementProcessors: [this._processAutoComplete] },
@@ -266,13 +266,13 @@ export default class DomProcessor {
             {
                 selector:          selectors.IS_SVG_ELEMENT_WITH_XLINK_HREF_ATTR,
                 urlAttr:           'xlink:href',
-                elementProcessors: [this._processSVGXLinkHrefAttr, this._processUrlAttrs]
+                elementProcessors: [this._processSVGXLinkHrefAttr, this._processUrlAttrs],
             },
             {
                 selector:          selectors.IS_SVG_ELEMENT_WITH_XML_BASE_ATTR,
                 urlAttr:           'xml:base',
-                elementProcessors: [this._processUrlAttrs]
-            }
+                elementProcessors: [this._processUrlAttrs],
+            },
         ];
     }
 
@@ -304,7 +304,7 @@ export default class DomProcessor {
             isForm:       tagName === 'form' || tagName === 'input' || tagName === 'button',
             isScript:     tagName === 'script',
             isHtmlImport: tagName === 'link' && this._getRelAttribute(el) === 'import',
-            isObject:     tagName === 'object'
+            isObject:     tagName === 'object',
         });
     }
 
@@ -459,7 +459,7 @@ export default class DomProcessor {
             if (attrValue) {
                 this._processJsAttr(el, events[i], {
                     isJsProtocol: DomProcessor.isJsProtocol(attrValue),
-                    isEventAttr:  true
+                    isEventAttr:  true,
                 });
             }
         }

@@ -128,7 +128,7 @@ test('url attributes overridden by descriptor', function () {
         { tagName: 'link', attr: 'href', getter: nativeMethods.linkHrefGetter },
         { tagName: 'form', attr: 'action', getter: nativeMethods.formActionGetter },
         { tagName: 'input', attr: 'formAction', getter: nativeMethods.inputFormActionGetter },
-        { tagName: 'button', attr: 'formAction', getter: nativeMethods.buttonFormActionGetter }
+        { tagName: 'button', attr: 'formAction', getter: nativeMethods.buttonFormActionGetter },
     ];
 
     if (nativeMethods.htmlManifestGetter)
@@ -709,7 +709,7 @@ test('process html', function () {
         { relValue: 'preload', hasRelAttr: true, hasStoredRelAttr: false },
         { relValue: 'prev', hasRelAttr: true, hasStoredRelAttr: false },
         { relValue: 'search', hasRelAttr: true, hasStoredRelAttr: false },
-        { relValue: 'stylesheet', hasRelAttr: true, hasStoredRelAttr: false }
+        { relValue: 'stylesheet', hasRelAttr: true, hasStoredRelAttr: false },
     ];
 
     relAttrCases.forEach(function (relAttrCase) {
@@ -741,7 +741,7 @@ test('setAttribute', function () {
         { relValue: 'preload', nativeGetAttrExpected: 'preload' },
         { relValue: 'prev', nativeGetAttrExpected: 'prev' },
         { relValue: 'search', nativeGetAttrExpected: 'search' },
-        { relValue: 'stylesheet', nativeGetAttrExpected: 'stylesheet' }
+        { relValue: 'stylesheet', nativeGetAttrExpected: 'stylesheet' },
     ];
 
     var link = document.createElement('link');
@@ -802,7 +802,7 @@ test('process html', function () {
         { typeValue: 'file', requiredValue: 'required' },
         { typeValue: 'file', requiredValue: '' },
         { typeValue: 'radio', requiredValue: 'required' },
-        { typeValue: null, requiredValue: '' }
+        { typeValue: null, requiredValue: '' },
     ];
 
     var storedRequiredAttr = DomProcessor.getStoredAttrName('required');
@@ -827,7 +827,7 @@ test('setAttribute', function () {
         { typeValue: 'file', requiredValue: 'required' },
         { typeValue: 'file', requiredValue: '' },
         { typeValue: 'radio', requiredValue: 'required' },
-        { typeValue: null, requiredValue: '' }
+        { typeValue: null, requiredValue: '' },
     ];
 
     var input = document.createElement('input');
@@ -851,7 +851,7 @@ test('hasAttribute, removeAttribute', function () {
         { typeValue: 'file', requiredValue: 'required' },
         { typeValue: 'file', requiredValue: '' },
         { typeValue: 'radio', requiredValue: 'required' },
-        { typeValue: null, requiredValue: '' }
+        { typeValue: null, requiredValue: '' },
     ];
 
     var input = document.createElement('input');
@@ -879,7 +879,7 @@ test('"required" property', function () {
         { typeValue: 'radio', requiredValue: true },
         { typeValue: 'radio', requiredValue: false },
         { typeValue: null, requiredValue: true },
-        { typeValue: null, requiredValue: false }
+        { typeValue: null, requiredValue: false },
     ];
 
     var input              = document.createElement('input');
@@ -950,7 +950,7 @@ test('"type" attribute removed (GH-1645)', function () {
         { typeValue: 'file', requiredValue: 'required' },
         { typeValue: 'file', requiredValue: '' },
         { typeValue: 'radio', requiredValue: 'required' },
-        { typeValue: null, requiredValue: '' }
+        { typeValue: null, requiredValue: '' },
     ];
 
     var storedRequiredAttr = DomProcessor.getStoredAttrName('required');
@@ -1085,7 +1085,7 @@ test('the "Maximum call stack size exceeded" error should not occurs when the se
         sandbox:      document.createElement('iframe'),
         src:          document.createElement('img'),
         target:       document.createElement('a'),
-        style:        document.createElement('span')
+        style:        document.createElement('span'),
     };
 
     if (nativeMethods.htmlManifestGetter)

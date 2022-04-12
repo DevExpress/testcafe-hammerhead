@@ -89,7 +89,7 @@ const proxy = {
 
     onContentInfoBuilt: (ctx: RequestPipelineContext) => {
         proxyLogger('Proxy resource content info %s %i', ctx.requestId, ctx);
-    }
+    },
 };
 
 const serviceMsg = {
@@ -102,7 +102,7 @@ const serviceMsg = {
         const errMsg  = isError ? err : getIncorrectErrorTypeMessage(err);
 
         serviceMsgLogger('Service message %j, error %o', msg, errMsg);
-    }
+    },
 };
 
 const destination = {
@@ -172,7 +172,7 @@ const destination = {
 
     onError: (opts: RequestOptions, err: Error) => {
         destinationLogger('Destination error %s %o', opts.requestId, err);
-    }
+    },
 };
 
 const destinationSocket = {
@@ -185,7 +185,7 @@ const destinationSocket = {
 
     onError: (opts: RequestOptions, err: Error) => {
         destinationSocketLogger('Destination request socket error %s %o', opts.requestId, err);
-    }
+    },
 };
 
 export default { proxy, destination, destinationSocket, serviceMsg };

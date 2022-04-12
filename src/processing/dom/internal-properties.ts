@@ -17,5 +17,5 @@ export default {
     cachedImage:               'hammerhead|image|cached-image',
     sandboxIsReattached:       'hammerhead|sandbox-is-reattached',
     nativeStrRepresentation:   'hammerhead|native-string-representation',
-    currentBaseUrl:            'hammerhead|current-base-url'
+    currentBaseUrl:            'hammerhead|current-base-url',
 };

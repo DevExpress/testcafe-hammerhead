@@ -6,7 +6,7 @@ import {
     StaticContent,
     ServiceMessage,
     ServerInfo,
-    ProxyOptions
+    ProxyOptions,
 } from '../typings/proxy';
 import http, { ServerOptions } from 'http';
 import https from 'https';
@@ -41,7 +41,7 @@ function createServerInfo (hostname: string, port: number, crossDomainPort: numb
         crossDomainPort,
         protocol,
         cacheRequests,
-        domain: `${protocol}//${hostname}:${port}`
+        domain: `${protocol}//${hostname}:${port}`,
     };
 }
 
@@ -129,17 +129,17 @@ export default class Proxy extends Router {
 
         this.GET(SERVICE_ROUTES.hammerhead, {
             contentType: 'application/x-javascript',
-            content:     hammerheadScriptContent
+            content:     hammerheadScriptContent,
         });
 
         this.GET(SERVICE_ROUTES.transportWorker, {
             contentType: 'application/x-javascript',
-            content:     transportWorkerContent
+            content:     transportWorkerContent,
         });
 
         this.GET(SERVICE_ROUTES.workerHammerhead, {
             contentType: 'application/x-javascript',
-            content:     workerHammerheadContent
+            content:     workerHammerheadContent,
         });
 
         this.POST(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onServiceMessage(req, res, serverInfo));
@@ -188,7 +188,7 @@ export default class Proxy extends Router {
                 serverInfo,
                 isIframe,
                 withPayload: true,
-                windowId
+                windowId,
             });
 
             res.end(taskScript);
@@ -242,7 +242,7 @@ export default class Proxy extends Router {
             proxyPort:     this.server1Info.port.toString(),
             proxyProtocol: this.server1Info.protocol,
             sessionId:     session.id,
-            windowId:      session.options.windowId
+            windowId:      session.options.windowId,
         });
     }
 

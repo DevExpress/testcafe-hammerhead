@@ -1148,7 +1148,7 @@ class NativeMethods {
                 log:   win.console.log,
                 warn:  win.console.warn,
                 error: win.console.error,
-                info:  win.console.info
+                info:  win.console.info,
             };
         }
 

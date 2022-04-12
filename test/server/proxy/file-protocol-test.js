@@ -2,11 +2,11 @@ const {
     createSession,
     createProxy,
     getFileProtocolUrl,
-    compareCode
+    compareCode,
 } = require('../common/utils');
 
 const {
-    PAGE_ACCEPT_HEADER
+    PAGE_ACCEPT_HEADER,
 } = require('../common/constants');
 
 const request    = require('request-promise-native');
@@ -37,16 +37,16 @@ describe('file:// protocol', () => {
             cookies:  null,
             storages: {
                 localStorage:   '[["key1"],[" \' \\" \\\\ \\n \\t \\b \\f "]]',
-                sessionStorage: '[["key2"],["value"]]'
-            }
+                sessionStorage: '[["key2"],["value"]]',
+            },
         });
 
         const options = {
             url: proxy.openSession(getFileProtocolUrl('./../data/page/src.html') + '?a=1&b=3', session),
 
             headers: {
-                accept: PAGE_ACCEPT_HEADER
-            }
+                accept: PAGE_ACCEPT_HEADER,
+            },
         };
 
         return request(options)
@@ -67,8 +67,8 @@ describe('file:// protocol', () => {
         const options = {
             url:     proxy.openSession(getFileProtocolUrl('./../data/stylesheet/src.css'), session),
             headers: {
-                accept: 'text/css,*/*;q=0.1'
-            }
+                accept: 'text/css,*/*;q=0.1',
+            },
         };
 
         return request(options)
@@ -88,8 +88,8 @@ describe('file:// protocol', () => {
         const options = {
             url:     proxy.openSession(fileUrl, session),
             headers: {
-                accept: 'text/html,*/*;q=0.1'
-            }
+                accept: 'text/html,*/*;q=0.1',
+            },
         };
 
         return request(options)
@@ -110,8 +110,8 @@ describe('file:// protocol', () => {
             const options = {
                 url:     proxy.openSession(fileUrl, session),
                 headers: {
-                    accept: 'text/html,*/*;q=0.1'
-                }
+                    accept: 'text/html,*/*;q=0.1',
+                },
             };
 
             return request(options)
@@ -130,8 +130,8 @@ describe('file:// protocol', () => {
             url:                     proxy.openSession(getFileProtocolUrl('./../data/images/icons.svg'), session),
             resolveWithFullResponse: true,
             headers:                 {
-                accept: 'image/webp,image/*,*/*;q=0.8'
-            }
+                accept: 'image/webp,image/*,*/*;q=0.8',
+            },
         };
 
         return request(options)
@@ -149,7 +149,7 @@ describe('file:// protocol', () => {
             expect(err).contains([
                 'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
                 '',
-                'The target of the operation is not a file'
+                'The target of the operation is not a file',
             ].join('\n'));
 
             ctx.res.end();
@@ -160,8 +160,8 @@ describe('file:// protocol', () => {
         const options = {
             url:     proxy.openSession(url, session),
             headers: {
-                accept: 'text/html,*/*;q=0.1'
-            }
+                accept: 'text/html,*/*;q=0.1',
+            },
         };
 
         request(options);
@@ -176,7 +176,7 @@ describe('file:// protocol', () => {
             expect(err).contains([
                 'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
                 '',
-                'ENOENT'
+                'ENOENT',
             ].join('\n'));
 
             ctx.res.end();
@@ -187,8 +187,8 @@ describe('file:// protocol', () => {
         const options = {
             url:     proxy.openSession(url, session),
             headers: {
-                accept: 'text/html,*/*;q=0.1'
-            }
+                accept: 'text/html,*/*;q=0.1',
+            },
         };
 
         request(options);
@@ -205,7 +205,7 @@ describe('file:// protocol', () => {
             expect(err).contains([
                 'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
                 '',
-                'Cannot find the "' + fileName + '" file in the "' + archive + '" archive.'
+                'Cannot find the "' + fileName + '" file in the "' + archive + '" archive.',
             ].join('\n'));
 
             ctx.res.end();
@@ -216,8 +216,8 @@ describe('file:// protocol', () => {
         const options = {
             url:     proxy.openSession(url, session),
             headers: {
-                accept: 'text/html,*/*;q=0.1'
-            }
+                accept: 'text/html,*/*;q=0.1',
+            },
         };
 
         request(options);
@@ -232,8 +232,8 @@ describe('file:// protocol', () => {
             url:                     proxy.openSession(fileUrl, session),
             resolveWithFullResponse: true,
             headers:                 {
-                accept: '*/*'
-            }
+                accept: '*/*',
+            },
         };
 
         return request(options)

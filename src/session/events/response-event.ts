@@ -31,7 +31,7 @@ export default class ResponseEvent {
             sessionId,
             isSameOriginPolicyFailed,
             headers,
-            body
+            body,
         } = preparedResponseInfo;
 
         this.requestId                = requestId;
@@ -54,7 +54,7 @@ export default class ResponseEvent {
             sessionId,
             isSameOriginPolicyFailed,
             headers,
-            body
+            body,
         } = data as SerializedResponseEvent;
 
         const responseEvent = new ResponseEvent(requestFilterRule, {
@@ -63,7 +63,7 @@ export default class ResponseEvent {
             sessionId,
             isSameOriginPolicyFailed,
             headers,
-            body
+            body,
         });
 
         responseEvent.id = id;

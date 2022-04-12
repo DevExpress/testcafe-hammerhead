@@ -7,12 +7,12 @@
 export const METHODS = [
     'postMessage',
     'replace',
-    'assign'
+    'assign',
 ];
 
 export const PROPERTIES = [
     'href',
-    'location'
+    'location',
 ];
 
 const INSTRUMENTED_METHOD_RE   = new RegExp(`^(${METHODS.join('|')})$`);

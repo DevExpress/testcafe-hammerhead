@@ -13,7 +13,7 @@ const LISTENED_EVENTS = [
     'MSPointerDown', 'MSPointerMove', 'MSPointerOver', 'MSPointerOut', 'MSPointerUp',
     'touchstart', 'touchmove', 'touchend',
     'keydown', 'keypress', 'keyup',
-    'change', 'focus', 'blur', 'focusin', 'focusout'
+    'change', 'focus', 'blur', 'focusin', 'focusout',
 ];
 
 const EVENT_SANDBOX_DISPATCH_EVENT_FLAG = 'hammerhead|event-sandbox-dispatch-event-flag';
@@ -198,7 +198,7 @@ export default class Listeners extends EventEmitter {
                 listeners.emit(listeners.EVENT_LISTENER_DETACHED_EVENT, { el, listener, eventType });
 
                 return res;
-            }
+            },
         };
     }
 

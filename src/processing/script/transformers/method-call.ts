@@ -42,7 +42,7 @@ const transformer: Transformer<CallExpression> = {
             : createSimpleLiteral((callee.property as Identifier).name); // eslint-disable-line no-extra-parens
 
         return createMethodCallWrapper(callee.object as Expression, method, node.arguments);
-    }
+    },
 };
 
 export default transformer;
