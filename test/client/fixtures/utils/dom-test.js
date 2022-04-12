@@ -1101,7 +1101,7 @@ if (window.HTMLElement.prototype.attachShadow) {
             '   var templateContent = template.content; ' +
             '   this.attachShadow({ mode: \'open\' }).appendChild(templateContent.cloneNode(true)); ' +
             '} ' +
-        '})',
+        '})' // eslint-disable-line comma-dangle
         ));
 
         var custom = document.createElement('custom-test-element');

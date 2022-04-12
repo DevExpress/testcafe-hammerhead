@@ -468,7 +468,7 @@ if (Object.assign) {
                 function () {
                     Object.assign(obj, { bar: 1 }, 'hi', { foo2: 2, foo: 2, foo3: 2 }, { baz: 3 });
                 },
-                /Cannot assign property "foo"/,
+                /Cannot assign property "foo"/ // eslint-disable-line comma-dangle
             );
 
             strictEqual(obj[0], 'h');
@@ -485,14 +485,14 @@ if (Object.assign) {
                 function () {
                     Object.assign(null, { bar: 1 });
                 },
-                TypeError,
+                TypeError // eslint-disable-line comma-dangle
             );
 
             throws(
                 function () {
                     Object.assign(void 0, { bar: 1 });
                 },
-                TypeError,
+                TypeError // eslint-disable-line comma-dangle
             );
         });
 

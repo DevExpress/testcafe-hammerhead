@@ -326,7 +326,7 @@ test('should not throw an error on setting the body.innerHtml when document.body
         '            window.hasError = true;',
         '        }',
         '    <' + '/script>',
-        '</head>',
+        '</head>' // eslint-disable-line comma-dangle
     );
 
     ok(!iframe.contentWindow.hasError);

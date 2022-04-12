@@ -166,37 +166,37 @@ test('location object of iframe with empty src should have properties with corre
                 strictEqual(
                     eval(processScript('iframe.contentDocument.location.protocol')),
                     nativeIframe.contentDocument.location.protocol,
-                    'protocol property in iframe with "' + iframeSrcAttribute + '" src attribute',
+                    'protocol property in iframe with "' + iframeSrcAttribute + '" src attribute' //eslint-disable-line comma-dangle
                 );
                 strictEqual(
                     eval(processScript('iframe.contentDocument.location.port')),
                     nativeIframe.contentDocument.location.port,
-                    'port property in iframe with "' + iframeSrcAttribute + '" src attribute',
+                    'port property in iframe with "' + iframeSrcAttribute + '" src attribute' //eslint-disable-line comma-dangle
                 );
                 strictEqual(
                     eval(processScript('iframe.contentDocument.location.host')),
                     nativeIframe.contentDocument.location.host,
-                    'host property in iframe with "' + iframeSrcAttribute + '" src attribute',
+                    'host property in iframe with "' + iframeSrcAttribute + '" src attribute' //eslint-disable-line comma-dangle
                 );
                 strictEqual(
                     eval(processScript('iframe.contentDocument.location.hostname')),
                     nativeIframe.contentDocument.location.hostname,
-                    'hostname property in iframe with "' + iframeSrcAttribute + '" src attribute',
+                    'hostname property in iframe with "' + iframeSrcAttribute + '" src attribute' //eslint-disable-line comma-dangle
                 );
                 strictEqual(
                     eval(processScript('iframe.contentDocument.location.pathname')),
                     nativeIframe.contentDocument.location.pathname,
-                    'pathname property in iframe with "' + iframeSrcAttribute + '" src attribute',
+                    'pathname property in iframe with "' + iframeSrcAttribute + '" src attribute' //eslint-disable-line comma-dangle
                 );
                 strictEqual(
                     eval(processScript('iframe.contentDocument.location.hash')),
                     nativeIframe.contentDocument.location.hash,
-                    'hash property in iframe with "' + iframeSrcAttribute + '" src attribute',
+                    'hash property in iframe with "' + iframeSrcAttribute + '" src attribute' //eslint-disable-line comma-dangle
                 );
                 strictEqual(
                     eval(processScript('iframe.contentDocument.location.search')),
                     nativeIframe.contentDocument.location.search,
-                    'search property in iframe with "' + iframeSrcAttribute + '" src attribute',
+                    'search property in iframe with "' + iframeSrcAttribute + '" src attribute' //eslint-disable-line comma-dangle
                 );
             });
     }

@@ -640,7 +640,7 @@ test('resolving a url in a tag that is written along with a "base" tag (GH-644)'
         '<html>',
         '<head><script src="scripts/scr.js"><' + '/script></head>',
         '...',
-        '</html>',
+        '</html>' // eslint-disable-line comma-dangle
     );
 
     strictEqual(nativeMethods.scriptSrcGetter.call(iframe.contentDocument.querySelector('script')),
