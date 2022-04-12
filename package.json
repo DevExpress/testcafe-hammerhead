@@ -89,7 +89,7 @@
     "rollup": "^2.38.5",
     "rollup-plugin-typescript2": "^0.29.0",
     "tmp": "0.0.26",
-    "typescript": "3.8.2",
+    "typescript": "^3.3.3",
     "ws": "^7.4.6"
   },
   "main": "lib/index",
