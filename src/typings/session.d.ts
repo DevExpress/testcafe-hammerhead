@@ -1,5 +1,6 @@
 import { ReadStream } from 'fs';
 import { IncomingHttpHeaders } from 'http';
+import { RequestTimeout } from './proxy';
 
 export interface WindowCredentials {
     domain?: string;
@@ -41,5 +42,26 @@ export interface FileStream extends ReadStream {
 export interface RequestEventListenerError {
     error: Error;
     methodName: string;
+}
+
+export interface RequestOptionsSettings {
+    method: string,
+    url: string,
+    protocol: string,
+    hostname: string,
+    host: string,
+    port?: string | void,
+    path: string,
+    auth?: string | void,
+    headers: IncomingHttpHeaders,
+    externalProxySettings?: ExternalProxySettings,
+    credentials: Credentials,
+    body: Buffer,
+    isAjax: boolean,
+    rawHeaders: string[],
+    requestId: string,
+    requestTimeout: RequestTimeout,
+    isWebSocket: boolean,
+    disableHttp2: boolean,
 }
 
