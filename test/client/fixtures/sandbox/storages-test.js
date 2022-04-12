@@ -439,7 +439,7 @@ if (typeof StorageEvent !== 'object') {
             newValue:    'test_value',
             oldValue:    'value',
             url:         'http://example.com',
-            storageArea: localStorage
+            storageArea: localStorage,
         });
 
         strictEqual(event.key, 'test_key');
@@ -456,7 +456,7 @@ test('Storage wrapper should has Storage prototype (GH-955)', function () {
     Object.defineProperty(window.Storage.prototype, 'gh955', {
         get: function () {
             return 'gh955';
-        }
+        },
     });
 
     strictEqual(localStorage['gh955'], 'gh955');

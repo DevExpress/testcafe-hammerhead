@@ -7,7 +7,7 @@ const {
     createDestinationServer,
     getBasicProxyUrl,
     createSession,
-    createProxy
+    createProxy,
 } = require('../common/utils');
 
 const promisifyEvent = require('promisify-event');
@@ -32,15 +32,15 @@ describe('WebSocket', () => {
 
         httpsServer = https.createServer({
             key:  selfSignedCertificate.key,
-            cert: selfSignedCertificate.cert
+            cert: selfSignedCertificate.cert,
         }, () => void 0).listen(2001);
         wsServer    = new WebSocket.Server({
             server: destServer,
-            path:   '/web-socket'
+            path:   '/web-socket',
         });
         wssServer   = new WebSocket.Server({
             server: httpsServer,
-            path:   '/secure-web-socket'
+            path:   '/secure-web-socket',
         });
 
         const wsConnectionHandler = (ws, req) => {

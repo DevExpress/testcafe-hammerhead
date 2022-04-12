@@ -16,7 +16,7 @@ test('calling not function', function () {
     var obj = {
         yo1: 123,
         yo2: null,
-        yo3: 'hey ya'
+        yo3: 'hey ya',
     };
 
     throws(function () {

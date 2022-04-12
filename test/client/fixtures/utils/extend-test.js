@@ -6,11 +6,11 @@ test('simple two objects', function () {
         property2: 'test',
         property3: function () {
             return 1;
-        }
+        },
     };
 
     var obj2 = {
-        property4: '123'
+        property4: '123',
     };
 
     obj1 = extend(obj1, obj2);
@@ -27,7 +27,7 @@ test('several objects', function () {
     var obj3   = {
         property3: function () {
             return 3;
-        }
+        },
     };
     var obj4   = { property4: '4' };
     var result = extend({}, obj1, obj2, obj3, obj4);
@@ -45,13 +45,13 @@ test('deep coping', function () {
             property21: 1,
             property22: {
                 property221: 1,
-                property222: 2
-            }
-        }
+                property222: 2,
+            },
+        },
     };
 
     var obj2 = {
-        property1: 2
+        property1: 2,
     };
 
     var result = extend(obj1, obj2);
@@ -84,11 +84,11 @@ test('target is build-in type', function () {
 
 test('circular dependency', function () {
     var obj1 = {
-        property1: 1
+        property1: 1,
     };
 
     var obj2 = {
-        property2: obj1
+        property2: obj1,
     };
 
     obj1 = extend(obj1, obj2);

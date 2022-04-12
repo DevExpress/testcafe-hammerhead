@@ -7,21 +7,21 @@ test('parse', function () {
     deepEqual(cookieUtil.parse('Test1=Basic; expires=' + validDateStr), {
         key:     'Test1',
         value:   'Basic',
-        expires: validDate
+        expires: validDate,
     });
 
     deepEqual(cookieUtil.parse('Test2=PathMatch; expires=' + validDateStr + '; path=/TestPath'), {
         key:     'Test2',
         value:   'PathMatch',
         expires: validDate,
-        path:    '/TestPath'
+        path:    '/TestPath',
     });
 
     deepEqual(cookieUtil.parse('Test3=DomainMatch; expires=' + validDateStr + '; domain=.dc5f4ce48f6.com'), {
         key:     'Test3',
         value:   'DomainMatch',
         expires: validDate,
-        domain:  'dc5f4ce48f6.com'
+        domain:  'dc5f4ce48f6.com',
     });
 
     deepEqual(cookieUtil.parse('Test4=HttpOnly; expires=' + validDateStr + '; path=/; HttpOnly'), {
@@ -29,7 +29,7 @@ test('parse', function () {
         value:    'HttpOnly',
         expires:  validDate,
         path:     '/',
-        httpOnly: true
+        httpOnly: true,
     });
 
     deepEqual(cookieUtil.parse('Test5=Secure; expires=' + validDateStr + '; path=/; Secure'), {
@@ -37,21 +37,21 @@ test('parse', function () {
         value:   'Secure',
         expires: validDate,
         path:    '/',
-        secure:  true
+        secure:  true,
     });
 
     deepEqual(cookieUtil.parse('Test6=Duplicate; One=More; expires=' + validDateStr + '; path=/'), {
         key:     'Test6',
         value:   'Duplicate',
         expires: validDate,
-        path:    '/'
+        path:    '/',
     });
 
     deepEqual(cookieUtil.parse('Test7=Duplicate; Max-Age=35; path=/'), {
         key:    'Test7',
         value:  'Duplicate',
         maxAge: '35',
-        path:   '/'
+        path:   '/',
     });
 });
 
@@ -60,17 +60,17 @@ test('formatClientString', function () {
         key:     'Test1',
         value:   'Basic',
         expires: validDate,
-        secure:  true
+        secure:  true,
     }), 'Test1=Basic');
 
     strictEqual(cookieUtil.formatClientString({
         key:   '',
-        value: 'Basic'
+        value: 'Basic',
     }), 'Basic');
 
     strictEqual(cookieUtil.formatClientString({
         key:   '',
-        value: ''
+        value: '',
     }), '');
 });
 
@@ -112,7 +112,7 @@ test('setDefaultValues', function () {
         value:   'test',
         domain:  'example.com',
         path:    '/',
-        expires: 'Infinity'
+        expires: 'Infinity',
     });
 
     parsedCookie = { key: 'test', value: 'test' };
@@ -124,7 +124,7 @@ test('setDefaultValues', function () {
         value:   'test',
         domain:  'example.com',
         path:    '/',
-        expires: 'Infinity'
+        expires: 'Infinity',
     });
 
     parsedCookie = { key: 'test', value: 'test' };
@@ -136,7 +136,7 @@ test('setDefaultValues', function () {
         value:   'test',
         domain:  'example.com',
         path:    '/path',
-        expires: 'Infinity'
+        expires: 'Infinity',
     });
 
     parsedCookie = { key: 'test', value: 'test', path: '/path' };
@@ -148,7 +148,7 @@ test('setDefaultValues', function () {
         value:   'test',
         domain:  'example.com',
         path:    '/path',
-        expires: 'Infinity'
+        expires: 'Infinity',
     });
 
     parsedCookie = { key: 'test', value: 'test', path: '123' };
@@ -160,7 +160,7 @@ test('setDefaultValues', function () {
         value:   'test',
         domain:  'example.com',
         path:    '/path',
-        expires: 'Infinity'
+        expires: 'Infinity',
     });
 
     parsedCookie = { key: 'test', value: 'test', domain: 'localhost' };
@@ -172,7 +172,7 @@ test('setDefaultValues', function () {
         value:   'test',
         domain:  'localhost',
         path:    '/path',
-        expires: 'Infinity'
+        expires: 'Infinity',
     });
 
     parsedCookie = { key: 'test', value: 'test', expires: new Date() };
@@ -184,6 +184,6 @@ test('setDefaultValues', function () {
         value:   'test',
         domain:  'example.com',
         path:    '/path',
-        expires: parsedCookie.expires
+        expires: parsedCookie.expires,
     });
 });

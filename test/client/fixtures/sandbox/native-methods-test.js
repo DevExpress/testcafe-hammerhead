@@ -20,7 +20,7 @@ if (nativeMethods.inputValueSetter) {
                 },
                 set: function (value) {
                     return value;
-                }
+                },
             });
 
             el.value = '123';

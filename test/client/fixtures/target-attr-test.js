@@ -189,7 +189,7 @@ test('process html', function () {
         { real: '_self', primary: '_self', resourceType: 'f' },
         { real: '_top', primary: '_top', resourceType: 'f' },
         { real: 'unknown_window', primary: 'unknown_window', resourceType: 'f' },
-        { real: 'window_name', primary: 'window_name', resourceType: 'if' }
+        { real: 'window_name', primary: 'window_name', resourceType: 'if' },
     ];
 
     var form = document.createElement('form');

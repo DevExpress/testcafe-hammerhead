@@ -46,15 +46,15 @@ if (window.fetch) {
     test('pass arguments', function () {
         var data = {
             param1: 'value1',
-            param2: 'value2'
+            param2: 'value2',
         };
 
         return fetch('/echo-request-body', {
             method:  'post',
             body:    JSON.stringify(data),
             headers: {
-                'Content-Type': 'application/json; charset=UTF-8'
-            }
+                'Content-Type': 'application/json; charset=UTF-8',
+            },
         })
             .then(function (response) {
                 return response.json();
@@ -68,35 +68,35 @@ if (window.fetch) {
         var testCases = [
             {
                 args:        [new URL('https://example.com/some-path')],
-                expectedUrl: 'https://example.com/some-path'
+                expectedUrl: 'https://example.com/some-path',
             },
             {
                 args:        [null],
-                expectedUrl: 'https://example.com/null'
+                expectedUrl: 'https://example.com/null',
             },
             {
                 args:        [void 0],
-                expectedUrl: 'https://example.com/undefined'
+                expectedUrl: 'https://example.com/undefined',
             },
             {
                 args:        [{ url: '/some-path' }],
-                expectedUrl: 'https://example.com/[object%20Object]'
+                expectedUrl: 'https://example.com/[object%20Object]',
             },
             {
                 args: [{
                     url:      '/some-path',
                     toString: function () {
                         return this.url;
-                    }
+                    },
                 }],
-                expectedUrl: 'https://example.com/some-path'
-            }
+                expectedUrl: 'https://example.com/some-path',
+            },
         ];
 
         if (browserUtils.isSafari) {
             testCases.push({
                 args:        [],
-                expectedUrl: 'https://example.com/undefined'
+                expectedUrl: 'https://example.com/undefined',
             });
         }
 
@@ -332,7 +332,7 @@ if (window.fetch) {
             var headers = {
                 'content-type':        'text/plain',
                 'Authorization':       'Basic qwerty',
-                'proxy-Authorization': 'Digital abcdifg'
+                'proxy-Authorization': 'Digital abcdifg',
             };
 
             var storedFetch = nativeMethods.fetch;
@@ -404,7 +404,7 @@ if (window.fetch) {
             var checkUrl = function (url) {
                 return Promise.all([
                     performRequest(fetch, url),
-                    performRequest(nativeMethods.fetch, url)
+                    performRequest(nativeMethods.fetch, url),
                 ])
                     .then(function (logs) {
                         strictEqual(logs[0], logs[1]);
@@ -413,7 +413,7 @@ if (window.fetch) {
 
             return Promise.all([
                 checkUrl('/close-request'),
-                checkUrl('/respond-500')
+                checkUrl('/respond-500'),
             ]);
         });
 
@@ -432,8 +432,8 @@ if (window.fetch) {
                 checkArg({
                     toString: function () {
                         return {};
-                    }
-                })
+                    },
+                }),
             ];
 
             // NOTE: Safari processed `fetch()` without `Promise` rejection (GH-1613)
@@ -448,7 +448,7 @@ if (window.fetch) {
 
             window.Promise = {
                 reject: function () {
-                }
+                },
             };
 
             var fetchPromise = fetch();
@@ -466,10 +466,10 @@ if (window.fetch) {
                 return;
 
             var initWithHeader1           = {
-                headers: { header1: 'value1' }
+                headers: { header1: 'value1' },
             };
             var initWithHeader3           = {
-                headers: { header3: 'value3' }
+                headers: { header3: 'value3' },
             };
             var retrieveRequestBodyAsJson = function (fetchPromise) {
                 return fetchPromise
@@ -506,7 +506,7 @@ if (window.fetch) {
                     retrieveRequestBodyAsJson(fetch(request, initWithHeader3)),
                     retrieveRequestBodyAsJson(nativeMethods.fetch.call(window, proxiedUrl, initWithHeader1)),
                     retrieveRequestBodyAsJson(nativeMethods.fetch.call(window, nativeRequest)),
-                    retrieveRequestBodyAsJson(nativeMethods.fetch.call(window, nativeRequest, initWithHeader3))
+                    retrieveRequestBodyAsJson(nativeMethods.fetch.call(window, nativeRequest, initWithHeader3)),
                 ])
                     .then(function (data) {
                         var request1Headers       = data[0];
@@ -565,7 +565,7 @@ if (window.fetch) {
                     return fetch({
                         toString: function () {
                             return {};
-                        }
+                        },
                     });
                 })
                 .catch(function () {
@@ -599,7 +599,7 @@ if (window.fetch) {
             var headersArr = [
                 ['content-type', 'text/xml'],
                 ['breaking-bad', '<3'],
-                ['authorization', '123']
+                ['authorization', '123'],
             ];
 
             return fetch('/echo-request-headers', { method: 'post', headers: headersArr })
@@ -617,8 +617,8 @@ if (window.fetch) {
             var request = new Request('/echo-request-headers', {
                 headers: {
                     'Authorization': '123',
-                    'Content-Type':  'charset=utf-8'
-                }
+                    'Content-Type':  'charset=utf-8',
+                },
             });
 
             return fetch(request, { cache: 'no-cache' })

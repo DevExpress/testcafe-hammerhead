@@ -69,7 +69,7 @@ test('open child window considering base element', function () {
         openedWindowUrl = url;
 
         return {
-            windowId: Date.now()
+            windowId: Date.now(),
         };
     };
 
@@ -122,7 +122,7 @@ test('Should not open in window if the default behavior was prevented', function
         openedWindowUrl = url;
 
         return {
-            windowId: Date.now()
+            windowId: Date.now(),
         };
     };
 
@@ -161,7 +161,7 @@ test('Should not open in window if the default behavior was prevented in parent 
         windowOpenCounter++;
 
         return {
-            windowId: Date.now()
+            windowId: Date.now(),
         };
     };
 

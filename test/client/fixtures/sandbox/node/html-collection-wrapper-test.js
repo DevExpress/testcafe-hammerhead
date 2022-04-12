@@ -38,7 +38,7 @@ module('getElementsByTagName', function () {
             {},
             '',
             function () {
-            }
+            },
         ];
         var result       = null;
         var nativeResult = null;

@@ -390,7 +390,7 @@ test('ie service handlers should be ignored (GH-379)', function () {
     var ieServiceHandlerMock = {
         toString: function () {
             return '[object FunctionWrapper]';
-        }
+        },
     };
 
     var listenerWrapper = Listeners._getEventListenerWrapper({}, ieServiceHandlerMock);

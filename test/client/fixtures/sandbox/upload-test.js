@@ -33,9 +33,9 @@ var files = [
             info: {
                 lastModifiedDate: new Date(Date.now()),
                 name:             'file.txt',
-                type:             'text/plain'
-            }
-        }
+                type:             'text/plain',
+            },
+        },
     },
     {
         paths: ['./folder/file.png', 'folder/file.png'],
@@ -44,10 +44,10 @@ var files = [
             info: {
                 lastModifiedDate: new Date(Date.now()),
                 name:             'file.png',
-                type:             'image/png'
-            }
-        }
-    }
+                type:             'image/png',
+            },
+        },
+    },
 ];
 
 var storedAsyncServiceMsg = transport.asyncServiceMsg;
@@ -86,7 +86,7 @@ function uploadFiles (data, filePaths) {
         else {
             result.push({
                 paths: [filePaths[i]],
-                file:  data[i]
+                file:  data[i],
             });
         }
     }
@@ -142,7 +142,7 @@ function getInputMock (fileNames) {
         type:          'file',
         nodeName:      'input',
         dispatchEvent: function () {
-        }
+        },
     };
 
     inputMock[INTERNAL_PROPS.processedContext] = window;
@@ -157,7 +157,7 @@ function getFiles (filesInfo) {
         result.push({
             base64: filesInfo[i].data,
             type:   filesInfo[i].info.type,
-            name:   filesInfo[i].info.name
+            name:   filesInfo[i].info.name,
         });
     }
 
@@ -186,7 +186,7 @@ test('hidden input should not affect both the length/count value and the element
             'for (var el of ' + iterableObjString + ') {',
             '    strictEqual(el, expectedElements[index]);',
             '    index++;',
-            '}'
+            '}',
         ].join('\n');
     }
 
@@ -230,12 +230,12 @@ test('get/set upload info', function () {
     var form                 = fileInputWithForm.parentNode;
 
     hiddenInfo.setFormInfo(fileInputWithoutForm, [
-        { fileProperties: 'value' }
+        { fileProperties: 'value' },
     ]);
 
     hiddenInfo.setFormInfo(fileInputWithForm, [
         { otherFileProperties1: 'otherValue1' },
-        { otherFileProperties2: 'otherValue2' }
+        { otherFileProperties2: 'otherValue2' },
     ]);
 
     var uploadInfoWithoutForm = hiddenInfo.getFormInfo(fileInputWithoutForm);
@@ -247,7 +247,7 @@ test('get/set upload info', function () {
     strictEqual(uploadInfoWithForm[1].otherFileProperties2, 'otherValue2');
 
     hiddenInfo.setFormInfo($('<input type="file">').appendTo(form)[0], [
-        { otherFileProperties3: 'otherValue3' }
+        { otherFileProperties3: 'otherValue3' },
     ]);
 
     uploadInfoWithForm = hiddenInfo.getFormInfo(fileInputWithForm);
@@ -264,7 +264,7 @@ test('add/remove input info', function () {
         '<form>',
         '    <input type="file" name="test1" id="id1">',
         '    <input type="file" name="test2" id="id2">',
-        '</form>'
+        '</form>',
     ].join(''));
 
     var fileInput1 = form.children()[0];
@@ -367,7 +367,7 @@ test('set/clear info', function () {
         '<form>',
         '    <input type="file" name="test1" id="id1">',
         '    <input type="file" name="test2" id="id2">',
-        '</form>'
+        '</form>',
     ].join(''));
 
     var fileInput1    = form.children()[0];
@@ -934,7 +934,7 @@ test('Should not prevent native upload dialog in the record mode (GH-2168)', fun
     var uploadSand = new UploadSandbox({
         addInternalEventBeforeListener: function (el, events) {
             strictEqual(events.indexOf('click'), -1);
-        }
+        },
     });
 
     settings.get().isRecordMode = true;

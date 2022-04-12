@@ -55,7 +55,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
             'Test8=Expired; expires=Wed, 13-Jan-1977 22:23:01 GMT; path=/',
             'Test9=Duplicate; One=More; expires=' + validDateStr + '; path=/',
             'Test10=' + new Array(350).join('(big cookie)'),
-            'value without key'
+            'value without key',
         ], 'Test1=Basic; Test2=PathMatch; Test4=DomainMatch; Test7=Secure; Test9=Duplicate; value without key');
 
         testCookies('http://localhost', [
@@ -79,7 +79,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
             'Test6=DomainNotMatch; domain=123',
             'Test7=DomainNotMatch; domain=sub.example',
             'Test8=DomainNotMatch; domain=example.co',
-            'Test9=DomainNotMatch; domain=b.example.com'
+            'Test9=DomainNotMatch; domain=b.example.com',
         ], 'Test1=DomainMatch; Test2=DomainMatch; Test3=DomainMatch; Test4=DomainMatch; Test5=DomainMatch');
 
         destLocation.forceLocation(storedForcedLocation);
@@ -345,7 +345,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
         return Promise.all([
             createTestIframe({ src: crossDomainSrc }),
             createTestIframe({ src: sameDomainSrc }),
-            createTestIframe({ src: crossDomainSrc })
+            createTestIframe({ src: crossDomainSrc }),
         ])
             .then(function (frames) {
                 iframes = frames;
@@ -358,7 +358,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
 
                 return Promise.all([
                     checkCrossDomainIframeCookie(iframes[0], ''),
-                    checkCrossDomainIframeCookie(iframes[2], '')
+                    checkCrossDomainIframeCookie(iframes[2], ''),
                 ]);
             })
             .then(function () {
@@ -374,7 +374,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
             .then(function () {
                 return Promise.all([
                     checkCrossDomainIframeCookie(iframes[0], expectedCookies),
-                    checkCrossDomainIframeCookie(iframes[2], expectedCookies)
+                    checkCrossDomainIframeCookie(iframes[2], expectedCookies),
                 ]);
             })
             .then(function () {
@@ -389,7 +389,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
 
                 return Promise.all([
                     checkCrossDomainIframeCookie(iframes[0], 'test=123; set=cookie'),
-                    checkCrossDomainIframeCookie(iframes[2], 'test=123; set=cookie')
+                    checkCrossDomainIframeCookie(iframes[2], 'test=123; set=cookie'),
                 ]);
             })
             .then(function () {
@@ -412,7 +412,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
 
                 return Promise.all([
                     checkCrossDomainIframeCookie(iframes[0], 'test=123; set=cookie; client=cookie'),
-                    checkCrossDomainIframeCookie(iframes[2], 'test=123; set=cookie; client=cookie')
+                    checkCrossDomainIframeCookie(iframes[2], 'test=123; set=cookie; client=cookie'),
                 ]);
             });
     });
@@ -448,7 +448,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
                     's|sessionId|cookie1|example.com|%2F||1fckm5lnl=outdated;path=/',
                     's|sessionId|cookie1|example.com|%2F||1fckm5lnz=server;path=/',
                     'w|sessionId|cookie2|example.com|%2F||1fckm5lnl=remove;path=/',
-                    'cw|sessionId|cookie3|example.com|%2F||1fckm5lnl=stay client;path=/'
+                    'cw|sessionId|cookie3|example.com|%2F||1fckm5lnl=stay client;path=/',
                 ];
 
                 for (var i = 0; i < syncCookies.length; i++)
@@ -462,7 +462,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
                     'cw|sessionId|cookie3|example.com|%2F||1fckm5lnl=stay client',
                     's|sessionId|cookie1|example.com|%2F||1fckm5lnl=outdated',
                     's|sessionId|cookie1|example.com|%2F||1fckm5lnz=server',
-                    'w|sessionId|cookie2|example.com|%2F||1fckm5lnl=remove'
+                    'w|sessionId|cookie2|example.com|%2F||1fckm5lnl=remove',
                 ]);
 
                 unloadSandbox.emit(iframeUnloadSandbox.UNLOAD_EVENT);
@@ -547,7 +547,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
 
         urlUtils.overrideParseProxyUrl(function (url) {
             return {
-                destResourceInfo: urlUtils.parseUrl(url)
+                destResourceInfo: urlUtils.parseUrl(url),
             };
         });
 
@@ -572,7 +572,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
 
         urlUtils.overrideParseProxyUrl(function (url) {
             return {
-                destResourceInfo: urlUtils.parseUrl(url)
+                destResourceInfo: urlUtils.parseUrl(url),
             };
         });
 

@@ -19,7 +19,7 @@ function getProxyUrl (url, resourceType, protocol, windowId) {
         sessionId:     'sessionId',
         resourceType:  resourceType,
         proxyProtocol: protocol || 'http:',
-        windowId:      windowId
+        windowId:      windowId,
     });
 }
 
@@ -65,14 +65,14 @@ test('formatUrl', function () {
     strictEqual(urlUtils.formatUrl({
         hostname: 'localhost',
         port:     '1400',
-        protocol: 'http:'
+        protocol: 'http:',
     }), 'http://localhost:1400');
 
     var parsedUrl = {
         hostname: 'localhost',
         port:     '1400',
         protocol: 'http:',
-        auth:     'test:test'
+        auth:     'test:test',
     };
 
     strictEqual(urlUtils.formatUrl(parsedUrl), 'http://test:test@localhost:1400');
@@ -82,7 +82,7 @@ test('formatUrl', function () {
         port:          '1400',
         protocol:      'http:',
         auth:          'test',
-        partAfterHost: '/path'
+        partAfterHost: '/path',
     };
     strictEqual(urlUtils.formatUrl(parsedUrl), 'http://test@localhost:1400/path');
 });
@@ -234,7 +234,7 @@ test('contains successive question marks in query', function () {
     var proxyUrl = urlUtils.getProxyUrl(destUrl, {
         proxyHostname: '127.0.0.1',
         proxyPort:     PROXY_PORT,
-        sessionId:     'sessionId'
+        sessionId:     'sessionId',
     });
 
     strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + destUrl);
@@ -260,7 +260,7 @@ test('remove unnecessary slashes form the begin of the url', function () {
         proxyHostname: 'localhost',
         proxyPort:     '5555',
         sessionId:     'sessionId',
-        resourceType:  'resourceType'
+        resourceType:  'resourceType',
     });
 
     strictEqual(proxy, 'http://localhost:5555/sessionId!resourceType/https://example.com');
@@ -310,7 +310,7 @@ test('convert a charset to lower case (GH-752)', function () {
         sessionId:     'sessionId',
         charset:       'UTF-8',
         proxyHostname: 'localhost',
-        proxyPort:     '5555'
+        proxyPort:     '5555',
     };
 
     strictEqual(sharedUrlUtils.getProxyUrl(url, opts), 'http://localhost:5555/sessionId!utf-8/' + url);
@@ -431,7 +431,7 @@ test('single question mark', function () {
     var proxyUtrl = urlUtils.getProxyUrl(url, {
         proxyHostname: 'hostname',
         proxyPort:     1111,
-        sessionId:     'sessionId'
+        sessionId:     'sessionId',
     });
 
     strictEqual(url, urlUtils.formatUrl(urlUtils.parseProxyUrl(proxyUtrl).destResourceInfo));
@@ -515,7 +515,7 @@ test('location.port must return the empty string (T262593)', function () {
     eval(processScript([
         // NOTE: From att.com, iframesrc === https://att.com:null/?IFRAME.
         'var port = (document.location.port == "") ? "" : (":" + document.location.port);',
-        'var iframesrc = document.location.protocol + "//" + document.location.hostname + port + "/" + "?IFRAME";'
+        'var iframesrc = document.location.protocol + "//" + document.location.hostname + port + "/" + "?IFRAME";',
     ].join('\n')));
 
     // eslint-disable-next-line no-undef
@@ -609,7 +609,7 @@ test('resolving url after writing the "base" tag (GH-526)', function () {
                 proxyHostname: location.hostname,
                 proxyPort:     location.port,
                 sessionId:     'sessionId',
-                resourceType:  'i'
+                resourceType:  'i',
             });
 
             strictEqual(nativeMethods.anchorHrefGetter.call(anchor), proxyUrl);
@@ -640,7 +640,7 @@ test('resolving a url in a tag that is written along with a "base" tag (GH-644)'
         '<html>',
         '<head><script src="scripts/scr.js"><' + '/script></head>',
         '...',
-        '</html>'
+        '</html>',
     );
 
     strictEqual(nativeMethods.scriptSrcGetter.call(iframe.contentDocument.querySelector('script')),

@@ -42,7 +42,7 @@ test('Set and get selection on input with "email" type', function () {
     var testSelection = {
         start:     2,
         end:       9,
-        direction: 'backward'
+        direction: 'backward',
     };
 
     input.setSelectionRange(testSelection.start, testSelection.end, testSelection.direction);
@@ -88,7 +88,7 @@ test('Focus should stay on input with "number" type after setting selection', fu
     var testSelection = {
         start:     2,
         end:       5,
-        direction: 'backward'
+        direction: 'backward',
     };
 
     input.focus();

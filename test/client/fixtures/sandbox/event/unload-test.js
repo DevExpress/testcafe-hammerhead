@@ -84,7 +84,7 @@ if (!browserUtils.isSafari) {
                 postMessage(iframe.contentWindow, [{
                     cmd:         'reload',
                     returnValue: 'Message',
-                    realReturn:  'return event object'
+                    realReturn:  'return event object',
                 }, '*']);
 
                 return waitForMessage(window);

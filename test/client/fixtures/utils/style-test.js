@@ -29,7 +29,7 @@ test('getBordersWidth (border-top-width)', function () {
 
         return {
             defaultValue: defaultValue,
-            mediumValue:  mediumValue
+            mediumValue:  mediumValue,
         };
     }
 

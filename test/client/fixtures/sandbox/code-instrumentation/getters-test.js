@@ -221,24 +221,24 @@ test('should not create proxy url for invalid url (GH-778)', function () {
     var testCases = [
         {
             value:     '//',
-            skipForIE: false
+            skipForIE: false,
         },
         {
             value:     '//:0',
-            skipForIE: false
+            skipForIE: false,
         },
         {
             value:     '//:0/',
-            skipForIE: false
+            skipForIE: false,
         },
         {
             value:     'http://test:0',
-            skipForIE: false
+            skipForIE: false,
         },
         {
             value:     'http://test:123456789',
-            skipForIE: true
-        }
+            skipForIE: true,
+        },
     ];
 
     var storedBaseUrl = urlResolver.getBaseUrl(document);
