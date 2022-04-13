@@ -49,7 +49,7 @@ const transformer: Transformer<AssignmentExpression> = {
             assignments.push(firstTemp);
 
         return createSequenceExpression(assignments);
-    }
+    },
 };
 
 export default transformer;

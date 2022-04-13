@@ -15,33 +15,33 @@ const COMPOSED_EVENTS = [
     'beforeinput',
     'input',
     'keydown',
-    'keyup'
+    'keyup',
 ];
 
 export const BUTTON = {
     left:   0,
     middle: 1,
-    right:  2
+    right:  2,
 };
 
 export const BUTTONS_PARAMETER = {
     noButton:    0,
     leftButton:  1,
-    rightButton: 2
+    rightButton: 2,
 };
 
 export const WHICH_PARAMETER = {
     noButton:     0,
     leftButton:   1,
     middleButton: 2,
-    rightButton:  3
+    rightButton:  3,
 };
 
 export const KEYBOARD_MODIFIERS_PARAMETER = {
     altKey:   'Alt',
     ctrlKey:  'Control',
     shiftKey: 'Shift',
-    metaKey:  'Meta'
+    metaKey:  'Meta',
 };
 
 export const DOM_EVENTS = [
@@ -54,7 +54,7 @@ export const DOM_EVENTS = [
     'MSPointerDown', 'MSPointerMove', 'MSPointerOver', 'MSPointerOut', 'MSPointerUp',
     'pointerdown', 'pointermove', 'pointerover', 'pointerout', 'pointerup', 'pointerenter', 'pointerleave',
     'dragstart', 'drop',
-    'focusin', 'focusout'
+    'focusin', 'focusout',
 ];
 
 export function preventDefault (ev, allowBubbling?: boolean) {

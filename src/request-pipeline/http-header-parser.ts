@@ -43,7 +43,7 @@ function getInvalidCharacters (name: string, body: string): InvalidCharactersRec
                 name:     name,
                 location: HEADER_INVALID_CHAR_LOCATIONS.name,
                 charCode: '' + name[i].charCodeAt(0),
-                index:    i.toString()
+                index:    i.toString(),
             });
         }
     }
@@ -54,7 +54,7 @@ function getInvalidCharacters (name: string, body: string): InvalidCharactersRec
                 name:     name,
                 location: HEADER_INVALID_CHAR_LOCATIONS.body,
                 charCode: '' + body[i].charCodeAt(0),
-                index:    i.toString()
+                index:    i.toString(),
             });
         }
     }

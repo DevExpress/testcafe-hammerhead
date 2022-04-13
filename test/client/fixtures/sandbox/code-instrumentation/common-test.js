@@ -20,7 +20,7 @@ if (nativeMethods.Proxy) {
             '        "use strict";',
             '        return eval(arguments[0]);',
             '    };',
-            '}'
+            '}',
         ];
 
         // eslint-disable-next-line no-new-func
@@ -35,7 +35,7 @@ if (nativeMethods.Proxy) {
             },
             has: function (target, name) {
                 return name === 'eval' || name in target;
-            }
+            },
         });
 
         evalFactory(proxy)('strictEqual(data.a, 777);');

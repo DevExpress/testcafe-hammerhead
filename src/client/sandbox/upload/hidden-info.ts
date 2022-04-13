@@ -48,7 +48,7 @@ export function addInputInfo (input, fileList, value) {
             files.push({
                 name: file.name,
                 type: file.type,
-                data: file.base64
+                data: file.base64,
             });
         }
 
@@ -57,7 +57,7 @@ export function addInputInfo (input, fileList, value) {
             id:    input.id,
             name:  input.name,
             files: files,
-            value: value
+            value: value,
         };
 
         if (inputInfoIndex === -1)

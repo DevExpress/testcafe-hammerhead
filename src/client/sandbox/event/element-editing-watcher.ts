@@ -3,7 +3,7 @@ import {
     isTextEditableElementAndEditingAllowed,
     isShadowUIElement,
     isInputElement,
-    isTextAreaElement
+    isTextAreaElement,
 } from '../../utils/dom';
 import EventSimulator from './simulator';
 
@@ -54,7 +54,7 @@ export default class ElementEditingWatcher {
 
         nativeMethods.objectDefineProperties(el, {
             [EDITING_OBSERVED_FLAG]:   { value: true, configurable: true, writable: true },
-            [PREVIOUS_VALUE_PROPERTY]: { value: ElementEditingWatcher._getValue(el), configurable: true, writable: true }
+            [PREVIOUS_VALUE_PROPERTY]: { value: ElementEditingWatcher._getValue(el), configurable: true, writable: true },
         });
 
         nativeMethods.addEventListener.call(el, 'blur', this._onBlur);

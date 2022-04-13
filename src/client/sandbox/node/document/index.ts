@@ -184,7 +184,7 @@ export default class DocumentSandbox extends SandboxBase {
 
             writeln: function () {
                 return documentSandbox._performDocumentWrite(this, arguments, true);
-            }
+            },
         };
 
         overrideFunction(window[nativeMethods.documentOpenPropOwnerName].prototype, 'open', overriddenMethods.open);
@@ -235,7 +235,7 @@ export default class DocumentSandbox extends SandboxBase {
             overrideDescriptor(docPrototype, 'documentURI', {
                 getter: function () {
                     return getDestinationUrl(nativeMethods.documentDocumentURIGetter.call(this));
-                }
+                },
             });
         }
 
@@ -247,7 +247,7 @@ export default class DocumentSandbox extends SandboxBase {
                     return getReferrer();
 
                 return isSpecialPage(referrer) ? '' : referrer;
-            }
+            },
         });
 
         DocumentSandbox._definePropertyDescriptor(docPrototype, htmlDocPrototype, 'referrer', referrerOverriddenDescriptor);
@@ -256,7 +256,7 @@ export default class DocumentSandbox extends SandboxBase {
             getter: function () {
                 // eslint-disable-next-line no-restricted-properties
                 return LocationAccessorsInstrumentation.getLocationWrapper(this).href;
-            }
+            },
         });
 
         DocumentSandbox._definePropertyDescriptor(docPrototype, htmlDocPrototype, 'URL', urlOverriddenDescriptor);
@@ -272,7 +272,7 @@ export default class DocumentSandbox extends SandboxBase {
             },
             setter: value => {
                 storedDomain = value;
-            }
+            },
         });
 
         DocumentSandbox._definePropertyDescriptor(domainPropertyOwner, htmlDocPrototype, 'domain', domainOverriddenDescriptor);
@@ -282,14 +282,14 @@ export default class DocumentSandbox extends SandboxBase {
                 const styleSheets = nativeMethods.documentStyleSheetsGetter.call(this);
 
                 return documentSandbox._shadowUI._filterStyleSheetList(styleSheets, styleSheets.length);
-            }
+            },
         });
 
         const documentCookiePropOwnerPrototype = window[nativeMethods.documentCookiePropOwnerName].prototype;
 
         overrideDescriptor(documentCookiePropOwnerPrototype, 'cookie', {
             getter: () => documentSandbox._cookieSandbox.getCookie(),
-            setter: value => documentSandbox._cookieSandbox.setCookie(String(value))
+            setter: value => documentSandbox._cookieSandbox.setCookie(String(value)),
         });
 
         overrideDescriptor(docPrototype, 'activeElement', {
@@ -300,7 +300,7 @@ export default class DocumentSandbox extends SandboxBase {
                     return documentSandbox._shadowUI.getLastActiveElement() || this.body;
 
                 return activeElement;
-            }
+            },
         });
 
         if (this._documentTitleStorageInitializer && !partialInitializationForNotLoadedIframe) {
@@ -310,7 +310,7 @@ export default class DocumentSandbox extends SandboxBase {
                 } ,
                 setter: function (value) {
                     documentSandbox._documentTitleStorageInitializer.storage.setTitle(value);
-                }
+                },
             });
         }
     }

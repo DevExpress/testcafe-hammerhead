@@ -32,7 +32,7 @@ export default class IncomingMessageLike extends Readable {
             headers:    Object.assign({}, init.headers),
             trailers:   Object.assign({}, init.trailers),
             statusCode: init.statusCode || DEFAULT_STATUS_CODE,
-            body:       init.body || Buffer.alloc(0)
+            body:       init.body || Buffer.alloc(0),
         }
     }
 
@@ -67,7 +67,7 @@ export default class IncomingMessageLike extends Readable {
         return new IncomingMessageLike({
             headers,
             trailers,
-            statusCode
+            statusCode,
         });
     }
 

@@ -18,5 +18,5 @@ export default {
     arrayFrom:      '__arrayFrom$',
     restObject:     '__rest$Object',
 
-    swScopeHeaderValue: '__swScopeHeaderValue'
+    swScopeHeaderValue: '__swScopeHeaderValue',
 };

@@ -35,7 +35,7 @@ test('should not raise an error for a cross-domain iframe (GH-669)', function ()
         .then(function () {
             return createTestIframe({
                 src:  getSameDomainPageUrl(src),
-                name: 'same_domain_iframe'
+                name: 'same_domain_iframe',
             });
         })
         .then(function () {

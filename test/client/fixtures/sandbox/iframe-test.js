@@ -24,7 +24,7 @@ test('should not miss the Hammerhead instance after the iframe.contentDocument.c
 
     return Promise.all([
         createTestIframe(),
-        createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/simple-iframe.html') })
+        createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/simple-iframe.html') }),
     ])
         .then(function (iframes) {
             var iframeWithoutSrc = iframes[0];
@@ -573,7 +573,7 @@ if (!browserUtils.isFirefox) {
                 var testedSandboxes = [
                     iframeHammerhead.shadowUI._iframeSandbox,
                     iframeHammerhead.shadowUI._nodeMutation,
-                    iframeHammerhead.sandbox.codeInstrumentation._locationAccessorsInstrumentation
+                    iframeHammerhead.sandbox.codeInstrumentation._locationAccessorsInstrumentation,
                 ];
 
                 testedSandboxes.forEach(function (sandbox) {
@@ -604,15 +604,15 @@ test('hammerhead should not use overridden contentWindow, contentDocument getter
                         ok('false', 'contentWindow');
                     },
                     enumerable:   true,
-                    configurable: true
+                    configurable: true,
                 },
                 contentDocument: {
                     get: function () { /* eslint-disable-line getter-return */
                         ok('false', 'contentDocument');
                     },
                     enumerable:   true,
-                    configurable: true
-                }
+                    configurable: true,
+                },
             });
 
             ok(domUtils.isIframeWithoutSrc(iframe));

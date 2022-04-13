@@ -14,7 +14,7 @@ const KEY_VALUE_REGEX                       = /(?:^([^=]+)=([\s\S]*))?/;
 export const SYNCHRONIZATION_TYPE = {
     server: 's',
     client: 'c',
-    window: 'w'
+    window: 'w',
 };
 
 const SYNCHRONIZATION_TYPE_RE = new RegExp(`^[${SYNCHRONIZATION_TYPE.server}${SYNCHRONIZATION_TYPE.client}${SYNCHRONIZATION_TYPE.window}]+`);
@@ -117,7 +117,7 @@ export function parseSyncCookie (cookieStr: string): CookieRecord | null {
         syncKey:      key,
 
         value,
-        cookieStr
+        cookieStr,
     };
 }
 

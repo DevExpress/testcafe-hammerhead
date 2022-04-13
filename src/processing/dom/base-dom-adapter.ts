@@ -13,7 +13,7 @@ export default abstract class BaseDomAdapter {
         'onpointerdown', 'onpointerup', 'onpointercancel', 'onpointermove', 'onpointerover', 'onpointerout',
         'onpointerenter', 'onpointerleave', 'ongotpointercapture', 'onlostpointercapture',
         'onmspointerdown', 'onmspointerup', 'onmspointercancel', 'onmspointermove', 'onmspointerover',
-        'onmspointerout', 'onmspointerenter', 'onmspointerleave', 'onmsgotpointercapture', 'onmslostpointercapture'
+        'onmspointerout', 'onmspointerenter', 'onmspointerleave', 'onmsgotpointercapture', 'onmslostpointercapture',
     ];
 
     abstract removeAttr (el: HTMLElement | ASTNode, attr: string): void;

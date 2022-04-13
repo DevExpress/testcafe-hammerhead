@@ -58,7 +58,7 @@ export default class IEDebugSandbox extends SandboxBase {
                 set: fn => {
                     wrapper = this._createFuncWrapper(fn);
                 },
-                get: () => wrapper
+                get: () => wrapper,
             });
         }
     }

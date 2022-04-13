@@ -43,7 +43,7 @@ const transformer: Transformer<AssignmentExpression> = {
         return false;
     },
 
-    run: node => createExpandedConcatOperation(node.left as Identifier | MemberExpression, node.right)
+    run: node => createExpandedConcatOperation(node.left as Identifier | MemberExpression, node.right),
 };
 
 export default transformer;

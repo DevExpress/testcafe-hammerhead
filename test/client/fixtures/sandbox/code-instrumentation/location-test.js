@@ -42,11 +42,11 @@ var getWindowMock = function (opts) {
 
             replace: function (url) {
                 this.href = url;
-            }
+            },
         },
 
         Location: Location,
-        document: document
+        document: document,
     };
 
     winMock.top = opts.isTop ? winMock : { document: document };
@@ -58,36 +58,36 @@ var getWindowMock = function (opts) {
 var ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
     {
         url:                   'http://example.com',
-        shoudAddTrailingSlash: true
+        shoudAddTrailingSlash: true,
     },
     {
         url:                   'https://localhost:8080',
-        shoudAddTrailingSlash: true
+        shoudAddTrailingSlash: true,
     },
     {
         url:                   'about:blank',
-        shoudAddTrailingSlash: false
+        shoudAddTrailingSlash: false,
     },
     {
         url:                   'http://example.com/page.html',
-        shoudAddTrailingSlash: false
+        shoudAddTrailingSlash: false,
     },
     {
         url:                   'file://localhost/etc/fstab', // Unix file URI scheme
-        shoudAddTrailingSlash: false
+        shoudAddTrailingSlash: false,
     },
     {
         url:                   'file:///etc/fstab', // Unix file URI scheme
-        shoudAddTrailingSlash: false
+        shoudAddTrailingSlash: false,
     },
     {
         url:                   'file://localhost/c:/WINDOWS/clock.avi', // Windows file URI scheme
-        shoudAddTrailingSlash: false
+        shoudAddTrailingSlash: false,
     },
     {
         url:                   'file:///c:/WINDOWS/clock.avi', // Windows file URI scheme
-        shoudAddTrailingSlash: false
-    }
+        shoudAddTrailingSlash: false,
+    },
 ];
 
 test('location native behavior', function () {
@@ -166,37 +166,37 @@ test('location object of iframe with empty src should have properties with corre
                 strictEqual(
                     eval(processScript('iframe.contentDocument.location.protocol')),
                     nativeIframe.contentDocument.location.protocol,
-                    'protocol property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                    'protocol property in iframe with "' + iframeSrcAttribute + '" src attribute' //eslint-disable-line comma-dangle
                 );
                 strictEqual(
                     eval(processScript('iframe.contentDocument.location.port')),
                     nativeIframe.contentDocument.location.port,
-                    'port property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                    'port property in iframe with "' + iframeSrcAttribute + '" src attribute' //eslint-disable-line comma-dangle
                 );
                 strictEqual(
                     eval(processScript('iframe.contentDocument.location.host')),
                     nativeIframe.contentDocument.location.host,
-                    'host property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                    'host property in iframe with "' + iframeSrcAttribute + '" src attribute' //eslint-disable-line comma-dangle
                 );
                 strictEqual(
                     eval(processScript('iframe.contentDocument.location.hostname')),
                     nativeIframe.contentDocument.location.hostname,
-                    'hostname property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                    'hostname property in iframe with "' + iframeSrcAttribute + '" src attribute' //eslint-disable-line comma-dangle
                 );
                 strictEqual(
                     eval(processScript('iframe.contentDocument.location.pathname')),
                     nativeIframe.contentDocument.location.pathname,
-                    'pathname property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                    'pathname property in iframe with "' + iframeSrcAttribute + '" src attribute' //eslint-disable-line comma-dangle
                 );
                 strictEqual(
                     eval(processScript('iframe.contentDocument.location.hash')),
                     nativeIframe.contentDocument.location.hash,
-                    'hash property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                    'hash property in iframe with "' + iframeSrcAttribute + '" src attribute' //eslint-disable-line comma-dangle
                 );
                 strictEqual(
                     eval(processScript('iframe.contentDocument.location.search')),
                     nativeIframe.contentDocument.location.search,
-                    'search property in iframe with "' + iframeSrcAttribute + '" src attribute'
+                    'search property in iframe with "' + iframeSrcAttribute + '" src attribute' //eslint-disable-line comma-dangle
                 );
             });
     }
@@ -308,32 +308,32 @@ test('different url types for locationWrapper methods (href, replace, assign) (G
     var testCases = [
         {
             url:         null,
-            expectedUrl: 'https://example.com/null'
+            expectedUrl: 'https://example.com/null',
         },
         {
             url:         void 0,
-            expectedUrl: 'https://example.com/undefined'
+            expectedUrl: 'https://example.com/undefined',
         },
         {
             url:         { url: '/some-path' },
-            expectedUrl: 'https://example.com/[object%20Object]'
+            expectedUrl: 'https://example.com/[object%20Object]',
         },
         {
             url: {
                 url:      '/some-path',
                 toString: function () {
                     return this.url;
-                }
+                },
             },
-            expectedUrl: 'https://example.com/some-path'
-        }
+            expectedUrl: 'https://example.com/some-path',
+        },
     ];
 
     // NOTE: IE11 doesn't support 'URL()'
     if (!browserUtils.isIE11) {
         testCases.push({
             url:         new URL('https://example.com/some-path'),
-            expectedUrl: 'https://example.com/some-path'
+            expectedUrl: 'https://example.com/some-path',
         });
     }
 
@@ -358,7 +358,7 @@ test('throwing errors on calling locationWrapper methods (href, replace, assign)
     var invalidUrlObject = {
         toString: function () {
             return {};
-        }
+        },
     };
 
     var windowMock      = getWindowMock({ isTop: true });
@@ -426,12 +426,12 @@ test('different url types for "location" property (GH-1613)', function () {
         checkLocationAssignment({
             toString: function () {
                 return '/some-path';
-            }
+            },
         }, '{' +
            '    toString: function () {\n' +
            '        return "/some-path";\n' +
            '    }' +
-           '}')
+           '}'),
     ];
 
     // NOTE: IE11 doesn't support 'URL()'
@@ -528,7 +528,7 @@ test('should omit the default port on page navigation', function () {
     var locationWrapper = new LocationWrapper(windowMock, null, window.noop);
 
     hammerhead.win = {
-        location: ''
+        location: '',
     };
 
     function testUrl (url, shouldOmitPort) {
@@ -581,10 +581,10 @@ if (window.location.ancestorOrigins) {
                     location: {
                         toString: function () {
                             return destLocation.getLocation();
-                        }
+                        },
                     },
                     'hammerhead|location-wrapper': locationWrapper,
-                    frameElement:                  null
+                    frameElement:                  null,
                 };
 
                 ok(ancestorOrigins instanceof nestedIframe.contentWindow.DOMStringList);
@@ -601,7 +601,7 @@ if (window.location.ancestorOrigins) {
                 ok(ancestorOrigins.contains({
                     toString: function () {
                         return 'https://example.com';
-                    }
+                    },
                 }));
                 ok(!ancestorOrigins.contains('https://another-domain.com'));
                 ok(!ancestorOrigins.contains({}));
@@ -638,7 +638,7 @@ if (window.location.ancestorOrigins) {
             .then(function (iframe) {
                 callMethod(iframe.contentWindow, 'postMessage', [{
                     type:            'get ancestorOrigin',
-                    nestedIframeSrc: getCrossDomainPageUrl('../../../data/iframe/simple-iframe.html')
+                    nestedIframeSrc: getCrossDomainPageUrl('../../../data/iframe/simple-iframe.html'),
                 }, '*']);
 
                 return new Promise(function (resolve) {
@@ -722,7 +722,7 @@ test('set cross domain location in same domain iframe', function () {
                 iframe.addEventListener('load', resolve.bind(null, iframe));
                 callMethod(iframe.contentWindow, 'postMessage', [
                     getCrossDomainPageUrl('../../../data/cross-domain/set-cross-domain-location.html'),
-                    '*'
+                    '*',
                 ]);
             });
         })
@@ -738,12 +738,12 @@ test('emulate a native browser behaviour related with trailing slashes for locat
     var testCases = [
         {
             url:              'http://localhost:3000',
-            expectedLocation: 'http://localhost:3000/'
+            expectedLocation: 'http://localhost:3000/',
         },
         {
             url:              'http://localhost:3000/',
-            expectedLocation: 'http://localhost:3000'
-        }
+            expectedLocation: 'http://localhost:3000',
+        },
     ];
 
     var overrideGetResolverElement = function (resolvedHref) {
@@ -822,7 +822,7 @@ test('set a relative url to a cross-domain location', function () {
 
     return Promise.all([
         createTestIframe({ src: crossDomainUrl }),
-        createTestIframe({ src: crossDomainUrl })
+        createTestIframe({ src: crossDomainUrl }),
     ])
         .then(function (iframes) {
             var waitForLoad = function (iframe) {

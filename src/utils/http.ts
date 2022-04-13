@@ -7,12 +7,12 @@ import { stringify as stringifyJSON } from './json';
 
 const STATIC_RESOURCES_DEFAULT_CACHING_OPTIONS = {
     maxAge:         30,
-    mustRevalidate: true
+    mustRevalidate: true,
 };
 
 export const PREVENT_CACHING_HEADERS = {
     [BUILTIN_HEADERS.cacheControl]: 'no-cache, no-store, must-revalidate',
-    [BUILTIN_HEADERS.pragma]:       'no-cache'
+    [BUILTIN_HEADERS.pragma]:       'no-cache',
 };
 
 export function addPreventCachingHeaders (res: ServerResponse): void {

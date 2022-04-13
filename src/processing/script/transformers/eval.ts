@@ -39,7 +39,7 @@ const transformer: Transformer<CallExpression> = {
         replaceNode(node.arguments[0], newArgs, node, 'arguments');
 
         return null;
-    }
+    },
 };
 
 export default transformer;

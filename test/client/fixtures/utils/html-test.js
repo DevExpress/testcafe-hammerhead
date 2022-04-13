@@ -315,13 +315,13 @@ test('html with special script is processed correctly (GH-684)', function () {
         // NOTE: We need some kind of table tags in js code e.g. <th .length, y = 3 >
         // That's because the 'fake_tag_name_' prefix is added to some tags during html processing, e.g. <fake_tag_name_th .length, y = 3 >
         '    var x = y <th .length, y = 3 > 5;',
-        '<' + '/script>'
+        '<' + '/script>',
     ].join('\n');
 
     var htmlExpected = [
         '<script>',
         processScript('\n    var x = y <th .length, y = 3 > 5;\n', true),
-        '<' + '/script>'
+        '<' + '/script>',
     ].join('');
 
     strictEqual(htmlUtils.processHtml(htmlSrc), htmlExpected);
@@ -341,7 +341,7 @@ test('get a proxy url from a relative url after html processing (GH-718)', funct
     strictEqual(urlUtils.getProxyUrl('index.html', {
         proxyHostname: '127.0.0.1',
         proxyPort:     1337,
-        sessionId:     'sessionId'
+        sessionId:     'sessionId',
     }), 'http://127.0.0.1:1337/sessionId/http://example.com/path/path/index.html');
     urlResolver.updateBase(null, document);
 });
@@ -352,7 +352,7 @@ test('should not throw an error if the innerHTML property is defined on Node.pro
             throw new Error();
         },
 
-        configurable: true
+        configurable: true,
     });
 
     try {

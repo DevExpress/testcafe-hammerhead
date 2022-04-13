@@ -623,7 +623,7 @@ module('childNodes', function () {
                     'for (var childNode of document.body.childNodes) {',
                     '    if (childNode === root)',
                     '        ok(false, "ShadowUI root was found");',
-                    '}'
+                    '}',
                 ].join('\n');
 
                 eval(code);
@@ -708,7 +708,7 @@ test('Node.nextSibling when Node is not ELEMENT_NODE (GH-1465)', function () {
 
     var notElementNodes = [
         document.createTextNode(''),
-        document.createComment('')
+        document.createComment(''),
     ];
 
     if (supportCreationProcessingInstructionForHtmlDoc)
@@ -1152,7 +1152,7 @@ test('stylesheets are restored after the document is cleaned', function () {
 
             var iframeUIStylesheets = nativeMethods.querySelectorAll.call(
                 iframe.contentDocument,
-                '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+                '.' + SHADOW_UI_CLASSNAME.uiStylesheet // eslint-disable-line comma-dangle
             );
             var result              = '';
 
@@ -1190,11 +1190,11 @@ test('append stylesheets to the iframe on initialization', function () {
         .then(function (iframe) {
             var currentUIStylesheets = nativeMethods.querySelectorAll.call(
                 document,
-                '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+                '.' + SHADOW_UI_CLASSNAME.uiStylesheet // eslint-disable-line comma-dangle
             );
             var iframeUIStylesheets  = nativeMethods.querySelectorAll.call(
                 iframe.contentDocument,
-                '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+                '.' + SHADOW_UI_CLASSNAME.uiStylesheet // eslint-disable-line comma-dangle
             );
 
             strictEqual(currentUIStylesheets.length, iframeUIStylesheets.length);
@@ -1218,11 +1218,11 @@ test("do nothing if ShadowUIStylesheet doesn't exist", function () {
         .then(function (iframe) {
             var currentUIStylesheets = nativeMethods.querySelectorAll.call(
                 document,
-                '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+                '.' + SHADOW_UI_CLASSNAME.uiStylesheet // eslint-disable-line comma-dangle
             );
             var iframeUIStylesheets  = nativeMethods.querySelectorAll.call(
                 iframe.contentDocument,
-                '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+                '.' + SHADOW_UI_CLASSNAME.uiStylesheet // eslint-disable-line comma-dangle
             );
 
             strictEqual(currentUIStylesheets.length, 0);
@@ -1402,7 +1402,7 @@ test('the isBodyElementWithChildren method should use native length getter', fun
             ok(false);
         },
 
-        configurable: true
+        configurable: true,
     });
 
     ok(domUtils.isBodyElementWithChildren(document.body));

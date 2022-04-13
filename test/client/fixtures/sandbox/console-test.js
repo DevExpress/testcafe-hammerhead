@@ -18,8 +18,8 @@ if (window.console && typeof window.console.log !== 'undefined') {
             {
                 toString: function () {
                     return Object.create(null);
-                }
-            }
+                },
+            },
         ];
 
         var expectedHandledConsoleMethodLines = ['true', 'false', 'null', 'undefined', '42', 'string', '[object Object]',
@@ -41,7 +41,7 @@ if (window.console && typeof window.console.log !== 'undefined') {
             window.console.log,
             window.console.warn,
             window.console.error,
-            window.console.info
+            window.console.info,
         ]
             .forEach(function (consoleMeth) {
                 handledConsoleMethodLines = [];
@@ -65,14 +65,14 @@ if (window.console && typeof window.console.log !== 'undefined') {
         var objWithToString = {
             toString: function () {
                 return '123';
-            }
+            },
         };
 
         var originMethods = {
             log:   nativeMethods.consoleMeths.log,
             warn:  nativeMethods.consoleMeths.warn,
             error: nativeMethods.consoleMeths.error,
-            info:  nativeMethods.consoleMeths.info
+            info:  nativeMethods.consoleMeths.info,
         };
 
         function addToLog () {
@@ -83,7 +83,7 @@ if (window.console && typeof window.console.log !== 'undefined') {
             log:   addToLog,
             warn:  addToLog,
             error: addToLog,
-            info:  addToLog
+            info:  addToLog,
         };
 
         function onConsoleMethCalled (e) {
@@ -109,7 +109,7 @@ if (window.console && typeof window.console.log !== 'undefined') {
             log:   originMethods.log,
             warn:  originMethods.warn,
             error: originMethods.error,
-            info:  originMethods.info
+            info:  originMethods.info,
         };
 
         hammerhead.off(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);

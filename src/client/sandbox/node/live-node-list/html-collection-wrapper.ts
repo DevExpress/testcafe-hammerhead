@@ -31,7 +31,7 @@ export default class HTMLCollectionWrapper extends HTMLCollectionInheritor {
             _tagName:            { value: tagName },
             _version:            { value: -Infinity, writable: true },
             _namedProps:         { value: ELEMENTS_WITH_NAME_ATTRIBUTE.indexOf(tagName) !== -1 ? [] : null },
-            _lastNativeLength:   { value: 0, writable: true }
+            _lastNativeLength:   { value: 0, writable: true },
         });
 
         this._refreshCollection();
@@ -74,13 +74,13 @@ const additionalProtoMethods = {
         value:        HTMLCollectionWrapper.constructor,
         configurable: true,
         enumerable:   false,
-        writable:     true
+        writable:     true,
     },
 
     _refreshCollection: {
         value:      HTMLCollectionWrapper.prototype._refreshCollection,
-        enumerable: false
-    }
+        enumerable: false,
+    },
 } as PropertyDescriptorMap;
 
 if (HTMLCollection.prototype.namedItem) {
@@ -94,7 +94,7 @@ if (HTMLCollection.prototype.namedItem) {
         },
         enumerable:   true,
         configurable: true,
-        writable:     true
+        writable:     true,
     };
 }
 
@@ -109,7 +109,7 @@ function addShadowGetters (count: number) {
         nativeMethods.objectDefineProperty(HTMLCollectionWrapper.prototype, idx, {
             get: function () {
                 this.item(idx);
-            }
+            },
         });
     }
 }
@@ -124,7 +124,7 @@ function updateCollectionIndexGetters (wrapper: HTMLCollectionWrapper, oldLength
         nativeMethods.objectDefineProperty(wrapper, idx, {
             enumerable:   true,
             configurable: true,
-            get:          () => wrapper.item(idx)
+            get:          () => wrapper.item(idx),
         });
     }
 
@@ -156,7 +156,7 @@ function updateNamedProps (wrapper: HTMLCollectionWrapper, oldNamedProps, curren
                 this._refreshCollection();
 
                 return wrapper._collection[prop];
-            }
+            },
         });
     }
 }

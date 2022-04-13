@@ -59,23 +59,23 @@ test('script.<innerHTML/innerText/text/textContent>', function () {
     var testProperties      = {
         'innerHTML': {
             getter: nativeMethods.elementInnerHTMLGetter,
-            setter: nativeMethods.elementInnerHTMLSetter
+            setter: nativeMethods.elementInnerHTMLSetter,
         },
 
         'innerText': {
             getter: nativeMethods.htmlElementInnerTextGetter,
-            setter: nativeMethods.htmlElementInnerTextSetter
+            setter: nativeMethods.htmlElementInnerTextSetter,
         },
 
         'text': {
             getter: nativeMethods.scriptTextGetter,
-            setter: nativeMethods.scriptTextSetter
+            setter: nativeMethods.scriptTextSetter,
         },
 
         'textContent': {
             getter: nativeMethods.nodeTextContentGetter,
-            setter: nativeMethods.nodeTextContentSetter
-        }
+            setter: nativeMethods.nodeTextContentSetter,
+        },
     };
 
     Object.keys(testProperties).forEach(function (property) {
@@ -125,7 +125,7 @@ test('style.<innerHTML/innerText/textContent>', function () {
     var testProperties     = {
         'innerHTML':   nativeMethods.elementInnerHTMLGetter,
         'innerText':   nativeMethods.htmlElementInnerTextGetter,
-        'textContent': nativeMethods.nodeTextContentGetter
+        'textContent': nativeMethods.nodeTextContentGetter,
     };
 
     Object.keys(testProperties).forEach(function (property) {
@@ -172,7 +172,7 @@ test('innerHTML', function () {
     strictEqual(div.children.length, 2);
     strictEqual(nativeMethods.scriptSrcGetter.call(div.firstChild), urlUtils.getProxyUrl(scriptUrl, {
         resourceType: 's',
-        charset:      'utf-8'
+        charset:      'utf-8',
     }));
     strictEqual(nativeMethods.anchorHrefGetter.call(div.lastChild), urlUtils.getProxyUrl(linkUrl));
 

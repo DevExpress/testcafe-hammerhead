@@ -228,8 +228,8 @@ test('isWindow', function () {
         {
             toString: function () {
                 ok(false);
-            }
-        }
+            },
+        },
     ]));
 
     window.toString = storedToString;
@@ -461,7 +461,7 @@ test('isContentEditableElement', function () {
         tagName:           'rich-text-area',
         getAttribute:      function () {
             return 'null';
-        }
+        },
     };
 
     ok(domUtils.isContentEditableElement(elementMock));
@@ -808,7 +808,7 @@ test('isTextEditableInput', function () {
         'text':           true,
         'time':           false,
         'url':            true,
-        'week':           false
+        'week':           false,
     };
 
     var input = nativeMethods.createElement.call(document, 'input');
@@ -981,7 +981,7 @@ test('inspect html elements', function () {
         { tagName: 'table', assertFn: domUtils.isTableElement },
         { tagName: 'td', assertFn: domUtils.isTableDataCellElement },
         { tagName: 'input', assertFn: domUtils.isRadioButtonElement, attributes: { type: 'radio' } },
-        { tagName: 'input', assertFn: domUtils.isCheckboxElement, attributes: { type: 'checkbox' } }
+        { tagName: 'input', assertFn: domUtils.isCheckboxElement, attributes: { type: 'checkbox' } },
     ];
 
     if (!browserUtils.isIE11 && !browserUtils.isSafari)
@@ -1101,7 +1101,7 @@ if (window.HTMLElement.prototype.attachShadow) {
             '   var templateContent = template.content; ' +
             '   this.attachShadow({ mode: \'open\' }).appendChild(templateContent.cloneNode(true)); ' +
             '} ' +
-        '})'
+        '})' // eslint-disable-line comma-dangle
         ));
 
         var custom = document.createElement('custom-test-element');
@@ -1152,7 +1152,7 @@ test('hammerhead should use the native classList getter in addClass, removeClass
             ok(false);
         },
 
-        configurable: true
+        configurable: true,
     });
 
     document.body.appendChild(div);
@@ -1179,7 +1179,7 @@ test('should not throw an error when process a script inside the svg (GH-2735)',
         '  <script type="application/ecmascript"> <![CDATA[',
         '    var some = 123;',
         '  ]]> <\/script>', // eslint-disable-line
-        '</svg>'
+        '</svg>',
     ].join('\n');
 
     ok(true);

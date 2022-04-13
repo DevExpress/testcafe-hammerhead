@@ -10,7 +10,7 @@ const promisifyEvent    = require('promisify-event');
 
 const {
     TEST_OBJ,
-    PAGE_ACCEPT_HEADER
+    PAGE_ACCEPT_HEADER,
 } = require('../common/constants');
 
 const {
@@ -19,7 +19,7 @@ const {
     compareCode,
     normalizeNewLine,
     getBasicProxyUrl,
-    createDestinationServer
+    createDestinationServer,
 } = require('../common/utils');
 
 const ConfigureResponseEventOptions = require('../../../lib/session/events/configure-response-event-options');
@@ -43,7 +43,7 @@ describe('Request Hooks', () => {
         destServer = sameDomainDestinationServer.server;
         wsServer   = new WebSocket.Server({
             server: destServer,
-            path:   '/web-socket'
+            path:   '/web-socket',
         });
 
         app.get('/page', (req, res) => {
@@ -80,7 +80,7 @@ describe('Request Hooks', () => {
                 const item = {
                     'strProp':  'strProp' + i,
                     'intProp':  i,
-                    'boolProp': !!(i % 2)
+                    'boolProp': !!(i % 2),
                 };
 
                 result[i] = item;
@@ -94,7 +94,7 @@ describe('Request Hooks', () => {
             res.set({
                 'content-type':     req.headers['x-content-type'],
                 'content-encoding': 'gzip',
-                'content-length':   0
+                'content-length':   0,
             });
             res.end();
         });
@@ -179,14 +179,14 @@ describe('Request Hooks', () => {
                             resolve();
                         }, 100);
                     });
-                }
+                },
             });
 
             const options = {
                 url:     proxy.openSession(url, session),
                 headers: {
-                    'content-type': 'application/javascript; charset=utf-8'
-                }
+                    'content-type': 'application/javascript; charset=utf-8',
+                },
             };
 
             return request(options)
@@ -253,15 +253,15 @@ describe('Request Hooks', () => {
                             resolve();
                         }, 100);
                     });
-                }
+                },
             });
 
             const options = {
                 url:     proxy.openSession(url, session),
                 json:    true,
                 headers: {
-                    'test-header': 'testValue'
-                }
+                    'test-header': 'testValue',
+                },
             };
 
             return request(options)
@@ -316,14 +316,14 @@ describe('Request Hooks', () => {
                             resolve();
                         }, 100);
                     });
-                }
+                },
             });
 
             const options = {
                 url: getProxyUrl('http://127.0.0.1:2000/page/plain-text', { isAjax: true },
                     'http://example.com', Credentials.sameOrigin, true),
 
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             proxy.openSession('http://example.com', session);
@@ -361,7 +361,7 @@ describe('Request Hooks', () => {
                                 resolve();
                             }, 100);
                         });
-                    }
+                    },
                 });
             });
 
@@ -369,8 +369,8 @@ describe('Request Hooks', () => {
                 url:                     proxy.openSession(requestUrl, session),
                 resolveWithFullResponse: true,
                 headers:                 {
-                    referer: proxy.openSession('http://example.com', session)
-                }
+                    referer: proxy.openSession('http://example.com', session),
+                },
             };
 
             return request(options)
@@ -404,12 +404,12 @@ describe('Request Hooks', () => {
                             resolve();
                         }, 100);
                     });
-                }
+                },
             });
 
             const options = {
                 url:  proxy.openSession(url, session),
-                json: true
+                json: true,
             };
 
             return request(options)
@@ -463,15 +463,15 @@ describe('Request Hooks', () => {
                             resolve();
                         }, 100);
                     });
-                }
+                },
             });
 
             const options = {
                 url:     proxy.openSession(url, session),
                 headers: {
                     'content-type':      'application/javascript; charset=utf-8',
-                    'if-modified-since': 'Thu, 01 Aug 2013 18:31:48 GMT'
-                }
+                    'if-modified-since': 'Thu, 01 Aug 2013 18:31:48 GMT',
+                },
             };
 
             return request(options)
@@ -503,7 +503,7 @@ describe('Request Hooks', () => {
 
                 onResponse: () => {
                     throw new Error('inside onResponse');
-                }
+                },
             }, e => {
                 collectedErrorEvents.push(e);
             });
@@ -511,8 +511,8 @@ describe('Request Hooks', () => {
             const options = {
                 url:     proxy.openSession(url, session),
                 headers: {
-                    'content-type': 'application/javascript; charset=utf-8'
-                }
+                    'content-type': 'application/javascript; charset=utf-8',
+                },
             };
 
             return request(options)
@@ -568,7 +568,7 @@ describe('Request Hooks', () => {
                             resolve();
                         }, 100);
                     });
-                }
+                },
             });
 
             proxy.openSession('http://example.com', session);
@@ -598,14 +598,14 @@ describe('Request Hooks', () => {
             session.addRequestEventListeners(rule, {
                 onRequest: e => {
                     requestHeaders = e._requestInfo.headers;
-                }
+                },
             });
 
             const options = {
                 url:     getProxyUrl('http://127.0.0.1:2000/script', { isScript: true }),
                 headers: { referer: getProxyUrl('about:blank') },
 
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             proxy.openSession('http://example.com', session);
@@ -636,14 +636,14 @@ describe('Request Hooks', () => {
                             resolve();
                         }, 100);
                     });
-                }
+                },
             });
 
             const options = {
                 url:     proxy.openSession(url, session),
                 headers: {
-                    accept: PAGE_ACCEPT_HEADER
-                }
+                    accept: PAGE_ACCEPT_HEADER,
+                },
             };
 
             return request(options)
@@ -668,15 +668,15 @@ describe('Request Hooks', () => {
                             resolve();
                         }, 100);
                     });
-                }
+                },
             });
 
             const options = {
                 url:                     proxy.openSession(url, session),
                 resolveWithFullResponse: true,
                 headers:                 {
-                    accept: PAGE_ACCEPT_HEADER
-                }
+                    accept: PAGE_ACCEPT_HEADER,
+                },
             };
 
             return request(options)
@@ -705,12 +705,12 @@ describe('Request Hooks', () => {
                             resolve();
                         }, 100);
                     });
-                }
+                },
             });
 
             const options = {
                 url:     getProxyUrl(url, { isAjax: true }, void 0, Credentials.sameOrigin),
-                headers: { accept: PAGE_ACCEPT_HEADER }
+                headers: { accept: PAGE_ACCEPT_HEADER },
             };
 
             proxy.openSession('http://example.com', session);
@@ -736,11 +736,11 @@ describe('Request Hooks', () => {
                         resolve();
                     }, 100);
                 });
-            }
+            },
         });
 
         const options = {
-            url: proxy.openSession('http://127.0.0.1:2000/page', session)
+            url: proxy.openSession('http://127.0.0.1:2000/page', session),
         };
 
         return request(options)
@@ -758,7 +758,7 @@ describe('Request Hooks', () => {
         const rule = new RequestFilterRule(url);
 
         session.addRequestEventListeners(rule, {
-            onRequest: noop
+            onRequest: noop,
         });
 
         session.id = 'sessionId';
@@ -766,8 +766,8 @@ describe('Request Hooks', () => {
         const options = {
             url:     proxy.openSession(url, session),
             headers: {
-                accept: PAGE_ACCEPT_HEADER
-            }
+                accept: PAGE_ACCEPT_HEADER,
+            },
         };
 
         return request(options)
@@ -793,12 +793,12 @@ describe('Request Hooks', () => {
                         resolve();
                     }, 100);
                 });
-            }
+            },
         });
 
         const options = {
             url:                     proxy.openSession('http://127.0.0.1:2000/page', session),
-            resolveWithFullResponse: true
+            resolveWithFullResponse: true,
         };
 
         return request(options)
@@ -826,8 +826,8 @@ describe('Request Hooks', () => {
             const options = {
                 url:     'http://localhost:1836/task.js',
                 headers: {
-                    referer: proxy.openSession('http://example.com', session)
-                }
+                    referer: proxy.openSession('http://example.com', session),
+                },
             };
 
             return request(options)
@@ -843,7 +843,7 @@ describe('Request Hooks', () => {
                 session.addRequestEventListeners(rule, {
                     onRequest:           noop,
                     onConfigureResponse: noop,
-                    onResponse:          noop
+                    onResponse:          noop,
                 });
 
                 return testShouldProxyImageOptionValue(true);
@@ -878,14 +878,14 @@ describe('Request Hooks', () => {
                     expect(e.body.toString()).eql(resourceContent);
 
                     responseEventIsRaised = true;
-                }
+                },
             });
 
             const options = {
                 url:     proxy.openSession(url, session),
                 headers: {
-                    'content-type': 'application/javascript; charset=utf-8'
-                }
+                    'content-type': 'application/javascript; charset=utf-8',
+                },
             };
 
             const body = await request(options);
@@ -907,10 +907,10 @@ describe('Request Hooks', () => {
                 url:     proxy.openSession(url, session),
                 method:  'POST',
                 headers: {
-                    'x-header-1': 'value-1'
+                    'x-header-1': 'value-1',
                 },
 
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             session.addRequestEventListeners(rule, {
@@ -925,7 +925,7 @@ describe('Request Hooks', () => {
                     expect(e.statusCode).eql(200);
 
                     responseEventIsRaised = true;
-                }
+                },
             });
 
             const res = await request(options);
@@ -956,10 +956,10 @@ describe('Request Hooks', () => {
                 headers: {
                     'x-header-1': 'value-1',
                     'x-header-2': 'value-2',
-                    'x-header-3': 'value-3'
+                    'x-header-3': 'value-3',
                 },
 
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             session.addRequestEventListeners(rule, {
@@ -974,7 +974,7 @@ describe('Request Hooks', () => {
                     expect(e.statusCode).eql(200);
 
                     responseEventIsRaised = true;
-                }
+                },
             });
 
             const res = await request(options);

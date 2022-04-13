@@ -6,12 +6,12 @@ export default class DataTransferItem {
     constructor (kind, type, data) {
         nativeMethods.objectDefineProperty(this, 'kind', {
             enumerable: true,
-            get:        () => kind
+            get:        () => kind,
         });
 
         nativeMethods.objectDefineProperty(this, 'type', {
             enumerable: true,
-            get:        () => type
+            get:        () => type,
         });
 
         nativeMethods.objectDefineProperty(this, 'getAsString', {
@@ -31,7 +31,7 @@ export default class DataTransferItem {
 
                     nativeMethods.setTimeout.call(window, () => callback(data), 0);
                 };
-            }
+            },
         });
 
         nativeMethods.objectDefineProperty(this, 'getAsFile', {
@@ -45,7 +45,7 @@ export default class DataTransferItem {
 
                     return data;
                 };
-            }
+            },
         });
     }
 }

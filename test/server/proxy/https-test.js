@@ -7,11 +7,11 @@ const {
     createSession,
     createProxy,
     compareCode,
-    createDestinationServer
+    createDestinationServer,
 } = require('../common/utils');
 
 const {
-    PAGE_ACCEPT_HEADER
+    PAGE_ACCEPT_HEADER,
 } = require('../common/constants');
 
 describe('https proxy', () => {
@@ -41,8 +41,8 @@ describe('https proxy', () => {
         proxy = createProxy({
             ssl: {
                 key:  selfSignedCertificate.key,
-                cert: selfSignedCertificate.cert
-            }
+                cert: selfSignedCertificate.cert,
+            },
         });
     });
 
@@ -59,9 +59,9 @@ describe('https proxy', () => {
         const options = {
             url:     proxy.openSession('http://127.0.0.1:2000/page', session),
             headers: {
-                accept: PAGE_ACCEPT_HEADER
+                accept: PAGE_ACCEPT_HEADER,
             },
-            rejectUnauthorized: false
+            rejectUnauthorized: false,
         };
 
         expect(options.url).eql('https://127.0.0.1:1836/sessionId*12345/http://127.0.0.1:2000/page');

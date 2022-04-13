@@ -12,7 +12,7 @@ var replacedUrls = urls.map(function (url) {
     return {
         url:        fullUrl,
         checkedUrl: 'https://example.com' + url,
-        proxiedUrl: urlUtils.getProxyUrl(fullUrl)
+        proxiedUrl: urlUtils.getProxyUrl(fullUrl),
     };
 });
 
@@ -46,14 +46,14 @@ test('replace proxied urls in stack trace', function () {
             name: 'function',
             fn:   function testFunction () {
                 throw new Error('test');
-            }
+            },
         },
         {
             name: 'eval',
             fn:   function () {
                 eval('throw new Error("test");');
-            }
-        }
+            },
+        },
     ];
 
     for (var i = 0; i < testCases.length; i++) {

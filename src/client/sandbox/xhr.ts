@@ -10,7 +10,7 @@ import {
     addAuthorizationPrefix, hasAuthenticatePrefix,
     isAuthenticateHeader,
     isAuthorizationHeader,
-    removeAuthenticatePrefix
+    removeAuthenticatePrefix,
 } from '../../utils/headers';
 
 const XHR_READY_STATES = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
@@ -36,7 +36,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         XhrSandbox.REQUESTS_OPTIONS.set(req, {
             withCredentials,
             openArgs: args,
-            headers:  []
+            headers:  [],
         });
     }
 
@@ -121,7 +121,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         overrideConstructor(window, 'XMLHttpRequest', xmlHttpRequestWrapper);
 
         nativeMethods.objectDefineProperty(xmlHttpRequestProto, 'constructor', {
-            value: xmlHttpRequestWrapper
+            value: xmlHttpRequestWrapper,
         });
 
         overrideFunction(xmlHttpRequestProto, 'abort', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['abort']>) {
@@ -131,7 +131,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             nativeMethods.xhrAbort.apply(this, args);
             xhrSandbox.emit(xhrSandbox.XHR_ERROR_EVENT, {
                 err: new Error('XHR aborted'),
-                xhr: this
+                xhr: this,
             });
         });
 
@@ -196,7 +196,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             overrideDescriptor(window.XMLHttpRequest.prototype, 'responseURL', {
                 getter: function () {
                     return getDestinationUrl(nativeMethods.xhrResponseURLGetter.call(this));
-                }
+                },
             });
         }
 

@@ -471,7 +471,7 @@ test('crossdomain src', function () {
     var proxyUrl = urlUtils.getProxyUrl(url, {
         proxyHostname: location.hostname,
         proxyPort:     2001,
-        resourceType:  'i'
+        resourceType:  'i',
     });
 
     var processed = htmlUtils.processHtml('<iframe src="' + url + '"></iframe>');

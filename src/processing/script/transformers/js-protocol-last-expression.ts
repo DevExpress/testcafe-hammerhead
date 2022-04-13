@@ -24,7 +24,7 @@ const transformer: Transformer<ExpressionStatement> = {
         transformer.wrapLastExpr = false;
 
         return createHtmlProcessorWrapper(node);
-    }
+    },
 };
 
 export default transformer;

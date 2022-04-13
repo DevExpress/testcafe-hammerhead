@@ -120,7 +120,7 @@ test('process a text node when it is appended to script', function () {
     var scriptEl = document.createElement('script');
     var textNode = document.createTextNode(
         'window.testAnchor = document.createElement("a");' +
-        'window.testAnchor.href = "' + url + '";'
+        'window.testAnchor.href = "' + url + '";' // eslint-disable-line comma-dangle
     );
 
     scriptEl.appendChild(textNode);

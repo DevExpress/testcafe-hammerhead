@@ -18,7 +18,7 @@ export async function assign (credentials: WindowCredentials): Promise<void> {
     if (!cached) {
         cached = {
             domain:      await queryOSForCredential('echo %userdomain%'),
-            workstation: await queryOSForCredential('hostname')
+            workstation: await queryOSForCredential('hostname'),
         };
     }
 

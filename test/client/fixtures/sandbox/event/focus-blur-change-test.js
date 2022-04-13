@@ -798,7 +798,7 @@ asyncTest('check that scrolling does not happen when focus is set (after mouse e
             width:           '110%',
             height:          '500px',
             overflow:        'scroll',
-            marginBottom:    '500px'
+            marginBottom:    '500px',
 
         })
         .attr('tabIndex', 1);
@@ -807,7 +807,7 @@ asyncTest('check that scrolling does not happen when focus is set (after mouse e
     $(childDiv)
         .css({
             marginLeft: '110%',
-            marginTop:  '110%'
+            marginTop:  '110%',
         })
         .attr('innerHTML', 'Child');
 
@@ -846,7 +846,7 @@ asyncTest('focus() should not scroll to the element if "preventScrolling" argume
             width:           '500px',
             height:          '500px',
             top:             '2500px',
-            position:        'absolute'
+            position:        'absolute',
         })
         .attr('tabIndex', 1);
 
@@ -1074,7 +1074,7 @@ asyncTest('scrolling elements with "overflow=hidden" should be restored after fo
             backgroundColor: 'grey',
             width:           '500px',
             height:          '150px',
-            overflow:        'hidden'
+            overflow:        'hidden',
 
         })
         .attr('id', 'parent');
@@ -1084,14 +1084,14 @@ asyncTest('scrolling elements with "overflow=hidden" should be restored after fo
         height:   '100px',
         position: 'relative',
         left:     '80%',
-        overflow: 'hidden'
+        overflow: 'hidden',
     });
 
     $(childDiv)
         .css({
             width:      '150px',
             height:     '100px',
-            background: 'red'
+            background: 'red',
         })
         .attr('id', 'child');
 
@@ -1513,7 +1513,7 @@ if (!browserUtils.isIE11) {
 
             get: function () {
                 return null;
-            }
+            },
         });
 
         activeInput.dispatchEvent(new CustomEvent('focus'));

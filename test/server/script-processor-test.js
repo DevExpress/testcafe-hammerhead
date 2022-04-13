@@ -109,7 +109,7 @@ function testPropertyProcessing (templates) {
         const testCases = templates.map(template => {
             return {
                 src:      template.src.replace(/\{0}/g, propName),
-                expected: template.expected.replace(/\{0}/g, propName)
+                expected: template.expected.replace(/\{0}/g, propName),
             };
         });
 
@@ -133,14 +133,14 @@ describe('Script processor', () => {
             assertHasHeader(true, [
                 'var a = 42;',
                 '[]; var a = 42; []',
-                '{ var a = 42; }'
+                '{ var a = 42; }',
             ]);
         });
 
         it('Should not add processing header for the data script', () => {
             assertHasHeader(false, [
                 '[1, 2, 3]',
-                '{ a: 42 }'
+                '{ a: 42 }',
             ]);
         });
 
@@ -176,11 +176,11 @@ describe('Script processor', () => {
             { src: 'var location = value', expected: 'var location = value' },
             {
                 src:      'location = value',
-                expected: '0,function(){var _hh$temp0 = value; return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this)'
+                expected: '0,function(){var _hh$temp0 = value; return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this)',
             },
             {
                 src:      '{ location: 123 }',
-                expected: '{ location: 123 }'
+                expected: '{ location: 123 }',
             },
             { src: '[ location ]', expected: '[ __get$Loc(location) ]' },
             { src: 'var loc = location', expected: 'var loc = __get$Loc(location)' },
@@ -193,19 +193,19 @@ describe('Script processor', () => {
             { src: 'location[someProperty]', expected: '__get$(__get$Loc(location), someProperty)' },
             {
                 src:      'obj.location = location = value;',
-                expected: '__set$(obj, "location", function(){var _hh$temp0 = value; return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this));'
+                expected: '__set$(obj, "location", function(){var _hh$temp0 = value; return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this));',
             },
             {
                 src:      'a(location = value)',
-                expected: 'a(function() { var _hh$temp0 = value; return __set$Loc(location, _hh$temp0) || (location = _hh$temp0); }.call(this))'
+                expected: 'a(function() { var _hh$temp0 = value; return __set$Loc(location, _hh$temp0) || (location = _hh$temp0); }.call(this))',
             },
             {
                 src:      'obj.location = obj.location = obj.location',
-                expected: '__set$(obj,"location",__set$(obj,"location",__get$(obj,"location")))'
+                expected: '__set$(obj,"location",__set$(obj,"location",__get$(obj,"location")))',
             },
             {
                 src:      'temp = { location: value, value: location }',
-                expected: 'temp = { location: value, value: __get$Loc(location) }'
+                expected: 'temp = { location: value, value: __get$Loc(location) }',
             },
 
             { src: '--location', expected: '--location' },
@@ -216,20 +216,20 @@ describe('Script processor', () => {
             {
                 src:      'location+=value',
                 expected: '0,function(){ var _hh$temp0 = __get$Loc(location)+value; return __set$Loc(location,_hh$temp0)||' +
-                          '(location=_hh$temp0);}.call(this)'
+                          '(location=_hh$temp0);}.call(this)',
             },
             {
                 src:      'location+=location+value',
                 expected: '0,function(){var _hh$temp0 = __get$Loc(location)+(__get$Loc(location)+value); return __set$Loc(location,_hh$temp0)||' +
-                          '(location=_hh$temp0);}.call(this)'
+                          '(location=_hh$temp0);}.call(this)',
             },
             {
                 src:      'location.href+=value',
-                expected: '__set$(__get$Loc(location), "href", __get$(__get$Loc(location), "href") + value)'
+                expected: '__set$(__get$Loc(location), "href", __get$(__get$Loc(location), "href") + value)',
             },
             {
                 src:      'location["href"]+=value',
-                expected: '__set$(__get$Loc(location), "href", __get$(__get$Loc(location), "href") + value) '
+                expected: '__set$(__get$Loc(location), "href", __get$(__get$Loc(location), "href") + value) ',
             },
             {
                 src: 'location-=value;location*=value;location/=value;' +
@@ -238,85 +238,85 @@ describe('Script processor', () => {
 
                 expected: 'location-=value;location*=value;location/=value;' +
                           'location>>=value;location<<=value;location>>>=value;' +
-                          'location&=value;location|=value;location^=value'
+                          'location&=value;location|=value;location^=value',
             },
             {
                 src: 'new function(a){location=str,a.click();}();',
 
                 expected: 'new function(a) {(0,function(){var _hh$temp0 = str; return __set$Loc(location,_hh$temp0)||' +
-                          '(location=_hh$temp0);}.call(this)), a.click();}();'
+                          '(location=_hh$temp0);}.call(this)), a.click();}();',
             },
             {
                 src: 'b.onerror = b.onload = function (a) { location = a; };',
 
                 expected: 'b.onerror = b.onload = function(a){' +
-                          '0,function(){var _hh$temp0 = a; return__set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this);};'
+                          '0,function(){var _hh$temp0 = a; return__set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this);};',
             },
             {
                 src: 'location = newLocation, x = 5;',
 
-                expected: '0,function(){var _hh$temp0 = newLocation; return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this), x = 5;'
+                expected: '0,function(){var _hh$temp0 = newLocation; return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this), x = 5;',
             },
             {
                 src: 'x = 5, location = newLocation;',
 
-                expected: 'x = 5, function(){var _hh$temp0 = newLocation; return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this);'
+                expected: 'x = 5, function(){var _hh$temp0 = newLocation; return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this);',
             },
             {
                 src: 'location ? location = newLocation : location = "#123";',
 
                 expected: '__get$Loc(location)' +
                           '? function(){var _hh$temp0 = newLocation; return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this)' +
-                          ': function(){var _hh$temp1 = "#123"; return __set$Loc(location,_hh$temp1)||(location=_hh$temp1);}.call(this);'
+                          ': function(){var _hh$temp1 = "#123"; return __set$Loc(location,_hh$temp1)||(location=_hh$temp1);}.call(this);',
             },
             {
                 src: 'if (location) { location = newLocation; } else location = "#123";',
 
                 expected: 'if (__get$Loc(location)) {' +
                           '0,function(){var _hh$temp0 = newLocation; return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this);}' +
-                          'else 0,function(){var _hh$temp1 = "#123"; return __set$Loc(location,_hh$temp1)||(location=_hh$temp1);}.call(this);'
+                          'else 0,function(){var _hh$temp1 = "#123"; return __set$Loc(location,_hh$temp1)||(location=_hh$temp1);}.call(this);',
             },
             {
                 src:      'var obj = { location: function location() {} }',
-                expected: 'var obj = { location: function location() {} }'
+                expected: 'var obj = { location: function location() {} }',
             },
             {
                 src:      'function location(){}',
-                expected: 'function location(){}'
+                expected: 'function location(){}',
             },
             {
                 src:      'class location{x(){}}',
-                expected: 'class location{x(){}}'
+                expected: 'class location{x(){}}',
             },
             {
                 src:      'class x{location(){}}',
-                expected: 'class x{location(){}}'
+                expected: 'class x{location(){}}',
             },
             {
                 src:      'y=location=>{}',
-                expected: 'y=location=>{}'
+                expected: 'y=location=>{}',
             },
             {
                 src:      'y=(...location)=>{}',
-                expected: 'y=(...location)=>{}'
+                expected: 'y=(...location)=>{}',
             },
             {
                 src:      'x[y]=(location=8)=>{}',
-                expected: '__set$(x,y,(location=8)=>{})'
+                expected: '__set$(x,y,(location=8)=>{})',
             },
             {
                 src:      'function x(param=location){}',
-                expected: 'function x(param=__get$Loc(location)){}'
+                expected: 'function x(param=__get$Loc(location)){}',
             },
             {
                 // NOTE: The fn function must be called once
                 src:      'location = fn();',
-                expected: '0,function(){var _hh$temp0 = fn(); return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this);'
+                expected: '0,function(){var _hh$temp0 = fn(); return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this);',
             },
             {
                 src:      'var a, b\na = b\nlocation = "#123"',
-                expected: 'var a, b\na = b\n0,function(){var _hh$temp0="#123";return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this)'
-            }
+                expected: 'var a, b\na = b\n0,function(){var _hh$temp0="#123";return __set$Loc(location,_hh$temp0)||(location=_hh$temp0);}.call(this)',
+            },
         ]);
     });
 
@@ -329,8 +329,8 @@ describe('Script processor', () => {
             { src: 'for (f = 5; f; ) c[--f] += t[f]', expected: 'for (f = 5; f; ) c[--f] += __get$(t,f)' },
             {
                 src:      'prop.location += 2 + prop.location + 1',
-                expected: '__set$(prop,"location",__get$(prop,"location")+(2 + __get$(prop,"location") + 1 ))'
-            }
+                expected: '__set$(prop,"location",__get$(prop,"location")+(2 + __get$(prop,"location") + 1 ))',
+            },
         ]);
     });
 
@@ -345,18 +345,18 @@ describe('Script processor', () => {
             { src: 'new a.{0}.b()', expected: 'new (__get$(a,"{0}")).b()' },
             {
                 src:      'new function() { a.{0};a.{0};}();',
-                expected: 'new function() {__get$(a,"{0}");__get$(a,"{0}");}();'
+                expected: 'new function() {__get$(a,"{0}");__get$(a,"{0}");}();',
             },
             {
                 src:      'new (function() { eval("");a.{0};})();',
-                expected: 'new function() {eval(__proc$Script(""));__get$(a,"{0}");}();'
+                expected: 'new function() {eval(__proc$Script(""));__get$(a,"{0}");}();',
             },
             {
                 src:      'new a(function() { b.{0}; new ok(b.{0}); })',
-                expected: 'new a(function() { __get$(b,"{0}"); new ok(__get$(b,"{0}")); })'
+                expected: 'new a(function() { __get$(b,"{0}"); new ok(__get$(b,"{0}")); })',
             },
             { src: 'new a.{0}.b(c.{0})', expected: 'new (__get$(a,"{0}")).b(__get$(c,"{0}"))' },
-            { src: 'func(new a.{0}.func())', expected: 'func(new (__get$(a,"{0}")).func())' }
+            { src: 'func(new a.{0}.func())', expected: 'func(new (__get$(a,"{0}")).func())' },
         ]);
     });
 
@@ -380,20 +380,20 @@ describe('Script processor', () => {
             { src: 'obj.{0}+=value', expected: '__set$(obj, "{0}", __get$(obj, "{0}")+value)' },
             {
                 src:      'obj.{0}+=obj.{0}+value',
-                expected: '__set$(obj,"{0}",__get$(obj, "{0}")+(__get$(obj, "{0}")+value))'
+                expected: '__set$(obj,"{0}",__get$(obj, "{0}")+(__get$(obj, "{0}")+value))',
             },
             { src: 'obj.{0}.field+=value', expected: '__get$(obj,"{0}").field +=value' },
             {
                 src:      'obj.{0}[field]+=value',
-                expected: '__set$(__get$(obj,"{0}"),field,__get$(__get$(obj,"{0}"), field) + value)'
+                expected: '__set$(__get$(obj,"{0}"),field,__get$(__get$(obj,"{0}"), field) + value)',
             },
             {
                 src:      'obj.{0}["field"]+=value',
-                expected: '__get$(obj,"{0}")["field"]+=value'
+                expected: '__get$(obj,"{0}")["field"]+=value',
             },
             {
                 src:      'obj.{0}["href"]+=value',
-                expected: '__set$(__get$(obj,"{0}"),"href", __get$(__get$(obj,"{0}"), "href") + value)'
+                expected: '__set$(__get$(obj,"{0}"),"href", __get$(__get$(obj,"{0}"), "href") + value)',
             },
             { src: 'result = $el[0].{0}', expected: 'result = __get$($el[0], "{0}")' },
             { src: 'obj.{0} = value, obj1 = value', expected: '__set$(obj,"{0}",value), obj1 = value' },
@@ -406,17 +406,17 @@ describe('Script processor', () => {
 
                 expected: 'obj.{0}-=value;obj.{0}*=value;obj.{0}/=value;' +
                           'obj.{0}>>=value;obj.{0}<<=value;obj.{0}>>>=value;' +
-                          'obj.{0}&=value;obj.{0}|=value;obj.{0}^=value'
+                          'obj.{0}&=value;obj.{0}|=value;obj.{0}^=value',
             },
             { src: 'obj.{0};let p = ""', expected: '__get$(obj, "{0}"); let p = ""' },
             {
                 src:      'class x extends y{method(){return super.{0};}}',
-                expected: 'class x extends y{method(){return super.{0};}}'
+                expected: 'class x extends y{method(){return super.{0};}}',
             },
             {
                 src:      'class x extends y{method(){return super.{0} = value;}}',
-                expected: 'class x extends y{method(){return super.{0} = value;}}'
-            }
+                expected: 'class x extends y{method(){return super.{0} = value;}}',
+            },
         ]);
     });
 
@@ -425,7 +425,7 @@ describe('Script processor', () => {
             { src: 'var temp = "location"; obj[t]', expected: 'var temp = "location";__get$(obj, t)' },
             {
                 src:      'obj[prop1]["prop2"].{0}.{0} = value',
-                expected: '__set$(__get$(__get$(obj, prop1)["prop2"], "{0}"),"{0}", value)'
+                expected: '__set$(__get$(__get$(obj, prop1)["prop2"], "{0}"),"{0}", value)',
             },
             { src: 'obj[someProperty] = value', expected: '__set$(obj, someProperty, value)' },
             { src: 'delete obj[{0}]', expected: 'delete obj[{0}]' },
@@ -444,23 +444,23 @@ describe('Script processor', () => {
 
                 expected: 'obj[{0}]-=value;obj[{0}]*=value;obj[{0}]/=value;' +
                           'obj[{0}]>>=value;obj[{0}]<<=value;obj[{0}]>>>=value;' +
-                          'obj[{0}]&=value;obj[{0}]|=value;obj[{0}]^=value'
+                          'obj[{0}]&=value;obj[{0}]|=value;obj[{0}]^=value',
             },
             {
                 src:      'class x extends y{method(){return super[{0}];}}',
-                expected: 'class x extends y{method(){return super[{0}];}}'
+                expected: 'class x extends y{method(){return super[{0}];}}',
             },
             {
                 src:      'class x extends y{method(){return super[{0}] = value;}}',
-                expected: 'class x extends y{method(){return super[{0}] = value;}}'
-            }
+                expected: 'class x extends y{method(){return super[{0}] = value;}}',
+            },
         ]);
     });
 
     it('Should process object expressions', () => {
         testProcessing({
             src:      '{ location: value, value: location, src: src }',
-            expected: '{ location: value, value: __get$Loc(location), src: src }'
+            expected: '{ location: value, value: __get$Loc(location), src: src }',
         });
     });
 
@@ -468,7 +468,7 @@ describe('Script processor', () => {
         testProcessing({
             src:      'obj["\\u003c/script>"]=location',
             expected: 'obj["\\u003c/script>"]=__get$Loc(location)',
-            msg:      ESOTOPE_RAW_LITERAL_PATCH_WARNING
+            msg:      ESOTOPE_RAW_LITERAL_PATCH_WARNING,
         });
     });
 
@@ -484,7 +484,7 @@ describe('Script processor', () => {
             { src: 'window.eval.call(window, script)', expected: 'window.eval.call(window, __proc$Script(script))' },
             {
                 src:      'window["eval"].call(window, script)',
-                expected: 'window["eval"].call(window, __proc$Script(script))'
+                expected: 'window["eval"].call(window, __proc$Script(script))',
             },
 
             { src: 'eval.apply(window, [script])', expected: 'eval.apply(window, __proc$Script([script], true))' },
@@ -492,101 +492,101 @@ describe('Script processor', () => {
             { src: 'eval.apply(window, args)', expected: 'eval.apply(window, __proc$Script(args, true))' },
             {
                 src:      'window.eval.apply(window, [script])',
-                expected: 'window.eval.apply(window, __proc$Script([script], true))'
+                expected: 'window.eval.apply(window, __proc$Script([script], true))',
             },
             {
                 src:      'window["eval"].apply(window, [script])',
-                expected: 'window["eval"].apply(window, __proc$Script([script], true))'
+                expected: 'window["eval"].apply(window, __proc$Script([script], true))',
             },
             {
                 src:      'var w = a.eval ? a.eval.bind(a) : function() {}',
-                expected: 'var w = __get$Eval(a.eval) ? __get$Eval(a.eval).bind(a) : function() {}'
+                expected: 'var w = __get$Eval(a.eval) ? __get$Eval(a.eval).bind(a) : function() {}',
             },
             {
                 src:      'var w = eval ? eval.bind(window) : function() {}',
-                expected: 'var w = __get$Eval(eval) ? __get$Eval(eval).bind(window) : function() {}'
+                expected: 'var w = __get$Eval(eval) ? __get$Eval(eval).bind(window) : function() {}',
             },
             {
                 src:      'var w = win["eval"] ? win["eval"].bind(win) : function() {}',
-                expected: 'var w = __get$Eval(win["eval"]) ? __get$Eval(win["eval"]).bind(win) : function() {}'
+                expected: 'var w = __get$Eval(win["eval"]) ? __get$Eval(win["eval"]).bind(win) : function() {}',
             },
             {
                 src:      'var a = eval, b = window.eval, c = window["eval"];',
-                expected: 'var a = __get$Eval(eval), b = __get$Eval(window.eval), c = __get$Eval(window["eval"]);'
+                expected: 'var a = __get$Eval(eval), b = __get$Eval(window.eval), c = __get$Eval(window["eval"]);',
             },
             {
                 src:      'a = eval, b = window.eval, c = window["eval"];',
-                expected: 'a = __get$Eval(eval), b = __get$Eval(window.eval), c = __get$Eval(window["eval"]);'
+                expected: 'a = __get$Eval(eval), b = __get$Eval(window.eval), c = __get$Eval(window["eval"]);',
             },
             {
                 src:      '{a: eval, b:window.eval, c: window["eval"]}',
-                expected: '{a: __get$Eval(eval), b:__get$Eval(window.eval), c: __get$Eval(window["eval"])}'
+                expected: '{a: __get$Eval(eval), b:__get$Eval(window.eval), c: __get$Eval(window["eval"])}',
             },
             {
                 src:      '(function() {return eval;}, function(){return window.eval;}, function(){return window["eval"]})',
-                expected: '(function() {return __get$Eval(eval);}, function(){return __get$Eval(window.eval);}, function(){return __get$Eval(window["eval"])})'
+                expected: '(function() {return __get$Eval(eval);}, function(){return __get$Eval(window.eval);}, function(){return __get$Eval(window["eval"])})',
             },
             {
                 src:      '(function a (eval) {}); a(eval, window.eval, window["eval"]);',
-                expected: '(function a (eval) {}); a(__get$Eval(eval), __get$Eval(window.eval), __get$Eval(window["eval"]));'
+                expected: '(function a (eval) {}); a(__get$Eval(eval), __get$Eval(window.eval), __get$Eval(window["eval"]));',
             },
             {
                 src:      '__get$Eval(eval)("");__get$Eval(window.eval)("");__get$Eval(window["eval"])("");',
-                expected: '__get$Eval(eval)("");__get$Eval(window.eval)("");__get$Eval(window["eval"])("");'
+                expected: '__get$Eval(eval)("");__get$Eval(window.eval)("");__get$Eval(window["eval"])("");',
             },
             {
                 src:      'eval++; eval--; ++eval; --eval;',
-                expected: 'eval++; eval--; ++eval; --eval;'
+                expected: 'eval++; eval--; ++eval; --eval;',
             },
             {
                 src:      'window.eval = 1; window["eval"] = 1;',
-                expected: 'window.eval = 1; window["eval"] = 1;'
+                expected: 'window.eval = 1; window["eval"] = 1;',
             },
             {
                 src:      'var ob = {eval : 1};',
-                expected: 'var ob = {eval : 1};'
+                expected: 'var ob = {eval : 1};',
             },
 
             {
                 src:      'var eval = value; eval = newValue;',
-                expected: 'var eval = value; eval = newValue;'
+                expected: 'var eval = value; eval = newValue;',
             },
             {
                 src:      'window.eval.property',
-                expected: 'window.eval.property'
+                expected: 'window.eval.property',
             },
             {
                 src:      'class X { eval () {} }',
-                expected: 'class X { eval () {} }'
+                expected: 'class X { eval () {} }',
             },
             {
                 src:      'class eval { x () {} }',
-                expected: 'class eval { x () {} }'
+                expected: 'class eval { x () {} }',
             },
             {
                 src:      'var obj = { eval: function eval() {} }',
-                expected: 'var obj = { eval: function eval() {} }'
+                expected: 'var obj = { eval: function eval() {} }',
             },
             {
                 src:      'function eval(){}',
-                expected: 'function eval(){}'
+                expected: 'function eval(){}',
             },
             {
                 src:      'y=eval=>{}',
-                expected: 'y=eval=>{}'
+                expected: 'y=eval=>{}',
             },
             {
                 src:      'y=(...eval)=>{}',
-                expected: 'y=(...eval)=>{}'
+                expected: 'y=(...eval)=>{}',
             },
             {
                 src:      'x[y]=(eval=8)=>{}',
-                expected: '__set$(x,y,(eval=8)=>{})'
+                expected: '__set$(x,y,(eval=8)=>{})',
             },
             {
                 src:      'function x(param=eval){}',
-                expected: 'function x(param=__get$Eval(eval)){}'
-            }
+                expected: 'function x(param=__get$Eval(eval)){}',
+            },
         ]);
     });
 
@@ -601,120 +601,120 @@ describe('Script processor', () => {
 
             {
                 src:      'postMessage.call(window, "", location)',
-                expected: '__get$PostMessage(null, postMessage).call(window, "", __get$Loc(location))'
+                expected: '__get$PostMessage(null, postMessage).call(window, "", __get$Loc(location))',
             },
             {
                 src:      'window["postMessage"].call(window, "", "")',
-                expected: '__get$PostMessage(window).call(window, "", "")'
+                expected: '__get$PostMessage(window).call(window, "", "")',
             },
             {
                 src:      'postMessage.apply(some, ["", ""])',
-                expected: '__get$PostMessage(null, postMessage).apply(some, ["", ""])'
+                expected: '__get$PostMessage(null, postMessage).apply(some, ["", ""])',
             },
             {
                 src:      'postMessage.apply(window, args)',
-                expected: '__get$PostMessage(null, postMessage).apply(window, args)'
+                expected: '__get$PostMessage(null, postMessage).apply(window, args)',
             },
             {
                 src:      'some.postMessage.apply(window, ["", ""])',
-                expected: '__get$PostMessage(some).apply(window, ["", ""])'
+                expected: '__get$PostMessage(some).apply(window, ["", ""])',
             },
             {
                 src:      'var w = a.postMessage ? a.postMessage.bind(a) : function() {}',
-                expected: 'var w = __get$PostMessage(a) ? __get$PostMessage(a).bind(a) : function() {}'
+                expected: 'var w = __get$PostMessage(a) ? __get$PostMessage(a).bind(a) : function() {}',
             },
             {
                 src:      'some.win["postMessage"].apply(window, ["", ""])',
-                expected: '__get$PostMessage(some.win).apply(window, ["", ""])'
+                expected: '__get$PostMessage(some.win).apply(window, ["", ""])',
             },
             {
                 src:      'window["postMessage"].apply(window, ["", location])',
-                expected: '__get$PostMessage(window).apply(window, ["", __get$Loc(location)])'
+                expected: '__get$PostMessage(window).apply(window, ["", __get$Loc(location)])',
             },
             { src: 'postMessage.some(window, ["", ""])', expected: 'postMessage.some(window, ["", ""])' },
             {
                 src:      'window["postMessage"].some(window, ["", ""])',
-                expected: 'window["postMessage"].some(window, ["", ""])'
+                expected: 'window["postMessage"].some(window, ["", ""])',
             },
 
             { src: 'postMessage("", "")', expected: '__get$PostMessage(null, postMessage)("", "")' },
             {
                 src:      'var a = postMessage, b = window.postMessage, c = window["postMessage"];',
-                expected: 'var a = __get$PostMessage(null, postMessage), b = __get$PostMessage(window), c = __get$PostMessage(window);'
+                expected: 'var a = __get$PostMessage(null, postMessage), b = __get$PostMessage(window), c = __get$PostMessage(window);',
             },
             {
                 src:      'a = postMessage, b = window.postMessage, c = window["postMessage"];',
-                expected: 'a = __get$PostMessage(null, postMessage), b = __get$PostMessage(window), c = __get$PostMessage(window);'
+                expected: 'a = __get$PostMessage(null, postMessage), b = __get$PostMessage(window), c = __get$PostMessage(window);',
             },
             {
                 src:      '{a: postMessage, b:window.postMessage, c: window["postMessage"]}',
-                expected: '{a: __get$PostMessage(null, postMessage), b:__get$PostMessage(window), c: __get$PostMessage(window)}'
+                expected: '{a: __get$PostMessage(null, postMessage), b:__get$PostMessage(window), c: __get$PostMessage(window)}',
             },
             {
                 src:      '(function() {return postMessage;}, function(){return window.postMessage;}, function(){return window["postMessage"]})',
-                expected: '(function() {return __get$PostMessage(null, postMessage);}, function(){return __get$PostMessage(window);}, function(){return __get$PostMessage(window)})'
+                expected: '(function() {return __get$PostMessage(null, postMessage);}, function(){return __get$PostMessage(window);}, function(){return __get$PostMessage(window)})',
             },
             {
                 src:      '(function a (postMessage) {}); a(postMessage, window.postMessage, window["postMessage"]);',
-                expected: '(function a (postMessage) {}); a(__get$PostMessage(null, postMessage), __get$PostMessage(window), __get$PostMessage(window));'
+                expected: '(function a (postMessage) {}); a(__get$PostMessage(null, postMessage), __get$PostMessage(window), __get$PostMessage(window));',
             },
             {
                 src:      '__get$PostMessage(postMessage)("");__get$PostMessage(window)("");__get$PostMessage(window)("");',
-                expected: '__get$PostMessage(postMessage)("");__get$PostMessage(window)("");__get$PostMessage(window)("");'
+                expected: '__get$PostMessage(postMessage)("");__get$PostMessage(window)("");__get$PostMessage(window)("");',
             },
             {
                 src:      'postMessage++; postMessage--; ++postMessage; --postMessage;',
-                expected: 'postMessage++; postMessage--; ++postMessage; --postMessage;'
+                expected: 'postMessage++; postMessage--; ++postMessage; --postMessage;',
             },
             {
                 src:      'window.postMessage = 1; window["postMessage"] = 1;',
-                expected: 'window.postMessage = 1; window["postMessage"] = 1;'
+                expected: 'window.postMessage = 1; window["postMessage"] = 1;',
             },
             {
                 src:      'var ob = {postMessage : 1};',
-                expected: 'var ob = {postMessage : 1};'
+                expected: 'var ob = {postMessage : 1};',
             },
 
             {
                 src:      'var postMessage = value; postMessage = newValue;',
-                expected: 'var postMessage = value; postMessage = newValue;'
+                expected: 'var postMessage = value; postMessage = newValue;',
             },
             {
                 src:      'window.postMessage.property',
-                expected: 'window.postMessage.property'
+                expected: 'window.postMessage.property',
             },
             {
                 src:      'class X { postMessage () {} }',
-                expected: 'class X { postMessage () {} }'
+                expected: 'class X { postMessage () {} }',
             },
             {
                 src:      'class postMessage { x () {} }',
-                expected: 'class postMessage { x () {} }'
+                expected: 'class postMessage { x () {} }',
             },
             {
                 src:      'var obj = { postMessage: function postMessage() {} }',
-                expected: 'var obj = { postMessage: function postMessage() {} }'
+                expected: 'var obj = { postMessage: function postMessage() {} }',
             },
             {
                 src:      'function postMessage(){}',
-                expected: 'function postMessage(){}'
+                expected: 'function postMessage(){}',
             },
             {
                 src:      'y=postMessage=>{}',
-                expected: 'y=postMessage=>{}'
+                expected: 'y=postMessage=>{}',
             },
             {
                 src:      'y=(...postMessage)=>{}',
-                expected: 'y=(...postMessage)=>{}'
+                expected: 'y=(...postMessage)=>{}',
             },
             {
                 src:      'x[y]=(postMessage=8)=>{}',
-                expected: '__set$(x,y,(postMessage=8)=>{})'
+                expected: '__set$(x,y,(postMessage=8)=>{})',
             },
             {
                 src:      'function x(param=postMessage){}',
-                expected: 'function x(param=__get$PostMessage(null,postMessage)){}'
-            }
+                expected: 'function x(param=__get$PostMessage(null,postMessage)){}',
+            },
         ]);
     });
 
@@ -726,15 +726,15 @@ describe('Script processor', () => {
             { src: 'for(obj.href in src){}', expected: 'for(var _hh$temp0 in src){__set$(obj, "href", _hh$temp0);}' },
             {
                 src:      'for(obj["href"] in src){}',
-                expected: 'for(var _hh$temp0 in src){__set$(obj, "href", _hh$temp0);}'
+                expected: 'for(var _hh$temp0 in src){__set$(obj, "href", _hh$temp0);}',
             },
             {
                 src:      'for(obj[prop] in src)obj[prop]=123;',
-                expected: 'for(var _hh$temp0 in src){__set$(obj, prop, _hh$temp0);__set$(obj, prop, 123);}'
+                expected: 'for(var _hh$temp0 in src){__set$(obj, prop, _hh$temp0);__set$(obj, prop, 123);}',
             },
             {
                 src:      'for(obj[prop] in src);',
-                expected: 'for(var _hh$temp0 in src){__set$(obj, prop, _hh$temp0);;}'
+                expected: 'for(var _hh$temp0 in src){__set$(obj, prop, _hh$temp0);;}',
             },
             {
                 src: 'for(obj[prop] in some)' +
@@ -747,8 +747,8 @@ describe('Script processor', () => {
                           '        __set$(win, prop, _hh$temp1);' +
                           '        ;' +
                           '    }' +
-                          '}'
-            }
+                          '}',
+            },
         ]);
     });
 
@@ -756,7 +756,7 @@ describe('Script processor', () => {
         testProcessing({
             src:      '({\\u00c0:"value"})[value]',
             expected: '__get$({\\u00c0:"value"}, value)',
-            msg:      ACORN_UNICODE_PATCH_WARNING
+            msg:      ACORN_UNICODE_PATCH_WARNING,
         });
     });
 
@@ -765,13 +765,13 @@ describe('Script processor', () => {
             {
                 src:      '"use strict";var let=0;obj[i];',
                 expected: '"use strict";var let=0;__get$(obj,i);',
-                msg:      ACORN_STRICT_MODE_PATCH_WARNING
+                msg:      ACORN_STRICT_MODE_PATCH_WARNING,
             },
             {
                 src:      '"use strict";var obj={yield:function(){}};obj[i];',
                 expected: '"use strict";var obj={yield:function(){}};__get$(obj, i);',
-                msg:      ACORN_STRICT_MODE_PATCH_WARNING
-            }
+                msg:      ACORN_STRICT_MODE_PATCH_WARNING,
+            },
         ]);
     });
 
@@ -785,8 +785,8 @@ describe('Script processor', () => {
             { src: '<!-- comment1 -->\n a[i];\n<!-- comment2 -->', expected: '__get$(a, i);' },
             {
                 src:      'var t = "<!-- comment1 -->\\n";\na[i];',
-                expected: 'var t = "<!-- comment1 -->\\n";\n__get$(a, i);'
-            }
+                expected: 'var t = "<!-- comment1 -->\\n";\n__get$(a, i);',
+            },
         ]);
     });
 
@@ -794,28 +794,28 @@ describe('Script processor', () => {
         testProcessing([
             {
                 src:      'import * as name from "module-name"',
-                expected: 'import * as name from "http://localhost:3000/ksadjo23/http://example.com/module-name"'
+                expected: 'import * as name from "http://localhost:3000/ksadjo23/http://example.com/module-name"',
             },
             {
                 src:      'import("/module-name.js").then(module => {})',
-                expected: 'import(__get$ProxyUrl("/module-name.js", "http://example.com/")).then(module => {})'
+                expected: 'import(__get$ProxyUrl("/module-name.js", "http://example.com/")).then(module => {})',
             },
             {
                 src:      'import(moduleName).then(module => {})',
-                expected: 'import(__get$ProxyUrl(moduleName, "http://example.com/")).then(module => {})'
+                expected: 'import(__get$ProxyUrl(moduleName, "http://example.com/")).then(module => {})',
             },
             {
                 src:      'import(location + "file-name").then(module => {})',
-                expected: 'import(__get$ProxyUrl(__get$Loc(location) + "file-name", "http://example.com/")).then(module => {})'
+                expected: 'import(__get$ProxyUrl(__get$Loc(location) + "file-name", "http://example.com/")).then(module => {})',
             },
             {
                 src:      'export * from "module-name"',
-                expected: 'export * from "http://localhost:3000/ksadjo23/http://example.com/module-name"'
+                expected: 'export * from "http://localhost:3000/ksadjo23/http://example.com/module-name"',
             },
             {
                 src:      'export { x as y } from "module-name"',
-                expected: 'export { x as y } from "http://localhost:3000/ksadjo23/http://example.com/module-name"'
-            }
+                expected: 'export { x as y } from "http://localhost:3000/ksadjo23/http://example.com/module-name"',
+            },
         ]);
     });
 
@@ -831,7 +831,7 @@ describe('Script processor', () => {
             },
             {
                 src:      'obj?.{0}?.{0}',
-                expected: '__get$(__get$(obj,"{0}",true),"{0}",true)'
+                expected: '__get$(__get$(obj,"{0}",true),"{0}",true)',
             },
             {
                 src:      'arr?.[0]',
@@ -851,8 +851,8 @@ describe('Script processor', () => {
                     src:      'var { location, href } = some;',
                     expected: 'var _hh$temp0 = some,' +
                               '    location = __get$(_hh$temp0, "location"),' +
-                              '    href = __get$(_hh$temp0, "href");'
-                }
+                              '    href = __get$(_hh$temp0, "href");',
+                },
             ]);
         });
 
@@ -867,8 +867,8 @@ describe('Script processor', () => {
                               '     return __set$Loc(location, _hh$temp1) || (location = _hh$temp1);' +
                               ' }.call(this),' +
                               ' href = __get$(_hh$temp0, "href"),' +
-                              ' _hh$temp0);'
-                }
+                              ' _hh$temp0);',
+                },
             ]);
         });
 
@@ -879,8 +879,8 @@ describe('Script processor', () => {
                     expected: 'var _hh$temp0 = obj,' +
                               '    a = _hh$temp0.a,' +
                               '    y = _hh$temp0.b,' +
-                              '    c = __rest$Object(_hh$temp0, ["a", "b"]);'
-                }
+                              '    c = __rest$Object(_hh$temp0, ["a", "b"]);',
+                },
             ]);
         });
 
@@ -891,8 +891,8 @@ describe('Script processor', () => {
                     expected: 'var _hh$temp0 = some,' +
                               '    _hh$temp0$x = _hh$temp0.x,' +
                               '    _hh$temp0$x$assign = __arrayFrom$(_hh$temp0$x === void 0 ? z : _hh$temp0$x),' +
-                              '    y = _hh$temp0$x$assign[0];'
-                }
+                              '    y = _hh$temp0$x$assign[0];',
+                },
             ]);
         });
 
@@ -913,8 +913,8 @@ describe('Script processor', () => {
                               '    }.call(this),' +
                               '    args = __rest$Array(_hh$temp0, 1),' +
                               '    _hh$temp0;' +
-                              '}'
-                }
+                              '}',
+                },
             ]);
         });
 
@@ -925,8 +925,8 @@ describe('Script processor', () => {
                     expected: 'var _hh$temp0 = some,' +
                               '    item1 = __get$(_hh$temp0, `str${a}`),' +
                               '    item2 = __get$(_hh$temp0, x),' +
-                              '    item3 = __get$(_hh$temp0, obj.k);'
-                }
+                              '    item3 = __get$(_hh$temp0, obj.k);',
+                },
             ]);
         });
 
@@ -940,8 +940,8 @@ describe('Script processor', () => {
                               '    item1 = __get$(_hh$temp0, _hh$temp1),' +
                               '    item2 = __get$(_hh$temp0, x),' +
                               '    item3 = __get$(_hh$temp0, _hh$temp2),' +
-                              '    other = __rest$Object(_hh$temp0, [_hh$temp1, x, _hh$temp2]);'
-                }
+                              '    other = __rest$Object(_hh$temp0, [_hh$temp1, x, _hh$temp2]);',
+                },
             ]);
         });
 
@@ -949,8 +949,8 @@ describe('Script processor', () => {
             testProcessing([
                 {
                     src:      'const {} = { a: 5 };',
-                    expected: 'const _hh$temp0 = { a: 5 };'
-                }
+                    expected: 'const _hh$temp0 = { a: 5 };',
+                },
             ]);
         });
 
@@ -958,8 +958,8 @@ describe('Script processor', () => {
             testProcessing([
                 {
                     src:      'let [] = [1, 2];',
-                    expected: 'let _hh$temp0 = [1, 2];'
-                }
+                    expected: 'let _hh$temp0 = [1, 2];',
+                },
             ]);
         });
 
@@ -971,8 +971,8 @@ describe('Script processor', () => {
                               '_hh$temp0 = [__get$(shuffled, j), __get$(shuffled, i)],' +
                               '__set$(shuffled, i, _hh$temp0[0]),' +
                               '__set$(shuffled, j, _hh$temp0[1]),' +
-                              '_hh$temp0;'
-                }
+                              '_hh$temp0;',
+                },
             ]);
         });
 
@@ -990,8 +990,8 @@ describe('Script processor', () => {
                               '        c = _hh$temp2[0],' +
                               '        d = _hh$temp2[1];' +
                               '    func = "body";' +
-                              '}'
-                }
+                              '}',
+                },
             ]);
         });
 
@@ -1005,8 +1005,8 @@ describe('Script processor', () => {
                     expected: 'var y = function (_hh$temp0 = __get$Loc(location)) {' +
                               '    var href = __get$(_hh$temp0, "href");' +
                               '    func = "body";' +
-                              '}'
-                }
+                              '}',
+                },
             ]);
         });
 
@@ -1024,8 +1024,8 @@ describe('Script processor', () => {
                               '        var url = __get$(_hh$temp0, "href");' +
                               '        g = 6;' +
                               '    }' +
-                              '}'
-                }
+                              '}',
+                },
             ]);
         });
 
@@ -1037,8 +1037,8 @@ describe('Script processor', () => {
                               '    var href = __get$(_hh$temp0, "href"),' +
                               '        port = _hh$temp0.port;' +
                               '    href = port;' +
-                              '});'
-                }
+                              '});',
+                },
             ]);
         });
 
@@ -1050,8 +1050,8 @@ describe('Script processor', () => {
                               '    var href1 = __get$(_hh$temp0, "href"),' +
                               '        href2 = __get$(_hh$temp1, "href");' +
                               '    return href2 == href1;' +
-                              '});'
-                }
+                              '});',
+                },
             ]);
         });
 
@@ -1062,8 +1062,8 @@ describe('Script processor', () => {
                     expected: 'links.forEach(_hh$temp0 => {' +
                               '    var href = __get$(_hh$temp0, "href");' +
                               '    return { a: href, b: 23 };' +
-                              '});'
-                }
+                              '});',
+                },
             ]);
         });
 
@@ -1075,8 +1075,8 @@ describe('Script processor', () => {
                     expected: 'var f = (_hh$temp0 = i) => {' +
                               '    var e = _hh$temp0.accountSettings;' +
                               '    return 1 === Number(e.runAsThread);' +
-                              '}'
-                }
+                              '}',
+                },
             ]);
         });
 
@@ -1088,7 +1088,7 @@ describe('Script processor', () => {
                               '    let href = __get$(_hh$temp0, "href"),' +
                               '        location = __get$(_hh$temp0, "location");' +
                               '    ;' +
-                              '}'
+                              '}',
                 },
                 {
                     src: 'for (const [href, location] of some) {' +
@@ -1100,7 +1100,7 @@ describe('Script processor', () => {
                               '        href = _hh$temp1[0],' +
                               '        location = _hh$temp1[1];' +
                               '    a = b;' +
-                              '}'
+                              '}',
                 },
                 {
                     src: 'for ([href, location] of some) {' +
@@ -1115,7 +1115,7 @@ describe('Script processor', () => {
                               '            return __set$Loc(location, _hh$temp2) || (location = _hh$temp2);' +
                               '        }.call(this),_hh$temp1;' +
                               '    h = href;' +
-                              '}'
+                              '}',
                 },
                 {
                     src: 'for ({ href, location } of some) a = b;',
@@ -1126,7 +1126,7 @@ describe('Script processor', () => {
                               '        return __set$Loc(location, _hh$temp1) || (location = _hh$temp1);' +
                               '    }.call(this);' +
                               '    a = b;' +
-                              '}'
+                              '}',
                 },
                 {
                     src: 'for (const [,a] of some) {' +
@@ -1137,8 +1137,8 @@ describe('Script processor', () => {
                               '    const_hh$temp1 = __arrayFrom$(_hh$temp0),' +
                               '        a = _hh$temp1[1];' +
                               '    const b = 123;' +
-                              '}'
-                }
+                              '}',
+                },
             ]);
         });
 
@@ -1158,8 +1158,8 @@ describe('Script processor', () => {
                 {
                     src:      'condition ? {x, y} = point : (x = 0, y = 0)',
                     expected: 'var _hh$temp0;' +
-                              'condition ? (_hh$temp0 = point, x = _hh$temp0.x, y = _hh$temp0.y, _hh$temp0) : (x = 0, y = 0)'
-                }
+                              'condition ? (_hh$temp0 = point, x = _hh$temp0.x, y = _hh$temp0.y, _hh$temp0) : (x = 0, y = 0)',
+                },
             ]);
         });
 
@@ -1167,8 +1167,8 @@ describe('Script processor', () => {
             testProcessing([
                 {
                     src:      'function x ({}, []) {}',
-                    expected: 'function x ({}, []) {}'
-                }
+                    expected: 'function x ({}, []) {}',
+                },
             ]);
         });
 
@@ -1186,8 +1186,8 @@ describe('Script processor', () => {
                               '        a = _hh$temp0[0],' +
                               '        b = _hh$temp0[1];' +
                               '    return (_hh$temp1 = __arrayFrom$(e), a = _hh$temp1[0], b = _hh$temp1[1], _hh$temp1);' +
-                              '}'
-                }
+                              '}',
+                },
             ]);
         });
 
@@ -1196,72 +1196,72 @@ describe('Script processor', () => {
                 {
                     src: 'for (let [a] of q) { let a = 1; }',
 
-                    expected: 'for (let_hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp2[0]; let a = 1;}'
+                    expected: 'for (let_hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp2[0]; let a = 1;}',
                 },
                 {
                     src: 'for (let [a, b] of q) { let a = 1; }',
 
-                    expected: 'for (let _hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp2[0], b =_hh$temp2[1]; let a = 1;}'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp2[0], b =_hh$temp2[1]; let a = 1;}',
                 },
                 {
                     src: 'for (let [b, a] of q) { let a = 1; }',
 
-                    expected: 'for (let _hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), b = _hh$temp2[0], _hh$temp1 = _hh$temp2[1]; let a = 1;}'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), b = _hh$temp2[0], _hh$temp1 = _hh$temp2[1]; let a = 1;}',
                 },
                 {
                     src: 'for (let [a, b] of q) { let a = 1; let b = 2; }',
 
-                    expected: 'for (let _hh$temp0 of q) { let_hh$temp3 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp3[0], _hh$temp2 = _hh$temp3[1]; let a = 1; let b = 2;}'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp3 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp3[0], _hh$temp2 = _hh$temp3[1]; let a = 1; let b = 2;}',
                 },
                 {
                     src: 'for (let [a, b] of q) { let a = 1, b = 2; }',
 
-                    expected: 'for (let _hh$temp0 of q) { let_hh$temp3 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp3[0], _hh$temp2 = _hh$temp3[1]; let a = 1, b = 2;}'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp3 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp3[0], _hh$temp2 = _hh$temp3[1]; let a = 1, b = 2;}',
                 },
                 {
                     src: 'for (let [a] of q) { let [a] = q; }',
 
-                    expected: 'for (let _hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp2[0]; let_hh$temp3 = __arrayFrom$(q), a =_hh$temp3[0]; }'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp2[0]; let_hh$temp3 = __arrayFrom$(q), a =_hh$temp3[0]; }',
                 },
                 {
                     src: 'for (let [a] of q) { let { a } = q; }',
 
-                    expected: 'for (let _hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp2[0]; let _hh$temp3 = q, a =_hh$temp3.a; }'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp2[0]; let _hh$temp3 = q, a =_hh$temp3.a; }',
                 },
                 {
                     src: 'for (let [a, b] of q) { let { a, b } = q; }',
 
-                    expected: 'for (let _hh$temp0 of q) { let_hh$temp3 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp3[0], _hh$temp2 = _hh$temp3[1]; let _hh$temp4 = q, a = _hh$temp4.a, b = _hh$temp4.b; }'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp3 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp3[0], _hh$temp2 = _hh$temp3[1]; let _hh$temp4 = q, a = _hh$temp4.a, b = _hh$temp4.b; }',
                 },
                 {
                     src: 'for (let [a] of q) { let { t: a } = q; }',
 
-                    expected: 'for (let _hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp2[0]; let _hh$temp3 = q, a = _hh$temp3.t; }'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), _hh$temp1 = _hh$temp2[0]; let _hh$temp3 = q, a = _hh$temp3.t; }',
                 },
                 // NOTE: we should replace only if body is `BlockStatement`
                 {
                     src: 'for (let [a] of q) if (true) { let a = 1; }',
 
-                    expected: 'for (let _hh$temp0 of q) { let_hh$temp1 = __arrayFrom$(_hh$temp0), a = _hh$temp1[0]; if (true) { let a = 1; }}'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp1 = __arrayFrom$(_hh$temp0), a = _hh$temp1[0]; if (true) { let a = 1; }}',
                 },
                 // NOTE: it's ok that we do not replace the `a` variable inside the `console.log` method`
                 // since we expect to get the `Cannot access 'a' before initialization` error message
                 {
                     src: 'for (let [b, a] of q) { console.log(a); let a = 1; }',
 
-                    expected: 'for (let _hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), b = _hh$temp2[0], _hh$temp1 = _hh$temp2[1]; console.log(a); let a = 1;}'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp2 = __arrayFrom$(_hh$temp0), b = _hh$temp2[0], _hh$temp1 = _hh$temp2[1]; console.log(a); let a = 1;}',
                 },
                 // NOTE: we should not rename the `for-of left` var if it is redeclared in the deeper statement
                 {
                     src: 'for (let [a] of q) { if (true) { let a = 1; } }',
 
-                    expected: 'for (let _hh$temp0 of q) { let_hh$temp1 = __arrayFrom$(_hh$temp0), a = _hh$temp1[0]; if (true) { let a = 1; }}'
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp1 = __arrayFrom$(_hh$temp0), a = _hh$temp1[0]; if (true) { let a = 1; }}',
                 },
                 {
                     src: 'for (let [a] of q) { for (let a = 1; a < 5; a++) {} }',
 
-                    expected: 'for (let _hh$temp0 of q) { let_hh$temp1 = __arrayFrom$(_hh$temp0), a = _hh$temp1[0]; for (let a = 1; a < 5; a++) { } }'
-                }
+                    expected: 'for (let _hh$temp0 of q) { let_hh$temp1 = __arrayFrom$(_hh$temp0), a = _hh$temp1[0]; for (let a = 1; a < 5; a++) { } }',
+                },
             ]);
         });
 
@@ -1274,8 +1274,8 @@ describe('Script processor', () => {
                               '    _hh$temp0$A = _hh$temp0.A,' +
                               '    C = _hh$temp0$A.C,' +
                               '    _hh$temp0$A$i1 = _hh$temp0.A,' +
-                              '    B = _hh$temp0$A$i1.B;'
-                }
+                              '    B = _hh$temp0$A$i1.B;',
+                },
             ]);
         });
 
@@ -1283,24 +1283,24 @@ describe('Script processor', () => {
             testProcessing([
                 {
                     src:      'export { href as location, postMessage, eval as g } from "module";',
-                    expected: 'export { href as location, postMessage, eval as g } from "http://localhost:3000/ksadjo23/http://example.com/module";'
+                    expected: 'export { href as location, postMessage, eval as g } from "http://localhost:3000/ksadjo23/http://example.com/module";',
                 },
                 {
                     src:      'import { location, postMessage, eval } from "module";',
-                    expected: 'import { location, postMessage, eval } from "http://localhost:3000/ksadjo23/http://example.com/module";'
+                    expected: 'import { location, postMessage, eval } from "http://localhost:3000/ksadjo23/http://example.com/module";',
                 },
                 {
                     src:      'for (let { location, eval, postMessage } in some);',
-                    expected: 'for (let { location, eval, postMessage } in some);'
+                    expected: 'for (let { location, eval, postMessage } in some);',
                 },
                 {
                     src:      'for ({ eval, location, postMessage } in some);',
-                    expected: 'for ({ eval, location, postMessage } in some);'
+                    expected: 'for ({ eval, location, postMessage } in some);',
                 },
                 {
                     src:      'try { } catch ({ msg, stack, location, eval, postMessage }) {}',
-                    expected: 'try { } catch ({ msg, stack, location, eval, postMessage }) {}'
-                }
+                    expected: 'try { } catch ({ msg, stack, location, eval, postMessage }) {}',
+                },
             ]);
         });
     });
@@ -1309,14 +1309,14 @@ describe('Script processor', () => {
         it('Should leave comments unchanged (T170848)', () => {
             testProcessing({
                 src:      'function test(){ \n /* \n line1 \n line2 \n line3 \n */ } a[src]=function(){};',
-                expected: 'function test(){ \n /* \n line1 \n line2 \n line3 \n */ } __set$(a,src,function(){});'
+                expected: 'function test(){ \n /* \n line1 \n line2 \n line3 \n */ } __set$(a,src,function(){});',
             });
         });
 
         it('Should process content in block statement (T209250)', () => {
             testProcessing({
                 src:      '{ (function() { a[src] = "success"; })(); }',
-                expected: '{ (function() { __set$(a, src, "success"); })(); }'
+                expected: '{ (function() { __set$(a, src, "success"); })(); }',
             });
         });
 
@@ -1347,7 +1347,7 @@ describe('Script processor', () => {
                           '//-->\n\n' +
                           'document.writeln("var t = 1;");' +
                           'document.writeln("t = 2;");' +
-                          'document.close();'
+                          'document.close();',
             });
         });
 
@@ -1363,7 +1363,7 @@ describe('Script processor', () => {
                 expected: 'function test(theURL,winName,features) { //v2.0\n' +
                           '   __get$(a, i);\n' +
                           '}\n' +
-                          '//-->'
+                          '//-->',
             });
         });
 
@@ -1377,12 +1377,12 @@ describe('Script processor', () => {
 
                     expected: 'dn="SIDEX.RU";\n' +
                               '__get$(a, i)\n' +
-                              '// -->'
+                              '// -->',
                 },
                 {
                     src:      '<!--\n' + 'dn="SIDEX.RU";\n // -->',
-                    expected: '<!--\n' + 'dn="SIDEX.RU";\n // -->'
-                }
+                    expected: '<!--\n' + 'dn="SIDEX.RU";\n // -->',
+                },
             ]);
         });
 
@@ -1397,7 +1397,7 @@ describe('Script processor', () => {
                 expected: 'var rdm0 = "";\n' +
                           'var rdm1 = "";\n' +
                           '__get$(a, i);' +
-                          '//-->'
+                          '//-->',
             });
         });
 
@@ -1416,7 +1416,7 @@ describe('Script processor', () => {
         it('Should process the content in the conditional function declaration', () => {
             testProcessing({
                 src:      'function foo() { if(true) function bar() { obj[src]; } }',
-                expected: 'function foo() { if(true) function bar() { __get$(obj, src); } }'
+                expected: 'function foo() { if(true) function bar() { __get$(obj, src); } }',
             });
         });
 
@@ -1424,36 +1424,36 @@ describe('Script processor', () => {
             testProcessing([
                 {
                     src:      'async function foo() { return await bar(obj[src]); }',
-                    expected: 'async function foo() { return await bar(__get$(obj, src)); }'
+                    expected: 'async function foo() { return await bar(__get$(obj, src)); }',
                 },
                 {
                     src:      'const foo = new class { async bar() { async function t() {}; var t = async function () {}; return async () => { await t(obj[prop]); }; }}();',
-                    expected: 'const foo = new class { async bar() { async function t() {}; var t = async function () {}; return async () => { await t(__get$(obj, prop)); }; }}();'
+                    expected: 'const foo = new class { async bar() { async function t() {}; var t = async function () {}; return async () => { await t(__get$(obj, prop)); }; }}();',
                 },
                 {
                     src:      'const y = { async [x] () { await (0); } }[x]', // GH-1862
-                    expected: 'const y = __get$({ async [x] () { await 0; } }, x)'
+                    expected: 'const y = __get$({ async [x] () { await 0; } }, x)',
                 },
                 {
                     src:      'new X(() => {(async () => { b[c] = d; })(); })', // GH-2002
-                    expected: 'new X(() => {(async () => { __set$(b, c, d); })(); })'
+                    expected: 'new X(() => {(async () => { __set$(b, c, d); })(); })',
                 },
                 {
                     src:      'new X(() => {(async function () { b[c] = d; })(); })', // GH-2002
-                    expected: 'new X(() => {(async function () { __set$(b, c, d); }()); })'
+                    expected: 'new X(() => {(async function () { __set$(b, c, d); }()); })',
                 },
                 {
                     src:      'd[f]=async function(){await(x={qwe:123},y(x))}', // GH-2072
-                    expected: '__set$(d,f,async function(){await (x={qwe:123},y(x));})'
+                    expected: '__set$(d,f,async function(){await (x={qwe:123},y(x));})',
                 },
                 {
                     src:      'async function f() { result[type] = (await result).clone(); }', // GH-2255
-                    expected: 'async function f() {  __set$(result,type,(await result).clone()); }'
+                    expected: 'async function f() {  __set$(result,type,(await result).clone()); }',
                 },
                 {
                     src:      'async function f() { result[type] = await result.clone(); }', // GH-2255
-                    expected: 'async function f() {  __set$(result,type,await result.clone()); }'
-                }
+                    expected: 'async function f() {  __set$(result,type,await result.clone()); }',
+                },
             ]);
         });
 
@@ -1461,8 +1461,8 @@ describe('Script processor', () => {
             testProcessing([
                 {
                     src:      'var x = [1, , 3];',
-                    expected: 'var x = [1, , 3];'
-                }
+                    expected: 'var x = [1, , 3];',
+                },
             ]);
         });
 
@@ -1477,8 +1477,8 @@ describe('Script processor', () => {
                               '    let _hh$temp0 = new.target,' +
                               '        a = _hh$temp0.a,' +
                               '        b = _hh$temp0.b;' +
-                              '}'
-                }
+                              '}',
+                },
             ]);
         });
 
@@ -1487,8 +1487,8 @@ describe('Script processor', () => {
                 {
                     src: 'Object.assign({}, { [(a, b)]: c } )',
 
-                    expected: '__call$(Object, "assign", [{}, { [(a, b)]: c }])'
-                }
+                    expected: '__call$(Object, "assign", [{}, { [(a, b)]: c }])',
+                },
             ]);
         });
 
@@ -1502,7 +1502,7 @@ describe('Script processor', () => {
                 expected: '__set$(i, j, () => {' +
                           '    for (var x of (a, b))' +
                           '        c();' +
-                          '})'
+                          '})',
             });
         });
 
@@ -1533,7 +1533,7 @@ describe('Script processor', () => {
                 {
                     src:      'i[j] = a.b?.();',
                     expected: '__set$(i, j, (a.b?.()));',
-                }
+                },
             ]);
         });
 
@@ -1541,8 +1541,8 @@ describe('Script processor', () => {
             testProcessing([
                 {
                     src:      'var n, { q } = e; n();',
-                    expected: 'var n,_hh$temp0 = e, q = _hh$temp0.q; n();'
-                }
+                    expected: 'var n,_hh$temp0 = e, q = _hh$temp0.q; n();',
+                },
             ]);
         });
     });

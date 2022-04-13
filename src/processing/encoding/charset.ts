@@ -17,18 +17,18 @@ interface CharsetBOM {
 const CHARSET_BOM_LIST: CharsetBOM[] = [
     {
         charset: 'utf-8',
-        bom:     Buffer.from([0xEF, 0xBB, 0xBF])
+        bom:     Buffer.from([0xEF, 0xBB, 0xBF]),
     },
 
     {
         charset: 'utf-16le',
-        bom:     Buffer.from([0xFF, 0xFE])
+        bom:     Buffer.from([0xFF, 0xFE]),
     },
 
     {
         charset: 'utf-16be',
-        bom:     Buffer.from([0xFE, 0xFF])
-    }
+        bom:     Buffer.from([0xFE, 0xFF]),
+    },
 ];
 
 enum CharsetPriority {

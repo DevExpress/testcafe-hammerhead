@@ -95,7 +95,7 @@ export default class ShadowUI extends SandboxBase {
 
             if (elContextWindow !== window) {
                 this._messageSandbox.sendServiceMsg({
-                    cmd: this.BODY_CONTENT_CHANGED_COMMAND
+                    cmd: this.BODY_CONTENT_CHANGED_COMMAND,
                 }, elContextWindow);
             }
             else
@@ -134,12 +134,12 @@ export default class ShadowUI extends SandboxBase {
         }
 
         nativeMethods.objectDefineProperty(filteredList, 'item', {
-            value: index => index >= filteredList.length ? null : filteredList[index]
+            value: index => index >= filteredList.length ? null : filteredList[index],
         });
 
         if (list.namedItem) {
             nativeMethods.objectDefineProperty(filteredList, 'namedItem', {
-                value: name => list.namedItem(name)
+                value: name => list.namedItem(name),
             });
         }
 
@@ -224,7 +224,7 @@ export default class ShadowUI extends SandboxBase {
 
                     return sandbox._filterNodeList(list, length);
                 };
-            }
+            },
         };
     }
 

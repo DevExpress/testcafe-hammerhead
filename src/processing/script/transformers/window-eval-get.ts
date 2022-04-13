@@ -51,7 +51,7 @@ const transformer: Transformer<MemberExpression> = {
         return false;
     },
 
-    run: createGetEvalMethodCall
+    run: createGetEvalMethodCall,
 };
 
 export default transformer;

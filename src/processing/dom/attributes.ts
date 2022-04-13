@@ -9,14 +9,14 @@ export const URL_ATTR_TAGS = {
     action:     ['form'],
     formaction: ['button', 'input'],
     manifest:   ['html'],
-    data:       ['object']
+    data:       ['object'],
 };
 
 export const URL_ATTRS = ['href', 'src', 'action', 'formaction', 'manifest', 'data'];
 
 export const TARGET_ATTR_TAGS = {
     target:     ['a', 'form', 'area', 'base'],
-    formtarget: ['input', 'button']
+    formtarget: ['input', 'button'],
 };
 
 export const TARGET_ATTRS = ['target', 'formtarget'];

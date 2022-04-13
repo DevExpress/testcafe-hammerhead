@@ -85,7 +85,7 @@ const transformer: Transformer<Identifier> = {
         return true;
     },
 
-    run: createLocationGetWrapper
+    run: createLocationGetWrapper,
 };
 
 export default transformer;

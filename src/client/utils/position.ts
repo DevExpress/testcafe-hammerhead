@@ -35,7 +35,7 @@ function getAreaElementRectangle (el, mapContainer) {
                     height: coords[3] - coords[1],
                     left:   coords[0],
                     top:    coords[1],
-                    width:  coords[2] - coords[0]
+                    width:  coords[2] - coords[0],
                 };
 
             }
@@ -47,7 +47,7 @@ function getAreaElementRectangle (el, mapContainer) {
                     height: coords[2] * 2,
                     left:   coords[0] - coords[2],
                     top:    coords[1] - coords[2],
-                    width:  coords[2] * 2
+                    width:  coords[2] * 2,
                 };
             }
 
@@ -104,7 +104,7 @@ function getMapElementRectangle (el) {
         height: 0,
         left:   0,
         top:    0,
-        width:  0
+        width:  0,
     };
 }
 
@@ -126,7 +126,7 @@ function getSelectChildRectangle (el) {
             top:    selectRectangle.top + selectBorders.top + styleUtils.getElementPadding(select).top +
                     optionVisibleIndex * optionHeight,
 
-            width: selectRectangle.width - (selectBorders.left + selectBorders.right) - selectRightScrollbar
+            width: selectRectangle.width - (selectBorders.left + selectBorders.right) - selectRightScrollbar,
         };
     }
 
@@ -141,7 +141,7 @@ function getSvgElementRelativeRectangle (el) {
         height: !isSvgTextElement ? boundingClientRect.height : el.offsetHeight,
         left:   boundingClientRect.left + (document.body.scrollLeft || document.documentElement.scrollLeft),
         top:    boundingClientRect.top + (document.body.scrollTop || document.documentElement.scrollTop),
-        width:  !isSvgTextElement ? boundingClientRect.width : el.offsetWidth
+        width:  !isSvgTextElement ? boundingClientRect.width : el.offsetWidth,
     };
 
     if (isSvgTextElement) {
@@ -154,7 +154,7 @@ function getSvgElementRelativeRectangle (el) {
             height: elementRect.height || boundingClientRect.height,
             left:   offsetParentIsBody ? el.offsetLeft || elOffset.left : offsetParentOffset.left + el.offsetLeft,
             top:    offsetParentIsBody ? el.offsetTop || elOffset.top : offsetParentOffset.top + el.offsetTop,
-            width:  elementRect.width || boundingClientRect.width
+            width:  elementRect.width || boundingClientRect.width,
         };
     }
 
@@ -214,7 +214,7 @@ export function getElementRectangle (el) {
             height: relativeRectangle.height,
             left:   elementOffset.left,
             top:    elementOffset.top,
-            width:  relativeRectangle.width
+            width:  relativeRectangle.width,
         };
     }
 
@@ -253,7 +253,7 @@ function calcOffsetPosition (el, borders, offsetPosition) {
 
     return {
         left: isSvg ? relativeRectangle.left + borders.left : offsetPosition.left + borders.left,
-        top:  isSvg ? relativeRectangle.top + borders.top : offsetPosition.top + borders.top
+        top:  isSvg ? relativeRectangle.top + borders.top : offsetPosition.top + borders.top,
     };
 }
 
@@ -273,19 +273,19 @@ function calcOffsetPositionInIframe (el, borders, offsetPosition, doc, currentIf
         clientPosition = {
             x: relativeRectangle.left - (document.body.scrollLeft || document.documentElement.scrollLeft) +
                borders.left,
-            y: relativeRectangle.top - (document.body.scrollTop || document.documentElement.scrollTop) + borders.top
+            y: relativeRectangle.top - (document.body.scrollTop || document.documentElement.scrollTop) + borders.top,
         };
     }
     else {
         clientPosition = offsetToClientCoords({
             x: offsetPosition.left + borders.left,
-            y: offsetPosition.top + borders.top
+            y: offsetPosition.top + borders.top,
         }, doc);
     }
 
     return {
         left: iframeOffset.left + clientPosition.x + iframePadding.left,
-        top:  iframeOffset.top + clientPosition.y + iframePadding.top
+        top:  iframeOffset.top + clientPosition.y + iframePadding.top,
     };
 }
 
@@ -295,7 +295,7 @@ export function getOffsetPosition (el, roundFn = Math.round) {
 
         return {
             left: rectangle.left,
-            top:  rectangle.top
+            top:  rectangle.top,
         };
     }
 
@@ -311,7 +311,7 @@ export function getOffsetPosition (el, roundFn = Math.round) {
     // but there’s no way to access its body.
     const borders = doc.body ? styleUtils.getBordersWidth(doc.body) : {
         left: 0,
-        top:  0
+        top:  0,
     };
 
     const calcOffsetPositionFn = !isInIframe || !currentIframe ? calcOffsetPosition : calcOffsetPositionInIframe;
@@ -338,6 +338,6 @@ export function offsetToClientCoords (coords, currentDocument?: Document) {
 
     return {
         x: coords.x - scrollLeft,
-        y: coords.y - scrollTop
+        y: coords.y - scrollTop,
     };
 }

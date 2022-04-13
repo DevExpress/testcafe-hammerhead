@@ -21,7 +21,7 @@ export function createLineIterator (buffer: Buffer) {
                     start = i + CRLF_LENGTH;
                 }
             }
-        }
+        },
     };
 }
 

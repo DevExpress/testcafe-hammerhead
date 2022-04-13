@@ -157,7 +157,7 @@ export default class RequestPipelineContext {
             isObject:        !!parsedResourceType.isObject,
             charset:         parsed.charset || '',
             reqOrigin:       parsed.reqOrigin || '',
-            credentials:     parsed.credentials
+            credentials:     parsed.credentials,
         };
 
         return { dest, sessionId: parsed.sessionId, windowId: parsed.windowId };
@@ -306,7 +306,7 @@ export default class RequestPipelineContext {
             isIframe: this.isIframe,
             isAjax:   this.isAjax,
 
-            isForm, isScript
+            isForm, isScript,
         }) || '';
 
         // NOTE: We need charset information if we are going to process the resource.
@@ -333,7 +333,7 @@ export default class RequestPipelineContext {
             isNotModified,
             isRedirect,
             isAttachment,
-            isTextPage
+            isTextPage,
         };
 
         logger.proxy.onContentInfoBuilt(this);
@@ -448,7 +448,7 @@ export default class RequestPipelineContext {
             charset,
             windowId,
             reqOrigin,
-            credentials
+            credentials,
         });
     }
 
@@ -456,7 +456,7 @@ export default class RequestPipelineContext {
         return urlUtils.getDomain({
             protocol: this.serverInfo.protocol,
             hostname: this.serverInfo.hostname,
-            port:     isCrossDomain ? this.serverInfo.crossDomainPort : this.serverInfo.port
+            port:     isCrossDomain ? this.serverInfo.crossDomainPort : this.serverInfo.port,
         });
     }
 

@@ -6,5 +6,5 @@ export const XLINK_NAMESPACE = 'http://www.w3.org/1999/xlink';
 export const NAMESPACE_PREFIX_MAP = {
     xml:   XML_NAMESPACE,
     xlink: XLINK_NAMESPACE,
-    xmlns: XMLNS_NAMESPACE
+    xmlns: XMLNS_NAMESPACE,
 };

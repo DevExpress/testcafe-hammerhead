@@ -71,7 +71,7 @@ export default abstract class Router {
 
         return {
             paramNames,
-            re: new RegExp(`^${method} ${reParts.join('/')}$`)
+            re: new RegExp(`^${method} ${reParts.join('/')}$`),
         };
     }
 

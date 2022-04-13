@@ -22,7 +22,7 @@ export function parse (str) {
 
     const parsedCookie: any = {
         key:   keyValueParsingResult[1] ? trim(keyValueParsingResult[2]) : '',
-        value: trim(keyValueParsingResult[3])
+        value: trim(keyValueParsingResult[3]),
     };
 
     if (firstSemicolonIdx === -1)

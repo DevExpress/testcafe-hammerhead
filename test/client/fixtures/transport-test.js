@@ -41,7 +41,7 @@ test('queuedAsyncServiceMsg', function () {
         sendQueuedMsg({ cmd: 'Type2', delay: 10 }),
         sendQueuedMsg({ cmd: 'Type1', delay: 200 }),
         sendQueuedMsg({ cmd: 'Type1', delay: 300 }),
-        sendQueuedMsg({ cmd: 'Type1', delay: 200 })
+        sendQueuedMsg({ cmd: 'Type1', delay: 200 }),
     ];
 
     return Promise.all(msgPromises)
@@ -79,7 +79,7 @@ test('batchUpdate - with stored messages', function () {
     var messages = [
         { cmd: 'Type1', duration: 10 },
         { cmd: 'Type2', duration: 20 },
-        { cmd: 'Type3', duration: 30 }
+        { cmd: 'Type3', duration: 30 },
     ];
 
     nativeMethods.storageSetItem.call(nativeLocalStorage, settings.get().sessionId, JSON.stringify(messages));
@@ -128,7 +128,7 @@ else {
         var msg         = { test: 'testValue', rejectForTest: true };
         var msgPromises = [
             transport.asyncServiceMsg(msg),
-            transport.asyncServiceMsg(msg)
+            transport.asyncServiceMsg(msg),
         ];
 
         return Promise.all(msgPromises)
@@ -221,7 +221,7 @@ test('should use worker from top window for transport', function () {
             var promises = [
                 transport.queuedAsyncServiceMsg({ cmd: 'first', delay: 400 }).then(processResult),
                 iframeTransport.queuedAsyncServiceMsg({ cmd: 'first', delay: 100 }).then(processResult),
-                transport.asyncServiceMsg({ cmd: 'first', delay: 120 }).then(processResult)
+                transport.asyncServiceMsg({ cmd: 'first', delay: 120 }).then(processResult),
             ];
 
             return Promise.all(promises);

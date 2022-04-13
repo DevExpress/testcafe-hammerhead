@@ -111,7 +111,7 @@ function parseLocationThroughAnchor (url: string) {
         host:     destPort ? nativeMethods.anchorHostGetter.call(resolver) : hostname,
         pathname: pathname,
         hash:     resolver.hash,
-        search:   nativeMethods.anchorSearchGetter.call(resolver)
+        search:   nativeMethods.anchorSearchGetter.call(resolver),
     };
 }
 
@@ -126,7 +126,7 @@ function parseLocationThroughURL (url: string) {
         host:     parsedUrl.host,
         pathname: parsedUrl.pathname,
         hash:     parsedUrl.hash,
-        search:   parsedUrl.search
+        search:   parsedUrl.search,
     };
     /* eslint-enable no-restricted-properties */
 }

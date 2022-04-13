@@ -7,5 +7,5 @@ export default {
     storedAttrPostfix:         '-hammerhead-stored-value',
     hoverPseudoClass:          'data-hammerhead-hovered',
     focusPseudoClass:          'data-hammerhead-focused',
-    uploadInfoHiddenInputName: 'hammerhead|upload-info-hidden-input-name'
+    uploadInfoHiddenInputName: 'hammerhead|upload-info-hidden-input-name',
 };

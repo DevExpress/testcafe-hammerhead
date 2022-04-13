@@ -19,7 +19,7 @@ function getContentType (body?: ResponseMockBodyInit): string {
 export default async function (mock: ResponseMock): Promise<IncomingMessageLike> {
     let response = {
         headers:    { [BUILTIN_HEADERS.contentType]: getContentType(mock.body) },
-        statusCode: mock.statusCode
+        statusCode: mock.statusCode,
     } as IncomingMessageLikeInitOptions;
 
     if (mock.headers)

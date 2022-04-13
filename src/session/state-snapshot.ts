@@ -12,7 +12,7 @@ export default class StateSnapshot {
     static empty () {
         return new StateSnapshot(null, {
             localStorage:   '[[],[]]',
-            sessionStorage: '[[],[]]'
+            sessionStorage: '[[],[]]',
         });
     }
 }

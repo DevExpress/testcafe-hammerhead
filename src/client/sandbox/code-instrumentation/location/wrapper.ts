@@ -1,6 +1,6 @@
 import {
     get as getDestLocation,
-    getParsed as getParsedDestLocation
+    getParsed as getParsedDestLocation,
 } from '../../../utils/destination-location';
 import {
     getProxyUrl,
@@ -8,7 +8,7 @@ import {
     parseProxyUrl,
     parseResourceType,
     isChangedOnlyHash,
-    getCrossDomainProxyPort
+    getCrossDomainProxyPort,
 } from '../../../utils/url';
 import {
     getDomain,
@@ -16,7 +16,7 @@ import {
     sameOriginCheck,
     ensureTrailingSlash,
     prepareUrl,
-    SPECIAL_BLANK_PAGE
+    SPECIAL_BLANK_PAGE,
 } from '../../../../utils/url';
 import * as domUtils from '../../../utils/dom';
 import nativeMethods from '../../native-methods';
@@ -62,7 +62,7 @@ export default class LocationWrapper extends LocationInheritor {
 
         const resourceType   = getResourceTypeString({
             isIframe: parsedResourceType.isIframe,
-            isForm:   parsedResourceType.isForm
+            isForm:   parsedResourceType.isForm,
         });
         const getHref        = () => {
             // eslint-disable-next-line no-restricted-properties
@@ -123,7 +123,7 @@ export default class LocationWrapper extends LocationInheritor {
                 onChanged(proxiedHref);
 
                 return href;
-            }
+            },
         });
 
         // eslint-disable-next-line no-restricted-properties
@@ -138,13 +138,13 @@ export default class LocationWrapper extends LocationInheritor {
                 onChanged(newLocation);
 
                 return search;
-            }
+            },
         });
 
         // eslint-disable-next-line no-restricted-properties
         locationProps.origin = createOverriddenDescriptor(locationPropsOwner, 'origin', {
             getter: () => getDomain(getParsedDestLocation()),
-            setter: origin => origin
+            setter: origin => origin,
         });
 
         locationProps.hash = createOverriddenDescriptor(locationPropsOwner, 'hash', {
@@ -153,7 +153,7 @@ export default class LocationWrapper extends LocationInheritor {
                 window.location.hash = hash;
 
                 return hash;
-            }
+            },
         });
 
         if (window.location.ancestorOrigins) {
@@ -186,7 +186,7 @@ export default class LocationWrapper extends LocationInheritor {
             const ancestorOrigins = new DOMStringListWrapper(window, messageSandbox ? getCrossDomainOrigin : void 0);
 
             locationProps.ancestorOrigins = createOverriddenDescriptor(locationPropsOwner, 'ancestorOrigins', {
-                getter: () => ancestorOrigins
+                getter: () => ancestorOrigins,
             });
         }
 
@@ -207,7 +207,7 @@ export default class LocationWrapper extends LocationInheritor {
                     onChanged(newLocation);
 
                     return value;
-                }
+                },
             });
         };
 
@@ -225,7 +225,7 @@ export default class LocationWrapper extends LocationInheritor {
                 onChanged(proxiedHref);
 
                 return result;
-            }
+            },
         });
 
         locationProps.replace = createOverriddenDescriptor(locationPropsOwner, 'replace', {
@@ -236,7 +236,7 @@ export default class LocationWrapper extends LocationInheritor {
                 onChanged(proxiedHref);
 
                 return result;
-            }
+            },
         });
 
         locationProps.reload = createOverriddenDescriptor(locationPropsOwner, 'reload', {
@@ -246,7 +246,7 @@ export default class LocationWrapper extends LocationInheritor {
                 onChanged(window.location.toString());
 
                 return result;
-            }
+            },
         });
 
         locationProps.toString = createOverriddenDescriptor(locationPropsOwner, 'toString', { value: getHref });

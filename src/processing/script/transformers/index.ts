@@ -68,7 +68,7 @@ const TRANSFORMERS: Transformer<any>[] = [
     jsProtocolLastExpression,
     staticImportTransformer,
     dynamicImportTransformer,
-    declarationDestructuring
+    declarationDestructuring,
 ];
 
 function createTransformerMap (): Map<Transformer<Node>['nodeTypes'], Transformer<Node>[]> {

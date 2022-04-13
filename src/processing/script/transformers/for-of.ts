@@ -12,7 +12,7 @@ import {
     Statement,
     VariableDeclaration,
     VariableDeclarator,
-    Node
+    Node,
 } from 'estree';
 
 import { Transformer } from './index';
@@ -22,7 +22,7 @@ import {
     createVariableDeclarator,
     createVariableDeclaration,
     createBlockStatement,
-    createIdentifier
+    createIdentifier,
 } from '../node-builder';
 import replaceNode from './replace-node';
 import TempVariables from './temp-variables';
@@ -111,7 +111,7 @@ const forOfTransformer: Transformer<ForOfStatement> = {
             replaceDuplicateDeclarators(node);
 
             statementWithTempAssignment = createVariableDeclaration(forOfLeft.kind, [
-                createVariableDeclarator(forOfLeft.declarations[0].id, tempIdentifier)
+                createVariableDeclarator(forOfLeft.declarations[0].id, tempIdentifier),
             ]);
 
             statementWithTempAssignment.reTransform = true;
@@ -132,7 +132,7 @@ const forOfTransformer: Transformer<ForOfStatement> = {
             replaceNode(node.body, createBlockStatement([statementWithTempAssignment, node.body]), node, 'body');
 
         return null;
-    }
+    },
 };
 
 export default forOfTransformer;

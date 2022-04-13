@@ -32,7 +32,7 @@ function getProxyUrl (url, resourceType, charset) {
         proxyPort:     1836,
         sessionId:     'sessionId',
         resourceType:  resourceType,
-        charset:       charset
+        charset:       charset,
     });
 }
 
@@ -54,13 +54,13 @@ describe('Content charset', () => {
             dest:    {},
             session: {
                 hasRequestEventListeners: () => false,
-                options:                  { allowMultipleWindows: false }
+                options:                  { allowMultipleWindows: false },
             },
             serverInfo: {
-                crossDomainPort: 1338
+                crossDomainPort: 1338,
             },
             getInjectableStyles:  () => [],
-            getInjectableScripts: () => []
+            getInjectableScripts: () => [],
         };
 
         pageProcessor.processResource(html, requestPipelineContextMock, charset, noop);
@@ -156,8 +156,8 @@ describe('Content charset', () => {
             const options = {
                 url:     url,
                 headers: {
-                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
-                }
+                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
+                },
             };
 
             return request(options)
@@ -169,23 +169,23 @@ describe('Content charset', () => {
         function getExpectedStr (src, charsetStr, addBOM) {
             const charset = {
                 get:      () => charsetStr,
-                fromMeta: noop
+                fromMeta: noop,
             };
 
             const requestPipelineContextMock = {
                 dest:    {},
                 session: {
                     hasRequestEventListeners: () => false,
-                    options:                  { allowMultipleWindows: false }
+                    options:                  { allowMultipleWindows: false },
                 },
                 serverInfo: {
-                    crossDomainPort: 1338
+                    crossDomainPort: 1338,
                 },
                 getInjectableStyles:  () => [],
                 getInjectableScripts: () => [
                     'http://127.0.0.1:1836/hammerhead.js',
-                    'http://127.0.0.1:1836/task.js'
-                ]
+                    'http://127.0.0.1:1836/task.js',
+                ],
             };
 
             const processedResource = pageProcessor.processResource(src, requestPipelineContextMock, charset, noop);
@@ -196,28 +196,28 @@ describe('Content charset', () => {
         it('Should set content charset from BOM', () => {
             return testDocumentCharset(
                 '/page-with-bom',
-                getExpectedStr(pageWithMetaSrc, 'utf-16be', true)
+                getExpectedStr(pageWithMetaSrc, 'utf-16be', true),
             );
         });
 
         it('Should set content charset from Content-Type header', () => {
             return testDocumentCharset(
                 '/page-with-content-type-header',
-                getExpectedStr(pageWithMetaSrc, 'utf-8', false)
+                getExpectedStr(pageWithMetaSrc, 'utf-8', false),
             );
         });
 
         it('Should set content charset from meta', () => {
             return testDocumentCharset(
                 '/page-with-meta-tag',
-                getExpectedStr(pageWithMetaSrc, 'windows-1251', false)
+                getExpectedStr(pageWithMetaSrc, 'windows-1251', false),
             );
         });
 
         it('Should set default content charset', () => {
             return testDocumentCharset(
                 '/page-default',
-                getExpectedStr(pageWithoutMetaSrc, 'iso-8859-1', false)
+                getExpectedStr(pageWithoutMetaSrc, 'iso-8859-1', false),
             );
         });
     });
@@ -229,7 +229,7 @@ describe('Content charset', () => {
             const resourceType = {
                 isIframe: false,
                 isForm:   false,
-                isScript: true
+                isScript: true,
             };
             const url          = getProxyUrl('http://127.0.0.1:2000' +
                                              destUrl, urlUtils.getResourceTypeString(resourceType), expectedCharset);
@@ -244,7 +244,7 @@ describe('Content charset', () => {
             return testScriptCharset(
                 '/script-with-bom',
                 'utf-16be',
-                iconv.encode(processedScript, 'utf-16be', { addBOM: true }).toString()
+                iconv.encode(processedScript, 'utf-16be', { addBOM: true }).toString(),
             );
         });
 
@@ -252,7 +252,7 @@ describe('Content charset', () => {
             return testScriptCharset(
                 '/script-with-content-type-header',
                 'utf-8',
-                iconv.encode(processedScript, 'utf-8').toString()
+                iconv.encode(processedScript, 'utf-8').toString(),
             );
         });
 
@@ -260,7 +260,7 @@ describe('Content charset', () => {
             return testScriptCharset(
                 '/script-with-charset-in-url',
                 'utf-16le',
-                iconv.encode(processedScript, 'utf-16le').toString()
+                iconv.encode(processedScript, 'utf-16le').toString(),
             );
         });
     });
@@ -280,7 +280,7 @@ describe('Content charset', () => {
             return Promise.all([
                 testResourceCharset(processedManifest, 'utf-16be', getProxyUrl(resourceUrl + 'bom')),
                 testResourceCharset(processedManifest, 'utf-8', getProxyUrl(resourceUrl + 'content-type')),
-                testResourceCharset(processedManifest, 'iso-8859-1', getProxyUrl(resourceUrl + 'default'))
+                testResourceCharset(processedManifest, 'iso-8859-1', getProxyUrl(resourceUrl + 'default')),
             ]);
         });
 
@@ -291,7 +291,7 @@ describe('Content charset', () => {
             return Promise.all([
                 testResourceCharset(processedStylesheet, 'utf-16be', getProxyUrl(resourceUrl + 'bom')),
                 testResourceCharset(processedStylesheet, 'utf-8', getProxyUrl(resourceUrl + 'content-type')),
-                testResourceCharset(processedStylesheet, 'iso-8859-1', getProxyUrl(resourceUrl + 'default'))
+                testResourceCharset(processedStylesheet, 'iso-8859-1', getProxyUrl(resourceUrl + 'default')),
             ]);
         });
     });
@@ -319,7 +319,7 @@ describe('Content charset', () => {
         return Promise.all([
             testBOM('utf-8', 'text/html; charset=utf16le'),
             testBOM('utf-16le', 'text/html; charset=utf16be'),
-            testBOM('utf-16be', 'text/html')
+            testBOM('utf-16be', 'text/html'),
         ]);
     });
 

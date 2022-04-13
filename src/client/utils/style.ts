@@ -33,7 +33,7 @@ export function getBordersWidth (el) {
         bottom: getIntValue(get(el, 'borderBottomWidth')),
         left:   getIntValue(get(el, 'borderLeftWidth')),
         right:  getIntValue(get(el, 'borderRightWidth')),
-        top:    getIntValue(get(el, 'borderTopWidth'))
+        top:    getIntValue(get(el, 'borderTopWidth')),
     };
 }
 
@@ -54,7 +54,7 @@ export function getElementMargin (el) {
         bottom: getIntValue(get(el, 'marginBottom')),
         left:   getIntValue(get(el, 'marginLeft')),
         right:  getIntValue(get(el, 'marginRight')),
-        top:    getIntValue(get(el, 'marginTop'))
+        top:    getIntValue(get(el, 'marginTop')),
     };
 }
 
@@ -63,7 +63,7 @@ export function getElementPadding (el) {
         bottom: getIntValue(get(el, 'paddingBottom')),
         left:   getIntValue(get(el, 'paddingLeft')),
         right:  getIntValue(get(el, 'paddingRight')),
-        top:    getIntValue(get(el, 'paddingTop'))
+        top:    getIntValue(get(el, 'paddingTop')),
     };
 }
 
@@ -82,7 +82,7 @@ export function getElementScroll (el: any): ScrollState {
 
     return {
         left: getScrollLeft(targetEl),
-        top:  getScrollTop(targetEl)
+        top:  getScrollTop(targetEl),
     };
 }
 
@@ -307,7 +307,7 @@ export function getOffset (el) {
     if (!docElement.contains(el) || el === docElement) {
         return {
             top:  clientRect.top,
-            left: clientRect.left
+            left: clientRect.left,
         };
     }
 
@@ -321,7 +321,7 @@ export function getOffset (el) {
 
     return {
         top:  clientRect.top + scrollTop - clientTop,
-        left: clientRect.left + scrollLeft - clientLeft
+        left: clientRect.left + scrollLeft - clientLeft,
     };
 }
 

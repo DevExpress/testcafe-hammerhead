@@ -87,7 +87,7 @@ const transformer: Transformer<Identifier> = {
         return true;
     },
 
-    run: createGetPostMessageMethodCall
+    run: createGetPostMessageMethodCall,
 };
 
 export default transformer;

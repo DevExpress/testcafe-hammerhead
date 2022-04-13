@@ -32,7 +32,7 @@ test('remove event listener in the context of optional parameters ("options" obj
         { addEventListener: [unexpectedClickHandler, true], removeEventListener: [unexpectedClickHandler, true] },
         { addEventListener: [unexpectedClickHandler], removeEventListener: [unexpectedClickHandler, false] },
         { addEventListener: [unexpectedClickHandler, false], removeEventListener: [unexpectedClickHandler] },
-        { addEventListener: [unexpectedClickHandler, { capture: false }], removeEventListener: [unexpectedClickHandler, { capture: false }] }
+        { addEventListener: [unexpectedClickHandler, { capture: false }], removeEventListener: [unexpectedClickHandler, { capture: false }] },
     ];
 
     // NOTE: IE11 doesn't support 'options.capture' option
@@ -41,7 +41,7 @@ test('remove event listener in the context of optional parameters ("options" obj
             { addEventListener: [unexpectedClickHandler, { capture: false }], removeEventListener: [unexpectedClickHandler] },
             { addEventListener: [unexpectedClickHandler], removeEventListener: [unexpectedClickHandler, { capture: false }] },
             { addEventListener: [expectedClickHandler, { capture: true }], removeEventListener: [expectedClickHandler, false] },
-            { addEventListener: [expectedClickHandler, false], removeEventListener: [expectedClickHandler, { capture: true }] }
+            { addEventListener: [expectedClickHandler, false], removeEventListener: [expectedClickHandler, { capture: true }] },
         ]);
     }
 
@@ -184,7 +184,7 @@ test('firing and dispatching the events created in different ways (Q532574)', fu
             event = new MouseEvent('click', {
                 'view':       window,
                 'bubbles':    true,
-                'cancelable': true
+                'cancelable': true,
             });
         }
         catch (e) {
@@ -227,7 +227,7 @@ asyncTest('handler not the function for addEventListener (T261234)', function ()
         clickCount:  0,
         handleEvent: function () {
             this.clickCount++;
-        }
+        },
     };
 
     var eventObjWrap = {
@@ -236,7 +236,7 @@ asyncTest('handler not the function for addEventListener (T261234)', function ()
             this.clickCount++;
 
             test();
-        }
+        },
     };
 
     function test () {
@@ -409,7 +409,7 @@ asyncTest('mouse events in iframe', function () {
             'mouseenter',
             'click',
             'dblclick',
-            'contextmenu'
+            'contextmenu',
         ];
 
         allEvents = [
@@ -428,7 +428,7 @@ asyncTest('mouse events in iframe', function () {
             'mouseenter',
             'click',
             'dblclick',
-            'contextmenu'
+            'contextmenu',
         ];
     }
     else {
@@ -440,7 +440,7 @@ asyncTest('mouse events in iframe', function () {
             'mouseenter',
             'click',
             'dblclick',
-            'contextmenu'
+            'contextmenu',
         ];
 
         allEvents = [
@@ -456,7 +456,7 @@ asyncTest('mouse events in iframe', function () {
             'mouseenter',
             'click',
             'dblclick',
-            'contextmenu'
+            'contextmenu',
         ];
     }
 

@@ -90,7 +90,7 @@ test('different url types for xhr.open method (GH-1613)', function () {
         return function (_method, url) {
             strictEqual(url, urlUtils.getProxyUrl(expectedUrl, {
                 resourceType: urlUtils.stringifyResourceType({ isAjax: true }),
-                credentials:  this.withCredentials ? sharedUrlUtils.Credentials.include : sharedUrlUtils.Credentials.sameOrigin
+                credentials:  this.withCredentials ? sharedUrlUtils.Credentials.include : sharedUrlUtils.Credentials.sameOrigin,
             }));
         };
     };
@@ -114,7 +114,7 @@ test('different url types for xhr.open method (GH-1613)', function () {
     xhr.open('GET', {
         toString: function () {
             return '/some-path';
-        }
+        },
     });
 
     nativeMethods.xhrOpen = storedNativeXhrOpen;
@@ -124,7 +124,7 @@ test('throwing an error on invalid calling "open" method (GH-1613)', function ()
     var url = {
         toString: function () {
             return {};
-        }
+        },
     };
 
     var exception = false;
@@ -263,7 +263,7 @@ test('send the origin header correctly (GH-284)', function () {
     xhrTestFunc('/path', {
         resourceType: 'a',
         reqOrigin:    void 0,
-        credentials:  sharedUrlUtils.Credentials.sameOrigin
+        credentials:  sharedUrlUtils.Credentials.sameOrigin,
     }, 'same-domain src');
 
     destLocation.forceLocation('http://localhost/sessionId/file:///path/index.html');
@@ -271,7 +271,7 @@ test('send the origin header correctly (GH-284)', function () {
     xhrTestFunc('/path', {
         resourceType: 'a',
         reqOrigin:    'null',
-        credentials:  sharedUrlUtils.Credentials.sameOrigin
+        credentials:  sharedUrlUtils.Credentials.sameOrigin,
     }, 'file: protocol src');
 
     destLocation.forceLocation('http://localhost/sessionId/http://example.com');
@@ -279,7 +279,7 @@ test('send the origin header correctly (GH-284)', function () {
     xhrTestFunc('https://sub.example.com/path', {
         resourceType: 'a',
         reqOrigin:    'http://example.com',
-        credentials:  sharedUrlUtils.Credentials.sameOrigin
+        credentials:  sharedUrlUtils.Credentials.sameOrigin,
     }, 'cross-domain origin with http: protocol');
 
     destLocation.forceLocation('http://localhost/sessionId/https://example.com');
@@ -287,12 +287,12 @@ test('send the origin header correctly (GH-284)', function () {
     xhrTestFunc('https://sub.example.com/path', {
         resourceType: 'a',
         reqOrigin:    'https://example.com',
-        credentials:  sharedUrlUtils.Credentials.sameOrigin
+        credentials:  sharedUrlUtils.Credentials.sameOrigin,
     }, 'cross-domain origin with https: protocol');
 
     return Promise.all([
         createTestIframe(),
-        createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/simple-iframe.html') })
+        createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/simple-iframe.html') }),
     ])
         .then(function (iframes) {
             function checkIframe (iframe, description) {
@@ -301,7 +301,7 @@ test('send the origin header correctly (GH-284)', function () {
                 iframe.contentWindow.xhrTestFunc('https://example.com/path', {
                     resourceType: 'a',
                     reqOrigin:    void 0,
-                    credentials:  sharedUrlUtils.Credentials.sameOrigin
+                    credentials:  sharedUrlUtils.Credentials.sameOrigin,
                 }, description);
             }
 
@@ -327,7 +327,7 @@ test('authorization headers by client should be processed (GH-1016)', function (
     deepEqual(processedHeaders, {
         'Authorization':       headersUtils.addAuthorizationPrefix('123'),
         'x-header1':           '456',
-        'Proxy-Authorization': headersUtils.addAuthorizationPrefix('789')
+        'Proxy-Authorization': headersUtils.addAuthorizationPrefix('789'),
     });
 
     nativeMethods.xhrSetRequestHeader = storedSetRequestHeader;
@@ -441,7 +441,7 @@ test('should emulate native browser behavior for xhr requests that end with an e
     var checkUrl = function (url) {
         return Promise.all([
             performRequest(new XMLHttpRequest(), url),
-            performRequest(XhrSandbox.createNativeXHR(), url)
+            performRequest(XhrSandbox.createNativeXHR(), url),
         ])
             .then(function (logs) {
                 strictEqual(logs[0], logs[1]);
@@ -450,7 +450,7 @@ test('should emulate native browser behavior for xhr requests that end with an e
 
     return Promise.all([
         checkUrl('/close-request'),
-        checkUrl('/respond-500')
+        checkUrl('/respond-500'),
     ]);
 });
 

@@ -47,7 +47,7 @@ export default class DataTransfer {
                     dropEffect = DROP_EFFECT[value];
 
                 return value;
-            }
+            },
         });
 
         nativeMethods.objectDefineProperty(this, 'effectAllowed', {
@@ -60,7 +60,7 @@ export default class DataTransfer {
                     effectAllowed = EFFECT_ALLOWED[value];
 
                 return value;
-            }
+            },
         });
 
         if (!isIE11) {
@@ -68,7 +68,7 @@ export default class DataTransfer {
                 configurable: true,
                 enumerable:   true,
 
-                get: getActualItemList
+                get: getActualItemList,
             });
         }
 
@@ -76,14 +76,14 @@ export default class DataTransfer {
             configurable: true,
             enumerable:   true,
 
-            get: () => getActualItemListInternals().getTypes()
+            get: () => getActualItemListInternals().getTypes(),
         });
 
         nativeMethods.objectDefineProperty(this, 'files', {
             configurable: true,
             enumerable:   true,
 
-            get: () => fileList
+            get: () => fileList,
         });
 
         if (!isIE11) {

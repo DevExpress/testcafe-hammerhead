@@ -51,7 +51,7 @@ export default class WindowSync {
                 this.syncBetweenWindows(message.cookies, source)
                     .then(() => this._messageSandbox.sendServiceMsg({
                         id: message.id,
-                        cmd: SYNC_COOKIE_DONE_CMD
+                        cmd: SYNC_COOKIE_DONE_CMD,
                     }, source));
             }
             else

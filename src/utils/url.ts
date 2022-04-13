@@ -36,7 +36,7 @@ const SPECIAL_PAGE_DEST_RESOURCE_INFO = {
     host:          '',
     hostname:      '',
     port:          '',
-    partAfterHost: ''
+    partAfterHost: '',
 };
 const RESOURCE_TYPES = [
     { name: 'isIframe', flag: 'i' },
@@ -47,7 +47,7 @@ const RESOURCE_TYPES = [
     { name: 'isWebSocket', flag: 'w'},
     { name: 'isServiceWorker', flag: 'c'},
     { name: 'isAjax', flag: 'a'},
-    { name: 'isObject', flag: 'o'}
+    { name: 'isObject', flag: 'o'},
 ] as { name: keyof ResourceType, flag: string }[];
 
 export function parseResourceType (resourceType: string): ResourceType {
@@ -183,7 +183,7 @@ export function getDomain (parsed: { protocol?: string, host?: string, hostname?
         protocol: parsed.protocol,
         host:     parsed.host,
         hostname: parsed.hostname,
-        port:     String(parsed.port || '')
+        port:     String(parsed.port || ''),
     });
 }
 
@@ -262,7 +262,7 @@ export function parseProxyUrl (proxyUrl: string): ParsedProxyUrl | null {
 
         proxy: {
             hostname: parsedUrl.hostname || '',
-            port:     parsedUrl.port || ''
+            port:     parsedUrl.port || '',
         },
 
         sessionId:    parsedDesc.sessionId,
@@ -270,7 +270,7 @@ export function parseProxyUrl (proxyUrl: string): ParsedProxyUrl | null {
         charset:      parsedDesc.charset,
         reqOrigin:    parsedDesc.reqOrigin,
         windowId:     parsedDesc.windowId,
-        credentials:  parsedDesc.credentials
+        credentials:  parsedDesc.credentials,
     };
 }
 
@@ -292,7 +292,7 @@ export function parseUrl (url: string | URL): ParsedUrl {
         host:          urlMatch[3],
         hostname:      urlMatch[4],
         port:          urlMatch[5],
-        partAfterHost: urlMatch[6]
+        partAfterHost: urlMatch[6],
     } : {};
 }
 

@@ -55,7 +55,7 @@ const transformer: Transformer<MemberExpression> = {
         return true;
     },
 
-    run: node => createComputedPropertyGetWrapper(node.property, node.object as Expression, node.optional)
+    run: node => createComputedPropertyGetWrapper(node.property, node.object as Expression, node.optional),
 };
 
 export default transformer;

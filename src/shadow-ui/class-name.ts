@@ -11,5 +11,5 @@ export default {
     charset:            'charset' + POSTFIX,
     script:             'script' + POSTFIX,
     selfRemovingScript: 'self-removing-script' + POSTFIX,
-    uiStylesheet:       'ui-stylesheet' + POSTFIX
+    uiStylesheet:       'ui-stylesheet' + POSTFIX,
 };

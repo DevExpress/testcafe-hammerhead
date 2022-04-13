@@ -18,7 +18,7 @@ var tagUrlAttr = {
     a:    'href',
     form: 'action',
     area: 'href',
-    base: 'href'
+    base: 'href',
 };
 
 function testIframeFlagViaAttrs (doc, iframeFlagResults) {
@@ -56,7 +56,7 @@ function testIframeFlagViaAttrs (doc, iframeFlagResults) {
 
 var tagFormTargetAttr = {
     input:  'formAction',
-    button: 'formAction'
+    button: 'formAction',
 };
 
 function testIframeFlagViaFormTarget (doc, iframeFlagResults) {
@@ -107,7 +107,7 @@ test('assign a url attribute to elements with the "target" attribute in top wind
                 _parent:       false,
                 _top:          false,
                 window_name:   true,
-                unknow_window: false
+                unknow_window: false,
             });
             /* eslint-enable camelcase */
         });
@@ -132,7 +132,7 @@ test('assign a url attribute to elements with the "target" attribute in iframe',
                 _parent:       false,
                 _top:          false,
                 window_name:   true,
-                unknow_window: false
+                unknow_window: false,
             });
             /* eslint-enable camelcase */
         });
@@ -152,7 +152,7 @@ test('assign a url attribute to elements with the "target" attribute in embedded
 
             return createTestIframe({
                 src:  getSameDomainPageUrl('../../data/iframe/simple-iframe.html'),
-                name: 'window_name'
+                name: 'window_name',
             }, embeddedIframe.contentDocument.body);
         })
         .then(function () {
@@ -163,7 +163,7 @@ test('assign a url attribute to elements with the "target" attribute in embedded
                 _parent:       true,
                 _top:          false,
                 window_name:   true,
-                unknow_window: false
+                unknow_window: false,
             });
             /* eslint-enable camelcase */
         });
@@ -281,7 +281,7 @@ test('assign a "formaction" attribute to elements with the "formtarget" attribut
                 _parent:       false,
                 _top:          false,
                 window_name:   true,
-                unknow_window: false
+                unknow_window: false,
             });
             /* eslint-enable camelcase */
         });
@@ -306,7 +306,7 @@ test('assign a "formaction" attribute to elements with the "formtarget" attribut
                 _parent:       false,
                 _top:          false,
                 window_name:   true,
-                unknow_window: false
+                unknow_window: false,
             });
             /* eslint-enable camelcase */
         });
@@ -326,7 +326,7 @@ test('assign a "formaction" attribute to elements with the "formtarget" attribut
 
             return createTestIframe({
                 src:  getSameDomainPageUrl('../../data/iframe/simple-iframe.html'),
-                name: 'window_name'
+                name: 'window_name',
             }, embeddedIframe.contentDocument.body);
         })
         .then(function () {
@@ -337,7 +337,7 @@ test('assign a "formaction" attribute to elements with the "formtarget" attribut
                 _parent:       true,
                 _top:          false,
                 window_name:   true,
-                unknow_window: false
+                unknow_window: false,
             });
             /* eslint-enable camelcase */
         });
@@ -350,13 +350,13 @@ test('change a url via location from cross-domain window', function () {
     hammerhead.sandbox.codeInstrumentation._methodCallInstrumentation.methodWrappers.assign.method({
         assign: function (url) {
             ok(hasIframeFlag(url));
-        }
+        },
     }, ['https://example.com/']);
 
     hammerhead.sandbox.codeInstrumentation._methodCallInstrumentation.methodWrappers.replace.method({
         replace: function (url) {
             ok(hasIframeFlag(url));
-        }
+        },
     }, ['https://example.com/']);
 });
 

@@ -7,7 +7,7 @@ export default class FileList {
         nativeMethods.objectDefineProperty(this, 'length', {
             enumerable: true,
 
-            get: () => 0
+            get: () => 0,
         });
 
         nativeMethods.objectDefineProperty(this, 'item', {
@@ -17,7 +17,7 @@ export default class FileList {
                 return function () {
                     return void 0;
                 };
-            }
+            },
         });
     }
 }

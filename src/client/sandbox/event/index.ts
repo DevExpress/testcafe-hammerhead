@@ -120,7 +120,7 @@ export default class EventSandbox extends SandboxBase {
                 sandbox.emit(sandbox.EVENT_PREVENTED_EVENT, this);
 
                 return nativeMethods.preventDefault.call(this);
-            }
+            },
         };
     }
 

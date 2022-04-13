@@ -53,7 +53,7 @@ export default class NodeSandbox extends SandboxBase {
         // NOTE: We need to define the property with the 'writable' descriptor for testing purposes
         nativeMethods.objectDefineProperty(document, INTERNAL_PROPS.documentCharset, {
             value:    domUtils.parseDocumentCharset(),
-            writable: true
+            writable: true,
         });
 
         this._documentTitleStorageInitializer = NodeSandbox._createDocumentTitleStorageInitializer();
@@ -98,7 +98,7 @@ export default class NodeSandbox extends SandboxBase {
         if (canAddNewProp || canUpdateExistingProp) {
             nativeMethods.objectDefineProperty(el, INTERNAL_PROPS.processedContext, {
                 value:    this.window,
-                writable: true
+                writable: true,
             });
         }
 
@@ -179,7 +179,7 @@ export default class NodeSandbox extends SandboxBase {
                 this.processNodes(el, doc);
             },
 
-            configurable: true
+            configurable: true,
         });
 
         // NOTE: In some browsers (for example Firefox), the 'window.document' object is different when iframe is

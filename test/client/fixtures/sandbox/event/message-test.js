@@ -12,7 +12,7 @@ asyncTest('onmessage event (handler has "object" type) (GH-133)', function () {
             strictEqual(this, eventHandlerObject);
             window.removeEventListener('message', eventHandlerObject);
             start();
-        }
+        },
     };
 
     window.addEventListener('message', eventHandlerObject);
@@ -28,7 +28,7 @@ asyncTest('should pass "transfer" argument for "postMessage" (GH-1535)', functio
             strictEqual(e.ports.length, 1);
             window.removeEventListener('message', eventHandlerObject);
             start();
-        }
+        },
     };
 
     window.addEventListener('message', eventHandlerObject);

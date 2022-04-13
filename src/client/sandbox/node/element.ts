@@ -211,7 +211,7 @@ export default class ElementSandbox extends SandboxBase {
                 nativeMethods.objectDefineProperty(el, INTERNAL_PROPS.currentBaseUrl, {
                     value:        urlResolver.getBaseUrl(document),
                     configurable: true,
-                    writable:     true
+                    writable:     true,
                 });
             }
         }
@@ -612,7 +612,7 @@ export default class ElementSandbox extends SandboxBase {
                 if (args.length > 1 && html !== null && parent) {
                     args[1] = processHtml(String(html), {
                         parentTag:        parent['tagName'],
-                        processedContext: parent[INTERNAL_PROPS.processedContext]
+                        processedContext: parent[INTERNAL_PROPS.processedContext],
                     });
                 }
 
@@ -836,7 +836,7 @@ export default class ElementSandbox extends SandboxBase {
                 }
 
                 return nativeMethods.registerElement.apply(this, args);
-            }
+            },
         };
     }
 
@@ -1067,7 +1067,7 @@ export default class ElementSandbox extends SandboxBase {
                     ElementSandbox._setProxiedSrc(this);
 
                 nativeMethods.htmlElementOnloadSetter.call(this, handler);
-            }
+            },
         });
     }
 

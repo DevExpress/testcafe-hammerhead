@@ -37,7 +37,7 @@ test('checking parameters (GH-1132, GH-2512)', function () {
     new Worker({
         toString: function () {
             return '/test';
-        }
+        },
     });
 
     nativeMethods.Worker = function (scriptURL, options) {
@@ -103,7 +103,7 @@ test('should call postMessage with settings only for urls with the "blob:" proto
         return {
             postMessage: function () {
                 ok(false);
-            }
+            },
         };
     };
 
@@ -114,7 +114,7 @@ test('should call postMessage with settings only for urls with the "blob:" proto
         return {
             postMessage: function () {
                 ok(true);
-            }
+            },
         };
     };
 
@@ -198,7 +198,7 @@ if (!browserUtils.isIE && !browserUtils.isSafari) {
             '}',
             'catch (e) {',
             '    postMessage(e.toString());',
-            '}'
+            '}',
         ].join('\n');
         var scriptWithUrlWithoutProtocol = scriptWithRelativeUrl.replace('/echo-request-headers/', '//example.com/echo-request-headers/');
         var runBlob                      = function (blob) {
@@ -217,7 +217,7 @@ if (!browserUtils.isIE && !browserUtils.isSafari) {
             runBlob(new nativeMethods.Blob([scriptWithRelativeUrl])),
             runBlob(new Blob([scriptWithRelativeUrl])),
             runBlob(new nativeMethods.Blob([scriptWithUrlWithoutProtocol])),
-            runBlob(new Blob([scriptWithUrlWithoutProtocol]))
+            runBlob(new Blob([scriptWithUrlWithoutProtocol])),
         ])
             .then(function (errors) {
                 strictEqual(errors[0], errors[1]);
@@ -232,7 +232,7 @@ if (!browserUtils.isIE && !browserUtils.isSafari) {
             'xhr.addEventListener("load", function () {',
             '    postMessage(xhr.responseText);',
             '});',
-            'xhr.send();'
+            'xhr.send();',
         ].join('\n');
         var fileURL = URL.createObjectURL(new File([script], 'script.js'));
         var worker  = new Worker(fileURL);
@@ -249,7 +249,7 @@ if (!browserUtils.isIE && !browserUtils.isSafari) {
         var script  = [
             'fetch("https://example.com/xhr-test/30")',
             '    .then(res => res.text())' +
-            '    .then(text => postMessage(text));'
+            '    .then(text => postMessage(text));',
         ].join('\n');
         var fileURL = URL.createObjectURL(new File([script], 'script.js'));
         var worker  = new Worker(fileURL);

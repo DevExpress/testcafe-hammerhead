@@ -31,7 +31,7 @@ import {
     FunctionExpression,
     ConditionalExpression,
     UnaryOperator,
-    UnaryExpression
+    UnaryExpression,
 } from 'estree';
 import { Syntax } from 'esotope-hammerhead';
 import INSTRUCTION from './instruction';
@@ -146,7 +146,7 @@ export function createLocationSetWrapper (locationIdentifier: Identifier, value:
     const callIdentifier            = createIdentifier('call');
     const functionWrapper           = createFunctionExpression(null, [], createBlockStatement([
         createVariableDeclaration('var', [createVariableDeclarator(tempIdentifier, value)]),
-        createReturnStatement(createLogicalExpression(setLocationCall, '||', locationAssignment))
+        createReturnStatement(createLogicalExpression(setLocationCall, '||', locationAssignment)),
     ]));
     const functionWrapperCallMember = createMemberExpression(functionWrapper, callIdentifier, false);
     const functionWrapperCall       = createSimpleCallExpression(functionWrapperCallMember, [createThisExpression()]);

@@ -6,7 +6,7 @@ const EventEmitter  = require('events');
 
 const {
     PAGE_ACCEPT_HEADER,
-    SAME_DOMAIN_SERVER_PORT
+    SAME_DOMAIN_SERVER_PORT,
 } = require('../common/constants');
 
 const {
@@ -14,7 +14,7 @@ const {
     createSession,
     createProxy,
     compareCode,
-    getBasicProxyUrl
+    getBasicProxyUrl,
 } = require('../common/utils');
 
 const emitter       = new EventEmitter();
@@ -148,42 +148,42 @@ describe('Cache', () => {
             expect(requestsCache.shouldCache({
                 serverInfo:  { cacheRequests: true },
                 contentInfo: { isScript: true },
-                reqOpts:     { method: 'GET' }
+                reqOpts:     { method: 'GET' },
             })).to.be.true;
 
             expect(requestsCache.shouldCache({
                 serverInfo:  { cacheRequests: true },
                 contentInfo: { isCSS: true },
-                reqOpts:     { method: 'GET' }
+                reqOpts:     { method: 'GET' },
             })).to.be.true;
 
             expect(requestsCache.shouldCache({
                 serverInfo:  { cacheRequests: true },
                 contentInfo: { requireProcessing: false },
-                reqOpts:     { method: 'GET' }
+                reqOpts:     { method: 'GET' },
             })).to.be.true;
 
             expect(requestsCache.shouldCache({
                 serverInfo:  { cacheRequests: true },
                 contentInfo: { isCSS: true },
-                reqOpts:     { method: 'HEAD' }
+                reqOpts:     { method: 'HEAD' },
             })).to.be.false;
 
             expect(requestsCache.shouldCache({
                 serverInfo:     { cacheRequests: true },
-                isFileProtocol: true
+                isFileProtocol: true,
             })).to.be.false;
 
             expect(requestsCache.shouldCache({
                 serverInfo:  { cacheRequests: false },
                 contentInfo: { isScript: true },
-                reqOpts:     { method: 'GET' }
+                reqOpts:     { method: 'GET' },
             })).to.be.false;
 
             expect(requestsCache.shouldCache({
                 serverInfo:  { cacheRequests: true },
                 contentInfo: { requireProcessing: true },
-                reqOpts:     { method: 'GET' }
+                reqOpts:     { method: 'GET' },
             })).to.be.false;
         });
 
@@ -192,11 +192,11 @@ describe('Cache', () => {
                 requestParameters: {
                     url:     'http://127.0.0.1:2000/page',
                     headers: {
-                        accept: PAGE_ACCEPT_HEADER
-                    }
+                        accept: PAGE_ACCEPT_HEADER,
+                    },
                 },
                 expectedResultFile: 'test/server/data/cache/expected-page.html',
-                shouldCache:        false
+                shouldCache:        false,
             });
         });
 
@@ -204,21 +204,21 @@ describe('Cache', () => {
             it('Processed', async () => {
                 await testRequestCaching({
                     requestParameters: {
-                        url: 'http://127.0.0.1:2000/script/1'
+                        url: 'http://127.0.0.1:2000/script/1',
                     },
                     expectedResultFile: 'test/server/data/cache/expected-script.js',
-                    shouldCache:        true
+                    shouldCache:        true,
                 });
             });
 
             it('Non-processed', async () => {
                 await testRequestCaching({
                     requestParameters: {
-                        url: 'http://127.0.0.1:2000/script/2'
+                        url: 'http://127.0.0.1:2000/script/2',
                     },
                     expectedResultFile: 'test/server/data/cache/script.js',
                     shouldCache:        true,
-                    isAjax:             true
+                    isAjax:             true,
                 });
             });
         });
@@ -227,18 +227,18 @@ describe('Cache', () => {
             it('Regular size', async () => {
                 await testRequestCaching({
                     requestParameters: {
-                        url: 'http://127.0.0.1:2000/image-like/1234'
+                        url: 'http://127.0.0.1:2000/image-like/1234',
                     },
-                    shouldCache: true
+                    shouldCache: true,
                 });
             });
 
             it('Large size', async () => {
                 await testRequestCaching({
                     requestParameters: {
-                        url: 'http://127.0.0.1:2000/image-like/6291456' // 6 Mb
+                        url: 'http://127.0.0.1:2000/image-like/6291456', // 6 Mb
                     },
-                    shouldCache: false
+                    shouldCache: false,
                 });
             });
         });

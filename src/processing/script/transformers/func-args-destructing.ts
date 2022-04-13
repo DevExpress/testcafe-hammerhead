@@ -10,7 +10,7 @@ import {
     createIdentifier,
     createReturnStatement,
     createVariableDeclaration,
-    createVariableDeclarator
+    createVariableDeclarator,
 } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
 import replaceNode from './replace-node';
@@ -89,6 +89,6 @@ export default function create<T extends (FunctionDeclaration | FunctionExpressi
             declaration.reTransform = true;
 
             return null;
-        }
+        },
     }
 }

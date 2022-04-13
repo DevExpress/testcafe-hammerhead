@@ -25,7 +25,7 @@ export default {
         if (!doc[DOCUMENT_URL_RESOLVER]) {
             nativeMethods.objectDefineProperty(doc, DOCUMENT_URL_RESOLVER, {
                 value:    this._createResolver(doc),
-                writable: true
+                writable: true,
             });
         }
 
@@ -112,5 +112,5 @@ export default {
 
     dispose (doc) {
         doc[DOCUMENT_URL_RESOLVER] = null;
-    }
+    },
 };

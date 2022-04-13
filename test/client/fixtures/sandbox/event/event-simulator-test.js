@@ -483,7 +483,7 @@ test('drag and drop events', function () {
         'drop-input',
         'drop-document',
         'dragend-link',
-        'dragend-document'
+        'dragend-document',
     ];
 
     strictEqual(eventLog.join('\n'), expectedEvents.join('\n'));
@@ -542,7 +542,7 @@ test('mouse event buttons properties', function () {
             type:    e.type,
             button:  e.button,
             buttons: getButtonsProperty(e.buttons),
-            which:   e.which
+            which:   e.which,
         };
 
         actualLog[e.type] = args;
@@ -553,7 +553,7 @@ test('mouse event buttons properties', function () {
             type:    type,
             button:  button,
             buttons: getButtonsProperty(buttons),
-            which:   which
+            which:   which,
         };
     };
 
@@ -564,21 +564,21 @@ test('mouse event buttons properties', function () {
                     browserUtils.isWebKit ? eventUtils.WHICH_PARAMETER.noButton : eventUtils.WHICH_PARAMETER.leftButton),
                 action: function () {
                     eventSimulator[type](domElement);
-                }
+                },
             },
             {
                 expected: getArgs(type, eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton,
                     eventUtils.WHICH_PARAMETER.leftButton),
                 action: function () {
                     eventSimulator[type](domElement, { buttons: eventUtils.BUTTONS_PARAMETER.leftButton });
-                }
+                },
             },
             {
                 expected: getArgs(type, eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.rightButton,
                     browserUtils.isWebKit ? eventUtils.WHICH_PARAMETER.rightButton : eventUtils.WHICH_PARAMETER.leftButton),
                 action: function () {
                     eventSimulator[type](domElement, { buttons: eventUtils.BUTTONS_PARAMETER.rightButton });
-                }
+                },
             }];
     };
 
@@ -592,7 +592,7 @@ test('mouse event buttons properties', function () {
                         eventUtils.WHICH_PARAMETER.leftButton),
             action: function () {
                 eventSimulator.click(domElement);
-            }
+            },
         },
         {
             expected:
@@ -603,7 +603,7 @@ test('mouse event buttons properties', function () {
                     eventUtils.WHICH_PARAMETER.leftButton),
             action: function () {
                 eventSimulator.dblclick(domElement);
-            }
+            },
         },
         {
             expected:
@@ -614,7 +614,7 @@ test('mouse event buttons properties', function () {
                     eventUtils.WHICH_PARAMETER.rightButton),
             action: function () {
                 eventSimulator.contextmenu(domElement);
-            }
+            },
         }, {
             expected:
                 getArgs(
@@ -624,7 +624,7 @@ test('mouse event buttons properties', function () {
                     eventUtils.WHICH_PARAMETER.leftButton),
             action: function () {
                 eventSimulator.mousedown(domElement);
-            }
+            },
         },
         {
             expected:
@@ -635,7 +635,7 @@ test('mouse event buttons properties', function () {
                     eventUtils.WHICH_PARAMETER.rightButton),
             action: function () {
                 eventSimulator.mousedown(domElement, { button: eventUtils.BUTTON.right });
-            }
+            },
         },
         {
             expected:
@@ -646,7 +646,7 @@ test('mouse event buttons properties', function () {
                     eventUtils.WHICH_PARAMETER.leftButton),
             action: function () {
                 eventSimulator.mouseup(domElement);
-            }
+            },
         },
         {
             expected:
@@ -657,8 +657,8 @@ test('mouse event buttons properties', function () {
                     eventUtils.WHICH_PARAMETER.rightButton),
             action: function () {
                 eventSimulator.mouseup(domElement, { button: eventUtils.BUTTON.right });
-            }
-        }
+            },
+        },
     ]
         .concat(getExpectedMouseMoveEvents('mousemove'))
         .concat(getExpectedMouseMoveEvents('mouseover'))
@@ -707,7 +707,7 @@ module('mouse events on disabled elements', {
         this.getEventLog = function () {
             return eventLog;
         };
-    }
+    },
 }, function () {
     test('<div>', function () {
         var div = document.createElement('div');
@@ -755,7 +755,7 @@ module('mouse events on disabled elements', {
         deepEqual(this.getEventLog(), [
             'mousedown',
             'click',
-            'mouseup'
+            'mouseup',
         ]);
 
         document.body.removeChild(button);
@@ -956,7 +956,7 @@ if (!browserUtils.isFirefox) {
 
         deepEqual(firedEvents, {
             input:  true,
-            change: true
+            change: true,
         });
     });
 }
@@ -1056,7 +1056,7 @@ if (!browserUtils.isIE) {
             'beforeinput': true,
             'input':       true,
             'keydown':     true,
-            'keyup':       true
+            'keyup':       true,
         };
 
         function handler (e) {

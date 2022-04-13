@@ -21,12 +21,12 @@ function parseAttrName (attr: string): any {
     if (parts.length === 2) {
         return {
             prefix: parts[0],
-            name:   parts[1]
+            name:   parts[1],
         };
     }
 
     return {
-        name: parts[0]
+        name: parts[0],
     };
 }
 
@@ -142,7 +142,7 @@ export function createTextNode (content: string, parent: ASTNode): ASTNode {
     return {
         nodeName:   '#text',
         value:      content,
-        parentNode: parent
+        parentNode: parent,
     } as ASTNode;
 }
 

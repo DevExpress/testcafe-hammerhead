@@ -53,7 +53,7 @@ const transformer: Transformer<CallExpression> = {
         replaceNode(node.arguments[1], newArg, node, 'arguments');
 
         return null;
-    }
+    },
 };
 
 export default transformer;

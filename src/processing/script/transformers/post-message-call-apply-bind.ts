@@ -54,7 +54,7 @@ const transformer: Transformer<CallExpression> = {
         replaceNode(callee.object, getPostMessageNode, callee, 'object');
 
         return null;
-    }
+    },
 };
 
 export default transformer;

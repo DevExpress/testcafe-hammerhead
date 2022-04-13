@@ -51,7 +51,7 @@ const transformer: Transformer<MemberExpression> = {
         return false;
     },
 
-    run: createGetPostMessageMethodCall
+    run: createGetPostMessageMethodCall,
 };
 
 export default transformer;

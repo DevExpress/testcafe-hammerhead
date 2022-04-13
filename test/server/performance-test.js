@@ -34,7 +34,7 @@ describe('Performance', () => {
             'http://host/wkjfkjsdfhjksdhf',
             '     http://auth@host/wkjfkjsdfhjksdhf    ',
             'about:blank',
-            'file:///wkjfkjsdfhjksdhf'
+            'file:///wkjfkjsdfhjksdhf',
         ];
 
         const start = new Date().getTime();
@@ -55,7 +55,7 @@ describe('Performance', () => {
             'obj[x].y',
             'var x = 9;',
             'while (true);',
-            'if (x == 9) console.log(9);'
+            'if (x == 9) console.log(9);',
         ];
 
         // NOTE: emulate client side

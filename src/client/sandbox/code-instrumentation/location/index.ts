@@ -52,7 +52,7 @@ export default class LocationAccessorsInstrumentation extends SandboxBase {
         nativeMethods.objectDefineProperty(document, LOCATION_WRAPPER, { value: locationWrapper, configurable: true });
         nativeMethods.objectDefineProperty(window, INSTRUCTION.getLocation, {
             value:        (location: any) => isLocation(location) ? locationWrapper : location,
-            configurable: true
+            configurable: true,
         });
         nativeMethods.objectDefineProperty(window, INSTRUCTION.setLocation, {
             value: (location: any, value: any) => {
@@ -66,7 +66,7 @@ export default class LocationAccessorsInstrumentation extends SandboxBase {
                 return null;
             },
 
-            configurable: true
+            configurable: true,
         });
     }
 }

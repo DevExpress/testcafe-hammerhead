@@ -22,13 +22,13 @@ const {
     getFileProtocolUrl,
     getBasicProxyUrl,
     normalizeNewLine,
-    replaceLastAccessedTime
+    replaceLastAccessedTime,
 } = require('../common/utils');
 
 const {
     PAGE_ACCEPT_HEADER,
     CROSS_DOMAIN_SERVER_PORT,
-    EMPTY_PAGE_MARKUP
+    EMPTY_PAGE_MARKUP,
 } = require('../common/constants');
 
 const Credentials = urlUtils.Credentials;
@@ -36,36 +36,36 @@ const Credentials = urlUtils.Credentials;
 const ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
     {
         url:                   'http://example.com',
-        shoudAddTrailingSlash: true
+        shoudAddTrailingSlash: true,
     },
     {
         url:                   'https://localhost:8080',
-        shoudAddTrailingSlash: true
+        shoudAddTrailingSlash: true,
     },
     {
         url:                   'about:blank',
-        shoudAddTrailingSlash: false
+        shoudAddTrailingSlash: false,
     },
     {
         url:                   'http://example.com/page.html',
-        shoudAddTrailingSlash: false
+        shoudAddTrailingSlash: false,
     },
     {
         url:                   'file://localhost/etc/fstab', // Unix file URI scheme
-        shoudAddTrailingSlash: false
+        shoudAddTrailingSlash: false,
     },
     {
         url:                   'file:///etc/fstab', // Unix file URI scheme
-        shoudAddTrailingSlash: false
+        shoudAddTrailingSlash: false,
     },
     {
         url:                   'file://localhost/c:/WINDOWS/clock.avi', // Windows file URI scheme
-        shoudAddTrailingSlash: false
+        shoudAddTrailingSlash: false,
     },
     {
         url:                   'file:///c:/WINDOWS/clock.avi', // Windows file URI scheme
-        shoudAddTrailingSlash: false
-    }
+        shoudAddTrailingSlash: false,
+    },
 ];
 
 describe('Proxy', () => {
@@ -98,7 +98,7 @@ describe('Proxy', () => {
             res.set({
                 'content-type':     req.headers['x-content-type'],
                 'content-encoding': 'gzip',
-                'content-length':   0
+                'content-length':   0,
             });
             res.end();
         });
@@ -117,7 +117,7 @@ describe('Proxy', () => {
             res.setHeader('Set-Cookie', [
                 'Test=value; Path=/cookie',
                 'Test2=' + new Array(350).join('(big cookie)'),
-                'value without key'
+                'value without key',
             ]);
             res.set('location', '/cookie/echo');
 
@@ -404,8 +404,8 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('http://www.some-unresolvable.url', session),
                 headers: {
-                    accept: PAGE_ACCEPT_HEADER
-                }
+                    accept: PAGE_ACCEPT_HEADER,
+                },
             };
 
             request(options);
@@ -422,8 +422,8 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('https://127.0.0.1:2000', session),
                 headers: {
-                    accept: PAGE_ACCEPT_HEADER
-                }
+                    accept: PAGE_ACCEPT_HEADER,
+                },
             };
 
             request(options);
@@ -437,8 +437,8 @@ describe('Proxy', () => {
                 body:   {
                     cmd:       'ServiceTestCmd',
                     data:      '42',
-                    sessionId: session.id
-                }
+                    sessionId: session.id,
+                },
             };
 
             proxy.openSession('http://example.com', session);
@@ -471,8 +471,8 @@ describe('Proxy', () => {
                 body:   {
                     cmd:       'ServiceTestCmd',
                     data:      '42',
-                    sessionId: session.id
-                }
+                    sessionId: session.id,
+                },
             };
 
             proxy.openSession('http://example.com', session);
@@ -500,11 +500,11 @@ describe('Proxy', () => {
                 function testTaskScriptRequest (url, scriptBody) {
                     const options = {
                         headers: {
-                            referer: proxy.openSession('http://example.com', session)
+                            referer: proxy.openSession('http://example.com', session),
                         },
 
                         url:                     url,
-                        resolveWithFullResponse: true
+                        resolveWithFullResponse: true,
                     };
 
                     return request(options)
@@ -521,18 +521,18 @@ describe('Proxy', () => {
 
                 return Promise.all([
                     testTaskScriptRequest('http://localhost:1836/task.js', 'PayloadScript'),
-                    testTaskScriptRequest('http://localhost:1836/iframe-task.js', 'IframePayloadScript')
+                    testTaskScriptRequest('http://localhost:1836/iframe-task.js', 'IframePayloadScript'),
                 ]);
             });
 
             it('Error', () => {
                 const sessionMock = {
-                    options: { windowId: 'dummy' }
+                    options: { windowId: 'dummy' },
                 };
 
                 const options = {
                     headers: {
-                        referer: proxy.openSession('http://example.com', sessionMock)
+                        referer: proxy.openSession('http://example.com', sessionMock),
                     },
 
                     url: 'http://localhost:1836/task.js',
@@ -562,8 +562,8 @@ describe('Proxy', () => {
                     url:     url,
                     headers: {
                         accept:  'text/html',
-                        headers: { accept: PAGE_ACCEPT_HEADER }
-                    }
+                        headers: { accept: PAGE_ACCEPT_HEADER },
+                    },
                 };
 
                 return request(options)
@@ -583,11 +583,11 @@ describe('Proxy', () => {
                     referer: proxy.openSession('http://example.com', session),
                     accept:  PAGE_ACCEPT_HEADER,
                     etag:    '<value>',
-                    expires: 'date'
+                    expires: 'date',
                 },
 
                 url:                     proxy.openSession('http://127.0.0.1:2000/page/', session),
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             return request(options)
@@ -642,14 +642,14 @@ describe('Proxy', () => {
             expect(sessionWithDefaultParameters.options.requestTimeout.ajax).eql(120000);
 
             const sessionWithSpecifiedPageTimeout = new Session('/upload-root-folder', {
-                requestTimeout: { page: 100 }
+                requestTimeout: { page: 100 },
             });
 
             expect(sessionWithSpecifiedPageTimeout.options.requestTimeout.page).eql(100);
             expect(sessionWithSpecifiedPageTimeout.options.requestTimeout.ajax).eql(120000);
 
             const sessionWithSpecifiedBothTimeouts = new Session('/upload-root-folder', {
-                requestTimeout: { page: 100, ajax: 200 }
+                requestTimeout: { page: 100, ajax: 200 },
             });
 
             expect(sessionWithSpecifiedBothTimeouts.options.requestTimeout.page).eql(100);
@@ -658,8 +658,8 @@ describe('Proxy', () => {
             const sessionWithUndefinedTimeouts = new Session('/upload-root-folder', {
                 requestTimeout: {
                     page: void 0,
-                    ajax: void 0
-                }
+                    ajax: void 0,
+                },
             });
 
             expect(sessionWithUndefinedTimeouts.options.requestTimeout.page).eql(25000);
@@ -671,7 +671,7 @@ describe('Proxy', () => {
         it('Should handle "Cookie" and "Set-Cookie" headers', () => {
             const options = {
                 url:            proxy.openSession('http://127.0.0.1:2000/cookie/set-and-redirect', session),
-                followRedirect: true
+                followRedirect: true,
             };
 
             return request(options)
@@ -684,7 +684,7 @@ describe('Proxy', () => {
             session.cookies.setByServer('http://example.com', [
                 'test1=test1',
                 'test2=te\u0001st2',
-                'test3=te\x02st3'
+                'test3=te\x02st3',
             ]);
 
             expect(session.cookies.getClientString('http://example.com')).eql('test1=test1');
@@ -697,7 +697,7 @@ describe('Proxy', () => {
                     url: proxy.openSession('http://127.0.0.1:2000/cookie-server-sync/' + cookie, session),
 
                     resolveWithFullResponse: true,
-                    simple:                  false
+                    simple:                  false,
                 };
 
                 return request(options)
@@ -714,7 +714,7 @@ describe('Proxy', () => {
 
                     headers:                 { accept: 'text/html' },
                     resolveWithFullResponse: true,
-                    simple:                  false
+                    simple:                  false,
                 };
 
                 proxy.openSession('http://127.0.0.1:2000/', session);
@@ -735,12 +735,12 @@ describe('Proxy', () => {
                         cookie: [
                             `s|${session.id}|aaa|127.0.0.1|%2F||123456788=temp`,
                             `s|${session.id}|aaa|127.0.0.1|%2F||123456789=test`,
-                            `s|${session.id}|bbb|127.0.0.1|%2F||${obsoleteTime}=321`
-                        ].join('; ')
+                            `s|${session.id}|bbb|127.0.0.1|%2F||${obsoleteTime}=321`,
+                        ].join('; '),
                     },
 
                     resolveWithFullResponse: true,
-                    simple:                  false
+                    simple:                  false,
                 };
 
                 return request(options)
@@ -760,7 +760,7 @@ describe('Proxy', () => {
                     url: proxy.openSession('http://127.0.0.1:2000/cookie-server-sync/' + cookie, session),
 
                     resolveWithFullResponse: true,
-                    simple:                  false
+                    simple:                  false,
                 };
 
                 return request(options)
@@ -776,8 +776,8 @@ describe('Proxy', () => {
                     url:     proxy.openSession('http://127.0.0.1:2000/cookie/echo', session),
                     headers: {
                         cookie: `c|${session.id}|Test1|127.0.0.1|%2F||1fdkm5ln1=Data1; ` +
-                                `c|${session.id}|Test2|localhost|%2F||1fdkm5ln1=Data2`
-                    }
+                                `c|${session.id}|Test2|localhost|%2F||1fdkm5ln1=Data2`,
+                    },
                 };
 
                 return request(options)
@@ -793,10 +793,10 @@ describe('Proxy', () => {
                     url:     proxy.openSession('http://127.0.0.1:2000/cookie/echo', session),
                     headers: {
                         cookie: `c|${session.id}|Test1|127.0.0.1|%2F||1fdkm5ln1=Data1; ` +
-                                `cw|${session.id}|Test2|127.0.0.1|%2F||1fdkm5ln1=Data2`
+                                `cw|${session.id}|Test2|127.0.0.1|%2F||1fdkm5ln1=Data2`,
                     },
 
-                    resolveWithFullResponse: true
+                    resolveWithFullResponse: true,
                 };
 
                 return request(options)
@@ -815,8 +815,8 @@ describe('Proxy', () => {
                     headers: {
                         cookie: `c|${session.id}|Test1|example.com|%2Fcookie||1fdkm5ln1=Data1; ` +
                                 `c|${session.id}|Test2|example.com|%2Fpath||1fdkm5ln1=Data2; ` +
-                                `c|${session.id}|Test3|example.com|%2F||1fdkm5ln1=Data3`
-                    }
+                                `c|${session.id}|Test3|example.com|%2F||1fdkm5ln1=Data3`,
+                    },
                 };
 
                 return request(options)
@@ -836,8 +836,8 @@ describe('Proxy', () => {
                 body:   {
                     cmd:       'ServiceTestCmd',
                     data:      '42',
-                    sessionId: session.id
-                }
+                    sessionId: session.id,
+                },
             };
 
             proxy.openSession('https://example.com', session);
@@ -868,7 +868,7 @@ describe('Proxy', () => {
         it('Should omit a "link" header from response (https://github.com/DevExpress/testcafe/issues/2528)', () => {
             const options = {
                 url:                     proxy.openSession('http://127.0.0.1:2000/link-prefetch-header', session),
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             return request(options)
@@ -881,7 +881,7 @@ describe('Proxy', () => {
             const options = {
                 url:                     proxy.openSession('http://127.0.0.1:2000/authenticate', session),
                 resolveWithFullResponse: true,
-                simple:                  false
+                simple:                  false,
             };
 
             return request(options)
@@ -936,7 +936,7 @@ describe('Proxy', () => {
 
                         resolveWithFullResponse: true,
                         followRedirect:          false,
-                        simple:                  false
+                        simple:                  false,
                     };
 
                     return request(options)
@@ -952,13 +952,13 @@ describe('Proxy', () => {
                         testUrl(protocol + '//example.com:' + defaultPort + '/', true),
                         testUrl(protocol + '//example.com:' + defaultPort + '/page.html', true),
                         testUrl(protocol + '//localhost:' + defaultPortForAnotherProtocol + '/', false),
-                        testUrl(protocol + '//localhost:2343/', false)
+                        testUrl(protocol + '//localhost:2343/', false),
                     ]);
                 }
 
                 return Promise.all([
                     testDefaultPortOmitting('http:', '80', '443'),
-                    testDefaultPortOmitting('https:', '443', '80')
+                    testDefaultPortOmitting('https:', '443', '80'),
                 ]);
             });
         });
@@ -970,7 +970,7 @@ describe('Proxy', () => {
                 url: getProxyUrl('http://127.0.0.1:2000/page/plain-text', { isAjax: true },
                     'http://example.com', Credentials.sameOrigin, true),
 
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             proxy.openSession('http://example.com/', session);
@@ -987,7 +987,7 @@ describe('Proxy', () => {
                 url: getProxyUrl('http://127.0.0.1:2000/page/plain-text', { isAjax: true },
                     'null', Credentials.sameOrigin, true),
 
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             proxy.openSession('file:///path/page.html', session);
@@ -1004,7 +1004,7 @@ describe('Proxy', () => {
                 url: getProxyUrl(getFileProtocolUrl('../data/stylesheet/src.css'), { isAjax: true },
                     'null', Credentials.sameOrigin, true),
 
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             proxy.openSession('file:///path/page.html', session);
@@ -1022,7 +1022,7 @@ describe('Proxy', () => {
                 url:    getProxyUrl('http://127.0.0.1:2000/preflight', { isAjax: true },
                     'http://example.com', Credentials.sameOrigin, true),
 
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             proxy.openSession('http://example.com', session);
@@ -1042,7 +1042,7 @@ describe('Proxy', () => {
                 url:    getProxyUrl('http://127.0.0.1:2000/preflight', { isAjax: true },
                     'http://example.com', Credentials.include, true),
 
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             proxy.openSession('http://example.com', session);
@@ -1061,7 +1061,7 @@ describe('Proxy', () => {
                 url: getProxyUrl('http://127.0.0.1:2000/xhr-origin/allow-any', { isAjax: true },
                     'http://example.com', Credentials.sameOrigin, true),
 
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             proxy.openSession('http://example.com', session);
@@ -1079,7 +1079,7 @@ describe('Proxy', () => {
                     'http://example.com', Credentials.sameOrigin, true),
                 headers: { 'x-allow-origin': 'http://example.com' },
 
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             proxy.openSession('http://example.com', session);
@@ -1097,7 +1097,7 @@ describe('Proxy', () => {
                     'http://example.com', Credentials.sameOrigin, true),
                 headers: { 'if-modified-since': 'Thu, 01 Aug 2013 18:31:48 GMT' },
 
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             proxy.openSession('http://example.com', session);
@@ -1116,7 +1116,7 @@ describe('Proxy', () => {
                 url: getProxyUrl('http://127.0.0.1:2000/cookie-server-sync/key=value;%20path=%2F', { isAjax: true },
                     'http://example.com', Credentials.include, true),
 
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             proxy.openSession('http://example.com', session);
@@ -1136,7 +1136,7 @@ describe('Proxy', () => {
                 url: getProxyUrl('http://127.0.0.1:2000/cookie/set-cookie-cors', { isAjax: true },
                     'http://example.com', Credentials.sameOrigin, true),
 
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             proxy.openSession('http://example.com', session);
@@ -1157,7 +1157,7 @@ describe('Proxy', () => {
                     const options = {
                         url: getProxyUrl('http://127.0.0.1:2000/echo-headers',
                             { isAjax: true }, void 0, Credentials.omit),
-                        json: true
+                        json: true,
                     };
 
                     proxy.openSession('http://127.0.0.1:2000', session);
@@ -1173,7 +1173,7 @@ describe('Proxy', () => {
                     const options = {
                         url: getProxyUrl('http://127.0.0.1:2002/echo-headers', { isAjax: true },
                             'http://127.0.0.1:2000', Credentials.omit, true),
-                        json: true
+                        json: true,
                     };
 
                     proxy.openSession('http://127.0.0.1:2000', session);
@@ -1191,7 +1191,7 @@ describe('Proxy', () => {
                     const options = {
                         url: getProxyUrl('http://127.0.0.1:2000/echo-headers',
                             { isAjax: true }, void 0, Credentials.sameOrigin),
-                        json: true
+                        json: true,
                     };
 
                     proxy.openSession('http://127.0.0.1:2000', session);
@@ -1207,7 +1207,7 @@ describe('Proxy', () => {
                     const options = {
                         url: getProxyUrl('http://127.0.0.1:2002/echo-headers', { isAjax: true },
                             'http://127.0.0.1:2000', Credentials.sameOrigin, true),
-                        json: true
+                        json: true,
                     };
 
                     proxy.openSession('http://127.0.0.1:2000', session);
@@ -1225,7 +1225,7 @@ describe('Proxy', () => {
                     const options = {
                         url: getProxyUrl('http://127.0.0.1:2000/echo-headers',
                             { isAjax: true }, void 0, Credentials.include),
-                        json: true
+                        json: true,
                     };
 
                     proxy.openSession('http://127.0.0.1:2000', session);
@@ -1241,7 +1241,7 @@ describe('Proxy', () => {
                     const options = {
                         url: getProxyUrl('http://127.0.0.1:2002/echo-headers-with-credentials', { isAjax: true },
                             'http://127.0.0.1:2000', Credentials.include, true),
-                        json: true
+                        json: true,
                     };
 
                     proxy.openSession('http://127.0.0.1:2000', session);
@@ -1282,15 +1282,15 @@ describe('Proxy', () => {
                 cookies:  null,
                 storages: {
                     localStorage:   '[["key1"],[" \' \\" \\\\ \\n \\t \\b \\f "]]',
-                    sessionStorage: '[["key2"],["value"]]'
-                }
+                    sessionStorage: '[["key2"],["value"]]',
+                },
             });
 
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/page', session),
                 headers: {
-                    accept: PAGE_ACCEPT_HEADER
-                }
+                    accept: PAGE_ACCEPT_HEADER,
+                },
             };
 
             return request(options)
@@ -1314,8 +1314,8 @@ describe('Proxy', () => {
                 url: getProxyUrl('http://127.0.0.1:2000/html-import-page', { isHtmlImport: true }),
 
                 headers: {
-                    accept: '*/*'
-                }
+                    accept: '*/*',
+                },
             };
 
             return request(options)
@@ -1336,8 +1336,8 @@ describe('Proxy', () => {
                 url: getProxyUrl('http://127.0.0.1:2000/html-import-page-in-iframe', { isHtmlImport: true, isIframe: true }),
 
                 headers: {
-                    accept: '*/*'
-                }
+                    accept: '*/*',
+                },
             };
 
             return request(options)
@@ -1351,7 +1351,7 @@ describe('Proxy', () => {
         it('Should not process Ajax page requests', () => {
             const options = {
                 url:     getProxyUrl('http://127.0.0.1:2000/page', { isAjax: true }, void 0, Credentials.sameOrigin),
-                headers: { accept: PAGE_ACCEPT_HEADER }
+                headers: { accept: PAGE_ACCEPT_HEADER },
             };
 
             proxy.openSession('http://127.0.0.1:2000/', session);
@@ -1392,8 +1392,8 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/stylesheet', session),
                 headers: {
-                    accept: 'text/css'
-                }
+                    accept: 'text/css',
+                },
             };
 
             return request(options)
@@ -1410,8 +1410,8 @@ describe('Proxy', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/stylesheet-with-many-spaces', session),
                 headers: {
-                    accept: 'text/css'
-                }
+                    accept: 'text/css',
+                },
             };
 
             return request(options)
@@ -1434,8 +1434,8 @@ describe('Proxy', () => {
                 body:    src,
                 headers: {
                     'content-type': 'multipart/form-data; boundary=separator',
-                    'accept':       'text/plain;q=0.9,*!/!*;q=0.8'
-                }
+                    'accept':       'text/plain;q=0.9,*!/!*;q=0.8',
+                },
             };
 
             return request(options)
@@ -1449,8 +1449,8 @@ describe('Proxy', () => {
                 url:     proxy.openSession('http://127.0.0.1:2000/download', session),
                 method:  'GET',
                 headers: {
-                    accept: PAGE_ACCEPT_HEADER
-                }
+                    accept: PAGE_ACCEPT_HEADER,
+                },
             };
 
             return request(options)
@@ -1467,8 +1467,8 @@ describe('Proxy', () => {
                     url:                     proxy.openSession('http://127.0.0.1:2000/304', session),
                     resolveWithFullResponse: true,
                     headers:                 {
-                        'x-content-type': mimeType
-                    }
+                        'x-content-type': mimeType,
+                    },
                 };
 
                 if (index % 2)
@@ -1493,14 +1493,14 @@ describe('Proxy', () => {
             session.injectable.userScripts.push(
                 { url: '/custom-user-script-1', page: RequestFilterRule.ANY },
                 { url: '/custom-user-script-2', page: new RequestFilterRule(new RegExp('/page-with-custom-client-script')) },
-                { url: '/custom-user-script-3', page: new RequestFilterRule('/another-page') }
+                { url: '/custom-user-script-3', page: new RequestFilterRule('/another-page') },
             );
 
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/page-with-custom-client-script', session),
                 headers: {
-                    accept: PAGE_ACCEPT_HEADER
-                }
+                    accept: PAGE_ACCEPT_HEADER,
+                },
             };
 
             return request(options)
@@ -1558,7 +1558,7 @@ describe('Proxy', () => {
             proxy.GET('/testcafe-ui-styles.css', {
                 contentType:          'text/css',
                 content:              src,
-                isShadowUIStylesheet: true
+                isShadowUIStylesheet: true,
             });
 
             return request('http://127.0.0.1:1836/testcafe-ui-styles.css')
@@ -1582,7 +1582,7 @@ describe('Proxy', () => {
                 requestCert:        false,
                 rejectUnauthorized: false,
                 ciphers:            '-ALL:ECDHE-RSA-AES128-SHA256',
-                ecdhCurve:          'secp384r1'
+                ecdhCurve:          'secp384r1',
             }, httpsApp).listen(2001);
         });
 
@@ -1603,8 +1603,8 @@ describe('Proxy', () => {
             const options = {
                 url:     getProxyUrl(url, resourceType),
                 headers: {
-                    accept: isPage ? PAGE_ACCEPT_HEADER : '*/*'
-                }
+                    accept: isPage ? PAGE_ACCEPT_HEADER : '*/*',
+                },
             };
 
             return request(options, (err, res, body) => {
@@ -1624,18 +1624,18 @@ describe('Proxy', () => {
                 {
                     state:    null,
                     urls:     ['http://127.0.0.1:2000/cookie/set1'],
-                    expected: 'Set1_1=value1; Set1_2=value2'
+                    expected: 'Set1_1=value1; Set1_2=value2',
                 },
                 {
                     state:    null,
                     urls:     ['http://127.0.0.1:2000/cookie/set2'],
-                    expected: 'Set2_1=value1; Set2_2=value2'
+                    expected: 'Set2_1=value1; Set2_2=value2',
                 },
                 {
                     state:    null,
                     urls:     ['http://127.0.0.1:2000/cookie/set1', 'http://127.0.0.1:2000/cookie/set2'],
-                    expected: 'Set1_1=value1; Set1_2=value2; Set2_1=value1; Set2_2=value2'
-                }
+                    expected: 'Set1_1=value1; Set1_2=value2; Set2_1=value1; Set2_2=value2',
+                },
             ];
 
             function initializeState (testCase) {
@@ -1742,8 +1742,8 @@ describe('Proxy', () => {
                 headers: {
                     accept:              PAGE_ACCEPT_HEADER,
                     'if-modified-since': 'Mon, 17 Jul 2017 14:56:15 GMT',
-                    'if-none-match':     'W/"1322-15d510cbdf8"'
-                }
+                    'if-none-match':     'W/"1322-15d510cbdf8"',
+                },
             };
 
             session.useStateSnapshot(StateSnaphot.empty());

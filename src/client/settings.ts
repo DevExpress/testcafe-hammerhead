@@ -16,7 +16,7 @@ class Settings {
             cookie:                   '',
             allowMultipleWindows:     false,
             isRecordMode:             false,
-            windowId:                 ''
+            windowId:                 '',
         };
     }
 

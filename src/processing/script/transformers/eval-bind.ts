@@ -44,7 +44,7 @@ const transformer: Transformer<CallExpression> = {
         replaceNode(callee.object, getEvalNode, callee, 'object');
 
         return null;
-    }
+    },
 };
 
 export default transformer;

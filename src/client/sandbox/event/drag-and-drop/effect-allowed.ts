@@ -8,5 +8,5 @@ export default {
     link:          'link',
     linkMove:      'linkMove',
     move:          'move',
-    all:           'all'
+    all:           'all',
 };

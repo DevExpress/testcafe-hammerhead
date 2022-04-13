@@ -27,7 +27,7 @@ const transformer: Transformer<ImportExpression> = {
         replaceNode(node.source, newSource, node, 'source');
 
         return null;
-    }
+    },
 };
 
 export default transformer;

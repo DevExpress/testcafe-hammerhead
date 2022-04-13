@@ -2,5 +2,5 @@
 export default {
     readwrite: 'readwrite',
     readonly:  'readonly',
-    protected: 'protected'
+    protected: 'protected',
 };

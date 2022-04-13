@@ -260,36 +260,36 @@ test('canvasRenderingContext2D.drawImage', function () {
             args:        [crossDomainImg, 1, 2],
             testImgFn:   function (img) {
                 return nativeMethods.imageSrcGetter.call(img) === crossDomainUrl;
-            }
+            },
         },
         {
             description: 'image with local url',
             args:        [localImg, 4, 3, 2, 1],
             testImgFn:   function (img) {
                 return nativeMethods.imageSrcGetter.call(img) === urlUtils.getProxyUrl(localUrl);
-            }
+            },
         },
         {
             description: 'image created with Image constructor',
             args:        [imgCreatedViaConstr, 4, 3, 2],
             testImgFn:   function (img) {
                 return img === imgCreatedViaConstr;
-            }
+            },
         },
         {
             description: 'canvas element',
             args:        [otherCanvas, 1, 3, 5, 7, 2, 4, 6, 8],
             testImgFn:   function (img) {
                 return img === otherCanvas;
-            }
+            },
         },
         {
             description: 'canvas context',
             args:        [otherCanvasContext, 11, 12],
             testImgFn:   function (img) {
                 return img === otherCanvasContext;
-            }
-        }
+            },
+        },
     ];
 
     nativeMethods.imageSrcSetter.call(crossDomainImg, crossDomainUrl);
@@ -320,7 +320,7 @@ if (!browserUtils.isFirefox) {
 
         eval(processScript([
             'iframe.contentDocument.write("<html><body><div id=\'div1\'></div></body></html>");',
-            'iframe.contentDocument.write("<script>window.test = true;<' + '/script>");'
+            'iframe.contentDocument.write("<script>window.test = true;<' + '/script>");',
         ].join('')));
 
         return window.QUnitGlobals.wait(checkIframe)
@@ -362,7 +362,7 @@ if (window.DOMParser) {
             var testCases = [
                 '',
                 '<!DOCTYPE html>',
-                '<!DOCTYPE html><html><head></head><body></body></html>'
+                '<!DOCTYPE html><html><head></head><body></body></html>',
             ];
 
             testCases.forEach(function (html) {
@@ -439,7 +439,7 @@ if (Object.assign) {
         test('properties on the prototype chain and non-enumerable properties cannot be copied', function () {
             var obj  = Object.create({ foo: 1 }, {
                 bar: { value: 2 },
-                baz: { value: 3, enumerable: true }
+                baz: { value: 3, enumerable: true },
             });
             var copy = Object.assign({}, obj);
 
@@ -461,14 +461,14 @@ if (Object.assign) {
                 },
                 get: function () {
                     return 4;
-                }
+                },
             });
 
             throws(
                 function () {
                     Object.assign(obj, { bar: 1 }, 'hi', { foo2: 2, foo: 2, foo3: 2 }, { baz: 3 });
                 },
-                /Cannot assign property "foo"/
+                /Cannot assign property "foo"/ // eslint-disable-line comma-dangle
             );
 
             strictEqual(obj[0], 'h');
@@ -485,14 +485,14 @@ if (Object.assign) {
                 function () {
                     Object.assign(null, { bar: 1 });
                 },
-                TypeError
+                TypeError // eslint-disable-line comma-dangle
             );
 
             throws(
                 function () {
                     Object.assign(void 0, { bar: 1 });
                 },
-                TypeError
+                TypeError // eslint-disable-line comma-dangle
             );
         });
 
@@ -502,7 +502,7 @@ if (Object.assign) {
             strictEqual(Object.assign(iframe, { src: '/iframe1' }), iframe);
             strictEqual(nativeMethods.iframeSrcGetter.call(iframe), urlUtils.getProxyUrl('/iframe1', {
                 resourceType: urlUtils.stringifyResourceType({ isIframe: true }),
-                proxyPort:    2001
+                proxyPort:    2001,
             }));
 
             var fn = function () {
@@ -513,7 +513,7 @@ if (Object.assign) {
             Object.assign(iframe, fn);
             strictEqual(nativeMethods.iframeSrcGetter.call(iframe), urlUtils.getProxyUrl('/iframe2', {
                 resourceType: urlUtils.stringifyResourceType({ isIframe: true }),
-                proxyPort:    2001
+                proxyPort:    2001,
             }));
         });
     });

@@ -8,7 +8,7 @@ const PAGE_MIMES = [
     'text/xml',
     'application/xhtml+xml',
     'application/xml',
-    'application/x-ms-application'
+    'application/x-ms-application',
 ];
 
 const SCRIPT_MIMES = [
@@ -27,7 +27,7 @@ const SCRIPT_MIMES = [
     'text/jscript',
     'text/livescript',
     'text/x-ecmascript',
-    'text/x-javascript'
+    'text/x-javascript',
 ];
 
 const TEXT_PAGE_MIMES = [

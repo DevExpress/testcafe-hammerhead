@@ -401,7 +401,7 @@ if (window.history.replaceState && window.history.pushState) {
             Infinity,
             null,
             void 0,
-            new SomeClass()
+            new SomeClass(),
         ];
 
         return createTestIframe({ src: getSameDomainPageUrl('../../../data/history/iframe.html') })
@@ -475,36 +475,36 @@ test('UNCAUGHT_JS_ERROR_EVENT', function () {
             event: {
                 error: {
                     message: void 0,
-                    stack:   void 0
+                    stack:   void 0,
                 },
             },
-            expectedStack: 'undefined\n    No stack trace available'
+            expectedStack: 'undefined\n    No stack trace available',
         },
         {
             event: {
                 error: {
                     message: 'test message',
-                    stack:   '    line 1\n    line2'
+                    stack:   '    line 1\n    line2',
                 },
             },
-            expectedStack: 'test message\n    line 1\n    line2'
+            expectedStack: 'test message\n    line 1\n    line2',
         },
         {
             event: {
                 error: {
                     message: 'test message',
-                    stack:   'Error: test message\n    line1\n    line2'
+                    stack:   'Error: test message\n    line1\n    line2',
                 },
             },
-            expectedStack: 'Error: test message\n    line1\n    line2'
+            expectedStack: 'Error: test message\n    line1\n    line2',
         },
         {
             event: {
                 error:   null,
-                message: 'test message'
+                message: 'test message',
             },
-            expectedStack: 'test message\n    No stack trace available'
-        }
+            expectedStack: 'test message\n    No stack trace available',
+        },
     ];
 
     var testStack = function (testCase) {
@@ -543,16 +543,16 @@ if (nativeMethods.winOnUnhandledRejectionSetter) {
         var testCases = [
             {
                 reason:        'test reason',
-                expectedStack: 'test reason\n    No stack trace available'
+                expectedStack: 'test reason\n    No stack trace available',
             },
             {
                 reason:        null,
-                expectedStack: '[object Null]\n    No stack trace available'
+                expectedStack: '[object Null]\n    No stack trace available',
             },
             {
                 reason:        error,
-                expectedStack: prepareStackForError(error)
-            }
+                expectedStack: prepareStackForError(error),
+            },
         ];
 
         var testStack = function (testCase) {
@@ -614,7 +614,7 @@ if (nativeMethods.windowOriginGetter) {
     test('should be null in iframe with the sandbox attribute that doesn`t contain `allow-same-origin`', function () {
         return createTestIframe({
             src:     getSameDomainPageUrl('../../../data/iframe/simple-iframe.html'),
-            sandbox: 'allow-scripts'
+            sandbox: 'allow-scripts',
         })
             .then(function (iframe) {
                 strictEqual(iframe.contentWindow.origin, 'null');
@@ -813,7 +813,7 @@ if (window.Proxy) {
                 strictEqual(receiver, proxy);
 
                 return target[name];
-            }
+            },
         });
 
         strictEqual(proxy.prop, 1);
@@ -823,7 +823,7 @@ if (window.Proxy) {
         var handler = {
             get: function (obj, prop) {
                 return prop in obj ? obj[prop] : 37;
-            }
+            },
         };
 
         var p;
@@ -840,14 +840,14 @@ if (window.Proxy) {
         var obj = {
             nestedObj: {
                 prop1: 1,
-                prop2: 2
-            }
+                prop2: 2,
+            },
         };
 
         obj.proxy = new Proxy(obj.nestedObj, {
             get: function () {
                 handledWasCalled = true;
-            }
+            },
         });
 
         strictEqual(getProperty(obj, 'proxy'), obj.proxy);
@@ -859,7 +859,7 @@ if (window.Proxy) {
         var proxy = new Proxy({}, {
             get: function () {
                 return void 0;
-            }
+            },
         });
 
         strictEqual(proxy[INSTRUCTION.processScript], window[INSTRUCTION.processScript]);
@@ -878,7 +878,7 @@ if (window.Proxy) {
             '',
             'with (proxy) {',
             '    eval(";");',
-            '}'
+            '}',
         ].join('\n')));
 
         ok(true, 'regression check');
@@ -919,7 +919,7 @@ if (!browserUtils.isIE11) {
         var eventTargetMethods = [
             'addEventListener',
             'removeEventListener',
-            'dispatchEvent'
+            'dispatchEvent',
         ];
         var savedMethods       = eventTargetMethods.map(function (methodName) {
             return window.EventTarget.prototype[methodName];
@@ -929,7 +929,7 @@ if (!browserUtils.isIE11) {
             window,
             document,
             document.body,
-            div
+            div,
         ];
 
         expect(eventTargetMethods.length * contextElements.length);
@@ -975,7 +975,7 @@ if (!browserUtils.isIE11) {
             'class B extends A {',
             '    methodB () {}',
             '}',
-            'new B("return \'hello\'");'
+            'new B("return \'hello\'");',
         ].join('\n'));
 
         ok(!!functionInheritorInstance.methodA);

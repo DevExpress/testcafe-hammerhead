@@ -70,7 +70,7 @@ export function sendRequest (ctx: RequestPipelineContext) {
                     message:                  MESSAGE.nodeError[err.code] || err.toString(),
                     headerSize:               headerSize,
                     recommendedMaxHeaderSize: getRecommendedMaxHeaderSize(headerSize).toString(),
-                    invalidChars:             getFormattedInvalidCharacters(rawHeadersStr)
+                    invalidChars:             getFormattedInvalidCharacters(rawHeadersStr),
                 }));
             }
 

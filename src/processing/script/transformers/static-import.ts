@@ -22,7 +22,7 @@ const transformer: Transformer<Literal> = {
                                               parent.type === Syntax.ExportAllDeclaration ||
                                               parent.type === Syntax.ExportNamedDeclaration) && parent.source === node,
 
-    run: node => transformer.resolver ? getProxyUrlLiteral(node, transformer.resolver) : null
+    run: node => transformer.resolver ? getProxyUrlLiteral(node, transformer.resolver) : null,
 };
 
 export default transformer;

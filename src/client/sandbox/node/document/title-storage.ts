@@ -83,7 +83,7 @@ export default class DocumentTitleStorage extends EventEmitter {
         else
             nativeMethods.objectDefineProperty(element, INTERNAL_TITLE_PROP_NAME, {
                 value,
-                writable: true
+                writable: true,
             });
     }
 

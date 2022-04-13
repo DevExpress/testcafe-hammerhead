@@ -42,5 +42,5 @@ export default {
     contentSecurityPolicyReportOnly:  'content-security-policy-report-only',
     xContentSecurityPolicy:           'x-content-security-policy',
     xContentSecurityPolicyReportOnly: 'x-content-security-policy-report-only',
-    xWebkitCsp:                       'x-webkit-csp'
+    xWebkitCsp:                       'x-webkit-csp',
 };

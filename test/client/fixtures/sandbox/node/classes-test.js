@@ -48,7 +48,7 @@ test('refreshed classes "toString" method', function () {
         { refreshedClass: window.EventSource, storedClass: nativeMethods.EventSource },
         { refreshedClass: window.Proxy, storedClass: nativeMethods.Proxy },
         { refreshedClass: window.DataTransferItemList, storedClass: nativeMethods.DataTransferItemList },
-        { refreshedClass: window.DataTransferItem, storedClass: nativeMethods.DataTransferItem }
+        { refreshedClass: window.DataTransferItem, storedClass: nativeMethods.DataTransferItem },
     ];
 
     testCases.forEach(function (testCase) {
@@ -61,7 +61,7 @@ module('Blob');
 
 test('window.Blob([data], { type: "" }) should return correct result for `ArrayBuffer`, `Uint8Array` and `DataView` data types (GH-1599)', function () {
     var bmpExample = {
-        signature: [0x42, 0x4D]
+        signature: [0x42, 0x4D],
     };
 
     var testConstructor = function (constructor) {
@@ -119,7 +119,7 @@ test('window.Blob([data], { type: "" }) should return correct result for `ArrayB
     return Promise.all([
         testConstructor(ArrayBuffer),
         testConstructor(Uint8Array),
-        testConstructor(DataView)
+        testConstructor(DataView),
     ]);
 });
 
@@ -159,20 +159,20 @@ if (canCreateBlobFromNumberBooleanArray) {
         var testCases = [
             {
                 blobParts: unprocessableBlobParts,
-                options:   { type: '' }
+                options:   { type: '' },
             },
             {
                 blobParts: unprocessableBlobParts,
-                options:   { type: 'text/javascript' }
+                options:   { type: 'text/javascript' },
             },
             {
                 blobParts: processableBlobParts.concat([new nativeMethods.Blob(['unprocessable part'])]),
-                options:   { type: '' }
+                options:   { type: '' },
             },
             {
                 blobParts: processableBlobParts.concat([new nativeMethods.Blob(['unprocessable part'])]),
-                options:   { type: 'text/javascript' }
-            }
+                options:   { type: 'text/javascript' },
+            },
         ];
 
         var readBlobContent = function (blob) {
@@ -228,7 +228,7 @@ if (isFileConstructable) {
 
     test('window.File([data], "file.name", { type: "" }) should return correct result for `ArrayBuffer`, `Uint8Array` and `DataView` data types', function () {
         var bmpExample = {
-            signature: [0x42, 0x4D]
+            signature: [0x42, 0x4D],
         };
 
         var testConstructor = function (constructor) {
@@ -286,7 +286,7 @@ if (isFileConstructable) {
         return Promise.all([
             testConstructor(ArrayBuffer),
             testConstructor(Uint8Array),
-            testConstructor(DataView)
+            testConstructor(DataView),
         ]);
     });
 
@@ -314,20 +314,20 @@ if (isFileConstructable) {
             var testCases = [
                 {
                     fileParts: unprocessableFileParts,
-                    options:   { type: '' }
+                    options:   { type: '' },
                 },
                 {
                     fileParts: unprocessableFileParts,
-                    options:   { type: 'text/javascript' }
+                    options:   { type: 'text/javascript' },
                 },
                 {
                     fileParts: processableFileParts.concat([new nativeMethods.File(['unprocessable part'], 'file.name')]),
-                    options:   { type: '' }
+                    options:   { type: '' },
                 },
                 {
                     fileParts: processableFileParts.concat([new nativeMethods.File(['unprocessable part'], 'file.name')]),
-                    options:   { type: 'text/javascript' }
-                }
+                    options:   { type: 'text/javascript' },
+                },
             ];
 
             var readFileContent = function (file) {
@@ -604,20 +604,20 @@ if (window.Blob) {
                 description: 'without parameters',
                 newBlobFunc: function () {
                     return new window.Blob();
-                }
+                },
             },
             {
                 description: 'only "parts" parameter',
                 newBlobFunc: function () {
                     return new window.Blob(['text']);
-                }
+                },
             },
             {
                 description: '"parts" and "opts" parameters',
                 newBlobFunc: function () {
                     return new window.Blob(['text'], { type: 'text/plain' });
-                }
-            }
+                },
+            },
         ];
 
         testCases.forEach(function (testCase) {
@@ -646,12 +646,12 @@ if (window.FormData) {
             info: {
                 size: 4,
                 type: 'text/plain',
-                name: 'correctName.txt'
+                name: 'correctName.txt',
             },
             // NOTE: window.File in IE11 is not constructable.
             blob: nativeMethods.File
                 ? new File(['text'], 'correctName.txt', { type: 'text/plain' })
-                : new Blob(['text'], { type: 'text/plain' })
+                : new Blob(['text'], { type: 'text/plain' }),
         }));
         formData.append(INTERNAL_ATTRS.uploadInfoHiddenInputName, '[]');
 

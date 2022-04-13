@@ -23,7 +23,7 @@ const {
     getBasicProxyUrl,
     createDestinationServer,
     createHttp2DestServer,
-    compareCode
+    compareCode,
 } = require('../common/utils');
 
 
@@ -60,7 +60,7 @@ describe('https proxy', () => {
             res.writeHead(200, { 'content-type': 'application/json' });
 
             res.end(JSON.stringify({
-                httpVersion: req.httpVersion
+                httpVersion: req.httpVersion,
             }));
         }
 
@@ -116,7 +116,7 @@ describe('https proxy', () => {
         http2App.get('/script', stream => {
             stream.respond({
                 [HTTP2_HEADER_STATUS]: 200,
-                'content-type':        'application/javascript'
+                'content-type':        'application/javascript',
             });
 
             stream.end(fs.readFileSync('test/server/data/script/src.js'));
@@ -169,7 +169,7 @@ describe('https proxy', () => {
                 expect(logs[3][0]).deep.eql({
                     ':method':    'GET',
                     ':path':      '/script',
-                    ':authority': '127.0.0.1:2000'
+                    ':authority': '127.0.0.1:2000',
                 });
             });
     });
@@ -206,19 +206,19 @@ describe('https proxy', () => {
                 end: function () {
                     setImmediate(() => this._errorHandler({
                         code:    'ERR_HTTP2_STREAM_ERROR',
-                        message: 'Stream closed with error code NGHTTP2_PROTOCOL_ERROR'
+                        message: 'Stream closed with error code NGHTTP2_PROTOCOL_ERROR',
                     }));
                 },
 
                 on: function (eventName, fn) {
                     if (eventName === 'error')
                         this._errorHandler = fn;
-                }
+                },
             }),
 
             destroy: function () {
                 this.destroyCalled = true;
-            }
+            },
         };
 
         session.id = 'sessionId';

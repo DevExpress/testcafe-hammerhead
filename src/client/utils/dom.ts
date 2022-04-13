@@ -13,7 +13,7 @@ let scrollbarSize = 0;
 
 const NATIVE_MAP_ELEMENT_STRINGS = [
     '[object HTMLMapElement]',
-    '[object HTMLAreaElement]'
+    '[object HTMLAreaElement]',
 ];
 
 const WINDOW_IS_UNDEFINED              = typeof window === 'undefined';
@@ -147,7 +147,7 @@ export function getIframeLocation (iframe) {
 
     return {
         documentLocation: parsedProxyDocumentLocation ? parsedProxyDocumentLocation.destUrl : documentLocation,
-        srcLocation:      parsedProxySrcLocation ? parsedProxySrcLocation.destUrl : srcLocation
+        srcLocation:      parsedProxySrcLocation ? parsedProxySrcLocation.destUrl : srcLocation,
     };
 }
 

@@ -12,7 +12,7 @@ import {
     addAuthorizationPrefix, hasAuthorizationPrefix,
     isAuthenticateHeader,
     isAuthorizationHeader, removeAuthenticatePrefix,
-    removeAuthorizationPrefix
+    removeAuthorizationPrefix,
 } from '../../utils/headers';
 
 function getCredentialsMode (credentialsOpt: any) {
@@ -147,13 +147,13 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         overrideDescriptor(window.Request.prototype, 'url', {
             getter: function (this: Request) {
                 return getDestinationUrl(nativeMethods.requestUrlGetter.call(this));
-            }
+            },
         });
 
         overrideDescriptor(window.Request.prototype, 'referrer', {
             getter: function (this: Request) {
                 return getDestinationUrl(nativeMethods.requestReferrerGetter.call(this));
-            }
+            },
         });
 
         overrideFunction(window, 'fetch', function (this: Window, ...args: Parameters<Window['fetch']>) {
@@ -189,7 +189,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         overrideDescriptor(window.Response.prototype, 'url', {
             getter: function () {
                 return getDestinationUrl(nativeMethods.responseUrlGetter.call(this));
-            }
+            },
         });
 
         overrideFunction(window.Headers.prototype, 'entries', FetchSandbox._entriesWrapper);

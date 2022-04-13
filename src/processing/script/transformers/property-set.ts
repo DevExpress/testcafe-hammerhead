@@ -34,7 +34,7 @@ const transformer: Transformer<AssignmentExpression> = {
         const identifier       = memberExpression.property as Identifier;
 
         return createPropertySetWrapper(identifier.name, memberExpression.object as Expression, node.right);
-    }
+    },
 };
 
 export default transformer;
