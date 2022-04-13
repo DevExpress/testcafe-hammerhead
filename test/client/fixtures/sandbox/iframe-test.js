@@ -256,7 +256,7 @@ test('ready to init event must not raise for added iframe(B239643)', function ()
 
             iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
 
-            // eslint-disable-next-line no-unused-vars
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             var dummy = container.innerHTML;
 
             ok(!iframeLoadingEventRaised);

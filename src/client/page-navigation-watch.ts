@@ -1,7 +1,14 @@
 import EventEmiter from './utils/event-emitter';
 import { parseProxyUrl } from '../utils/url';
 import { isChangedOnlyHash } from './utils/url';
-import { isShadowUIElement, isAnchorElement, isFormElement, closest } from './utils/dom';
+
+import {
+    isShadowUIElement,
+    isAnchorElement,
+    isFormElement,
+    closest,
+} from './utils/dom';
+
 import * as windowsStorage from './sandbox/windows-storage';
 import DomProcessor from '../processing/dom';
 import nextTick from './utils/next-tick';

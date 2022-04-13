@@ -43,7 +43,7 @@ export function isPage (header: string): boolean {
 export function isTextPage (contentTypeHeader: string): boolean {
     contentTypeHeader = contentTypeHeader.toLowerCase();
 
-    return (TEXT_PAGE_MIMES.some(mime => contentTypeHeader.includes(mime)) || !contentTypeHeader);
+    return TEXT_PAGE_MIMES.some(mime => contentTypeHeader.includes(mime)) || !contentTypeHeader;
 }
 
 export function isCSSResource (contentTypeHeader: string, acceptHeader: string) {

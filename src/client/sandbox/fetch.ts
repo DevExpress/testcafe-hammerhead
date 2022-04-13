@@ -4,7 +4,13 @@ import nativeMethods from './native-methods';
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
 import { getAjaxProxyUrl, getDestinationUrl } from '../utils/url';
 import { isFetchHeaders, isFetchRequest } from '../utils/dom';
-import { overrideConstructor, overrideDescriptor, overrideFunction } from '../utils/overriding';
+
+import {
+    overrideConstructor,
+    overrideDescriptor,
+    overrideFunction,
+} from '../utils/overriding';
+
 import * as browserUtils from '../utils/browser';
 import CookieSandbox from './cookie';
 import { Credentials } from '../../utils/url';

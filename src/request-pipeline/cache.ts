@@ -1,11 +1,17 @@
 import LRUCache from 'lru-cache';
-import { ResponseCacheEntry, ResponseCacheEntryBase, RequestCacheEntry } from '../typings/context';
+
+import {
+    ResponseCacheEntry,
+    ResponseCacheEntryBase,
+    RequestCacheEntry,
+} from '../typings/context';
+
 import RequestOptions from './request-options';
 import { IncomingMessage } from 'http';
 import CachePolicy from 'http-cache-semantics';
-import RequestPipelineContext from "./context";
+import RequestPipelineContext, { DestinationResponse } from './context';
 import IncomingMessageLike from './incoming-message-like';
-import { DestinationResponse } from './context';
+
 
 const requestsCache = new LRUCache<string, ResponseCacheEntry>({
     max:    50 * 1024 * 1024, // Max cache size is 50 MBytes.
@@ -72,6 +78,6 @@ export function getResponse (reqOptions: RequestOptions): ResponseCacheEntryBase
 }
 
 // NOTE: Maximum size for the non processed resource is 5 Mb
-export const MAX_SIZE_FOR_NON_PROCESSED_RESOURCE = 5 * 1024 *1024;
+export const MAX_SIZE_FOR_NON_PROCESSED_RESOURCE = 5 * 1024 * 1024;
 
 

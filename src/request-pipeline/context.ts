@@ -1,5 +1,11 @@
 import net from 'net';
-import { IncomingMessage, ServerResponse, OutgoingHttpHeaders } from 'http';
+
+import {
+    IncomingMessage,
+    ServerResponse,
+    OutgoingHttpHeaders,
+} from 'http';
+
 import Session from '../session';
 import { StoragesSnapshot, FileStream } from '../typings/session';
 import { ServerInfo } from '../typings/proxy';
@@ -21,7 +27,6 @@ import { RequestInfo } from '../session/events/info';
 import SERVICE_ROUTES from '../proxy/service-routes';
 import BUILTIN_HEADERS from './builtin-header-names';
 import logger from '../utils/logger';
-import { Credentials } from '../utils/url';
 import createSpecialPageResponse from './create-special-page-response';
 import { fetchBody } from '../utils/http';
 import * as requestCache from './cache';
@@ -125,10 +130,10 @@ export default class RequestPipelineContext {
         readonly res: ServerResponse | Socket,
         readonly serverInfo: ServerInfo) {
         if (req.headers.cookie) {
-            const parsedClientSyncCookieStr = parseClientSyncCookieStr(req.headers.cookie)
-            if (parsedClientSyncCookieStr) {
+            const parsedClientSyncCookieStr = parseClientSyncCookieStr(req.headers.cookie);
+
+            if (parsedClientSyncCookieStr)
                 this.parsedClientSyncCookie = parsedClientSyncCookieStr;
-            }
         }
     }
 
@@ -372,6 +377,7 @@ export default class RequestPipelineContext {
     private async _getDestResBody (res: DestinationResponse): Promise<Buffer> {
         if (IncomingMessageLike.isIncomingMessageLike(res)) {
             const body = res.getBody();
+
             if (body)
                 return body;
         }
@@ -429,7 +435,7 @@ export default class RequestPipelineContext {
         this.goToNextStage = false;
     }
 
-    toProxyUrl (url: string, isCrossDomain: boolean, resourceType: string, charset?: string, reqOrigin?: string, credentials?: Credentials): string {
+    toProxyUrl (url: string, isCrossDomain: boolean, resourceType: string, charset?: string, reqOrigin?: string, credentials?: urlUtils.Credentials): string {
         const proxyHostname = this.serverInfo.hostname;
         const proxyProtocol = this.serverInfo.protocol;
         const proxyPort     = isCrossDomain ? this.serverInfo.crossDomainPort.toString() : this.serverInfo.port.toString();
@@ -452,7 +458,7 @@ export default class RequestPipelineContext {
         });
     }
 
-    getProxyOrigin(isCrossDomain = false) {
+    getProxyOrigin (isCrossDomain = false) {
         return urlUtils.getDomain({
             protocol: this.serverInfo.protocol,
             hostname: this.serverInfo.hostname,

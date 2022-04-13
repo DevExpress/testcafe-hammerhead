@@ -21,7 +21,7 @@ import removeElement from '../utils/remove-element';
 import { overrideFunction } from '../utils/overriding';
 
 const IS_NON_STATIC_POSITION_RE = /fixed|relative|absolute/;
-const CLASSNAME_RE              = /\.((?:\\.|[-\w]|[^\x00-\xa0])+)/g;
+const CLASSNAME_RE              = /\.((?:\\.|[-\w]|[^\x00-\xa0])+)/g; // eslint-disable-line no-control-regex
 
 const IS_SHADOW_CONTAINER_FLAG            = 'hammerhead|shadow-ui|container-flag';
 const IS_SHADOW_CONTAINER_COLLECTION_FLAG = 'hammerhead|shadow-ui|container-collection-flag';
@@ -379,7 +379,7 @@ export default class ShadowUI extends SandboxBase {
             const child = children[0];
 
             ShadowUI.markElementAsShadow(child);
-            this.nativeMethods.removeChild.call(parser, child)
+            this.nativeMethods.removeChild.call(parser, child);
             this.nativeMethods.appendChild.call(head, child);
         }
     }
@@ -743,12 +743,12 @@ export default class ShadowUI extends SandboxBase {
     }
 
     insertBeforeRoot (newNodes: (string | Node)[]) {
-        const rootEl          = this.getRoot()
+        const rootEl          = this.getRoot();
         const rootParent      = this.nativeMethods.nodeParentNodeGetter.call(rootEl);
         const lastParentChild = this.nativeMethods.nodeLastChildGetter.call(rootParent);
 
         // GH-2418
-        if (lastParentChild != rootEl)
+        if (lastParentChild !== rootEl)
             nativeMethods.appendChild.call(rootParent, rootEl);
 
         if (newNodes.length > 1 || typeof newNodes[0] !== 'object') {

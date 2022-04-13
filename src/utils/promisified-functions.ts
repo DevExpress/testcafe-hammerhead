@@ -1,4 +1,9 @@
-import zlib, { BrotliOptions, InputType, ZlibOptions } from 'zlib';
+import zlib, {
+    BrotliOptions,
+    InputType,
+    ZlibOptions,
+} from 'zlib';
+
 import { promisify } from 'util';
 import fs from 'fs';
 import childProcess from 'child_process';

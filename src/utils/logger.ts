@@ -84,7 +84,7 @@ const proxy = {
     },
 
     onCORSFailed: (ctx: RequestPipelineContext) => {
-        proxyLogger('Proxy CORS check failed %s', ctx.requestId)
+        proxyLogger('Proxy CORS check failed %s', ctx.requestId);
     },
 
     onContentInfoBuilt: (ctx: RequestPipelineContext) => {
@@ -134,7 +134,7 @@ const destination = {
         http2DestinationLogger('Destination session closed %s %s (cache size %d of %d)', requestId, origin, cacheSize, cacheTotalSize);
     },
 
-    onHttp2Error: (requestId: string, origin: string,  err: Error) => {
+    onHttp2Error: (requestId: string, origin: string, err: Error) => {
         http2DestinationLogger('Destination error %s %s %o', requestId, origin, err);
     },
 

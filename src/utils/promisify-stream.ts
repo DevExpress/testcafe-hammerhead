@@ -8,8 +8,8 @@ export default function (s: Readable, contentLength?: string): Promise<Buffer> {
     return new Promise((resolve, reject) => {
         let currentLength  = 0;
         const chunks       = [] as Buffer[];
-        const finalLength  = typeof contentLength === 'string' ? parseInt(contentLength) : null;
-        const http2session = finalLength === null && ('session' in s) &&
+        const finalLength  = typeof contentLength === 'string' ? parseInt(contentLength, 10) : null;
+        const http2session = finalLength === null && 'session' in s &&
                              (s as ClientHttp2Stream).session || null;
         let isResolved     = false;
         let timeout: NodeJS.Timeout;

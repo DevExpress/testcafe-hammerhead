@@ -3,7 +3,7 @@ import BUILTIN_HEADERS from './builtin-header-names';
 
 export default function createSpecialPageResponse () {
     return new IncomingMessageLike({
-        headers:    {
+        headers: {
             [BUILTIN_HEADERS.contentType]:   'text/html',
             [BUILTIN_HEADERS.contentLength]: '0',
         },

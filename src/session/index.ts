@@ -1,5 +1,11 @@
 import Proxy from '../proxy';
-import { RequestTimeout, ServerInfo, ServiceMessage } from '../typings/proxy';
+
+import {
+    RequestTimeout,
+    ServerInfo,
+    ServiceMessage,
+} from '../typings/proxy';
+
 import RequestPipelineContext from '../request-pipeline/context';
 import RequestFilterRule from '../request-pipeline/request-hooks/request-filter-rule';
 import ResponseMock from '../request-pipeline/request-hooks/response-mock';
@@ -124,7 +130,7 @@ export default abstract class Session extends EventEmitter {
 
     private _initRequestHookEventData (): RequestHookEventData {
         return {
-            mocks: new Map<string, ResponseMock>(),
+            mocks:             new Map<string, ResponseMock>(),
             configureResponse: new Map<string, ConfigureResponseEventData>(),
         };
     }
@@ -199,6 +205,7 @@ export default abstract class Session extends EventEmitter {
             payloadScript,
             allowMultipleWindows,
             isRecordMode,
+
             windowId: windowId || '',
         });
     }
@@ -389,7 +396,7 @@ export default abstract class Session extends EventEmitter {
         if (!eventData) {
             eventData = {
                 opts:           ConfigureResponseEventOptions.DEFAULT,
-                setHeaders: [],
+                setHeaders:     [],
                 removedHeaders: [],
             };
         }
@@ -410,7 +417,7 @@ export default abstract class Session extends EventEmitter {
     }
 
     public async setConfigureResponseEventOptions (eventId: string, opts: ConfigureResponseEventOptions): Promise<void> {
-        this._updateConfigureResponseEventData(eventId,eventData => {
+        this._updateConfigureResponseEventData(eventId, eventData => {
             eventData.opts = opts;
         });
     }
@@ -427,7 +434,7 @@ export default abstract class Session extends EventEmitter {
         });
     }
 
-    setRecordMode(): void {
+    setRecordMode (): void {
         this._recordMode = true;
     }
 

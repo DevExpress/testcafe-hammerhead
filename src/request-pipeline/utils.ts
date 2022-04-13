@@ -1,6 +1,12 @@
-import RequestPipelineContext from './context';
+import RequestPipelineContext, { DestinationResponse } from './context';
 import RequestFilterRule from './request-hooks/request-filter-rule';
-import { RequestInfo, ResponseInfo, PreparedResponseInfo } from '../session/events/info';
+
+import {
+    RequestInfo,
+    ResponseInfo,
+    PreparedResponseInfo,
+} from '../session/events/info';
+
 import { OnResponseEventData } from '../typings/context';
 import FileRequest from './file-request';
 import DestinationRequest from './destination-request';
@@ -15,7 +21,7 @@ import { PassThrough } from 'stream';
 import { getText, MESSAGE } from '../messages';
 import logger from '../utils/logger';
 import { getFormattedInvalidCharacters } from './http-header-parser';
-import { DestinationResponse } from './context';
+
 
 // An empty line that indicates the end of the header section
 // https://tools.ietf.org/html/rfc7230#section-3

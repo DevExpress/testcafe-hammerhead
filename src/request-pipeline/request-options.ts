@@ -6,7 +6,7 @@ import * as headerTransforms from './header-transforms';
 import { inject as injectUpload } from '../upload';
 import matchUrl from 'match-url-wildcard';
 import { RequestTimeout } from '../typings/proxy';
-import { transformHeadersCaseToRaw } from "./header-transforms";
+
 
 export default class RequestOptions {
     url: string;
@@ -94,7 +94,7 @@ export default class RequestOptions {
         // NOTE: The headers are converted to raw headers because some sites ignore headers in a lower case. (GH-1380)
         // We also need to restore the request option headers to a lower case because headers may change
         // if a request is unauthorized, so there can be duplicated headers, for example, 'www-authenticate' and 'WWW-Authenticate'.
-        const transformedHeaders = transformHeadersCaseToRaw(this.headers, this.rawHeaders);
+        const transformedHeaders = headerTransforms.transformHeadersCaseToRaw(this.headers, this.rawHeaders);
         const clonedReqOptions   = Object.assign({}, this) as object;
 
         clonedReqOptions['headers'] = transformedHeaders;

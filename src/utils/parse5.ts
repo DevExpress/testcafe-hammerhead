@@ -50,7 +50,8 @@ export function createElement (tagName: string, attrs: ASTAttribute[]): ASTNode 
 export function unshiftElement (el: ASTNode, parent: ASTNode): void {
     el.namespaceURI = parent.namespaceURI;
     el.parentNode   = parent;
-    parent.childNodes?.unshift(el);
+
+    parent.childNodes?.unshift(el); // eslint-disable-line no-unused-expressions
 }
 
 export function insertBeforeFirstScript (el: ASTNode, parent: ASTNode): void {
@@ -72,7 +73,7 @@ export function findNextNonTextNode (parent: ASTNode, startIndex: number): ASTNo
 
     let currentNode: ASTNode;
 
-    while (currentNode = parent.childNodes[startIndex]){
+    while (currentNode = parent.childNodes[startIndex]) { // eslint-disable-line no-cond-assign
         if (currentNode.nodeName !== '#text')
             return currentNode;
 
@@ -86,14 +87,14 @@ export function appendNode (node: ASTNode, parent: ASTNode, index: number): void
     node.namespaceURI = parent.namespaceURI;
     node.parentNode   = parent;
 
-    parent.childNodes?.splice(index, 0, node);
+    parent.childNodes?.splice(index, 0, node); // eslint-disable-line no-unused-expressions
 }
 
 export function removeNode (node: ASTNode): void {
     const parent  = node.parentNode;
 
     if (!parent || !parent.childNodes)
-        return
+        return;
 
     const elIndex = parent.childNodes.indexOf(node);
 
@@ -113,7 +114,7 @@ export function findElementsByTagNames (root: ASTNode, tagNames: string[]): Dict
     return elements;
 }
 
-export function findElement (el: ASTNode, predicate: (el: ASTNode) => boolean): ASTNode | null {
+export function findElement (el: ASTNode, predicate: (el: ASTNode) => boolean): ASTNode | null { // eslint-disable-line no-shadow
     if (isElementNode(el) && predicate(el))
         return el;
 
