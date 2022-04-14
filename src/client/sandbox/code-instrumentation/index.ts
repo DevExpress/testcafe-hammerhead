@@ -116,7 +116,7 @@ export default class CodeInstrumentation extends SandboxBase {
         });
 
         nativeMethods.objectDefineProperty(window, INSTRUCTION.arrayFrom, {
-            value:        (target: any) => {
+            value: (target: any) => {
                 if (!target)
                     return target;
 

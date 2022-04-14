@@ -1,6 +1,6 @@
 let topOpenerWindow = null;
 
-export default function getTopOpenerWindow() {
+export default function getTopOpenerWindow () {
     if (!topOpenerWindow) {
         topOpenerWindow = window.top;
 

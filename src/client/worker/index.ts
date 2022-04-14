@@ -58,7 +58,7 @@ class WorkerHammerhead {
             overrideFetchEvent();
     }
 
-    private static _setProxySettings(sessionId: string, windowId?: string) {
+    private static _setProxySettings (sessionId: string, windowId?: string) {
         const currentSettings = settings.get();
 
         currentSettings.sessionId = sessionId;

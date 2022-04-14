@@ -20,7 +20,14 @@ import {
 import trim from '../../utils/string-trim';
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
 import { XML_NAMESPACE } from './namespaces';
-import { URL_ATTR_TAGS, URL_ATTRS, TARGET_ATTR_TAGS, TARGET_ATTRS } from './attributes';
+
+import {
+    URL_ATTR_TAGS,
+    URL_ATTRS,
+    TARGET_ATTR_TAGS,
+    TARGET_ATTRS,
+} from './attributes';
+
 import BaseDomAdapter from './base-dom-adapter';
 import { ASTNode } from 'parse5';
 
@@ -594,7 +601,7 @@ export default class DomProcessor {
         const isSpecialPageUrl  = !!resourceUrl && isSpecialPage(resourceUrl);
         const processedOnServer = this.adapter.hasAttr(el, storedUrlAttr);
 
-        if ((!resourceUrl && resourceUrl !== '' || processedOnServer) ||
+        if ((!resourceUrl && resourceUrl !== '' || processedOnServer) || //eslint-disable-line @typescript-eslint/no-extra-parens
             !isSupportedProtocol(resourceUrl) && !isSpecialPageUrl)
             return;
 

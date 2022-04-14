@@ -141,8 +141,8 @@ function applyChanges (script: string, changes: CodeChange[], isObject: boolean)
     if (!changes.length)
         return script;
 
-    changes.sort((a, b) => (a.start - b.start) || (a.end - b.end) ||
-        ((a.node.type === Syntax.VariableDeclaration ? 0 : 1) - (b.node.type === Syntax.VariableDeclaration ? 0 : 1)));
+    changes.sort((a, b) => (a.start - b.start) || (a.end - b.end) || // eslint-disable-line @typescript-eslint/no-extra-parens
+        ((a.node.type === Syntax.VariableDeclaration ? 0 : 1) - (b.node.type === Syntax.VariableDeclaration ? 0 : 1))); // eslint-disable-line @typescript-eslint/no-extra-parens
 
     for (const change of changes) {
         const changeStart = change.start + indexOffset;

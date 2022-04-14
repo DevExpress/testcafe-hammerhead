@@ -54,10 +54,10 @@ export function forResponse (ctx: RequestPipelineContext): OutgoingHttpHeaders {
 // Therefore, the "origin" header can be absent and we cannot decide its case. GH-2382
 // The similar situation also occurs with the forced "cookie" header.
 function calculateForcedHeadersCase (headers: OutgoingHttpHeaders, processedHeaders: object, headersNames: (string | void)[]) {
-    const isBrowserRefererStartsWithUpperChar = processedHeaders.hasOwnProperty('Referer');
+    const isBrowserRefererStartsWithUpperChar = processedHeaders.hasOwnProperty('Referer'); // eslint-disable-line no-prototype-builtins
 
     for (const { lowerCase, browserCase } of FORCED_REQ_HEADERS_BROWSER_CASES) {
-        if (isBrowserRefererStartsWithUpperChar && headers.hasOwnProperty(lowerCase)) {
+        if (isBrowserRefererStartsWithUpperChar && headers.hasOwnProperty(lowerCase)) { // eslint-disable-line no-prototype-builtins
             processedHeaders[browserCase]                 = headers[lowerCase];
             headersNames[headersNames.indexOf(lowerCase)] = void 0;
         }

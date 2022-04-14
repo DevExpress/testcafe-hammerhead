@@ -5,7 +5,16 @@ import nativeMethods from '../sandbox/native-methods';
 import * as urlUtils from './url';
 import { get as getStyle } from './style';
 import { sameOriginCheck } from './destination-location';
-import { isFirefox, isWebKit, isIE, isMSEdge, isSafari, isChrome } from './browser';
+
+import {
+    isFirefox,
+    isWebKit,
+    isIE,
+    isMSEdge,
+    isSafari,
+    isChrome,
+} from './browser';
+
 import { getNativeQuerySelectorAll } from './query-selector';
 import { instanceAndPrototypeToStringAreEqual } from './feature-detection';
 
@@ -364,8 +373,8 @@ export function getParentExceptShadowRoot (el: Node) {
     const parent = nativeMethods.nodeParentNodeGetter.call(el);
 
     return parent && parent.nodeType === Node.DOCUMENT_FRAGMENT_NODE && parent[SHADOW_ROOT_PARENT_ELEMENT]
-           ? parent[SHADOW_ROOT_PARENT_ELEMENT]
-           : parent;
+        ? parent[SHADOW_ROOT_PARENT_ELEMENT]
+        : parent;
 }
 
 export function isElementInDocument (el: Node, currentDocument?: Document): boolean {

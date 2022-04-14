@@ -4,7 +4,13 @@ import Promise from 'pinkie';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import IntegerIdGenerator from '../../utils/integer-id-generator';
 import nativeMethods from '../native-methods';
-import { changeSyncType, formatSyncCookie, generateDeleteSyncCookieStr } from '../../../utils/cookie';
+
+import {
+    changeSyncType,
+    formatSyncCookie,
+    generateDeleteSyncCookieStr,
+} from '../../../utils/cookie';
+
 import ChildWindowSandbox from '../child-window';
 import getTopOpenerWindow from '../../utils/get-top-opener-window';
 
@@ -22,7 +28,7 @@ interface SyncCookieMsg {
 export default class WindowSync {
     private _win: Window | null = null;
     private _messageIdGenerator: IntegerIdGenerator | null = null;
-    private _resolversMap: Map<number, () => void> = new Map<number, () => void>();
+    private _resolversMap: Map<number, () => void> = new Map<number, () => void>(); // eslint-disable-line no-spaced-func
 
     constructor (private readonly _cookieSandbox: CookieSandbox,
         private readonly _messageSandbox: MessageSandbox,
@@ -50,7 +56,7 @@ export default class WindowSync {
             else if (this._win !== getTopOpenerWindow()) {
                 this.syncBetweenWindows(message.cookies, source)
                     .then(() => this._messageSandbox.sendServiceMsg({
-                        id: message.id,
+                        id:  message.id,
                         cmd: SYNC_COOKIE_DONE_CMD,
                     }, source));
             }
@@ -172,11 +178,10 @@ export default class WindowSync {
 
             return syncMessagesPromise.then();
         }
-        else {
-            this._removeSyncCookie(cookies);
 
-            return Promise.resolve();
-        }
+        this._removeSyncCookie(cookies);
+
+        return Promise.resolve();
     }
 
     attach (win: Window): void {

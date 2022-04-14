@@ -79,7 +79,7 @@ function createThisExpression (): ThisExpression {
 }
 
 function createLogicalExpression (left: Expression, operator: LogicalOperator, right: Expression): LogicalExpression {
-    return { type: Syntax.LogicalExpression, left, right, operator }
+    return { type: Syntax.LogicalExpression, left, right, operator };
 }
 
 export function createReturnStatement (argument: Expression | null = null): ReturnStatement {
@@ -90,7 +90,7 @@ function createFunctionExpression (id: Identifier | null, params: Pattern[], bod
     return { type: Syntax.FunctionExpression, id, params, body, async, generator };
 }
 
-function createUnaryExpression(operator: UnaryOperator, argument: Expression): UnaryExpression {
+function createUnaryExpression (operator: UnaryOperator, argument: Expression): UnaryExpression {
     return { type: Syntax.UnaryExpression, operator, prefix: true, argument };
 }
 
@@ -177,7 +177,7 @@ export function createPropertyGetWrapper (propertyName: string, owner: Expressio
     if (optional)
         args.push(createSimpleLiteral(optional));
 
-    return createSimpleCallExpression(getPropertyIdentifier,  args);
+    return createSimpleCallExpression(getPropertyIdentifier, args);
 }
 
 export function createComputedPropertyGetWrapper (property: Expression, owner: Expression, optional = false): CallExpression {
@@ -187,7 +187,7 @@ export function createComputedPropertyGetWrapper (property: Expression, owner: E
     if (optional)
         args.push(createSimpleLiteral(optional));
 
-    return createSimpleCallExpression(getPropertyIdentifier,  args);
+    return createSimpleCallExpression(getPropertyIdentifier, args);
 }
 
 export function createComputedPropertySetWrapper (property: Expression, owner: Expression, value: Expression): CallExpression {

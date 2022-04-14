@@ -5,7 +5,6 @@ import urlResolver from './url-resolver';
 import settings from '../settings';
 import { ResourceType } from '../../typings/url';
 import globalContextInfo from './global-context-info';
-import { getLocation, sameOriginCheck } from './destination-location';
 import { Credentials } from '../../utils/url';
 
 const HASH_RE                          = /#[\S\s]*$/;
@@ -148,7 +147,7 @@ export let getProxyUrl = function (url: string, opts?): string {
         windowId,
         credentials,
     });
-}
+};
 
 export function overrideGetProxyUrl (func: typeof getProxyUrl): void {
     getProxyUrl = func;
@@ -184,7 +183,7 @@ export let getCrossDomainIframeProxyUrl = function (url: string) {
         proxyPort:    settings.get().crossDomainProxyPort,
         resourceType: sharedUrlUtils.getResourceTypeString({ isIframe: true }),
     });
-}
+};
 
 export function overrideGetCrossDomainIframeProxyUrl (func: typeof getCrossDomainIframeProxyUrl): void {
     getCrossDomainIframeProxyUrl = func;
@@ -221,7 +220,7 @@ export function getCrossDomainProxyPort (proxyPort: string) {
 
 export let resolveUrlAsDest = function (url: string) {
     return sharedUrlUtils.resolveUrlAsDest(url, getProxyUrl);
-}
+};
 
 export function overrideResolveUrlAsDest (func: typeof resolveUrlAsDest): void {
     resolveUrlAsDest = func;
@@ -233,7 +232,7 @@ export function formatUrl (parsedUrl) {
 
 export let parseProxyUrl = function (proxyUrl: string) {
     return sharedUrlUtils.parseProxyUrl(proxyUrl);
-}
+};
 
 export function overrideParseProxyUrl (func: typeof parseProxyUrl) {
     parseProxyUrl = func;
@@ -249,7 +248,7 @@ export let convertToProxyUrl = function (url: string, resourceType, charset, isC
         // eslint-disable-next-line no-restricted-properties
         proxyPort: isCrossDomain ? settings.get().crossDomainProxyPort : DEFAULT_PROXY_SETTINGS.port,
     });
-}
+};
 
 export function getCrossDomainProxyOrigin () {
     return sharedUrlUtils.getDomain({
@@ -339,7 +338,7 @@ export function getScope (url: string): string | null {
 }
 
 export function getAjaxProxyUrl (url: string, credentials: Credentials) {
-    const isCrossDomain = !sameOriginCheck(getLocation(), url);
+    const isCrossDomain = !destLocation.sameOriginCheck(destLocation.getLocation(), url);
     const opts          = { resourceType: stringifyResourceType({ isAjax: true }), credentials } as any;
 
     if (isCrossDomain) {

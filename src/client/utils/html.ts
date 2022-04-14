@@ -5,7 +5,13 @@ import DomProcessor from '../../processing/dom';
 import domProcessor from '../dom-processor';
 import { remove as removeProcessingHeader } from '../../processing/script/header';
 import styleProcessor from '../../processing/style';
-import { find, getTagName, isScriptElement } from './dom';
+
+import {
+    find,
+    getTagName,
+    isScriptElement,
+} from './dom';
+
 import { convertToProxyUrl, parseProxyUrl } from './url';
 import { isIE, isMSEdge } from './browser';
 import urlResolver from './url-resolver';

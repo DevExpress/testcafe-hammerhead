@@ -5,7 +5,13 @@ import Selection from './selection';
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import * as domUtils from '../../utils/dom';
-import { isIE, isIE11, isFirefox } from '../../utils/browser';
+
+import {
+    isIE,
+    isIE11,
+    isFirefox,
+} from '../../utils/browser';
+
 import { DOM_EVENTS, preventDefault } from '../../utils/event';
 import DataTransfer from './drag-and-drop/data-transfer';
 import DragDataStore from './drag-and-drop/drag-data-store';
