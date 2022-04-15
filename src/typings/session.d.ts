@@ -1,5 +1,5 @@
 import { ReadStream } from 'fs';
-import { IncomingHttpHeaders } from 'http';
+import { IncomingHttpHeaders, OutgoingHttpHeaders } from 'http';
 import { RequestTimeout } from './proxy';
 
 export interface WindowCredentials {
@@ -53,15 +53,15 @@ export interface RequestOptionsSettings {
     port?: string | void,
     path: string,
     auth?: string | void,
-    headers: IncomingHttpHeaders,
+    headers: OutgoingHttpHeaders,
     externalProxySettings?: ExternalProxySettings,
-    credentials: Credentials,
+    credentials?: Credentials,
     body: Buffer,
     isAjax: boolean,
-    rawHeaders: string[],
+    rawHeaders?: string[],
     requestId: string,
     requestTimeout: RequestTimeout,
-    isWebSocket: boolean,
-    disableHttp2: boolean,
+    isWebSocket?: boolean,
+    disableHttp2?: boolean,
 }
 
