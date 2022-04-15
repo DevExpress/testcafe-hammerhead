@@ -48,7 +48,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
     private readonly protocolInterface: any;
     private readonly timeout: number;
 
-    constructor (readonly opts: RequestOptions, readonly cache: boolean) {
+    constructor (readonly opts: RequestOptions, readonly cache: boolean = false) {
         super();
 
         this.protocolInterface = this.opts.isHttps ? https : http;
