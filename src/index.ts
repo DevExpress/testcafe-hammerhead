@@ -12,6 +12,8 @@ import * as responseMockSetBodyMethod from './request-pipeline/request-hooks/res
 import RequestEvent from './session/events/request-event';
 import ResponseEvent from './session/events/response-event';
 import ConfigureResponseEvent from './session/events/configure-response-event';
+import DestinationRequest from './request-pipeline/destination-request';
+import RequestOptions from './request-pipeline/request-options';
 
 export default {
     Proxy,
@@ -30,4 +32,6 @@ export default {
     RequestEvent,
     ConfigureResponseEvent,
     ResponseEvent,
+    DestinationRequest,
+    RequestOptions,
 };

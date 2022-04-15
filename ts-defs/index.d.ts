@@ -10,6 +10,22 @@ interface ExternalProxySettingsRaw {
     bypassRules?: string[]
 }
 
+interface ExternalProxySettings {
+    host: string;
+    hostname: string;
+    bypassRules?: string[];
+    port?: string;
+    proxyAuth?: string;
+    authHeader?: string;
+}
+
+interface Credentials {
+    username: string;
+    password: string;
+    domain?: string;
+    workstation?: string;
+}
+
 interface RequestTimeout {
     page?: number;
     ajax?: number;
@@ -46,7 +62,7 @@ interface RequestFilterRuleObjectInitializer {
 type RequestFilterRulePredicate = (requestInfo: RequestInfo) => boolean | Promise<boolean>;
 
 declare module 'testcafe-hammerhead' {
-    import { IncomingHttpHeaders } from 'http';
+    import { IncomingHttpHeaders, OutgoingHttpHeaders, IncomingMessage } from 'http';
 
     export type RequestFilterRuleInit = string | RegExp | Partial<RequestFilterRuleObjectInitializer> | RequestFilterRulePredicate;
 
@@ -109,6 +125,27 @@ declare module 'testcafe-hammerhead' {
     interface ResponseMockSetBodyMethod {
         add(res: IncomingMessageLikeInitOptions): void;
         remove(res: IncomingMessageLikeInitOptions): void;
+    }
+
+    interface RequestOptionsSettings {
+        method: string,
+        url: string,
+        protocol: string,
+        hostname: string,
+        host: string,
+        port?: string | void,
+        path: string,
+        auth?: string | void,
+        headers: OutgoingHttpHeaders,
+        externalProxySettings?: ExternalProxySettings,
+        credentials?: Credentials,
+        body: Buffer,
+        isAjax: boolean,
+        rawHeaders?: string[],
+        requestId: string,
+        requestTimeout: RequestTimeout,
+        isWebSocket?: boolean,
+        disableHttp2?: boolean,
     }
 
     /** The Session class is used to create a web-proxy session **/
@@ -356,6 +393,30 @@ declare module 'testcafe-hammerhead' {
 
         /** The executed request hook method name **/
         methodName: string;
+    }
+
+    /** The RequestOptions class is used to construct the request options **/
+    export class RequestOptions {
+        /** Request method **/
+        method: string;
+
+        /** Request headers **/
+        headers: OutgoingHttpHeaders;
+
+        /** Creates a RequestOptions instance **/
+        constructor (params: RequestOptionsSettings);
+    }
+
+    /** The ResponseMock class is used to send request **/
+    export class DestinationRequest {
+        /** Creates a DestinationRequest instance **/
+        constructor (opts: RequestOptions, cache?: boolean);
+
+        /** Response event **/
+        on(event: 'response', listener: (res: IncomingMessage) => void): this;
+
+        /** Error event **/
+        on(event: 'error', listener: (err: Error) => void): this;
     }
 
     /** Generates an URL friendly string identifier **/
