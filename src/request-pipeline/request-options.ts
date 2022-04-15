@@ -38,6 +38,7 @@ export default class RequestOptions {
 
         this._applyExternalProxySettings();
         this._prepareAuthorizationHeaders();
+        this.prepare();
     }
 
     public static createFrom (ctx: RequestPipelineContext): RequestOptions {
