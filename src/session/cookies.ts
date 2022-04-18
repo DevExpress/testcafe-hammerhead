@@ -62,9 +62,11 @@ export default class Cookies {
         };
     }
 
+    static _isLocalHostDomain = (domain): boolean => domain === LOCALHOST_DOMAIN || domain === LOCALHOST_IP;
+
     static _hasLocalhostDomain (cookie): boolean {
         if (cookie)
-            return cookie.domain === LOCALHOST_DOMAIN || cookie.domain === LOCALHOST_IP;
+            return this._isLocalHostDomain(cookie.domain);
 
         return false;
     }
@@ -111,8 +113,8 @@ export default class Cookies {
 
     setJar (serializedJar): void {
         this._cookieJar = serializedJar
-                          ? CookieJar.deserializeSync(parseJSON(serializedJar))
-                          : new CookieJar();
+            ? CookieJar.deserializeSync(parseJSON(serializedJar))
+            : new CookieJar();
     }
 
     private _convertToExternalCookies (internalCookies: Cookie[]): ExternalCookies[] {
@@ -145,8 +147,8 @@ export default class Cookies {
     private _findCookiesByApi (urls: Url[], key?: string): (Cookie | Cookie[])[] {
         return urls.map(({ domain, path }) => {
             const cookies = key
-                            ? this._findCookieSync(domain, path, key)
-                            : this._findCookiesSync(domain, path);
+                ? this._findCookieSync(domain, path, key)
+                : this._findCookiesSync(domain, path);
 
             return cookies || [];
         });
@@ -283,11 +285,10 @@ export default class Cookies {
         // NOTE: https://github.com/DevExpress/testcafe-hammerhead/issues/2715
         // Cookies with the secure attribute should be passed to the localhost server(without ssl) or any other server(with ssl).
         // CookieJar only checks the protocol, but not a hostname. That is why we should to add secure attribute in case of localhost.
-        const cookieJarOpts =
-                  hostname === LOCALHOST_DOMAIN ||
-                  hostname === LOCALHOST_IP ?
-                  { http: true, secure: true } :
-                  { http: true };
+        const cookieJarOpts = Cookies._isLocalHostDomain(hostname) ?
+            { http: true, secure: true } :
+            { http: true };
+
         return this._cookieJar.getCookieStringSync(url, cookieJarOpts) || null;
     }
 }
