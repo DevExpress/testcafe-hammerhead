@@ -103,12 +103,12 @@ export const requestTransforms = {
     [BUILTIN_HEADERS.ifModifiedSince]:    skipIfStateSnapshotIsApplied,
     [BUILTIN_HEADERS.ifNoneMatch]:        skipIfStateSnapshotIsApplied,
     [BUILTIN_HEADERS.authorization]:      transformAuthorizationHeader,
-    [BUILTIN_HEADERS.proxyAuthorization]: transformAuthorizationHeader,
+    [BUILTIN_HEADERS.proxyAuthorization]: transformAuthorizationHeader
 };
 
 export const forcedRequestTransforms = {
     [BUILTIN_HEADERS.cookie]: (_src: string, ctx: RequestPipelineContext) =>
-        shouldOmitCredentials(ctx) ? void 0 : ctx.session.cookies.getHeader(ctx.dest.url) || void 0,
+        shouldOmitCredentials(ctx) ? void 0 : ctx.session.cookies.getHeader(ctx.dest) || void 0
 };
 
 // Response headers
@@ -174,7 +174,7 @@ export const responseTransforms = {
             return void 0;
 
         return src;
-    },
+    }
 };
 
 export const forcedResponseTransforms = {

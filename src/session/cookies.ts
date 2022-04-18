@@ -4,6 +4,7 @@ import { castArray, flattenDeep } from 'lodash';
 import { parseUrl } from '../utils/url';
 import { parse as parseJSON, stringify as stringifyJSON } from '../utils/json';
 import { URL } from 'url';
+import { DestInfo } from '../request-pipeline/context';
 
 const LOCALHOST_DOMAIN = 'localhost';
 const LOCALHOST_IP     = '127.0.0.1';
@@ -46,11 +47,11 @@ export default class Cookies {
         this._pendingSyncCookies   = [];
     }
 
-    _syncWrap(method: string) {
+    _syncWrap (method: string) {
         return (...args) => {
             let syncErr, syncResult;
             this._cookieJar.store[method](...args, (err, result) => {
-                syncErr = err;
+                syncErr    = err;
                 syncResult = result;
             });
 
@@ -82,8 +83,7 @@ export default class Cookies {
 
                 if (!cookie)
                     return resultCookies;
-            }
-            else
+            } else
                 cookie = cookieStr;
 
             // NOTE: If cookie.domain and url hostname are equal to localhost/127.0.0.1,
@@ -144,8 +144,8 @@ export default class Cookies {
     private _findCookiesByApi (urls: Url[], key?: string): (Cookie | Cookie[])[] {
         return urls.map(({ domain, path }) => {
             const cookies = key
-                            ? this._findCookieSync(domain, path, key)
-                            : this._findCookiesSync(domain, path);
+                ? this._findCookieSync(domain, path, key)
+                : this._findCookiesSync(domain, path);
 
             return cookies || [];
         });
@@ -244,7 +244,7 @@ export default class Cookies {
 
             for (const deletedCookie of deletedCookies) {
                 if (deletedCookie.domain && deletedCookie.path && deletedCookie.key) {
-                     this._removeCookieSync(deletedCookie.domain, deletedCookie.path, deletedCookie.key);
+                    this._removeCookieSync(deletedCookie.domain, deletedCookie.path, deletedCookie.key);
 
                     deletedCookie.expires = new Date(0);
                     this._pendingSyncCookies.push(deletedCookie);
@@ -278,7 +278,15 @@ export default class Cookies {
         return this._cookieJar.getCookieStringSync(url, { http: false });
     }
 
-    getHeader (url: string): string | null {
-        return this._cookieJar.getCookieStringSync(url, { http: true }) || null;
+    getHeader ({ url, hostname }: DestInfo): string | null {
+        // NOTE: https://github.com/DevExpress/testcafe-hammerhead/issues/2715
+        // Cookies with the secure attribute should be passed to the localhost server(without ssl) or any other server(with ssl).
+        // CookieJar only checks the protocol, but not a hostname. That is why we should to add secure attribute in case of localhost.
+        const cookieJarOpts =
+                  hostname === LOCALHOST_DOMAIN ||
+                  hostname === LOCALHOST_IP ?
+                      { http: true, secure: true } :
+                      { http: true };
+        return this._cookieJar.getCookieStringSync(url, cookieJarOpts) || null;
     }
 }

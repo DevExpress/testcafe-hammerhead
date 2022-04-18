@@ -380,6 +380,49 @@ describe('Cookies', () => {
             expect(expectedCookies).eql(cookies);
         });
     });
+    describe('Attach secure cookies to request', () => {
+        beforeEach(() => {
+            cookieJar.setCookies([
+                { name: 'apiCookie1', value: 'value1', domain: 'domain1.com', path: '/', secure: true },
+                { name: 'apiCookie2', value: 'value2', domain: 'localhost', path: '/', secure: true },
+                { name: 'apiCookie3', value: 'value3', domain: '127.0.0.1', path: '/', secure: true },
+            ]);
+        });
+
+        afterEach(() => {
+            cookieJar.deleteCookies();
+            cookieJar._pendingSyncCookies = [];
+        });
+
+        it('Should get secure cookies string from ssl domain', () => {
+            const expectedCookieString = 'apiCookie1=value1';
+            const destInfo             = { url: 'https://domain1.com/', hostname: 'domain1.com' };
+            const cookieStr            = cookieJar.getHeader(destInfo);
+
+            expect(cookieStr).eql(expectedCookieString);
+        });
+
+        it('Should get secure cookies string from localhost', () => {
+            const expectedCookieString1 = 'apiCookie2=value2';
+            const expectedCookieString2 = 'apiCookie3=value3';
+
+            const destInfo1  = { url: 'http://localhost:3006', hostname: 'localhost' };
+            const destInfo2  = { url: 'http://127.0.0.1:3001', hostname: '127.0.0.1' };
+            const cookieStr1 = cookieJar.getHeader(destInfo1);
+            const cookieStr2 = cookieJar.getHeader(destInfo2);
+
+            expect(cookieStr1).eql(expectedCookieString1);
+            expect(cookieStr2).eql(expectedCookieString2);
+        });
+
+        it('Should return null if domain is not HTTPS', () => {
+            const expectedCookieString = null;
+            const destInfo1  = { url: 'http://domain1.com', hostname: 'domain1.com' };
+            const cookieStr1 = cookieJar.getHeader(destInfo1);
+
+            expect(cookieStr1).eql(expectedCookieString);
+        });
+    });
 
     describe('Set cookies', () => {
         afterEach(() => {
