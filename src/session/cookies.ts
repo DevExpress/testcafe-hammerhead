@@ -83,7 +83,8 @@ export default class Cookies {
 
                 if (!cookie)
                     return resultCookies;
-            } else
+            }
+            else
                 cookie = cookieStr;
 
             // NOTE: If cookie.domain and url hostname are equal to localhost/127.0.0.1,
@@ -110,8 +111,8 @@ export default class Cookies {
 
     setJar (serializedJar): void {
         this._cookieJar = serializedJar
-            ? CookieJar.deserializeSync(parseJSON(serializedJar))
-            : new CookieJar();
+                          ? CookieJar.deserializeSync(parseJSON(serializedJar))
+                          : new CookieJar();
     }
 
     private _convertToExternalCookies (internalCookies: Cookie[]): ExternalCookies[] {
@@ -144,8 +145,8 @@ export default class Cookies {
     private _findCookiesByApi (urls: Url[], key?: string): (Cookie | Cookie[])[] {
         return urls.map(({ domain, path }) => {
             const cookies = key
-                ? this._findCookieSync(domain, path, key)
-                : this._findCookiesSync(domain, path);
+                            ? this._findCookieSync(domain, path, key)
+                            : this._findCookiesSync(domain, path);
 
             return cookies || [];
         });
@@ -285,8 +286,8 @@ export default class Cookies {
         const cookieJarOpts =
                   hostname === LOCALHOST_DOMAIN ||
                   hostname === LOCALHOST_IP ?
-                      { http: true, secure: true } :
-                      { http: true };
+                  { http: true, secure: true } :
+                  { http: true };
         return this._cookieJar.getCookieStringSync(url, cookieJarOpts) || null;
     }
 }
