@@ -103,12 +103,12 @@ export const requestTransforms = {
     [BUILTIN_HEADERS.ifModifiedSince]:    skipIfStateSnapshotIsApplied,
     [BUILTIN_HEADERS.ifNoneMatch]:        skipIfStateSnapshotIsApplied,
     [BUILTIN_HEADERS.authorization]:      transformAuthorizationHeader,
-    [BUILTIN_HEADERS.proxyAuthorization]: transformAuthorizationHeader
+    [BUILTIN_HEADERS.proxyAuthorization]: transformAuthorizationHeader,
 };
 
 export const forcedRequestTransforms = {
     [BUILTIN_HEADERS.cookie]: (_src: string, ctx: RequestPipelineContext) =>
-        shouldOmitCredentials(ctx) ? void 0 : ctx.session.cookies.getHeader(ctx.dest) || void 0
+                                  shouldOmitCredentials(ctx) ? void 0 : ctx.session.cookies.getHeader(ctx.dest) || void 0,
 };
 
 // Response headers
@@ -125,19 +125,19 @@ export const responseTransforms = {
     [BUILTIN_HEADERS.proxyAuthenticate]: addAuthenticatePrefix,
 
     [BUILTIN_HEADERS.accessControlAllowOrigin]: (_src: string, ctx: RequestPipelineContext) =>
-        ctx.isSameOriginPolicyFailed ? void 0 : ctx.getProxyOrigin(!!ctx.dest.reqOrigin),
+                                                    ctx.isSameOriginPolicyFailed ? void 0 : ctx.getProxyOrigin(!!ctx.dest.reqOrigin),
 
     // NOTE: Change the transform type if we have an iframe with an image as src,
     // because it was transformed to HTML with the image tag.
     [BUILTIN_HEADERS.contentType]: (src: string, ctx: RequestPipelineContext) =>
-        ctx.contentInfo.isIframeWithImageSrc || ctx.contentInfo.isTextPage ? 'text/html' : src,
+                                       ctx.contentInfo.isIframeWithImageSrc || ctx.contentInfo.isTextPage ? 'text/html' : src,
 
     [BUILTIN_HEADERS.contentLength]: (src: string, ctx: RequestPipelineContext) =>
-        ctx.contentInfo.requireProcessing ? ctx.destResBody.length.toString() : src,
+                                         ctx.contentInfo.requireProcessing ? ctx.destResBody.length.toString() : src,
 
     // NOTE: We should skip an invalid trailer header (GH-2692).
     [BUILTIN_HEADERS.trailer]: (src: string, ctx: RequestPipelineContext) =>
-        ctx.destRes.headers[BUILTIN_HEADERS.transferEncoding] === 'chunked' ? src : void 0,
+                                   ctx.destRes.headers[BUILTIN_HEADERS.transferEncoding] === 'chunked' ? src : void 0,
 
     [BUILTIN_HEADERS.location]: (src: string, ctx: RequestPipelineContext) => {
         // NOTE: The RFC 1945 standard requires location URLs to be absolute. However, most popular browsers
@@ -160,7 +160,7 @@ export const responseTransforms = {
         src = src.replace('ALLOW-FROM', '').trim();
 
         const isCrossDomain = ctx.isIframe && !urlUtils.sameOriginCheck(ctx.dest.url, src);
-        const proxiedUrl = ctx.toProxyUrl(src, isCrossDomain, ctx.contentInfo.contentTypeUrlToken);
+        const proxiedUrl    = ctx.toProxyUrl(src, isCrossDomain, ctx.contentInfo.contentTypeUrlToken);
 
         return 'ALLOW-FROM ' + proxiedUrl;
     },
@@ -174,7 +174,7 @@ export const responseTransforms = {
             return void 0;
 
         return src;
-    }
+    },
 };
 
 export const forcedResponseTransforms = {
