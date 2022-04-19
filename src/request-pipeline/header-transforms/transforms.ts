@@ -108,7 +108,7 @@ export const requestTransforms = {
 
 export const forcedRequestTransforms = {
     [BUILTIN_HEADERS.cookie]: (_src: string, ctx: RequestPipelineContext) =>
-        shouldOmitCredentials(ctx) ? void 0 : ctx.session.cookies.getHeader(ctx.dest.url) || void 0,
+        shouldOmitCredentials(ctx) ? void 0 : ctx.session.cookies.getHeader(ctx.dest) || void 0,
 };
 
 // Response headers
@@ -160,7 +160,7 @@ export const responseTransforms = {
         src = src.replace('ALLOW-FROM', '').trim();
 
         const isCrossDomain = ctx.isIframe && !urlUtils.sameOriginCheck(ctx.dest.url, src);
-        const proxiedUrl = ctx.toProxyUrl(src, isCrossDomain, ctx.contentInfo.contentTypeUrlToken);
+        const proxiedUrl    = ctx.toProxyUrl(src, isCrossDomain, ctx.contentInfo.contentTypeUrlToken);
 
         return 'ALLOW-FROM ' + proxiedUrl;
     },

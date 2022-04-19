@@ -30,7 +30,7 @@ import getMockResponse from '../request-pipeline/request-hooks/response-mock/get
 import { Http2Response } from './destination-request/http2';
 import RequestEvent from '../session/events/request-event';
 
-interface DestInfo {
+export interface DestInfo {
     url: string;
     protocol: string;
     host: string;
