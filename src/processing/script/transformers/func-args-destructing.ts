@@ -3,7 +3,13 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { ArrowFunctionExpression, FunctionDeclaration, FunctionExpression, VariableDeclarator } from 'estree';
+import {
+    ArrowFunctionExpression,
+    FunctionDeclaration,
+    FunctionExpression,
+    VariableDeclarator,
+} from 'estree';
+
 import { Transformer } from './index';
 import {
     createBlockStatement,
@@ -83,12 +89,12 @@ export default function create<T extends (FunctionDeclaration | FunctionExpressi
 
                 return node;
             }
-            else
-                replaceNode(null, declaration, node.body, 'body');
+
+            replaceNode(null, declaration, node.body, 'body');
 
             declaration.reTransform = true;
 
             return null;
         },
-    }
+    };
 }

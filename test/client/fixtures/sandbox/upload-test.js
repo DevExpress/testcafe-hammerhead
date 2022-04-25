@@ -177,7 +177,7 @@ test('hidden input should not affect both the length/count value and the element
     document.body.appendChild(form);
     form.appendChild(input1);
 
-    var expectedElements = [input1, input2]; // eslint-disable-line no-unused-vars
+    var expectedElements = [input1, input2]; // eslint-disable-line @typescript-eslint/no-unused-vars
 
     // NOTE: We are forced to use this hack because IE11 raises a syntax error if a page contains the 'for..of' loop
     function getForOfLoopCode (iterableObjString) {

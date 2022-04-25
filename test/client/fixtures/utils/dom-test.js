@@ -48,7 +48,7 @@ test('isDomElement', function () {
 
     do
         ok(!domUtils.isDomElement(p));
-    // eslint-disable-next-line no-extra-parens
+    // eslint-disable-next-line @typescript-eslint/no-extra-parens
     while ((p = Object.getPrototypeOf(p)));
 
     if (window.Proxy)
@@ -73,7 +73,7 @@ test('isDomElement for iframe elements', function () {
 
             do
                 ok(!domUtils.isDomElement(p));
-            // eslint-disable-next-line no-extra-parens
+            // eslint-disable-next-line @typescript-eslint/no-extra-parens
             while ((p = Object.getPrototypeOf(p)));
 
             if (window.Proxy)

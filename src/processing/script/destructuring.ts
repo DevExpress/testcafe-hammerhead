@@ -155,7 +155,7 @@ function processAssignmentPattern (pattern: AssignmentPattern, value: Expression
     process(left, tempConditional, build, baseTempName);
 }
 
-export default function process(pattern: Pattern, value: Expression | null, build: NodeBuilder, baseTempName?: string) {
+export default function process (pattern: Pattern, value: Expression | null, build: NodeBuilder, baseTempName?: string) {
     if (pattern.type === Syntax.ObjectPattern)
         processObjectPattern(pattern, value, build, baseTempName);
     else if (pattern.type === Syntax.ArrayPattern)

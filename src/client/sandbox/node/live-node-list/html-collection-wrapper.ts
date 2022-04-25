@@ -49,7 +49,7 @@ export default class HTMLCollectionWrapper extends HTMLCollectionInheritor {
         return this._filteredCollection.length;
     }
 
-    _refreshCollection() {
+    _refreshCollection () {
         const storedNativeCollectionLength = this._lastNativeLength;
         const nativeCollectionLength       = nativeMethods.htmlCollectionLengthGetter.call(this._collection);
 
@@ -85,7 +85,7 @@ const additionalProtoMethods = {
 
 if (HTMLCollection.prototype.namedItem) {
     additionalProtoMethods.namedItem = {
-        value:        function (this: HTMLCollectionWrapper, ...args: [string]) {
+        value: function (this: HTMLCollectionWrapper, ...args: [string]) {
             this._refreshCollection();
 
             const namedItem = this._collection.namedItem.apply(this._collection, args);

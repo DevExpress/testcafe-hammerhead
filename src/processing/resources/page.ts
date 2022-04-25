@@ -20,17 +20,17 @@ const PARSED_INIT_SCRIPT_FOR_IFRAME_TEMPLATE          = parse5.parseFragment(SEL
 
 interface PageProcessingOptions {
     crossDomainProxyPort: number;
-    isIframe:             boolean;
-    stylesheets:          string[];
-    scripts:              string[];
-    urlReplacer:          Function;
+    isIframe: boolean;
+    stylesheets: string[];
+    scripts: string[];
+    urlReplacer: Function;
     isIframeWithImageSrc: boolean;
 }
 
 interface MetaInfo {
     httpEquiv: string | null;
-    content:   string | null;
-    charset:   string | null;
+    content: string | null;
+    charset: string | null;
 }
 
 class PageProcessor extends ResourceProcessorBase {

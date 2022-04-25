@@ -157,9 +157,9 @@ export default class FocusBlurSandbox extends SandboxBase {
                 forMouseEvent:    options.forMouseEvent,
             });
         }
-            // NOTE: Some browsers don't change document.activeElement after calling element.blur() if a browser
-            // window is in the background. That's why we call body.focus() without handlers. It should be called
-            // synchronously because client scripts may expect that document.activeElement will be changed immediately
+        // NOTE: Some browsers don't change document.activeElement after calling element.blur() if a browser
+        // window is in the background. That's why we call body.focus() without handlers. It should be called
+        // synchronously because client scripts may expect that document.activeElement will be changed immediately
         // after element.blur() is called.
         else if (type === 'blur' && activeElement === el && el !== curDocument.body)
             this._raiseEvent(curDocument.body, 'focus', simulateEvent, { withoutHandlers: true });
@@ -245,9 +245,8 @@ export default class FocusBlurSandbox extends SandboxBase {
                         this._restoreScrollStateAndRaiseEvent(el, type, callback, options, simulateEvent);
                     });
             }
-            else {
+            else
                 this._restoreScrollStateAndRaiseEvent(el, type, callback, options, simulateEvent);
-            }
         }
         else
             simulateEvent();
@@ -293,7 +292,7 @@ export default class FocusBlurSandbox extends SandboxBase {
 
         // NOTE: In some cases focus event can be raised for the element in the iframe at the moment when the iframe is removed from the document.
         // For example, in React application by its internal mechanism: https://github.com/DevExpress/testcafe-hammerhead/issues/2178
-        if(!elDocument.defaultView)
+        if (!elDocument.defaultView)
             return null;
 
         if (!raiseEventInIframe || isNativeFocus && !styleUtils.isElementVisible(el, elDocument))

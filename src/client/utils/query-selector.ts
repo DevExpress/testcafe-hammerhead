@@ -1,5 +1,10 @@
 import nativeMethods from '../sandbox/native-methods';
-import { isDocumentFragmentNode, isDomElement, isShadowRoot } from './dom';
+
+import {
+    isDocumentFragmentNode,
+    isDomElement,
+    isShadowRoot,
+} from './dom';
 
 export function getNativeQuerySelector (el) {
     if (isDomElement(el))

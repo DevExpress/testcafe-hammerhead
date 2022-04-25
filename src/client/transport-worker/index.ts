@@ -1,7 +1,13 @@
 import request from './request';
 import { ServiceMessage } from '../../typings/proxy';
 import { HANDLE_PORT_CMD, SET_INITIAL_WORKER_SETTINGS_CMD } from '../transport/consts';
-import { InitialWorkerSettings, ServiceMessageWrapper, WorkerMessage, MessageResponse } from '../../typings/transport';
+
+import {
+    InitialWorkerSettings,
+    ServiceMessageWrapper,
+    WorkerMessage,
+    MessageResponse,
+} from '../../typings/transport';
 
 type AsyncMessageCallback = (e: MessageResponse) => void;
 

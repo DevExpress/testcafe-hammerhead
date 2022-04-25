@@ -1,5 +1,11 @@
 import SandboxBase from './base';
-import { overrideDescriptor, overrideFunction, overrideStringRepresentation } from '../utils/overriding';
+
+import {
+    overrideDescriptor,
+    overrideFunction,
+    overrideStringRepresentation,
+} from '../utils/overriding';
+
 import styleProcessor from './../../processing/style';
 import { getProxyUrl, parseProxyUrl } from './../utils/url';
 

@@ -8,7 +8,7 @@ const HEADER_NAME_VALID_CHAR_CODE_RANGE = { min: 33, max: 126 };
 const HEADER_INVALID_CHAR_LOCATIONS     = { name: 'name', body: 'body' };
 
 interface InvalidCharactersRecord extends Partial<Dictionary<string>> {
-    name:  string;
+    name: string;
     body?: string;
     index: string;
 }

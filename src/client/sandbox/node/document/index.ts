@@ -4,14 +4,34 @@ import nativeMethods from '../../native-methods';
 import domProcessor from '../../../dom-processor';
 import settings from '../../../settings';
 import { isIE } from '../../../utils/browser';
-import { isIframeWithoutSrc, getFrameElement, isImgElement, isShadowUIElement } from '../../../utils/dom';
+
+import {
+    isIframeWithoutSrc,
+    getFrameElement,
+    isImgElement,
+    isShadowUIElement,
+} from '../../../utils/dom';
+
 import DocumentWriter from './writer';
 import ShadowUI from './../../shadow-ui';
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import LocationAccessorsInstrumentation from '../../code-instrumentation/location';
-import { overrideDescriptor, createOverriddenDescriptor, overrideFunction } from '../../../utils/overriding';
+
+import {
+    overrideDescriptor,
+    createOverriddenDescriptor,
+    overrideFunction,
+} from '../../../utils/overriding';
+
 import NodeSandbox from '../index';
-import { getDestinationUrl, isSpecialPage, convertToProxyUrl, getCrossDomainProxyOrigin } from '../../../utils/url';
+
+import {
+    getDestinationUrl,
+    isSpecialPage,
+    convertToProxyUrl,
+    getCrossDomainProxyOrigin,
+} from '../../../utils/url';
+
 import { getReferrer } from '../../../utils/destination-location';
 import DocumentTitleStorageInitializer from './title-storage-initializer';
 import CookieSandbox from '../../cookie';
@@ -89,7 +109,7 @@ export default class DocumentSandbox extends SandboxBase {
         // NOTE: The 'URL', 'domain' and 'referrer' properties are non configurable in IE and Edge
         if (!overriddenDescriptor.configurable) {
             // NOTE: property doesn't redefined yet
-            if (!childOfOwner.hasOwnProperty(prop))
+            if (!childOfOwner.hasOwnProperty(prop)) // eslint-disable-line no-prototype-builtins
                 nativeMethods.objectDefineProperty(childOfOwner, prop, overriddenDescriptor);
         }
         else
@@ -307,7 +327,7 @@ export default class DocumentSandbox extends SandboxBase {
             overrideDescriptor(docPrototype, 'title', {
                 getter: function () {
                     return documentSandbox._documentTitleStorageInitializer.storage.getTitle();
-                } ,
+                },
                 setter: function (value) {
                     documentSandbox._documentTitleStorageInitializer.storage.setTitle(value);
                 },

@@ -3,7 +3,13 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { AssignmentExpression, MemberExpression, Expression, Identifier } from 'estree';
+import {
+    AssignmentExpression,
+    MemberExpression,
+    Expression,
+    Identifier,
+} from 'estree';
+
 import { Transformer } from './index';
 import { createPropertySetWrapper } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';

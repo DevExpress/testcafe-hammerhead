@@ -95,7 +95,7 @@ export default [
         logger.proxy.onCORSFailed(ctx);
     },
 
-    async function decideOnProcessingStrategy (ctx: RequestPipelineContext) {
+    async function decideOnProcessingStrategy (ctx: RequestPipelineContext) { // eslint-disable-line consistent-return
         ctx.goToNextStage = false;
 
         if (ctx.isWebSocket)

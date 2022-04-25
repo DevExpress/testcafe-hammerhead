@@ -19,7 +19,7 @@ import { CookieRecord } from '../../../typings/cookie';
 import ChildWindowSandbox from '../child-window';
 import getTopOpenerWindow from '../../utils/get-top-opener-window';
 
-const MIN_DATE_VALUE = new nativeMethods.date(0).toUTCString();
+const MIN_DATE_VALUE = new nativeMethods.date(0).toUTCString(); // eslint-disable-line new-cap
 
 export default class CookieSandbox extends SandboxBase {
     private readonly _windowSync: WindowSync;
@@ -186,7 +186,7 @@ export default class CookieSandbox extends SandboxBase {
         parsedCookie.isClientSync = true;
         parsedCookie.isWindowSync = true;
         parsedCookie.sid          = settings.get().sessionId;
-        parsedCookie.lastAccessed = new nativeMethods.date();
+        parsedCookie.lastAccessed = new nativeMethods.date(); //eslint-disable-line new-cap
 
         prepareSyncCookieProperties(parsedCookie);
 

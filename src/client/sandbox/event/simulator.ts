@@ -4,7 +4,13 @@ import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
 import * as eventUtils from '../../utils/event';
 import { isTouchDevice } from '../../utils/feature-detection';
-import { getOffsetPosition, offsetToClientCoords, shouldIgnoreEventInsideIframe } from '../../utils/position';
+
+import {
+    getOffsetPosition,
+    offsetToClientCoords,
+    shouldIgnoreEventInsideIframe,
+} from '../../utils/position';
+
 import { getBordersWidth } from '../../utils/style';
 import { HammerheadStorageEventInit } from '../../../typings/client';
 
@@ -167,7 +173,7 @@ export default class EventSimulator {
 
         return {
             type:       type,
-            composed :  options.composed,
+            composed:   options.composed,
             canBubble:  options.canBubble !== false,
             cancelable: options.cancelable !== false,
             view:       options.view || window,
@@ -610,9 +616,8 @@ export default class EventSimulator {
 
     _elementCanBeDisabled (el): boolean {
         for (const elementCanBeDisabled of DISABLEABLE_HTML_ELEMENT_TYPE_CHECKERS) {
-            if (elementCanBeDisabled(el)) {
+            if (elementCanBeDisabled(el))
                 return true;
-            }
         }
 
         return false;
@@ -649,8 +654,8 @@ export default class EventSimulator {
         });
 
         const shouldNotRaiseEvents =
-            (disabledParent && this._elementCanBeDisabled(el)) ||
-            (EventSimulator._isDisabled(el) && this._elementCanBeDisabled(el));
+            (disabledParent && this._elementCanBeDisabled(el)) || // eslint-disable-line @typescript-eslint/no-extra-parens
+            (EventSimulator._isDisabled(el) && this._elementCanBeDisabled(el)); // eslint-disable-line @typescript-eslint/no-extra-parens
 
         if (shouldNotRaiseEvents)
             return null;

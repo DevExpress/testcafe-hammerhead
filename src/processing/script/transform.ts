@@ -2,7 +2,12 @@
 // WARNING: this file is used by both the client and the server.
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
-import { BlockStatement, Node, Program } from 'estree';
+import {
+    BlockStatement,
+    Node,
+    Program,
+} from 'estree';
+
 import transformers, { Transformer } from './transformers';
 import jsProtocolLastExpression from './transformers/js-protocol-last-expression';
 import staticImportTransformer from './transformers/static-import';
@@ -122,13 +127,14 @@ function beforeTransform (wrapLastExprWithProcessHtml = false, resolver?: Functi
 
     const isServerSide = typeof window === 'undefined';
 
-    if (isServerSide)
+    if (isServerSide) {
         dynamicImportTransformer.getBaseUrl = () => {
             if (typeof dynamicImportTransformer.baseUrl === 'undefined')
                 dynamicImportTransformer.baseUrl = resolver ? parseProxyUrl(resolver('./'))!.destUrl : '';
 
             return dynamicImportTransformer.baseUrl;
-        }
+        };
+    }
     else {
         dynamicImportTransformer.getBaseUrl = () => {
             if (typeof dynamicImportTransformer.baseUrl === 'undefined') {
@@ -139,7 +145,7 @@ function beforeTransform (wrapLastExprWithProcessHtml = false, resolver?: Functi
             }
 
             return dynamicImportTransformer.baseUrl;
-        }
+        };
     }
 }
 
@@ -207,7 +213,7 @@ function transform<T extends Node> (node: Node, changes: CodeChange[], state: St
         addTempVarsDeclaration(node as BlockStatement, changes, state, tempVars);
 }
 
-export default function transformProgram(node: Program, wrapLastExprWithProcessHtml = false, resolver?: Function): CodeChange[] {
+export default function transformProgram (node: Program, wrapLastExprWithProcessHtml = false, resolver?: Function): CodeChange[] {
     const changes  = [] as CodeChange[];
     const state    = new State();
     const tempVars = new TempVariables();

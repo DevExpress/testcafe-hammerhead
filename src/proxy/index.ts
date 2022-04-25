@@ -2,18 +2,27 @@ import net from 'net';
 import Session from '../session';
 import { ExternalProxySettingsRaw } from '../typings/session';
 import Router from './router';
+
 import {
     StaticContent,
     ServiceMessage,
     ServerInfo,
     ProxyOptions,
 } from '../typings/proxy';
+
 import http, { ServerOptions } from 'http';
 import https from 'https';
 import * as urlUtils from '../utils/url';
 import scriptProcessor from '../processing/resources/script';
 import { readSync as read } from 'read-file-relative';
-import { respond500, respondWithJSON, fetchBody, addPreventCachingHeaders } from '../utils/http';
+
+import {
+    respond500,
+    respondWithJSON,
+    fetchBody,
+    addPreventCachingHeaders,
+} from '../utils/http';
+
 import { run as runRequestPipeline } from '../request-pipeline';
 import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
 import { resetKeepAliveConnections } from '../request-pipeline/destination-request/agent';
@@ -217,7 +226,7 @@ export default class Proxy extends Router {
 
     // API
     close (): void {
-        scriptProcessor.jsCache.reset()
+        scriptProcessor.jsCache.reset();
         this.server1.close();
         this.server2.close();
         this._closeSockets();

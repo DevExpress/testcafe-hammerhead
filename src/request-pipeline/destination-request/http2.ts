@@ -1,4 +1,10 @@
-import http2, { ClientHttp2Session, Http2Stream, IncomingHttpHeaders, IncomingHttpStatusHeader } from 'http2';
+import http2, {
+    ClientHttp2Session,
+    Http2Stream,
+    IncomingHttpHeaders,
+    IncomingHttpStatusHeader,
+} from 'http2';
+
 import LRUCache from 'lru-cache';
 import { noop } from 'lodash';
 import RequestOptions from '../request-options';
@@ -61,7 +67,7 @@ export async function getHttp2Session (requestId: string, origin: string): Promi
 
             session.destroy();
             resolve(null);
-        }
+        };
 
         const connectTimeout = setTimeout(() => errorHandler({ code: 'ERR_HTTP2_ERROR' }), HTTP2_CONNECT_TIMEOUT);
 
@@ -106,7 +112,7 @@ export async function getHttp2Session (requestId: string, origin: string): Promi
 
 export function formatRequestHttp2Headers (opts: RequestOptions) {
     return Object.keys(opts.headers).reduce((headers, key) => {
-        if(!HTTP2_UNSUPPORTED_HEADERS.includes(key))
+        if (!HTTP2_UNSUPPORTED_HEADERS.includes(key))
             headers[key] = opts.headers[key];
 
         return headers;
@@ -119,8 +125,8 @@ export function formatRequestHttp2Headers (opts: RequestOptions) {
 
 export interface Http2Response extends Http2Stream {
     statusCode: number;
-    trailers:   { [key: string]: string };
-    headers:    IncomingHttpHeaders;
+    trailers: { [key: string]: string };
+    headers: IncomingHttpHeaders;
 }
 
 export function createResponseLike (stream: Http2Stream, response: IncomingHttpHeaders & IncomingHttpStatusHeader): Http2Response {

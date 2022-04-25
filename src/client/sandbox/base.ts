@@ -1,10 +1,16 @@
 import EventEmitter from '../utils/event-emitter';
 import nativeMethods from './native-methods';
-import { findDocument, isElementInDocument, getFrameElement } from '../utils/dom';
+
+import {
+    findDocument,
+    isElementInDocument,
+    getFrameElement,
+} from '../utils/dom';
+
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 
 export default class SandboxBase extends EventEmitter {
-    window: Window & typeof globalThis | null  = null;
+    window: Window & typeof globalThis | null = null;
     nativeMethods = nativeMethods;
     document: Document | null = null;
 

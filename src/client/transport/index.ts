@@ -8,7 +8,12 @@ import { ServiceMessage } from '../../typings/proxy';
 import MessageSandbox from '../sandbox/event/message';
 import TransportLegacy from './transport-legacy';
 import { HANDLE_PORT_CMD, SET_INITIAL_WORKER_SETTINGS_CMD } from './consts';
-import { InitialWorkerSettings, ServiceMessageWrapper, WorkerMessage } from '../../typings/transport';
+
+import {
+    InitialWorkerSettings,
+    ServiceMessageWrapper,
+    WorkerMessage,
+} from '../../typings/transport';
 
 const GET_MESSAGE_PORT = 'hammerhead|command|get-message-port';
 const SET_MESSAGE_PORT = 'hammerhead|command|set-message-port';

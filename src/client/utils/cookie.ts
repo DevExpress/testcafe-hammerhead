@@ -149,5 +149,5 @@ export function getUTCDate (timestamp?: any) {
     // NOTE: remove milliseconds
     timestamp = Math.floor(timestamp / 1000) * 1000;
 
-    return new nativeMethods.date(timestamp);
+    return new nativeMethods.date(timestamp); // eslint-disable-line new-cap
 }

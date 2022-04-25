@@ -1,6 +1,13 @@
 import nativeMethods from '../../native-methods';
 import * as htmlUtils from '../../../utils/html';
-import { getTagName, isCommentNode, isStyleElement, isScriptElement } from '../../../utils/dom';
+
+import {
+    getTagName,
+    isCommentNode,
+    isStyleElement,
+    isScriptElement,
+} from '../../../utils/dom';
+
 import { isFirefox, isIE } from '../../../utils/browser';
 import { processScript } from '../../../../processing/script';
 import styleProcessor from '../../../../processing/style';

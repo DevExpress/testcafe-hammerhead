@@ -1,9 +1,21 @@
 import Promise from 'pinkie';
 import SandboxBaseWithDelayedSettings from '../worker/sandbox-base-with-delayed-settings';
 import nativeMethods from './native-methods';
-import { getAjaxProxyUrl, getDestinationUrl, getProxyUrl } from '../utils/url';
+
+import {
+    getAjaxProxyUrl,
+    getDestinationUrl,
+    getProxyUrl,
+} from '../utils/url';
+
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
-import { overrideConstructor, overrideDescriptor, overrideFunction } from '../utils/overriding';
+
+import {
+    overrideConstructor,
+    overrideDescriptor,
+    overrideFunction,
+} from '../utils/overriding';
+
 import CookieSandbox from './cookie';
 import { Credentials } from '../../utils/url';
 import {
@@ -62,7 +74,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         xhr.setRequestHeader(BUILTIN_HEADERS.cacheControl, 'no-cache, no-store, must-revalidate');
     }
 
-    private static _reopenXhr(xhr: XMLHttpRequest, reqOpts: RequestOptions) {
+    private static _reopenXhr (xhr: XMLHttpRequest, reqOpts: RequestOptions) {
         const url             = reqOpts.openArgs[1];
         const withCredentials = xhr.withCredentials;
 
@@ -124,7 +136,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             value: xmlHttpRequestWrapper,
         });
 
-        overrideFunction(xmlHttpRequestProto, 'abort', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['abort']>) {
+        overrideFunction(xmlHttpRequestProto, 'abort', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['abort']>) { // eslint-disable-line consistent-return
             if (xhrSandbox.gettingSettingInProgress())
                 return void xhrSandbox.delayUntilGetSettings(() => this.abort.apply(this, args));
 
@@ -137,7 +149,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
 
         // NOTE: Redirect all requests to the Hammerhead proxy and ensure that requests don't
         // violate Same Origin Policy.
-        overrideFunction(xmlHttpRequestProto, 'open', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['open']>) {
+        overrideFunction(xmlHttpRequestProto, 'open', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['open']>) { // eslint-disable-line consistent-return
             let url = args[1];
 
             if (getProxyUrl(url) === url) {
@@ -160,7 +172,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             XhrSandbox.setRequestOptions(this, this.withCredentials, args);
         });
 
-        overrideFunction(xmlHttpRequestProto, 'send', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['send']>) {
+        overrideFunction(xmlHttpRequestProto, 'send', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['send']>) { // eslint-disable-line consistent-return
             if (xhrSandbox.gettingSettingInProgress())
                 return void xhrSandbox.delayUntilGetSettings(() => this.send.apply(this, args));
 
@@ -189,7 +201,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             const reqOpts = XhrSandbox.REQUESTS_OPTIONS.get(this);
 
             if (reqOpts)
-                reqOpts.headers.push([String(args[0]), String(args[1])])
+                reqOpts.headers.push([String(args[0]), String(args[1])]);
         });
 
         if (nativeMethods.xhrResponseURLGetter) {

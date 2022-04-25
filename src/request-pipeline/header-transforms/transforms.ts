@@ -3,9 +3,19 @@ import BUILTIN_HEADERS from '../builtin-header-names';
 import * as urlUtils from '../../utils/url';
 import { parse as parseUrl, resolve as resolveUrl } from 'url';
 import { shouldOmitCredentials } from '../same-origin-policy';
-import { formatSyncCookie, generateDeleteSyncCookieStr, isOutdatedSyncCookie } from '../../utils/cookie';
-import { addAuthenticatePrefix, hasAuthorizationPrefix, removeAuthorizationPrefix } from '../../utils/headers';
-import { isSpecialPage } from '../../utils/url';
+
+import {
+    formatSyncCookie,
+    generateDeleteSyncCookieStr,
+    isOutdatedSyncCookie,
+} from '../../utils/cookie';
+
+import {
+    addAuthenticatePrefix,
+    hasAuthorizationPrefix,
+    removeAuthorizationPrefix,
+} from '../../utils/headers';
+
 
 function skip (): undefined {
     return void 0;
@@ -91,11 +101,11 @@ function transformContentDispositionHeader (src: string, ctx: RequestPipelineCon
 
 // Request headers
 export const requestTransforms = {
-    [BUILTIN_HEADERS.host]:               (_src, ctx) => ctx.dest.host,
-    [BUILTIN_HEADERS.referer]:            (_src: string, ctx: RequestPipelineContext) => {
+    [BUILTIN_HEADERS.host]:    (_src, ctx) => ctx.dest.host,
+    [BUILTIN_HEADERS.referer]: (_src: string, ctx: RequestPipelineContext) => {
         const referer = ctx.dest.referer;
 
-        return referer && !isSpecialPage(referer) ? referer : void 0;
+        return referer && !urlUtils.isSpecialPage(referer) ? referer : void 0;
     },
     [BUILTIN_HEADERS.origin]:             (_src: string, ctx: RequestPipelineContext) => ctx.dest.reqOrigin || ctx.dest.domain,
     [BUILTIN_HEADERS.contentLength]:      (_src: string, ctx: RequestPipelineContext) => ctx.reqBody.length,

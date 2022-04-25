@@ -21,7 +21,7 @@ export default class ElementEditingWatcher {
 
             if (!this.processElementChanging(target))
                 this.stopWatching(target);
-        }
+        };
     }
 
     private static _getValue (el): string {

@@ -6,4 +6,4 @@ export default {
     global,
 
     isServiceWorker: isInWorker && !global.XMLHttpRequest,
-}
+};

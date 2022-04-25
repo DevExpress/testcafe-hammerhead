@@ -4,10 +4,18 @@
 // -------------------------------------------------------------
 
 import trim from './string-trim';
-import { ParsedUrl, ResourceType, RequestDescriptor, ParsedProxyUrl, ProxyUrlOptions } from '../typings/url';
+
+import {
+    ParsedUrl,
+    ResourceType,
+    RequestDescriptor,
+    ParsedProxyUrl,
+    ProxyUrlOptions,
+} from '../typings/url';
+
 import { ServerInfo } from '../typings/proxy';
 
-const URL_RE              = /^\s*([\w-]+?:)?(?:\/\/(?:([^/]+)@)?(([^/%?;#: ]*)(?::(\d+))?))?(.*?)\s*$/
+const URL_RE              = /^\s*([\w-]+?:)?(?:\/\/(?:([^/]+)@)?(([^/%?;#: ]*)(?::(\d+))?))?(.*?)\s*$/;
 const PROTOCOL_RE         = /^([\w-]+?:)(\/\/|[^\\/]|$)/;
 const QUERY_AND_HASH_RE   = /(\?.+|#[^#]*)$/;
 const PATH_AFTER_HOST_RE  = /^\/([^/]+?)\/([\S\s]+)$/;
@@ -29,7 +37,7 @@ export const SPECIAL_PAGES                                    = [SPECIAL_BLANK_P
 export const HTTP_DEFAULT_PORT  = '80';
 export const HTTPS_DEFAULT_PORT = '443';
 
-export enum Credentials { include, sameOrigin, omit, unknown }
+export enum Credentials { include, sameOrigin, omit, unknown } // eslint-disable-line no-shadow
 
 const SPECIAL_PAGE_DEST_RESOURCE_INFO = {
     protocol:      'about:',
@@ -40,14 +48,14 @@ const SPECIAL_PAGE_DEST_RESOURCE_INFO = {
 };
 const RESOURCE_TYPES = [
     { name: 'isIframe', flag: 'i' },
-    { name: 'isForm', flag: 'f'},
-    { name: 'isScript', flag: 's'},
-    { name: 'isEventSource', flag: 'e'},
-    { name: 'isHtmlImport', flag: 'h'},
-    { name: 'isWebSocket', flag: 'w'},
-    { name: 'isServiceWorker', flag: 'c'},
-    { name: 'isAjax', flag: 'a'},
-    { name: 'isObject', flag: 'o'},
+    { name: 'isForm', flag: 'f' },
+    { name: 'isScript', flag: 's' },
+    { name: 'isEventSource', flag: 'e' },
+    { name: 'isHtmlImport', flag: 'h' },
+    { name: 'isWebSocket', flag: 'w' },
+    { name: 'isServiceWorker', flag: 'c' },
+    { name: 'isAjax', flag: 'a' },
+    { name: 'isObject', flag: 'o' },
 ] as { name: keyof ResourceType, flag: string }[];
 
 export function parseResourceType (resourceType: string): ResourceType {
@@ -209,7 +217,7 @@ function parseRequestDescriptor (desc: string): RequestDescriptor | null {
         else if (parsedResourceType.isIframe && resourceData[0])
             parsedDesc.reqOrigin = decodeURIComponent(restoreShortOrigin(resourceData[0]));
         else if (parsedResourceType.isAjax) {
-            parsedDesc.credentials = parseInt(resourceData[0]);
+            parsedDesc.credentials = parseInt(resourceData[0], 10);
 
             if (resourceData.length === 2)
                 parsedDesc.reqOrigin = decodeURIComponent(restoreShortOrigin(resourceData[1]));

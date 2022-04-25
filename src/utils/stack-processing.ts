@@ -53,15 +53,15 @@ export function getFirstDestUrl (stack: string | null | void): string | null {
     let searchResult = STACK_FRAME_REGEX.exec(stack);
 
     while (searchResult) {
-        const destUrl = getDestSource(searchResult[1])
+        const destUrl = getDestSource(searchResult[1]);
 
         if (destUrl) {
             STACK_FRAME_REGEX.lastIndex = 0;
 
             return destUrl;
         }
-        else
-            searchResult = STACK_FRAME_REGEX.exec(stack);
+
+        searchResult = STACK_FRAME_REGEX.exec(stack);
     }
 
     return null;

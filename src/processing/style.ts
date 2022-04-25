@@ -77,7 +77,7 @@ class StyleProcessor {
             // NOTE: search for whitespaces from the end of the string
             // we do not use /\s*$/ regex intentionally to improve performance
             for (let j = parts[i].length - 1; j >= 0; j--) {
-                if (!(/\s/.test(parts[i][j])))
+                if (!(/\s/.test(parts[i][j]))) // eslint-disable-line @typescript-eslint/no-extra-parens
                     break;
 
                 whiteSpaceCount++;

@@ -6,7 +6,7 @@ import { parse as parseJSON } from '../utils/json';
 
 const BOUNDARY_RE = /;\s*boundary=([^;]*)/i;
 
-enum ParserState {
+enum ParserState { //eslint-disable-line no-shadow
     inPreamble,
     inHeaders,
     inBody,
@@ -111,7 +111,7 @@ export default class FormData {
 
             else if (state === ParserState.inHeaders) {
                 if (line.length)
-                    currentEntry?.setRawHeader(line.toString());
+                    currentEntry?.setRawHeader(line.toString()); // eslint-disable-line no-unused-expressions
                 else
                     state = ParserState.inBody;
             }

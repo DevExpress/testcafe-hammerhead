@@ -367,7 +367,7 @@ class NativeMethods {
     Uint16Array: typeof Uint16Array;
     Uint32Array: typeof Uint32Array;
     DataView: any;
-    Blob: typeof  Blob;
+    Blob: typeof Blob;
     File: any;
     XMLHttpRequest: typeof XMLHttpRequest;
     Image: any;
@@ -418,7 +418,7 @@ class NativeMethods {
     }
 
     static _getDocumentPropOwnerName (docPrototype, propName: string) {
-        return docPrototype.hasOwnProperty(propName) ? 'Document' : 'HTMLDocument';
+        return docPrototype.hasOwnProperty(propName) ? 'Document' : 'HTMLDocument'; // eslint-disable-line no-prototype-builtins
     }
 
     getStoragesPropsOwner (win: Window & typeof globalThis) {
@@ -562,7 +562,7 @@ class NativeMethods {
         this.closest                       = nativeElement.closest;
 
         // NOTE: The 'insertAdjacent...' methods is located in HTMLElement prototype in IE11 only
-        this.insertAdjacentMethodsOwner = win.Element.prototype.hasOwnProperty('insertAdjacentElement')
+        this.insertAdjacentMethodsOwner = win.Element.prototype.hasOwnProperty('insertAdjacentElement') // eslint-disable-line no-prototype-builtins
             ? win.Element.prototype
             : win.HTMLElement.prototype;
         this.insertAdjacentElement      = this.insertAdjacentMethodsOwner.insertAdjacentElement;
@@ -609,7 +609,7 @@ class NativeMethods {
 
         // Style
         // NOTE: The 'style' descriptor is located in the Element.prototype in the Safari on IOS
-        this.htmlElementStylePropOwnerName = win.Element.prototype.hasOwnProperty('style') ? 'Element' : 'HTMLElement';
+        this.htmlElementStylePropOwnerName = win.Element.prototype.hasOwnProperty('style') ? 'Element' : 'HTMLElement'; // eslint-disable-line no-prototype-builtins
 
         const htmlElementStyleDescriptor = win.Object.getOwnPropertyDescriptor(win[this.htmlElementStylePropOwnerName].prototype, 'style');
 
@@ -631,7 +631,7 @@ class NativeMethods {
         const winProto = win.constructor.prototype;
 
         // NOTE: Event properties is located in window prototype only in IE11
-        this.isEventPropsLocatedInProto = winProto.hasOwnProperty('onerror');
+        this.isEventPropsLocatedInProto = winProto.hasOwnProperty('onerror'); // eslint-disable-line no-prototype-builtins
 
         const eventPropsOwner = this.isEventPropsLocatedInProto ? winProto : win;
 
@@ -695,7 +695,7 @@ class NativeMethods {
         // eslint-disable-next-line no-restricted-properties
         if (win.Window) {
             // NOTE: The 'localStorage' and 'sessionStorage' properties is located in window prototype only in IE11
-            this.isStoragePropsLocatedInProto = win.Window.prototype.hasOwnProperty('localStorage');
+            this.isStoragePropsLocatedInProto = win.Window.prototype.hasOwnProperty('localStorage'); // eslint-disable-line no-prototype-builtins
 
             const storagesPropsOwner = this.getStoragesPropsOwner(win);
 
@@ -778,7 +778,7 @@ class NativeMethods {
         }
 
         // NOTE: Html properties is located in HTMLElement prototype in IE11 only
-        this.elementHTMLPropOwnerName = win.Element.prototype.hasOwnProperty('innerHTML') ? 'Element' : 'HTMLElement';
+        this.elementHTMLPropOwnerName = win.Element.prototype.hasOwnProperty('innerHTML') ? 'Element' : 'HTMLElement'; // eslint-disable-line no-prototype-builtins
 
         const elementInnerHTMLDescriptor = win.Object.getOwnPropertyDescriptor(win[this.elementHTMLPropOwnerName].prototype, 'innerHTML');
         const elementOuterHTMLDescriptor = win.Object.getOwnPropertyDescriptor(win[this.elementHTMLPropOwnerName].prototype, 'outerHTML');
@@ -840,7 +840,7 @@ class NativeMethods {
         this.titleElementTextSetter = titleElementTextDescriptor.set;
 
         // NOTE: the classList property is located in HTMLElement prototype in IE11
-        this.elementClassListPropOwnerName = win.Element.prototype.hasOwnProperty('classList') ? 'Element' : 'HTMLElement';
+        this.elementClassListPropOwnerName = win.Element.prototype.hasOwnProperty('classList') ? 'Element' : 'HTMLElement'; // eslint-disable-line no-prototype-builtins
 
         this.elementClassListGetter = win.Object.getOwnPropertyDescriptor(win[this.elementClassListPropOwnerName].prototype, 'classList').get;
 
@@ -917,7 +917,7 @@ class NativeMethods {
         }
 
         // NOTE: In the Internet Explorer 11 the children property is located in HTMLElement.
-        const childrenPropOwner = win.Element.prototype.hasOwnProperty('children')
+        const childrenPropOwner = win.Element.prototype.hasOwnProperty('children') // eslint-disable-line no-prototype-builtins
             ? win.Element.prototype
             : win.HTMLElement.prototype;
 
@@ -950,7 +950,7 @@ class NativeMethods {
             this.nodeBaseURIGetter = nodeBaseURIDescriptor.get;
 
         // NOTE: The 'attributes' property is located in Node prototype in IE11 only
-        this.elementAttributesPropOwnerName = win.Element.prototype.hasOwnProperty('attributes') ? 'Element' : 'Node';
+        this.elementAttributesPropOwnerName = win.Element.prototype.hasOwnProperty('attributes') ? 'Element' : 'Node'; // eslint-disable-line no-prototype-builtins
 
         this.elementAttributesGetter = win.Object.getOwnPropertyDescriptor(win[this.elementAttributesPropOwnerName].prototype, 'attributes').get;
 

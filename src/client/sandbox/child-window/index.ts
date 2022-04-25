@@ -13,7 +13,6 @@ import isKeywordTarget from '../../../utils/is-keyword-target';
 import Listeners from '../event/listeners';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import getTopOpenerWindow from '../../utils/get-top-opener-window';
-import { isIframeWindow } from '../../utils/dom';
 import nextTick from '../../utils/next-tick';
 import { version, isSafari } from '../../utils/browser';
 
@@ -74,7 +73,7 @@ export default class ChildWindowSandbox extends SandboxBase {
         return el.target || base?.target;
     }
 
-    handleClickOnLinkOrArea(el: HTMLLinkElement | HTMLAreaElement): void {
+    handleClickOnLinkOrArea (el: HTMLLinkElement | HTMLAreaElement): void {
         if (!settings.get().allowMultipleWindows)
             return;
 
@@ -181,7 +180,7 @@ export default class ChildWindowSandbox extends SandboxBase {
     }
 
     private _setupChildWindowCollecting (window: Window) {
-        if (isIframeWindow(window))
+        if (domUtils.isIframeWindow(window))
             return;
 
         const topOpenerWindow = getTopOpenerWindow();
@@ -189,7 +188,8 @@ export default class ChildWindowSandbox extends SandboxBase {
         if (window !== topOpenerWindow) {
             if (!this._tryToStoreChildWindow(window, topOpenerWindow))
                 this._messageSandbox.sendServiceMsg({ cmd: STORE_CHILD_WINDOW_CMD }, topOpenerWindow);
-        } else {
+        }
+        else {
             this._childWindows = new Set();
 
             this._messageSandbox.on(this._messageSandbox.SERVICE_MSG_RECEIVED_EVENT, ({ message, source }) => {
@@ -218,7 +218,7 @@ export default class ChildWindowSandbox extends SandboxBase {
         return childWindows;
     }
 
-    attach(window: Window & typeof globalThis): void {
+    attach (window: Window & typeof globalThis): void {
         super.attach(window, window.document);
         this._handleFormSubmitting(window);
         this._setupChildWindowCollecting(window);

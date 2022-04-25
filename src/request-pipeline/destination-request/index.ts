@@ -5,13 +5,26 @@ import https from 'https';
 import { noop } from 'lodash';
 import * as requestAgent from './agent';
 import { EventEmitter } from 'events';
-import { getAuthInfo, addCredentials, requiresResBody } from 'webauth';
+
+import {
+    getAuthInfo,
+    addCredentials,
+    requiresResBody,
+} from 'webauth';
+
 import { connectionResetGuard } from '../connection-reset-guard';
 import { MESSAGE, getText } from '../../messages';
 import logger from '../../utils/logger';
 import * as requestCache from '../cache';
 import IncomingMessageLike from '../incoming-message-like';
-import { formatRequestHttp2Headers, getHttp2Session, Http2Response, createResponseLike } from './http2';
+
+import {
+    formatRequestHttp2Headers,
+    getHttp2Session,
+    Http2Response,
+    createResponseLike,
+} from './http2';
+
 import { ClientHttp2Session, ClientHttp2Stream } from 'http2';
 
 const TUNNELING_SOCKET_ERR_RE    = /tunneling socket could not be established/i;
@@ -131,7 +144,7 @@ export default class DestinationRequest extends EventEmitter implements Destinat
         }
 
         const http2Session = !this.opts.disableHttp2 && this.opts.isHttps && !this.opts.isWebSocket && !this.opts.proxy &&
-            await getHttp2Session(this.opts.requestId ,this.opts.protocol + '//' + this.opts.host);
+            await getHttp2Session(this.opts.requestId, this.opts.protocol + '//' + this.opts.host);
 
         if (http2Session && !http2Session.closed)
             this._sendRealThroughHttp2(http2Session);

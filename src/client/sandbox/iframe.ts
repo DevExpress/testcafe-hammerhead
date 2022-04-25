@@ -10,7 +10,13 @@ import {
     isFrameElement,
     isIframeWithSrcdoc,
 } from '../utils/dom';
-import { isFirefox, isWebKit, isIE } from '../utils/browser';
+
+import {
+    isFirefox,
+    isWebKit,
+    isIE,
+} from '../utils/browser';
+
 import NodeMutation from './node/mutation';
 import CookieSandbox from './cookie';
 import { isNativeFunction } from '../utils/overriding';

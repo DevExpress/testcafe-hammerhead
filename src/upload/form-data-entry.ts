@@ -20,7 +20,7 @@ export default class FormDataEntry {
         this.fileName = fileNameMatch && fileNameMatch[1] || '';
     }
 
-    private _setHeader(name: string, value: string, rawHeader?: string) {
+    private _setHeader (name: string, value: string, rawHeader?: string) {
         if (!this._headers.has(name))
             this._headers.set(name, { rawName: typeof rawHeader === 'string' ? rawHeader : name, value });
         else {
@@ -72,7 +72,7 @@ export default class FormDataEntry {
         return Buffer.concat(chunks.concat(this.body));
     }
 
-    cloneWithRawHeaders() {
+    cloneWithRawHeaders () {
         const entry = new FormDataEntry();
 
         for (const [name, { rawName }] of this._headers)

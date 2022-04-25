@@ -49,15 +49,17 @@ export default class Cookies {
 
     _syncWrap (method: string) {
         return (...args) => {
-            let syncErr, syncResult;
+            let syncErr;
+            let syncResult;
+
             this._cookieJar.store[method](...args, (err, result) => {
                 syncErr    = err;
                 syncResult = result;
             });
 
-            if (syncErr) {
+            if (syncErr)
                 throw syncErr;
-            }
+
             return syncResult;
         };
     }
@@ -120,10 +122,10 @@ export default class Cookies {
     private _convertToExternalCookies (internalCookies: Cookie[]): ExternalCookies[] {
         return internalCookies.map(cookie => {
             const {
-                      key, value, domain,
-                      path, expires, maxAge,
-                      secure, httpOnly, sameSite,
-                  } = cookie;
+                key, value, domain,
+                path, expires, maxAge,
+                secure, httpOnly, sameSite,
+            } = cookie;
 
             return {
                 name:    key,
@@ -226,7 +228,7 @@ export default class Cookies {
         }
     }
 
-    deleteCookies (externalCookies?: ExternalCookies[], urls: string[] = []): void {
+    deleteCookies (externalCookies?: ExternalCookies[], urls: string[] = []): void { // eslint-disable-line consistent-return
         if (!externalCookies || !externalCookies.length) {
             const deletedCookies = this._getAllCookiesSync();
 

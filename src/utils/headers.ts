@@ -20,7 +20,7 @@ export function removeAuthenticatePrefix (value: string) {
     return value.replace(AUTHENTICATE_PREFIX, '');
 }
 
-export function isAuthenticateHeader(headerName: any) {
+export function isAuthenticateHeader (headerName: any) {
     const headerNameStr = String(headerName).toLowerCase();
 
     return headerNameStr === BUILTIN_HEADERS.wwwAuthenticate || headerNameStr === BUILTIN_HEADERS.proxyAuthenticate;

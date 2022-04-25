@@ -5,7 +5,12 @@
 
 import { VariableDeclaration, VariableDeclarator } from 'estree';
 import { Transformer } from './index';
-import {createVariableDeclaration, createVariableDeclarator} from '../node-builder';
+
+import {
+    createVariableDeclaration,
+    createVariableDeclarator,
+} from '../node-builder';
+
 import { Syntax } from 'esotope-hammerhead';
 import destructuring from '../destructuring';
 

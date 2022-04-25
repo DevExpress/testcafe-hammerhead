@@ -27,7 +27,7 @@ export function isSerializable (value) {
 
         if (typeof value === 'object') {
             for (const prop in value) {
-                if (value.hasOwnProperty(prop) && !isSerializable(value[prop]))
+                if (value.hasOwnProperty(prop) && !isSerializable(value[prop])) // eslint-disable-line no-prototype-builtins
                     return false;
             }
         }

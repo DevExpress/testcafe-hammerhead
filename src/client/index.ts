@@ -12,7 +12,7 @@ import * as hiddenInfoUtils from './sandbox/upload/hidden-info';
 import UploadInfoManager from './sandbox/upload/info-manager';
 import FileListWrapper from './sandbox/upload/file-list-wrapper';
 import domMutationTracker from './sandbox/node/live-node-list/dom-mutation-tracker';
-import * as sandboxBackupUtils from './sandbox/backup'
+import * as sandboxBackupUtils from './sandbox/backup';
 import StorageWrapper from './sandbox/storages/wrapper';
 import EventListeners from './sandbox/event/listeners';
 import * as listeningContextUtils from './sandbox/event/listening-context';
@@ -58,8 +58,8 @@ import PageNavigationWatch from './page-navigation-watch';
 import domProcessor from './dom-processor';
 import { HammerheadInitSettings } from '../typings/client';
 import { Dictionary } from '../typings/common';
-import ShadowUI from './sandbox/shadow-ui';
 import removeInjectedScript from './utils/remove-injected-script';
+
 
 class Hammerhead {
     win: Window & typeof globalThis;
@@ -78,7 +78,7 @@ class Hammerhead {
     json: typeof json;
     transport: Transport;
     nativeMethods: any;
-    shadowUI: ShadowUI;
+    shadowUI: ShadowUISandbox;
     storages: any;
     eventSandbox: Dictionary<any>;
     utils: Dictionary<any>;
@@ -120,8 +120,8 @@ class Hammerhead {
         this.PROCESSING_INSTRUCTIONS = {
             dom: {
                 script:              SCRIPT_PROCESSING_INSTRUCTIONS,
-                internal_attributes: INTERNAL_ATTRIBUTES,
-                internal_props:      INTERNAL_PROPS,
+                internal_attributes: INTERNAL_ATTRIBUTES, // eslint-disable-line camelcase
+                internal_props:      INTERNAL_PROPS, // eslint-disable-line camelcase
             },
         };
 
@@ -202,9 +202,9 @@ class Hammerhead {
         };
 
         this.sandboxUtils = {
-            hiddenInfo: hiddenInfoUtils,
+            hiddenInfo:       hiddenInfoUtils,
             listeningContext: listeningContextUtils,
-            backup: sandboxBackupUtils,
+            backup:           sandboxBackupUtils,
             domMutationTracker,
             defaultTarget,
             UploadInfoManager,

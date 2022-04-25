@@ -5,7 +5,13 @@ import Selection from './selection';
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import * as domUtils from '../../utils/dom';
-import { isIE, isIE11, isFirefox } from '../../utils/browser';
+
+import {
+    isIE,
+    isIE11,
+    isFirefox,
+} from '../../utils/browser';
+
 import { DOM_EVENTS, preventDefault } from '../../utils/event';
 import DataTransfer from './drag-and-drop/data-transfer';
 import DragDataStore from './drag-and-drop/drag-data-store';
@@ -181,9 +187,8 @@ export default class EventSandbox extends SandboxBase {
             overrideFunction(window.HTMLElement.prototype, 'dispatchEvent', this._overriddenMethods.dispatchEvent);
             overrideFunction(window.SVGElement.prototype, 'dispatchEvent', this._overriddenMethods.dispatchEvent);
         }
-        else {
+        else
             overrideFunction(window.EventTarget.prototype, 'dispatchEvent', this._overriddenMethods.dispatchEvent);
-        }
 
         overrideFunction(window.HTMLElement.prototype, 'focus', this._overriddenMethods.focus);
         overrideFunction(window.HTMLElement.prototype, 'blur', this._overriddenMethods.blur);

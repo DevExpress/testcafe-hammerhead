@@ -50,12 +50,11 @@ export function resolveUrl (url: string, doc?: Document): string {
     if (globalContextInfo.isInWorker) {
         if (self.location.protocol !== 'blob:') // eslint-disable-line no-restricted-properties
             return new nativeMethods.URL(preProcessedUrl, get()).href; // eslint-disable-line no-restricted-properties
-        else
-            return url;
+
+        return url;
     }
-    else {
-        return urlResolver.resolve(preProcessedUrl, doc || document);
-    }
+
+    return urlResolver.resolve(preProcessedUrl, doc || document);
 }
 
 export let get = function (): string {
@@ -63,7 +62,7 @@ export let get = function (): string {
     const parsedProxyUrl = sharedUrlUtils.parseProxyUrl(location);
 
     return parsedProxyUrl ? parsedProxyUrl.destUrl : location;
-}
+};
 
 export function getReferrer () {
     const location       = getLocation();

@@ -33,7 +33,7 @@ export default class IncomingMessageLike extends Readable {
             trailers:   Object.assign({}, init.trailers),
             statusCode: init.statusCode || DEFAULT_STATUS_CODE,
             body:       init.body || Buffer.alloc(0),
-        }
+        };
     }
 
     private _initBody (body: object|string|Buffer|null): Buffer {

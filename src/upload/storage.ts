@@ -2,7 +2,15 @@ import { chain } from 'lodash';
 import mime from 'mime';
 import path from 'path';
 import { format } from 'util';
-import { readFile, stat, readDir, makeDir, writeFile, fsObjectExists } from '../utils/promisified-functions';
+
+import {
+    readFile,
+    stat,
+    readDir,
+    makeDir,
+    writeFile,
+    fsObjectExists,
+} from '../utils/promisified-functions';
 
 interface CopiedFileInfo {
     path: string;
