@@ -7,11 +7,11 @@ import Listeners from './listeners';
 
 interface EventProperties {
     storedReturnValue: string;
-    prevented:         boolean;
-    storedHandler:     any;
-    nativeEventName:   string;
-    eventName:         string;
-    eventPropSetter:   any;
+    prevented: boolean;
+    storedHandler: any;
+    nativeEventName: string;
+    eventName: string;
+    eventPropSetter: any;
 }
 
 export default class UnloadSandbox extends SandboxBase {
@@ -107,7 +107,7 @@ export default class UnloadSandbox extends SandboxBase {
                 eventProperties.storedReturnValue = UnloadSandbox._prepareStoredReturnValue(res);
                 eventProperties.prevented         = true;
             }
-        }
+        };
     }
 
     private _reattachListener (eventProperties: EventProperties) {

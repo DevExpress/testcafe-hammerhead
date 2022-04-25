@@ -3,7 +3,12 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { AssignmentExpression, Identifier, MemberExpression } from 'estree';
+import {
+    AssignmentExpression,
+    Identifier,
+    MemberExpression,
+} from 'estree';
+
 import { Transformer } from './index';
 import { createExpandedConcatOperation } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';
@@ -30,10 +35,11 @@ const transformer: Transformer<AssignmentExpression> = {
 
         if (left.type === Syntax.MemberExpression) {
             // something['location'] or something[propname]
-            if (left.computed)
+            if (left.computed) {
                 return left.property.type === Syntax.Literal
                     ? shouldInstrumentProperty(left.property.value)
                     : left.property.type !== Syntax.UpdateExpression;
+            }
 
             // something.location
             else if (left.property.type === Syntax.Identifier)

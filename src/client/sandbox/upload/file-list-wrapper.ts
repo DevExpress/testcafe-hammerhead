@@ -50,8 +50,8 @@ export default class FileListWrapper {
         else if (fileInfo.blob) {
             // NOTE: window.File in IE11 is not constructable.
             wrapper = nativeMethods.File
-                ? new File([fileInfo.blob], fileInfo.info.name, {type: fileInfo.info.type, lastModified: fileInfo.info.lastModified})
-                : new Blob([fileInfo.blob], {type: fileInfo.info.type});
+                ? new File([fileInfo.blob], fileInfo.info.name, { type: fileInfo.info.type, lastModified: fileInfo.info.lastModified })
+                : new Blob([fileInfo.blob], { type: fileInfo.info.type });
         }
         else
             wrapper = FileListWrapper._base64ToBlob(fileInfo.data, fileInfo);

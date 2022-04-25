@@ -43,6 +43,7 @@ import {
     isHtmlElement,
     isTitleElement,
     getFrameElement,
+    isIframeWindow,
 } from '../../utils/dom';
 
 import { isPrimitiveType } from '../../utils/types';
@@ -80,7 +81,7 @@ import DefaultTarget from '../child-window/default-target';
 import { getNativeQuerySelectorAll } from '../../utils/query-selector';
 import DocumentTitleStorageInitializer from './document/title-storage-initializer';
 import { SET_BLOB_WORKER_SETTINGS, SET_SERVICE_WORKER_SETTINGS } from '../../worker/set-settings-command';
-import { isIframeWindow } from '../../utils/dom';
+
 
 const INSTRUCTION_VALUES = (() => {
     const values = [];
@@ -410,7 +411,7 @@ export default class WindowSandbox extends SandboxBase {
 
         const titleElements = getNativeQuerySelectorAll(el).call(el, 'title');
 
-        for(const titleElement of titleElements) {
+        for (const titleElement of titleElements) {
             // NOTE: SVGTitleElement can be here (GH-2364)
             if (!isTitleElement(titleElement))
                 continue;
@@ -570,7 +571,7 @@ export default class WindowSandbox extends SandboxBase {
                     : new nativeMethods.Worker(scriptURL, args[1]);
 
                 // eslint-disable-next-line no-restricted-properties
-                if (parseUrl(scriptURL).protocol == 'blob:') {
+                if (parseUrl(scriptURL).protocol === 'blob:') {
                     worker.postMessage({
                         cmd:       SET_BLOB_WORKER_SETTINGS,
                         sessionId: settings.get().sessionId,
@@ -813,7 +814,7 @@ export default class WindowSandbox extends SandboxBase {
                 };
             };
 
-            overrideFunction(window.history, 'pushState',    createWrapperForHistoryStateManipulationFn(nativeMethods.historyPushState));
+            overrideFunction(window.history, 'pushState', createWrapperForHistoryStateManipulationFn(nativeMethods.historyPushState));
             overrideFunction(window.history, 'replaceState', createWrapperForHistoryStateManipulationFn(nativeMethods.historyReplaceState));
         }
 
@@ -855,6 +856,7 @@ export default class WindowSandbox extends SandboxBase {
         if (window.FormData) {
             overrideFunction(window.FormData.prototype, 'append', function (this: FormData, ...args: [string, string | Blob, string?]) {
                 const [name, value] = args;
+
                 // NOTE: We should not send our hidden input's value along with the file info,
                 // because our input may have incorrect value if the input with the file has been removed from DOM.
                 if (name === INTERNAL_ATTRS.uploadInfoHiddenInputName)
@@ -996,7 +998,7 @@ export default class WindowSandbox extends SandboxBase {
 
                 return nativeMethods.inputValueGetter.call(this);
             },
-            setter: function (this: HTMLInputElement, value) {
+            setter: function (this: HTMLInputElement, value) { // eslint-disable-line consistent-return
                 if (this.type.toLowerCase() === 'file')
                     return windowSandbox.uploadSandbox.setUploadElementValue(this, value);
 
@@ -1458,7 +1460,7 @@ export default class WindowSandbox extends SandboxBase {
                 return WindowSandbox._removeProcessingInstructions(textContent);
             },
             setter: function (this: HTMLElement, value) {
-                if (windowSandbox._documentTitleStorageInitializer && isTitleElement(this)){
+                if (windowSandbox._documentTitleStorageInitializer && isTitleElement(this)) {
                     windowSandbox._documentTitleStorageInitializer.storage.setTitleElementPropertyValue(this, value);
 
                     return;

@@ -3,7 +3,12 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { CallExpression, MemberExpression, Expression } from 'estree';
+import {
+    CallExpression,
+    MemberExpression,
+    Expression,
+} from 'estree';
+
 import { Transformer } from './index';
 import { createGetEvalMethodCall } from '../node-builder';
 import { Syntax } from 'esotope-hammerhead';

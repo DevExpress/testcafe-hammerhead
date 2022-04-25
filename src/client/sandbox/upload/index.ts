@@ -2,7 +2,16 @@ import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import SandboxBase from '../base';
 import UploadInfoManager from './info-manager';
 import { isFileInput } from '../../utils/dom';
-import { isIE, isIE11, isFirefox, isChrome, isMacPlatform, isSafari } from '../../utils/browser';
+
+import {
+    isIE,
+    isIE11,
+    isFirefox,
+    isChrome,
+    isMacPlatform,
+    isSafari,
+} from '../../utils/browser';
+
 import { stopPropagation, preventDefault } from '../../utils/event';
 import { get as getSandboxBackup } from '../backup';
 import nativeMethods from '../native-methods';

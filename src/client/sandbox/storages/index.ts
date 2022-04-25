@@ -213,7 +213,7 @@ export default class StorageSandbox extends SandboxBase {
 
         overrideDescriptor(window.Storage.prototype, 'length', {
             getter: function (this: StorageWrapper) {
-                return nativeMethods.objectKeys(this).length
+                return nativeMethods.objectKeys(this).length;
             },
             setter: null,
         });

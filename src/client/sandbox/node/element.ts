@@ -35,7 +35,7 @@ import { getDestinationUrl } from '../../utils/url';
 
 const RESTRICTED_META_HTTP_EQUIV_VALUES = [BUILTIN_HEADERS.refresh, BUILTIN_HEADERS.contentSecurityPolicy];
 
-enum AttributeType {
+enum AttributeType { // eslint-disable-line no-shadow
     Ns,
     Node
 }
@@ -385,6 +385,7 @@ export default class ElementSandbox extends SandboxBase {
     private static _removeStoredAttrNode (node: Node & { name: string, namespaceURI: string }) {
         let storedNode: Node;
         const storedAttr = DomProcessor.getStoredAttrName(node.name);
+
         if (node.namespaceURI)
             storedNode = nativeMethods.getAttributeNodeNS.call(this, node.namespaceURI, storedAttr);
         else
@@ -400,6 +401,7 @@ export default class ElementSandbox extends SandboxBase {
         let removeStoredAttrFunc: Function;
         const isNs = isNsNode === AttributeType.Ns;
         const isNode = isNsNode === AttributeType.Node;
+
         if (isNode) {
             node = args[0];
             attr = node.name;
@@ -453,11 +455,13 @@ export default class ElementSandbox extends SandboxBase {
         if (formatedAttr !== 'autocomplete') {
             if (isNode) {
                 const removeArgs = [nativeMethods.getAttributeNodeNS.call(el, node.namespaceURI, node.name)];
+
                 for (let i = 1, ilen = args.length; i < ilen; ++i) removeArgs.push(args[i]);
                 result = nativeMethods.removeAttributeNode.apply(el, removeArgs);
             }
             else {
                 const removeAttrFunc = isNs ? nativeMethods.removeAttributeNS : nativeMethods.removeAttribute;
+
                 result = removeAttrFunc.apply(el, args);
             }
         }
@@ -493,7 +497,7 @@ export default class ElementSandbox extends SandboxBase {
 
     private _addNodeCore<K, A extends (string | Node)[]> (
         parent: Element | Node & ParentNode, context: Element | Node & ParentNode,
-        newNodesRange: [number, number], args: A, nativeFn: (...args: A) => K, checkBody = true, stringifyNode = false): K {
+        newNodesRange: [number, number], args: A, nativeFn: (...args: A) => K, checkBody = true, stringifyNode = false): K {// eslint-disable-line no-shadow
 
         this._prepareNodesForInsertion(args, newNodesRange, parent, stringifyNode);
 
@@ -518,7 +522,7 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
-    private _removeNodeCore <K, A extends Node[]> (context: Node, args: A, removingNode: Node, nativeFn: (...args: A) => K): K {
+    private _removeNodeCore <K, A extends Node[]> (context: Node, args: A, removingNode: Node, nativeFn: (...args: A) => K): K { // eslint-disable-line no-shadow
         this._onRemoveFileInputInfo(removingNode);
         this._onRemoveIframe(removingNode);
 
@@ -555,7 +559,7 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     private _insertAdjacentTextOrElement<K, A extends [string, string | Element]> (
-        context: Element, args: A, nativeFn: (...args: A) => K): K {
+        context: Element, args: A, nativeFn: (...args: A) => K): K { // eslint-disable-line no-shadow
 
         const position = args[0]?.toLocaleLowerCase?.();
         const parent   = position === InsertPosition.beforeBegin || position === InsertPosition.afterEnd

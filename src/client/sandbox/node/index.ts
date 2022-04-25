@@ -20,7 +20,6 @@ import * as browserUtils from '../../utils/browser';
 import ChildWindowSandbox from '../child-window';
 import DocumentTitleStorage from './document/title-storage';
 import DocumentTitleStorageInitializer from './document/title-storage-initializer';
-import { isIframeWindow } from '../../utils/dom';
 import urlResolver from '../../utils/url-resolver';
 
 const ATTRIBUTE_SELECTOR_REG_EX          = /\[([\w-]+)(\^?=.+?)]/g;
@@ -64,7 +63,7 @@ export default class NodeSandbox extends SandboxBase {
     }
 
     private static _createDocumentTitleStorageInitializer (): DocumentTitleStorageInitializer | null {
-        if (isIframeWindow(window))
+        if (domUtils.isIframeWindow(window))
             return null;
 
         const documentTitleStorage = new DocumentTitleStorage(document);
@@ -114,7 +113,7 @@ export default class NodeSandbox extends SandboxBase {
     }
 
     onOriginFirstTitleElementInHeadLoaded (): void {
-        if(this._documentTitleStorageInitializer)
+        if (this._documentTitleStorageInitializer)
             this._documentTitleStorageInitializer.onPageTitleLoaded();
     }
 

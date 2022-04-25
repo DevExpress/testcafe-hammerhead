@@ -44,10 +44,12 @@ function walkDeclarators (node: BlockStatement, action: (identifier: Identifier)
             if (declarator.id.type === Syntax.ArrayPattern)
                 identifiers.push(...declarator.id.elements);
 
-            if (declarator.id.type === Syntax.ObjectPattern)
-                for (const prop of declarator.id.properties)
+            if (declarator.id.type === Syntax.ObjectPattern) {
+                for (const prop of declarator.id.properties) {
                     if ('value' in prop)
                         identifiers.push(prop.value);
+                }
+            }
         }
     }
 
@@ -71,9 +73,10 @@ function replaceDuplicateDeclarators (forOfNode: ForOfStatement) {
     const leftIdentifiers = leftDeclaration.elements as (Identifier | null)[];
 
     walkDeclarators(forOfNode.body as BlockStatement, (node: Identifier) => {
-        for (const identifier of leftIdentifiers)
+        for (const identifier of leftIdentifiers) {
             if (identifier && identifier.name === node.name)
                 nodesToReplace.push(identifier);
+        }
     });
 
     for (const nodeToReplace of nodesToReplace) {
