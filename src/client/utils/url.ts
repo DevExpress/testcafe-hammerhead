@@ -5,7 +5,7 @@ import urlResolver from './url-resolver';
 import settings from '../settings';
 import { ResourceType } from '../../typings/url';
 import globalContextInfo from './global-context-info';
-import { Credentials } from '../../utils/url';
+
 
 const HASH_RE                          = /#[\S\s]*$/;
 const SUPPORTED_WEB_SOCKET_PROTOCOL_RE = /^wss?:/i;
@@ -337,7 +337,7 @@ export function getScope (url: string): string | null {
     return partAfterHostWithoutQueryAndHash.replace(SCOPE_RE, '/') || '/';
 }
 
-export function getAjaxProxyUrl (url: string, credentials: Credentials) {
+export function getAjaxProxyUrl (url: string, credentials: sharedUrlUtils.Credentials) {
     const isCrossDomain = !destLocation.sameOriginCheck(destLocation.getLocation(), url);
     const opts          = { resourceType: stringifyResourceType({ isAjax: true }), credentials } as any;
 

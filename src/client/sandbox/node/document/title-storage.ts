@@ -11,7 +11,7 @@ const INTERNAL_TITLE_PROP_NAME = 'hammerhead|document-title-storage|internal-pro
 export default class DocumentTitleStorage extends EventEmitter {
     private readonly _document: Document;
 
-    public constructor(document: Document) {
+    public constructor (document: Document) {
         super();
 
         this._document = document;
@@ -65,7 +65,7 @@ export default class DocumentTitleStorage extends EventEmitter {
         return this._getValueFromFirstTitleElement();
     }
 
-    setTitle(value: string): void {
+    setTitle (value: string): void {
         value = String(value);
 
         this._setValueForFirstTitleElement(value);
@@ -80,11 +80,12 @@ export default class DocumentTitleStorage extends EventEmitter {
 
         if (this.isElementProcessed(element))
             element[INTERNAL_TITLE_PROP_NAME] = value;
-        else
+        else {
             nativeMethods.objectDefineProperty(element, INTERNAL_TITLE_PROP_NAME, {
                 value,
                 writable: true,
             });
+        }
     }
 
     public getDocument () {

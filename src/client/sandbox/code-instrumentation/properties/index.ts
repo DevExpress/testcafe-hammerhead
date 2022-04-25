@@ -82,8 +82,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
         location: {
             condition: (owner: any) => domUtils.isDocument(owner) || domUtils.isWindow(owner),
-            get: PropertyAccessorsInstrumentation._getLocation,
-            set: PropertyAccessorsInstrumentation._setLocation,
+            get:       PropertyAccessorsInstrumentation._getLocation,
+            set:       PropertyAccessorsInstrumentation._setLocation,
         },
     };
 
@@ -101,8 +101,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
         if (optional && isNullOrUndefined(owner))
             return void 0;
-        else
-            return owner[propName];
+
+        return owner[propName];
     }
 
     private static _propertySetter (owner: any, propName: any, value: any) {

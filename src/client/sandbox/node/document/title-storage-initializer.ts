@@ -4,7 +4,7 @@ import nativeMethods from '../../native-methods';
 import removeElement from '../../../utils/remove-element';
 
 export default class DocumentTitleStorageInitializer {
-    constructor (readonly storage: DocumentTitleStorage){
+    constructor (readonly storage: DocumentTitleStorage) {
         this.storage.on('titleElementAdded', () => this._processFirstTitleElement());
     }
 

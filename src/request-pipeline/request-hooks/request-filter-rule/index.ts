@@ -5,10 +5,9 @@ import {
     castArray,
 } from 'lodash';
 
-import { RequestFilterRuleInit } from './rule-init';
+import { RequestFilterRuleInit, RequestFilterRuleObjectInitializer } from './rule-init';
 import generateUniqueId from '../../../utils/generate-unique-id';
 import stringifyRule from './stringify';
-import { RequestFilterRuleObjectInitializer } from './rule-init';
 import isPredicate from '../is-predicate';
 
 const DEFAULT_OPTIONS: Partial<RequestFilterRuleObjectInitializer> = {

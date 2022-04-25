@@ -11,7 +11,7 @@ export default class TempVariables {
         TempVariables._counter = 0;
     }
 
-    static generateName(baseName?: string, key?: Expression, index?: number): string {
+    static generateName (baseName?: string, key?: Expression, index?: number): string {
         if (!baseName)
             return TEMP_VARIABLE_PREFIX + TempVariables._counter++;
 
