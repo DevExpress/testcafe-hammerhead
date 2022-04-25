@@ -187,9 +187,8 @@ export default class EventSandbox extends SandboxBase {
             overrideFunction(window.HTMLElement.prototype, 'dispatchEvent', this._overriddenMethods.dispatchEvent);
             overrideFunction(window.SVGElement.prototype, 'dispatchEvent', this._overriddenMethods.dispatchEvent);
         }
-        else {
+        else
             overrideFunction(window.EventTarget.prototype, 'dispatchEvent', this._overriddenMethods.dispatchEvent);
-        }
 
         overrideFunction(window.HTMLElement.prototype, 'focus', this._overriddenMethods.focus);
         overrideFunction(window.HTMLElement.prototype, 'blur', this._overriddenMethods.blur);

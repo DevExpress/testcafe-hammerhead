@@ -2,10 +2,23 @@ import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import nativeMethods from '../native-methods';
 import EventEmitter from '../../utils/event-emitter';
 import * as listeningCtx from './listening-context';
-import { preventDefault, stopPropagation, DOM_EVENTS, isValidEventListener, callEventListener } from '../../utils/event';
+
+import {
+    preventDefault,
+    stopPropagation,
+    DOM_EVENTS,
+    isValidEventListener,
+    callEventListener,
+} from '../../utils/event';
+
 import { isWindow } from '../../utils/dom';
 import { isIE11 } from '../../utils/browser';
-import { isNativeFunction, overrideFunction, overrideStringRepresentation } from '../../utils/overriding';
+
+import {
+    isNativeFunction,
+    overrideFunction,
+    overrideStringRepresentation,
+} from '../../utils/overriding';
 
 const LISTENED_EVENTS = [
     'click', 'mousedown', 'mouseup', 'dblclick', 'contextmenu', 'mousemove', 'mouseover', 'mouseout',

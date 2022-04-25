@@ -16,7 +16,6 @@ import {
     removeAuthorizationPrefix,
 } from '../../utils/headers';
 
-import { isSpecialPage } from '../../utils/url';
 
 function skip (): undefined {
     return void 0;
@@ -106,7 +105,7 @@ export const requestTransforms = {
     [BUILTIN_HEADERS.referer]: (_src: string, ctx: RequestPipelineContext) => {
         const referer = ctx.dest.referer;
 
-        return referer && !isSpecialPage(referer) ? referer : void 0;
+        return referer && !urlUtils.isSpecialPage(referer) ? referer : void 0;
     },
     [BUILTIN_HEADERS.origin]:             (_src: string, ctx: RequestPipelineContext) => ctx.dest.reqOrigin || ctx.dest.domain,
     [BUILTIN_HEADERS.contentLength]:      (_src: string, ctx: RequestPipelineContext) => ctx.reqBody.length,

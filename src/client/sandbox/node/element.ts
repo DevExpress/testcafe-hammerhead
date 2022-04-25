@@ -31,7 +31,7 @@ import EventSandbox from '../event';
 import ChildWindowSandbox from '../child-window';
 import isKeywordTarget from '../../../utils/is-keyword-target';
 import BUILTIN_HEADERS from '../../../request-pipeline/builtin-header-names';
-import { getDestinationUrl } from '../../utils/url';
+
 
 const RESTRICTED_META_HTTP_EQUIV_VALUES = [BUILTIN_HEADERS.refresh, BUILTIN_HEADERS.contentSecurityPolicy];
 
@@ -824,7 +824,7 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             anchorToString () {
-                return getDestinationUrl(nativeMethods.anchorToString.call(this));
+                return urlUtils.getDestinationUrl(nativeMethods.anchorToString.call(this));
             },
 
             registerElement (...args) {

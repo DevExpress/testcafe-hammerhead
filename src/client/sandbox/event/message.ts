@@ -3,7 +3,14 @@ import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import * as destLocation from '../../utils/destination-location';
 import { formatUrl } from '../../utils/url';
-import { isCrossDomainWindows, getTopSameDomainWindow, isWindow, isMessageEvent } from '../../utils/dom';
+
+import {
+    isCrossDomainWindows,
+    getTopSameDomainWindow,
+    isWindow,
+    isMessageEvent,
+} from '../../utils/dom';
+
 import { callEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';
 import { overrideDescriptor } from '../../utils/overriding';
@@ -11,9 +18,9 @@ import { parse as parseJSON, stringify as stringifyJSON } from '../../../utils/j
 import Listeners from './listeners';
 import UnloadSandbox from './unload';
 
-enum MessageType {
+enum MessageType { // eslint-disable-line no-shadow
     Service = 'hammerhead|service-msg',
-    User    = 'hammerhead|user-msg'
+    User = 'hammerhead|user-msg'
 }
 
 export default class MessageSandbox extends SandboxBase {
@@ -56,10 +63,11 @@ export default class MessageSandbox extends SandboxBase {
 
     // NOTE: some window may be unavailable for the sending message, for example, if it was removed.
     // In some browsers, window.postMessage is equal null, but other throw exception by property access.
-    private static  _isWindowAvailable (window: Window): boolean {
+    private static _isWindowAvailable (window: Window): boolean {
         try {
             return !!window.postMessage;
-        } catch (e) {
+        }
+        catch (e) {
             return false;
         }
     }
