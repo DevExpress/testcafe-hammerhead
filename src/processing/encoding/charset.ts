@@ -1,6 +1,7 @@
 import getEncodingName from './labels';
 import { startsWith } from '../../utils/buffer';
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
+import { MetaInfo } from '../interfaces';
 
 const CHARSET_RE      = /(?:^|;)\s*charset=(.+)(?:;|$)/i;
 const META_CHARSET_RE = /charset ?= ?['"]?([^ ;"']*)['"]?/i;
@@ -43,7 +44,7 @@ export default class Charset {
     charset: string = DEFAULT_CHARSET;
     priority: CharsetPriority = CharsetPriority.DEFAULT;
 
-    set (charset: string, priority: CharsetPriority) {
+    public set (charset: string, priority: CharsetPriority): boolean {
         if (charset && this.charset !== charset && this.priority <= priority) {
             this.charset  = charset;
             this.priority = priority;
@@ -95,7 +96,7 @@ export default class Charset {
     // NOTE: Parsing charset from meta tags
     // www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#determining-the-character-encoding
     // Each <meta> descriptor should contain values of the "http-equiv", "content" and "charset" attributes.
-    fromMeta (metas) {
+    fromMeta (metas: MetaInfo[]) {
         if (this.priority < CharsetPriority.META && metas.length) {
             let needPragma = true;
             let charsetStr = '';
@@ -105,7 +106,7 @@ export default class Charset {
                                                    attrs.httpEquiv.toLowerCase() === BUILTIN_HEADERS.contentType;
 
                 if (shouldParseFromContentAttr) {
-                    const charsetMatch = attrs.content.match(META_CHARSET_RE);
+                    const charsetMatch = (attrs.content as string).match(META_CHARSET_RE);
 
                     if (charsetMatch) {
                         needPragma = true;

@@ -127,10 +127,12 @@ export default class DomProcessor {
     }
 
     static isElementProcessed (el: Element): boolean {
+        // @ts-ignore
         return el[ELEMENT_PROCESSED];
     }
 
     static setElementProcessed (el: Element, processed: boolean) {
+        // @ts-ignore
         el[ELEMENT_PROCESSED] = processed;
     }
 
