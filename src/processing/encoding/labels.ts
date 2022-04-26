@@ -1,7 +1,8 @@
 import trim from '../../utils/string-trim';
+import { Dictionary } from '../../typings/common';
 
 // NOTE: https://encoding.spec.whatwg.org/#names-and-labels
-const ENCODING_LABELS = {
+const ENCODING_LABELS: Dictionary<string[]> = {
     'utf-8':          ['unicode-1-1-utf-8', 'utf-8', 'utf8'],
     'ibm866':         ['866', 'cp866', 'csibm866', 'ibm866'],
     'iso-8859-2':     ['csisolatin2', 'iso-8859-2', 'iso-ir-101', 'iso8859-2', 'iso88592', 'iso_8859-2', 'iso_8859-2:1987', 'l2', 'latin2'],
@@ -44,7 +45,7 @@ const ENCODING_LABELS = {
     'x-user-defined': ['x-user-defined'],
 };
 
-const LOOKUP_TABLE = Object.keys(ENCODING_LABELS).reduce((table, encoding) => {
+const LOOKUP_TABLE = Object.keys(ENCODING_LABELS).reduce((table: Dictionary<string>, encoding) => {
     ENCODING_LABELS[encoding].forEach(label => {
         table[label] = encoding;
     });
