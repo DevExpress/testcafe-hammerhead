@@ -128,24 +128,24 @@ declare module 'testcafe-hammerhead' {
     }
 
     interface RequestOptionsInit {
-        method: string,
-        url: string,
-        protocol: string,
-        hostname: string,
-        host: string,
-        port?: string | void,
-        path: string,
-        auth?: string | void,
-        headers: OutgoingHttpHeaders,
-        externalProxySettings?: ExternalProxySettings,
-        credentials?: Credentials,
-        body: Buffer,
-        isAjax: boolean,
-        rawHeaders?: string[],
-        requestId: string,
-        requestTimeout: RequestTimeout,
-        isWebSocket?: boolean,
-        disableHttp2?: boolean,
+        method: string;
+        url: string;
+        protocol: string;
+        hostname: string;
+        host: string;
+        port?: string | void;
+        path: string;
+        auth?: string | void;
+        headers: OutgoingHttpHeaders;
+        externalProxySettings?: ExternalProxySettings;
+        credentials?: Credentials;
+        body: Buffer;
+        isAjax: boolean;
+        rawHeaders?: string[];
+        requestId: string;
+        requestTimeout: RequestTimeout;
+        isWebSocket?: boolean;
+        disableHttp2?: boolean;
     }
 
     /** The Session class is used to create a web-proxy session **/

@@ -672,7 +672,7 @@ describe('Proxy', () => {
             const proxiedUrl = session.getProxyUrl('http://127.0.0.1:2000/page');
             const options    = {
                 url:                     proxiedUrl,
-                resolveWithFullResponse: true
+                resolveWithFullResponse: true,
             };
 
             return request(options)

@@ -1,12 +1,15 @@
 import RequestPipelineContext from './context';
-import { Credentials, ExternalProxySettings, RequestOptionsInit } from '../typings/session';
+import {
+    Credentials,
+    ExternalProxySettings,
+    RequestOptionsInit,
+} from '../typings/session';
 import { OutgoingHttpHeaders } from 'http';
 import BUILTIN_HEADERS from './builtin-header-names';
 import * as headerTransforms from './header-transforms';
 import { inject as injectUpload } from '../upload';
 import matchUrl from 'match-url-wildcard';
 import { RequestTimeout } from '../typings/proxy';
-import { addAuthorizationPrefix } from '../utils/headers';
 
 export default class RequestOptions {
     url: string;
@@ -37,7 +40,6 @@ export default class RequestOptions {
         Object.assign(this, params);
 
         this._applyExternalProxySettings();
-        this._prepareAuthorizationHeaders();
         this.prepare();
     }
 
@@ -69,16 +71,6 @@ export default class RequestOptions {
             isWebSocket:           ctx.isWebSocket,
             disableHttp2:          ctx.session.isHttp2Disabled(),
         });
-    }
-
-    private _prepareAuthorizationHeaders (): void {
-        // NOTE: We should save authorization and proxyAuthorization headers for API requests.
-        if (this.headers[BUILTIN_HEADERS.isRequest]) {
-            if (this.headers[BUILTIN_HEADERS.authorization])
-                this.headers[BUILTIN_HEADERS.authorization] = addAuthorizationPrefix(this.headers[BUILTIN_HEADERS.authorization] as string);
-            if (this.headers[BUILTIN_HEADERS.proxyAuthorization])
-                this.headers[BUILTIN_HEADERS.proxyAuthorization] = addAuthorizationPrefix(this.headers[BUILTIN_HEADERS.proxyAuthorization] as string);
-        }
     }
 
     private _applyExternalProxySettings (): void {
