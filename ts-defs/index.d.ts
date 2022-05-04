@@ -422,6 +422,9 @@ declare module 'testcafe-hammerhead' {
 
         /** Error event **/
         on(event: 'error', listener: (err: Error) => void): this;
+
+        /** Fatal error event **/
+        on(event: 'fatalError', listener: (err: string) => void): this;
     }
 
     /** Generates an URL friendly string identifier **/
