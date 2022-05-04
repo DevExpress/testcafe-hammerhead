@@ -162,7 +162,6 @@ export default class Cookies {
         return cookies.filter(cookie => filterKeys.every(key => cookie[key] === filters[key]));
     }
 
-    /*eslint-disable*/
     private _getCookiesByApi (cookie: Cookie.Properties, urls?: Url[], strict = false): Cookie[] {
         const { key, domain, path, ...filters } = cookie;
 
