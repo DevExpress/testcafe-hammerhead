@@ -325,6 +325,55 @@ describe('Cookies', () => {
             expect(expectedCookies).eql(cookies);
         });
 
+        it('Should get cookies only by domain', () => {
+            const expectedCookies = [
+                {
+                    'name':     'apiCookie1',
+                    'value':    'value1',
+                    'domain':   'domain1.com',
+                    'path':     '/',
+                    'expires':  void 0,
+                    'maxAge':   void 0,
+                    'secure':   false,
+                    'httpOnly': false,
+                    'sameSite': 'none',
+                },
+                {
+                    'name':     'apiCookie4',
+                    'value':    'value4',
+                    'domain':   'domain1.com',
+                    'path':     '/path-2',
+                    'expires':  void 0,
+                    'maxAge':   void 0,
+                    'secure':   false,
+                    'httpOnly': false,
+                    'sameSite': 'none',
+                },
+            ];
+            const cookies         = cookieJar.getCookies([{ domain: 'domain1.com' }]);
+
+            expect(expectedCookies).eql(cookies);
+        });
+
+        it('Should get cookies only by path', () => {
+            const expectedCookies = [
+                {
+                    'name':     'apiCookie4',
+                    'value':    'value4',
+                    'domain':   'domain1.com',
+                    'path':     '/path-2',
+                    'expires':  void 0,
+                    'maxAge':   void 0,
+                    'secure':   false,
+                    'httpOnly': false,
+                    'sameSite': 'none',
+                },
+            ];
+            const cookies         = cookieJar.getCookies([{ path: '/path-2' }]);
+
+            expect(expectedCookies).eql(cookies);
+        });
+
         it('Should get cookies by name, domain and path', () => {
             const expectedCookies = [
                 {
@@ -380,6 +429,7 @@ describe('Cookies', () => {
             expect(expectedCookies).eql(cookies);
         });
     });
+
     describe('Attach secure cookies to request', () => {
         beforeEach(() => {
             cookieJar.setCookies([
@@ -632,6 +682,28 @@ describe('Cookies', () => {
 
             expect(currentCookies.length).eql(5);
             expect(currentCookies.some(c => c.domain === 'domain1.com' && c.path === 'path-2')).not.ok;
+
+        });
+
+        it('Should delete cookies only by domain', () => {
+            expect(cookieJar.getCookies().length).eql(6);
+            cookieJar.deleteCookies([{ domain: 'domain1.com' }]);
+
+            const currentCookies = cookieJar.getCookies();
+
+            expect(currentCookies.length).eql(4);
+            expect(currentCookies.some(c => c.domain === 'domain1.com')).not.ok;
+
+        });
+
+        it('Should delete cookies only by path', () => {
+            expect(cookieJar.getCookies().length).eql(6);
+            cookieJar.deleteCookies([{ path: '/path-2' }]);
+
+            const currentCookies = cookieJar.getCookies();
+
+            expect(currentCookies.length).eql(5);
+            expect(currentCookies.some(c => c.path === 'path-2')).not.ok;
 
         });
 
