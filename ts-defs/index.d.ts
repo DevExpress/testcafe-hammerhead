@@ -49,9 +49,7 @@ interface RequestFilterRuleObjectInitializer {
     isAjax: boolean;
 }
 
-interface RequestFilterRuleOptions extends RequestFilterRuleObjectInitializer {}
-
-type RequestFilterRuleInit = string | RegExp | Partial<RequestFilterRuleObjectInitializer> | RequestFilterRulePredicate;
+type RequestFilterRuleOptions = RequestFilterRuleObjectInitializer
 
 interface RequestFilterRuleObjectInitializer {
     url: string | RegExp;
@@ -62,7 +60,9 @@ interface RequestFilterRuleObjectInitializer {
 type RequestFilterRulePredicate = (requestInfo: RequestInfo) => boolean | Promise<boolean>;
 
 declare module 'testcafe-hammerhead' {
-    import { IncomingHttpHeaders, OutgoingHttpHeaders, IncomingMessage } from 'http';
+    import {
+        IncomingHttpHeaders, OutgoingHttpHeaders, IncomingMessage,
+    } from 'http';
 
     export type RequestFilterRuleInit = string | RegExp | Partial<RequestFilterRuleObjectInitializer> | RequestFilterRulePredicate;
 
