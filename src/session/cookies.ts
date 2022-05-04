@@ -142,7 +142,7 @@ export default class Cookies {
         return externalCookie.map(cookie => {
             const { name, ...rest } = cookie;
 
-            return { key: name, ...rest };
+            return name ? { key: name, ...rest } : rest;
         });
     }
 
@@ -162,7 +162,9 @@ export default class Cookies {
         return cookies.filter(cookie => filterKeys.every(key => cookie[key] === filters[key]));
     }
 
+    /*eslint-disable*/
     private _getCookiesByApi (cookie: Cookie.Properties, urls?: Url[], strict = false): Cookie[] {
+        debugger;
         const { key, domain, path, ...filters } = cookie;
 
         const currentUrls = domain && path ? [{ domain, path }] : urls;
@@ -173,11 +175,7 @@ export default class Cookies {
         else {
             receivedCookies = flattenDeep(this._getAllCookiesSync());
 
-            if (currentUrls?.[0])
-                Object.assign(filters, currentUrls[0]);
-
-            if (key)
-                Object.assign(filters, { key });
+            Object.assign(filters, cookie);
         }
 
         return Object.keys(filters).length ? this._filterCookies(receivedCookies, filters) : receivedCookies;
