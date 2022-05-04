@@ -164,7 +164,6 @@ export default class Cookies {
 
     /*eslint-disable*/
     private _getCookiesByApi (cookie: Cookie.Properties, urls?: Url[], strict = false): Cookie[] {
-        debugger;
         const { key, domain, path, ...filters } = cookie;
 
         const currentUrls = domain && path ? [{ domain, path }] : urls;
