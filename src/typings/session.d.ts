@@ -44,7 +44,7 @@ export interface RequestEventListenerError {
     methodName: string;
 }
 
-export interface RequestOptionsSettings {
+export interface RequestOptionsInit {
     method: string,
     url: string,
     protocol: string,

@@ -1,5 +1,5 @@
 import RequestPipelineContext from './context';
-import { Credentials, ExternalProxySettings, RequestOptionsSettings } from '../typings/session';
+import { Credentials, ExternalProxySettings, RequestOptionsInit } from '../typings/session';
 import { OutgoingHttpHeaders } from 'http';
 import BUILTIN_HEADERS from './builtin-header-names';
 import * as headerTransforms from './header-transforms';
@@ -33,7 +33,7 @@ export default class RequestOptions {
     isWebSocket: boolean;
     disableHttp2: boolean;
 
-    constructor (params: RequestOptionsSettings) {
+    constructor (params: RequestOptionsInit) {
         Object.assign(this, params);
 
         this._applyExternalProxySettings();
