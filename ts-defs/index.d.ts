@@ -203,6 +203,9 @@ declare module 'testcafe-hammerhead' {
 
         /** Get proxied url **/
         getProxyUrl (url: string): string;
+
+        /** Check disabling http2 **/
+        isHttp2Disabled (): boolean;
     }
 
     /** The Proxy class is used to create a web-proxy **/
