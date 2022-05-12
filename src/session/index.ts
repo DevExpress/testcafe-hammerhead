@@ -35,7 +35,8 @@ import DEFAULT_REQUEST_TIMEOUT from '../request-pipeline/destination-request/def
 import requestIsMatchRule from '../request-pipeline/request-hooks/request-is-match-rule';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
 import { formatSyncCookie } from '../utils/cookie';
-import { getProxyUrl } from '../utils/url';
+import * as urlUtils from '../utils/url';
+import { ProxyUrlOptions } from '../typings/url';
 
 const TASK_TEMPLATE = read('../client/task.js.mustache');
 
@@ -250,16 +251,25 @@ export default abstract class Session extends EventEmitter {
         return taskScript;
     }
 
-    getProxyUrl (url: string): string {
-        if (!this.proxy?.server2Info)
+    getProxyUrl (url: string, options: ProxyUrlOptions): string {
+        if (!this.proxy)
             return url;
 
-        return getProxyUrl(url, {
+        const sameOrigin = options.reqOrigin && urlUtils.sameOriginCheck(options.reqOrigin, url);
+        const serverInfo = sameOrigin ? this.proxy.server1Info : this.proxy.server2Info;
+
+        if (!serverInfo)
+            return url;
+
+        url = urlUtils.prepareUrl(url);
+
+        return urlUtils.getProxyUrl(url, {
+            ...options,
             sessionId:     this.id,
             windowId:      this.options.windowId,
-            proxyHostname: this.proxy.server2Info.hostname,
-            proxyPort:     String(this.proxy.server2Info.port),
-            proxyProtocol: this.proxy.server2Info.protocol,
+            proxyHostname: serverInfo.hostname,
+            proxyPort:     String(serverInfo.port),
+            proxyProtocol: serverInfo.protocol,
         });
     }
 
