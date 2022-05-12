@@ -36,7 +36,6 @@ import requestIsMatchRule from '../request-pipeline/request-hooks/request-is-mat
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
 import { formatSyncCookie } from '../utils/cookie';
 import * as urlUtils from '../utils/url';
-import { ProxyUrlOptions } from '../typings/url';
 
 const TASK_TEMPLATE = read('../client/task.js.mustache');
 
@@ -251,12 +250,11 @@ export default abstract class Session extends EventEmitter {
         return taskScript;
     }
 
-    getProxyUrl (url: string, options: ProxyUrlOptions): string {
+    getProxyUrl (url: string, origin?: string): string {
         if (!this.proxy)
             return url;
 
-        const sameOrigin = options.reqOrigin && urlUtils.sameOriginCheck(options.reqOrigin, url);
-        const serverInfo = sameOrigin ? this.proxy.server1Info : this.proxy.server2Info;
+        const serverInfo = origin && urlUtils.sameOriginCheck(origin, url) ? this.proxy.server1Info : this.proxy.server2Info;
 
         if (!serverInfo)
             return url;
@@ -264,12 +262,12 @@ export default abstract class Session extends EventEmitter {
         url = urlUtils.prepareUrl(url);
 
         return urlUtils.getProxyUrl(url, {
-            ...options,
             sessionId:     this.id,
             windowId:      this.options.windowId,
             proxyHostname: serverInfo.hostname,
             proxyPort:     String(serverInfo.port),
             proxyProtocol: serverInfo.protocol,
+            reqOrigin:     origin,
         });
     }
 
