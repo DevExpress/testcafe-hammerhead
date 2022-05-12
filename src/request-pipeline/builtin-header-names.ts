@@ -43,5 +43,4 @@ export default {
     xContentSecurityPolicy:           'x-content-security-policy',
     xContentSecurityPolicyReportOnly: 'x-content-security-policy-report-only',
     xWebkitCsp:                       'x-webkit-csp',
-    isRequest:                        'is-request',
 };
