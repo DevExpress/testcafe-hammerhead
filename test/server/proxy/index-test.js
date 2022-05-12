@@ -669,16 +669,20 @@ describe('Proxy', () => {
         it('Get proxied url via session', () => {
             proxy.openSession('http://127.0.0.1:2000/', session);
 
-            const proxiedUrl = session.getProxyUrl('http://127.0.0.1:2000/page');
-            const options    = {
-                url:                     proxiedUrl,
+            const crossProxyUrl = session.getProxyUrl('http://127.0.0.1:2000/page', {
+                reqOrigin: 'http://example.com',
+            });
+
+            const options = {
+                url:                     crossProxyUrl,
                 resolveWithFullResponse: true,
             };
+
+            expect(crossProxyUrl.endsWith('example.com/http://127.0.0.1:2000/page')).ok;
 
             return request(options)
                 .then(res => {
                     expect(res.statusCode).eql(200);
-                    expect(res.headers[BUILTIN_HEADERS.accessControlAllowOrigin]).to.be.empty;
                 });
         });
     });
