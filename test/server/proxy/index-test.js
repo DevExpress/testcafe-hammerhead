@@ -669,9 +669,7 @@ describe('Proxy', () => {
         it('Get proxied url via session', () => {
             proxy.openSession('http://127.0.0.1:2000/', session);
 
-            const crossProxyUrl = session.getProxyUrl('http://127.0.0.1:2000/page', {
-                reqOrigin: 'http://example.com',
-            });
+            const crossProxyUrl = session.getProxyUrl('http://127.0.0.1:2000/page', 'http://example.com');
 
             const options = {
                 url:                     crossProxyUrl,
@@ -688,13 +686,9 @@ describe('Proxy', () => {
         it('Cross domain url should have a different port', () => {
             proxy.openSession('http://127.0.0.1:2000/', session);
 
-            const sameProxyUrl = session.getProxyUrl('http://127.0.0.1:2000/preflight', {
-                reqOrigin: 'http://127.0.0.1:2000/',
-            });
+            const sameProxyUrl = session.getProxyUrl('http://127.0.0.1:2000/preflight', 'http://127.0.0.1:2000/');
 
-            const crossProxyUrl = session.getProxyUrl('http://127.0.0.1:2000/preflight', {
-                reqOrigin: 'http://example.com',
-            });
+            const crossProxyUrl = session.getProxyUrl('http://127.0.0.1:2000/preflight', 'http://example.com');
 
             const parsedSameProxyUrl = urlUtils.parseProxyUrl(sameProxyUrl);
             const parsedCrossProxyUrl = urlUtils.parseProxyUrl(crossProxyUrl);
