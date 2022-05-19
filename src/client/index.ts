@@ -307,10 +307,6 @@ class Hammerhead {
         }
     }
 
-    getAjaxProxyUrl (url: string, opts?): string {
-        return urlUtils.getAjaxProxyUrl(url, opts);
-    }
-
     start (initSettings: HammerheadInitSettings, win: Window & typeof globalThis): void {
         this.win = win || window as Window & typeof globalThis;
 
