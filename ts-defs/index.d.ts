@@ -201,9 +201,6 @@ declare module 'testcafe-hammerhead' {
         /** Remove the header on the specified ConfigureResponseEvent **/
         removeHeaderOnConfigureResponseEvent (eventId: string, headerName: string): Promise<void>;
 
-        /** Get proxied url **/
-        getProxyUrl (url: string, origin: string): string;
-
         /** Check disabling http2 **/
         isHttp2Disabled (): boolean;
     }

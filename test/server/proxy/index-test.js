@@ -665,37 +665,6 @@ describe('Proxy', () => {
             expect(sessionWithUndefinedTimeouts.options.requestTimeout.page).eql(25000);
             expect(sessionWithUndefinedTimeouts.options.requestTimeout.ajax).eql(120000);
         });
-
-        it('Get proxied url via session', () => {
-            proxy.openSession('http://127.0.0.1:2000/', session);
-
-            const crossProxyUrl = session.getProxyUrl('http://127.0.0.1:2000/page', 'http://example.com');
-
-            const options = {
-                url:                     crossProxyUrl,
-                resolveWithFullResponse: true,
-            };
-
-            expect(crossProxyUrl.endsWith('example.com/http://127.0.0.1:2000/page')).ok;
-
-            return request(options)
-                .then(res => {
-                    expect(res.statusCode).eql(200);
-                });
-        });
-        it('Cross domain url should have a different port', () => {
-            proxy.openSession('http://127.0.0.1:2000/', session);
-
-            const sameProxyUrl = session.getProxyUrl('http://127.0.0.1:2000/preflight', 'http://127.0.0.1:2000/');
-
-            const crossProxyUrl = session.getProxyUrl('http://127.0.0.1:2000/preflight', 'http://example.com');
-
-            const parsedSameProxyUrl = urlUtils.parseProxyUrl(sameProxyUrl);
-            const parsedCrossProxyUrl = urlUtils.parseProxyUrl(crossProxyUrl);
-
-            expect(parsedSameProxyUrl.hostname).eql(parsedCrossProxyUrl.hostname);
-            expect(parsedSameProxyUrl.proxy).not.eql(parsedCrossProxyUrl.proxy);
-        });
     });
 
     describe('Cookies', () => {
