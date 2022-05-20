@@ -54,9 +54,9 @@ export default class DestinationRequest extends EventEmitter implements Destinat
 
         this.protocolInterface = this.opts.isHttps ? https : http;
 
-        const requestTimeout = Object.assign({}, DEFAULT_REQUEST_TIMEOUT, opts.requestTimeout);
-
-        this.timeout = this.opts.isAjax ? requestTimeout.ajax : requestTimeout.page;
+        this.timeout = this.opts.isAjax
+            ? this.opts.requestTimeout && this.opts.requestTimeout.ajax || DEFAULT_REQUEST_TIMEOUT.ajax
+            : this.opts.requestTimeout && this.opts.requestTimeout.page || DEFAULT_REQUEST_TIMEOUT.page;
 
         if (this.opts.isHttps)
             opts.ignoreSSLAuth();
