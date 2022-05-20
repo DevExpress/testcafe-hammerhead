@@ -64,6 +64,8 @@ declare module 'testcafe-hammerhead' {
         IncomingHttpHeaders, OutgoingHttpHeaders, IncomingMessage,
     } from 'http';
 
+    type StrictIncomingMessage = IncomingMessage & { statusCode: number, statusMessage: string };
+
     export type RequestFilterRuleInit = string | RegExp | Partial<RequestFilterRuleObjectInitializer> | RequestFilterRulePredicate;
 
     enum RequestEventNames {
@@ -415,7 +417,7 @@ declare module 'testcafe-hammerhead' {
         constructor (opts: RequestOptions, cache?: boolean);
 
         /** Response event **/
-        on(event: 'response', listener: (res: IncomingMessage) => void): this;
+        on(event: 'response', listener: (res: StrictIncomingMessage) => void): this;
 
         /** Error event **/
         on(event: 'error', listener: (err: Error) => void): this;
