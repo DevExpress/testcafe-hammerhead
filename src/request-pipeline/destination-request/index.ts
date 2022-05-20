@@ -26,6 +26,7 @@ import {
 } from './http2';
 
 import { ClientHttp2Session, ClientHttp2Stream } from 'http2';
+import DEFAULT_REQUEST_TIMEOUT from './default-request-timeout';
 
 const TUNNELING_SOCKET_ERR_RE    = /tunneling socket could not be established/i;
 const TUNNELING_AUTHORIZE_ERR_RE = /statusCode=407/i;
@@ -53,7 +54,9 @@ export default class DestinationRequest extends EventEmitter implements Destinat
 
         this.protocolInterface = this.opts.isHttps ? https : http;
 
-        this.timeout = this.opts.isAjax ? opts.requestTimeout.ajax : opts.requestTimeout.page;
+        const requestTimeout = Object.assign({}, DEFAULT_REQUEST_TIMEOUT, opts.requestTimeout);
+
+        this.timeout = this.opts.isAjax ? requestTimeout.ajax : requestTimeout.page;
 
         if (this.opts.isHttps)
             opts.ignoreSSLAuth();
