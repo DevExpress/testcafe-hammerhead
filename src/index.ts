@@ -14,6 +14,7 @@ import ResponseEvent from './session/events/response-event';
 import ConfigureResponseEvent from './session/events/configure-response-event';
 import DestinationRequest from './request-pipeline/destination-request';
 import RequestOptions from './request-pipeline/request-options';
+import promisifyStream from './utils/promisify-stream';
 
 export default {
     Proxy,
@@ -34,4 +35,7 @@ export default {
     ResponseEvent,
     DestinationRequest,
     RequestOptions,
+    utils: {
+        promisifyStream,
+    },
 };

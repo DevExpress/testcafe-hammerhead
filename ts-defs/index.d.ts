@@ -441,4 +441,10 @@ declare module 'testcafe-hammerhead' {
 
     /** The set of utility methods to manipulate with ResponseMock.setBody method **/
     export const responseMockSetBodyMethod: ResponseMockSetBodyMethod;
+
+    /** Utils **/
+    export const utils: {
+        /** Promisify steam **/
+        promisifyStream: (s: NodeJS.ReadableStream, contentLength?: string) => Promise<Buffer>
+    };
 }
