@@ -31,7 +31,7 @@ import UploadStorage from '../upload/storage';
 import COMMAND from './command';
 import generateUniqueId from '../utils/generate-unique-id';
 import SERVICE_ROUTES from '../proxy/service-routes';
-import DEFAULT_REQUEST_TIMEOUT from '../request-pipeline/destination-request/default-request-timeout';
+import { getRequestTimeouts } from '../request-pipeline/destination-request/default-request-timeout';
 import requestIsMatchRule from '../request-pipeline/request-hooks/request-is-match-rule';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
 import { formatSyncCookie } from '../utils/cookie';
@@ -136,10 +136,7 @@ export default abstract class Session extends EventEmitter {
     }
 
     private _getOptions (options: Partial<SessionOptions> = {}): SessionOptions {
-        const requestTimeout = {
-            page: options.requestTimeout && options.requestTimeout.page || DEFAULT_REQUEST_TIMEOUT.page,
-            ajax: options.requestTimeout && options.requestTimeout.ajax || DEFAULT_REQUEST_TIMEOUT.ajax,
-        };
+        const requestTimeout = getRequestTimeouts(options.requestTimeout);
 
         delete options.requestTimeout;
 
