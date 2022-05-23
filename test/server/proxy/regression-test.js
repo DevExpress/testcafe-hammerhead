@@ -265,6 +265,8 @@ describe('Regression', () => {
     });
 
     it('Should raise error on request timeout (T224541)', done => {
+        session.options.requestTimeout = {};
+
         const savedReqTimeout = session.options.requestTimeout.page;
 
         session.options.requestTimeout.page = 200;
@@ -295,6 +297,8 @@ describe('Regression', () => {
     });
 
     it('Should use a special timeout for xhr requests (GH-347)', () => {
+        session.options.requestTimeout = {};
+
         const savedReqTimeout    = session.options.requestTimeout.page;
         const savedXhrReqTimeout = session.options.requestTimeout.ajax;
 
