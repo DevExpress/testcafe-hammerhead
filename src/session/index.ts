@@ -31,7 +31,6 @@ import UploadStorage from '../upload/storage';
 import COMMAND from './command';
 import generateUniqueId from '../utils/generate-unique-id';
 import SERVICE_ROUTES from '../proxy/service-routes';
-import { getRequestTimeouts } from '../request-pipeline/destination-request/default-request-timeout';
 import requestIsMatchRule from '../request-pipeline/request-hooks/request-is-match-rule';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
 import { formatSyncCookie } from '../utils/cookie';
@@ -102,7 +101,7 @@ interface SessionOptions {
     disablePageCaching: boolean;
     allowMultipleWindows: boolean;
     windowId: string;
-    requestTimeout: RequestTimeout;
+    requestTimeout?: RequestTimeout;
 }
 
 export default abstract class Session extends EventEmitter {
@@ -136,15 +135,10 @@ export default abstract class Session extends EventEmitter {
     }
 
     private _getOptions (options: Partial<SessionOptions> = {}): SessionOptions {
-        const requestTimeout = getRequestTimeouts(options.requestTimeout);
-
-        delete options.requestTimeout;
-
         return Object.assign({
             disablePageCaching:   false,
             allowMultipleWindows: false,
             windowId:             '',
-            requestTimeout,
         }, options);
     }
 

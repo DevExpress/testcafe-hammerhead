@@ -60,7 +60,7 @@ export interface RequestOptionsInit {
     isAjax: boolean;
     rawHeaders?: string[];
     requestId: string;
-    requestTimeout: RequestTimeout;
+    requestTimeout?: RequestTimeout;
     isWebSocket?: boolean;
     disableHttp2?: boolean;
 }

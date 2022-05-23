@@ -32,7 +32,7 @@ export default class RequestOptions {
     agent?: any;
     ecdhCurve?: string;
     rejectUnauthorized?: boolean;
-    requestTimeout: RequestTimeout;
+    requestTimeout?: RequestTimeout;
     isWebSocket: boolean;
     disableHttp2: boolean;
 
