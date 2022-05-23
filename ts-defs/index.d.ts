@@ -116,6 +116,8 @@ declare module 'testcafe-hammerhead' {
         deleteCookies (externalCookies: ExternalCookies[], urls: string[]): Promise<void>;
 
         getHeader({ url, hostname }: { url: string, hostname: string }): string | null;
+
+        setByServer (url: string, cookies: string | string[]): void;
     }
 
     /** Initialization options for the IncomingMessageLike object **/
