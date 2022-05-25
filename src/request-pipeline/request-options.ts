@@ -11,21 +11,28 @@ import { inject as injectUpload } from '../upload';
 import matchUrl from 'match-url-wildcard';
 import { RequestTimeout } from '../typings/proxy';
 
+const defaultOptions = {
+    isAjax:      false,
+    rawHeaders:  [],
+    isWebSocket: false,
+
+};
+
 export default class RequestOptions {
     url: string;
     protocol: string;
     hostname: string;
     host: string;
-    port: string|void;
+    port?: string;
     path: string;
     method: string;
     credentials: Credentials;
     body: Buffer;
-    isAjax?: boolean;
+    isAjax: boolean;
     rawHeaders: string[];
     headers: OutgoingHttpHeaders;
     transformedHeaders: OutgoingHttpHeaders;
-    auth: string | void;
+    auth?: string;
     requestId: string;
     proxy?: ExternalProxySettings;
     externalProxySettings?: ExternalProxySettings;
@@ -37,7 +44,7 @@ export default class RequestOptions {
     disableHttp2: boolean;
 
     constructor (params: RequestOptionsInit) {
-        Object.assign(this, params);
+        Object.assign(this, defaultOptions, params);
 
         this._applyExternalProxySettings();
         this.prepare();
