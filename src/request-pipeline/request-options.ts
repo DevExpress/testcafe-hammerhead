@@ -21,7 +21,7 @@ export default class RequestOptions {
     method: string;
     credentials: Credentials;
     body: Buffer;
-    isAjax: boolean;
+    isAjax?: boolean;
     rawHeaders: string[];
     headers: OutgoingHttpHeaders;
     transformedHeaders: OutgoingHttpHeaders;

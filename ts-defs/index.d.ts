@@ -146,7 +146,7 @@ declare module 'testcafe-hammerhead' {
         externalProxySettings?: ExternalProxySettings;
         credentials?: Credentials;
         body: Buffer;
-        isAjax: boolean;
+        isAjax?: boolean;
         rawHeaders?: string[];
         requestId: string;
         requestTimeout: RequestTimeout;
