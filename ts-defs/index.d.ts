@@ -154,6 +154,31 @@ declare module 'testcafe-hammerhead' {
         disableHttp2?: boolean;
     }
 
+    interface ParsedUrl {
+        protocol?: string;
+        host?: string;
+        hostname?: string;
+        port?: string;
+        partAfterHost?: string;
+        auth?: string;
+    }
+
+    interface ParsedProxyUrl {
+        destUrl: string;
+        destResourceInfo: ParsedUrl;
+        partAfterHost: string;
+        sessionId: string;
+        resourceType: string;
+        charset?: string;
+        reqOrigin?: string;
+        windowId?: string;
+        credentials?: number,
+        proxy: {
+            hostname: string;
+            port: string;
+        };
+    }
+
     /** The Session class is used to create a web-proxy session **/
     export abstract class Session {
         /** Unique identifier of the Session instance **/
@@ -446,9 +471,9 @@ declare module 'testcafe-hammerhead' {
     /** The set of utility methods to manipulate with ResponseMock.setBody method **/
     export const responseMockSetBodyMethod: ResponseMockSetBodyMethod;
 
-    /** Utils **/
-    export const utils: {
-        /** Promisify steam **/
-        promisifyStream: (s: NodeJS.ReadableStream, contentLength?: string) => Promise<Buffer>
-    };
+    /** Promisify steam **/
+    export function promisifyStream(s: NodeJS.ReadableStream, contentLength?: string): Promise<Buffer>;
+
+    /** Parse proxy url **/
+    export function parseProxyUrl(url: string): ParsedProxyUrl;
 }

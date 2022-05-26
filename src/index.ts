@@ -6,7 +6,11 @@ import UploadStorage from './upload/storage';
 import { processScript, isScriptProcessed } from './processing/script';
 import ConfigureResponseEventOptions from './session/events/configure-response-event-options';
 import StateSnapshot from './session/state-snapshot';
-import { SPECIAL_BLANK_PAGE, SPECIAL_ERROR_PAGE } from './utils/url';
+import {
+    parseProxyUrl,
+    SPECIAL_BLANK_PAGE,
+    SPECIAL_ERROR_PAGE,
+} from './utils/url';
 import generateUniqueId from './utils/generate-unique-id';
 import * as responseMockSetBodyMethod from './request-pipeline/request-hooks/response-mock/set-body-method';
 import RequestEvent from './session/events/request-event';
@@ -35,7 +39,6 @@ export default {
     ResponseEvent,
     DestinationRequest,
     RequestOptions,
-    utils: {
-        promisifyStream,
-    },
+    promisifyStream,
+    parseProxyUrl,
 };
