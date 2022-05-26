@@ -59,7 +59,7 @@ export interface RequestOptionsInit {
     body: Buffer;
     isAjax?: boolean;
     rawHeaders?: string[];
-    requestId: string;
+    requestId?: string;
     requestTimeout?: RequestTimeout;
     isWebSocket?: boolean;
     disableHttp2?: boolean;

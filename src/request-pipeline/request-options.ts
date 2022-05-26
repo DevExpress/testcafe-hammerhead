@@ -10,13 +10,7 @@ import * as headerTransforms from './header-transforms';
 import { inject as injectUpload } from '../upload';
 import matchUrl from 'match-url-wildcard';
 import { RequestTimeout } from '../typings/proxy';
-
-const defaultOptions = {
-    isAjax:      false,
-    rawHeaders:  [],
-    isWebSocket: false,
-
-};
+import generateUniqueId from '../utils/generate-unique-id';
 
 export default class RequestOptions {
     url: string;
@@ -44,7 +38,12 @@ export default class RequestOptions {
     disableHttp2: boolean;
 
     constructor (params: RequestOptionsInit) {
-        Object.assign(this, defaultOptions, params);
+        Object.assign(this, params);
+
+        this.isAjax      = this.isAjax || false;
+        this.rawHeaders  = this.rawHeaders || [];
+        this.isWebSocket = this.isWebSocket || false;
+        this.requestId   = this.requestId || generateUniqueId();
 
         this._applyExternalProxySettings();
         this.prepare();

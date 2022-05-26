@@ -148,8 +148,8 @@ declare module 'testcafe-hammerhead' {
         body: Buffer;
         isAjax?: boolean;
         rawHeaders?: string[];
-        requestId: string;
-        requestTimeout: RequestTimeout;
+        requestId?: string;
+        requestTimeout?: RequestTimeout;
         isWebSocket?: boolean;
         disableHttp2?: boolean;
     }
