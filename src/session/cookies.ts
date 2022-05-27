@@ -5,6 +5,7 @@ import { parseUrl } from '../utils/url';
 import { parse as parseJSON, stringify as stringifyJSON } from '../utils/json';
 import { URL } from 'url';
 import { DestInfo } from '../request-pipeline/context';
+import { parseClientSyncCookieStr } from '../utils/cookie';
 
 const LOCALHOST_DOMAIN = 'localhost';
 const LOCALHOST_IP     = '127.0.0.1';
@@ -272,6 +273,28 @@ export default class Cookies {
             const url    = { hostname: syncCookie.domain, pathname: syncCookie.path };
 
             this._set(url, cookie, true);
+        }
+    }
+
+    copySyncCookies (syncCookie: string, toUrl: string) {
+        let domain; let path;
+
+        try {
+            ({ hostname: domain, pathname: path } = new URL(toUrl));
+        }
+        catch (e) {
+            return;
+        }
+
+        const { actual: cookies } = parseClientSyncCookieStr(syncCookie);
+
+        for (const cookie of cookies) {
+            const { key, value, expires, lastAccessed } = cookie;
+
+            const cookieToSet = new Cookie({ key, value, expires, lastAccessed, domain, path });
+
+            this._putCookieSync(cookieToSet);
+            this._pendingSyncCookies.push(cookieToSet);
         }
     }
 

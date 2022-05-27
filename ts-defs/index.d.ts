@@ -117,7 +117,7 @@ declare module 'testcafe-hammerhead' {
 
         getHeader({ url, hostname }: { url: string, hostname: string }): string | null;
 
-        setByServer (url: string, cookies: string | string[]): void;
+        copySyncCookies (syncCookie: string, toUrl: string): void;
     }
 
     /** Initialization options for the IncomingMessageLike object **/
