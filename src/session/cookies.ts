@@ -277,10 +277,11 @@ export default class Cookies {
     }
 
     copySyncCookies (syncCookie: string, toUrl: string) {
-        let domain; let path;
+        let hostname;
+        let pathname;
 
         try {
-            ({ hostname: domain, pathname: path } = new URL(toUrl));
+            ({ hostname, pathname } = new URL(toUrl));
         }
         catch (e) {
             return;
@@ -289,12 +290,13 @@ export default class Cookies {
         const { actual: cookies } = parseClientSyncCookieStr(syncCookie);
 
         for (const cookie of cookies) {
-            const { key, value, expires, lastAccessed } = cookie;
+            const { domain, path, key } = cookie;
 
-            const cookieToSet = new Cookie({ key, value, expires, lastAccessed, domain, path });
+            const originCookie = this._findCookieSync(domain, path, key);
+            const newCookie    = new Cookie(Object.assign({}, originCookie, { domain: hostname, path: pathname }));
 
-            this._putCookieSync(cookieToSet);
-            this._pendingSyncCookies.push(cookieToSet);
+            this._putCookieSync(newCookie);
+            this._pendingSyncCookies.push(newCookie);
         }
     }
 
