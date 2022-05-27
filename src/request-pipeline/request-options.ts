@@ -13,6 +13,15 @@ import { RequestTimeout } from '../typings/proxy';
 import generateUniqueId from '../utils/generate-unique-id';
 import { addAuthorizationPrefix } from '../utils/headers';
 
+const DEFAULT_REQUEST_OPTIONS = {
+    isAjax:      false,
+    rawHeaders:  [],
+    isWebSocket: false,
+    get requestId () {
+        return generateUniqueId();
+    },
+};
+
 export default class RequestOptions {
     url: string;
     protocol: string;
@@ -39,12 +48,7 @@ export default class RequestOptions {
     disableHttp2: boolean;
 
     constructor (params: RequestOptionsInit) {
-        Object.assign(this, params);
-
-        this.isAjax      = this.isAjax || false;
-        this.rawHeaders  = this.rawHeaders || [];
-        this.isWebSocket = this.isWebSocket || false;
-        this.requestId   = this.requestId || generateUniqueId();
+        Object.assign(this, DEFAULT_REQUEST_OPTIONS, params);
 
         this._applyExternalProxySettings();
         this.prepare();
