@@ -133,7 +133,7 @@ declare module 'testcafe-hammerhead' {
         remove(res: IncomingMessageLikeInitOptions): void;
     }
 
-    interface RequestOptionsInit {
+    export interface RequestOptionsParams {
         method: string;
         url: string;
         protocol: string;
@@ -435,7 +435,7 @@ declare module 'testcafe-hammerhead' {
         headers: OutgoingHttpHeaders;
 
         /** Creates a RequestOptions instance **/
-        constructor (params: RequestOptionsInit);
+        constructor (params: RequestOptionsParams);
     }
 
     /** The ResponseMock class is used to send request **/
