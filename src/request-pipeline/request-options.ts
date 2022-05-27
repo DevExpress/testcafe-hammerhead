@@ -11,6 +11,7 @@ import { inject as injectUpload } from '../upload';
 import matchUrl from 'match-url-wildcard';
 import { RequestTimeout } from '../typings/proxy';
 import generateUniqueId from '../utils/generate-unique-id';
+import { addAuthorizationPrefix } from '../utils/headers';
 
 export default class RequestOptions {
     url: string;
@@ -55,6 +56,14 @@ export default class RequestOptions {
         // NOTE: First, we should rewrite the request body, because the 'content-length' header will be built based on it.
         if (bodyWithUploads)
             ctx.reqBody = bodyWithUploads;
+
+        // NOTE: We should save authorization and proxyAuthorization headers for API requests.
+        if (ctx.req.headers[BUILTIN_HEADERS.isApiRequest]) {
+            if (ctx.req.headers[BUILTIN_HEADERS.authorization])
+                ctx.req.headers[BUILTIN_HEADERS.authorization] = addAuthorizationPrefix(ctx.req.headers[BUILTIN_HEADERS.authorization] as string);
+            if (ctx.req.headers[BUILTIN_HEADERS.proxyAuthorization])
+                ctx.req.headers[BUILTIN_HEADERS.proxyAuthorization] = addAuthorizationPrefix(ctx.req.headers[BUILTIN_HEADERS.proxyAuthorization] as string);
+        }
 
         return new RequestOptions({
             // NOTE: All headers, including 'content-length', are built here.
