@@ -10,6 +10,22 @@ interface ExternalProxySettingsRaw {
     bypassRules?: string[]
 }
 
+interface ExternalProxySettings {
+    host: string;
+    hostname: string;
+    bypassRules?: string[];
+    port?: string;
+    proxyAuth?: string;
+    authHeader?: string;
+}
+
+interface Credentials {
+    username: string;
+    password: string;
+    domain?: string;
+    workstation?: string;
+}
+
 interface RequestTimeout {
     page?: number;
     ajax?: number;
@@ -33,9 +49,7 @@ interface RequestFilterRuleObjectInitializer {
     isAjax: boolean;
 }
 
-interface RequestFilterRuleOptions extends RequestFilterRuleObjectInitializer {}
-
-type RequestFilterRuleInit = string | RegExp | Partial<RequestFilterRuleObjectInitializer> | RequestFilterRulePredicate;
+type RequestFilterRuleOptions = RequestFilterRuleObjectInitializer
 
 interface RequestFilterRuleObjectInitializer {
     url: string | RegExp;
@@ -46,7 +60,11 @@ interface RequestFilterRuleObjectInitializer {
 type RequestFilterRulePredicate = (requestInfo: RequestInfo) => boolean | Promise<boolean>;
 
 declare module 'testcafe-hammerhead' {
-    import { IncomingHttpHeaders } from 'http';
+    import {
+        IncomingHttpHeaders, OutgoingHttpHeaders, IncomingMessage,
+    } from 'http';
+
+    type StrictIncomingMessage = IncomingMessage & { statusCode: number, statusMessage: string };
 
     export type RequestFilterRuleInit = string | RegExp | Partial<RequestFilterRuleObjectInitializer> | RequestFilterRulePredicate;
 
@@ -96,6 +114,10 @@ declare module 'testcafe-hammerhead' {
         setCookies (externalCookies: ExternalCookies[], url: string): Promise<void>;
 
         deleteCookies (externalCookies: ExternalCookies[], urls: string[]): Promise<void>;
+
+        getHeader({ url, hostname }: { url: string, hostname: string }): string | null;
+
+        copySyncCookies (syncCookie: string, toUrl: string): void;
     }
 
     /** Initialization options for the IncomingMessageLike object **/
@@ -109,6 +131,52 @@ declare module 'testcafe-hammerhead' {
     interface ResponseMockSetBodyMethod {
         add(res: IncomingMessageLikeInitOptions): void;
         remove(res: IncomingMessageLikeInitOptions): void;
+    }
+
+    export interface RequestOptionsParams {
+        method: string;
+        url: string;
+        protocol: string;
+        hostname: string;
+        host: string;
+        port?: string | void;
+        path: string;
+        auth?: string | void;
+        headers: OutgoingHttpHeaders;
+        externalProxySettings?: ExternalProxySettings;
+        credentials?: Credentials;
+        body: Buffer;
+        isAjax?: boolean;
+        rawHeaders?: string[];
+        requestId?: string;
+        requestTimeout?: RequestTimeout;
+        isWebSocket?: boolean;
+        disableHttp2?: boolean;
+    }
+
+    interface ParsedUrl {
+        protocol?: string;
+        host?: string;
+        hostname?: string;
+        port?: string;
+        partAfterHost?: string;
+        auth?: string;
+    }
+
+    interface ParsedProxyUrl {
+        destUrl: string;
+        destResourceInfo: ParsedUrl;
+        partAfterHost: string;
+        sessionId: string;
+        resourceType: string;
+        charset?: string;
+        reqOrigin?: string;
+        windowId?: string;
+        credentials?: number,
+        proxy: {
+            hostname: string;
+            port: string;
+        };
     }
 
     /** The Session class is used to create a web-proxy session **/
@@ -161,6 +229,9 @@ declare module 'testcafe-hammerhead' {
 
         /** Remove the header on the specified ConfigureResponseEvent **/
         removeHeaderOnConfigureResponseEvent (eventId: string, headerName: string): Promise<void>;
+
+        /** Check disabling http2 **/
+        isHttp2Disabled (): boolean;
     }
 
     /** The Proxy class is used to create a web-proxy **/
@@ -355,6 +426,33 @@ declare module 'testcafe-hammerhead' {
         methodName: string;
     }
 
+    /** The RequestOptions class is used to construct the request options **/
+    export class RequestOptions {
+        /** Request method **/
+        method: string;
+
+        /** Request headers **/
+        headers: OutgoingHttpHeaders;
+
+        /** Creates a RequestOptions instance **/
+        constructor (params: RequestOptionsParams);
+    }
+
+    /** The ResponseMock class is used to send request **/
+    export class DestinationRequest {
+        /** Creates a DestinationRequest instance **/
+        constructor (opts: RequestOptions, cache?: boolean);
+
+        /** Response event **/
+        on(event: 'response', listener: (res: StrictIncomingMessage) => void): this;
+
+        /** Error event **/
+        on(event: 'error', listener: (err: Error) => void): this;
+
+        /** Fatal error event **/
+        on(event: 'fatalError', listener: (err: string) => void): this;
+    }
+
     /** Generates an URL friendly string identifier **/
     export function generateUniqueId(length?: number): string;
 
@@ -372,4 +470,10 @@ declare module 'testcafe-hammerhead' {
 
     /** The set of utility methods to manipulate with ResponseMock.setBody method **/
     export const responseMockSetBodyMethod: ResponseMockSetBodyMethod;
+
+    /** Promisify steam **/
+    export function promisifyStream(s: NodeJS.ReadableStream, contentLength?: string): Promise<Buffer>;
+
+    /** Parse proxy url **/
+    export function parseProxyUrl(url: string): ParsedProxyUrl;
 }

@@ -12,7 +12,7 @@ const RequestFilterRule     = require('../../../lib/request-pipeline/request-hoo
 const { gzip }              = require('../../../lib/utils/promisified-functions');
 const urlUtils              = require('../../../lib/utils/url');
 const { processScript }     = require('../../../lib/processing/script');
-const Session               = require('../../../lib/session');
+const DestinationRequest    = require('../../../lib/request-pipeline/destination-request');
 const headersUtils          = require('../../../lib/utils/headers');
 const {
     createDestinationServer,
@@ -634,36 +634,66 @@ describe('Proxy', () => {
                     expect(importUrl).eql('http://127.0.0.1:1836/sessionId*12345!s!utf-8/http://localhost:2000/module-name');
                 });
         });
+    });
+
+    describe('DestinationRequest', () => {
+        class MockDestinationRequest extends DestinationRequest {
+            _send () {}
+        }
 
         it('Should calculate the effective request timeouts', () => {
-            const sessionWithDefaultParameters = new Session();
+            const sessionWithDefaultParameters = new MockDestinationRequest({});
 
-            expect(sessionWithDefaultParameters.options.requestTimeout.page).eql(25000);
-            expect(sessionWithDefaultParameters.options.requestTimeout.ajax).eql(120000);
+            expect(sessionWithDefaultParameters.timeout).eql(25000);
 
-            const sessionWithSpecifiedPageTimeout = new Session('/upload-root-folder', {
+            const sessionWithDefaultParametersIsAjax = new MockDestinationRequest({ isAjax: true });
+
+            expect(sessionWithDefaultParametersIsAjax.timeout).eql(120000);
+
+            const sessionWithSpecifiedPageTimeout = new MockDestinationRequest({
                 requestTimeout: { page: 100 },
             });
 
-            expect(sessionWithSpecifiedPageTimeout.options.requestTimeout.page).eql(100);
-            expect(sessionWithSpecifiedPageTimeout.options.requestTimeout.ajax).eql(120000);
+            expect(sessionWithSpecifiedPageTimeout.timeout).eql(100);
 
-            const sessionWithSpecifiedBothTimeouts = new Session('/upload-root-folder', {
+            const sessionWithSpecifiedPageTimeoutIsAjax = new MockDestinationRequest({
+                requestTimeout: { page: 100 },
+                isAjax:         true,
+            });
+
+            expect(sessionWithSpecifiedPageTimeoutIsAjax.timeout).eql(120000);
+
+            const sessionWithSpecifiedBothTimeouts = new MockDestinationRequest({
                 requestTimeout: { page: 100, ajax: 200 },
             });
 
-            expect(sessionWithSpecifiedBothTimeouts.options.requestTimeout.page).eql(100);
-            expect(sessionWithSpecifiedBothTimeouts.options.requestTimeout.ajax).eql(200);
+            expect(sessionWithSpecifiedBothTimeouts.timeout).eql(100);
 
-            const sessionWithUndefinedTimeouts = new Session('/upload-root-folder', {
+            const sessionWithSpecifiedBothTimeoutsIsAjax = new MockDestinationRequest({
+                requestTimeout: { page: 100, ajax: 200 },
+                isAjax:         true,
+            });
+
+            expect(sessionWithSpecifiedBothTimeoutsIsAjax.timeout).eql(200);
+
+            const sessionWithUndefinedTimeouts = new MockDestinationRequest({
                 requestTimeout: {
                     page: void 0,
                     ajax: void 0,
                 },
             });
 
-            expect(sessionWithUndefinedTimeouts.options.requestTimeout.page).eql(25000);
-            expect(sessionWithUndefinedTimeouts.options.requestTimeout.ajax).eql(120000);
+            expect(sessionWithUndefinedTimeouts.timeout).eql(25000);
+
+            const sessionWithUndefinedTimeoutsIsAjax = new MockDestinationRequest({
+                requestTimeout: {
+                    page: void 0,
+                    ajax: void 0,
+                },
+                isAjax: true,
+            });
+
+            expect(sessionWithUndefinedTimeoutsIsAjax.timeout).eql(120000);
         });
     });
 

@@ -265,6 +265,8 @@ describe('Regression', () => {
     });
 
     it('Should raise error on request timeout (T224541)', done => {
+        session.options.requestTimeout = {};
+
         const savedReqTimeout = session.options.requestTimeout.page;
 
         session.options.requestTimeout.page = 200;
@@ -295,6 +297,8 @@ describe('Regression', () => {
     });
 
     it('Should use a special timeout for xhr requests (GH-347)', () => {
+        session.options.requestTimeout = {};
+
         const savedReqTimeout    = session.options.requestTimeout.page;
         const savedXhrReqTimeout = session.options.requestTimeout.ajax;
 
@@ -669,7 +673,7 @@ describe('Regression', () => {
     it('Should abort destination request after fatal error (GH-937)', done => {
         let fatalErrorEventCount = 0;
 
-        const requestOptions = new RequestOptions({
+        const requestOptions = RequestOptions.createFrom({
             dest: {
                 url:      'http://127.0.0.1:2000/wait/150',
                 protocol: 'http:',

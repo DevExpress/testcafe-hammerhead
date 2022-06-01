@@ -84,7 +84,7 @@ function addServiceHeaders (headers: OutgoingHttpHeaders, processedHeaders: obje
     }
 }
 
-export function transformHeadersCaseToRaw (headers: OutgoingHttpHeaders, rawHeaders: string[]): object {
+export function transformHeadersCaseToRaw (headers: OutgoingHttpHeaders, rawHeaders: string[] = []): object {
     const processedHeaders = {};
     const headersNames     = Object.keys(headers);
 

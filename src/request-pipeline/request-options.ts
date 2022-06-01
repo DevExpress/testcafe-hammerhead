@@ -1,19 +1,33 @@
 import RequestPipelineContext from './context';
-import { Credentials, ExternalProxySettings } from '../typings/session';
+import {
+    Credentials,
+    ExternalProxySettings,
+    RequestOptionsInit,
+} from '../typings/session';
 import { OutgoingHttpHeaders } from 'http';
 import BUILTIN_HEADERS from './builtin-header-names';
 import * as headerTransforms from './header-transforms';
 import { inject as injectUpload } from '../upload';
 import matchUrl from 'match-url-wildcard';
 import { RequestTimeout } from '../typings/proxy';
+import generateUniqueId from '../utils/generate-unique-id';
+import { addAuthorizationPrefix } from '../utils/headers';
 
+const DEFAULT_REQUEST_OPTIONS = {
+    isAjax:      false,
+    rawHeaders:  [],
+    isWebSocket: false,
+    get requestId () {
+        return generateUniqueId();
+    },
+};
 
 export default class RequestOptions {
     url: string;
     protocol: string;
     hostname: string;
     host: string;
-    port: string|void;
+    port?: string;
     path: string;
     method: string;
     credentials: Credentials;
@@ -22,62 +36,76 @@ export default class RequestOptions {
     rawHeaders: string[];
     headers: OutgoingHttpHeaders;
     transformedHeaders: OutgoingHttpHeaders;
-    auth: string | void;
+    auth?: string;
     requestId: string;
     proxy?: ExternalProxySettings;
+    externalProxySettings?: ExternalProxySettings;
     agent?: any;
     ecdhCurve?: string;
     rejectUnauthorized?: boolean;
-    requestTimeout: RequestTimeout;
+    requestTimeout?: RequestTimeout;
     isWebSocket: boolean;
     disableHttp2: boolean;
 
-    constructor (ctx: RequestPipelineContext) {
+    constructor (params: RequestOptionsInit) {
+        Object.assign(this, DEFAULT_REQUEST_OPTIONS, params);
+
+        this._applyExternalProxySettings();
+        this.prepare();
+    }
+
+    public static createFrom (ctx: RequestPipelineContext): RequestOptions {
         const bodyWithUploads = injectUpload(ctx.req.headers[BUILTIN_HEADERS.contentType] as string, ctx.reqBody);
 
         // NOTE: First, we should rewrite the request body, because the 'content-length' header will be built based on it.
         if (bodyWithUploads)
             ctx.reqBody = bodyWithUploads;
 
-        // NOTE: All headers, including 'content-length', are built here.
-        const headers = headerTransforms.forRequest(ctx);
-        const proxy   = ctx.session.externalProxySettings;
+        // NOTE: We should save authorization and proxyAuthorization headers for API requests.
+        if (ctx.req.headers[BUILTIN_HEADERS.isApiRequest]) {
+            if (ctx.req.headers[BUILTIN_HEADERS.authorization])
+                ctx.req.headers[BUILTIN_HEADERS.authorization] = addAuthorizationPrefix(ctx.req.headers[BUILTIN_HEADERS.authorization] as string);
+            if (ctx.req.headers[BUILTIN_HEADERS.proxyAuthorization])
+                ctx.req.headers[BUILTIN_HEADERS.proxyAuthorization] = addAuthorizationPrefix(ctx.req.headers[BUILTIN_HEADERS.proxyAuthorization] as string);
+        }
 
-        this.url            = ctx.dest.url;
-        this.protocol       = ctx.dest.protocol;
-        this.hostname       = ctx.dest.hostname;
-        this.host           = ctx.dest.host;
-        this.port           = ctx.dest.port;
-        this.path           = ctx.dest.partAfterHost;
-        this.auth           = ctx.dest.auth;
-        this.method         = ctx.req.method || '';
-        this.credentials    = ctx.session.getAuthCredentials();
-        this.body           = ctx.reqBody;
-        this.isAjax         = ctx.isAjax;
-        this.rawHeaders     = ctx.req.rawHeaders;
-        this.headers        = headers;
-        this.requestId      = ctx.requestId;
-        this.requestTimeout = ctx.session.options.requestTimeout;
-        this.isWebSocket    = ctx.isWebSocket;
-        this.disableHttp2   = ctx.session.isHttp2Disabled();
-
-        this._applyExternalProxySettings(proxy, ctx, headers);
+        return new RequestOptions({
+            // NOTE: All headers, including 'content-length', are built here.
+            headers:               headerTransforms.forRequest(ctx),
+            externalProxySettings: ctx.session.externalProxySettings || void 0,
+            url:                   ctx.dest.url,
+            protocol:              ctx.dest.protocol,
+            hostname:              ctx.dest.hostname,
+            host:                  ctx.dest.host,
+            port:                  ctx.dest.port,
+            path:                  ctx.dest.partAfterHost,
+            auth:                  ctx.dest.auth,
+            method:                ctx.req.method || '',
+            credentials:           ctx.session.getAuthCredentials(),
+            body:                  ctx.reqBody,
+            isAjax:                ctx.isAjax,
+            rawHeaders:            ctx.req.rawHeaders,
+            requestId:             ctx.requestId,
+            requestTimeout:        ctx.session.options.requestTimeout,
+            isWebSocket:           ctx.isWebSocket,
+            disableHttp2:          ctx.session.isHttp2Disabled(),
+        });
     }
 
-    private _applyExternalProxySettings (proxy, ctx: RequestPipelineContext, headers: OutgoingHttpHeaders): void {
-        if (!proxy || matchUrl(ctx.dest.url, proxy.bypassRules))
+    private _applyExternalProxySettings (): void {
+        if (!this.externalProxySettings || matchUrl(this.url, this.externalProxySettings.bypassRules))
             return;
 
-        this.proxy = proxy;
+        this.proxy = this.externalProxySettings;
 
-        if (ctx.dest.protocol === 'http:') {
+        if (this.protocol === 'http:') {
             this.path     = this.protocol + '//' + this.host + this.path;
-            this.host     = proxy.host;
-            this.hostname = proxy.hostname;
-            this.port     = proxy.port;
+            this.host     = this.externalProxySettings.host;
+            this.hostname = this.externalProxySettings.hostname;
+            this.port     = this.externalProxySettings.port;
 
-            if (proxy.authHeader)
-                headers[BUILTIN_HEADERS.proxyAuthorization] = proxy.authHeader;
+            if (this.externalProxySettings.authHeader)
+                this.headers[BUILTIN_HEADERS.proxyAuthorization] = this.externalProxySettings.authHeader;
         }
     }
 

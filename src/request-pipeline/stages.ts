@@ -53,7 +53,7 @@ export default [
     },
 
     async function sendDestinationRequest (ctx: RequestPipelineContext) {
-        ctx.reqOpts = new RequestOptions(ctx);
+        ctx.reqOpts = RequestOptions.createFrom(ctx);
 
         if (ctx.isSpecialPage) {
             ctx.respondForSpecialPage();
