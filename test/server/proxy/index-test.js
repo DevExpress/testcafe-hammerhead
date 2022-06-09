@@ -1155,7 +1155,7 @@ describe('Proxy', () => {
                 .then(res => {
                     expect(res.statusCode).eql(200);
                     expect(replaceLastAccessedTime(res.headers['set-cookie'][0]))
-                        .eql(`s|${session.id}|key|127.0.0.1|%2F||%lastAccessed%=value;path=/`);
+                        .eql(`s|${session.id}|key|127.0.0.1|%2F||%lastAccessed%|=value;path=/`);
                     expect(res.headers[BUILTIN_HEADERS.accessControlAllowOrigin]).to.be.empty;
                     expect(session.cookies.getClientString('http://127.0.0.1:2000')).eql('key=value');
                 });
