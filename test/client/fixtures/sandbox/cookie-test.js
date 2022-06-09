@@ -82,6 +82,16 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
             'Test9=DomainNotMatch; domain=b.example.com',
         ], 'Test1=DomainMatch; Test2=DomainMatch; Test3=DomainMatch; Test4=DomainMatch; Test5=DomainMatch');
 
+        await testCookies(storedForcedLocation, [
+            'Test1=Expired; expires=' + new Date((Math.floor(Date.now() / 1000) + 1) * 1000).toUTCString(),
+            'Test2=Expired; max-age=' + 1,
+        ], 'Test1=Expired; Test2=Expired');
+
+        await testCookies(storedForcedLocation, [
+            'Test1=Expired; expires=' + new Date((Math.floor(Date.now() / 1000) + 1) * 1000).toUTCString(),
+            'Test2=Expired; max-age=' + 1,
+        ], '', 2000);
+
         destLocation.forceLocation(storedForcedLocation);
     });
 
