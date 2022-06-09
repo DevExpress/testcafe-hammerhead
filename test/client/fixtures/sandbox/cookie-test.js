@@ -30,10 +30,10 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
         settings.get().cookie = '';
     });
 
-    test('get/set', function () {
+    test('get/set', async function () {
         var storedForcedLocation = destLocation.getLocation();
 
-        function testCookies (location, cookieStrs, expectedCookies) {
+        async function testCookies (location, cookieStrs, expectedCookies, waitBeforeGet = 0) {
             if (location !== storedForcedLocation)
                 destLocation.forceLocation(urlUtils.getProxyUrl(location));
 
@@ -42,10 +42,13 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
             for (var i = 0; i < cookieStrs.length; i++)
                 document.cookie = cookieStrs[i];
 
+            if (waitBeforeGet)
+                await window.wait(waitBeforeGet);
+
             strictEqual(document.cookie, expectedCookies, 'destLocation = ' + destLocation.getLocation());
         }
 
-        testCookies(storedForcedLocation, [
+        await testCookies(storedForcedLocation, [
             'Test1=Basic; expires=' + validDateStr,
             'Test2=PathMatch; expires=' + validDateStr + '; path=/',
             'Test4=DomainMatch; expires=' + validDateStr + '; domain=.example.com',
@@ -56,21 +59,22 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
             'Test9=Duplicate; One=More; expires=' + validDateStr + '; path=/',
             'Test10=' + new Array(350).join('(big cookie)'),
             'value without key',
+            'Test11=Outdated; max-age=0; path=/',
         ], 'Test1=Basic; Test2=PathMatch; Test4=DomainMatch; Test7=Secure; Test9=Duplicate; value without key');
 
-        testCookies('http://localhost', [
+        await testCookies('http://localhost', [
             'Test1=DomainMatch; expires=' + validDateStr + '; domain=localhost',
             'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=localhost:80',
             'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=127.0.0.1',
         ], 'Test1=DomainMatch');
 
-        testCookies('http://127.0.0.1', [
+        await testCookies('http://127.0.0.1', [
             'Test1=DomainMatch; expires=' + validDateStr + '; domain=127.0.0.1',
             'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=127.0.0.1:80',
             'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=localhost',
         ], 'Test1=DomainMatch');
 
-        testCookies('http://sub.example.com/', [
+        await testCookies('http://sub.example.com/', [
             'Test1=DomainMatch; domain=sub.example.com',
             'Test2=DomainMatch; domain=.sub.example.com',
             'Test3=DomainMatch; Domain=SUB.Example.com',
@@ -107,64 +111,64 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
     module('sharedCookieUtils.parseClientSyncCookieStr');
 
     test('different path', function () {
-        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2Fpath||1fckm5lnl=123;path=/');
-        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5ln1=321;path=/');
+        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2Fpath||1fckm5lnl|=123;path=/');
+        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5ln1|=321;path=/');
 
         var parsedCookie = sharedCookieUtils.parseClientSyncCookieStr(nativeMethods.documentCookieGetter.call(document));
 
-        strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2Fpath||1fckm5lnl');
-        strictEqual(parsedCookie.actual[1].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln1');
+        strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2Fpath||1fckm5lnl|');
+        strictEqual(parsedCookie.actual[1].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln1|');
     });
 
     test('different domain', function () {
-        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
-        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.uk|%2F||1fckm5ln1=321;path=/');
+        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl|=123;path=/');
+        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.uk|%2F||1fckm5ln1|=321;path=/');
 
         var parsedCookie = sharedCookieUtils.parseClientSyncCookieStr(nativeMethods.documentCookieGetter.call(document));
 
-        strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5lnl');
-        strictEqual(parsedCookie.actual[1].syncKey, 's|sessionId|test|example.uk|%2F||1fckm5ln1');
+        strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5lnl|');
+        strictEqual(parsedCookie.actual[1].syncKey, 's|sessionId|test|example.uk|%2F||1fckm5ln1|');
     });
 
     test('same lastAccessed time and different expire time', function () {
-        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F|1fm3324lk|1fckm5ln1=123;path=/');
-        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F|1fm3g5ln1|1fckm5ln1=321;path=/');
+        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F|1fm3324lk|1fckm5ln1|=123;path=/');
+        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F|1fm3g5ln1|1fckm5ln1|=321;path=/');
 
         var parsedCookie = sharedCookieUtils.parseClientSyncCookieStr(nativeMethods.documentCookieGetter.call(document));
 
-        strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F|1fm3g5ln1|1fckm5ln1');
-        strictEqual(parsedCookie.outdated[0].syncKey, 's|sessionId|test|example.com|%2F|1fm3324lk|1fckm5ln1');
+        strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F|1fm3g5ln1|1fckm5ln1|');
+        strictEqual(parsedCookie.outdated[0].syncKey, 's|sessionId|test|example.com|%2F|1fm3324lk|1fckm5ln1|');
     });
 
     test('different lastAccessed time and first is lower', function () {
-        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5ln1=123;path=/');
-        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5ln2=321;path=/');
+        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5ln1|=123;path=/');
+        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5ln2|=321;path=/');
 
         var parsedCookie = sharedCookieUtils.parseClientSyncCookieStr(nativeMethods.documentCookieGetter.call(document));
 
-        strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln2');
-        strictEqual(parsedCookie.outdated[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln1');
+        strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln2|');
+        strictEqual(parsedCookie.outdated[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln1|');
     });
 
     test('different lastAccessed time and last is lower', function () {
-        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5ln2=123;path=/');
-        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5ln1=321;path=/');
+        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5ln2|=123;path=/');
+        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5ln1|=321;path=/');
 
         var parsedCookie = sharedCookieUtils.parseClientSyncCookieStr(nativeMethods.documentCookieGetter.call(document));
 
-        strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln2');
-        strictEqual(parsedCookie.outdated[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln1');
+        strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln2|');
+        strictEqual(parsedCookie.outdated[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln1|');
     });
 
     test('a cookie value contains the "=" character', function () {
-        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5ln2=123=456=789;path=/');
+        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5ln2|=123=456=789;path=/');
         nativeMethods.documentCookieSetter.call(document, 'test=cookie;path=/');
 
         var parsedCookie = sharedCookieUtils.parseClientSyncCookieStr(nativeMethods.documentCookieGetter.call(document));
 
         strictEqual(parsedCookie.actual.length, 1);
         strictEqual(parsedCookie.outdated.length, 0);
-        strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln2');
+        strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln2|');
         strictEqual(parsedCookie.actual[0].value, '123=456=789');
     });
 
@@ -173,7 +177,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
     test('process synchronization cookies on document.cookie getter', function () {
         strictEqual(document.cookie, '');
 
-        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
+        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl|=123;path=/');
 
         strictEqual(document.cookie, 'test=123');
         strictEqual(nativeMethods.documentCookieGetter.call(document), '');
@@ -182,15 +186,17 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
     test('process synchronization cookies on document.cookie setter', function () {
         strictEqual(document.cookie, '');
 
-        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
+        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl|=123;path=/');
 
         strictEqual(settings.get().cookie, '');
 
         document.cookie = 'temp=temp';
 
         strictEqual(settings.get().cookie, 'temp=temp; test=123');
-        strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
-            'c|sessionId|temp|example.com|%2F||lastAccessed=temp');
+
+        console.log(nativeMethods.documentCookieGetter.call(document));
+        strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+\|=/, '|lastAccessed|='),
+            'c|sessionId|temp|example.com|%2F||lastAccessed|=temp');
     });
 
     test('set cookie from the XMLHttpRequest', function () {
@@ -250,8 +256,8 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
         document.cookie = 'invalid=path; Path=/path';
 
         strictEqual(settings.get().cookie, '');
-        strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
-            'c|sessionId|invalid|example.com|%2Fpath||lastAccessed=path');
+        strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+\|=/, '|lastAccessed|='),
+            'c|sessionId|invalid|example.com|%2Fpath||lastAccessed|=path');
     });
 
     test('cookie with the invalid secure', function () {
@@ -264,8 +270,8 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
         document.cookie = 'Secure=Secure; Secure';
 
         strictEqual(settings.get().cookie, '');
-        strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
-            'c|sessionId|Secure|example.com|%2F||lastAccessed=Secure');
+        strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+\|=/, '|lastAccessed|='),
+            'c|sessionId|Secure|example.com|%2F||lastAccessed|=Secure');
 
         destLocation.forceLocation(storedForcedLocation);
     });
@@ -276,8 +282,8 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
         document.cookie = 'test=test; Path=/; Secure';
 
         strictEqual(settings.get().cookie, 'test=test');
-        strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
-            'c|sessionId|test|example.com|%2F||lastAccessed=test');
+        strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+\|=/, '|lastAccessed|='),
+            'c|sessionId|test|example.com|%2F||lastAccessed|=test');
     });
 
     module('synchronization between windows');
@@ -305,20 +311,20 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
 
                 checkCookies('');
 
-                nativeMethods.documentCookieSetter.call(document, 's|sessionId|cafe|example.com|%2F||1fckm5lnl=321;path=/');
-                nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
+                nativeMethods.documentCookieSetter.call(document, 's|sessionId|cafe|example.com|%2F||1fckm5lnl|=321;path=/');
+                nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl|=123;path=/');
 
                 document.cookie; // eslint-disable-line no-unused-expressions
 
                 checkCookies('cafe=321; test=123');
 
-                nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lz3=321;path=/');
+                nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lz3|=321;path=/');
 
                 iframe.contentDocument.cookie; // eslint-disable-line no-unused-expressions
 
                 checkCookies('cafe=321; test=321');
 
-                nativeMethods.documentCookieSetter.call(document, 's|sessionId|cafe|example.com|%2F|0|1fckm5lz6=value;path=/');
+                nativeMethods.documentCookieSetter.call(document, 's|sessionId|cafe|example.com|%2F|0|1fckm5lz6|=value;path=/');
 
                 embeddedIframe.contentDocument.cookie; // eslint-disable-line no-unused-expressions
 
@@ -360,8 +366,8 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
             .then(function (frames) {
                 iframes = frames;
 
-                nativeMethods.documentCookieSetter.call(document, 's|sessionId|cafe|example.com|%2F||1fckm5lnl=321;path=/');
-                nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
+                nativeMethods.documentCookieSetter.call(document, 's|sessionId|cafe|example.com|%2F||1fckm5lnl|=321;path=/');
+                nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl|=123;path=/');
 
                 strictEqual(settings.get().cookie, '');
                 strictEqual(iframes[1].contentWindow['%hammerhead%'].settings.get().cookie, '');
@@ -388,7 +394,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
                 ]);
             })
             .then(function () {
-                nativeMethods.documentCookieSetter.call(document, 's|sessionId|cafe|example.com|%2F|0|1fckm5lz6=value;path=/');
+                nativeMethods.documentCookieSetter.call(document, 's|sessionId|cafe|example.com|%2F|0|1fckm5lz6|=value;path=/');
                 callMethod(iframes[0].contentWindow, 'postMessage', ['set cookie', '*']);
 
                 return window.QUnitGlobals.wait(realCookieIsEmpty, 5000);
@@ -408,8 +414,8 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
                 strictEqual(settings.get().cookie, 'test=123; set=cookie; client=cookie');
 
                 if (!browserUtils.isIE) {
-                    strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
-                        'cw|sessionId|client|example.com|%2F||lastAccessed=cookie');// ??
+                    strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+\|=/, '|lastAccessed|='),
+                        'cw|sessionId|client|example.com|%2F||lastAccessed|=cookie');// ??
                 }
 
                 return window.QUnitGlobals.wait(function () {
@@ -417,8 +423,8 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
                 }, 5000);
             })
             .then(function () {
-                strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
-                    'c|sessionId|client|example.com|%2F||lastAccessed=cookie');
+                strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+\|=/, '|lastAccessed|='),
+                    'c|sessionId|client|example.com|%2F||lastAccessed|=cookie');
 
                 return Promise.all([
                     checkCrossDomainIframeCookie(iframes[0], 'test=123; set=cookie; client=cookie'),
@@ -430,7 +436,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
     test('actual cookie in iframe even if a synchronization message does not received yet', function () {
         return createTestIframe({ src: getSameDomainPageUrl('../../data/cookie-sandbox/same-domain-iframe.html') })
             .then(function (iframe) {
-                nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
+                nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl|=123;path=/');
 
                 var storedCookieSandbox = iframe.contentWindow['%hammerhead%'].sandbox.cookie;
 
@@ -440,7 +446,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
 
                 iframe.contentWindow['%hammerhead%'].sandbox.cookie = storedCookieSandbox;
 
-                strictEqual(nativeMethods.documentCookieGetter.call(document), 'w|sessionId|test|example.com|%2F||1fckm5lnl=123');
+                strictEqual(nativeMethods.documentCookieGetter.call(document), 'w|sessionId|test|example.com|%2F||1fckm5lnl|=123');
                 strictEqual(iframe.contentDocument.cookie, 'test=123');
 
                 return window.QUnitGlobals.wait(function () {
@@ -455,10 +461,10 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
                 var unloadSandbox       = window['%hammerhead%'].sandbox.event.unload;
                 var iframeUnloadSandbox = iframe.contentWindow['%hammerhead%'].sandbox.event.unload;
                 var syncCookies         = [
-                    's|sessionId|cookie1|example.com|%2F||1fckm5lnl=outdated;path=/',
-                    's|sessionId|cookie1|example.com|%2F||1fckm5lnz=server;path=/',
-                    'w|sessionId|cookie2|example.com|%2F||1fckm5lnl=remove;path=/',
-                    'cw|sessionId|cookie3|example.com|%2F||1fckm5lnl=stay client;path=/',
+                    's|sessionId|cookie1|example.com|%2F||1fckm5lnl|=outdated;path=/',
+                    's|sessionId|cookie1|example.com|%2F||1fckm5lnz|=server;path=/',
+                    'w|sessionId|cookie2|example.com|%2F||1fckm5lnl|=remove;path=/',
+                    'cw|sessionId|cookie3|example.com|%2F||1fckm5lnl|=stay client;path=/',
                 ];
 
                 for (var i = 0; i < syncCookies.length; i++)
@@ -469,17 +475,17 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
                 var currentSyncCookies = nativeMethods.documentCookieGetter.call(document).split('; ').sort();
 
                 deepEqual(currentSyncCookies, [
-                    'cw|sessionId|cookie3|example.com|%2F||1fckm5lnl=stay client',
-                    's|sessionId|cookie1|example.com|%2F||1fckm5lnl=outdated',
-                    's|sessionId|cookie1|example.com|%2F||1fckm5lnz=server',
-                    'w|sessionId|cookie2|example.com|%2F||1fckm5lnl=remove',
+                    'cw|sessionId|cookie3|example.com|%2F||1fckm5lnl|=stay client',
+                    's|sessionId|cookie1|example.com|%2F||1fckm5lnl|=outdated',
+                    's|sessionId|cookie1|example.com|%2F||1fckm5lnz|=server',
+                    'w|sessionId|cookie2|example.com|%2F||1fckm5lnl|=remove',
                 ]);
 
                 unloadSandbox.emit(iframeUnloadSandbox.UNLOAD_EVENT);
 
                 currentSyncCookies = nativeMethods.documentCookieGetter.call(document).split('; ').sort();
 
-                deepEqual(currentSyncCookies, ['c|sessionId|cookie3|example.com|%2F||1fckm5lnl=stay client']);
+                deepEqual(currentSyncCookies, ['c|sessionId|cookie3|example.com|%2F||1fckm5lnl|=stay client']);
             });
     });
 
@@ -509,12 +515,12 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
 
                 document.cookie = 'test=not found';
 
-                strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
-                    'cw|sessionId|test|example.com|%2F||lastAccessed=not found');
+                strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+\|=/, '|lastAccessed|='),
+                    'cw|sessionId|test|example.com|%2F||lastAccessed|=not found');
 
                 return window.QUnitGlobals.wait(function () {
-                    return nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed=') ===
-                        'c|sessionId|test|example.com|%2F||lastAccessed=not found';
+                    return nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+\|=/, '|lastAccessed|=') ===
+                        'c|sessionId|test|example.com|%2F||lastAccessed|=not found';
                 }, 8500);
             })
             .then(function () {
@@ -534,12 +540,12 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
 
             iframe.id = 'test' + Date.now();
 
-            nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
+            nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl|=123;path=/');
 
             document.body.appendChild(iframe);
 
             strictEqual(document.cookie, 'test=123');
-            strictEqual(nativeMethods.documentCookieGetter.call(document), 'w|sessionId|test|example.com|%2F||1fckm5lnl=123');
+            strictEqual(nativeMethods.documentCookieGetter.call(document), 'w|sessionId|test|example.com|%2F||1fckm5lnl|=123');
 
             return window.QUnitGlobals.wait(function () {
                 return nativeMethods.documentCookieGetter.call(document) === '';

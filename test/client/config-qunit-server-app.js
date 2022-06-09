@@ -88,7 +88,7 @@ module.exports = function (app) {
             '// QUnit patch start',
             'if (msg.rejectForTest || msg.rejectForTestOnce && msg.retriesCount === 1)',
             '    xhr.abort();',
-            '// QUnit patch end'
+            '// QUnit patch end',
         ].join('$1');
 
         res
@@ -122,7 +122,7 @@ module.exports = function (app) {
     }, req.params.delay || 0));
 
     app.get('/xhr-with-sync-cookie/', function (req, res) {
-        res.setHeader('set-cookie', 's|sessionId|hello|example.com|%2F||1fckm5lnl=world;path=/');
+        res.setHeader('set-cookie', 's|sessionId|hello|example.com|%2F||1fckm5lnl|=world;path=/');
         res.setHeader('cache-control', 'no-cache, no-store, must-revalidate');
         res.setHeader('pragma', 'no-cache');
         res.send();
@@ -188,7 +188,7 @@ module.exports = function (app) {
                 for (var i = 0; i < msg.queue.length; i++) {
                     cookies[userAgent].setCookieSync(msg.queue[i].cookie, 'https://example.com/', {
                         http:        false,
-                        ignoreError: true
+                        ignoreError: true,
                     });
                 }
 
