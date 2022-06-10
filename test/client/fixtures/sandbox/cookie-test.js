@@ -30,10 +30,11 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
         settings.get().cookie = '';
     });
 
-    test('get/set', async function () {
+    test('get/set', function () {
         var storedForcedLocation = destLocation.getLocation();
 
-        async function testCookies (location, cookieStrs, expectedCookies, waitBeforeGet = 0) {
+        function testCookies (location, cookieStrs, expectedCookies, waitBeforeGet) {
+
             if (location !== storedForcedLocation)
                 destLocation.forceLocation(urlUtils.getProxyUrl(location));
 
@@ -42,61 +43,70 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
             for (var i = 0; i < cookieStrs.length; i++)
                 document.cookie = cookieStrs[i];
 
-            if (waitBeforeGet)
-                await window.wait(waitBeforeGet);
-
-            strictEqual(document.cookie, expectedCookies, 'destLocation = ' + destLocation.getLocation());
+            return window.wait(waitBeforeGet || 0)
+                .then(function () {
+                    return strictEqual(document.cookie, expectedCookies, 'destLocation = ' + destLocation.getLocation());
+                });
         }
 
-        await testCookies(storedForcedLocation, [
-            'Test1=Basic; expires=' + validDateStr,
-            'Test2=PathMatch; expires=' + validDateStr + '; path=/',
-            'Test4=DomainMatch; expires=' + validDateStr + '; domain=.example.com',
-            'Test5=DomainNotMatch; expires=' + validDateStr + '; domain=.cbf4e2d79.com',
-            'Test6=HttpOnly; expires=' + validDateStr + '; path=/; HttpOnly',
-            'Test7=Secure; expires=' + validDateStr + '; path=/; Secure',
-            'Test8=Expired; expires=Wed, 13-Jan-1977 22:23:01 GMT; path=/',
-            'Test9=Duplicate; One=More; expires=' + validDateStr + '; path=/',
-            'Test10=' + new Array(350).join('(big cookie)'),
-            'value without key',
-            'Test11=Outdated; max-age=0; path=/',
-        ], 'Test1=Basic; Test2=PathMatch; Test4=DomainMatch; Test7=Secure; Test9=Duplicate; value without key');
-
-        await testCookies('http://localhost', [
-            'Test1=DomainMatch; expires=' + validDateStr + '; domain=localhost',
-            'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=localhost:80',
-            'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=127.0.0.1',
-        ], 'Test1=DomainMatch');
-
-        await testCookies('http://127.0.0.1', [
-            'Test1=DomainMatch; expires=' + validDateStr + '; domain=127.0.0.1',
-            'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=127.0.0.1:80',
-            'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=localhost',
-        ], 'Test1=DomainMatch');
-
-        await testCookies('http://sub.example.com/', [
-            'Test1=DomainMatch; domain=sub.example.com',
-            'Test2=DomainMatch; domain=.sub.example.com',
-            'Test3=DomainMatch; Domain=SUB.Example.com',
-            'Test4=DomainMatch; Domain=example.com',
-            'Test5=DomainMatch; Domain=.example.com',
-            'Test6=DomainNotMatch; domain=123',
-            'Test7=DomainNotMatch; domain=sub.example',
-            'Test8=DomainNotMatch; domain=example.co',
-            'Test9=DomainNotMatch; domain=b.example.com',
-        ], 'Test1=DomainMatch; Test2=DomainMatch; Test3=DomainMatch; Test4=DomainMatch; Test5=DomainMatch');
-
-        await testCookies(storedForcedLocation, [
-            'Test1=Expired; expires=' + new Date((Math.floor(Date.now() / 1000) + 1) * 1000).toUTCString(),
-            'Test2=Expired; max-age=' + 1,
-        ], 'Test1=Expired; Test2=Expired');
-
-        await testCookies(storedForcedLocation, [
-            'Test1=Expired; expires=' + new Date((Math.floor(Date.now() / 1000) + 1) * 1000).toUTCString(),
-            'Test2=Expired; max-age=' + 1,
-        ], '', 2000);
-
-        destLocation.forceLocation(storedForcedLocation);
+        return Promise.resolve()
+            .then(function () {
+                return testCookies(storedForcedLocation, [
+                    'Test1=Basic; expires=' + validDateStr,
+                    'Test2=PathMatch; expires=' + validDateStr + '; path=/',
+                    'Test4=DomainMatch; expires=' + validDateStr + '; domain=.example.com',
+                    'Test5=DomainNotMatch; expires=' + validDateStr + '; domain=.cbf4e2d79.com',
+                    'Test6=HttpOnly; expires=' + validDateStr + '; path=/; HttpOnly',
+                    'Test7=Secure; expires=' + validDateStr + '; path=/; Secure',
+                    'Test8=Expired; expires=Wed, 13-Jan-1977 22:23:01 GMT; path=/',
+                    'Test9=Duplicate; One=More; expires=' + validDateStr + '; path=/',
+                    'Test10=' + new Array(350).join('(big cookie)'),
+                    'value without key',
+                    'Test11=Outdated; max-age=0; path=/',
+                ], 'Test1=Basic; Test2=PathMatch; Test4=DomainMatch; Test7=Secure; Test9=Duplicate; value without key');
+            })
+            .then(function () {
+                return testCookies('http://localhost', [
+                    'Test1=DomainMatch; expires=' + validDateStr + '; domain=localhost',
+                    'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=localhost:80',
+                    'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=127.0.0.1',
+                ], 'Test1=DomainMatch');
+            })
+            .then(function () {
+                return testCookies('http://127.0.0.1', [
+                    'Test1=DomainMatch; expires=' + validDateStr + '; domain=127.0.0.1',
+                    'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=127.0.0.1:80',
+                    'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=localhost',
+                ], 'Test1=DomainMatch');
+            })
+            .then(function () {
+                return testCookies('http://sub.example.com/', [
+                    'Test1=DomainMatch; domain=sub.example.com',
+                    'Test2=DomainMatch; domain=.sub.example.com',
+                    'Test3=DomainMatch; Domain=SUB.Example.com',
+                    'Test4=DomainMatch; Domain=example.com',
+                    'Test5=DomainMatch; Domain=.example.com',
+                    'Test6=DomainNotMatch; domain=123',
+                    'Test7=DomainNotMatch; domain=sub.example',
+                    'Test8=DomainNotMatch; domain=example.co',
+                    'Test9=DomainNotMatch; domain=b.example.com',
+                ], 'Test1=DomainMatch; Test2=DomainMatch; Test3=DomainMatch; Test4=DomainMatch; Test5=DomainMatch');
+            })
+            .then(function () {
+                return testCookies(storedForcedLocation, [
+                    'Test1=Expired; expires=' + new Date((Math.floor(Date.now() / 1000) + 1) * 1000).toUTCString(),
+                    'Test2=Expired; max-age=' + 1,
+                ], 'Test1=Expired; Test2=Expired');
+            })
+            .then(function () {
+                return testCookies(storedForcedLocation, [
+                    'Test1=Expired; expires=' + new Date((Math.floor(Date.now() / 1000) + 1) * 1000).toUTCString(),
+                    'Test2=Expired; max-age=' + 1,
+                ], '', 2000);
+            })
+            .then(function () {
+                return destLocation.forceLocation(storedForcedLocation);
+            });
     });
 
     test('path validation', function () {
