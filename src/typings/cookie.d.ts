@@ -4,6 +4,7 @@ export interface CookieRecord {
     domain: string;
     path: string;
     expires: Date | 'Infinity';
+    maxAge: number | 'Infinity' | '-Infinity';
     lastAccessed: Date;
     syncKey?: string;
     cookieStr?: string;

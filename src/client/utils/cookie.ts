@@ -62,7 +62,7 @@ export function parse (str) {
                 break;
 
             case 'max-age':
-                parsedCookie.maxAge = value;
+                parsedCookie.maxAge = Number(value);
                 break;
 
             case 'path':
@@ -113,6 +113,9 @@ export function setDefaultValues (parsedCookie, { hostname, pathname }) {
 
     if (!parsedCookie.expires)
         parsedCookie.expires = 'Infinity';
+
+    if (isNaN(parsedCookie.maxAge))
+        parsedCookie.maxAge = 'Infinity';
 }
 
 export function domainMatch (currentDomain, cookieDomain) {

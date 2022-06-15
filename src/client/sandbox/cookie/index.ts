@@ -133,7 +133,8 @@ export default class CookieSandbox extends SandboxBase {
             const currentDate   = cookieUtils.getUTCDate();
             let clientCookieStr = null;
 
-            if (!parsedCookie.expires || parsedCookie.expires === 'Infinity' || parsedCookie.expires > currentDate)
+            if ((!parsedCookie.expires || parsedCookie.expires === 'Infinity' || parsedCookie.expires > currentDate) &&
+                (isNaN(parsedCookie.maxAge) || parsedCookie.maxAge > 0))
                 clientCookieStr = cookieUtils.formatClientString(parsedCookie);
 
             CookieSandbox._updateClientCookieStr(parsedCookie.key, clientCookieStr);
@@ -164,6 +165,17 @@ export default class CookieSandbox extends SandboxBase {
                 serverSyncCookies.push(parsedCookie);
             else if (parsedCookie.isWindowSync)
                 this.setCookie(parsedCookie);
+            else if (parsedCookie.isClientSync) {
+                const currentDate = cookieUtils.getUTCDate();
+                const maxAge      = Number(parsedCookie.maxAge);
+                const expires     = Number(parsedCookie.expires);
+
+                if (!isNaN(maxAge) && maxAge * 1000 < currentDate.getTime() - parsedCookie.lastAccessed.getTime() ||
+                      !isNaN(expires) && expires < currentDate.getTime()) {
+                    nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(parsedCookie));
+                    CookieSandbox._updateClientCookieStr(parsedCookie.key, null);
+                }
+            }
         }
 
         if (serverSyncCookies.length)

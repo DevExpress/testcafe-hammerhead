@@ -8,7 +8,7 @@ import { CookieRecord, ParsedClientSyncCookie } from '../typings/cookie';
 
 const TIME_RADIX                            = 36;
 const CLEAR_COOKIE_VALUE_STR                = '=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT';
-const CLIENT_COOKIE_SYNC_KEY_FRAGMENT_COUNT = 7;
+const CLIENT_COOKIE_SYNC_KEY_FRAGMENT_COUNT = 8;
 const KEY_VALUE_REGEX                       = /(?:^([^=]+)=([\s\S]*))?/;
 
 export const SYNCHRONIZATION_TYPE = {
@@ -67,8 +67,9 @@ function formatSyncCookieKey (cookie: CookieRecord): string {
     const path         = encodeURIComponent(cookie.path);
     const expires      = cookie.expires !== 'Infinity' ? cookie.expires.getTime().toString(TIME_RADIX) : '';
     const lastAccessed = cookie.lastAccessed.getTime().toString(TIME_RADIX);
+    const maxAge       = cookie.maxAge && cookie.maxAge !== 'Infinity' ? cookie.maxAge.toString(TIME_RADIX) : '';
 
-    return `${syncType}|${cookie.sid}|${key}|${domain}|${path}|${expires}|${lastAccessed}`;
+    return `${syncType}|${cookie.sid}|${key}|${domain}|${path}|${expires}|${lastAccessed}|${maxAge}`;
 }
 
 export function parseClientSyncCookieStr (cookieStr: string): ParsedClientSyncCookie {
@@ -114,6 +115,7 @@ export function parseSyncCookie (cookieStr: string): CookieRecord | null {
         path:         decodeURIComponent(parsedKey[4]),
         expires:      parsedKey[5] ? new Date(parseInt(parsedKey[5], TIME_RADIX)) : 'Infinity',
         lastAccessed: new Date(parseInt(parsedKey[6], TIME_RADIX)),
+        maxAge:       parseInt(parsedKey[7], TIME_RADIX),
         syncKey:      key,
 
         value,

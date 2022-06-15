@@ -117,5 +117,5 @@ exports.normalizeNewLine = function (str) {
 };
 
 exports.replaceLastAccessedTime = function (cookie) {
-    return cookie.replace(/[a-z0-9]+=/, '%lastAccessed%=');
+    return cookie.replace(/[a-z0-9]+\|=/, '%lastAccessed%|=');
 };

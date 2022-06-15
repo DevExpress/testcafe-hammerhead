@@ -50,7 +50,7 @@ test('parse', function () {
     deepEqual(cookieUtil.parse('Test7=Duplicate; Max-Age=35; path=/'), {
         key:    'Test7',
         value:  'Duplicate',
-        maxAge: '35',
+        maxAge: 35,
         path:   '/',
     });
 });
@@ -113,6 +113,7 @@ test('setDefaultValues', function () {
         domain:  'example.com',
         path:    '/',
         expires: 'Infinity',
+        maxAge:  'Infinity',
     });
 
     parsedCookie = { key: 'test', value: 'test' };
@@ -125,6 +126,7 @@ test('setDefaultValues', function () {
         domain:  'example.com',
         path:    '/',
         expires: 'Infinity',
+        maxAge:  'Infinity',
     });
 
     parsedCookie = { key: 'test', value: 'test' };
@@ -137,6 +139,7 @@ test('setDefaultValues', function () {
         domain:  'example.com',
         path:    '/path',
         expires: 'Infinity',
+        maxAge:  'Infinity',
     });
 
     parsedCookie = { key: 'test', value: 'test', path: '/path' };
@@ -149,6 +152,7 @@ test('setDefaultValues', function () {
         domain:  'example.com',
         path:    '/path',
         expires: 'Infinity',
+        maxAge:  'Infinity',
     });
 
     parsedCookie = { key: 'test', value: 'test', path: '123' };
@@ -161,6 +165,7 @@ test('setDefaultValues', function () {
         domain:  'example.com',
         path:    '/path',
         expires: 'Infinity',
+        maxAge:  'Infinity',
     });
 
     parsedCookie = { key: 'test', value: 'test', domain: 'localhost' };
@@ -173,6 +178,7 @@ test('setDefaultValues', function () {
         domain:  'localhost',
         path:    '/path',
         expires: 'Infinity',
+        maxAge:  'Infinity',
     });
 
     parsedCookie = { key: 'test', value: 'test', expires: new Date() };
@@ -185,5 +191,19 @@ test('setDefaultValues', function () {
         domain:  'example.com',
         path:    '/path',
         expires: parsedCookie.expires,
+        maxAge:  'Infinity',
+    });
+
+    parsedCookie = { key: 'test', value: 'test', maxAge: 10 };
+
+    cookieUtil.setDefaultValues(parsedCookie, { hostname: 'example.com', pathname: '/path/example' });
+
+    deepEqual(parsedCookie, {
+        key:     'test',
+        value:   'test',
+        domain:  'example.com',
+        path:    '/path',
+        expires: 'Infinity',
+        maxAge:  parsedCookie.maxAge,
     });
 });

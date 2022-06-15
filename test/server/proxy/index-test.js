@@ -733,7 +733,7 @@ describe('Proxy', () => {
                 return request(options)
                     .then(res => {
                         expect(replaceLastAccessedTime(res.headers['set-cookie'][0]))
-                            .eql(`s|${session.id}|aaa|127.0.0.1|%2Fpath||%lastAccessed%=111;path=/`);
+                            .eql(`s|${session.id}|aaa|127.0.0.1|%2Fpath||%lastAccessed%|=111;path=/`);
                     });
             });
 
@@ -752,7 +752,7 @@ describe('Proxy', () => {
                 return request(options)
                     .then(res => {
                         expect(replaceLastAccessedTime(res.headers['set-cookie'][0]))
-                            .eql(`s|${session.id}|aaa|127.0.0.1|%2Fpath||%lastAccessed%=111;path=/`);
+                            .eql(`s|${session.id}|aaa|127.0.0.1|%2Fpath||%lastAccessed%|=111;path=/`);
                     });
             });
 
@@ -763,9 +763,9 @@ describe('Proxy', () => {
                     url:     proxy.openSession('http://127.0.0.1:2000/cookie-server-sync/' + cookie, session),
                     headers: {
                         cookie: [
-                            `s|${session.id}|aaa|127.0.0.1|%2F||123456788=temp`,
-                            `s|${session.id}|aaa|127.0.0.1|%2F||123456789=test`,
-                            `s|${session.id}|bbb|127.0.0.1|%2F||${obsoleteTime}=321`,
+                            `s|${session.id}|aaa|127.0.0.1|%2F||123456788|=temp`,
+                            `s|${session.id}|aaa|127.0.0.1|%2F||123456789|=test`,
+                            `s|${session.id}|bbb|127.0.0.1|%2F||${obsoleteTime}|=321`,
                         ].join('; '),
                     },
 
@@ -776,11 +776,11 @@ describe('Proxy', () => {
                 return request(options)
                     .then(res => {
                         expect(res.headers['set-cookie'][0])
-                            .eql(`s|${session.id}|aaa|127.0.0.1|%2F||123456788=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
+                            .eql(`s|${session.id}|aaa|127.0.0.1|%2F||123456788|=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
                         expect(res.headers['set-cookie'][1])
-                            .eql(`s|${session.id}|bbb|127.0.0.1|%2F||${obsoleteTime}=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
+                            .eql(`s|${session.id}|bbb|127.0.0.1|%2F||${obsoleteTime}|=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
                         expect(replaceLastAccessedTime(res.headers['set-cookie'][2]))
-                            .eql(`s|${session.id}|bbb|127.0.0.1|%2F||%lastAccessed%=321;path=/`);
+                            .eql(`s|${session.id}|bbb|127.0.0.1|%2F||%lastAccessed%|=321;path=/`);
                     });
             });
 
@@ -805,8 +805,8 @@ describe('Proxy', () => {
                 const options = {
                     url:     proxy.openSession('http://127.0.0.1:2000/cookie/echo', session),
                     headers: {
-                        cookie: `c|${session.id}|Test1|127.0.0.1|%2F||1fdkm5ln1=Data1; ` +
-                                `c|${session.id}|Test2|localhost|%2F||1fdkm5ln1=Data2`,
+                        cookie: `c|${session.id}|Test1|127.0.0.1|%2F||1fdkm5ln1|=Data1; ` +
+                                `c|${session.id}|Test2|localhost|%2F||1fdkm5ln1|=Data2`,
                     },
                 };
 
@@ -822,8 +822,8 @@ describe('Proxy', () => {
                 const options = {
                     url:     proxy.openSession('http://127.0.0.1:2000/cookie/echo', session),
                     headers: {
-                        cookie: `c|${session.id}|Test1|127.0.0.1|%2F||1fdkm5ln1=Data1; ` +
-                                `cw|${session.id}|Test2|127.0.0.1|%2F||1fdkm5ln1=Data2`,
+                        cookie: `c|${session.id}|Test1|127.0.0.1|%2F||1fdkm5ln1|=Data1; ` +
+                                `cw|${session.id}|Test2|127.0.0.1|%2F||1fdkm5ln1|=Data2`,
                     },
 
                     resolveWithFullResponse: true,
@@ -834,7 +834,7 @@ describe('Proxy', () => {
                         expect(res.body).eql('%% Test1=Data1; Test2=Data2 %%');
                         expect(res.headers['set-cookie'].length).eql(1);
                         expect(res.headers['set-cookie'][0])
-                            .eql(`c|${session.id}|Test1|127.0.0.1|%2F||1fdkm5ln1=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
+                            .eql(`c|${session.id}|Test1|127.0.0.1|%2F||1fdkm5ln1|=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
                         expect(session.cookies.getClientString('http://127.0.0.1:12354/')).eql('Test1=Data1; Test2=Data2');
                     });
             });
@@ -843,9 +843,9 @@ describe('Proxy', () => {
                 const options = {
                     url:     proxy.openSession('http://127.0.0.1:2000/cookie/echo', session),
                     headers: {
-                        cookie: `c|${session.id}|Test1|example.com|%2Fcookie||1fdkm5ln1=Data1; ` +
-                                `c|${session.id}|Test2|example.com|%2Fpath||1fdkm5ln1=Data2; ` +
-                                `c|${session.id}|Test3|example.com|%2F||1fdkm5ln1=Data3`,
+                        cookie: `c|${session.id}|Test1|example.com|%2Fcookie||1fdkm5ln1|=Data1; ` +
+                                `c|${session.id}|Test2|example.com|%2Fpath||1fdkm5ln1|=Data2; ` +
+                                `c|${session.id}|Test3|example.com|%2F||1fdkm5ln1|=Data3`,
                     },
                 };
 
@@ -1155,7 +1155,7 @@ describe('Proxy', () => {
                 .then(res => {
                     expect(res.statusCode).eql(200);
                     expect(replaceLastAccessedTime(res.headers['set-cookie'][0]))
-                        .eql(`s|${session.id}|key|127.0.0.1|%2F||%lastAccessed%=value;path=/`);
+                        .eql(`s|${session.id}|key|127.0.0.1|%2F||%lastAccessed%|=value;path=/`);
                     expect(res.headers[BUILTIN_HEADERS.accessControlAllowOrigin]).to.be.empty;
                     expect(session.cookies.getClientString('http://127.0.0.1:2000')).eql('key=value');
                 });

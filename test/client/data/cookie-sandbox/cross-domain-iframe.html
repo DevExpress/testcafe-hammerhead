@@ -17,7 +17,7 @@
                 case 'get cookie':
                     return window[INSTRUCTION.callMethod](e.source, 'postMessage', [settings.get().cookie, '*']);
                 case 'set cookie':
-                    nativeMethods.documentCookieSetter.call(document, 's|sessionId|set|example.com|%2F||1fckm6lnl=cookie;path=/');
+                    nativeMethods.documentCookieSetter.call(document, 's|sessionId|set|example.com|%2F||1fckm6lnl|=cookie;path=/');
                     document.cookie;
             }
         });
