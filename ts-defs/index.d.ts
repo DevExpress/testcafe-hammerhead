@@ -428,6 +428,9 @@ declare module 'testcafe-hammerhead' {
 
     /** The RequestOptions class is used to construct the request options **/
     export class RequestOptions {
+        /** Request url **/
+        url: string;
+
         /** Request method **/
         method: string;
 
@@ -476,4 +479,7 @@ declare module 'testcafe-hammerhead' {
 
     /** Parse proxy url **/
     export function parseProxyUrl(url: string): ParsedProxyUrl;
+
+    /** Check checkedUrl has the same origin with location **/
+    export function sameOriginCheck(location: string, checkedUrl: string): boolean;
 }

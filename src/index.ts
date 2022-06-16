@@ -8,6 +8,7 @@ import ConfigureResponseEventOptions from './session/events/configure-response-e
 import StateSnapshot from './session/state-snapshot';
 import {
     parseProxyUrl,
+    sameOriginCheck,
     SPECIAL_BLANK_PAGE,
     SPECIAL_ERROR_PAGE,
 } from './utils/url';
@@ -41,4 +42,5 @@ export default {
     RequestOptions,
     promisifyStream,
     parseProxyUrl,
+    sameOriginCheck,
 };
