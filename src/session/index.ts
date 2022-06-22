@@ -437,8 +437,8 @@ export default abstract class Session extends EventEmitter {
         return this._disableHttp2;
     }
 
-    abstract async getIframePayloadScript (iframeWithoutSrc: boolean): Promise<string>;
-    abstract async getPayloadScript (): Promise<string>;
+    abstract getIframePayloadScript (iframeWithoutSrc: boolean): Promise<string>;
+    abstract getPayloadScript (): Promise<string>;
     abstract handleFileDownload (): void;
     abstract handleAttachment ({ isOpenedInNewWindow: boolean }): void;
     abstract handlePageError (ctx: RequestPipelineContext, err: string): void;

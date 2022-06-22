@@ -83,7 +83,7 @@ export default class Transport extends TransportLegacy {
     }
 
     asyncServiceMsg (msg: ServiceMessage, queued = false): Promise<any> {
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             const id = this._idGenerator.increment();
 
             ++this._activeServiceMsgCount;

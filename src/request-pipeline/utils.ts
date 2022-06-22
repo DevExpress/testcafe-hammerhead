@@ -42,7 +42,7 @@ function getRecommendedMaxHeaderSize (currentHeaderSize: number): number {
 }
 
 export function sendRequest (ctx: RequestPipelineContext) {
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
         const req = ctx.isFileProtocol ? new FileRequest(ctx.reqOpts.url) : new DestinationRequest(ctx.reqOpts, ctx.serverInfo.cacheRequests);
 
         ctx.goToNextStage = false;

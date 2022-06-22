@@ -27,7 +27,7 @@ if (nativeMethods.createElement) {
 
     // NOTE: We need to check touch points only for IE, because it has PointerEvent and MSPointerEvent (IE10, IE11)
     // instead of TouchEvent (T109295).
-    hasTouchPoints = browserUtils.isIE && (navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0);
+    hasTouchPoints = browserUtils.isIE && navigator.maxTouchPoints > 0;
     isTouchDevice = (browserUtils.isMobile || browserUtils.isTablet) && hasTouchEvents;
 
     // @ts-ignore

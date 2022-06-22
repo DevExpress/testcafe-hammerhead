@@ -453,6 +453,7 @@ class NativeMethods {
 
         this.elementFromPoint       = docPrototype.elementFromPoint;
         this.caretRangeFromPoint    = docPrototype.caretRangeFromPoint;
+        // @ts-ignore Experimental method in Firefox
         this.caretPositionFromPoint = docPrototype.caretPositionFromPoint;
         this.getElementById         = docPrototype.getElementById;
         this.getElementsByClassName = docPrototype.getElementsByClassName;
