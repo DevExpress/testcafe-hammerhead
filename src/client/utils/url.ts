@@ -40,7 +40,7 @@ function getCharsetFromDocument (parsedResourceType: ResourceType): string | nul
     return self.document && document[INTERNAL_PROPS.documentCharset] || null;
 }
 
-export let getProxyUrl = function (url: string, opts?): string {
+export let getProxyUrl = function (url: string | URL, opts?): string {
     url = sharedUrlUtils.getURLString(url);
 
     const resourceType       = opts && opts.resourceType;
@@ -337,7 +337,7 @@ export function getScope (url: string): string | null {
     return partAfterHostWithoutQueryAndHash.replace(SCOPE_RE, '/') || '/';
 }
 
-export function getAjaxProxyUrl (url: string, credentials: sharedUrlUtils.Credentials) {
+export function getAjaxProxyUrl (url: string | URL, credentials: sharedUrlUtils.Credentials) {
     const isCrossDomain = !destLocation.sameOriginCheck(destLocation.getLocation(), url);
     const opts          = { resourceType: stringifyResourceType({ isAjax: true }), credentials } as any;
 

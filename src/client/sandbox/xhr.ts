@@ -79,7 +79,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         const withCredentials = xhr.withCredentials;
 
         reqOpts.withCredentials = withCredentials;
-        reqOpts.openArgs[1]     = getAjaxProxyUrl(url.toString(), withCredentials ? Credentials.include : Credentials.sameOrigin);
+        reqOpts.openArgs[1]     = getAjaxProxyUrl(url, withCredentials ? Credentials.include : Credentials.sameOrigin);
 
         nativeMethods.xhrOpen.apply(xhr, reqOpts.openArgs);
 
@@ -152,7 +152,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         overrideFunction(xmlHttpRequestProto, 'open', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['open']>) { // eslint-disable-line consistent-return
             let url = args[1];
 
-            if (getProxyUrl(url.toString()) === url) {
+            if (getProxyUrl(url) === url) {
                 XhrSandbox.setRequestOptions(this, this.withCredentials, args);
 
                 return void nativeMethods.xhrOpen.apply(this, args);
