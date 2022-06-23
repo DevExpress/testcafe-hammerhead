@@ -316,9 +316,9 @@ test('quotes in the cookies are not escaped when a task script for an iframe is 
 asyncTest('an error occurs when proxing two nested iframes (a top iframe has src with javascript protocol) (GH-125)', function () {
     var iframe                         = document.createElement('iframe');
     var countNestedIframeLoadEvents    = 0;
-    var maxCountNestedIframeLoadEvents = browserUtils.isWebKit && (!browserUtils.isChrome || browserUtils.isAndroid) ? 2 : 1; // GH-1966
+    var maxCountNestedIframeLoadEvents = browserUtils.isWebKit && !browserUtils.isChrome ? 2 : 1; // GH-1966
     var countXhrLoadEvents             = 0;
-    var validCountXhrLoadEvents        = browserUtils.isWebKit && (!browserUtils.isChrome || browserUtils.isAndroid) ? 2 : 1; // GH-1966
+    var validCountXhrLoadEvents        = browserUtils.isWebKit && !browserUtils.isChrome ? 2 : 1; // GH-1966
 
     // NOTE: NetworkError occurs in IE11 after some Windows 10 update (iframe without src case) (GH-1837)
     var skipIframeCheck = false;
