@@ -302,8 +302,7 @@ class Hammerhead {
 
         if (forceReload) {
             this.sandbox.node.win.on(this.sandbox.node.win.HASH_CHANGE_EVENT, () => {
-                // @ts-ignore
-                this.win.location.reload(true);
+                this.win.location.reload();
             });
         }
     }

@@ -51,8 +51,7 @@ export function resolveUrl (url: string | URL, doc?: Document): string {
         if (self.location.protocol !== 'blob:') // eslint-disable-line no-restricted-properties
             return new nativeMethods.URL(preProcessedUrl, get()).href; // eslint-disable-line no-restricted-properties
 
-        // @ts-ignore
-        return url;
+        return String(url);
     }
 
     return urlResolver.resolve(preProcessedUrl, doc || document);
