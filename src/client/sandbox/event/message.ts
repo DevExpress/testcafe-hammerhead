@@ -239,7 +239,7 @@ export default class MessageSandbox extends SandboxBase {
 
     // NOTE: This code is used only in legacy API.
     pingIframe (targetIframe, pingMessageCommand, shortWaiting: boolean) {
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             let pingInterval = null;
             let pingTimeout  = null;
             let targetWindow = null;

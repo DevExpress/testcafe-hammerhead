@@ -10,7 +10,7 @@ export default abstract class BaseResource {
         this._path = path;
     }
 
-    abstract async init (): Promise<void>
+    abstract init (): Promise<void>
 
     protected abstract _createContentStream (): void;
 

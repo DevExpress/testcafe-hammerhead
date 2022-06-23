@@ -28,14 +28,14 @@ export function forceLocation (url: string): void {
     forcedLocation = url;
 }
 
-export function sameOriginCheck (location: string, checkedUrl: string): boolean {
+export function sameOriginCheck (location: string, checkedUrl: string | URL): boolean {
     if (checkedUrl)
         checkedUrl = resolveUrl(checkedUrl);
 
     return sharedUrlUtils.sameOriginCheck(location, checkedUrl);
 }
 
-export function resolveUrl (url: string, doc?: Document): string {
+export function resolveUrl (url: string | URL, doc?: Document): string {
     let preProcessedUrl = sharedUrlUtils.getURLString(url);
 
     if (preProcessedUrl && preProcessedUrl.indexOf('//') === 0) {
@@ -51,7 +51,7 @@ export function resolveUrl (url: string, doc?: Document): string {
         if (self.location.protocol !== 'blob:') // eslint-disable-line no-restricted-properties
             return new nativeMethods.URL(preProcessedUrl, get()).href; // eslint-disable-line no-restricted-properties
 
-        return url;
+        return String(url);
     }
 
     return urlResolver.resolve(preProcessedUrl, doc || document);

@@ -20,7 +20,7 @@ function isCorrectScope (parsedUrl: ParsedUrl): boolean {
 }
 
 export default function overrideFetchEvent () {
-    let waitSettingsPromise = new Promise((resolve, reject) => {
+    let waitSettingsPromise = new Promise<void>((resolve, reject) => {
         nativeMethods.windowAddEventListener.call(self, 'message', function onMessage (e: any/*ExtendableMessageEvent*/) {
             const data = e.data;
 

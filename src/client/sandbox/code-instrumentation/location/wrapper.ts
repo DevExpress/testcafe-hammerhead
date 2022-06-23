@@ -239,8 +239,8 @@ export default class LocationWrapper extends LocationInheritor {
         });
 
         locationProps.reload = createOverriddenDescriptor(locationPropsOwner, 'reload', {
-            value: forcedReload => {
-                const result = window.location.reload(forcedReload);
+            value: () => {
+                const result = window.location.reload();
 
                 onChanged(window.location.toString());
 

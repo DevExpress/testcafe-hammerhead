@@ -109,7 +109,7 @@ export function isSubDomain (domain: string, subDomain: string): boolean {
     return subDomain[index - 1] === '.' && subDomain.length === index + domain.length;
 }
 
-export function sameOriginCheck (location: string, checkedUrl: string): boolean {
+export function sameOriginCheck (location: string, checkedUrl: string | URL): boolean {
     if (!checkedUrl)
         return true;
 
