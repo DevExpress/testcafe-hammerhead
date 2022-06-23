@@ -378,7 +378,7 @@ asyncTest('an error occurs when proxing two nested iframes (a top iframe has src
 asyncTest('native methods of the iframe document aren`t overridden for iframe with javascript src (GH-358)', function () {
     var iframe            = document.createElement('iframe');
     var loadEventCount    = 0;
-    var maxLoadEventCount = browserUtils.isWebKit && (!browserUtils.isChrome || browserUtils.isAndroid) ? 2 : 1; // GH-1966
+    var maxLoadEventCount = browserUtils.isWebKit && !browserUtils.isChrome ? 2 : 1; // GH-1966
 
     iframe.id = 'test_nmsghf';
     iframe.setAttribute('src', 'javascript:"<html><body>test</body></html>"');
