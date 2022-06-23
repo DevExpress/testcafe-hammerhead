@@ -226,4 +226,3 @@ gulp.step('test-functional-testcafe-run', gulpRunCommand([
 ]));
 
 gulp.task('test-functional-testcafe', gulp.series(BUILD_TASK, 'test-functional-testcafe-run'));
-
