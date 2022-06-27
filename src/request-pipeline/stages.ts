@@ -12,6 +12,7 @@ import {
     callOnResponseEventCallbackWithoutBodyForNonProcessedResource,
     callResponseEventCallbackForProcessedRequest,
     error,
+    handleRequestMockingErrorIfNecessary,
     sendRequest,
 } from './utils';
 import ConfigureResponseEvent from '../session/events/configure-response-event';
@@ -73,8 +74,10 @@ export default [
             });
         }
 
-        if (ctx.mock)
+        if (ctx.mock) {
             await ctx.mockResponse();
+            await handleRequestMockingErrorIfNecessary(ctx);
+        }
         else
             await sendRequest(ctx);
     },
