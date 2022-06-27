@@ -5,6 +5,7 @@ import { ServiceMessage } from '../typings/proxy';
 import RequestOptions from '../request-pipeline/request-options';
 import errToString from './err-to-string';
 import { Http2Response } from '../request-pipeline/destination-request/http2';
+import RequestFilterRule from '../request-pipeline/request-hooks/request-filter-rule';
 
 function getIncorrectErrorTypeMessage (err: object) {
     const errType = typeof err;
@@ -89,6 +90,10 @@ const proxy = {
 
     onContentInfoBuilt: (ctx: RequestPipelineContext) => {
         proxyLogger('Proxy resource content info %s %i', ctx.requestId, ctx);
+    },
+
+    onMockResponseError: (rule: RequestFilterRule, e: Error) => {
+        proxyLogger('Proxy error %s %s', rule, e);
     },
 };
 

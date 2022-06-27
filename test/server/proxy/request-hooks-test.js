@@ -23,6 +23,7 @@ const {
 } = require('../common/utils');
 
 const ConfigureResponseEventOptions = require('../../../lib/session/events/configure-response-event-options');
+const RequestEventNames             = require('../../../lib/session/events/names');
 
 const Credentials = urlUtils.Credentials;
 
@@ -718,6 +719,46 @@ describe('Request Hooks', () => {
             return request(options)
                 .then(body => {
                     expect(body).eql(largeResponse);
+
+                    session.removeRequestEventListeners(rule);
+                });
+        });
+
+        it("Should handle error in the 'ResponseMock'", () => {
+            const url              = 'http://dummy_page.com';
+            let collectedErrorData = null;
+            const rule             = new RequestFilterRule(url);
+
+            const mock = new ResponseMock(() => {
+                throw new Error('Error in the mock');
+            });
+
+            session.addRequestEventListeners(rule, {
+                onRequest: e => {
+                    return new Promise(resolve => {
+                        setTimeout(async () => {
+                            await e.setMock(mock);
+
+                            resolve();
+                        }, 100);
+                    });
+                },
+            }, errorData => {
+                collectedErrorData = errorData;
+            });
+
+            const options = {
+                url:     proxy.openSession(url, session),
+                headers: {
+                    accept: PAGE_ACCEPT_HEADER,
+                },
+            };
+
+            return request(options)
+                .catch(() => {
+                    expect(collectedErrorData.error).to.be.an.instanceof(Error);
+                    expect(collectedErrorData.error.message).to.eql('Error in the mock');
+                    expect(collectedErrorData.methodName).eql(RequestEventNames.onResponse);
 
                     session.removeRequestEventListeners(rule);
                 });

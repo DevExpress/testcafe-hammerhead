@@ -6,8 +6,9 @@ import { JSON_MIME } from '../../../utils/content-type';
 import { ResponseMockBodyInit } from './response-mock-init';
 import * as setBodyMethod from './set-body-method';
 
-const PAGE_CONTENT_TYPE = 'text/html; charset=utf-8';
-const EMPTY_PAGE_HTML   = '<html><body></body></html>';
+const PAGE_CONTENT_TYPE          = 'text/html; charset=utf-8';
+const EMPTY_PAGE_HTML            = '<html><body></body></html>';
+const ERROR_MOCKING_PAGE_CONTENT = 'An error has occurred in the mocking response function.';
 
 function getContentType (body?: ResponseMockBodyInit): string {
     if (body !== null && typeof body === 'object')
@@ -30,7 +31,14 @@ export default async function (mock: ResponseMock): Promise<IncomingMessageLike>
     else if (typeof mock.body === 'function') {
         setBodyMethod.add(response);
 
-        response = Object.assign(response, await mock.body(mock.requestOptions, response));
+        try {
+            response = Object.assign(response, await mock.body(mock.requestOptions, response));
+        }
+        catch (err) {
+            response.statusCode = 500;
+            mock.error          = err;
+            response.body       = Buffer.from(ERROR_MOCKING_PAGE_CONTENT);
+        }
 
         setBodyMethod.remove(response);
     }
