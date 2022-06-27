@@ -1,23 +1,24 @@
-var COMMAND           = hammerhead.SESSION_COMMAND;
-var UploadInfoManager = hammerhead.sandboxUtils.UploadInfoManager;
-var hiddenInfo        = hammerhead.sandboxUtils.hiddenInfo;
-var UploadSandbox     = hammerhead.sandboxes.UploadSandbox;
-var listeningContext  = hammerhead.sandboxUtils.listeningContext;
-var INTERNAL_PROPS    = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_props;
-var settings          = hammerhead.settings;
+const COMMAND           = hammerhead.SESSION_COMMAND;
+const UploadInfoManager = hammerhead.sandboxUtils.UploadInfoManager;
+const FileListWrapper   = hammerhead.sandboxUtils.FileListWrapper;
+const hiddenInfo        = hammerhead.sandboxUtils.hiddenInfo;
+const UploadSandbox     = hammerhead.sandboxes.UploadSandbox;
+const listeningContext  = hammerhead.sandboxUtils.listeningContext;
+const INTERNAL_PROPS    = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_props;
+const settings          = hammerhead.settings;
 
-var Promise        = hammerhead.Promise;
-var transport      = hammerhead.transport;
-var uploadSandbox  = hammerhead.sandbox.upload;
-var infoManager    = hammerhead.sandbox.upload.infoManager;
-var eventSimulator = hammerhead.sandbox.event.eventSimulator;
-var nativeMethods  = hammerhead.nativeMethods;
+const Promise        = hammerhead.Promise;
+const transport      = hammerhead.transport;
+const uploadSandbox  = hammerhead.sandbox.upload;
+const infoManager    = hammerhead.sandbox.upload.infoManager;
+const eventSimulator = hammerhead.sandbox.event.eventSimulator;
+const nativeMethods  = hammerhead.nativeMethods;
 
-var browserUtils  = hammerhead.utils.browser;
-var isChrome      = browserUtils.isChrome;
-var isFirefox     = browserUtils.isFirefox;
-var isSafari      = browserUtils.isSafari;
-var isMacPlatform = browserUtils.isMacPlatform;
+const browserUtils  = hammerhead.utils.browser;
+const isChrome      = browserUtils.isChrome;
+const isFirefox     = browserUtils.isFirefox;
+const isSafari      = browserUtils.isSafari;
+const isMacPlatform = browserUtils.isMacPlatform;
 
 // ----- Server API mock ---------
 // Virtual file system:
@@ -53,14 +54,14 @@ var files = [
 var storedAsyncServiceMsg = transport.asyncServiceMsg;
 
 QUnit.testStart(function () {
-    transport.asyncServiceMsg = overridedAsyncServiceMsg;
+    transport.asyncServiceMsg = overriddenAsyncServiceMsg;
 });
 
 QUnit.testDone(function () {
     transport.asyncServiceMsg = storedAsyncServiceMsg;
 });
 
-function overridedAsyncServiceMsg (msg) {
+function overriddenAsyncServiceMsg (msg) {
     return new Promise(function (resolve) {
         switch (msg.cmd) {
             case COMMAND.getUploadedFiles:
@@ -904,7 +905,7 @@ if (browserUtils.isIE) {
 
 if (window.FileList) {
     test('the "instanceof FileList" operation works correctly with FileListWrapper instances (GH-689)', function () {
-        var input = document.createElement('input');
+        const input = document.createElement('input');
 
         input.type = 'file';
 
@@ -927,6 +928,53 @@ if (window.FileList) {
             ok(false, 'error is raised');
         }
 
+    });
+
+    module('FileListWrapper should work correctly if window.File and window.Blob are overridden (TC-GH-5647)', function () {
+        // window.File in IE11 is not constructable.
+        if (nativeMethods.File) {
+            test('File', function () {
+                const storedFile = window.File;
+
+                window.File = function () {
+                    throw new Error('File constructor is not supposed to be called');
+                };
+
+                const wrapper = FileListWrapper._createFileWrapper({
+                    info: {
+                        size: 4,
+                        type: 'text/plain',
+                        name: 'correctName.txt',
+                    },
+                    data: 'MTIzDQo=',
+                });
+
+                ok(wrapper instanceof storedFile);
+
+                window.File = storedFile;
+            });
+        }
+
+        test('Blob', function () {
+            const storedBlob = window.Blob;
+
+            window.Blob = function () {
+                throw new Error('Blob constructor is not supposed to be called');
+            };
+
+            const wrapper = FileListWrapper._createFileWrapper({
+                info: {
+                    size: 4,
+                    type: 'application/pdf',
+                    name: 'correctName.pdf',
+                },
+                blob: new storedBlob(['pdf text'], { type: 'application/pdf' }), // eslint-disable-line new-cap
+            });
+
+            ok(wrapper instanceof storedBlob);
+
+            window.Blob = storedBlob;
+        });
     });
 }
 
