@@ -31,7 +31,7 @@ import EventSandbox from '../event';
 import ChildWindowSandbox from '../child-window';
 import isKeywordTarget from '../../../utils/is-keyword-target';
 import BUILTIN_HEADERS from '../../../request-pipeline/builtin-header-names';
-
+import toKebabCase from '../../utils/to-kebab-case';
 
 const RESTRICTED_META_HTTP_EQUIV_VALUES = [BUILTIN_HEADERS.refresh, BUILTIN_HEADERS.contentSecurityPolicy];
 
@@ -254,7 +254,7 @@ export default class ElementSandbox extends SandboxBase {
                 (el[this._nodeSandbox.win.SANDBOX_DOM_TOKEN_LIST_UPDATE_FN] as Function)(value);
         }
         // TODO: remove after https://github.com/DevExpress/testcafe-hammerhead/issues/244 implementation
-        else if (tagName === 'meta' && attr === 'http-equiv') {
+        else if (tagName === 'meta' && toKebabCase(attr) === 'http-equiv') {
             const loweredValue = value.toLowerCase();
 
             if (RESTRICTED_META_HTTP_EQUIV_VALUES.indexOf(loweredValue) !== -1)

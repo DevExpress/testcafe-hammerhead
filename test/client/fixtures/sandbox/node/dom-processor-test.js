@@ -918,6 +918,8 @@ test('allow to set the content attribute to meta tag', function () {
 
     strictEqual(metaTag.getAttribute('http-equiv'), null);
     strictEqual(metaTag.getAttribute('content'), 'style-src');
+    strictEqual(metaTag.httpEquiv, '');
+    strictEqual(metaTag.content, 'style-src');
 });
 
 test('script and style content added via a child text node must be overridden (GH-259)', function () {
