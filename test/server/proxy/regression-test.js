@@ -1570,7 +1570,7 @@ describe('Regression', () => {
             .then(() => new Promise(resolve => server.close(() => resolve())));
     });
 
-    it('Should set referer during the task', () => {
+    it('Should set referer during the task (GH-6295)', () => {
         const url = 'http://localhost:1836/task.js';
 
         session.getPayloadScript       = async () => 'PayloadScript';
@@ -1591,7 +1591,7 @@ describe('Regression', () => {
             });
     });
 
-    it('Should use `referrer` from the session options if it is not exists in request (GH-6295)', () => {
+    it('Should use `referrer` from the session options if it is not existed in request (GH-6295)', () => {
         const req        = {
             url:     getProxyUrl('http://example.com/'),
             headers: {
