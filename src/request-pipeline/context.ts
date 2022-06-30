@@ -215,13 +215,13 @@ export default class RequestPipelineContext {
 
     // API
     dispatch (openSessions: Map<string, Session>): boolean {
-        const parsedReqUrl  = urlUtils.parseProxyUrl(this.req.url || '');
-        const referer       = this.req.headers[BUILTIN_HEADERS.referer] as string;
-        const parsedReferer = referer && urlUtils.parseProxyUrl(referer) || null;
+        const parsedReqUrl = urlUtils.parseProxyUrl(this.req.url || '');
+        const referer      = this.req.headers[BUILTIN_HEADERS.referer] as string;
+        let parsedReferer  = referer && urlUtils.parseProxyUrl(referer) || null;
 
         // TODO: Remove it after parseProxyURL is rewritten.
-        let flattenParsedReqUrl    = RequestPipelineContext._flattenParsedProxyUrl(parsedReqUrl);
-        const flattenParsedReferer = RequestPipelineContext._flattenParsedProxyUrl(parsedReferer);
+        let flattenParsedReqUrl  = RequestPipelineContext._flattenParsedProxyUrl(parsedReqUrl);
+        let flattenParsedReferer = RequestPipelineContext._flattenParsedProxyUrl(parsedReferer);
 
         // NOTE: Remove that after implementing the https://github.com/DevExpress/testcafe-hammerhead/issues/2155
         if (!flattenParsedReqUrl && flattenParsedReferer)
@@ -237,6 +237,11 @@ export default class RequestPipelineContext {
 
         if (!this.session)
             return false;
+
+        if (!flattenParsedReferer && this.session.options.referer) {
+            parsedReferer        = urlUtils.parseProxyUrl(this.session.options.referer) || null;
+            flattenParsedReferer = RequestPipelineContext._flattenParsedProxyUrl(parsedReferer);
+        }
 
         this.dest               = flattenParsedReqUrl.dest;
         this.windowId           = flattenParsedReqUrl.windowId;
