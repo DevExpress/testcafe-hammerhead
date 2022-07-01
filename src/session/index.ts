@@ -102,6 +102,7 @@ interface SessionOptions {
     allowMultipleWindows: boolean;
     windowId: string;
     requestTimeout?: RequestTimeout;
+    referer?: string;
 }
 
 export default abstract class Session extends EventEmitter {

@@ -1569,4 +1569,44 @@ describe('Regression', () => {
             })
             .then(() => new Promise(resolve => server.close(() => resolve())));
     });
+
+    it('Should set referer during the task (GH-6295)', () => {
+        const url = 'http://localhost:1836/task.js';
+
+        session.getPayloadScript       = async () => 'PayloadScript';
+        session.getIframePayloadScript = async () => 'IframePayloadScript';
+
+        const options = {
+            headers: {
+                referer: proxy.openSession('http://example.com', session),
+            },
+
+            url:                     url,
+            resolveWithFullResponse: true,
+        };
+
+        return request(options)
+            .then(() => {
+                expect(session.options.referer).eql(getProxyUrl('http://example.com/'),);
+            });
+    });
+
+    it('Should use `referrer` from the session options if it is not existed in request (GH-6295)', () => {
+        const req        = {
+            url:     getProxyUrl('http://example.com/'),
+            headers: {
+                accept: PAGE_ACCEPT_HEADER,
+            },
+        };
+        const ctx        = new RequestPipelineContext(req, {}, {});
+        const sessionUrl = 'https://example-session.com/';
+
+        proxy.openSession(sessionUrl, session);
+
+        session.options.referer = getProxyUrl(sessionUrl);
+
+        ctx.dispatch(proxy.openSessions);
+
+        expect(ctx.dest.referer).eql(sessionUrl);
+    });
 });
