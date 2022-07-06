@@ -13,6 +13,8 @@ import { Syntax } from 'esotope-hammerhead';
 // someAction(); generateHtmlPage() --> someAction(); parent.__proc$Html(window, generateHtmlPage())
 
 const transformer: Transformer<ExpressionStatement> = {
+    name: 'js-protocol-last-expression',
+
     nodeReplacementRequireTransform: true,
 
     nodeTypes: Syntax.ExpressionStatement,

@@ -13,6 +13,8 @@ import { Syntax } from 'esotope-hammerhead';
 // (function(){ return __set$Loc(location, value) || location = value;}.apply(this))
 
 const transformer: Transformer<AssignmentExpression> = {
+    name: 'location-set',
+
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.AssignmentExpression,

@@ -23,6 +23,8 @@ const INVOCATION_FUNC_NAME_RE = /^(call|apply)$/;
 // eval.apply(ctx, __proc$Script(script, true));
 
 const transformer: Transformer<CallExpression> = {
+    name: 'eval-call-apply',
+
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.CallExpression,

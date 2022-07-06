@@ -33,6 +33,8 @@ import destructuring from '../destructuring';
 //     b = _hh$temp0[1];
 
 const transformer: Transformer<VariableDeclaration> = {
+    name: 'declaration-destructuring',
+
     nodeReplacementRequireTransform: true,
 
     nodeTypes: Syntax.VariableDeclaration,

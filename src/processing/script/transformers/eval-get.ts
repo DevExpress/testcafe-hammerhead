@@ -15,6 +15,8 @@ import { Syntax } from 'esotope-hammerhead';
 // const foo = _get$Eval(eval); foo = _get$Eval(eval); { _eval: _get$Eval(eval) }; return _get$Eval(eval);
 
 const transformer: Transformer<Identifier> = {
+    name: 'eval-get',
+
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.Identifier,

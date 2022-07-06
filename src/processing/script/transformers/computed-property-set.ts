@@ -19,6 +19,8 @@ import { shouldInstrumentProperty } from '../instrumented';
 // __set$(object, prop, value)
 
 const transformer: Transformer<AssignmentExpression> = {
+    name: 'computed-property-set',
+
     nodeReplacementRequireTransform: true,
 
     nodeTypes: Syntax.AssignmentExpression,

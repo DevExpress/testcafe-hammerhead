@@ -19,6 +19,8 @@ import replaceNode from './replace-node';
 // foo = __get$Eval(eval).bind(...);
 
 const transformer: Transformer<CallExpression> = {
+    name: 'eval-bind',
+
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.CallExpression,

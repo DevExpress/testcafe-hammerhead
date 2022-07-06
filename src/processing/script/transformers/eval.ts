@@ -13,6 +13,8 @@ import { Syntax } from 'esotope-hammerhead';
 // eval(script); --> eval(__proc$Script(script));
 
 const transformer: Transformer<CallExpression> = {
+    name: 'eval',
+
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.CallExpression,

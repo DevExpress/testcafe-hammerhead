@@ -13,6 +13,8 @@ import { shouldInstrumentProperty } from '../instrumented';
 // obj[prop] -->
 // __get$(obj, prop)
 const transformer: Transformer<MemberExpression> = {
+    name: 'computed-property-get',
+
     nodeReplacementRequireTransform: true,
 
     nodeTypes: Syntax.MemberExpression,

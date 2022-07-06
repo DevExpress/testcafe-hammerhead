@@ -15,6 +15,8 @@ import { Syntax } from 'esotope-hammerhead';
 // const foo = _get$PostMessage(window.postMessage); foo = _get$PostMessage(window.postMessage); { _postMessage: _get$PostMessage(window.postMessage) }; return _get$PostMessage(window.postMessage);
 
 const transformer: Transformer<MemberExpression> = {
+    name: 'window-post-message-get',
+
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.MemberExpression,

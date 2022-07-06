@@ -32,6 +32,8 @@ import TempVariables from './temp-variables';
 
 export default function create<T extends (FunctionDeclaration | FunctionExpression | ArrowFunctionExpression)> (type: T['type']): Transformer<T> {
     return {
+        name: 'func-args-destructing',
+
         nodeReplacementRequireTransform: false,
 
         nodeTypes: type,

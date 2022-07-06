@@ -19,6 +19,8 @@ import { shouldInstrumentProperty } from '../instrumented';
 // __get$(obj, '<wrappable-property>')
 
 const transformer: Transformer<MemberExpression> = {
+    name: 'property-get',
+
     nodeReplacementRequireTransform: true,
 
     nodeTypes: Syntax.MemberExpression,
@@ -33,6 +35,9 @@ const transformer: Transformer<MemberExpression> = {
         // Skip: super.prop
         if (node.object.type === Syntax.Super)
             return false;
+
+        // @ts-ignore
+        const valuableParent = parent.type === Syntax.ParenthesizedExpression ? parent.expression : parent;
 
         // Skip: object.prop = value
         if (parent.type === Syntax.AssignmentExpression && parent.left === node)
@@ -51,7 +56,7 @@ const transformer: Transformer<MemberExpression> = {
             return false;
 
         // Skip: new (object.prop)() || new (object.prop)
-        if (parent.type === Syntax.NewExpression && parent.callee === node)
+        if (valuableParent.type === Syntax.NewExpression && valuableParent.callee === node)
             return false;
 
         // Skip: for(object.prop in source)

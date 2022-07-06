@@ -19,6 +19,8 @@ import { shouldInstrumentProperty } from '../instrumented';
 // --> val1 = val1 + val2
 
 const transformer: Transformer<AssignmentExpression> = {
+    name: 'concat-operator',
+
     nodeReplacementRequireTransform: true,
 
     nodeTypes: Syntax.AssignmentExpression,
