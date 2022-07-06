@@ -21,6 +21,8 @@ import { shouldInstrumentMethod } from '../instrumented';
 // _call$(obj, 'method', args...); _call$(obj, method, args...);
 
 const transformer: Transformer<CallExpression> = {
+    name: 'method-call',
+
     nodeReplacementRequireTransform: true,
 
     nodeTypes: Syntax.CallExpression,

@@ -20,6 +20,8 @@ import { shouldInstrumentProperty } from '../instrumented';
 // __set$(obj, '<wrappable-property>', value)
 
 const transformer: Transformer<AssignmentExpression> = {
+    name: 'property-set',
+
     nodeReplacementRequireTransform: true,
 
     nodeTypes: Syntax.AssignmentExpression,

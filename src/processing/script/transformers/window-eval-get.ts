@@ -15,6 +15,8 @@ import { Syntax } from 'esotope-hammerhead';
 // const foo = _get$Eval(window.eval); foo = _get$Eval(window.eval); { _eval: _get$Eval(window.eval) }; return _get$Eval(window.eval);
 
 const transformer: Transformer<MemberExpression> = {
+    name: 'window-eval-get',
+
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.MemberExpression,

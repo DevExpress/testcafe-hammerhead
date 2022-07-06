@@ -21,6 +21,8 @@ import TempVariables from './temp-variables';
 // for(const _hh$temp0 in src) { obj[prop] = _hh$temp0; }
 
 const transformer: Transformer<ForInStatement> = {
+    name: 'for-in',
+
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.ForInStatement,

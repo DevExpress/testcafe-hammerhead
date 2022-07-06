@@ -91,6 +91,8 @@ function replaceDuplicateDeclarators (forOfNode: ForOfStatement) {
 // for (let _hh$temp0 of wins) { let {href, postMessage} = _hh$temp0; }
 
 const forOfTransformer: Transformer<ForOfStatement> = {
+    name: 'for-of',
+
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.ForOfStatement,

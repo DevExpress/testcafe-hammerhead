@@ -19,6 +19,8 @@ import destructuring from '../destructuring';
 // (_hh$temp1 = [window, 6], _hh$temp1$0 = _hh$temp1[0], location = _hh$temp1$0.location, item = _hh$temp1[1], _hh$temp1);
 
 const transformer: Transformer<AssignmentExpression> = {
+    name: 'assignment-destructuring',
+
     nodeReplacementRequireTransform: true,
 
     nodeTypes: Syntax.AssignmentExpression,

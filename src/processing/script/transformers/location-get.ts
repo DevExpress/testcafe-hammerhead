@@ -14,6 +14,8 @@ import { Syntax } from 'esotope-hammerhead';
 // __get$Loc(location)
 
 const transformer: Transformer<Identifier> = {
+    name: 'location-get',
+
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.Identifier,

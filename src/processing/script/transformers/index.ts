@@ -32,6 +32,7 @@ import createFuncArgsDestructing from './func-args-destructing';
 import { Syntax } from 'esotope-hammerhead';
 
 export interface Transformer<C extends Node> {
+    name: string;
     nodeReplacementRequireTransform: boolean;
     nodeTypes: C['type'];
     condition: (node: C, parent?: Node) => boolean;

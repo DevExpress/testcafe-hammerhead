@@ -25,6 +25,8 @@ const INVOCATION_FUNC_NAME_RE = /^(call|apply|bind)$/;
 // __get$PostMessage(postMessage).bind(...);
 
 const transformer: Transformer<CallExpression> = {
+    name: 'post-message-call-apply-bind',
+
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.CallExpression,

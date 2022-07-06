@@ -15,6 +15,8 @@ import replaceNode from './replace-node';
 // import(__get$ProxyUrl(something)).then()
 
 const transformer: Transformer<ImportExpression> = {
+    name: 'dynamic-import',
+
     nodeReplacementRequireTransform: true,
 
     nodeTypes: Syntax.ImportExpression,

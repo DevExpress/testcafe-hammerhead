@@ -14,6 +14,8 @@ import { Syntax } from 'esotope-hammerhead';
 // export { x as y } from 'url';   -->   export { x as y } from 'processed-url';
 
 const transformer: Transformer<Literal> = {
+    name: 'static-import',
+
     nodeReplacementRequireTransform: false,
 
     nodeTypes: Syntax.Literal,
