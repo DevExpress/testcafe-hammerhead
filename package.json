@@ -1,7 +1,7 @@
 {
   "name": "testcafe-hammerhead",
   "description": "A powerful web-proxy used as a core for the TestCafe testing framework (https://github.com/DevExpress/testcafe).",
-  "version": "24.5.23",
+  "version": "24.5.24",
   "homepage": "https://github.com/DevExpress/testcafe-hammerhead",
   "bugs": {
     "url": "https://github.com/DevExpress/testcafe-hammerhead/issues"
@@ -21,7 +21,7 @@
     "crypto-md5": "^1.0.0",
     "css": "2.2.3",
     "debug": "4.3.1",
-    "esotope-hammerhead": "0.6.1",
+    "esotope-hammerhead": "https://github.com/miherlosev/tmp/files/9054878/esotope-hammerhead-0.6.2.zip",
     "http-cache-semantics": "^4.1.0",
     "iconv-lite": "0.5.1",
     "lodash": "^4.17.20",
