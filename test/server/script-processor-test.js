@@ -1303,6 +1303,13 @@ describe('Script processor', () => {
                 },
             ]);
         });
+
+        it('destruction with ?? operator (GH-2782)', () => {
+            testProcessing([{
+                src:      'var { t } = data, r = (n ?? "") || t;',
+                expected: 'var_hh$temp0=data,t=_hh$temp0.t,r=(n??"")||t;',
+            }]);
+        });
     });
 
     describe('Regression', () => {
