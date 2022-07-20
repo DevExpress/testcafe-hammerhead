@@ -508,4 +508,7 @@ declare module 'testcafe-hammerhead' {
 
     /** Inject specified stuff to the page **/
     export function injectResources (html: string, resources: PageInjectableResources): string;
+
+    /** Proxy injectable scripts **/
+    export const INJECTABLE_SCRIPTS: string[];
 }

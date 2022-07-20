@@ -34,6 +34,7 @@ import SERVICE_ROUTES from '../proxy/service-routes';
 import requestIsMatchRule from '../request-pipeline/request-hooks/request-is-match-rule';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
 import { formatSyncCookie } from '../utils/cookie';
+import { SCRIPTS } from './injectables';
 
 const TASK_TEMPLATE = read('../client/task.js.mustache');
 
@@ -113,7 +114,7 @@ export default abstract class Session extends EventEmitter {
     externalProxySettings: ExternalProxySettings | null = null;
     pageLoadCount = 0;
     pendingStateSnapshot: StateSnapshot | null = null;
-    injectable: InjectableResources = { scripts: ['/hammerhead.js'], styles: [], userScripts: [] };
+    injectable: InjectableResources = { scripts: [...SCRIPTS], styles: [], userScripts: [] };
     requestEventListeners: Map<string, RequestEventListenersData> = new Map();
     private _recordMode = false;
     options: SessionOptions;
