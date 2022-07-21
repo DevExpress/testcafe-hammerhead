@@ -36,4 +36,5 @@ interface ProxyOptions extends RouterOptions {
     developmentMode: boolean;
     cache: boolean;
     disableHttp2: boolean;
+    proxyless: boolean;
 }

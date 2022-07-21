@@ -3,3 +3,9 @@ export interface MetaInfo {
     content: string | null;
     charset: string | null;
 }
+
+export interface PageInjectableResources {
+    stylesheets: string[];
+    scripts: string[];
+    embeddedScripts: string[];
+}

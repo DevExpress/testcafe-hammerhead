@@ -13,19 +13,19 @@ import Charset from '../encoding/charset';
 import BaseDomAdapter from '../dom/base-dom-adapter';
 import SERVICE_ROUTES from '../../proxy/service-routes';
 import { stringify as stringifyJSON } from '../../utils/json';
-import { MetaInfo } from '../interfaces';
+import { MetaInfo, PageInjectableResources } from '../interfaces';
 
 const PARSED_BODY_CREATED_EVENT_SCRIPT                = parse5.parseFragment(SELF_REMOVING_SCRIPTS.onBodyCreated).childNodes![0];
 const PARSED_ORIGIN_FIRST_TITLE_ELEMENT_LOADED_SCRIPT = parse5.parseFragment(SELF_REMOVING_SCRIPTS.onOriginFirstTitleLoaded).childNodes![0];
 const PARSED_INIT_SCRIPT_FOR_IFRAME_TEMPLATE          = parse5.parseFragment(SELF_REMOVING_SCRIPTS.iframeInit).childNodes![0];
 
 interface PageProcessingOptions {
-    crossDomainProxyPort: number;
-    isIframe: boolean;
+    crossDomainProxyPort?: number;
+    isIframe?: boolean;
     stylesheets: string[];
     scripts: string[];
-    urlReplacer: Function;
-    isIframeWithImageSrc: boolean;
+    urlReplacer?: Function;
+    isIframeWithImageSrc?: boolean;
 }
 
 class PageProcessor extends ResourceProcessorBase {
@@ -70,7 +70,7 @@ class PageProcessor extends ResourceProcessorBase {
         return metas;
     }
 
-    private static _addPageResources (head: ASTNode, processingOptions: PageProcessingOptions): ASTNode[] {
+    private static _addPageResources (head: ASTNode, processingOptions: PageInjectableResources | PageProcessingOptions): ASTNode[] {
         const injectedResources: ASTNode[] = [];
 
         if (processingOptions.stylesheets) {
@@ -93,6 +93,20 @@ class PageProcessor extends ResourceProcessorBase {
                     { name: 'charset', value: 'UTF-8' },
                     { name: 'src', value: scriptUrl },
                 ]));
+            });
+        }
+
+        if ((processingOptions as PageInjectableResources).embeddedScripts) {
+            (processingOptions as PageInjectableResources).embeddedScripts.forEach(script => {
+                const embeddedScriptElement = parse5Utils.createElement('script', [
+                    { name: 'type', value: 'text/javascript' },
+                    { name: 'class', value: SHADOW_UI_CLASSNAME.script },
+                    { name: 'charset', value: 'UTF-8' },
+                ]);
+
+                embeddedScriptElement.childNodes = [parse5Utils.createTextNode(script, embeddedScriptElement)];
+
+                injectedResources.push(embeddedScriptElement);
             });
         }
 
@@ -188,7 +202,7 @@ class PageProcessor extends ResourceProcessorBase {
         PageProcessor._prepareHtml(html, processingOpts);
 
         const root       = parse5.parse(html);
-        const domAdapter = new DomAdapter(processingOpts.isIframe, ctx, charset, urlReplacer);
+        const domAdapter = new DomAdapter(processingOpts.isIframe as boolean, ctx, charset, urlReplacer);
         const elements   = parse5Utils.findElementsByTagNames(root, ['base', 'meta', 'head', 'body', 'frameset']);
         const base       = elements.base ? elements.base[0] : null;
         const baseUrl    = base ? domAdapter.getAttr(base, 'href') : '';
@@ -223,6 +237,19 @@ class PageProcessor extends ResourceProcessorBase {
         PageProcessor._addCharsetInfo(head, charset.get());
 
         return (bom || '') + parse5.serialize(root);
+    }
+
+    // NOTE: API for new implementation without request pipeline
+    injectResources (html: string, resources: PageInjectableResources): string {
+        const root     = parse5.parse(html);
+        const elements = parse5Utils.findElementsByTagNames(root, ['head', 'body']);
+        const head     = elements.head[0];
+        const body     = elements.body[0];
+
+        PageProcessor._addPageResources(head, resources);
+        PageProcessor._addBodyCreatedEventScript(body);
+
+        return parse5.serialize(root);
     }
 }
 

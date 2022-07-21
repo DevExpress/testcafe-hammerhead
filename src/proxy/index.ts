@@ -54,6 +54,12 @@ function createServerInfo (hostname: string, port: number, crossDomainPort: numb
     };
 }
 
+const DEFAULT_PROXY_OPTIONS = {
+    developmentMode: false,
+    cache:           false,
+    proxyless:       false,
+};
+
 export default class Proxy extends Router {
     private readonly openSessions: Map<string, Session> = new Map();
     private readonly server1Info: ServerInfo;
@@ -61,6 +67,7 @@ export default class Proxy extends Router {
     private readonly server1: http.Server | https.Server;
     private readonly server2: http.Server | https.Server;
     private readonly sockets: Set<net.Socket>;
+    private readonly _proxyless: boolean;
 
     // Max header size for incoming HTTP requests
     // Set to 80 KB as it was the original limit:
@@ -69,14 +76,23 @@ export default class Proxy extends Router {
     // https://github.com/nodejs/node/commit/186035243fad247e3955fa0c202987cae99e82db#diff-1d0d420098503156cddb601e523b82e7R59
     public static MAX_REQUEST_HEADER_SIZE = 80 * 1024;
 
-    constructor (hostname: string, port1: number, port2: number, options: Partial<ProxyOptions> = { developmentMode: false, cache: false }) {
-        super(options);
+    constructor (hostname: string, port1: number, port2: number, options?: Partial<ProxyOptions>) {
+        const prepareOptions = Object.assign({}, DEFAULT_PROXY_OPTIONS, options);
 
-        const { ssl, developmentMode = false, cache = false } = options;
+        super(prepareOptions);
+
+        const {
+            ssl,
+            developmentMode,
+            cache,
+            proxyless,
+        } = prepareOptions;
 
         const protocol     = ssl ? 'https:' : 'http:';
         const opts         = this._getOpts(ssl);
         const createServer = this._getCreateServerMethod(ssl);
+
+        this._proxyless = proxyless;
 
         this.server1Info = createServerInfo(hostname, port1, port2, protocol, cache);
         this.server2Info = createServerInfo(hostname, port2, port1, protocol, cache);
@@ -248,6 +264,9 @@ export default class Proxy extends Router {
 
         url = urlUtils.prepareUrl(url);
 
+        if (this._proxyless)
+            return url;
+
         return urlUtils.getProxyUrl(url, {
             proxyHostname: this.server1Info.hostname,
             proxyPort:     this.server1Info.port.toString(),
@@ -261,5 +280,9 @@ export default class Proxy extends Router {
         session.proxy = null;
 
         this.openSessions.delete(session.id);
+    }
+
+    public resolveRelativeServiceUrl (relativeServiceUrl: string): string {
+        return new URL(relativeServiceUrl, this.server1Info.domain).toString();
     }
 }

@@ -19,6 +19,7 @@ export interface HammerheadInitSettings {
     allowMultipleWindows: boolean;
     isRecordMode: boolean;
     windowId: string;
+    proxyless: boolean;
 }
 
 export interface ElementSandboxBeforeFormSubmitEvent {

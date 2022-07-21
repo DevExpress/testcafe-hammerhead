@@ -20,6 +20,8 @@ import ConfigureResponseEvent from './session/events/configure-response-event';
 import DestinationRequest from './request-pipeline/destination-request';
 import RequestOptions from './request-pipeline/request-options';
 import promisifyStream from './utils/promisify-stream';
+import PageProcessor from './processing/resources/page';
+import { SCRIPTS } from './session/injectables';
 
 export default {
     Proxy,
@@ -43,4 +45,6 @@ export default {
     promisifyStream,
     parseProxyUrl,
     sameOriginCheck,
+    injectResources:    PageProcessor.injectResources,
+    INJECTABLE_SCRIPTS: SCRIPTS,
 };

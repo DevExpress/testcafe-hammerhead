@@ -318,7 +318,9 @@ class Hammerhead {
         domProcessor.forceProxySrcForImage = initSettings.forceProxySrcForImage;
         domProcessor.allowMultipleWindows  = initSettings.allowMultipleWindows;
 
-        this.transport.start(this.eventSandbox.message);
+        if (!initSettings.proxyless)
+            this.transport.start(this.eventSandbox.message);
+
         this.sandbox.attach(this.win);
         this.pageNavigationWatch.start();
     }

@@ -17,6 +17,7 @@ class Settings {
             allowMultipleWindows:     false,
             isRecordMode:             false,
             windowId:                 '',
+            proxyless:                false,
         };
     }
 

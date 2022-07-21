@@ -179,6 +179,21 @@ declare module 'testcafe-hammerhead' {
         };
     }
 
+    export interface PageInjectableResources {
+        stylesheets: string[];
+        scripts: string[];
+        embeddedScripts: string[];
+    }
+
+    export interface ServerInfo {
+        hostname: string;
+        port: number;
+        crossDomainPort: number;
+        protocol: string;
+        domain: string;
+        cacheRequests: boolean;
+    }
+
     /** The Session class is used to create a web-proxy session **/
     export abstract class Session {
         /** Unique identifier of the Session instance **/
@@ -239,6 +254,11 @@ declare module 'testcafe-hammerhead' {
         /** Creates a web proxy instance **/
         constructor ();
 
+        /** Information about server1 **/
+        server1Info: ServerInfo;
+        /** Information about server2 **/
+        server2Info: ServerInfo;
+
         /**  Close the proxy instance */
         close (): void;
 
@@ -256,6 +276,9 @@ declare module 'testcafe-hammerhead' {
 
         /** Unregister the route **/
         unRegisterRoute (route: string, method: string): void;
+
+        /** Resolve relative service url **/
+        resolveRelativeServiceUrl (relativeServiceUrl: string): string;
     }
 
     /** The RequestFilterRule class is used to create URL filtering rules for request hook **/
@@ -482,4 +505,10 @@ declare module 'testcafe-hammerhead' {
 
     /** Check checkedUrl has the same origin with location **/
     export function sameOriginCheck(location: string, checkedUrl: string): boolean;
+
+    /** Inject specified stuff to the page **/
+    export function injectResources (html: string, resources: PageInjectableResources): string;
+
+    /** Proxy injectable scripts **/
+    export const INJECTABLE_SCRIPTS: string[];
 }
