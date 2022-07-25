@@ -138,6 +138,10 @@ export default abstract class Router {
         this._registerRoute(route, 'POST', handler);
     }
 
+    OPTIONS (route: string, handler: StaticContent | Function) {
+        this._registerRoute(route, 'OPTIONS', handler);
+    }
+
     unRegisterRoute (route: string, method: string): void {
         const tokens            = route.split('/');
         const isRouteWithParams = tokens.some(token => PARAM_RE.test(token));

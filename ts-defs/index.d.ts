@@ -61,7 +61,7 @@ type RequestFilterRulePredicate = (requestInfo: RequestInfo) => boolean | Promis
 
 declare module 'testcafe-hammerhead' {
     import {
-        IncomingHttpHeaders, OutgoingHttpHeaders, IncomingMessage,
+        IncomingHttpHeaders, OutgoingHttpHeaders, IncomingMessage, ServerResponse,
     } from 'http';
 
     type StrictIncomingMessage = IncomingMessage & { statusCode: number, statusMessage: string };
@@ -511,4 +511,7 @@ declare module 'testcafe-hammerhead' {
 
     /** Proxy injectable scripts **/
     export const INJECTABLE_SCRIPTS: string[];
+
+    /** Allows to accept cross-origin request for proxy routes **/
+    function acceptCrossOrigin (res: ServerResponse): void;
 }

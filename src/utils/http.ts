@@ -35,12 +35,16 @@ export function respond500 (res: ServerResponse, err = ''): void {
     res.end(err);
 }
 
-export function respondWithJSON (res: ServerResponse, data: object, skipContentType: boolean): void {
+export function respondWithJSON (res: ServerResponse, data: object, skipContentType: boolean, shouldAcceptCrossOrigin?:boolean): void {
     if (!skipContentType)
         res.setHeader(BUILTIN_HEADERS.contentType, 'application/json');
 
     // NOTE: GH-105
     addPreventCachingHeaders(res);
+
+    if (shouldAcceptCrossOrigin)
+        acceptCrossOrigin(res);
+
     res.end(data ? stringifyJSON(data) : '');
 }
 
@@ -63,4 +67,8 @@ export function respondStatic (req: IncomingMessage, res: any, resource: any, ca
 
 export function fetchBody (r: Readable, contentLength?: string): Promise<Buffer> {
     return promisifyStream(r, contentLength);
+}
+
+export function acceptCrossOrigin (res: ServerResponse) {
+    res.setHeader('access-control-allow-origin', '*');
 }
