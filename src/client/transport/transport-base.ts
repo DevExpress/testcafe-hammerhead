@@ -5,7 +5,6 @@ import settings from '../settings';
 import { parse as parseJSON, stringify as stringifyJSON } from '../../utils/json';
 import { getFrameElement, isIframeWithoutSrc } from '../utils/dom';
 import MessageSandbox from '../sandbox/event/message';
-import {ServiceMessageWrapper} from "../../typings/transport";
 
 const SERVICE_MESSAGES_WAITING_INTERVAL = 50;
 
