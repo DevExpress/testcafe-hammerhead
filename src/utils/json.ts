@@ -4,7 +4,7 @@
 // -------------------------------------------------------------
 
 // NOTE: We should store the methods of the `JSON` object
-// since they can be overriden by the client code.
+// since they can be overridden by the client code.
 export const parse     = JSON.parse;
 export const stringify = JSON.stringify;
 

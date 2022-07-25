@@ -67,7 +67,7 @@ export default class Proxy extends Router {
     private readonly server1: http.Server | https.Server;
     private readonly server2: http.Server | https.Server;
     private readonly sockets: Set<net.Socket>;
-    private readonly _proxyless: boolean;
+    public readonly proxyless: boolean;
 
     // Max header size for incoming HTTP requests
     // Set to 80 KB as it was the original limit:
@@ -92,7 +92,7 @@ export default class Proxy extends Router {
         const opts         = this._getOpts(ssl);
         const createServer = this._getCreateServerMethod(ssl);
 
-        this._proxyless = proxyless;
+        this.proxyless = proxyless;
 
         this.server1Info = createServerInfo(hostname, port1, port2, protocol, cache);
         this.server2Info = createServerInfo(hostname, port2, port1, protocol, cache);
@@ -264,7 +264,7 @@ export default class Proxy extends Router {
 
         url = urlUtils.prepareUrl(url);
 
-        if (this._proxyless)
+        if (this.proxyless)
             return url;
 
         return urlUtils.getProxyUrl(url, {
