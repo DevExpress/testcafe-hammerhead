@@ -22,6 +22,7 @@ import RequestOptions from './request-pipeline/request-options';
 import promisifyStream from './utils/promisify-stream';
 import PageProcessor from './processing/resources/page';
 import { SCRIPTS } from './session/injectables';
+import { acceptCrossOrigin } from './utils/http';
 
 export default {
     Proxy,
@@ -47,4 +48,5 @@ export default {
     sameOriginCheck,
     injectResources:    PageProcessor.injectResources,
     INJECTABLE_SCRIPTS: SCRIPTS,
+    acceptCrossOrigin,
 };

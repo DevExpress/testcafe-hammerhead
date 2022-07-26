@@ -183,6 +183,11 @@ export default abstract class Session extends EventEmitter {
         cookie                   = cookie || '{{{cookie}}}';
         iframeTaskScriptTemplate = iframeTaskScriptTemplate || '{{{iframeTaskScriptTemplate}}}';
 
+        if (this.proxy?.proxyless) {
+            referer = '""';
+            cookie  = '""';
+        }
+
         const { domain, crossDomainPort } = serverInfo;
 
         return mustache.render(TASK_TEMPLATE, {
@@ -199,7 +204,8 @@ export default abstract class Session extends EventEmitter {
             allowMultipleWindows,
             isRecordMode,
 
-            windowId: windowId || '',
+            windowId:  windowId || '',
+            proxyless: this.proxy?.proxyless || false,
         });
     }
 

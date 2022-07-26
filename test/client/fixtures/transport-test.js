@@ -66,10 +66,10 @@ test('batchUpdate - without stored messages', function () {
 });
 
 test('batchUpdate - with stored messages', function () {
-    var savedQueuedAsyncServiceMsg = transport.queuedAsyncServiceMsg;
+    var savedQueuedAsyncServiceMsg = transport._implementation.queuedAsyncServiceMsg;
     var result                     = 0;
 
-    transport.queuedAsyncServiceMsg = function (item) {
+    transport._implementation.queuedAsyncServiceMsg = function (item) {
         return new Promise(function (resolve) {
             result += item.duration;
             resolve();
@@ -88,7 +88,7 @@ test('batchUpdate - with stored messages', function () {
         .then(function () {
             strictEqual(result, 60);
 
-            transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
+            transport._implementation.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
         });
 });
 
@@ -257,26 +257,26 @@ test('should send queued messages', function () {
             }, 5000);
         })
         .then(function () {
-            strictEqual(iframeTransport._transportWorker, null);
-            strictEqual(iframeTransport._queue.length, 0);
+            strictEqual(iframeTransport._implementation._transportWorker, null);
+            strictEqual(iframeTransport._implementation._queue.length, 0);
 
             var msgPromise = iframeTransport.asyncServiceMsg({ test: 'me' });
 
-            strictEqual(iframeTransport._queue.length, 1);
-            strictEqual(iframeTransport._queue[0].queued, false);
-            strictEqual(iframeTransport._queue[0].msg.test, 'me');
+            strictEqual(iframeTransport._implementation._queue.length, 1);
+            strictEqual(iframeTransport._implementation._queue[0].queued, false);
+            strictEqual(iframeTransport._implementation._queue[0].msg.test, 'me');
 
             msgEventCtx.internalBeforeHandlers[0].call(window, storedEventObj);
 
             return msgPromise;
         })
         .then(function (response) {
-            strictEqual(iframeTransport._queue.length, 0);
+            strictEqual(iframeTransport._implementation._queue.length, 0);
             strictEqual(response.test, 'me');
 
             iframeTransport.asyncServiceMsg({ test: 'cafe' });
 
-            strictEqual(iframeTransport._queue.length, 0);
+            strictEqual(iframeTransport._implementation._queue.length, 0);
         });
 });
 
@@ -307,3 +307,4 @@ test('failed service messages should respond via error handler (GH-1839)', funct
             strictEqual(error.message, 'XHR request failed with 500 status code.\nError message: An error occurred!!!');
         });
 });
+

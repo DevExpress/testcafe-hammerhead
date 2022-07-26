@@ -69,7 +69,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         return xhr;
     }
 
-    private static openNativeXhr (xhr, url, isAsync): void {
+    static openNativeXhr (xhr, url, isAsync): void {
         xhr.open('POST', url, isAsync);
         xhr.setRequestHeader(BUILTIN_HEADERS.cacheControl, 'no-cache, no-store, must-revalidate');
     }

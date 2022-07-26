@@ -21,6 +21,8 @@ import {
     respondWithJSON,
     fetchBody,
     addPreventCachingHeaders,
+    acceptCrossOrigin,
+    respond204,
 } from '../utils/http';
 
 import { run as runRequestPipeline } from '../request-pipeline';
@@ -67,7 +69,7 @@ export default class Proxy extends Router {
     private readonly server1: http.Server | https.Server;
     private readonly server2: http.Server | https.Server;
     private readonly sockets: Set<net.Socket>;
-    private readonly _proxyless: boolean;
+    public readonly proxyless: boolean;
 
     // Max header size for incoming HTTP requests
     // Set to 80 KB as it was the original limit:
@@ -92,7 +94,7 @@ export default class Proxy extends Router {
         const opts         = this._getOpts(ssl);
         const createServer = this._getCreateServerMethod(ssl);
 
-        this._proxyless = proxyless;
+        this.proxyless = proxyless;
 
         this.server1Info = createServerInfo(hostname, port1, port2, protocol, cache);
         this.server2Info = createServerInfo(hostname, port2, port1, protocol, cache);
@@ -168,6 +170,10 @@ export default class Proxy extends Router {
         });
 
         this.POST(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onServiceMessage(req, res, serverInfo));
+
+        if (this.proxyless)
+            this.OPTIONS(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse) => this._onServiceMessagePreflight(req, res));
+
         this.GET(SERVICE_ROUTES.task, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onTaskScriptRequest(req, res, serverInfo, false));
         this.GET(SERVICE_ROUTES.iframeTask, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onTaskScriptRequest(req, res, serverInfo, true));
     }
@@ -185,7 +191,7 @@ export default class Proxy extends Router {
 
                 res.setHeader(BUILTIN_HEADERS.setCookie, session.takePendingSyncCookies());
 
-                respondWithJSON(res, result, false);
+                respondWithJSON(res, result, false, this.proxyless);
             }
             catch (err) {
                 logger.serviceMsg.onError(msg, err);
@@ -195,6 +201,15 @@ export default class Proxy extends Router {
         }
         else
             respond500(res, SESSION_IS_NOT_OPENED_ERR);
+    }
+
+    _onServiceMessagePreflight (_req: http.IncomingMessage, res: http.ServerResponse): void {
+        // NOTE: 'Cache-control' header set in the 'Transport' sandbox on the client side.
+        // Request becomes non-simple (https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS#simple_requests)
+        // and initiates the CORS preflight request.
+        res.setHeader('access-control-allow-headers', BUILTIN_HEADERS.cacheControl);
+        acceptCrossOrigin(res);
+        respond204(res);
     }
 
     async _onTaskScriptRequest (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo, isIframe: boolean): Promise<void> {
@@ -264,7 +279,7 @@ export default class Proxy extends Router {
 
         url = urlUtils.prepareUrl(url);
 
-        if (this._proxyless)
+        if (this.proxyless)
             return url;
 
         return urlUtils.getProxyUrl(url, {

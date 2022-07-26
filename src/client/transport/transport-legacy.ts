@@ -1,87 +1,133 @@
+import TransportBase from './transport-base';
 import { ServiceMessage } from '../../typings/proxy';
+import MessageSandbox from '../sandbox/event/message';
 import Promise from 'pinkie';
-import nativeMethods from '../sandbox/native-methods';
 import settings from '../settings';
-import { parse as parseJSON, stringify as stringifyJSON } from '../../utils/json';
+import XhrSandbox from '../sandbox/xhr';
+import { isWebKit, isFirefox } from '../utils/browser';
+import { parse, stringify } from '../../utils/json';
+import noop from '../utils/noop';
+import createUnresolvablePromise from '../utils/create-unresolvable-promise';
 
-const SERVICE_MESSAGES_WAITING_INTERVAL = 50;
+export default class TransportLegacy extends TransportBase {
+    private readonly _msgQueue: any;
 
-export default abstract class TransportLegacy {
-    protected _activeServiceMsgCount = 0;
+    constructor () {
+        super();
 
-    private static _getStoredMessages (): ServiceMessage[] {
-        const nativeLocalStorage = nativeMethods.winLocalStorageGetter.call(window);
-        const storedMessagesStr  = nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId);
-
-        return storedMessagesStr ? parseJSON(storedMessagesStr) : [];
+        this._msgQueue = {};
     }
 
-    protected static _storeMessage (msg: ServiceMessage): void {
-        const storedMessages     = TransportLegacy._getStoredMessages();
-        const nativeLocalStorage = nativeMethods.winLocalStorageGetter.call(window);
+    _performRequest (msg, callback): void {
+        msg.sessionId = settings.get().sessionId;
 
-        storedMessages.push(msg);
+        if (this._shouldAddReferer)
+            msg.referer = settings.get().referer;
 
-        nativeMethods.storageSetItem.call(nativeLocalStorage, settings.get().sessionId, stringifyJSON(storedMessages));
-    }
+        const sendMsg = (forced?: boolean) => {
+            this._activeServiceMsgCount++;
 
-    protected static _removeMessageFromStore (cmd: string): void {
-        const messages           = TransportLegacy._getStoredMessages();
-        const nativeLocalStorage = nativeMethods.winLocalStorageGetter.call(window);
+            const isAsyncRequest = !forced;
+            const transport      = this;
+            let request          = XhrSandbox.createNativeXHR();
 
-        for (let i = 0; i < messages.length; i++) {
-            if (messages[i].cmd === cmd) {
-                messages.splice(i, 1);
+            const msgCallback = function () {
+                // NOTE: The 500 status code is returned by server when an error occurred into service message handler
+                if (this.status === 500 && this.responseText) {
+                    msg.disableResending = true;
+                    errorHandler.call(this); // eslint-disable-line no-use-before-define
 
-                break;
-            }
-        }
-
-        nativeMethods.storageSetItem.call(nativeLocalStorage, settings.get().sessionId, stringifyJSON(messages));
-    }
-
-    batchUpdate (): Promise<any> {
-        const storedMessages = TransportLegacy._getStoredMessages();
-
-        if (!storedMessages.length)
-            return Promise.resolve();
-
-        const tasks              = [];
-        const nativeLocalStorage = nativeMethods.winLocalStorageGetter.call(window);
-
-        nativeMethods.storageRemoveItem.call(nativeLocalStorage, settings.get().sessionId);
-
-        for (const storedMessage of storedMessages)
-            tasks.push(this.queuedAsyncServiceMsg(storedMessage));
-
-        return Promise.all(tasks);
-    }
-
-    waitForServiceMessagesCompleted (timeout: number): Promise<void> {
-        return new Promise(resolve => {
-            if (!this._activeServiceMsgCount) {
-                resolve();
-                return;
-            }
-
-            let intervalId  = null;
-            const timeoutId = nativeMethods.setTimeout.call(window, () => {
-                nativeMethods.clearInterval.call(window, intervalId);
-                resolve();
-            }, timeout);
-
-            intervalId = nativeMethods.setInterval.call(window, () => {
-                if (this._activeServiceMsgCount)
                     return;
+                }
 
-                nativeMethods.clearInterval.call(window, intervalId);
-                nativeMethods.clearTimeout.call(window, timeoutId);
-                resolve();
-            }, SERVICE_MESSAGES_WAITING_INTERVAL);
+                transport._activeServiceMsgCount--;
+
+                const response = this.responseText && parse(this.responseText);
+
+                request = null;
+
+                callback(null, response);
+            };
+
+            const errorHandler = function () {
+                if (msg.disableResending) {
+                    transport._activeServiceMsgCount--;
+
+                    let errorMsg = `XHR request failed with ${request.status} status code.`;
+
+                    if (this.responseText)
+                        errorMsg += `\nError message: ${this.responseText}`;
+
+                    callback(new Error(errorMsg));
+
+                    return;
+                }
+
+                if (isWebKit || isFirefox) {
+                    TransportBase._storeMessage(msg);
+                    msgCallback.call(this);
+                }
+                else
+                    sendMsg(true);
+            };
+
+            XhrSandbox.openNativeXhr(request, settings.get().serviceMsgUrl, isAsyncRequest);
+
+            if (forced) {
+                request.addEventListener('readystatechange', function () {
+                    if (this.readyState !== 4)
+                        return;
+
+                    msgCallback.call(this);
+                });
+            }
+            else {
+                request.addEventListener('load', msgCallback);
+                request.addEventListener('abort', errorHandler);
+                request.addEventListener('error', errorHandler);
+                request.addEventListener('timeout', errorHandler);
+            }
+
+            request.send(stringify(msg));
+        };
+
+        TransportBase._removeMessageFromStore(msg.cmd);
+        sendMsg();
+    }
+
+    public queuedAsyncServiceMsg (msg: ServiceMessage): Promise<any> {
+        if (!this._msgQueue[msg.cmd])
+            this._msgQueue[msg.cmd] = Promise.resolve();
+
+        const isRejectingAllowed = msg.allowRejecting;
+
+        msg.allowRejecting = true;
+
+        this._msgQueue[msg.cmd] = this._msgQueue[msg.cmd]
+            .catch(noop)
+            .then(() => this.asyncServiceMsg(msg));
+
+        return this._msgQueue[msg.cmd]
+            .catch(err => {
+                if (isRejectingAllowed)
+                    return Promise.reject(err);
+
+                return createUnresolvablePromise();
+            });
+    }
+
+    public asyncServiceMsg (msg: ServiceMessage): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this._performRequest(msg, (err, data) => {
+                if (!err)
+                    resolve(data);
+                else if (msg.allowRejecting)
+                    reject(err);
+            });
         });
     }
 
-    abstract queuedAsyncServiceMsg (msg: ServiceMessage);
-
-    abstract asyncServiceMsg (msg: ServiceMessage);
+    public start (messageSandbox: MessageSandbox): void {
+        // NOTE: There is no special logic here.
+    }
 }
