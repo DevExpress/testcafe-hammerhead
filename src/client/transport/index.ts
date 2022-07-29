@@ -25,7 +25,13 @@ export default class Transport {
         return this._implementation.queuedAsyncServiceMsg(msg);
     }
 
+    // NOTE: for testcafe-legacy-api
     batchUpdate (): Promise<any> {
         return this._implementation.batchUpdate();
+    }
+
+    // NOTE: for testcafe-legacy-api
+    waitForServiceMessagesCompleted (timeout: number): Promise<void> {
+        return this._implementation.waitForServiceMessagesCompleted(timeout);
     }
 }
