@@ -681,6 +681,14 @@ test('Uninitialized iframes should correctly behave when they are rewritten (GH-
         });
 });
 
+test('should not throw an exception if iframe name contains quotes (GH-7194)', function () {
+    expect(0);
+
+    return createTestIframe({
+        name: 'my "example" page',
+    });
+});
+
 if (browserUtils.isChrome && browserUtils.version > 88 || browserUtils.isFirefox) {
     test('the correct referrer for cross-domain iframes', function () {
         createTestIframe({ src: getCrossDomainPageUrl('../../data/cross-domain/get-referrer.html') });
