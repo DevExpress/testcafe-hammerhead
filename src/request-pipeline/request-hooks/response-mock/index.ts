@@ -15,6 +15,7 @@ export default class ResponseMock {
     public readonly id: string;
     public isPredicate: boolean;
     public error: Error | null;
+    public hasError: boolean;
 
     public constructor (body?: ResponseMockBodyInit, statusCode?: number, headers?: Record<string, string>) {
         validateResponseMockParameters(body, statusCode, headers);
@@ -23,6 +24,7 @@ export default class ResponseMock {
         this.body        = body;
         this.isPredicate = isPredicate(body);
         this.error       = null;
+        this.hasError    = false;
 
         if (headers)
             this.headers = lowerCaseHeaderNames(headers);
