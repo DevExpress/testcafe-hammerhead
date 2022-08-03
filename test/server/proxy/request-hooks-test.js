@@ -763,6 +763,42 @@ describe('Request Hooks', () => {
                     session.removeRequestEventListeners(rule);
                 });
         });
+
+        it("Should not raise an error for the 'ResponseMock' with 500 status code (TC-GH-7213)", () => {
+            const url  = 'http://dummy_page.com';
+            const rule = new RequestFilterRule(url);
+            const mock = new ResponseMock('', 500);
+
+            let collectedErrorData = null;
+
+            session.addRequestEventListeners(rule, {
+                onRequest: e => {
+                    return new Promise(resolve => {
+                        setTimeout(async () => {
+                            await e.setMock(mock);
+
+                            resolve();
+                        }, 100);
+                    });
+                },
+            }, errorData => {
+                collectedErrorData = errorData;
+            });
+
+            const options = {
+                url:     proxy.openSession(url, session),
+                headers: {
+                    accept: PAGE_ACCEPT_HEADER,
+                },
+            };
+
+            return request(options)
+                .catch(() => {
+                    expect(collectedErrorData).to.be.null;
+
+                    session.removeRequestEventListeners(rule);
+                });
+        });
     });
 
     it('Should allow to set request options', () => {

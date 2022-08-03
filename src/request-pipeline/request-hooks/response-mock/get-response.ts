@@ -36,6 +36,7 @@ export default async function (mock: ResponseMock): Promise<IncomingMessageLike>
         }
         catch (err) {
             response.statusCode = 500;
+            mock.hasError       = true;
             mock.error          = err;
             response.body       = Buffer.from(ERROR_MOCKING_PAGE_CONTENT);
         }

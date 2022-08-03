@@ -198,7 +198,7 @@ export async function callOnResponseEventCallbackForMotModifiedResource (ctx: Re
 }
 
 export async function handleRequestMockingErrorIfNecessary (ctx: RequestPipelineContext): Promise<void> {
-    if (ctx.destRes.statusCode !== 500)
+    if (!ctx.mock.hasError)
         return;
 
     const targetRule = ctx.requestFilterRules[0];
