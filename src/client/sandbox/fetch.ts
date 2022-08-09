@@ -73,7 +73,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         return init;
     }
 
-    private static _processArguments (args: Parameters<Window['fetch']>) {
+    private static _processArguments (args: Parameters<Window['fetch']>, proxyless: boolean) {
         const [input, init]   = args;
         const inputIsString   = typeof input === 'string';
         const optsCredentials = getCredentialsMode(init && init.credentials);
@@ -82,7 +82,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             const url         = inputIsString ? input : String(input);
             const credentials = optsCredentials === Credentials.unknown ? DEFAULT_REQUEST_CREDENTIALS : optsCredentials;
 
-            args[0] = getAjaxProxyUrl(url, credentials);
+            args[0] = getAjaxProxyUrl(url, credentials, proxyless);
             args[1] = FetchSandbox._processInit(init || {});
         }
         else {
@@ -137,7 +137,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         const sandbox = this;
 
         overrideConstructor(window, 'Request', function (...args: ConstructorParameters<typeof Request>) {
-            FetchSandbox._processArguments(args);
+            FetchSandbox._processArguments(args, sandbox.proxyless);
 
             window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = nativeMethods.headersEntries;
 
@@ -152,13 +152,17 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
 
         overrideDescriptor(window.Request.prototype, 'url', {
             getter: function (this: Request) {
-                return getDestinationUrl(nativeMethods.requestUrlGetter.call(this));
+                const nativeRequestUrl = nativeMethods.requestUrlGetter.call(this);
+
+                return sandbox.proxyless ? nativeRequestUrl : getDestinationUrl(nativeRequestUrl);
             },
         });
 
         overrideDescriptor(window.Request.prototype, 'referrer', {
             getter: function (this: Request) {
-                return getDestinationUrl(nativeMethods.requestReferrerGetter.call(this));
+                const nativeReferrer = nativeMethods.requestReferrerGetter.call(this);
+
+                return sandbox.proxyless ? nativeReferrer : getDestinationUrl(nativeReferrer);
             },
         });
 
@@ -171,7 +175,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
                 return nativeMethods.fetch.apply(this, args);
 
             try {
-                FetchSandbox._processArguments(args);
+                FetchSandbox._processArguments(args, sandbox.proxyless);
             }
             catch (e) {
                 return nativeMethods.promiseReject.call(sandbox.window.Promise, e);
@@ -194,7 +198,9 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
 
         overrideDescriptor(window.Response.prototype, 'url', {
             getter: function () {
-                return getDestinationUrl(nativeMethods.responseUrlGetter.call(this));
+                const nativeResponseUrl = nativeMethods.responseUrlGetter.call(this);
+
+                return sandbox.proxyless ? nativeResponseUrl : getDestinationUrl(nativeResponseUrl);
             },
         });
 

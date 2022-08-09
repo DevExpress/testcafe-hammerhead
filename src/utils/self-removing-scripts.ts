@@ -6,6 +6,8 @@
 import SHADOW_UI_CLASSNAME from '../shadow-ui/class-name';
 import INTERNAL_PROPS from '../processing/dom/internal-properties';
 
+const CLEANUP_FORMATTING_REGEXP = /\n\s*|\/\*[\S\s]*?\*\//g;
+
 function create (script: string): string {
     return `
         <script class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }">
@@ -25,7 +27,7 @@ function create (script: string): string {
                 ${ script }
             })();
         </script>
-    `.replace(/\n\s*|\/\*[\S\s]*?\*\//g, '');
+    `.replace(CLEANUP_FORMATTING_REGEXP, '');
 }
 
 export default {

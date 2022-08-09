@@ -14,7 +14,6 @@ import http, { ServerOptions } from 'http';
 import https from 'https';
 import * as urlUtils from '../utils/url';
 import scriptProcessor from '../processing/resources/script';
-import { readSync as read } from 'read-file-relative';
 
 import {
     respond500,
@@ -33,6 +32,7 @@ import BUILTIN_HEADERS from '../request-pipeline/builtin-header-names';
 import logger from '../utils/logger';
 import errToString from '../utils/err-to-string';
 import { parse as parseJSON } from '../utils/json';
+import loadClientScript from '../utils/load-client-script';
 
 const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
 
@@ -69,7 +69,6 @@ export default class Proxy extends Router {
     private readonly server1: http.Server | https.Server;
     private readonly server2: http.Server | https.Server;
     private readonly sockets: Set<net.Socket>;
-    public readonly proxyless: boolean;
 
     // Max header size for incoming HTTP requests
     // Set to 80 KB as it was the original limit:
@@ -87,14 +86,11 @@ export default class Proxy extends Router {
             ssl,
             developmentMode,
             cache,
-            proxyless,
         } = prepareOptions;
 
         const protocol     = ssl ? 'https:' : 'http:';
         const opts         = this._getOpts(ssl);
         const createServer = this._getCreateServerMethod(ssl);
-
-        this.proxyless = proxyless;
 
         this.server1Info = createServerInfo(hostname, port1, port2, protocol, cache);
         this.server2Info = createServerInfo(hostname, port2, port1, protocol, cache);
@@ -146,13 +142,9 @@ export default class Proxy extends Router {
     }
 
     _registerServiceRoutes (developmentMode: boolean): void {
-        const developmentModeSuffix   = developmentMode ? '' : '.min';
-        const hammerheadFileName      = `hammerhead${developmentModeSuffix}.js`;
-        const hammerheadScriptContent = read(`../client/${hammerheadFileName}`) as Buffer;
-        const transportWorkerFileName = `transport-worker${developmentModeSuffix}.js`;
-        const transportWorkerContent  = read(`../client/${transportWorkerFileName}`) as Buffer;
-        const workerHammerheadFileName = `worker-hammerhead${developmentModeSuffix}.js`;
-        const workerHammerheadContent  = read(`../client/${workerHammerheadFileName}`) as Buffer;
+        const hammerheadScriptContent = loadClientScript(SERVICE_ROUTES.hammerhead, developmentMode);
+        const transportWorkerContent  = loadClientScript(SERVICE_ROUTES.transportWorker, developmentMode);
+        const workerHammerheadContent = loadClientScript(SERVICE_ROUTES.workerHammerhead, developmentMode);
 
         this.GET(SERVICE_ROUTES.hammerhead, {
             contentType: 'application/x-javascript',
@@ -171,7 +163,7 @@ export default class Proxy extends Router {
 
         this.POST(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onServiceMessage(req, res, serverInfo));
 
-        if (this.proxyless)
+        if (this.options.proxyless)
             this.OPTIONS(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse) => this._onServiceMessagePreflight(req, res));
 
         this.GET(SERVICE_ROUTES.task, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onTaskScriptRequest(req, res, serverInfo, false));
@@ -191,7 +183,7 @@ export default class Proxy extends Router {
 
                 res.setHeader(BUILTIN_HEADERS.setCookie, session.takePendingSyncCookies());
 
-                respondWithJSON(res, result, false, this.proxyless);
+                respondWithJSON(res, result, false, this.options.proxyless);
             }
             catch (err) {
                 logger.serviceMsg.onError(msg, err);
@@ -279,7 +271,7 @@ export default class Proxy extends Router {
 
         url = urlUtils.prepareUrl(url);
 
-        if (this.proxyless)
+        if (this.options.proxyless)
             return url;
 
         return urlUtils.getProxyUrl(url, {
