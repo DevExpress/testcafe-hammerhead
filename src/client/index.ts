@@ -292,7 +292,8 @@ class Hammerhead {
     }
 
     navigateTo (url: string, forceReload: boolean): void {
-        const navigationUrl = urlUtils.getNavigationUrl(url, this.win);
+        const proxyless     = !!settings.get().proxyless;
+        const navigationUrl = urlUtils.getNavigationUrl(url, this.win, proxyless);
 
         if (!navigationUrl)
             return;

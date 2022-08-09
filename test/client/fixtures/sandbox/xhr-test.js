@@ -512,3 +512,62 @@ test('should handle blob object urls (GH-1397)', function () {
         strictEqual(xhr.responseText, 'this is a text');
     });
 });
+
+module('proxyless', function (hooks) {
+    var storedProxyless = xhrSandbox.proxyless;
+
+    hooks.beforeEach(function () {
+        xhrSandbox.proxyless = true;
+    });
+    hooks.afterEach(function () {
+        xhrSandbox.proxyless = storedProxyless;
+    });
+
+    test('xhr.open method', function () {
+        var xhr = new XMLHttpRequest();
+
+        xhr.open('get', '/xhr-test/100', false);
+        xhr.send();
+
+        strictEqual(xhr.responseText, '/xhr-test/100');
+
+        xhr = new XMLHttpRequest();
+
+        xhr.open('get', '/xhr-test/100', false);
+        xhr.withCredentials = true;
+        xhr.send();
+
+        strictEqual(xhr.responseText, '/xhr-test/100');
+    });
+
+    // NOTE: IE11 doesn't support 'XMLHttpRequest.responseURL'
+    if (nativeMethods.xhrResponseURLGetter) {
+        test('xhr.responseURL', function () {
+            var xhr = new XMLHttpRequest();
+
+            xhr.open('get', '/xhr-test/100', false);
+            xhr.send();
+
+            strictEqual(xhr.responseURL, location.origin + '/xhr-test/100');
+        });
+    }
+
+    test('should handle blob object urls (GH-1397)', function () {
+        return new Promise(function (resolve) {
+            var xhr = new XMLHttpRequest();
+            var blob = new Blob(['this is a text'], { type: 'plain/text' });
+            var url = URL.createObjectURL(blob);
+
+            xhr.open('get', url, false);
+            xhr.addEventListener('load', function () {
+                resolve(xhr);
+            });
+
+            xhr.send();
+        }).then(function (xhr) {
+            strictEqual(xhr.responseText, 'this is a text');
+        });
+    });
+});
+
+

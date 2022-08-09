@@ -37,6 +37,36 @@ class PageProcessor extends ResourceProcessorBase {
         this.RESTART_PROCESSING = Symbol();
     }
 
+    private static _createShadowUIStyleLinkNode (url: string): ASTNode {
+        return parse5Utils.createElement('link', [
+            { name: 'rel', value: 'stylesheet' },
+            { name: 'type', value: 'text/css' },
+            { name: 'class', value: SHADOW_UI_CLASSNAME.uiStylesheet },
+            { name: 'href', value: url },
+        ]);
+    }
+
+    private static _createShadowUIScriptWithUrlNode (url: string): ASTNode {
+        return parse5Utils.createElement('script', [
+            { name: 'type', value: 'text/javascript' },
+            { name: 'class', value: SHADOW_UI_CLASSNAME.script },
+            { name: 'charset', value: 'UTF-8' },
+            { name: 'src', value: url },
+        ]);
+    }
+
+    private static _createShadowUIScriptWithContentNode (content: string): ASTNode {
+        const scriptAsContentElement = parse5Utils.createElement('script', [
+            { name: 'type', value: 'text/javascript' },
+            { name: 'class', value: SHADOW_UI_CLASSNAME.script },
+            { name: 'charset', value: 'UTF-8' },
+        ]);
+
+        scriptAsContentElement.childNodes = [parse5Utils.createTextNode(content, scriptAsContentElement)];
+
+        return scriptAsContentElement;
+    }
+
     private _createRestoreStoragesScript (storageKey: string, storages): ASTNode {
         const parsedDocumentFragment = parse5.parseFragment(util.format(SELF_REMOVING_SCRIPTS.restoreStorages,
             storageKey, stringifyJSON(storages.localStorage),
@@ -75,38 +105,20 @@ class PageProcessor extends ResourceProcessorBase {
 
         if (processingOptions.stylesheets) {
             processingOptions.stylesheets.forEach(stylesheetUrl => {
-                injectedResources.unshift(parse5Utils.createElement('link', [
-                    { name: 'rel', value: 'stylesheet' },
-                    { name: 'type', value: 'text/css' },
-                    { name: 'class', value: SHADOW_UI_CLASSNAME.uiStylesheet },
-                    { name: 'href', value: stylesheetUrl },
-                ]));
+                injectedResources.unshift(PageProcessor._createShadowUIStyleLinkNode(stylesheetUrl));
             });
 
         }
 
         if (processingOptions.scripts) {
             processingOptions.scripts.forEach(scriptUrl => {
-                injectedResources.push(parse5Utils.createElement('script', [
-                    { name: 'type', value: 'text/javascript' },
-                    { name: 'class', value: SHADOW_UI_CLASSNAME.script },
-                    { name: 'charset', value: 'UTF-8' },
-                    { name: 'src', value: scriptUrl },
-                ]));
+                injectedResources.push(PageProcessor._createShadowUIScriptWithUrlNode(scriptUrl));
             });
         }
 
         if ((processingOptions as PageInjectableResources).embeddedScripts) {
             (processingOptions as PageInjectableResources).embeddedScripts.forEach(script => {
-                const embeddedScriptElement = parse5Utils.createElement('script', [
-                    { name: 'type', value: 'text/javascript' },
-                    { name: 'class', value: SHADOW_UI_CLASSNAME.script },
-                    { name: 'charset', value: 'UTF-8' },
-                ]);
-
-                embeddedScriptElement.childNodes = [parse5Utils.createTextNode(script, embeddedScriptElement)];
-
-                injectedResources.push(embeddedScriptElement);
+                injectedResources.push(PageProcessor._createShadowUIScriptWithContentNode(script));
             });
         }
 

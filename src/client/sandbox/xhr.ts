@@ -74,12 +74,12 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         xhr.setRequestHeader(BUILTIN_HEADERS.cacheControl, 'no-cache, no-store, must-revalidate');
     }
 
-    private static _reopenXhr (xhr: XMLHttpRequest, reqOpts: RequestOptions) {
+    private static _reopenXhr (xhr: XMLHttpRequest, reqOpts: RequestOptions, proxyless: boolean): void {
         const url             = reqOpts.openArgs[1];
         const withCredentials = xhr.withCredentials;
 
         reqOpts.withCredentials = withCredentials;
-        reqOpts.openArgs[1]     = getAjaxProxyUrl(url, withCredentials ? Credentials.include : Credentials.sameOrigin);
+        reqOpts.openArgs[1]     = getAjaxProxyUrl(url, withCredentials ? Credentials.include : Credentials.sameOrigin, proxyless);
 
         nativeMethods.xhrOpen.apply(xhr, reqOpts.openArgs);
 
@@ -152,7 +152,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         overrideFunction(xmlHttpRequestProto, 'open', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['open']>) { // eslint-disable-line consistent-return
             let url = args[1];
 
-            if (getProxyUrl(url) === url) {
+            if (getProxyUrl(url, xhrSandbox.proxyless) === url) {
                 XhrSandbox.setRequestOptions(this, this.withCredentials, args);
 
                 return void nativeMethods.xhrOpen.apply(this, args);
@@ -163,7 +163,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
 
             url = typeof url === 'string' ? url : String(url);
 
-            args[1] = getAjaxProxyUrl(url, this.withCredentials ? Credentials.include : Credentials.sameOrigin);
+            args[1] = getAjaxProxyUrl(url, this.withCredentials ? Credentials.include : Credentials.sameOrigin, xhrSandbox.proxyless);
 
             nativeMethods.xhrOpen.apply(this, args);
 
@@ -179,7 +179,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             const reqOpts = XhrSandbox.REQUESTS_OPTIONS.get(this);
 
             if (reqOpts && reqOpts.withCredentials !== this.withCredentials)
-                XhrSandbox._reopenXhr(this, reqOpts);
+                XhrSandbox._reopenXhr(this, reqOpts, xhrSandbox.proxyless);
 
             xhrSandbox.emit(xhrSandbox.BEFORE_XHR_SEND_EVENT, { xhr: this });
 
@@ -207,7 +207,9 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         if (nativeMethods.xhrResponseURLGetter) {
             overrideDescriptor(window.XMLHttpRequest.prototype, 'responseURL', {
                 getter: function () {
-                    return getDestinationUrl(nativeMethods.xhrResponseURLGetter.call(this));
+                    const nativeResponseURL = nativeMethods.xhrResponseURLGetter.call(this);
+
+                    return xhrSandbox.proxyless ? nativeResponseURL : getDestinationUrl(nativeResponseURL);
                 },
             });
         }

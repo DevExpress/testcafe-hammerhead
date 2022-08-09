@@ -30,11 +30,14 @@ function prepareUrl (url) {
 exports.start = (options = {}) => {
     const app       = express();
     const appServer = http.createServer({ maxHeaderSize: Proxy.MAX_REQUEST_HEADER_SIZE }, app);
-    const proxy     = new Proxy('localhost', PROXY_PORT_1, PROXY_PORT_2, Object.assign(options, {
-        developmentMode: true
-    }));
 
-    if (options.needBeautifyScripts) {
+    const resultOptions = Object.assign(options, {
+        developmentMode: true,
+    });
+
+    const proxy = new Proxy('localhost', PROXY_PORT_1, PROXY_PORT_2, resultOptions);
+
+    if (resultOptions.needBeautifyScripts) {
         const nativeProcessScript = scriptProc.processScript;
 
         scriptProc.processScript = (...args) => jsBeautify(nativeProcessScript(...args));
@@ -66,6 +69,8 @@ exports.start = (options = {}) => {
     });
 
     appServer.listen(SERVER_PORT);
+
     console.log('Server listens on port ' + SERVER_PORT);
+
     process.exec('start http://localhost:' + SERVER_PORT);
 };

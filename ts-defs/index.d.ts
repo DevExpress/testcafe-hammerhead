@@ -194,6 +194,18 @@ declare module 'testcafe-hammerhead' {
         cacheRequests: boolean;
     }
 
+    export interface RouterOptions {
+        staticContentCaching?: object;
+    }
+
+    export interface ProxyOptions extends RouterOptions {
+        ssl: object;
+        developmentMode: boolean;
+        cache: boolean;
+        disableHttp2: boolean;
+        proxyless: boolean;
+    }
+
     /** The Session class is used to create a web-proxy session **/
     export abstract class Session {
         /** Unique identifier of the Session instance **/
@@ -253,6 +265,9 @@ declare module 'testcafe-hammerhead' {
     export class Proxy {
         /** Creates a web proxy instance **/
         constructor ();
+
+        /** Proxy options **/
+        options: ProxyOptions;
 
         /** Information about server1 **/
         server1Info: ServerInfo;

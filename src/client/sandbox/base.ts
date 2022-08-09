@@ -8,11 +8,13 @@ import {
 } from '../utils/dom';
 
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
+import settings from '../settings';
 
 export default class SandboxBase extends EventEmitter {
     window: Window & typeof globalThis | null = null;
     nativeMethods = nativeMethods;
     document: Document | null = null;
+    protected proxyless = false;
 
     // NOTE: The sandbox is deactivated when its window is removed from the DOM.
     isDeactivated (): boolean {
@@ -34,7 +36,8 @@ export default class SandboxBase extends EventEmitter {
     }
 
     attach (window: Window & typeof globalThis, document?: Document): void {
-        this.window   = window;
-        this.document = document || window.document;
+        this.window    = window;
+        this.document  = document || window.document;
+        this.proxyless = !!settings.get().proxyless;
     }
 }

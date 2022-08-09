@@ -3,6 +3,7 @@ var headersUtils  = hammerhead.sharedUtils.headers;
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var Promise       = hammerhead.Promise;
+var fetchSandbox  = hammerhead.sandbox.fetch;
 
 if (window.fetch) {
     test('fetch.toString (GH-1662)', function () {
@@ -639,6 +640,52 @@ if (window.fetch) {
                     strictEqual(res.headers.get('authorization'), '123');
                     strictEqual(nativeMethods.headersGet.call(res.headers, 'authorization'), '123');
                 });
+        });
+    });
+
+    module('proxyless', function (hooks) {
+        var storedProxyless = fetchSandbox.proxyless;
+
+        hooks.beforeEach(function () {
+            fetchSandbox.proxyless = true;
+        });
+        hooks.afterEach(function () {
+            fetchSandbox.proxyless = storedProxyless;
+        });
+
+        test('Request - redirect request to proxy', function () {
+            var request = new Request('/xhr-test/100', { credentials: 'omit' });
+
+            return fetch(request)
+                .then(function (response) {
+                    return response.text();
+                })
+                .then(function (url) {
+                    strictEqual(url, '/xhr-test/100');
+                });
+        });
+
+        test('global fetch - redirect request to proxy', function () {
+            return fetch('/xhr-test/100', { credentials: 'same-origin' })
+                .then(function (response) {
+                    return response.text();
+                })
+                .then(function (url) {
+                    strictEqual(url, '/xhr-test/100');
+                });
+        });
+
+        test('response.url', function () {
+            return fetch('/xhr-test/100')
+                .then(function (response) {
+                    strictEqual(response.url, location.origin + '/xhr-test/100');
+                });
+        });
+
+        test('request.url', function () {
+            var request = new Request('/xhr-test/100');
+
+            strictEqual(request.url, location.origin + '/xhr-test/100');
         });
     });
 }

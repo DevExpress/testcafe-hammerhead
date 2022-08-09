@@ -19,6 +19,11 @@ export const DEFAULT_PROXY_SETTINGS = (function () {
     let proxyLocation  = locationWindow.location;
 
     while (!proxyLocation.hostname) {
+        // about:blank page in proxyless mode
+        if (!globalContextInfo.isInWorker
+            && locationWindow === (locationWindow as Window).top)
+            break;
+
         locationWindow = locationWindow.parent;
         proxyLocation  = locationWindow.location;
     }
@@ -40,7 +45,10 @@ function getCharsetFromDocument (parsedResourceType: ResourceType): string | nul
     return self.document && document[INTERNAL_PROPS.documentCharset] || null;
 }
 
-export let getProxyUrl = function (url: string | URL, opts?): string {
+export let getProxyUrl = function (url: string | URL, opts?, proxyless = false): string {
+    if (proxyless)
+        return String(url);
+
     url = sharedUrlUtils.getURLString(url);
 
     const resourceType       = opts && opts.resourceType;
@@ -153,7 +161,7 @@ export function overrideGetProxyUrl (func: typeof getProxyUrl): void {
     getProxyUrl = func;
 }
 
-export function getNavigationUrl (url: string, win) {
+function getProxyNavigationUrl (url: string, win: Window): string {
     // NOTE: For the 'about:blank' page, we perform url proxing only for the top window, 'location' object and links.
     // For images and iframes, we keep urls as they were.
     // See details in https://github.com/DevExpress/testcafe-hammerhead/issues/339
@@ -176,6 +184,12 @@ export function getNavigationUrl (url: string, win) {
     url = sharedUrlUtils.prepareUrl(url);
 
     return getProxyUrl(url);
+}
+
+export function getNavigationUrl (url: string, win, proxyless = false): string {
+    return proxyless
+        ? url
+        : getProxyNavigationUrl(url, win);
 }
 
 export let getCrossDomainIframeProxyUrl = function (url: string) {
@@ -337,7 +351,10 @@ export function getScope (url: string): string | null {
     return partAfterHostWithoutQueryAndHash.replace(SCOPE_RE, '/') || '/';
 }
 
-export function getAjaxProxyUrl (url: string | URL, credentials: sharedUrlUtils.Credentials) {
+export function getAjaxProxyUrl (url: string | URL, credentials: sharedUrlUtils.Credentials, proxyless = false) {
+    if (proxyless)
+        return String(url);
+
     const isCrossDomain = !destLocation.sameOriginCheck(destLocation.getLocation(), url);
     const opts          = { resourceType: stringifyResourceType({ isAjax: true }), credentials } as any;
 
