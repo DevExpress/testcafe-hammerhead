@@ -8,6 +8,10 @@ interface PropertySettings<T extends object, K extends keyof T> {
     value?: any;
 }
 
+const DEFAULT_DESCRIPTOR: PropertyDescriptor = {
+    configurable: true,
+};
+
 function replaceNativeAccessor (descriptor, accessorName: string, newAccessor) {
     if (newAccessor && descriptor[accessorName]) {
         const stringifiedNativeAccessor = descriptor[accessorName].toString();
@@ -19,7 +23,7 @@ function replaceNativeAccessor (descriptor, accessorName: string, newAccessor) {
 }
 
 export function createOverriddenDescriptor<O extends object, K extends keyof O> (obj: O, prop: K, { getter, setter, value }: PropertySettings<O, K>) {
-    const descriptor = nativeMethods.objectGetOwnPropertyDescriptor(obj, prop);
+    const descriptor = nativeMethods.objectGetOwnPropertyDescriptor(obj, prop) || DEFAULT_DESCRIPTOR;
 
     if ((getter || setter) && value)
         throw new Error('Cannot both specify accessors and a value or writable attribute.');
