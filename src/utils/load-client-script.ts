@@ -1,6 +1,6 @@
 import SERVICE_ROUTES from '../proxy/service-routes';
 import { readSync as read } from 'read-file-relative';
-import getClientScriptSuffix from './get-client-script-suffix';
+import getAssetPath from './get-asset-path';
 
 const serviceRouteValues = Object.values(SERVICE_ROUTES);
 
@@ -21,8 +21,7 @@ export default function (name: string, devMode: boolean): string {
     if (!serviceRouteValues.includes(name))
         throw new Error(`Unknown service route value: ${name}`);
 
-    const parts      = name.split('.');
-    const resultPath = `../client${parts[0]}${getClientScriptSuffix(devMode)}.${parts[1]}`;
+    const resultPath = `../client${getAssetPath(name, devMode)}`;
 
     return get(resultPath);
 }

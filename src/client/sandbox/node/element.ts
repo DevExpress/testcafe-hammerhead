@@ -196,9 +196,13 @@ export default class ElementSandbox extends SandboxBase {
                         domUtils.isElementInDocument(el, currentDocument))
                         urlResolver.updateBase(value, currentDocument);
 
-                    args[valueIndex] = isIframe && isCrossDomainUrl
-                        ? urlUtils.getCrossDomainIframeProxyUrl(value)
-                        : urlUtils.getProxyUrl(value, { resourceType, charset: elCharset, doc: currentDocument });
+                    if (this.proxyless)
+                        args[valueIndex] = value;
+                    else {
+                        args[valueIndex] = isIframe && isCrossDomainUrl
+                            ? urlUtils.getCrossDomainIframeProxyUrl(value)
+                            : urlUtils.getProxyUrl(value, { resourceType, charset: elCharset, doc: currentDocument });
+                    }
                 }
             }
             else if (value && !isSpecialPage && !urlUtils.parseProxyUrl(value)) {
