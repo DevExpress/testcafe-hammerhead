@@ -8,10 +8,6 @@ interface PropertySettings<T extends object, K extends keyof T> {
     value?: any;
 }
 
-const DEFAULT_DESCRIPTOR: PropertyDescriptor = {
-    configurable: true,
-};
-
 function replaceNativeAccessor (descriptor, accessorName: string, newAccessor) {
     if (newAccessor && descriptor[accessorName]) {
         const stringifiedNativeAccessor = descriptor[accessorName].toString();
@@ -23,7 +19,10 @@ function replaceNativeAccessor (descriptor, accessorName: string, newAccessor) {
 }
 
 export function createOverriddenDescriptor<O extends object, K extends keyof O> (obj: O, prop: K, { getter, setter, value }: PropertySettings<O, K>) {
-    const descriptor = nativeMethods.objectGetOwnPropertyDescriptor(obj, prop) || DEFAULT_DESCRIPTOR;
+    const descriptor = getPropertyDescriptor(obj, prop);
+
+    if (!descriptor)
+        return descriptor;
 
     if ((getter || setter) && value)
         throw new Error('Cannot both specify accessors and a value or writable attribute.');
@@ -57,7 +56,8 @@ export function createOverriddenDescriptor<O extends object, K extends keyof O> 
 export function overrideDescriptor<O extends object, K extends keyof O> (obj: O, prop: K, propertyAccessors: PropertySettings<O, K>) {
     const descriptor = createOverriddenDescriptor(obj, prop, propertyAccessors);
 
-    nativeMethods.objectDefineProperty(obj, prop, descriptor);
+    if (descriptor)
+        nativeMethods.objectDefineProperty(obj, prop, descriptor);
 }
 
 function overrideFunctionName (fn: Function, name: string): void {
@@ -76,6 +76,15 @@ function overrideToString (nativeFnWrapper: Function, nativeFn: Function): void 
         value:        nativeMethods.Function.prototype.toString.call(nativeFn),
         configurable: true,
     });
+}
+
+function getPropertyDescriptor <O extends object, K extends keyof O> (obj: O, prop: K): PropertyDescriptor | void {
+    if (!obj)
+        return void 0;
+
+    const descriptor = nativeMethods.objectGetOwnPropertyDescriptor(obj, prop);
+
+    return descriptor || getPropertyDescriptor(nativeMethods.objectGetPrototypeOf(obj), prop);
 }
 
 // TODO: this function should not be used outside this file
