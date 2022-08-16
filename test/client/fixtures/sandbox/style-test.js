@@ -192,8 +192,7 @@ test('override properties in the CSSStyleDeclaration.prototype (GH-7166)', funct
             var iframeDocument = iframe.contentDocument;
             var item           = iframeDocument.querySelector('div');
 
-            ok(item.style.backgroundImage);
-            ok(item.style['background-image']);
-            strictEqual(item.style.backgroundImage, item.style['background-image']);
+            strictEqual(item.style.backgroundImage, 'url("https://domain.com/test.svg")');
+            strictEqual(item.style.backgroundImage, 'url("https://domain.com/test.svg")');
         });
 });
