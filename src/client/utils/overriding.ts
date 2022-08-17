@@ -24,6 +24,9 @@ export function createOverriddenDescriptor<O extends object, K extends keyof O> 
     if ((getter || setter) && value)
         throw new Error('Cannot both specify accessors and a value or writable attribute.');
 
+    if (!descriptor)
+        return void 0;
+
     if (value) {
         if (!nativeMethods.objectHasOwnProperty.call(descriptor, 'writable')) {
             descriptor.writable = !!descriptor.set;
@@ -51,9 +54,15 @@ export function createOverriddenDescriptor<O extends object, K extends keyof O> 
 }
 
 export function overrideDescriptor<O extends object, K extends keyof O> (obj: O, prop: K, propertyAccessors: PropertySettings<O, K>) {
+    if (!obj)
+        return;
+
     const descriptor = createOverriddenDescriptor(obj, prop, propertyAccessors);
 
-    nativeMethods.objectDefineProperty(obj, prop, descriptor);
+    if (descriptor)
+        nativeMethods.objectDefineProperty(obj, prop, descriptor);
+    else
+        overrideDescriptor(nativeMethods.objectGetPrototypeOf(obj), prop, propertyAccessors);
 }
 
 function overrideFunctionName (fn: Function, name: string): void {

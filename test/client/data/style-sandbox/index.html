@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+</head>
+<body>
+<div id="item" style="background: url('https://domain.com/test.svg');width: 500px;height: 500px;"></div>
+</body>
+<script>
+    var hammerhead       = window['%hammerhead%'];
+    var getPropertyValue = CSSStyleDeclaration.prototype.getPropertyValue;
+    var item             = document.querySelector('div');
+    var prototype        = Object.getPrototypeOf(item.style);
+
+    Object.defineProperty(prototype, 'background', {
+        configurable: true,
+        get:          function () {
+            return getPropertyValue.call(this, 'background');
+        },
+        set:          function () {
+        },
+    });
+
+    Object.defineProperty(prototype, 'background-image', {
+        configurable: true,
+        get:          function () {
+            return getPropertyValue.call(this, 'background-image');
+        },
+        set:          function () {
+        },
+    });
+
+    Object.defineProperty(prototype, 'backgroundImage', {
+        configurable: true,
+        get:          function () {
+            return getPropertyValue.call(this, 'background-image');
+        },
+        set:          function () {
+        },
+    });
+
+    hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/https://example.com');
+    hammerhead.start({ crossDomainProxyPort: 2001, cookie: '', sessionId: 'sessionId' });
+</script>
+</html>

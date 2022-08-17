@@ -185,3 +185,14 @@ test('the appendData function does not break if there is no parent element (TC-3
 
     strictEqual(textNode.data, '\n.class:hover{}\n');
 });
+
+test('override properties in the CSSStyleDeclaration.prototype (GH-7166)', function () {
+    return createTestIframe({ src: getSameDomainPageUrl('../../data/style-sandbox/index.html') })
+        .then(function (iframe) {
+            var iframeDocument = iframe.contentDocument;
+            var item           = iframeDocument.querySelector('div');
+
+            strictEqual(removeDoubleQuotes(item.style.backgroundImage), 'url(https://domain.com/test.svg)');
+            strictEqual(removeDoubleQuotes(item.style.backgroundImage), 'url(https://domain.com/test.svg)');
+        });
+});
