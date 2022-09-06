@@ -28,24 +28,20 @@ export default class MethodCallInstrumentation extends SandboxBase {
         if (this.proxyless)
             return;
 
-        this.methodWrappers = {
-            // NOTE: We cannot get the location wrapper for a cross-domain window. Therefore, we need to
-            // intercept calls to the native 'replace' method.
-            replace: {
-                condition: isLocation,
-                method:    (location: Location, args: any[]) => location.replace(getProxyUrl(args[0], {
-                    resourceType: MethodCallInstrumentation._getLocationResourceType(location),
-                })),
-            },
+        // NOTE: We cannot get the location wrapper for a cross-domain window. Therefore, we need to
+        // intercept calls to the native 'replace' and 'assign' methods.
+        this.methodWrappers.replace = {
+            condition: isLocation,
+            method:    (location: Location, args: any[]) => location.replace(getProxyUrl(args[0], {
+                resourceType: MethodCallInstrumentation._getLocationResourceType(location),
+            })),
+        };
 
-            // NOTE: We cannot get the location wrapper for a cross-domain window. Therefore, we need to
-            // intercept calls to the native 'assign' method.
-            assign: {
-                condition: isLocation,
-                method:    (location: Location, args: any[]) => location.assign(getProxyUrl(args[0], {
-                    resourceType: MethodCallInstrumentation._getLocationResourceType(location),
-                })),
-            },
+        this.methodWrappers.assign = {
+            condition: isLocation,
+            method:    (location: Location, args: any[]) => location.assign(getProxyUrl(args[0], {
+                resourceType: MethodCallInstrumentation._getLocationResourceType(location),
+            })),
         };
     }
 
