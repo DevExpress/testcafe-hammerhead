@@ -464,7 +464,7 @@ export default abstract class Session extends EventEmitter {
     abstract getIframePayloadScript (iframeWithoutSrc: boolean): Promise<string>;
     abstract getPayloadScript (): Promise<string>;
     abstract handleFileDownload (): void;
-    abstract handleAttachment ({ isOpenedInNewWindow: boolean }): void;
+    abstract handleAttachment ({ isOpenedInNewWindow }: { isOpenedInNewWindow: boolean }): void;
     abstract handlePageError (ctx: RequestPipelineContext, err: string): void;
     abstract getAuthCredentials (): Credentials;
 

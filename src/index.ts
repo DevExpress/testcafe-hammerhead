@@ -23,6 +23,7 @@ import promisifyStream from './utils/promisify-stream';
 import PageProcessor from './processing/resources/page';
 import { SCRIPTS } from './session/injectables';
 import { acceptCrossOrigin } from './utils/http';
+import getAssetPath from './utils/get-asset-path';
 
 export default {
     Proxy,
@@ -49,4 +50,5 @@ export default {
     injectResources:    PageProcessor.injectResources,
     INJECTABLE_SCRIPTS: SCRIPTS,
     acceptCrossOrigin,
+    getAssetPath,
 };

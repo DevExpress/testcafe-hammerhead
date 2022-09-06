@@ -422,6 +422,38 @@ export default class WindowSandbox extends SandboxBase {
         }
     }
 
+    private _overrideAllUrlAttrDescriptors (): void {
+        this._overrideUrlAttrDescriptors('data', [window.HTMLObjectElement]);
+
+        this._overrideUrlAttrDescriptors('src', [
+            window.HTMLImageElement,
+            window.HTMLScriptElement,
+            window.HTMLEmbedElement,
+            window.HTMLSourceElement,
+            window.HTMLMediaElement,
+            window.HTMLInputElement,
+            window.HTMLFrameElement,
+            window.HTMLIFrameElement,
+        ]);
+
+        this._overrideUrlAttrDescriptors('action', [window.HTMLFormElement]);
+
+        this._overrideUrlAttrDescriptors('formAction', [
+            window.HTMLInputElement,
+            window.HTMLButtonElement,
+        ]);
+
+        this._overrideUrlAttrDescriptors('href', [
+            window.HTMLAnchorElement,
+            window.HTMLLinkElement,
+            window.HTMLAreaElement,
+            window.HTMLBaseElement,
+        ]);
+
+        if (nativeMethods.htmlManifestGetter)
+            this._overrideUrlAttrDescriptors('manifest', [window.HTMLHtmlElement]);
+    }
+
     static isProxyObject (obj: any): boolean {
         try {
             return obj[IS_PROXY_OBJECT_INTERNAL_PROP_NAME] === IS_PROXY_OBJECT_INTERNAL_PROP_VALUE;
@@ -802,7 +834,9 @@ export default class WindowSandbox extends SandboxBase {
             return nativeMethods.functionToString.call(this);
         });
 
-        if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
+        if (typeof window.history.pushState === 'function'
+            && typeof window.history.replaceState === 'function'
+            && !this.proxyless) {
             const createWrapperForHistoryStateManipulationFn = function (nativeFn) {
                 return function (this: History, ...args) {
                     const url = args[2];
@@ -818,7 +852,7 @@ export default class WindowSandbox extends SandboxBase {
             overrideFunction(window.history, 'replaceState', createWrapperForHistoryStateManipulationFn(nativeMethods.historyReplaceState));
         }
 
-        if (nativeMethods.sendBeacon) {
+        if (nativeMethods.sendBeacon && !this.proxyless) {
             overrideFunction(window.Navigator.prototype, 'sendBeacon', function (this: Navigator) {
                 if (typeof arguments[0] === 'string')
                     arguments[0] = getProxyUrl(arguments[0]);
@@ -827,7 +861,7 @@ export default class WindowSandbox extends SandboxBase {
             });
         }
 
-        if (window.navigator.registerProtocolHandler) {
+        if (window.navigator.registerProtocolHandler && !this.proxyless) {
             overrideFunction(window.navigator, 'registerProtocolHandler', function (...args) {
                 const urlIndex = 1;
 
@@ -872,7 +906,7 @@ export default class WindowSandbox extends SandboxBase {
             });
         }
 
-        if (window.WebSocket) {
+        if (window.WebSocket && !this.proxyless) {
             overrideConstructor(window, 'WebSocket', function (url, protocols) {
                 if (arguments.length === 0)
                     return new nativeMethods.WebSocket();
@@ -965,7 +999,7 @@ export default class WindowSandbox extends SandboxBase {
             },
         });
 
-        if (nativeMethods.performanceEntryNameGetter) {
+        if (nativeMethods.performanceEntryNameGetter && !this.proxyless) {
             overrideDescriptor(window.PerformanceEntry.prototype, 'name', {
                 getter: function () {
                     const name = nativeMethods.performanceEntryNameGetter.call(this);
@@ -1055,35 +1089,8 @@ export default class WindowSandbox extends SandboxBase {
             },
         });
 
-        this._overrideUrlAttrDescriptors('data', [window.HTMLObjectElement]);
-
-        this._overrideUrlAttrDescriptors('src', [
-            window.HTMLImageElement,
-            window.HTMLScriptElement,
-            window.HTMLEmbedElement,
-            window.HTMLSourceElement,
-            window.HTMLMediaElement,
-            window.HTMLInputElement,
-            window.HTMLFrameElement,
-            window.HTMLIFrameElement,
-        ]);
-
-        this._overrideUrlAttrDescriptors('action', [window.HTMLFormElement]);
-
-        this._overrideUrlAttrDescriptors('formAction', [
-            window.HTMLInputElement,
-            window.HTMLButtonElement,
-        ]);
-
-        this._overrideUrlAttrDescriptors('href', [
-            window.HTMLAnchorElement,
-            window.HTMLLinkElement,
-            window.HTMLAreaElement,
-            window.HTMLBaseElement,
-        ]);
-
-        if (nativeMethods.htmlManifestGetter)
-            this._overrideUrlAttrDescriptors('manifest', [window.HTMLHtmlElement]);
+        if (!this.proxyless)
+            this._overrideAllUrlAttrDescriptors();
 
         this._overrideAttrDescriptors('target', [
             window.HTMLAnchorElement,

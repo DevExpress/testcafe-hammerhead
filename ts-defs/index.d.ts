@@ -529,4 +529,7 @@ declare module 'testcafe-hammerhead' {
 
     /** Allows to accept cross-origin request for proxy routes **/
     function acceptCrossOrigin (res: ServerResponse): void;
+
+    /** Calculates the asset path depending on the run mode (production or development) **/
+    function getAssetPath(originPath: string, developmentMode: boolean): string;
 }
