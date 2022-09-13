@@ -122,7 +122,7 @@ export default class Proxy extends Router {
         return opts;
     }
 
-    _getCreateServerMethod (ssl?: {}) {
+    _getCreateServerMethod (ssl?: {}): typeof http.createServer {
         return ssl ? https.createServer : http.createServer;
     }
 
