@@ -246,7 +246,11 @@ export default class RequestPipelineContext {
         this.dest               = flattenParsedReqUrl.dest;
         this.windowId           = flattenParsedReqUrl.windowId;
         this.dest.partAfterHost = RequestPipelineContext._preparePartAfterHost(this.dest.partAfterHost);
-        this.dest.domain        = urlUtils.getDomain(this.dest);
+
+        const domain = urlUtils.getDomain(this.dest);
+
+        this.dest.domain        = domain === 'file://' ? 'null' : domain;
+
 
         if (flattenParsedReferer) {
             this.dest.referer   = flattenParsedReferer.dest.url;
