@@ -185,7 +185,7 @@ export function getProxyUrl (url: string, opts: ProxyUrlOptions): string {
 
 export function getDomain (parsed: { protocol?: string, host?: string, hostname?: string, port?: string | number }): string {
     if (parsed.protocol === 'file:')
-        return 'null';
+        return 'file://';
 
     return formatUrl({
         protocol: parsed.protocol,
