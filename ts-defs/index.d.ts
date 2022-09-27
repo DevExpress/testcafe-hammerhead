@@ -231,10 +231,10 @@ declare module 'testcafe-hammerhead' {
 
         /** Adds request event listeners **/
         addRequestEventListeners (rule: RequestFilterRule, listeners: RequestEventListeners,
-                                  errorHandler: (event: RequestEventListenerError) => void): void;
+                                  errorHandler: (event: RequestEventListenerError) => void): Promise<void>;
 
         /** Removes request event listeners **/
-        removeRequestEventListeners (rule: RequestFilterRule): void;
+        removeRequestEventListeners (rule: RequestFilterRule): Promise<void>;
 
         /** Remove request event listeners for all request filter rules **/
         clearRequestEventListeners(): void;

@@ -125,7 +125,7 @@ describe('Request Hooks', () => {
     });
 
     describe('Handle session request events', () => {
-        it('Processed resource', () => {
+        it('Processed resource', async () => {
             let requestEventIsRaised           = false;
             let configureResponseEventIsRaised = false;
             let responseEventIsRaised          = false;
@@ -135,7 +135,7 @@ describe('Request Hooks', () => {
             const resourceContent          = fs.readFileSync('test/server/data/script/src.js').toString();
             const processedResourceContent = fs.readFileSync('test/server/data/script/expected.js').toString();
 
-            session.addRequestEventListeners(rule, {
+            await session.addRequestEventListeners(rule, {
                 onRequest: e => {
                     return new Promise(resolve => {
                         setTimeout(() => {
@@ -190,18 +190,17 @@ describe('Request Hooks', () => {
                 },
             };
 
-            return request(options)
-                .then(body => {
-                    expect(body).eql(processedResourceContent);
-                    expect(requestEventIsRaised, 'requestEventIsRaised').to.be.true;
-                    expect(configureResponseEventIsRaised, 'configureResponseEventIsRaised').to.be.true;
-                    expect(responseEventIsRaised, 'responseEventIsRaised').to.be.true;
+            const body = await request(options);
 
-                    session.removeRequestEventListeners(rule);
-                });
+            expect(body).eql(processedResourceContent);
+            expect(requestEventIsRaised, 'requestEventIsRaised').to.be.true;
+            expect(configureResponseEventIsRaised, 'configureResponseEventIsRaised').to.be.true;
+            expect(responseEventIsRaised, 'responseEventIsRaised').to.be.true;
+
+            await session.removeRequestEventListeners(rule);
         });
 
-        it('Non-processed resource', () => {
+        it('Non-processed resource', async () => {
             let requestEventIsRaised           = false;
             let configureResponseEventIsRaised = false;
             let responseEventIsRaised          = false;
@@ -209,7 +208,7 @@ describe('Request Hooks', () => {
             const url  = 'http://127.0.0.1:2000/json';
             const rule = new RequestFilterRule(url);
 
-            session.addRequestEventListeners(rule, {
+            await session.addRequestEventListeners(rule, {
                 onRequest: e => {
                     return new Promise(resolve => {
                         setTimeout(() => {
@@ -265,25 +264,24 @@ describe('Request Hooks', () => {
                 },
             };
 
-            return request(options)
-                .then(body => {
-                    expect(body).to.deep.eql(TEST_OBJ);
-                    expect(requestEventIsRaised, 'requestEventIsRaised').to.be.true;
-                    expect(configureResponseEventIsRaised, 'configureResponseEventIsRaised').to.be.true;
-                    expect(responseEventIsRaised, 'responseEventIsRaised').to.be.true;
+            const body = await request(options);
 
-                    session.removeRequestEventListeners(rule);
-                });
+            expect(body).to.deep.eql(TEST_OBJ);
+            expect(requestEventIsRaised, 'requestEventIsRaised').to.be.true;
+            expect(configureResponseEventIsRaised, 'configureResponseEventIsRaised').to.be.true;
+            expect(responseEventIsRaised, 'responseEventIsRaised').to.be.true;
+
+            await session.removeRequestEventListeners(rule);
         });
 
-        it('Ajax request', () => {
+        it('Ajax request', async () => {
             let requestEventIsRaised           = false;
             let configureResponseEventIsRaised = false;
             let responseEventIsRaised          = false;
 
             const rule = new RequestFilterRule('http://127.0.0.1:2000/page/plain-text');
 
-            session.addRequestEventListeners(rule, {
+            await session.addRequestEventListeners(rule, {
                 onRequest: e => {
                     return new Promise(resolve => {
                         setTimeout(() => {
@@ -329,25 +327,24 @@ describe('Request Hooks', () => {
 
             proxy.openSession('http://example.com', session);
 
-            return request(options)
-                .then(res => {
-                    expect(res.statusCode).eql(200);
-                    expect(requestEventIsRaised).to.be.true;
-                    expect(configureResponseEventIsRaised).to.be.true;
-                    expect(responseEventIsRaised).to.be.true;
+            const res = await request(options);
 
-                    session.removeRequestEventListeners(rule);
-                });
+            expect(res.statusCode).eql(200);
+            expect(requestEventIsRaised).to.be.true;
+            expect(configureResponseEventIsRaised).to.be.true;
+            expect(responseEventIsRaised).to.be.true;
+
+            await session.removeRequestEventListeners(rule);
         });
 
-        it('Several rules for one request', () => {
+        it('Several rules for one request', async () => {
             const requestUrl = 'http://127.0.0.1:2000/page/plain-text';
             const rules      = [new RequestFilterRule(requestUrl), new RequestFilterRule(requestUrl), new RequestFilterRule(requestUrl)];
 
             let countOnResponseEvents = 0;
 
-            rules.forEach(rule => {
-                session.addRequestEventListeners(rule, {
+            await Promise.all(rules.map(rule => {
+                return session.addRequestEventListeners(rule, {
                     onRequest:           noop,
                     onConfigureResponse: noop,
                     onResponse:          e => {
@@ -364,7 +361,7 @@ describe('Request Hooks', () => {
                         });
                     },
                 });
-            });
+            }));
 
             const options = {
                 url:                     proxy.openSession(requestUrl, session),
@@ -374,19 +371,19 @@ describe('Request Hooks', () => {
                 },
             };
 
-            return request(options)
-                .then(() => {
-                    expect(countOnResponseEvents).eql(3);
-                    rules.forEach(rule => session.removeRequestEventListeners(rule));
-                });
+            await request(options);
+
+            expect(countOnResponseEvents).eql(3);
+
+            await Promise.all(rules.map(rule => session.removeRequestEventListeners(rule)));
         });
 
-        it('Pipe a large response (TC-GH-2725)', () => {
+        it('Pipe a large response (TC-GH-2725)', async () => {
             const url           = 'http://127.0.0.1:2000/large-json';
             const rule          = new RequestFilterRule(url);
             let responseWasSent = false;
 
-            session.addRequestEventListeners(rule, {
+            await session.addRequestEventListeners(rule, {
                 onConfigureResponse: e => {
                     return new Promise(resolve => {
                         setTimeout(() => {
@@ -413,16 +410,15 @@ describe('Request Hooks', () => {
                 json: true,
             };
 
-            return request(options)
-                .then(body => {
-                    expect(body).not.empty;
-                    expect(responseWasSent).eql(true);
+            const body = await request(options);
 
-                    session.removeRequestEventListeners(rule);
-                });
+            expect(body).not.empty;
+            expect(responseWasSent).eql(true);
+
+            await session.removeRequestEventListeners(rule);
         });
 
-        it('Not modified resource', () => {
+        it('Not modified resource', async () => {
             let requestEventIsRaised           = false;
             let configureResponseEventIsRaised = false;
             let responseEventIsRaised          = false;
@@ -430,7 +426,7 @@ describe('Request Hooks', () => {
             const url  = 'http://127.0.0.1:2000/304';
             const rule = new RequestFilterRule(url);
 
-            session.addRequestEventListeners(rule, {
+            await session.addRequestEventListeners(rule, {
                 onRequest: () => {
                     return new Promise(resolve => {
                         setTimeout(() => {
@@ -484,16 +480,16 @@ describe('Request Hooks', () => {
                     expect(configureResponseEventIsRaised, 'configureResponseEventIsRaised').to.be.true;
                     expect(responseEventIsRaised, 'responseEventIsRaised').to.be.true;
 
-                    session.removeRequestEventListeners(rule);
+                    return session.removeRequestEventListeners(rule);
                 });
         });
 
-        it('Should handle errors inside the request event handlers', () => {
+        it('Should handle errors inside the request event handlers', async () => {
             const url                  = 'http://127.0.0.1:2000/script';
             const rule                 = new RequestFilterRule(url);
             const collectedErrorEvents = [];
 
-            session.addRequestEventListeners(rule, {
+            await session.addRequestEventListeners(rule, {
                 onRequest: () => {
                     throw new Error('inside onRequest');
                 },
@@ -516,28 +512,27 @@ describe('Request Hooks', () => {
                 },
             };
 
-            return request(options)
-                .then(() => {
-                    expect(collectedErrorEvents.length).eql(3);
-                    expect(collectedErrorEvents[0].error.message).eql('inside onRequest');
-                    expect(collectedErrorEvents[0].methodName).eql('onRequest');
-                    expect(collectedErrorEvents[1].error.message).eql('inside onConfigureResponse');
-                    expect(collectedErrorEvents[1].methodName).eql('onConfigureResponse');
-                    expect(collectedErrorEvents[2].error.message).eql('inside onResponse');
-                    expect(collectedErrorEvents[2].methodName).eql('onResponse');
+            await request(options);
 
-                    session.removeRequestEventListeners(rule);
-                });
+            expect(collectedErrorEvents.length).eql(3);
+            expect(collectedErrorEvents[0].error.message).eql('inside onRequest');
+            expect(collectedErrorEvents[0].methodName).eql('onRequest');
+            expect(collectedErrorEvents[1].error.message).eql('inside onConfigureResponse');
+            expect(collectedErrorEvents[1].methodName).eql('onConfigureResponse');
+            expect(collectedErrorEvents[2].error.message).eql('inside onResponse');
+            expect(collectedErrorEvents[2].methodName).eql('onResponse');
+
+            await session.removeRequestEventListeners(rule);
         });
 
-        it('WebSocket request', () => {
+        it('WebSocket request', async () => {
             let requestEventIsRaised           = false;
             let configureResponseEventIsRaised = false;
             let responseEventIsRaised          = false;
 
             const rule = new RequestFilterRule('ws://127.0.0.1:2000/web-socket');
 
-            session.addRequestEventListeners(rule, {
+            await session.addRequestEventListeners(rule, {
                 onRequest: e => {
                     return new Promise(resolve => {
                         setTimeout(() => {
@@ -591,12 +586,12 @@ describe('Request Hooks', () => {
                 });
         });
 
-        it('about:blank referer (GH-2607)', () => {
+        it('about:blank referer (GH-2607)', async () => {
             let requestHeaders;
 
             const rule = new RequestFilterRule('http://127.0.0.1:2000/script');
 
-            session.addRequestEventListeners(rule, {
+            await session.addRequestEventListeners(rule, {
                 onRequest: e => {
                     requestHeaders = e._requestInfo.headers;
                 },
@@ -611,24 +606,23 @@ describe('Request Hooks', () => {
 
             proxy.openSession('http://example.com', session);
 
-            return request(options)
-                .then(res => {
-                    expect(res.statusCode).eql(200);
-                    expect(requestHeaders).to.not.have.property('referer');
+            const res = await request(options);
 
-                    session.removeRequestEventListeners(rule);
-                });
+            expect(res.statusCode).eql(200);
+            expect(requestHeaders).to.not.have.property('referer');
+
+            await session.removeRequestEventListeners(rule);
         });
     });
 
     describe('Response mock', () => {
-        it('Basic', () => {
+        it('Basic', async () => {
             const url           = 'http://dummy_page.com';
             const mock          = new ResponseMock();
             const rule          = new RequestFilterRule(url);
             const processedHtml = fs.readFileSync('test/server/data/empty-page/expected.html').toString();
 
-            session.addRequestEventListeners(rule, {
+            await session.addRequestEventListeners(rule, {
                 onRequest: e => {
                     return new Promise(resolve => {
                         setTimeout(async () => {
@@ -647,20 +641,19 @@ describe('Request Hooks', () => {
                 },
             };
 
-            return request(options)
-                .then(body => {
-                    compareCode(body, processedHtml);
+            const body = await request(options);
 
-                    session.removeRequestEventListeners(rule);
-                });
+            compareCode(body, processedHtml);
+
+            await session.removeRequestEventListeners(rule);
         });
 
-        it('Should allow to mock response without body (page)', () => {
+        it('Should allow to mock response without body (page)', async () => {
             const url  = 'http://dummy_page.com';
             const mock = new ResponseMock(null, 204);
             const rule = new RequestFilterRule(url);
 
-            session.addRequestEventListeners(rule, {
+            await session.addRequestEventListeners(rule, {
                 onRequest: e => {
                     return new Promise(resolve => {
                         setTimeout(async () => {
@@ -680,24 +673,22 @@ describe('Request Hooks', () => {
                 },
             };
 
-            return request(options)
-                .then(res => {
-                    const expected = fs.readFileSync('test/server/data/empty-page/expected.html').toString();
+            const res      = await request(options);
+            const expected = fs.readFileSync('test/server/data/empty-page/expected.html').toString();
 
-                    compareCode(res.body, expected);
-                    expect(res.statusCode).eql(200);
+            compareCode(res.body, expected);
+            expect(res.statusCode).eql(200);
 
-                    session.removeRequestEventListeners(rule);
-                });
+            await session.removeRequestEventListeners(rule);
         });
 
-        it('Should allow to mock a large response', () => {
+        it('Should allow to mock a large response', async () => {
             const url           = 'http://example.com/get';
             const largeResponse = '1234567890'.repeat(1000000);
             const mock          = new ResponseMock(largeResponse);
             const rule          = new RequestFilterRule(url);
 
-            session.addRequestEventListeners(rule, {
+            await session.addRequestEventListeners(rule, {
                 onRequest: e => {
                     return new Promise(resolve => {
                         setTimeout(async () => {
@@ -716,15 +707,14 @@ describe('Request Hooks', () => {
 
             proxy.openSession('http://example.com', session);
 
-            return request(options)
-                .then(body => {
-                    expect(body).eql(largeResponse);
+            const body = await request(options);
 
-                    session.removeRequestEventListeners(rule);
-                });
+            expect(body).eql(largeResponse);
+
+            await session.removeRequestEventListeners(rule);
         });
 
-        it("Should handle error in the 'ResponseMock'", () => {
+        it("Should handle error in the 'ResponseMock'", async () => {
             const url              = 'http://dummy_page.com';
             let collectedErrorData = null;
             const rule             = new RequestFilterRule(url);
@@ -733,7 +723,7 @@ describe('Request Hooks', () => {
                 throw new Error('Error in the mock');
             });
 
-            session.addRequestEventListeners(rule, {
+            await session.addRequestEventListeners(rule, {
                 onRequest: e => {
                     return new Promise(resolve => {
                         setTimeout(async () => {
@@ -760,18 +750,18 @@ describe('Request Hooks', () => {
                     expect(collectedErrorData.error.message).to.eql('Error in the mock');
                     expect(collectedErrorData.methodName).eql(RequestEventNames.onResponse);
 
-                    session.removeRequestEventListeners(rule);
+                    return session.removeRequestEventListeners(rule);
                 });
         });
 
-        it("Should not raise an error for the 'ResponseMock' with 500 status code (TC-GH-7213)", () => {
+        it("Should not raise an error for the 'ResponseMock' with 500 status code (TC-GH-7213)", async () => {
             const url  = 'http://dummy_page.com';
             const rule = new RequestFilterRule(url);
             const mock = new ResponseMock('', 500);
 
             let collectedErrorData = null;
 
-            session.addRequestEventListeners(rule, {
+            await session.addRequestEventListeners(rule, {
                 onRequest: e => {
                     return new Promise(resolve => {
                         setTimeout(async () => {
@@ -796,15 +786,15 @@ describe('Request Hooks', () => {
                 .catch(() => {
                     expect(collectedErrorData).to.be.null;
 
-                    session.removeRequestEventListeners(rule);
+                    return session.removeRequestEventListeners(rule);
                 });
         });
     });
 
-    it('Should allow to set request options', () => {
+    it('Should allow to set request options', async () => {
         const rule = new RequestFilterRule('http://127.0.0.1:2000/page');
 
-        session.addRequestEventListeners(rule, {
+        await session.addRequestEventListeners(rule, {
             onRequest: e => {
                 return new Promise(resolve => {
                     setTimeout(() => {
@@ -820,21 +810,19 @@ describe('Request Hooks', () => {
             url: proxy.openSession('http://127.0.0.1:2000/page', session),
         };
 
-        return request(options)
-            .then(body => {
-                const expected = fs.readFileSync('test/server/data/script/expected.js').toString();
+        const body     = await request(options);
+        const expected = fs.readFileSync('test/server/data/script/expected.js').toString();
 
-                expect(normalizeNewLine(body)).eql(normalizeNewLine(expected));
+        expect(normalizeNewLine(body)).eql(normalizeNewLine(expected));
 
-                session.removeRequestEventListeners(rule);
-            });
+        await session.removeRequestEventListeners(rule);
     });
 
-    it('should proxy images if there are registered request filter rules', () => {
+    it('should proxy images if there are registered request filter rules', async () => {
         const url = 'http://127.0.0.1:2000/page-with-img';
         const rule = new RequestFilterRule(url);
 
-        session.addRequestEventListeners(rule, {
+        await session.addRequestEventListeners(rule, {
             onRequest: noop,
         });
 
@@ -847,20 +835,18 @@ describe('Request Hooks', () => {
             },
         };
 
-        return request(options)
-            .then(body => {
-                const expected = fs.readFileSync('test/server/data/page-with-img/expected.html').toString();
+        const body     = await request(options);
+        const expected = fs.readFileSync('test/server/data/page-with-img/expected.html').toString();
 
-                compareCode(body, expected);
+        compareCode(body, expected);
 
-                session.removeRequestEventListeners(rule);
-            });
+        await session.removeRequestEventListeners(rule);
     });
 
-    it('Should allow to modify response headers', () => {
+    it('Should allow to modify response headers', async () => {
         const rule = new RequestFilterRule('http://127.0.0.1:2000/page');
 
-        session.addRequestEventListeners(rule, {
+        await session.addRequestEventListeners(rule, {
             onConfigureResponse: e => {
                 return new Promise(resolve => {
                     setTimeout(async () => {
@@ -878,13 +864,12 @@ describe('Request Hooks', () => {
             resolveWithFullResponse: true,
         };
 
-        return request(options)
-            .then(response => {
-                expect(response.headers['my-custom-header']).eql('My Custom value');
-                expect(response.headers).to.not.have.property('content-type');
+        const response = await request(options);
 
-                session.removeRequestEventListeners(rule);
-            });
+        expect(response.headers['my-custom-header']).eql('My Custom value');
+        expect(response.headers).to.not.have.property('content-type');
+
+        await session.removeRequestEventListeners(rule);
     });
 
     it('Should pass `forceProxySrcForImage` option in task script', () => {
@@ -917,17 +902,19 @@ describe('Request Hooks', () => {
 
         return testShouldProxyImageOptionValue(false)
             .then(() => {
-                session.addRequestEventListeners(rule, {
+                return session.addRequestEventListeners(rule, {
                     onRequest:           noop,
                     onConfigureResponse: noop,
                     onResponse:          noop,
                 });
-
+            })
+            .then(() => {
                 return testShouldProxyImageOptionValue(true);
             })
             .then(() => {
-                session.removeRequestEventListeners(rule);
-
+                return session.removeRequestEventListeners(rule);
+            })
+            .then(() => {
                 return testShouldProxyImageOptionValue(false);
             });
     });
@@ -942,7 +929,7 @@ describe('Request Hooks', () => {
             const resourceContent          = fs.readFileSync('test/server/data/script/src.js').toString();
             const processedResourceContent = fs.readFileSync('test/server/data/script/expected.js').toString();
 
-            session.addRequestEventListeners(rule, {
+            await session.addRequestEventListeners(rule, {
                 onConfigureResponse: async e => {
                     configureResponseEventId = e.id;
 
@@ -971,7 +958,7 @@ describe('Request Hooks', () => {
             expect(responseEventIsRaised, 'responseEventIsRaised').to.be.true;
 
             session.removeConfigureResponseEventData(configureResponseEventId);
-            session.removeRequestEventListeners(rule);
+            await session.removeRequestEventListeners(rule);
         });
 
         it('setHeader', async () => {
@@ -990,7 +977,7 @@ describe('Request Hooks', () => {
                 resolveWithFullResponse: true,
             };
 
-            session.addRequestEventListeners(rule, {
+            await session.addRequestEventListeners(rule, {
                 onConfigureResponse: async e => {
                     configureResponseEventId = e.id;
 
@@ -1018,7 +1005,7 @@ describe('Request Hooks', () => {
             expect(responseEventIsRaised, 'responseEventIsRaised').to.be.true;
 
             session.removeConfigureResponseEventData(configureResponseEventId);
-            session.removeRequestEventListeners(rule);
+            await session.removeRequestEventListeners(rule);
         });
 
         it('removeHeader', async () => {
@@ -1039,7 +1026,7 @@ describe('Request Hooks', () => {
                 resolveWithFullResponse: true,
             };
 
-            session.addRequestEventListeners(rule, {
+            await session.addRequestEventListeners(rule, {
                 onConfigureResponse: async e => {
                     configureResponseEventId = e.id;
 
@@ -1065,7 +1052,7 @@ describe('Request Hooks', () => {
                 .that.equals('value-3');
 
             session.removeConfigureResponseEventData(configureResponseEventId);
-            session.removeRequestEventListeners(rule);
+            await session.removeRequestEventListeners(rule);
         });
     });
 });
