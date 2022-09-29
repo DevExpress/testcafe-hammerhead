@@ -297,7 +297,7 @@ export default abstract class Session extends EventEmitter {
         return !!this.requestEventListeners.size;
     }
 
-    addRequestEventListeners (rule: RequestFilterRule, listeners: RequestEventListeners, errorHandler: (event: RequestEventListenerError) => void): void {
+    async addRequestEventListeners (rule: RequestFilterRule, listeners: RequestEventListeners, errorHandler: (event: RequestEventListenerError) => void): Promise<void> {
         const listenersData = {
             listeners,
             errorHandler,
@@ -307,7 +307,7 @@ export default abstract class Session extends EventEmitter {
         this.requestEventListeners.set(rule.id, listenersData);
     }
 
-    removeRequestEventListeners (rule: RequestFilterRule): void {
+    async removeRequestEventListeners (rule: RequestFilterRule): Promise<void> {
         this.requestEventListeners.delete(rule.id);
     }
 
