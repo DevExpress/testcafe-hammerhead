@@ -6,34 +6,33 @@ import {
     OutgoingHttpHeaders,
 } from 'http';
 
-import Session from '../session';
-import { StoragesSnapshot, FileStream } from '../typings/session';
-import { ServerInfo } from '../typings/proxy';
-import ResponseMock from './request-hooks/response-mock';
-import { parseClientSyncCookieStr } from '../utils/cookie';
-import { ParsedClientSyncCookie } from '../typings/cookie';
-import RequestFilterRule from './request-hooks/request-filter-rule';
-import IncomingMessageLike from './incoming-message-like';
-import RequestOptions from './request-options';
-import { ParsedProxyUrl } from '../typings/url';
-import { OnResponseEventData, RequestCacheEntry } from '../typings/context';
-import Charset from '../processing/encoding/charset';
-import * as urlUtils from '../utils/url';
-import * as contentTypeUtils from '../utils/content-type';
-import generateUniqueId from '../utils/generate-unique-id';
-import { check as checkSameOriginPolicy } from './same-origin-policy';
-import * as headerTransforms from './header-transforms';
-import { RequestInfo } from '../session/events/info';
-import SERVICE_ROUTES from '../proxy/service-routes';
-import BUILTIN_HEADERS from './builtin-header-names';
-import logger from '../utils/logger';
-import createSpecialPageResponse from './create-special-page-response';
-import { fetchBody } from '../utils/http';
-import * as requestCache from './cache';
-import requestIsMatchRule from '../request-pipeline/request-hooks/request-is-match-rule';
-import getMockResponse from '../request-pipeline/request-hooks/response-mock/get-response';
-import { Http2Response } from './destination-request/http2';
-import RequestEvent from '../session/events/request-event';
+import Session from '../../session';
+import { StoragesSnapshot, FileStream } from '../../typings/session';
+import { ServerInfo } from '../../typings/proxy';
+import { parseClientSyncCookieStr } from '../../utils/cookie';
+import { ParsedClientSyncCookie } from '../../typings/cookie';
+import IncomingMessageLike from '../incoming-message-like';
+import RequestOptions from '../request-options';
+import { ParsedProxyUrl } from '../../typings/url';
+import { OnResponseEventData, RequestCacheEntry } from '../../typings/context';
+import Charset from '../../processing/encoding/charset';
+import * as urlUtils from '../../utils/url';
+import * as contentTypeUtils from '../../utils/content-type';
+import generateUniqueId from '../../utils/generate-unique-id';
+import { check as checkSameOriginPolicy } from '../same-origin-policy';
+import * as headerTransforms from '../header-transforms';
+import { RequestInfo } from '../request-hooks/events/info';
+import SERVICE_ROUTES from '../../proxy/service-routes';
+import BUILTIN_HEADERS from '../builtin-header-names';
+import logger from '../../utils/logger';
+import createSpecialPageResponse from '../create-special-page-response';
+import { fetchBody } from '../../utils/http';
+import * as requestCache from '../cache';
+import requestIsMatchRule from '../request-hooks/request-is-match-rule';
+import getMockResponse from '../request-hooks/response-mock/get-response';
+import { Http2Response } from '../destination-request/http2';
+import BaseRequestPipelineContext from './base';
+import RequestPipelineRequestHookEventFactory from '../request-hooks/events/factory';
 
 export interface DestInfo {
     url: string;
@@ -95,7 +94,7 @@ export type DestinationResponse = IncomingMessage | FileStream | IncomingMessage
 const REDIRECT_STATUS_CODES                  = [301, 302, 303, 307, 308];
 const CANNOT_BE_USED_WITH_WEB_SOCKET_ERR_MSG = 'The function cannot be used with a WebSocket request.';
 
-export default class RequestPipelineContext {
+export default class RequestPipelineContext extends BaseRequestPipelineContext {
     session: Session;
     reqBody: Buffer;
     dest: DestInfo;
@@ -112,29 +111,35 @@ export default class RequestPipelineContext {
     isWebSocketConnectionReset = false;
     contentInfo: ContentInfo;
     restoringStorages: StoragesSnapshot;
-    requestId: string = generateUniqueId();
-    requestFilterRules: RequestFilterRule[] = [];
     onResponseEventData: OnResponseEventData[] = [];
     reqOpts: RequestOptions;
     parsedClientSyncCookie: ParsedClientSyncCookie;
     isFileProtocol: boolean;
     nonProcessedDestResBody: Buffer;
     goToNextStage = true;
-    mock: ResponseMock;
     isSameOriginPolicyFailed = false;
     windowId?: string;
     temporaryCacheEntry?: RequestCacheEntry;
     _injectableUserScripts: string[] = [];
+    eventFactory: RequestPipelineRequestHookEventFactory;
 
     constructor (readonly req: IncomingMessage,
         readonly res: ServerResponse | Socket,
         readonly serverInfo: ServerInfo) {
-        if (req.headers.cookie) {
-            const parsedClientSyncCookieStr = parseClientSyncCookieStr(req.headers.cookie);
+        super(generateUniqueId());
+        this._initParsedClientSyncCookie();
 
-            if (parsedClientSyncCookieStr)
-                this.parsedClientSyncCookie = parsedClientSyncCookieStr;
-        }
+        this.eventFactory = new RequestPipelineRequestHookEventFactory(this);
+    }
+
+    private _initParsedClientSyncCookie (): void {
+        if (!this.req.headers.cookie)
+            return;
+
+        const parsedClientSyncCookieStr = parseClientSyncCookieStr(this.req.headers.cookie);
+
+        if (parsedClientSyncCookieStr)
+            this.parsedClientSyncCookie = parsedClientSyncCookieStr;
     }
 
     // TODO: Rewrite parseProxyUrl instead.
@@ -350,7 +355,7 @@ export default class RequestPipelineContext {
     }
 
     public async prepareInjectableUserScripts (): Promise<void> {
-        const requestInfo        = new RequestInfo(this);
+        const requestInfo        = RequestInfo.from(this);
         const matchedUserScripts = await Promise.all(this.session.injectable.userScripts.map(async userScript => {
             if (await requestIsMatchRule(userScript.page, requestInfo))
                 return userScript;
@@ -477,10 +482,6 @@ export default class RequestPipelineContext {
         return !shouldPerformCORSCheck || checkSameOriginPolicy(this);
     }
 
-    async forEachRequestFilterRule (fn: (rule: RequestFilterRule) => Promise<void>): Promise<void> {
-        await Promise.all(this.requestFilterRules.map(fn));
-    }
-
     sendResponseHeaders (): void {
         if (this.isWebSocket)
             throw new Error(CANNOT_BE_USED_WITH_WEB_SOCKET_ERR_MSG);
@@ -505,13 +506,6 @@ export default class RequestPipelineContext {
         this.destRes = await getMockResponse(this.mock);
 
         this.buildContentInfo();
-    }
-
-    setupMockIfNecessary (event: RequestEvent): void {
-        const mock = this.session.getMock(event.id);
-
-        if (mock && !this.mock)
-            this.mock = mock;
     }
 
     getOnResponseEventData ({ includeBody }: { includeBody: boolean }): OnResponseEventData[] {

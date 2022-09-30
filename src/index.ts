@@ -24,6 +24,10 @@ import PageProcessor from './processing/resources/page';
 import { SCRIPTS } from './session/injectables';
 import { acceptCrossOrigin } from './utils/http';
 import getAssetPath from './utils/get-asset-path';
+import RequestHookEventProvider from './request-pipeline/request-hooks/events/event-provider';
+import { RequestInfo } from './request-pipeline/request-hooks/events/info';
+import BaseRequestHookEventFactory from './request-pipeline/request-hooks/events/factory/base';
+import BaseRequestPipelineContext from './request-pipeline/context/base';
 
 export default {
     Proxy,
@@ -44,6 +48,10 @@ export default {
     ResponseEvent,
     DestinationRequest,
     RequestOptions,
+    RequestHookEventProvider,
+    BaseRequestHookEventFactory,
+    BaseRequestPipelineContext,
+    RequestInfo,
     promisifyStream,
     parseProxyUrl,
     sameOriginCheck,
