@@ -109,7 +109,7 @@ interface SessionOptions {
 export default abstract class Session extends EventEmitter {
     uploadStorage: UploadStorage;
     id: string = generateUniqueId();
-    cookies: Cookies = new Cookies();
+    cookies: Cookies;
     proxy: Proxy | null = null;
     externalProxySettings: ExternalProxySettings | null = null;
     pageLoadCount = 0;
@@ -127,6 +127,7 @@ export default abstract class Session extends EventEmitter {
         this.uploadStorage         = new UploadStorage(uploadRoots);
         this.options               = this._getOptions(options);
         this._requestHookEventData = this._initRequestHookEventData();
+        this.cookies               = this.createCookies();
     }
 
     private _initRequestHookEventData (): RequestHookEventData {
@@ -142,6 +143,10 @@ export default abstract class Session extends EventEmitter {
             allowMultipleWindows: false,
             windowId:             '',
         }, options);
+    }
+
+    protected createCookies (): Cookies {
+        return new Cookies();
     }
 
     // State
