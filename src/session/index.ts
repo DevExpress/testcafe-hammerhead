@@ -88,17 +88,9 @@ export default abstract class Session extends RequestHookEventProvider {
     protected constructor (uploadRoots: string[], options: Partial<SessionOptions>) {
         super();
 
-        this.uploadStorage         = new UploadStorage(uploadRoots);
-        this.options               = this._getOptions(options);
-        this._requestHookEventData = this._initRequestHookEventData();
-        this.cookies               = this.createCookies();
-    }
-
-    private _initRequestHookEventData (): RequestHookEventData {
-        return {
-            mocks:             new Map<string, ResponseMock>(),
-            configureResponse: new Map<string, ConfigureResponseEventData>(),
-        };
+        this.uploadStorage = new UploadStorage(uploadRoots);
+        this.options       = this._getOptions(options);
+        this.cookies       = this.createCookies();
     }
 
     private _getOptions (options: Partial<SessionOptions> = {}): SessionOptions {
