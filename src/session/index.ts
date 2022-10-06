@@ -8,33 +8,27 @@ import {
 
 import RequestPipelineContext from '../request-pipeline/context';
 import RequestFilterRule from '../request-pipeline/request-hooks/request-filter-rule';
-import ResponseMock from '../request-pipeline/request-hooks/response-mock';
-import RequestEventNames from '../session/events/names';
-import { RequestInfo } from './events/info';
-import RequestEvent from './events/request-event';
-import ResponseEvent from './events/response-event';
-import ConfigureResponseEvent from './events/configure-response-event';
+import RequestEventNames from '../request-pipeline/request-hooks/events/names';
+import RequestHookEventProvider from '../request-pipeline/request-hooks/events/event-provider';
 import {
     Credentials,
     ExternalProxySettings,
     ExternalProxySettingsRaw,
-    RequestEventListenerError,
 } from '../typings/session';
 import { GetUploadedFilesServiceMessage, StoreUploadedFilesServiceMessage } from '../typings/upload';
 import StateSnapshot from './state-snapshot';
 import mustache from 'mustache';
 import { readSync as read } from 'read-file-relative';
-import { EventEmitter } from 'events';
 import { parse as parseUrl } from 'url';
 import Cookies from './cookies';
 import UploadStorage from '../upload/storage';
 import COMMAND from './command';
 import generateUniqueId from '../utils/generate-unique-id';
 import SERVICE_ROUTES from '../proxy/service-routes';
-import requestIsMatchRule from '../request-pipeline/request-hooks/request-is-match-rule';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
 import { formatSyncCookie } from '../utils/cookie';
 import { SCRIPTS } from './injectables';
+import { ConfigureResponseEventData } from '../request-pipeline/request-hooks/typings';
 
 const TASK_TEMPLATE = read('../client/task.js.mustache');
 
@@ -47,34 +41,6 @@ interface InjectableResources {
     scripts: string[];
     styles: string[];
     userScripts: UserScript[];
-}
-
-interface RequestEventListeners {
-    [RequestEventNames.onRequest]: Function;
-    [RequestEventNames.onConfigureResponse]: Function;
-    [RequestEventNames.onResponse]: Function;
-}
-
-interface RequestEventListenersData {
-    listeners: RequestEventListeners;
-    errorHandler: (event: RequestEventListenerError) => void;
-    rule: RequestFilterRule;
-}
-
-interface HeaderData {
-    name: string;
-    value: string;
-}
-
-interface ConfigureResponseEventData {
-    opts: ConfigureResponseEventOptions;
-    setHeaders: HeaderData[];
-    removedHeaders: string[];
-}
-
-interface RequestHookEventData {
-    mocks: Map<string, ResponseMock>;
-    configureResponse: Map<string, ConfigureResponseEventData>;
 }
 
 interface TaskScriptTemplateOpts {
@@ -106,7 +72,7 @@ interface SessionOptions {
     referer?: string;
 }
 
-export default abstract class Session extends EventEmitter {
+export default abstract class Session extends RequestHookEventProvider {
     uploadStorage: UploadStorage;
     id: string = generateUniqueId();
     cookies: Cookies;
@@ -115,26 +81,16 @@ export default abstract class Session extends EventEmitter {
     pageLoadCount = 0;
     pendingStateSnapshot: StateSnapshot | null = null;
     injectable: InjectableResources = { scripts: [...SCRIPTS], styles: [], userScripts: [] };
-    requestEventListeners: Map<string, RequestEventListenersData> = new Map();
     private _recordMode = false;
     options: SessionOptions;
-    private _requestHookEventData: RequestHookEventData;
     private _disableHttp2 = false;
 
     protected constructor (uploadRoots: string[], options: Partial<SessionOptions>) {
         super();
 
-        this.uploadStorage         = new UploadStorage(uploadRoots);
-        this.options               = this._getOptions(options);
-        this._requestHookEventData = this._initRequestHookEventData();
-        this.cookies               = this.createCookies();
-    }
-
-    private _initRequestHookEventData (): RequestHookEventData {
-        return {
-            mocks:             new Map<string, ResponseMock>(),
-            configureResponse: new Map<string, ConfigureResponseEventData>(),
-        };
+        this.uploadStorage = new UploadStorage(uploadRoots);
+        this.options       = this._getOptions(options);
+        this.cookies       = this.createCookies();
     }
 
     private _getOptions (options: Partial<SessionOptions> = {}): SessionOptions {
@@ -298,94 +254,6 @@ export default abstract class Session extends EventEmitter {
     }
 
     // Request hooks
-    hasRequestEventListeners (): boolean {
-        return !!this.requestEventListeners.size;
-    }
-
-    async addRequestEventListeners (rule: RequestFilterRule, listeners: RequestEventListeners, errorHandler: (event: RequestEventListenerError) => void): Promise<void> {
-        const listenersData = {
-            listeners,
-            errorHandler,
-            rule,
-        };
-
-        this.requestEventListeners.set(rule.id, listenersData);
-    }
-
-    async removeRequestEventListeners (rule: RequestFilterRule): Promise<void> {
-        this.requestEventListeners.delete(rule.id);
-    }
-
-    clearRequestEventListeners (): void {
-        this.requestEventListeners.clear();
-    }
-
-    async getRequestFilterRules (requestInfo: RequestInfo): Promise<RequestFilterRule[]> {
-        const rulesArray = Array.from(this.requestEventListeners.values())
-            .map(listenerData => listenerData.rule);
-
-        const matchedRules = await Promise.all(rulesArray.map(async rule => {
-            if (await requestIsMatchRule(rule, requestInfo))
-                return rule;
-
-            return void 0;
-        }));
-
-        return matchedRules.filter(rule => !!rule) as RequestFilterRule[];
-    }
-
-    async _patchOnConfigureResponseEvent (eventName: RequestEventNames, event: RequestEvent | ResponseEvent | ConfigureResponseEvent): Promise<void> {
-        // At present, this way is used only in the TestCafe's 'compiler service' run mode.
-        // Later, we need to remove the old event-based mechanism and use this one.
-        if (eventName !== RequestEventNames.onConfigureResponse)
-            return;
-        const targetEvent = event as ConfigureResponseEvent;
-        const eventData   = this._requestHookEventData.configureResponse.get(targetEvent.id);
-
-        if (!eventData)
-            return;
-
-        targetEvent.opts = eventData.opts;
-
-        await Promise.all(eventData.setHeaders.map(({ name, value }) => {
-            return targetEvent.setHeader(name, value);
-        }));
-
-        await Promise.all(eventData.removedHeaders.map( header => {
-            return targetEvent.removeHeader(header);
-        }));
-    }
-
-    async callRequestEventCallback (eventName: RequestEventNames, rule: RequestFilterRule, eventData: RequestEvent | ResponseEvent | ConfigureResponseEvent): Promise<void> {
-        const requestEventListenersData = this.requestEventListeners.get(rule.id);
-
-        if (!requestEventListenersData)
-            return;
-
-        const { listeners, errorHandler } = requestEventListenersData;
-        const targetRequestEventCallback  = listeners[eventName];
-
-        if (typeof targetRequestEventCallback !== 'function')
-            return;
-
-        try {
-            await targetRequestEventCallback(eventData);
-
-            await this._patchOnConfigureResponseEvent(eventName, eventData);
-        }
-        catch (e) {
-            if (typeof errorHandler !== 'function')
-                return;
-
-            const event = {
-                error:      e,
-                methodName: eventName,
-            };
-
-            errorHandler(event);
-        }
-    }
-
     async callRequestHookEventHandler (rule: RequestFilterRule, e: Error): Promise<void> {
         const requestEventListenersData = this.requestEventListeners.get(rule.id);
 
@@ -402,16 +270,8 @@ export default abstract class Session extends EventEmitter {
         errorHandler(event);
     }
 
-    async setMock (responseEventId: string, mock: ResponseMock): Promise<void> {
-        this._requestHookEventData.mocks.set(responseEventId, mock);
-    }
-
-    getMock (responseEventId: string): ResponseMock | undefined {
-        return this._requestHookEventData.mocks.get(responseEventId);
-    }
-
     private _ensureConfigureResponseEventData (eventId: string): ConfigureResponseEventData {
-        let eventData = this._requestHookEventData.configureResponse.get(eventId);
+        let eventData = this.requestHookEventData.configureResponse.get(eventId);
 
         if (!eventData) {
             eventData = {
@@ -429,11 +289,11 @@ export default abstract class Session extends EventEmitter {
 
         updateFn(eventData);
 
-        this._requestHookEventData.configureResponse.set(eventId, eventData);
+        this.requestHookEventData.configureResponse.set(eventId, eventData);
     }
 
     public removeConfigureResponseEventData (eventId: string): void {
-        this._requestHookEventData.configureResponse.delete(eventId);
+        this.requestHookEventData.configureResponse.delete(eventId);
     }
 
     public async setConfigureResponseEventOptions (eventId: string, opts: ConfigureResponseEventOptions): Promise<void> {

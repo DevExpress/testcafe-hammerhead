@@ -9,6 +9,7 @@ const ConfigureResponseEventOptions = require('../../lib/session/events/configur
 const requestIsMatchRule            = require('../../lib/request-pipeline/request-hooks/request-is-match-rule');
 const { noop }                      = require('lodash');
 const getMockResponse               = require('../../lib/request-pipeline/request-hooks/response-mock/get-response');
+const { RequestInfo }               = require('../../lib/request-pipeline/request-hooks/events/info');
 
 const requestInfoMock = {
     url:     'http://example.com/',
@@ -464,4 +465,9 @@ describe('<RequestHookEvent>.from method', () => {
         expect(responseEvent.headers).eql(responseEventInit.headers);
         expect(responseEvent.body).eql(responseEventInit.body);
     });
+});
+
+it('RequestInfo.getUserAgent', () => {
+    expect(RequestInfo.getUserAgent({ 'user-agent': 'chrome' })).eql('chrome');
+    expect(RequestInfo.getUserAgent({ 'User-Agent': 'chrome' })).eql('chrome');
 });

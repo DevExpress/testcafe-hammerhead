@@ -74,6 +74,12 @@ declare module 'testcafe-hammerhead' {
         onResponse = 'onResponse'
     }
 
+    export interface RequestEventListenersData {
+        listeners: RequestEventListeners;
+        errorHandler: (event: RequestEventListenerError) => void;
+        rule: RequestFilterRule;
+    }
+
     interface RequestEventListeners {
         [RequestEventNames.onRequest]: Function;
         [RequestEventNames.onConfigureResponse]: Function;
@@ -206,8 +212,26 @@ declare module 'testcafe-hammerhead' {
         proxyless: boolean;
     }
 
+
+    /** Base class for emitting request hook events **/
+    export abstract class RequestHookEventProvider {
+        /** Adds request event listeners **/
+        addRequestEventListeners (rule: RequestFilterRule, listeners: RequestEventListeners, errorHandler: (event: RequestEventListenerError) => void): Promise<void>;
+
+        /** Removes request event listeners **/
+        removeRequestEventListeners (rule: RequestFilterRule): Promise<void>;
+
+        /** Remove request event listeners for all request filter rules **/
+        clearRequestEventListeners(): void;
+
+        /** Returns whether provider has request event listeners **/
+        hasRequestEventListeners (): boolean;
+
+        requestEventListeners: Map<string, RequestEventListenersData>;
+    }
+
     /** The Session class is used to create a web-proxy session **/
-    export abstract class Session {
+    export abstract class Session extends RequestHookEventProvider {
         /** Unique identifier of the Session instance **/
         id: string;
 
@@ -228,16 +252,6 @@ declare module 'testcafe-hammerhead' {
 
         /** Abstract method that must handle a file download **/
         abstract handleFileDownload (): void;
-
-        /** Adds request event listeners **/
-        addRequestEventListeners (rule: RequestFilterRule, listeners: RequestEventListeners,
-                                  errorHandler: (event: RequestEventListenerError) => void): Promise<void>;
-
-        /** Removes request event listeners **/
-        removeRequestEventListeners (rule: RequestFilterRule): Promise<void>;
-
-        /** Remove request event listeners for all request filter rules **/
-        clearRequestEventListeners(): void;
 
         /** Apply the cookie, sessionStorage and localStorage snapshot to the session **/
         useStateSnapshot (snapshot: StateSnapshot): void;
@@ -293,7 +307,7 @@ declare module 'testcafe-hammerhead' {
         unRegisterRoute (route: string, method: string): void;
 
         /** Resolve relative service url **/
-        resolveRelativeServiceUrl (relativeServiceUrl: string): string;
+        resolveRelativeServiceUrl (relativeServiceUrl: string, domain?: string): string;
     }
 
     /** The RequestFilterRule class is used to create URL filtering rules for request hook **/
@@ -370,6 +384,9 @@ declare module 'testcafe-hammerhead' {
 
     /** The RequestInfo class contains information about query request **/
     export class RequestInfo {
+        /** Creates a RequestInfo instance **/
+        constructor(init: RequestInfo);
+
         /** Request unique identifier **/
         requestId: string;
 
@@ -390,6 +407,8 @@ declare module 'testcafe-hammerhead' {
 
         /** The body of the query request **/
         body: Buffer;
+
+        static getUserAgent(headers: any): string;
     }
 
     /** The RequestEvent describes the request part of the query captured with request hook **/
@@ -532,4 +551,27 @@ declare module 'testcafe-hammerhead' {
 
     /** Calculates the asset path depending on the run mode (production or development) **/
     function getAssetPath(originPath: string, developmentMode: boolean): string;
+
+    /** Base class for creating event classes for request hook events **/
+    export abstract class BaseRequestHookEventFactory {
+        /** Creates a new RequestInfo instance **/
+        public abstract createRequestInfo (): RequestInfo;
+    }
+
+    /** Base class for building request pipeline contexts **/
+    export abstract class BaseRequestPipelineContext {
+        /** Returns a mock associated with the current context **/
+        mock: ResponseMock;
+
+        protected constructor (requestId: string);
+
+        /** Request filter rules associated with the request **/
+        requestFilterRules: RequestFilterRule[];
+
+        /** Request identifier **/
+        requestId: string;
+
+        /** Raise onRequest event **/
+        onRequestHookRequest (eventProvider: RequestHookEventProvider, eventFactory: BaseRequestHookEventFactory): Promise<void>;
+    }
 }

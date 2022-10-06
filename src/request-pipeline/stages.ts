@@ -2,10 +2,8 @@ import RequestPipelineContext from './context';
 import logger from '../utils/logger';
 import { fetchBody } from '../utils/http';
 import RequestOptions from './request-options';
-import { RequestInfo } from '../session/events/info';
 import {
     callOnConfigureResponseEventForNonProcessedRequest,
-    callOnRequestEventCallback,
     callOnResponseEventCallbackForFailedSameOriginCheck,
     callOnResponseEventCallbackForMotModifiedResource,
     callOnResponseEventCallbackWithBodyForNonProcessedRequest,
@@ -17,7 +15,7 @@ import {
 } from './utils';
 import ConfigureResponseEvent from '../session/events/configure-response-event';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
-import RequestEventNames from '../session/events/names';
+import RequestEventNames from './request-hooks/events/names';
 import { respondOnWebSocket } from './websocket';
 import { noop } from 'lodash';
 import { process as processResource } from '../processing/resources';
@@ -27,7 +25,7 @@ const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 
 export default [
     function handleSocketError (ctx: RequestPipelineContext) {
-        // NOTE: In some case on MacOS, browser reset connection with server and we need to catch this exception.
+        // NOTE: In some case on macOS, browser reset connection with server and we need to catch this exception.
         if (!ctx.isWebSocket)
             return;
 
@@ -62,17 +60,7 @@ export default [
             return;
         }
 
-        if (ctx.session.hasRequestEventListeners()) {
-            const requestInfo = new RequestInfo(ctx);
-
-            ctx.requestFilterRules = await ctx.session.getRequestFilterRules(requestInfo);
-
-            await ctx.forEachRequestFilterRule(async rule => {
-                const requestEvent = await callOnRequestEventCallback(ctx, rule, requestInfo);
-
-                ctx.setupMockIfNecessary(requestEvent);
-            });
-        }
+        await ctx.onRequestHookRequest(ctx.session, ctx.eventFactory);
 
         if (ctx.mock) {
             await ctx.mockResponse();

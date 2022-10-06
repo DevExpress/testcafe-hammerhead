@@ -1,9 +1,9 @@
 import RequestFilterRule from '../../request-pipeline/request-hooks/request-filter-rule';
-import RequestPipelineContext from '../../request-pipeline/context';
 import ResponseMock from '../../request-pipeline/request-hooks/response-mock';
-import { RequestInfo } from './info';
+import { RequestInfo } from '../../request-pipeline/request-hooks/events/info';
 import generateUniqueId from '../../utils/generate-unique-id';
 import RequestOptions from '../../request-pipeline/request-options';
+import { RequestInfoInit } from '../../request-pipeline/request-hooks/typings';
 
 interface SerializedRequestEvent {
     requestFilterRule: RequestFilterRule;
@@ -13,23 +13,23 @@ interface SerializedRequestEvent {
 
 export default class RequestEvent {
     public readonly requestFilterRule: RequestFilterRule;
-    private readonly _requestContext: RequestPipelineContext | null;
     private readonly _requestInfo: RequestInfo;
+    private readonly reqOpts: RequestOptions;
+    private readonly setMockFn: (responseEventId: string, mock: ResponseMock) => Promise<void>;
     public id: string;
 
-    public constructor (requestFilterRule: RequestFilterRule, requestContext: RequestPipelineContext | null, requestInfo: RequestInfo) {
-        this.requestFilterRule  = requestFilterRule;
-        this._requestContext    = requestContext;
-        this._requestInfo       = requestInfo;
-        this.id                 = generateUniqueId();
+    public constructor (init: RequestInfoInit) {
+        Object.assign(this, init);
+
+        this.id = generateUniqueId();
     }
 
     public async setMock (mock: ResponseMock): Promise<void> {
-        await this._requestContext?.session.setMock(this.id, mock);
+        await this.setMockFn(this.id, mock);
     }
 
     public get requestOptions (): RequestOptions | undefined {
-        return this._requestContext?.reqOpts;
+        return this.reqOpts;
     }
 
     public get isAjax (): boolean {
@@ -39,7 +39,12 @@ export default class RequestEvent {
     public static from (data: unknown): RequestEvent {
         const { id, requestFilterRule, _requestInfo } = data as SerializedRequestEvent;
 
-        const requestEvent = new RequestEvent(requestFilterRule, null, _requestInfo);
+        const requestEvent = new RequestEvent({
+            requestFilterRule: requestFilterRule,
+            reqOpts:           {} as RequestOptions,
+            setMockFn:         () => Promise.resolve(),
+            _requestInfo,
+        });
 
         requestEvent.id = id;
 

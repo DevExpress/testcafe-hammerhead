@@ -289,7 +289,7 @@ export default class Proxy extends Router {
         this.openSessions.delete(session.id);
     }
 
-    public resolveRelativeServiceUrl (relativeServiceUrl: string): string {
-        return new URL(relativeServiceUrl, this.server1Info.domain).toString();
+    public resolveRelativeServiceUrl (relativeServiceUrl: string, domain = this.server1Info.domain): string {
+        return new URL(relativeServiceUrl, domain).toString();
     }
 }

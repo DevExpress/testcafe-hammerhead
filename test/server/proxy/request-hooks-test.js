@@ -23,7 +23,7 @@ const {
 } = require('../common/utils');
 
 const ConfigureResponseEventOptions = require('../../../lib/session/events/configure-response-event-options');
-const RequestEventNames             = require('../../../lib/session/events/names');
+const RequestEventNames             = require('../../../lib/request-pipeline/request-hooks/events/names');
 
 const Credentials = urlUtils.Credentials;
 

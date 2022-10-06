@@ -1,4 +1,4 @@
-import { RequestInfo } from '../../../session/events/info';
+import { RequestInfo } from '../events/info';
 
 export type RequestFilterRulePredicate = (requestInfo: RequestInfo) => boolean | Promise<boolean>;
 

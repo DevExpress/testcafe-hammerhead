@@ -1,5 +1,5 @@
 import RequestFilterRule from './request-filter-rule';
-import { RequestInfo } from '../../session/events/info';
+import { RequestInfo } from './events/info';
 import { ensureOriginTrailingSlash } from '../../utils/url';
 import { isRegExp, isFunction } from 'lodash';
 import { RequestFilterRuleObjectInitializer } from '../request-hooks/request-filter-rule/rule-init';
