@@ -33,9 +33,6 @@ interface CookieSandboxStrategy {
     removeAllSyncCookie: () => void;
 }
 
-
-
-
 class CookieSandboxStrategyFactory {
     static create (proxyless: boolean, document: Document | null, windowSync: WindowSync) {
         return proxyless ? new CookieSandboxProxylessStrategy() : new CookieSandboxProxyStrategy(document, windowSync);
@@ -224,8 +221,6 @@ class CookieSandboxProxyStrategy implements CookieSandboxStrategy {
 
         this._windowSync.syncBetweenWindows([parsedCookie]);
     }
-
-    
 }
 
 export default class CookieSandbox extends SandboxBase {
