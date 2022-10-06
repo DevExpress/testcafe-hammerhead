@@ -307,10 +307,12 @@ export default class DocumentSandbox extends SandboxBase {
 
         const documentCookiePropOwnerPrototype = window[nativeMethods.documentCookiePropOwnerName].prototype;
 
-        overrideDescriptor(documentCookiePropOwnerPrototype, 'cookie', {
-            getter: () => documentSandbox._cookieSandbox.getCookie(),
-            setter: value => documentSandbox._cookieSandbox.setCookie(String(value)),
-        });
+        if (!this.proxyless) {
+            overrideDescriptor(documentCookiePropOwnerPrototype, 'cookie', {
+                getter: () => documentSandbox._cookieSandbox.getCookie(),
+                setter: value => documentSandbox._cookieSandbox.setCookie(String(value)),
+            });
+        }
 
         overrideDescriptor(docPrototype, 'activeElement', {
             getter: function (this: Document) {

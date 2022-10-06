@@ -21,80 +21,52 @@ import getTopOpenerWindow from '../../utils/get-top-opener-window';
 
 const MIN_DATE_VALUE = new nativeMethods.date(0).toUTCString(); // eslint-disable-line new-cap
 
-export default class CookieSandbox extends SandboxBase {
+interface CookieSandboxStrategy {
+    getCookie: () => string;
+
+    setCookie: (cookie: CookieRecord | string) => void;
+
+    syncCookie: () => void;
+
+    syncWindowCookie: (parsedCookies: CookieRecord[]) => void;
+
+    removeAllSyncCookie: () => void;
+}
+
+
+
+
+class CookieSandboxStrategyFactory {
+    static create (proxyless: boolean, document: Document | null, windowSync: WindowSync) {
+        return proxyless ? new CookieSandboxProxylessStrategy() : new CookieSandboxProxyStrategy(document, windowSync);
+    }
+}
+
+class CookieSandboxProxylessStrategy implements CookieSandboxStrategy {
+    getCookie (): string {
+        return '';
+    }
+    setCookie (): void {
+        return void 0;
+    }
+    syncCookie (): void {
+        return void 0;
+    }
+    syncWindowCookie (): void {
+        return void 0;
+    }
+    removeAllSyncCookie (): void {
+        return void 0;
+    }
+}
+
+class CookieSandboxProxyStrategy implements CookieSandboxStrategy {
+    document: Document | null = null;
     private readonly _windowSync: WindowSync;
 
-    constructor (messageSandbox: MessageSandbox,
-        private readonly _unloadSandbox: UnloadSandbox,
-        childWindowSandbox: ChildWindowSandbox) {
-        super();
-
-        this._windowSync = new WindowSync(this, messageSandbox, childWindowSandbox);
-    }
-
-    private static _removeAllSyncCookie (): void {
-        const cookies       = nativeMethods.documentCookieGetter.call(document);
-        const parsedCookies = parseClientSyncCookieStr(cookies);
-        const sessionId     = settings.get().sessionId;
-
-        for (const outdatedCookie of parsedCookies.outdated)
-            nativeMethods.documentCookieSetter.call(document, generateDeleteSyncCookieStr(outdatedCookie));
-
-        for (const parsedCookie of parsedCookies.actual) {
-            if (parsedCookie.sid === sessionId && (parsedCookie.isWindowSync || parsedCookie.isServerSync)) {
-                nativeMethods.documentCookieSetter.call(document, generateDeleteSyncCookieStr(parsedCookie));
-
-                if (parsedCookie.isClientSync) {
-                    changeSyncType(parsedCookie, { window: false });
-                    nativeMethods.documentCookieSetter.call(document, formatSyncCookie(parsedCookie));
-                }
-            }
-        }
-    }
-
-    _canSetCookie (cookie, setByClient: boolean): boolean {
-        // eslint-disable-next-line no-restricted-properties
-        if (setByClient && (cookie.length > BYTES_PER_COOKIE_LIMIT || destLocation.getParsed().protocol === 'file:'))
-            return false;
-
-        const clientCookie = `key${nativeMethods.mathRandom.call(nativeMethods.math)}=value`;
-
-        nativeMethods.documentCookieSetter.call(this.document, clientCookie);
-
-        const documentCookieIsEmpty = !nativeMethods.documentCookieGetter.call(this.document);
-
-        if (!documentCookieIsEmpty)
-            nativeMethods.documentCookieSetter.call(this.document, `${clientCookie};expires=${MIN_DATE_VALUE}`);
-
-        return !documentCookieIsEmpty;
-    }
-
-    static _updateClientCookieStr (cookieKey, newCookieStr: string): void {
-        const cookieStr      = settings.get().cookie; // eslint-disable-line no-restricted-properties
-        const cookies        = cookieStr ? cookieStr.split(';') : [];
-        const changedCookies = [];
-        let replaced         = false;
-        const searchStr      = cookieKey === '' ? null : cookieKey + '=';
-
-        // NOTE: Replace a cookie if it already exists.
-        for (let cookie of cookies) {
-            cookie = trim(cookie);
-
-            const isCookieExists = searchStr ? cookie.indexOf(searchStr) === 0 : cookie.indexOf('=') === -1;
-
-            if (!isCookieExists)
-                changedCookies.push(cookie);
-            else if (newCookieStr !== null) {
-                changedCookies.push(newCookieStr);
-
-                replaced = true;
-            }
-        }
-
-        if (!replaced && newCookieStr !== null)
-            changedCookies.push(newCookieStr);
-
-        settings.get().cookie = changedCookies.join('; '); // eslint-disable-line no-restricted-properties
+    constructor (document: Document | null, _windowSync: WindowSync) {
+        this.document    = document;
+        this._windowSync = _windowSync;
     }
 
     getCookie (): string {
@@ -194,6 +166,52 @@ export default class CookieSandbox extends SandboxBase {
         this._windowSync.syncBetweenWindows(parsedCookies);
     }
 
+    syncWindowCookie (parsedCookies: CookieRecord[]): void {
+        const clientCookie = nativeMethods.documentCookieGetter.call(this.document);
+
+        for (const parsedCookie of parsedCookies) {
+            if (CookieSandbox.isSyncCookieExists(parsedCookie, clientCookie))
+                this.setCookie(parsedCookie);
+        }
+    }
+
+    removeAllSyncCookie (): void {
+        const cookies       = nativeMethods.documentCookieGetter.call(this.document);
+        const parsedCookies = parseClientSyncCookieStr(cookies);
+        const sessionId     = settings.get().sessionId;
+
+        for (const outdatedCookie of parsedCookies.outdated)
+            nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(outdatedCookie));
+
+        for (const parsedCookie of parsedCookies.actual) {
+            if (parsedCookie.sid === sessionId && (parsedCookie.isWindowSync || parsedCookie.isServerSync)) {
+                nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(parsedCookie));
+
+                if (parsedCookie.isClientSync) {
+                    changeSyncType(parsedCookie, { window: false });
+                    nativeMethods.documentCookieSetter.call(this.document, formatSyncCookie(parsedCookie));
+                }
+            }
+        }
+    }
+
+    _canSetCookie (cookie, setByClient: boolean): boolean {
+        // eslint-disable-next-line no-restricted-properties
+        if (setByClient && (cookie.length > BYTES_PER_COOKIE_LIMIT || destLocation.getParsed().protocol === 'file:'))
+            return false;
+
+        const clientCookie = `key${nativeMethods.mathRandom.call(nativeMethods.math)}=value`;
+
+        nativeMethods.documentCookieSetter.call(this.document, clientCookie);
+
+        const documentCookieIsEmpty = !nativeMethods.documentCookieGetter.call(this.document);
+
+        if (!documentCookieIsEmpty)
+            nativeMethods.documentCookieSetter.call(this.document, `${clientCookie};expires=${MIN_DATE_VALUE}`);
+
+        return !documentCookieIsEmpty;
+    }
+
     _syncClientCookie (parsedCookie: CookieRecord): void {
         parsedCookie.isClientSync = true;
         parsedCookie.isWindowSync = true;
@@ -207,6 +225,49 @@ export default class CookieSandbox extends SandboxBase {
         this._windowSync.syncBetweenWindows([parsedCookie]);
     }
 
+    
+}
+
+export default class CookieSandbox extends SandboxBase {
+    private readonly _windowSync: WindowSync;
+    private _cookieStrategy: CookieSandboxStrategy;
+
+    constructor (messageSandbox: MessageSandbox,
+        private readonly _unloadSandbox: UnloadSandbox,
+        childWindowSandbox: ChildWindowSandbox) {
+        super();
+
+        this._windowSync = new WindowSync(this, messageSandbox, childWindowSandbox);
+    }
+
+    static _updateClientCookieStr (cookieKey, newCookieStr: string): void {
+        const cookieStr      = settings.get().cookie; // eslint-disable-line no-restricted-properties
+        const cookies        = cookieStr ? cookieStr.split(';') : [];
+        const changedCookies = [];
+        let replaced         = false;
+        const searchStr      = cookieKey === '' ? null : cookieKey + '=';
+
+        // NOTE: Replace a cookie if it already exists.
+        for (let cookie of cookies) {
+            cookie = trim(cookie);
+
+            const isCookieExists = searchStr ? cookie.indexOf(searchStr) === 0 : cookie.indexOf('=') === -1;
+
+            if (!isCookieExists)
+                changedCookies.push(cookie);
+            else if (newCookieStr !== null) {
+                changedCookies.push(newCookieStr);
+
+                replaced = true;
+            }
+        }
+
+        if (!replaced && newCookieStr !== null)
+            changedCookies.push(newCookieStr);
+
+        settings.get().cookie = changedCookies.join('; '); // eslint-disable-line no-restricted-properties
+    }
+
     static isSyncCookieExists (parsedCookie: CookieRecord, clientCookieStr: string): boolean {
         const startIndex = clientCookieStr.indexOf(parsedCookie.cookieStr);
         const endIndex   = startIndex + parsedCookie.cookieStr.length;
@@ -214,25 +275,35 @@ export default class CookieSandbox extends SandboxBase {
         return startIndex > -1 && (clientCookieStr.length === endIndex || clientCookieStr.charAt(endIndex) === ';');
     }
 
-    syncWindowCookie (parsedCookies: CookieRecord[]): void {
-        const clientCookie = nativeMethods.documentCookieGetter.call(this.document);
+    attach (window: Window & typeof globalThis): void {
+        super.attach(window);
 
-        for (const parsedCookie of parsedCookies) {
-            if (CookieSandbox.isSyncCookieExists(parsedCookie, clientCookie))
-                this.setCookie(parsedCookie);
-        }
+        this._windowSync.attach(window);
+
+        this._cookieStrategy = CookieSandboxStrategyFactory.create(
+            this.proxyless,
+            this.document,
+            this._windowSync);
+
+        if (window === getTopOpenerWindow())
+            this._unloadSandbox.on(this._unloadSandbox.UNLOAD_EVENT, this._cookieStrategy.removeAllSyncCookie);
     }
 
     getWindowSync (): WindowSync {
         return this._windowSync;
     }
 
-    attach (window: Window & typeof globalThis): void {
-        super.attach(window);
-
-        this._windowSync.attach(window);
-
-        if (window === getTopOpenerWindow())
-            this._unloadSandbox.on(this._unloadSandbox.UNLOAD_EVENT, CookieSandbox._removeAllSyncCookie);
+    // Strategy methods
+    getCookie (): string {
+        return this._cookieStrategy.getCookie();
+    }
+    setCookie (cookie: CookieRecord | string): void {
+        this._cookieStrategy.setCookie(cookie);
+    }
+    syncCookie (): void {
+        this._cookieStrategy.syncCookie();
+    }
+    syncWindowCookie (parsedCookies: CookieRecord[]): void {
+        this._cookieStrategy.syncWindowCookie(parsedCookies);
     }
 }
