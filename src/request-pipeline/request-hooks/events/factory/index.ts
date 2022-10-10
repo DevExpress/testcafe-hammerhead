@@ -1,6 +1,7 @@
 import BaseRequestHookEventFactory from './base';
 import { RequestInfo } from '../info';
 import RequestPipelineContext from '../../../context';
+import RequestOptions from '../../../request-options';
 
 
 export default class RequestPipelineRequestHookEventFactory extends BaseRequestHookEventFactory {
@@ -13,5 +14,9 @@ export default class RequestPipelineRequestHookEventFactory extends BaseRequestH
     }
     public createRequestInfo (): RequestInfo {
         return RequestInfo.from(this._ctx);
+    }
+
+    public createRequestOptions (): RequestOptions {
+        return RequestOptions.createFrom(this._ctx);
     }
 }

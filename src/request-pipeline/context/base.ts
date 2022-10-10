@@ -5,6 +5,8 @@ import RequestEvent from '../../session/events/request-event';
 import RequestOptions from '../request-options';
 import RequestEventNames from '../request-hooks/events/names';
 import ResponseMock from '../request-hooks/response-mock';
+import IncomingMessageLike from '../incoming-message-like';
+import getMockResponse from '../request-hooks/response-mock/get-response';
 
 
 export default abstract class BaseRequestPipelineContext {
@@ -29,6 +31,10 @@ export default abstract class BaseRequestPipelineContext {
             this.mock = mock;
     }
 
+    public setRequestOptions (eventFactory: BaseRequestHookEventFactory): void {
+        this.reqOpts = eventFactory.createRequestOptions();
+    }
+
     public async onRequestHookRequest (eventProvider: RequestHookEventProvider, eventFactory: BaseRequestHookEventFactory): Promise<void> {
         const requestInfo = eventFactory.createRequestInfo();
 
@@ -46,5 +52,11 @@ export default abstract class BaseRequestPipelineContext {
 
             this.setupMockIfNecessary(requestEvent, eventProvider);
         });
+    }
+
+    public async getMockResponse (): Promise<IncomingMessageLike> {
+        this.mock.setRequestOptions(this.reqOpts);
+
+        return getMockResponse(this.mock);
     }
 }

@@ -12,7 +12,6 @@ import { ServerInfo } from '../../typings/proxy';
 import { parseClientSyncCookieStr } from '../../utils/cookie';
 import { ParsedClientSyncCookie } from '../../typings/cookie';
 import IncomingMessageLike from '../incoming-message-like';
-import RequestOptions from '../request-options';
 import { ParsedProxyUrl } from '../../typings/url';
 import { OnResponseEventData, RequestCacheEntry } from '../../typings/context';
 import Charset from '../../processing/encoding/charset';
@@ -29,10 +28,10 @@ import createSpecialPageResponse from '../create-special-page-response';
 import { fetchBody } from '../../utils/http';
 import * as requestCache from '../cache';
 import requestIsMatchRule from '../request-hooks/request-is-match-rule';
-import getMockResponse from '../request-hooks/response-mock/get-response';
 import { Http2Response } from '../destination-request/http2';
 import BaseRequestPipelineContext from './base';
 import RequestPipelineRequestHookEventFactory from '../request-hooks/events/factory';
+import RequestHookEventProvider from '../request-hooks/events/event-provider';
 
 export interface DestInfo {
     url: string;
@@ -112,7 +111,6 @@ export default class RequestPipelineContext extends BaseRequestPipelineContext {
     contentInfo: ContentInfo;
     restoringStorages: StoragesSnapshot;
     onResponseEventData: OnResponseEventData[] = [];
-    reqOpts: RequestOptions;
     parsedClientSyncCookie: ParsedClientSyncCookie;
     isFileProtocol: boolean;
     nonProcessedDestResBody: Buffer;
@@ -498,14 +496,21 @@ export default class RequestPipelineContext extends BaseRequestPipelineContext {
         res.addTrailers(this.destRes.trailers as OutgoingHttpHeaders);
     }
 
-    async mockResponse (): Promise<void> {
+    async mockResponse (eventProvider: RequestHookEventProvider): Promise<void> {
         logger.destination.onMockedRequest(this);
 
-        this.mock.setRequestOptions(this.reqOpts);
-
-        this.destRes = await getMockResponse(this.mock);
+        this.destRes = await this.getMockResponse();
 
         this.buildContentInfo();
+
+        if (!this.mock.hasError)
+            return;
+
+        const targetRule = this.requestFilterRules[0];
+
+        await eventProvider.callRequestHookErrorHandler(targetRule, this.mock.error as Error);
+
+        logger.proxy.onMockResponseError(targetRule, this.mock.error as Error);
     }
 
     getOnResponseEventData ({ includeBody }: { includeBody: boolean }): OnResponseEventData[] {
