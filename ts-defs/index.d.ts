@@ -560,6 +560,9 @@ declare module 'testcafe-hammerhead' {
         trailers: { [key: string]: string | undefined };
         /** The status code of the instance **/
         statusCode: number;
+
+        /** Get body **/
+        getBody (): Buffer | null;
     }
 
     /** Base class for creating event classes for request hook events **/
