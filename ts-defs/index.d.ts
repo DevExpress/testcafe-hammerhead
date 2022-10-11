@@ -552,10 +552,26 @@ declare module 'testcafe-hammerhead' {
     /** Calculates the asset path depending on the run mode (production or development) **/
     function getAssetPath(originPath: string, developmentMode: boolean): string;
 
+    /**  **/
+    export class IncomingMessageLike {
+        /** The headers of the instance **/
+        headers: IncomingHttpHeaders;
+        /** The trailers of the instance **/
+        trailers: { [key: string]: string | undefined };
+        /** The status code of the instance **/
+        statusCode: number;
+
+        /** Get body **/
+        getBody (): Buffer | null;
+    }
+
     /** Base class for creating event classes for request hook events **/
     export abstract class BaseRequestHookEventFactory {
         /** Creates a new RequestInfo instance **/
         public abstract createRequestInfo (): RequestInfo;
+
+        /** Creates a new RequestEvent instance **/
+        public abstract createRequestOptions (): RequestOptions;
     }
 
     /** Base class for building request pipeline contexts **/
@@ -571,7 +587,13 @@ declare module 'testcafe-hammerhead' {
         /** Request identifier **/
         requestId: string;
 
+        /** Set request options for the current context **/
+        setRequestOptions (eventFactory: BaseRequestHookEventFactory): void;
+
         /** Raise onRequest event **/
         onRequestHookRequest (eventProvider: RequestHookEventProvider, eventFactory: BaseRequestHookEventFactory): Promise<void>;
+
+        /** Get mock response **/
+        getMockResponse (): Promise<IncomingMessageLike>;
     }
 }

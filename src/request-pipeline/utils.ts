@@ -187,14 +187,3 @@ export async function callOnResponseEventCallbackForMotModifiedResource (ctx: Re
     ctx.res.end();
 }
 
-export async function handleRequestMockingErrorIfNecessary (ctx: RequestPipelineContext): Promise<void> {
-    if (!ctx.mock.hasError)
-        return;
-
-    const targetRule = ctx.requestFilterRules[0];
-
-    logger.proxy.onMockResponseError(targetRule, ctx.mock.error as Error);
-
-    await ctx.session.callRequestHookEventHandler(targetRule, ctx.mock.error as Error);
-
-}

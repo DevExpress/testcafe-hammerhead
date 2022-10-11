@@ -125,4 +125,20 @@ export default abstract class RequestHookEventProvider {
             errorHandler(event);
         }
     }
+
+    async callRequestHookErrorHandler (rule: RequestFilterRule, e: Error): Promise<void> {
+        const requestEventListenersData = this.requestEventListeners.get(rule.id);
+
+        if (!requestEventListenersData)
+            return;
+
+        const { errorHandler } = requestEventListenersData;
+
+        const event = {
+            error:      e,
+            methodName: RequestEventNames.onResponse,
+        };
+
+        errorHandler(event);
+    }
 }

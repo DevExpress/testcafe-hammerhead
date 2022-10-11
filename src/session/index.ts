@@ -8,7 +8,6 @@ import {
 
 import RequestPipelineContext from '../request-pipeline/context';
 import RequestFilterRule from '../request-pipeline/request-hooks/request-filter-rule';
-import RequestEventNames from '../request-pipeline/request-hooks/events/names';
 import RequestHookEventProvider from '../request-pipeline/request-hooks/events/event-provider';
 import {
     Credentials,
@@ -254,22 +253,6 @@ export default abstract class Session extends RequestHookEventProvider {
     }
 
     // Request hooks
-    async callRequestHookEventHandler (rule: RequestFilterRule, e: Error): Promise<void> {
-        const requestEventListenersData = this.requestEventListeners.get(rule.id);
-
-        if (!requestEventListenersData)
-            return;
-
-        const { errorHandler } = requestEventListenersData;
-
-        const event = {
-            error:      e,
-            methodName: RequestEventNames.onResponse,
-        };
-
-        errorHandler(event);
-    }
-
     private _ensureConfigureResponseEventData (eventId: string): ConfigureResponseEventData {
         let eventData = this.requestHookEventData.configureResponse.get(eventId);
 

@@ -1,7 +1,6 @@
 import RequestPipelineContext from './context';
 import logger from '../utils/logger';
 import { fetchBody } from '../utils/http';
-import RequestOptions from './request-options';
 import {
     callOnConfigureResponseEventForNonProcessedRequest,
     callOnResponseEventCallbackForFailedSameOriginCheck,
@@ -10,7 +9,6 @@ import {
     callOnResponseEventCallbackWithoutBodyForNonProcessedResource,
     callResponseEventCallbackForProcessedRequest,
     error,
-    handleRequestMockingErrorIfNecessary,
     sendRequest,
 } from './utils';
 import ConfigureResponseEvent from '../session/events/configure-response-event';
@@ -52,7 +50,7 @@ export default [
     },
 
     async function sendDestinationRequest (ctx: RequestPipelineContext) {
-        ctx.reqOpts = RequestOptions.createFrom(ctx);
+        ctx.setRequestOptions(ctx.eventFactory);
 
         if (ctx.isSpecialPage) {
             ctx.respondForSpecialPage();
@@ -62,10 +60,8 @@ export default [
 
         await ctx.onRequestHookRequest(ctx.session, ctx.eventFactory);
 
-        if (ctx.mock) {
-            await ctx.mockResponse();
-            await handleRequestMockingErrorIfNecessary(ctx);
-        }
+        if (ctx.mock)
+            await ctx.mockResponse(ctx.session);
         else
             await sendRequest(ctx);
     },
