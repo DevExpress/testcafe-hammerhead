@@ -472,6 +472,12 @@ declare module 'testcafe-hammerhead' {
 
         /** The body of the response mock **/
         body:string | Function;
+
+        /** Determine whether an error occurs on calculation response **/
+        hasError: boolean;
+
+        /** An error occurs on calculation response **/
+        error: Error | null;
     }
 
     /** RequestHookMethodError raises on error occurred during request hook method execution **/
@@ -493,6 +499,9 @@ declare module 'testcafe-hammerhead' {
 
         /** Request headers **/
         headers: OutgoingHttpHeaders;
+
+        /** Determines whether the request is xhr or fetch request **/
+        isAjax: boolean;
 
         /** Creates a RequestOptions instance **/
         constructor (params: RequestOptionsParams);
@@ -579,6 +588,9 @@ declare module 'testcafe-hammerhead' {
         /** Returns a mock associated with the current context **/
         mock: ResponseMock;
 
+        /** Returns request options associated with the current context **/
+        reqOpts: RequestOptions;
+
         protected constructor (requestId: string);
 
         /** Request filter rules associated with the request **/
@@ -595,5 +607,8 @@ declare module 'testcafe-hammerhead' {
 
         /** Get mock response **/
         getMockResponse (): Promise<IncomingMessageLike>;
+
+        /** Handle mock error **/
+        handleMockError (eventProvider: RequestHookEventProvider): Promise<void>;
     }
 }
