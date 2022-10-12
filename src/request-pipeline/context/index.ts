@@ -506,11 +506,9 @@ export default class RequestPipelineContext extends BaseRequestPipelineContext {
         if (!this.mock.hasError)
             return;
 
-        const targetRule = this.requestFilterRules[0];
+        await this.handleMockError(eventProvider);
 
-        await eventProvider.callRequestHookErrorHandler(targetRule, this.mock.error as Error);
-
-        logger.proxy.onMockResponseError(targetRule, this.mock.error as Error);
+        logger.proxy.onMockResponseError(this.requestFilterRules[0], this.mock.error as Error);
     }
 
     getOnResponseEventData ({ includeBody }: { includeBody: boolean }): OnResponseEventData[] {

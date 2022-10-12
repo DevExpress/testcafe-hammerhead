@@ -59,4 +59,11 @@ export default abstract class BaseRequestPipelineContext {
 
         return getMockResponse(this.mock);
     }
+
+    public async handleMockError (eventProvider: RequestHookEventProvider): Promise<void> {
+        const targetRule = this.requestFilterRules[0];
+
+        await eventProvider.callRequestHookErrorHandler(targetRule, this.mock.error as Error);
+
+    }
 }
