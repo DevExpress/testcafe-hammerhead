@@ -28,6 +28,8 @@ import ConfigureResponseEventOptions from '../session/events/configure-response-
 import { formatSyncCookie } from '../utils/cookie';
 import { SCRIPTS } from './injectables';
 import { ConfigureResponseEventData } from '../request-pipeline/request-hooks/typings';
+import { EventEmitter } from 'events';
+
 
 const TASK_TEMPLATE = read('../client/task.js.mustache');
 
@@ -71,7 +73,7 @@ interface SessionOptions {
     referer?: string;
 }
 
-export default abstract class Session extends RequestHookEventProvider {
+export default abstract class Session extends EventEmitter {
     uploadStorage: UploadStorage;
     id: string = generateUniqueId();
     cookies: Cookies;
@@ -83,13 +85,15 @@ export default abstract class Session extends RequestHookEventProvider {
     private _recordMode = false;
     options: SessionOptions;
     private _disableHttp2 = false;
+    public requestHookEventProvider: RequestHookEventProvider;
 
     protected constructor (uploadRoots: string[], options: Partial<SessionOptions>) {
         super();
 
-        this.uploadStorage = new UploadStorage(uploadRoots);
-        this.options       = this._getOptions(options);
-        this.cookies       = this.createCookies();
+        this.uploadStorage            = new UploadStorage(uploadRoots);
+        this.options                  = this._getOptions(options);
+        this.cookies                  = this.createCookies();
+        this.requestHookEventProvider = new RequestHookEventProvider();
     }
 
     private _getOptions (options: Partial<SessionOptions> = {}): SessionOptions {
@@ -154,7 +158,7 @@ export default abstract class Session extends RequestHookEventProvider {
             sessionId:             this.id,
             serviceMsgUrl:         domain + SERVICE_ROUTES.messaging,
             transportWorkerUrl:    domain + SERVICE_ROUTES.transportWorker,
-            forceProxySrcForImage: this.hasRequestEventListeners(),
+            forceProxySrcForImage: this.requestHookEventProvider.hasRequestEventListeners(),
             crossDomainPort,
             isFirstPageLoad,
             referer,
@@ -254,7 +258,7 @@ export default abstract class Session extends RequestHookEventProvider {
 
     // Request hooks
     private _ensureConfigureResponseEventData (eventId: string): ConfigureResponseEventData {
-        let eventData = this.requestHookEventData.configureResponse.get(eventId);
+        let eventData = this.requestHookEventProvider.requestHookEventData.configureResponse.get(eventId);
 
         if (!eventData) {
             eventData = {
@@ -272,11 +276,11 @@ export default abstract class Session extends RequestHookEventProvider {
 
         updateFn(eventData);
 
-        this.requestHookEventData.configureResponse.set(eventId, eventData);
+        this.requestHookEventProvider.requestHookEventData.configureResponse.set(eventId, eventData);
     }
 
     public removeConfigureResponseEventData (eventId: string): void {
-        this.requestHookEventData.configureResponse.delete(eventId);
+        this.requestHookEventProvider.requestHookEventData.configureResponse.delete(eventId);
     }
 
     public async setConfigureResponseEventOptions (eventId: string, opts: ConfigureResponseEventOptions): Promise<void> {

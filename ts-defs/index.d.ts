@@ -214,7 +214,7 @@ declare module 'testcafe-hammerhead' {
 
 
     /** Base class for emitting request hook events **/
-    export abstract class RequestHookEventProvider {
+    export class RequestHookEventProvider {
         /** Adds request event listeners **/
         addRequestEventListeners (rule: RequestFilterRule, listeners: RequestEventListeners, errorHandler: (event: RequestEventListenerError) => void): Promise<void>;
 
@@ -240,6 +240,9 @@ declare module 'testcafe-hammerhead' {
 
         /** Session's cookie API **/
         cookies: Cookies;
+
+        /** Contains all infrastructure for emitting request events **/
+        requestHookEventProvider: RequestHookEventProvider;
 
         /** Creates a session instance **/
         protected constructor (uploadRoots: string[], options: Partial<SessionOptions>)

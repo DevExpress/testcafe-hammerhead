@@ -53,7 +53,7 @@ describe('Content charset', () => {
         const requestPipelineContextMock = {
             dest:    {},
             session: {
-                hasRequestEventListeners: () => false,
+                requestHookEventProvider: { hasRequestEventListeners: () => false },
                 options:                  { allowMultipleWindows: false },
             },
             serverInfo: {
@@ -175,7 +175,7 @@ describe('Content charset', () => {
             const requestPipelineContextMock = {
                 dest:    {},
                 session: {
-                    hasRequestEventListeners: () => false,
+                    requestHookEventProvider: { hasRequestEventListeners: () => false },
                     options:                  { allowMultipleWindows: false },
                 },
                 serverInfo: {

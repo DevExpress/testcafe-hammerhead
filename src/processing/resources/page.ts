@@ -229,7 +229,7 @@ class PageProcessor extends ResourceProcessorBase {
         const replacer     = (resourceUrl, resourceType, charsetAttrValue, isCrossDomain = false) =>
             urlReplacer(resourceUrl, resourceType, charsetAttrValue, baseUrl, isCrossDomain);
 
-        domProcessor.forceProxySrcForImage = ctx.session.hasRequestEventListeners();
+        domProcessor.forceProxySrcForImage = ctx.session.requestHookEventProvider.hasRequestEventListeners();
         domProcessor.allowMultipleWindows  = ctx.session.options.allowMultipleWindows;
 
         parse5Utils.walkElements(root, el => domProcessor.processElement(el, replacer));
