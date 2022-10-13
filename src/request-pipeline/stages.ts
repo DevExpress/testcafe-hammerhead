@@ -58,10 +58,10 @@ export default [
             return;
         }
 
-        await ctx.onRequestHookRequest(ctx.session, ctx.eventFactory);
+        await ctx.onRequestHookRequest(ctx.session.requestHookEventProvider, ctx.eventFactory);
 
         if (ctx.mock)
-            await ctx.mockResponse(ctx.session);
+            await ctx.mockResponse(ctx.session.requestHookEventProvider);
         else
             await sendRequest(ctx);
     },
@@ -75,7 +75,7 @@ export default [
         await ctx.forEachRequestFilterRule(async rule => {
             const configureResponseEvent = new ConfigureResponseEvent(rule, ctx, ConfigureResponseEventOptions.DEFAULT);
 
-            await ctx.session.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
+            await ctx.session.requestHookEventProvider.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
             await callOnResponseEventCallbackForFailedSameOriginCheck(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
         });
 
@@ -151,7 +151,7 @@ export default [
         const configureResponseEvents = await Promise.all(ctx.requestFilterRules.map(async rule => {
             const configureResponseEvent = new ConfigureResponseEvent(rule, ctx, ConfigureResponseEventOptions.DEFAULT);
 
-            await ctx.session.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
+            await ctx.session.requestHookEventProvider.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
 
             return configureResponseEvent;
         }));

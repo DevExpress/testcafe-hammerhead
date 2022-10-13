@@ -14,11 +14,11 @@ import ResponseEvent from '../../../session/events/response-event';
 import ConfigureResponseEvent from '../../../session/events/configure-response-event';
 
 
-export default abstract class RequestHookEventProvider {
+export default class RequestHookEventProvider {
     public readonly requestEventListeners: Map<string, RequestEventListenersData>;
     public readonly requestHookEventData: RequestHookEventData;
 
-    protected constructor () {
+    public constructor () {
         this.requestEventListeners = new Map();
         this.requestHookEventData = this._initRequestHookEventData();
     }
