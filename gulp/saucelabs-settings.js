@@ -38,14 +38,6 @@ const CLIENT_TESTS_BROWSERS = [
         platformVersion: '7.1',
         platformName:    'Android',
     },
-    {
-        browserName: 'chrome',
-        platform:    'macOS 12',
-    },
-    {
-        browserName: 'firefox',
-        platform:    'macOS 12',
-    },
 ];
 
 const SAUCELABS_SETTINGS = {
