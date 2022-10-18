@@ -32,6 +32,9 @@ import { Http2Response } from '../destination-request/http2';
 import BaseRequestPipelineContext from './base';
 import RequestPipelineRequestHookEventFactory from '../request-hooks/events/factory';
 import RequestHookEventProvider from '../request-hooks/events/event-provider';
+import { PassThrough } from 'stream';
+import promisifyStream from '../../utils/promisify-stream';
+import { toReadableStream } from '../../utils/buffer';
 
 export interface DestInfo {
     url: string;
@@ -110,7 +113,6 @@ export default class RequestPipelineContext extends BaseRequestPipelineContext {
     isWebSocketConnectionReset = false;
     contentInfo: ContentInfo;
     restoringStorages: StoragesSnapshot;
-    onResponseEventData: OnResponseEventData[] = [];
     parsedClientSyncCookie: ParsedClientSyncCookie;
     isFileProtocol: boolean;
     nonProcessedDestResBody: Buffer;
@@ -511,10 +513,6 @@ export default class RequestPipelineContext extends BaseRequestPipelineContext {
         logger.proxy.onMockResponseError(this.requestFilterRules[0], this.mock.error as Error);
     }
 
-    getOnResponseEventData ({ includeBody }: { includeBody: boolean }): OnResponseEventData[] {
-        return this.onResponseEventData.filter(eventData => eventData.opts.includeBody === includeBody);
-    }
-
     resolveInjectableUrl (url: string): string {
         return this.serverInfo.domain + url;
     }
@@ -554,5 +552,37 @@ export default class RequestPipelineContext extends BaseRequestPipelineContext {
     createCacheEntry (res: DestinationResponse): void {
         if (requestCache.shouldCache(this) && !IncomingMessageLike.isIncomingMessageLike(res))
             this.temporaryCacheEntry = requestCache.create(this.reqOpts, res);
+    }
+
+    public async callOnResponseEventCallbackWithoutBodyForNonProcessedResource (ctx: RequestPipelineContext, onResponseEventDataWithoutBody: OnResponseEventData[]) {
+        await Promise.all(onResponseEventDataWithoutBody.map(async eventData => {
+            await ctx.onRequestHookResponse(ctx.session.requestHookEventProvider, ctx.eventFactory, eventData.rule, eventData.opts);
+        }));
+
+        ctx.destRes.pipe(ctx.res);
+    }
+
+    public async callOnResponseEventCallbackForMotModifiedResource (ctx: RequestPipelineContext) {
+        await Promise.all(ctx.onResponseEventData.map(async eventData => {
+            await ctx.onRequestHookResponse(ctx.session.requestHookEventProvider, ctx.eventFactory, eventData.rule, eventData.opts);
+        }));
+
+        ctx.res.end();
+    }
+
+    public async callOnResponseEventCallbackWithBodyForNonProcessedRequest (ctx: RequestPipelineContext, onResponseEventDataWithBody: OnResponseEventData[]) {
+        const destResBodyCollectorStream = new PassThrough();
+
+        ctx.destRes.pipe(destResBodyCollectorStream);
+
+        promisifyStream(destResBodyCollectorStream).then(async data => {
+            ctx.saveNonProcessedDestResBody(data);
+
+            await Promise.all(onResponseEventDataWithBody.map(async eventData => {
+                await ctx.onRequestHookResponse(ctx.session.requestHookEventProvider, ctx.eventFactory, eventData.rule, eventData.opts);
+            }));
+
+            toReadableStream(data).pipe(ctx.res);
+        });
     }
 }

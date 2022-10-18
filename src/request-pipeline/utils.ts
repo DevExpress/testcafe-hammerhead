@@ -1,21 +1,6 @@
 import RequestPipelineContext, { DestinationResponse } from './context';
-import RequestFilterRule from './request-hooks/request-filter-rule';
-
-import {
-    ResponseInfo,
-    PreparedResponseInfo,
-} from './request-hooks/events/info';
-
-import { OnResponseEventData } from '../typings/context';
 import FileRequest from './file-request';
 import DestinationRequest from './destination-request';
-import promisifyStream from '../utils/promisify-stream';
-import ConfigureResponseEvent from '../session/events/configure-response-event';
-import ResponseEvent from '../session/events/response-event';
-import RequestEventNames from './request-hooks/events/names';
-import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
-import { toReadableStream } from '../utils/buffer';
-import { PassThrough } from 'stream';
 import { getText, MESSAGE } from '../messages';
 import logger from '../utils/logger';
 import { getFormattedInvalidCharacters } from './http-header-parser';
@@ -108,82 +93,5 @@ export function error (ctx: RequestPipelineContext, err: string) {
         ctx.req.destroy();
     else
         ctx.closeWithError(500, err.toString());
-}
-
-export async function callResponseEventCallbackForProcessedRequest (ctx: RequestPipelineContext, configureResponseEvent: ConfigureResponseEvent) {
-    const responseInfo         = ResponseInfo.from(ctx);
-    const preparedResponseInfo = new PreparedResponseInfo(responseInfo, configureResponseEvent.opts);
-    const responseEvent        = new ResponseEvent(configureResponseEvent.requestFilterRule, preparedResponseInfo);
-
-    await ctx.session.requestHookEventProvider.callRequestEventCallback(RequestEventNames.onResponse, configureResponseEvent.requestFilterRule, responseEvent);
-
-    return responseEvent;
-}
-
-export async function callOnResponseEventCallbackForFailedSameOriginCheck (ctx: RequestPipelineContext, rule: RequestFilterRule, configureOpts: ConfigureResponseEventOptions) {
-    const responseInfo         = ResponseInfo.from(ctx);
-    const preparedResponseInfo = new PreparedResponseInfo(responseInfo, configureOpts);
-    const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
-
-    await ctx.session.requestHookEventProvider.callRequestEventCallback(RequestEventNames.onResponse, rule, responseEvent);
-
-    return responseEvent;
-}
-
-export async function callOnConfigureResponseEventForNonProcessedRequest (ctx: RequestPipelineContext) {
-    await ctx.forEachRequestFilterRule(async rule => {
-        const configureResponseEvent = new ConfigureResponseEvent(rule, ctx, ConfigureResponseEventOptions.DEFAULT);
-
-        await ctx.session.requestHookEventProvider.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
-
-        ctx.onResponseEventData.push({ rule, opts: configureResponseEvent.opts });
-    });
-}
-
-export async function callOnResponseEventCallbackWithBodyForNonProcessedRequest (ctx: RequestPipelineContext, onResponseEventDataWithBody: OnResponseEventData[]) {
-    const destResBodyCollectorStream = new PassThrough();
-
-    ctx.destRes.pipe(destResBodyCollectorStream);
-
-    promisifyStream(destResBodyCollectorStream).then(async data => {
-        ctx.saveNonProcessedDestResBody(data);
-
-        const responseInfo = ResponseInfo.from(ctx);
-
-        await Promise.all(onResponseEventDataWithBody.map(async ({ rule, opts }) => {
-            const preparedResponseInfo = new PreparedResponseInfo(responseInfo, opts);
-            const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
-
-            await ctx.session.requestHookEventProvider.callRequestEventCallback(RequestEventNames.onResponse, rule, responseEvent);
-        }));
-
-        toReadableStream(data).pipe(ctx.res);
-    });
-}
-
-export async function callOnResponseEventCallbackWithoutBodyForNonProcessedResource (ctx: RequestPipelineContext, onResponseEventDataWithoutBody: OnResponseEventData[]) {
-    const responseInfo = ResponseInfo.from(ctx);
-
-    await Promise.all(onResponseEventDataWithoutBody.map(async item => {
-        const preparedResponseInfo = new PreparedResponseInfo(responseInfo, item.opts);
-        const responseEvent        = new ResponseEvent(item.rule, preparedResponseInfo);
-
-        await ctx.session.requestHookEventProvider.callRequestEventCallback(RequestEventNames.onResponse, item.rule, responseEvent);
-    }));
-
-    ctx.destRes.pipe(ctx.res);
-}
-
-export async function callOnResponseEventCallbackForMotModifiedResource (ctx: RequestPipelineContext) {
-    const responseInfo = ResponseInfo.from(ctx);
-
-    await Promise.all(ctx.onResponseEventData.map(async item => {
-        const preparedResponseInfo = new PreparedResponseInfo(responseInfo, item.opts);
-        const responseEvent        = new ResponseEvent(item.rule, preparedResponseInfo);
-
-        await ctx.session.requestHookEventProvider.callRequestEventCallback(RequestEventNames.onResponse, item.rule, responseEvent);
-    }));
-
-    ctx.res.end();
 }
 

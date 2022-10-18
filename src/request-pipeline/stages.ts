@@ -1,23 +1,12 @@
 import RequestPipelineContext from './context';
 import logger from '../utils/logger';
 import { fetchBody } from '../utils/http';
-import {
-    callOnConfigureResponseEventForNonProcessedRequest,
-    callOnResponseEventCallbackForFailedSameOriginCheck,
-    callOnResponseEventCallbackForMotModifiedResource,
-    callOnResponseEventCallbackWithBodyForNonProcessedRequest,
-    callOnResponseEventCallbackWithoutBodyForNonProcessedResource,
-    callResponseEventCallbackForProcessedRequest,
-    error,
-    sendRequest,
-} from './utils';
-import ConfigureResponseEvent from '../session/events/configure-response-event';
-import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
-import RequestEventNames from './request-hooks/events/names';
+import { error, sendRequest } from './utils';
 import { respondOnWebSocket } from './websocket';
 import { noop } from 'lodash';
 import { process as processResource } from '../processing/resources';
 import { connectionResetGuard } from './connection-reset-guard';
+import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
 
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 
@@ -72,12 +61,11 @@ export default [
 
         ctx.isSameOriginPolicyFailed = true;
 
-        await ctx.forEachRequestFilterRule(async rule => {
-            const configureResponseEvent = new ConfigureResponseEvent(rule, ctx, ConfigureResponseEventOptions.DEFAULT);
+        await ctx.onRequestHookConfigureResponse(ctx.session.requestHookEventProvider, ctx.eventFactory);
 
-            await ctx.session.requestHookEventProvider.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
-            await callOnResponseEventCallbackForFailedSameOriginCheck(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
-        });
+        await Promise.all(ctx.onResponseEventData.map(async eventData => {
+            await ctx.onRequestHookResponse(ctx.session.requestHookEventProvider, ctx.eventFactory, eventData.rule, ConfigureResponseEventOptions.DEFAULT);
+        }));
 
         logger.proxy.onCORSFailed(ctx);
     },
@@ -102,19 +90,20 @@ export default [
 
         // NOTE: Just pipe the content body to the browser if we don't need to process it.
         else {
-            await callOnConfigureResponseEventForNonProcessedRequest(ctx);
+            await ctx.onRequestHookConfigureResponse(ctx.session.requestHookEventProvider, ctx.eventFactory);
+
             ctx.sendResponseHeaders();
 
             if (ctx.contentInfo.isNotModified)
-                return await callOnResponseEventCallbackForMotModifiedResource(ctx);
+                return await ctx.callOnResponseEventCallbackForMotModifiedResource(ctx);
 
             const onResponseEventDataWithBody    = ctx.getOnResponseEventData({ includeBody: true });
             const onResponseEventDataWithoutBody = ctx.getOnResponseEventData({ includeBody: false });
 
             if (onResponseEventDataWithBody.length)
-                await callOnResponseEventCallbackWithBodyForNonProcessedRequest(ctx, onResponseEventDataWithBody);
+                await ctx.callOnResponseEventCallbackWithBodyForNonProcessedRequest(ctx, onResponseEventDataWithBody);
             else if (onResponseEventDataWithoutBody.length)
-                await callOnResponseEventCallbackWithoutBodyForNonProcessedResource(ctx, onResponseEventDataWithoutBody);
+                await ctx.callOnResponseEventCallbackWithoutBodyForNonProcessedResource(ctx, onResponseEventDataWithoutBody);
             else if (ctx.req.socket.destroyed && !ctx.isDestResReadableEnded)
                 ctx.destRes.destroy();
             else {
@@ -148,19 +137,13 @@ export default [
     },
 
     async function sendProxyResponse (ctx: RequestPipelineContext) {
-        const configureResponseEvents = await Promise.all(ctx.requestFilterRules.map(async rule => {
-            const configureResponseEvent = new ConfigureResponseEvent(rule, ctx, ConfigureResponseEventOptions.DEFAULT);
-
-            await ctx.session.requestHookEventProvider.callRequestEventCallback(RequestEventNames.onConfigureResponse, rule, configureResponseEvent);
-
-            return configureResponseEvent;
-        }));
+        await ctx.onRequestHookConfigureResponse(ctx.session.requestHookEventProvider, ctx.eventFactory);
 
         ctx.sendResponseHeaders();
 
         connectionResetGuard(async () => {
-            await Promise.all(configureResponseEvents.map(async configureResponseEvent => {
-                await callResponseEventCallbackForProcessedRequest(ctx, configureResponseEvent);
+            await Promise.all(ctx.onResponseEventData.map(async eventData => {
+                await ctx.onRequestHookResponse(ctx.session.requestHookEventProvider, ctx.eventFactory, eventData.rule, eventData.opts);
             }));
 
             ctx.res.write(ctx.destResBody);
