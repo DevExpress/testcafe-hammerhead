@@ -212,6 +212,10 @@ declare module 'testcafe-hammerhead' {
         proxyless: boolean;
     }
 
+    export interface OnResponseEventData {
+        rule: RequestFilterRule;
+        opts: ConfigureResponseEventOptions;
+    }
 
     /** Base class for emitting request hook events **/
     export class RequestHookEventProvider {
@@ -375,6 +379,9 @@ declare module 'testcafe-hammerhead' {
         /** RequestFilterRule associated with event **/
         requestFilterRule: RequestFilterRule;
 
+        /** Creates an instance of ConfigureResponseEvent **/
+        constructor (requestFilterRule: RequestFilterRule, requestContext: any, opts?: ConfigureResponseEventOptions);
+
         /** Set header of the result response **/
         setHeader(name: string, value: string): Promise<void>;
 
@@ -430,6 +437,18 @@ declare module 'testcafe-hammerhead' {
 
         /** Creates a new RequestEvent using the passed data **/
         static from (data: unknown): RequestEvent;
+    }
+
+    /** The ResponseInfo class is necessary for construction ResponseEvent class **/
+    export class ResponseInfo {
+        requestId: string;
+        statusCode: number;
+        sessionId: string;
+        headers: OutgoingHttpHeaders;
+        body: Buffer;
+        isSameOriginPolicyFailed: boolean;
+
+        constructor (init: ResponseInfo);
     }
 
     /** The ResponseEvent describes the response part of the query captured with request hook **/
@@ -584,6 +603,12 @@ declare module 'testcafe-hammerhead' {
 
         /** Creates a new RequestEvent instance **/
         public abstract createRequestOptions (): RequestOptions;
+
+        /** Creates a new ConfigureResponseEvent instance **/
+        public abstract createConfigureResponseEvent (rule: RequestFilterRule): ConfigureResponseEvent;
+
+        /** Create a new ResponseInfo instance **/
+        public abstract createResponseInfo (): ResponseInfo;
     }
 
     /** Base class for building request pipeline contexts **/
@@ -602,16 +627,28 @@ declare module 'testcafe-hammerhead' {
         /** Request identifier **/
         requestId: string;
 
+        /** Information for generating the response events **/
+        onResponseEventData: OnResponseEventData[];
+
         /** Set request options for the current context **/
         setRequestOptions (eventFactory: BaseRequestHookEventFactory): void;
 
         /** Raise onRequest event **/
         onRequestHookRequest (eventProvider: RequestHookEventProvider, eventFactory: BaseRequestHookEventFactory): Promise<void>;
 
+        /** Raise onConfigureResponse event **/
+        onRequestHookConfigureResponse (eventProvider: RequestHookEventProvider, eventFactory: BaseRequestHookEventFactory): Promise<void[]>;
+
+        /** Raise onResponse event **/
+        onRequestHookResponse (eventProvider: RequestHookEventProvider, eventFactory: BaseRequestHookEventFactory, rule: RequestFilterRule, opts: ConfigureResponseEventOptions): Promise<ResponseEvent>;
+
         /** Get mock response **/
         getMockResponse (): Promise<IncomingMessageLike>;
 
         /** Handle mock error **/
         handleMockError (eventProvider: RequestHookEventProvider): Promise<void>;
+
+        /** Get OnResponseEventData depending on specified filter **/
+        getOnResponseEventData ({ includeBody }: { includeBody: boolean }): OnResponseEventData[];
     }
 }

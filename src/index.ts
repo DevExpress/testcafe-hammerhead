@@ -25,7 +25,7 @@ import { SCRIPTS } from './session/injectables';
 import { acceptCrossOrigin } from './utils/http';
 import getAssetPath from './utils/get-asset-path';
 import RequestHookEventProvider from './request-pipeline/request-hooks/events/event-provider';
-import { RequestInfo } from './request-pipeline/request-hooks/events/info';
+import { RequestInfo, ResponseInfo } from './request-pipeline/request-hooks/events/info';
 import BaseRequestHookEventFactory from './request-pipeline/request-hooks/events/factory/base';
 import BaseRequestPipelineContext from './request-pipeline/context/base';
 
@@ -60,4 +60,5 @@ export default {
     INJECTABLE_SCRIPTS: SCRIPTS,
     acceptCrossOrigin,
     getAssetPath,
+    ResponseInfo,
 };

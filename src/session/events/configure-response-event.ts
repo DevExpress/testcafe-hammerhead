@@ -16,7 +16,7 @@ export default class ConfigureResponseEvent {
     public opts: ConfigureResponseEventOptions;
     public id: string;
 
-    constructor (requestFilterRule: RequestFilterRule, requestContext: RequestPipelineContext | null, opts: ConfigureResponseEventOptions) {
+    constructor (requestFilterRule: RequestFilterRule, requestContext: RequestPipelineContext | null, opts = ConfigureResponseEventOptions.DEFAULT) {
         this.requestFilterRule  = requestFilterRule;
         this._requestContext    = requestContext;
         this.opts               = opts;
