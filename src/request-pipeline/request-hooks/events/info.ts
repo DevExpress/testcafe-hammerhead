@@ -1,5 +1,5 @@
 import RequestPipelineContext from '../../context';
-import ConfigureResponseEventOptions from '../../../session/events/configure-response-event-options';
+import ConfigureResponseEventOptions from './configure-response-event-options';
 import { OutgoingHttpHeaders } from 'http';
 import BUILTIN_HEADER_NAMES from '../../builtin-header-names';
 

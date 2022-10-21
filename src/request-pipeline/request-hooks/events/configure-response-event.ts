@@ -1,7 +1,7 @@
-import RequestFilterRule from '../../request-pipeline/request-hooks/request-filter-rule';
-import RequestPipelineContext from '../../request-pipeline/context';
+import RequestFilterRule from '../request-filter-rule';
+import RequestPipelineContext from '../../context';
 import ConfigureResponseEventOptions from './configure-response-event-options';
-import generateUniqueId from '../../utils/generate-unique-id';
+import generateUniqueId from '../../../utils/generate-unique-id';
 
 interface SerializedConfigureResponseEvent {
     requestFilterRule: RequestFilterRule;
@@ -10,31 +10,36 @@ interface SerializedConfigureResponseEvent {
     id: string;
 }
 
+interface ModifyResponseFunctions {
+    setHeader: (name: string, value: string) => void;
+    removeHeader: (name: string) => void;
+}
+
 export default class ConfigureResponseEvent {
     public readonly requestFilterRule: RequestFilterRule;
-    private readonly _requestContext: RequestPipelineContext | null;
+    private readonly _modifyResponseFunctions: ModifyResponseFunctions | null;
     public opts: ConfigureResponseEventOptions;
     public id: string;
 
-    constructor (requestFilterRule: RequestFilterRule, requestContext: RequestPipelineContext | null, opts = ConfigureResponseEventOptions.DEFAULT) {
-        this.requestFilterRule  = requestFilterRule;
-        this._requestContext    = requestContext;
-        this.opts               = opts;
-        this.id                 = generateUniqueId();
+    constructor (requestFilterRule: RequestFilterRule, modifyResponseFunctions: ModifyResponseFunctions | null, opts = ConfigureResponseEventOptions.DEFAULT) {
+        this.requestFilterRule        = requestFilterRule;
+        this._modifyResponseFunctions = modifyResponseFunctions;
+        this.opts                     = opts;
+        this.id                       = generateUniqueId();
     }
 
     public async setHeader (name: string, value: string): Promise<void> {
-        if (!this._requestContext)
+        if (!this._modifyResponseFunctions)
             return;
 
-        this._requestContext.destRes.headers[name.toLowerCase()] = value;
+        this._modifyResponseFunctions.setHeader(name, value);
     }
 
     public async removeHeader (name: string): Promise<void> {
-        if (!this._requestContext)
+        if (!this._modifyResponseFunctions)
             return;
 
-        delete this._requestContext.destRes.headers[name.toLowerCase()];
+        this._modifyResponseFunctions.removeHeader(name);
     }
 
     public static from (data: unknown): ConfigureResponseEvent {

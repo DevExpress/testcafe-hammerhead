@@ -1,15 +1,16 @@
-const url                           = require('url');
-const { expect }                    = require('chai');
-const ResponseMock                  = require('../../lib/request-pipeline/request-hooks/response-mock');
-const RequestFilterRule             = require('../../lib/request-pipeline/request-hooks/request-filter-rule');
-const RequestEvent                  = require('../../lib/session/events/request-event');
-const ResponseEvent                 = require('../../lib/session/events/response-event');
-const ConfigureResponseEvent        = require('../../lib/session/events/configure-response-event');
-const ConfigureResponseEventOptions = require('../../lib/session/events/configure-response-event-options');
-const requestIsMatchRule            = require('../../lib/request-pipeline/request-hooks/request-is-match-rule');
-const { noop }                      = require('lodash');
-const getMockResponse               = require('../../lib/request-pipeline/request-hooks/response-mock/get-response');
-const { RequestInfo }               = require('../../lib/request-pipeline/request-hooks/events/info');
+const url                                    = require('url');
+const { expect }                             = require('chai');
+const ResponseMock                           = require('../../lib/request-pipeline/request-hooks/response-mock');
+const RequestFilterRule                      = require('../../lib/request-pipeline/request-hooks/request-filter-rule');
+const RequestEvent                           = require('../../lib/request-pipeline/request-hooks/events/request-event');
+const ResponseEvent                          = require('../../lib/request-pipeline/request-hooks/events/response-event');
+const ConfigureResponseEvent                 = require('../../lib/request-pipeline/request-hooks/events/configure-response-event');
+const ConfigureResponseEventOptions          = require('../../lib/request-pipeline/request-hooks/events/configure-response-event-options');
+const requestIsMatchRule                     = require('../../lib/request-pipeline/request-hooks/request-is-match-rule');
+const { noop }                               = require('lodash');
+const getMockResponse                        = require('../../lib/request-pipeline/request-hooks/response-mock/get-response');
+const { RequestInfo }                        = require('../../lib/request-pipeline/request-hooks/events/info');
+const RequestPipelineRequestHookEventFactory = require('../../lib/request-pipeline/request-hooks/events/factory');
 
 const requestInfoMock = {
     url:     'http://example.com/',
@@ -391,20 +392,27 @@ describe('ConfigureResponseEvent', () => {
         },
     };
 
-    it('Remove header', async () => {
-        const configureResponseEvent = new ConfigureResponseEvent(ruleMock, Object.assign(contextMock));
+    let configureResponseEvent = null;
+    let clonedContextMock      = null;
 
+    beforeEach(() => {
+        clonedContextMock = Object.assign({}, contextMock);
+
+        const eventFactory = new RequestPipelineRequestHookEventFactory(clonedContextMock);
+
+        configureResponseEvent = eventFactory.createConfigureResponseEvent(ruleMock);
+    });
+
+    it('Remove header', async () => {
         await configureResponseEvent.removeHeader('My-Header');
 
-        expect(contextMock.destRes.headers).to.not.have.property('my-header');
+        expect(clonedContextMock.destRes.headers).to.not.have.property('my-header');
     });
 
     it('Set header', async () => {
-        const configureResponseEvent = new ConfigureResponseEvent(ruleMock, Object.assign(contextMock));
-
         await configureResponseEvent.setHeader('another-header', 'another-value');
 
-        expect(contextMock.destRes.headers)
+        expect(clonedContextMock.destRes.headers)
             .to.have.property('another-header')
             .that.equals('another-value');
     });

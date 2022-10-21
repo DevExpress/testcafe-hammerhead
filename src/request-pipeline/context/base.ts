@@ -1,16 +1,16 @@
 import RequestFilterRule from '../request-hooks/request-filter-rule';
 import RequestHookEventProvider from '../request-hooks/events/event-provider';
 import BaseRequestHookEventFactory from '../request-hooks/events/factory/base';
-import RequestEvent from '../../session/events/request-event';
+import RequestEvent from '../request-hooks/events/request-event';
 import RequestOptions from '../request-options';
 import RequestEventNames from '../request-hooks/events/names';
 import ResponseMock from '../request-hooks/response-mock';
 import IncomingMessageLike from '../incoming-message-like';
 import getMockResponse from '../request-hooks/response-mock/get-response';
 import { PreparedResponseInfo } from '../request-hooks/events/info';
-import ResponseEvent from '../../session/events/response-event';
+import ResponseEvent from '../request-hooks/events/response-event';
 import { OnResponseEventData } from '../../typings/context';
-import ConfigureResponseEventOptions from '../../session/events/configure-response-event-options';
+import ConfigureResponseEventOptions from '../request-hooks/events/configure-response-event-options';
 
 
 export default abstract class BaseRequestPipelineContext {
@@ -25,7 +25,7 @@ export default abstract class BaseRequestPipelineContext {
         this.requestId          = requestId;
     }
 
-    public async forEachRequestFilterRule (fn: (rule: RequestFilterRule) => Promise<void>): Promise<void> {
+    private async _forEachRequestFilterRule (fn: (rule: RequestFilterRule) => Promise<void>): Promise<void> {
         await Promise.all(this.requestFilterRules.map(fn));
     }
 
@@ -49,7 +49,7 @@ export default abstract class BaseRequestPipelineContext {
 
         this.requestFilterRules = await eventProvider.getRequestFilterRules(requestInfo);
 
-        await this.forEachRequestFilterRule(async rule => {
+        await this._forEachRequestFilterRule(async rule => {
             const requestEvent = new RequestEvent({
                 requestFilterRule: rule,
                 _requestInfo:      requestInfo,

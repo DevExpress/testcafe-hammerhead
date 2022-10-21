@@ -6,7 +6,7 @@ import { respondOnWebSocket } from './websocket';
 import { noop } from 'lodash';
 import { process as processResource } from '../processing/resources';
 import { connectionResetGuard } from './connection-reset-guard';
-import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
+import ConfigureResponseEventOptions from './request-hooks/events/configure-response-event-options';
 
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 

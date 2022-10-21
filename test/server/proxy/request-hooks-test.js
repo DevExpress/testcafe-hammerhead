@@ -22,7 +22,7 @@ const {
     createDestinationServer,
 } = require('../common/utils');
 
-const ConfigureResponseEventOptions = require('../../../lib/session/events/configure-response-event-options');
+const ConfigureResponseEventOptions = require('../../../lib/request-pipeline/request-hooks/events/configure-response-event-options');
 const RequestEventNames             = require('../../../lib/request-pipeline/request-hooks/events/names');
 
 const Credentials = urlUtils.Credentials;

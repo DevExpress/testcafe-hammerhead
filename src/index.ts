@@ -4,7 +4,7 @@ import ResponseMock from './request-pipeline/request-hooks/response-mock';
 import RequestFilterRule from './request-pipeline/request-hooks/request-filter-rule';
 import UploadStorage from './upload/storage';
 import { processScript, isScriptProcessed } from './processing/script';
-import ConfigureResponseEventOptions from './session/events/configure-response-event-options';
+import ConfigureResponseEventOptions from './request-pipeline/request-hooks/events/configure-response-event-options';
 import StateSnapshot from './session/state-snapshot';
 import {
     parseProxyUrl,
@@ -14,9 +14,9 @@ import {
 } from './utils/url';
 import generateUniqueId from './utils/generate-unique-id';
 import * as responseMockSetBodyMethod from './request-pipeline/request-hooks/response-mock/set-body-method';
-import RequestEvent from './session/events/request-event';
-import ResponseEvent from './session/events/response-event';
-import ConfigureResponseEvent from './session/events/configure-response-event';
+import RequestEvent from './request-pipeline/request-hooks/events/request-event';
+import ResponseEvent from './request-pipeline/request-hooks/events/response-event';
+import ConfigureResponseEvent from './request-pipeline/request-hooks/events/configure-response-event';
 import DestinationRequest from './request-pipeline/destination-request';
 import RequestOptions from './request-pipeline/request-options';
 import promisifyStream from './utils/promisify-stream';

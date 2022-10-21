@@ -1,9 +1,9 @@
-import RequestFilterRule from '../../request-pipeline/request-hooks/request-filter-rule';
-import ResponseMock from '../../request-pipeline/request-hooks/response-mock';
-import { RequestInfo } from '../../request-pipeline/request-hooks/events/info';
-import generateUniqueId from '../../utils/generate-unique-id';
-import RequestOptions from '../../request-pipeline/request-options';
-import { RequestInfoInit } from '../../request-pipeline/request-hooks/typings';
+import RequestFilterRule from '../request-filter-rule';
+import ResponseMock from '../response-mock';
+import { RequestInfo } from './info';
+import generateUniqueId from '../../../utils/generate-unique-id';
+import RequestOptions from '../../request-options';
+import { RequestInfoInit } from '../typings';
 
 interface SerializedRequestEvent {
     requestFilterRule: RequestFilterRule;

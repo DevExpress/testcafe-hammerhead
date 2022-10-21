@@ -2,7 +2,7 @@ import BaseRequestHookEventFactory from './base';
 import { RequestInfo, ResponseInfo } from '../info';
 import RequestPipelineContext from '../../../context';
 import RequestOptions from '../../../request-options';
-import ConfigureResponseEvent from '../../../../session/events/configure-response-event';
+import ConfigureResponseEvent from '../configure-response-event';
 import RequestFilterRule from '../../request-filter-rule';
 
 
@@ -24,7 +24,14 @@ export default class RequestPipelineRequestHookEventFactory extends BaseRequestH
     }
 
     public createConfigureResponseEvent (rule: RequestFilterRule): ConfigureResponseEvent {
-        return new ConfigureResponseEvent(rule, this._ctx);
+        return new ConfigureResponseEvent(rule, {
+            setHeader: (name, value) => {
+                this._ctx.destRes.headers[name.toLowerCase()] = value;
+            },
+            removeHeader: name => {
+                delete this._ctx.destRes.headers[name.toLowerCase()];
+            },
+        });
     }
 
     public createResponseInfo (): ResponseInfo {
