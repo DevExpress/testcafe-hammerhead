@@ -217,6 +217,11 @@ declare module 'testcafe-hammerhead' {
         opts: ConfigureResponseEventOptions;
     }
 
+    export interface ModifyResponseFunctions {
+        setHeader: (name: string, value: string) => void;
+        removeHeader: (name: string) => void;
+    }
+
     /** Base class for emitting request hook events **/
     export class RequestHookEventProvider {
         /** Adds request event listeners **/
@@ -380,7 +385,7 @@ declare module 'testcafe-hammerhead' {
         requestFilterRule: RequestFilterRule;
 
         /** Creates an instance of ConfigureResponseEvent **/
-        constructor (requestFilterRule: RequestFilterRule, requestContext: any, opts?: ConfigureResponseEventOptions);
+        constructor (requestFilterRule: RequestFilterRule, modifyResponseFunctions: ModifyResponseFunctions | null, opts?: ConfigureResponseEventOptions);
 
         /** Set header of the result response **/
         setHeader(name: string, value: string): Promise<void>;
@@ -417,6 +422,9 @@ declare module 'testcafe-hammerhead' {
 
         /** The body of the query request **/
         body: Buffer;
+
+        /** Determines whether the request is xhr or fetch request **/
+        isAjax: boolean;
 
         static getUserAgent(headers: any): string;
     }

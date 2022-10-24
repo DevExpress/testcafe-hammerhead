@@ -1,5 +1,5 @@
 import RequestFilterRule from '../request-pipeline/request-hooks/request-filter-rule';
-import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
+import ConfigureResponseEventOptions from '../request-pipeline/request-hooks/events/configure-response-event-options';
 import CachePolicy from 'http-cache-semantics';
 import IncomingMessageLike from '../request-pipeline/incoming-message-like';
 

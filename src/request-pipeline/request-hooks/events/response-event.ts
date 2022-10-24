@@ -1,6 +1,6 @@
-import RequestFilterRule from '../../request-pipeline/request-hooks/request-filter-rule';
-import { PreparedResponseInfo } from '../../request-pipeline/request-hooks/events/info';
-import generateUniqueId from '../../utils/generate-unique-id';
+import RequestFilterRule from '../request-filter-rule';
+import { PreparedResponseInfo } from './info';
+import generateUniqueId from '../../../utils/generate-unique-id';
 import { OutgoingHttpHeaders } from 'http';
 
 interface SerializedResponseEvent {

@@ -9,9 +9,9 @@ import { RequestInfo } from './info';
 import requestIsMatchRule from '../request-is-match-rule';
 import ResponseMock from '../response-mock';
 import RequestEventNames from './names';
-import RequestEvent from '../../../session/events/request-event';
-import ResponseEvent from '../../../session/events/response-event';
-import ConfigureResponseEvent from '../../../session/events/configure-response-event';
+import RequestEvent from './request-event';
+import ResponseEvent from './response-event';
+import ConfigureResponseEvent from './configure-response-event';
 
 
 export default class RequestHookEventProvider {
@@ -91,7 +91,7 @@ export default class RequestHookEventProvider {
             return targetEvent.setHeader(name, value);
         }));
 
-        await Promise.all(eventData.removedHeaders.map( header => {
+        await Promise.all(eventData.removedHeaders.map(header => {
             return targetEvent.removeHeader(header);
         }));
     }

@@ -24,7 +24,7 @@ import UploadStorage from '../upload/storage';
 import COMMAND from './command';
 import generateUniqueId from '../utils/generate-unique-id';
 import SERVICE_ROUTES from '../proxy/service-routes';
-import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
+import ConfigureResponseEventOptions from '../request-pipeline/request-hooks/events/configure-response-event-options';
 import { formatSyncCookie } from '../utils/cookie';
 import { SCRIPTS } from './injectables';
 import { ConfigureResponseEventData } from '../request-pipeline/request-hooks/typings';

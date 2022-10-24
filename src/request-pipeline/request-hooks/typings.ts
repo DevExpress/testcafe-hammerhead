@@ -1,6 +1,6 @@
 import RequestFilterRule from '../request-hooks/request-filter-rule';
 import RequestEventNames from './events/names';
-import ConfigureResponseEventOptions from '../../session/events/configure-response-event-options';
+import ConfigureResponseEventOptions from './events/configure-response-event-options';
 import ResponseMock from './response-mock';
 import { RequestInfo } from './events/info';
 import RequestOptions from '../request-options';
