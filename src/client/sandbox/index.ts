@@ -143,7 +143,7 @@ export default class Sandbox extends SandboxBase {
         if (isIE)
             this.nativeMethods.refreshIfNecessary(document, window);
 
-        this._initUrlResolver(document);
+        urlResolver.init(document);
 
         this.event.reattach(window);
         this.shadowUI.attach(window);
@@ -159,7 +159,7 @@ export default class Sandbox extends SandboxBase {
 
         nativeMethods.objectDefineProperty(window, INTERNAL_PROPS.sandboxIsReattached, { value: true, configurable: false });
 
-        this._initUrlResolver(this.document);
+        urlResolver.init(this.document);
 
         // NOTE: Eval Hammerhead code script.
         this.iframe.on(this.iframe.EVAL_HAMMERHEAD_SCRIPT_EVENT, e => {
@@ -206,11 +206,6 @@ export default class Sandbox extends SandboxBase {
             delete childNode[INTERNAL_PROPS.processedContext];
             removeListeningElement(childNode);
         }
-    }
-
-    private _initUrlResolver (document: Document) {
-        if (!this.proxyless)
-            urlResolver.init(document);
     }
 
     dispose (): void {
