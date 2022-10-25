@@ -74,6 +74,9 @@ export default {
     },
 
     updateBase (url: string, doc: Document) {
+        if (this.proxyless)
+            return;
+
         const resolverDocument = this._getResolver(doc);
         const baseElement      = nativeMethods.elementGetElementsByTagName.call(resolverDocument.head, 'base')[0];
 
@@ -112,5 +115,13 @@ export default {
 
     dispose (doc) {
         doc[DOCUMENT_URL_RESOLVER] = null;
+    },
+
+    get proxyless () {
+        return this._proxyless;
+    },
+
+    set proxyless (value: boolean) {
+        this._proxyless = value;
     },
 };
