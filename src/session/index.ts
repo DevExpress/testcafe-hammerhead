@@ -171,6 +171,8 @@ export default abstract class Session extends EventEmitter {
 
             windowId:  windowId || '',
             proxyless: this.proxy?.options.proxyless || false,
+
+            disableCrossDomain: this.isCrossDomainDisabled() || false,
         });
     }
 

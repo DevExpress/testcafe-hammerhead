@@ -32,7 +32,7 @@ export function sameOriginCheck (location: string, checkedUrl: string | URL): bo
     if (checkedUrl)
         checkedUrl = resolveUrl(checkedUrl);
 
-    return sharedUrlUtils.sameOriginCheck(location, checkedUrl);
+    return settings.get().disableCrossDomain || sharedUrlUtils.sameOriginCheck(location, checkedUrl);
 }
 
 export function resolveUrl (url: string | URL, doc?: Document): string {

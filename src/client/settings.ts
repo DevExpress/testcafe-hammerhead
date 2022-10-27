@@ -18,6 +18,7 @@ class Settings {
             isRecordMode:             false,
             windowId:                 '',
             proxyless:                false,
+            disableCrossDomain:       false,
         };
     }
 

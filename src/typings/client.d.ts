@@ -20,6 +20,7 @@ export interface HammerheadInitSettings {
     isRecordMode: boolean;
     windowId: string;
     proxyless: boolean;
+    disableCrossDomain: boolean;
 }
 
 export interface ElementSandboxBeforeFormSubmitEvent {
