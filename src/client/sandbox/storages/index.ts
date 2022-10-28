@@ -55,11 +55,12 @@ class StorageSandboxProxyStrategy implements StorageSandboxStrategy {
     private _localStorageChangeHandler: (e: Omit<StorageEventInit, 'storageArea'>) => void;
     private _sessionStorageChangeHandler: (e: Omit<StorageEventInit, 'storageArea'>) => void;
 
-    constructor ({ window, sandbox, nativeMeths, unloadSandbox }: any) {
+    constructor ({ window, sandbox, nativeMeths, unloadSandbox, listeners }: any) {
         this._window = window;
         this._sandbox = sandbox;
         this._nativeMethods = nativeMeths;
         this._unloadSandbox = unloadSandbox;
+        this._listeners = listeners;
     }
 
     get localStorageProxy () {
@@ -407,6 +408,7 @@ export default class StorageSandbox extends SandboxBase {
             sandbox:        this,
             unloadSandbox:  this._unloadSandbox,
             eventSimulator: this._eventSimulator,
+            listeners:      this._listeners,
         });
 
         this._storageStrategy.init();
