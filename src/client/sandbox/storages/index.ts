@@ -330,8 +330,8 @@ class StorageSandboxProxyStrategy implements StorageSandboxStrategy {
 class StorageSandboxProxylessStrategy implements StorageSandboxStrategy {
     backup (): StoragesBackup {
         return {
-            localStorage:   '',
-            sessionStorage: '',
+            localStorage:   JSON.stringify([Object.keys(localStorage), Object.values(localStorage)]),
+            sessionStorage: JSON.stringify([Object.keys(sessionStorage), Object.values(sessionStorage)]),
         };
     }
 
