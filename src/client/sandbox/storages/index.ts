@@ -29,6 +29,15 @@ const API_KEY_PREFIX = 'hammerhead|api-key-prefix|';
 const STORAGE_PROPS  = nativeMethods.arrayConcat.call(nativeMethods.objectKeys(Storage.prototype),
     StorageWrapper.INTERNAL_METHODS);
 
+interface StorageSandboxFactoryArguments {
+    window: Window & typeof globalThis | null;
+    nativeMeths: typeof nativeMethods;
+    sandbox: SandboxBase,
+    unloadSandbox: UnloadSandbox,
+    eventSimulator: EventSimulator,
+    listeners: Listeners,
+}
+
 interface StorageSandboxStrategy {
     localStorageProxy: StorageProxy | null;
     sessionStorageProxy: StorageProxy | null;
@@ -39,7 +48,6 @@ interface StorageSandboxStrategy {
     dispose: () => void;
     init: () => void;
 }
-
 
 class StorageSandboxProxyStrategy implements StorageSandboxStrategy {
     private _window: Window & typeof globalThis | null = null;
@@ -55,12 +63,13 @@ class StorageSandboxProxyStrategy implements StorageSandboxStrategy {
     private _localStorageChangeHandler: (e: Omit<StorageEventInit, 'storageArea'>) => void;
     private _sessionStorageChangeHandler: (e: Omit<StorageEventInit, 'storageArea'>) => void;
 
-    constructor ({ window, sandbox, nativeMeths, unloadSandbox, listeners }: any) {
+    constructor ({ window, sandbox, nativeMeths, unloadSandbox, listeners, eventSimulator }: StorageSandboxFactoryArguments) {
         this._window = window;
         this._sandbox = sandbox;
         this._nativeMethods = nativeMeths;
         this._unloadSandbox = unloadSandbox;
         this._listeners = listeners;
+        this._eventSimulator = eventSimulator;
     }
 
     get localStorageProxy () {
@@ -369,7 +378,7 @@ class StorageSandboxProxylessStrategy implements StorageSandboxStrategy {
 }
 
 class StoragesSandboxStrategyFactory {
-    static create (proxyless: boolean, options: unknown): StorageSandboxStrategy {
+    static create (proxyless: boolean, options: StorageSandboxFactoryArguments): StorageSandboxStrategy {
         return proxyless ? new StorageSandboxProxylessStrategy() : new StorageSandboxProxyStrategy(options);
     }
 }
