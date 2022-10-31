@@ -268,20 +268,23 @@ test('Element.prototype.insertAdjacentElement', function () {
 });
 
 test('Element.prototype.insertAdjacentText', function () {
-    var root   = shadowUI.getRoot();
     var script = document.createElement('script');
+    var div    = document.createElement('div');
 
     script.insertAdjacentText('afterbegin', 'window["insertAdjacentText test data"] = location.host');
     document.body.appendChild(script);
+    document.body.appendChild(div);
 
     strictEqual(window['insertAdjacentText test data'], 'example.com');
 
-    document.body.insertAdjacentText('beforeend', 'text before root');
+    div.insertAdjacentText('beforeend', 'text before root');
+    div.insertAdjacentText('beforeend', 1);
+    div.insertAdjacentText('beforeend', {});
 
-    strictEqual(nativeMethods.nodePrevSiblingGetter.call(root).data, 'text before root');
+    strictEqual(div.innerText, 'text before root1[object Object]');
 
     document.body.removeChild(script);
-    document.body.removeChild(nativeMethods.nodePrevSiblingGetter.call(root));
+    document.body.removeChild(div);
 });
 
 if (nativeMethods.elementReplaceWith) {

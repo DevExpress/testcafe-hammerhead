@@ -499,6 +499,15 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
+    private static _ensureStringArguments (...args): string[] {
+        const result = [];
+
+        for (let i = 0; i < args.length; i++)
+            result.push(String(args[i]));
+
+        return result;
+    }
+
     private _addNodeCore<K, A extends (string | Node)[]> (
         parent: Element | Node & ParentNode, context: Element | Node & ParentNode,
         newNodesRange: [number, number], args: A, nativeFn: (...args: A) => K, checkBody = true, stringifyNode = false): K {// eslint-disable-line no-shadow
@@ -638,7 +647,9 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             insertAdjacentText (this: Element, ...args: Parameters<Element['insertAdjacentText']>) {
-                return sandbox._insertAdjacentTextOrElement(this, args, nativeMethods.insertAdjacentText);
+                const [ where, data ] = ElementSandbox._ensureStringArguments(...args);
+
+                return sandbox._insertAdjacentTextOrElement(this, [ where, data ], nativeMethods.insertAdjacentText);
             },
 
             formSubmit () {
