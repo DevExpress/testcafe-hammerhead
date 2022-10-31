@@ -89,6 +89,10 @@ export class StorageSandboxProxyStrategy implements StorageSandboxStrategy {
         this._isLocked = true;
     }
 
+    unlock (): void {
+        this._isLocked = false;
+    }
+
     restore ({ localStorage, sessionStorage }: StoragesBackup) {
         this._localStorageProxy.unwrapProxy().restore(localStorage);
         this._sessionStorageProxy.unwrapProxy().restore(sessionStorage);
@@ -331,6 +335,10 @@ export class StorageSandboxProxylessStrategy implements StorageSandboxStrategy {
     }
 
     lock (): void {
+        return void 0;
+    }
+
+    unlock (): void {
         return void 0;
     }
 

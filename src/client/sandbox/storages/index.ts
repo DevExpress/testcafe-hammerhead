@@ -27,6 +27,10 @@ export default class StorageSandbox extends SandboxBase {
         this._storageStrategy.lock();
     }
 
+    unlock () {
+        this._storageStrategy.unlock();
+    }
+
     backup (): StoragesBackup {
         return this._storageStrategy.backup();
     }

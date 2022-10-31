@@ -24,6 +24,7 @@ export interface StorageSandboxStrategy {
     sessionStorageProxy: StorageProxy | null;
     clear: () => void;
     lock: () => void;
+    unlock: () => void;
     backup: () => StoragesBackup;
     restore: (storagesBackup: StoragesBackup) => void;
     dispose: () => void;
