@@ -269,6 +269,9 @@ export default class Proxy extends Router {
         if (this.options.disableHttp2)
             session.disableHttp2();
 
+        if (this.options.disableCrossDomain)
+            session.disableCrossDomain();
+
         url = urlUtils.prepareUrl(url);
 
         if (this.options.proxyless)

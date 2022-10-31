@@ -72,8 +72,8 @@ function resolveAndGetProxyUrl (url: string, ctx: RequestPipelineContext): strin
         url = resolveUrl(ctx.dest.url, url);
 
     if (ctx.isIframe && ctx.dest.referer) {
-        const isCrossDomainLocationBeforeRedirect = !urlUtils.sameOriginCheck(ctx.dest.referer, ctx.dest.url);
-        const isCrossDomainLocationAfterRedirect  = !urlUtils.sameOriginCheck(ctx.dest.referer, url);
+        const isCrossDomainLocationBeforeRedirect = !ctx.session.isCrossDomainDisabled() && !urlUtils.sameOriginCheck(ctx.dest.referer, ctx.dest.url);
+        const isCrossDomainLocationAfterRedirect  = !ctx.session.isCrossDomainDisabled() && !urlUtils.sameOriginCheck(ctx.dest.referer, url);
 
         isCrossDomain = isCrossDomainLocationBeforeRedirect !== isCrossDomainLocationAfterRedirect;
     }
@@ -169,7 +169,7 @@ export const responseTransforms = {
 
         src = src.replace('ALLOW-FROM', '').trim();
 
-        const isCrossDomain = ctx.isIframe && !urlUtils.sameOriginCheck(ctx.dest.url, src);
+        const isCrossDomain = ctx.isIframe && !ctx.session.isCrossDomainDisabled() && !urlUtils.sameOriginCheck(ctx.dest.url, src);
         const proxiedUrl    = ctx.toProxyUrl(src, isCrossDomain, ctx.contentInfo.contentTypeUrlToken);
 
         return 'ALLOW-FROM ' + proxiedUrl;

@@ -1,6 +1,7 @@
 import {
     get as getDestLocation,
     getParsed as getParsedDestLocation,
+    sameOriginCheck,
 } from '../../../utils/destination-location';
 import {
     getProxyUrl,
@@ -13,7 +14,6 @@ import {
 import {
     getDomain,
     getResourceTypeString,
-    sameOriginCheck,
     ensureTrailingSlash,
     prepareUrl,
     SPECIAL_BLANK_PAGE,

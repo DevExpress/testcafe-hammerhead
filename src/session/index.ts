@@ -85,6 +85,7 @@ export default abstract class Session extends EventEmitter {
     private _recordMode = false;
     options: SessionOptions;
     private _disableHttp2 = false;
+    private _disableCrossDomain = false;
     public requestHookEventProvider: RequestHookEventProvider;
 
     protected constructor (uploadRoots: string[], options: Partial<SessionOptions>) {
@@ -170,6 +171,8 @@ export default abstract class Session extends EventEmitter {
 
             windowId:  windowId || '',
             proxyless: this.proxy?.options.proxyless || false,
+
+            disableCrossDomain: this.isCrossDomainDisabled() || false,
         });
     }
 
@@ -311,6 +314,14 @@ export default abstract class Session extends EventEmitter {
 
     isHttp2Disabled () {
         return this._disableHttp2;
+    }
+
+    disableCrossDomain () {
+        this._disableCrossDomain = true;
+    }
+
+    isCrossDomainDisabled () {
+        return this._disableCrossDomain;
     }
 
     abstract getIframePayloadScript (iframeWithoutSrc: boolean): Promise<string>;

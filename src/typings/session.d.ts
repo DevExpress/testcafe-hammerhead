@@ -58,5 +58,6 @@ export interface RequestOptionsInit {
     requestTimeout?: RequestTimeout;
     isWebSocket?: boolean;
     disableHttp2?: boolean;
+    disableCrossDomain?: boolean;
 }
 
