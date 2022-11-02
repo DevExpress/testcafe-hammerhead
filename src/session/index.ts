@@ -29,6 +29,7 @@ import { formatSyncCookie } from '../utils/cookie';
 import { SCRIPTS } from './injectables';
 import { ConfigureResponseEventData } from '../request-pipeline/request-hooks/typings';
 import { EventEmitter } from 'events';
+import getStorageKey from '../utils/get-storage-key';
 
 
 const TASK_TEMPLATE = read('../client/task.js.mustache');
@@ -110,7 +111,7 @@ export default abstract class Session extends EventEmitter {
     }
 
     // State
-    getStateSnapshot (): StateSnapshot {
+    getStateSnapshot (): StateSnapshot | Promise<StateSnapshot> {
         return new StateSnapshot(this.cookies.serializeJar(), null);
     }
 
@@ -302,6 +303,10 @@ export default abstract class Session extends EventEmitter {
         this._updateConfigureResponseEventData(eventId, eventData => {
             eventData.removedHeaders.push(headerName);
         });
+    }
+
+    public getStorageKey (host: string) {
+        return getStorageKey(this.id, host);
     }
 
     setRecordMode (): void {

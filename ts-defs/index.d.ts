@@ -36,6 +36,7 @@ interface SessionOptions {
     allowMultipleWindows: boolean;
     windowId: string;
     requestTimeout: RequestTimeout;
+    proxyless: boolean;
 }
 
 interface RequestEventListenerError {
@@ -269,7 +270,7 @@ declare module 'testcafe-hammerhead' {
         useStateSnapshot (snapshot: StateSnapshot): void;
 
         /** Get the cookie, sessionStorage and localStorage snapshot of current session **/
-        getStateSnapshot (): StateSnapshot;
+        getStateSnapshot (): Promise<StateSnapshot> | StateSnapshot;
 
         /** Set RequestMock on the specified ResponseEvent event **/
         setMock (responseEventId: string, mock: ResponseMock): Promise<void>;
@@ -285,6 +286,12 @@ declare module 'testcafe-hammerhead' {
 
         /** Check disabling http2 **/
         isHttp2Disabled (): boolean;
+
+        /** Return storage key according to session id and the host argument **/
+        getStorageKey (host: string): string;
+
+        /** return script that runs hammerhead **/
+        getTaskScript (options: TaskScriptOpts): Promise<string>
     }
 
     /** The Proxy class is used to create a web-proxy **/
@@ -351,6 +358,8 @@ declare module 'testcafe-hammerhead' {
 
     /** The StateSnapshot class is used to create page state snapshot **/
     export class StateSnapshot {
+        constructor (cookies: string | null, storages: StoragesSnapshot | null);
+
         /** Creates a empty page state snapshot **/
         static empty (): StateSnapshot;
 
@@ -551,6 +560,16 @@ declare module 'testcafe-hammerhead' {
         /** Fatal error event **/
         on(event: 'fatalError', listener: (err: string) => void): this;
     }
+
+    export interface TaskScriptOpts {
+        serverInfo: ServerInfo;
+        referer: string | null;
+        cookieUrl: string;
+        isIframe: boolean;
+        withPayload: boolean;
+        windowId?: string;
+    }
+
 
     /** Generates an URL friendly string identifier **/
     export function generateUniqueId(length?: number): string;
