@@ -591,6 +591,9 @@ declare module 'testcafe-hammerhead' {
     /** Calculates the asset path depending on the run mode (production or development) **/
     function getAssetPath(originPath: string, developmentMode: boolean): string;
 
+    /** Return whether the HTTP status code is a redirect status code **/
+    function isRedirectStatusCode (code: number): boolean;
+
     /**  **/
     export class IncomingMessageLike {
         /** The headers of the instance **/

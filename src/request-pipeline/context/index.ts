@@ -35,6 +35,7 @@ import RequestHookEventProvider from '../request-hooks/events/event-provider';
 import { PassThrough } from 'stream';
 import promisifyStream from '../../utils/promisify-stream';
 import { toReadableStream } from '../../utils/buffer';
+import isRedirectStatusCode from '../../utils/is-redirect-status-code';
 
 export interface DestInfo {
     url: string;
@@ -93,7 +94,6 @@ interface Socket extends net.Socket {
 
 export type DestinationResponse = IncomingMessage | FileStream | IncomingMessageLike | Http2Response;
 
-const REDIRECT_STATUS_CODES                  = [301, 302, 303, 307, 308];
 const CANNOT_BE_USED_WITH_WEB_SOCKET_ERR_MSG = 'The function cannot be used with a WebSocket request.';
 
 export default class RequestPipelineContext extends BaseRequestPipelineContext {
@@ -302,7 +302,7 @@ export default class RequestPipelineContext extends BaseRequestPipelineContext {
 
         const isRedirect              = this.destRes.headers[BUILTIN_HEADERS.location] &&
                                         this.destRes.statusCode &&
-                                        REDIRECT_STATUS_CODES.includes(this.destRes.statusCode) ||
+                                        isRedirectStatusCode(this.destRes.statusCode) ||
                                         false;
         const requireAssetsProcessing = (isCSS || isScript || isManifest) && this.destRes.statusCode !== 204;
         const isNotModified           = this.req.method === 'GET' && this.destRes.statusCode === 304 &&
