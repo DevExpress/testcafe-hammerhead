@@ -28,7 +28,7 @@ import RequestHookEventProvider from './request-pipeline/request-hooks/events/ev
 import { RequestInfo, ResponseInfo } from './request-pipeline/request-hooks/events/info';
 import BaseRequestHookEventFactory from './request-pipeline/request-hooks/events/factory/base';
 import BaseRequestPipelineContext from './request-pipeline/context/base';
-
+import isRedirectStatusCode from './utils/is-redirect-status-code';
 
 export default {
     Proxy,
@@ -61,4 +61,5 @@ export default {
     acceptCrossOrigin,
     getAssetPath,
     ResponseInfo,
+    isRedirectStatusCode,
 };
