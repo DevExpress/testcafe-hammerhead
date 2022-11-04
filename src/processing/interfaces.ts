@@ -5,7 +5,13 @@ export interface MetaInfo {
 }
 
 export interface PageInjectableResources {
+    storages: string | null;
     stylesheets: string[];
     scripts: string[];
     embeddedScripts: string[];
+}
+
+export interface PageRestoreStoragesOptions {
+    host: string;
+    sessionId: string;
 }
