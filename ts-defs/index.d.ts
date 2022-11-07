@@ -592,7 +592,7 @@ declare module 'testcafe-hammerhead' {
     function getAssetPath(originPath: string, developmentMode: boolean): string;
 
     /** Return whether the HTTP status code is a redirect status code **/
-    function isRedirectStatusCode (code: number): boolean;
+    function isRedirectStatusCode (code?: number): boolean;
 
     /**  **/
     export class IncomingMessageLike {
