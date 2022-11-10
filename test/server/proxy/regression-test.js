@@ -1609,4 +1609,31 @@ describe('Regression', () => {
 
         expect(ctx.dest.referer).eql(sessionUrl);
     });
+
+    it('Should not alter referer after the iframe task (GH-7376)', async () => {
+        session.getPayloadScript       = async () => 'PayloadScript';
+        session.getIframePayloadScript = async () => 'IframePayloadScript';
+
+        const expectedReferer = getProxyUrl('http://example.com/');
+
+        await request({
+            headers: {
+                referer: proxy.openSession('http://example.com', session),
+            },
+            url:                     'http://localhost:1836/task.js',
+            resolveWithFullResponse: true,
+        });
+
+        expect(session.options.referer).eql(expectedReferer);
+
+        await request({
+            headers: {
+                referer: proxy.openSession('http://iframe.example.com', session),
+            },
+            url:                     'http://localhost:1836/iframe-task.js',
+            resolveWithFullResponse: true,
+        });
+
+        expect(session.options.referer).eql(expectedReferer);
+    });
 });
