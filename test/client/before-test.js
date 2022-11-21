@@ -82,7 +82,7 @@
         forceProxySrcForImage: false,
         transportWorkerUrl:    '/transport-worker.js',
         workerHammerheadUrl:   '/worker-hammerhead.js',
-        serviceMsgUrl:         '/service-msg'
+        serviceMsgUrl:         '/service-msg',
     });
 
     window.processDomMeth = window[INTERNAL_PROPS.processDomMethodName];
