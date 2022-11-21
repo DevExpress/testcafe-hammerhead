@@ -36,6 +36,7 @@ interface SessionOptions {
     allowMultipleWindows: boolean;
     windowId: string;
     requestTimeout: RequestTimeout;
+    proxyless: boolean;
 }
 
 interface RequestEventListenerError {
@@ -191,6 +192,11 @@ declare module 'testcafe-hammerhead' {
         embeddedScripts: string[];
     }
 
+    export interface PageRestoreStoragesOptions {
+        host: string;
+        sessionId: string;
+    }
+
     export interface ServerInfo {
         hostname: string;
         port: number;
@@ -269,7 +275,10 @@ declare module 'testcafe-hammerhead' {
         useStateSnapshot (snapshot: StateSnapshot): void;
 
         /** Get the cookie, sessionStorage and localStorage snapshot of current session **/
-        getStateSnapshot (): StateSnapshot;
+        getStateSnapshot (): Promise<StateSnapshot> | StateSnapshot;
+
+        /** Generates main hammerhead starting script **/
+        // getTaskScript (options: TaskScriptOpts): Promise<string>;
 
         /** Set RequestMock on the specified ResponseEvent event **/
         setMock (responseEventId: string, mock: ResponseMock): Promise<void>;
@@ -351,6 +360,8 @@ declare module 'testcafe-hammerhead' {
 
     /** The StateSnapshot class is used to create page state snapshot **/
     export class StateSnapshot {
+        constructor (cookies: string | null, storages: StoragesSnapshot | null);
+
         /** Creates a empty page state snapshot **/
         static empty (): StateSnapshot;
 
@@ -580,7 +591,7 @@ declare module 'testcafe-hammerhead' {
     export function sameOriginCheck(location: string, checkedUrl: string): boolean;
 
     /** Inject specified stuff to the page **/
-    export function injectResources (html: string, resources: PageInjectableResources): string;
+    export function injectResources (html: string, resources: PageInjectableResources, options?: PageRestoreStoragesOptions): string;
 
     /** Proxy injectable scripts **/
     export const INJECTABLE_SCRIPTS: string[];

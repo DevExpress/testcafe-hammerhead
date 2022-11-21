@@ -13,7 +13,12 @@ import Charset from '../encoding/charset';
 import BaseDomAdapter from '../dom/base-dom-adapter';
 import SERVICE_ROUTES from '../../proxy/service-routes';
 import { stringify as stringifyJSON } from '../../utils/json';
-import { MetaInfo, PageInjectableResources } from '../interfaces';
+
+import {
+    MetaInfo,
+    PageInjectableResources,
+    PageRestoreStoragesOptions,
+} from '../interfaces';
 
 const PARSED_BODY_CREATED_EVENT_SCRIPT                = parse5.parseFragment(SELF_REMOVING_SCRIPTS.onBodyCreated).childNodes![0];
 const PARSED_ORIGIN_FIRST_TITLE_ELEMENT_LOADED_SCRIPT = parse5.parseFragment(SELF_REMOVING_SCRIPTS.onOriginFirstTitleLoaded).childNodes![0];
@@ -67,7 +72,7 @@ class PageProcessor extends ResourceProcessorBase {
         return scriptAsContentElement;
     }
 
-    private _createRestoreStoragesScript (storageKey: string, storages): ASTNode {
+    private static _createRestoreStoragesScript (storageKey: string, storages): ASTNode {
         const parsedDocumentFragment = parse5.parseFragment(util.format(SELF_REMOVING_SCRIPTS.restoreStorages,
             storageKey, stringifyJSON(storages.localStorage),
             storageKey, stringifyJSON(storages.sessionStorage)));
@@ -100,8 +105,19 @@ class PageProcessor extends ResourceProcessorBase {
         return metas;
     }
 
-    private static _addPageResources (head: ASTNode, processingOptions: PageInjectableResources | PageProcessingOptions): ASTNode[] {
+    private static _addPageResources (
+        head: ASTNode,
+        processingOptions: PageInjectableResources | PageProcessingOptions,
+        options? : PageRestoreStoragesOptions): ASTNode[] {
+
         const injectedResources: ASTNode[] = [];
+
+        if ((processingOptions as PageInjectableResources).storages && options) {
+            const storages = (processingOptions as PageInjectableResources).storages;
+            const script = PageProcessor._createRestoreStoragesScript(getStorageKey(options.sessionId, options.host), storages);
+
+            injectedResources.push(script);
+        }
 
         if (processingOptions.stylesheets) {
             processingOptions.stylesheets.forEach(stylesheetUrl => {
@@ -186,7 +202,7 @@ class PageProcessor extends ResourceProcessorBase {
 
     private _addRestoreStoragesScript (ctx: RequestPipelineContext, head: ASTNode): void {
         const storageKey            = getStorageKey(ctx.session.id, ctx.dest.host);
-        const restoreStoragesScript = this._createRestoreStoragesScript(storageKey, ctx.restoringStorages);
+        const restoreStoragesScript = PageProcessor._createRestoreStoragesScript(storageKey, ctx.restoringStorages);
 
         parse5Utils.insertBeforeFirstScript(restoreStoragesScript, head);
     }
@@ -252,13 +268,13 @@ class PageProcessor extends ResourceProcessorBase {
     }
 
     // NOTE: API for new implementation without request pipeline
-    injectResources (html: string, resources: PageInjectableResources): string {
+    injectResources (html: string, resources: PageInjectableResources, options?: PageRestoreStoragesOptions): string {
         const root     = parse5.parse(html);
         const elements = parse5Utils.findElementsByTagNames(root, ['head', 'body']);
         const head     = elements.head[0];
         const body     = elements.body[0];
 
-        PageProcessor._addPageResources(head, resources);
+        PageProcessor._addPageResources(head, resources, options);
         PageProcessor._addBodyCreatedEventScript(body);
 
         return parse5.serialize(root);
