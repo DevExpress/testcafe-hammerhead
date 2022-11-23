@@ -270,7 +270,8 @@ test('getSelectElementSize', function () {
         strictEqual(size, 4);
 
     select.removeAttribute('size');
-    select.setAttribute('multiple', 'multiple');
+    select.setAttribute('multiple', '');
+    size = styleUtils.getSelectElementSize(select);
 
     if (browserUtils.isSafari && featureDetection.hasTouchEvents || browserUtils.isAndroid)
         strictEqual(size, 1);
