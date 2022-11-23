@@ -207,7 +207,7 @@ export function getSelectElementSize (select) {
         return 1;
 
     const sizeAttr     = nativeMethods.getAttribute.call(select, 'size');
-    const multipleAttr = nativeMethods.getAttribute.call(select, 'multiple');
+    const multipleAttr = nativeMethods.hasAttribute.call(select, 'multiple');
     let size           = !sizeAttr ? 1 : parseInt(sizeAttr, 10);
 
     if (multipleAttr && (!sizeAttr || size < 1))
