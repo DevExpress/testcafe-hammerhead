@@ -611,12 +611,13 @@ export default class WindowSandbox extends SandboxBase {
                 if (arguments.length === 0)
                     return new nativeMethods.Blob();
 
-                if (WindowSandbox._isProcessableBlob(array, opts))
+                if (WindowSandbox._isProcessableBlob(array, opts)) {
                     array = [processScript(array.join(''), true, false, convertToProxyUrl, void 0, {
                         sessionId: settings.get().sessionId,
                         windowId:  settings.get().windowId,
                         origin:    destLocation.getOriginHeader(),
                     })];
+                }
 
                 // NOTE: IE11 throws an error when the second parameter of the Blob function is undefined (GH-44)
                 // If the overridden function is called with one parameter, we need to call the original function
@@ -631,12 +632,13 @@ export default class WindowSandbox extends SandboxBase {
                 if (arguments.length === 0)
                     return new nativeMethods.File();
 
-                if (WindowSandbox._isProcessableBlob(array, opts))
+                if (WindowSandbox._isProcessableBlob(array, opts)) {
                     array = [processScript(array.join(''), true, false, convertToProxyUrl, void 0, {
                         sessionId: settings.get().sessionId,
                         windowId:  settings.get().windowId,
                         origin:    destLocation.getOriginHeader(),
                     })];
+                }
 
                 return new nativeMethods.File(array, fileName, opts);
             });

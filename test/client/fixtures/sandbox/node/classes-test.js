@@ -126,7 +126,7 @@ test('window.Blob([data], { type: "" }) should return correct result for `ArrayB
 asyncTest('should process Blob parts in the case of the "Array<string | number | boolean>" array (GH-2115)', function () {
     var parts = ['var test = ', 1, '+', true, ';'];
 
-    var expectedScript = processScript(parts.join(''), true, false, void 0, void 0, { sessionId: "sessionId", origin: "https://example.com" }).replace(/\s/g, '');
+    var expectedScript = processScript(parts.join(''), true, false, void 0, void 0, { sessionId: 'sessionId', origin: 'https://example.com' }).replace(/\s/g, '');
 
     var blob   = new window.Blob(parts, { type: 'texT/javascript' });
     var reader = new FileReader();
@@ -293,7 +293,7 @@ if (isFileConstructable) {
     asyncTest('should process File parts in the case of the "Array<string | number | boolean>" array', function () {
         var parts = ['var test = ', 1, '+', true, ';'];
 
-        var expectedScript = processScript(parts.join(''), true, false, void 0, void 0, { sessionId: "sessionId", origin: "https://example.com" }).replace(/\s/g, '');
+        var expectedScript = processScript(parts.join(''), true, false, void 0, void 0, { sessionId: 'sessionId', origin: 'https://example.com' }).replace(/\s/g, '');
 
         var file   = new window.File(parts, { type: 'texT/javascript' });
         var reader = new FileReader();

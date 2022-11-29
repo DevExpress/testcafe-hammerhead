@@ -432,7 +432,6 @@ if (window.navigator.serviceWorker) {
                                 messageChannel.port2.onmessage = resolve;
                             });
                         });
-                        
                 })
                 .then(function (e) {
                     strictEqual(e.data, 'image requested');

@@ -21,9 +21,8 @@ class WorkerHammerhead {
         const cookieSandboxMock = { syncCookie: noop } as CookieSandbox;
 
         // NOTE: the blob location case
-        if (!parsedLocation) {
+        if (!parsedLocation)
             this._getBlobSettings();
-        }
         else
             WorkerHammerhead._setProxySettings(parsedLocation.sessionId, parsedLocation.windowId);
 
@@ -59,7 +58,7 @@ class WorkerHammerhead {
         });
     }
 
-    private _getBlobSettings () {        
+    private _getBlobSettings () {
         const data = self[INSTRUCTION.getWorkerSettings]();
 
         WorkerHammerhead._setProxySettings(data.sessionId, data.windowId);
