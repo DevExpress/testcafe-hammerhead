@@ -13,8 +13,9 @@ export const SCRIPT_PROCESSING_START_COMMENT      = '/*hammerhead|script|start*/
 export const SCRIPT_PROCESSING_END_COMMENT        = '/*hammerhead|script|end*/';
 export const SCRIPT_PROCESSING_END_HEADER_COMMENT = '/*hammerhead|script|processing-header-end*/';
 
-const STRICT_MODE_PLACEHOLDER = '{strict-placeholder}';
-const SW_SCOPE_HEADER_VALUE   = '{sw-scope-header-value}';
+const STRICT_MODE_PLACEHOLDER     = '{strict-placeholder}';
+const SW_SCOPE_HEADER_VALUE       = '{sw-scope-header-value}';
+const WORKER_SETTINGS_PLACEHOLDER = '{worker-settings';
 
 const HEADER: string = `
     ${SCRIPT_PROCESSING_START_COMMENT}
@@ -53,8 +54,10 @@ const HEADER: string = `
                 ${INSTRUCTION.restArray} = function(a,i){return Array.prototype.slice.call(a, i)},
                 ${INSTRUCTION.restObject} = function(o,p){var k=Object.keys(o),n={};for(var i=0;i<k.length;++i)if(p.indexOf(k[i])<0)n[k[i]]=o[k[i]];return n},
                 ${INSTRUCTION.arrayFrom} = function(r){if(!r)return r;return!Array.isArray(r)&&"function"==typeof r[Symbol.iterator]?Array.from(r):r};
-        if (typeof importScripts !== "undefined" && /\\[native code]/g.test(importScripts.toString()))
+        if (typeof importScripts !== "undefined" && /\\[native code]/g.test(importScripts.toString())) {
+            var ${INSTRUCTION.getWorkerSettings} = function () {return ${WORKER_SETTINGS_PLACEHOLDER}};
             importScripts((location.origin || (location.protocol + "//" + location.host)) + "${SERVICE_ROUTES.workerHammerhead}");
+        }
     }
     ${SCRIPT_PROCESSING_END_HEADER_COMMENT}
 `.replace(/\n(?!$)\s*/g, '');
@@ -70,10 +73,11 @@ export function remove (code: string): string {
         .replace(PROCESSING_END_COMMENT_RE, '');
 }
 
-export function add (code: string, isStrictMode: boolean, swScopeHeaderValue?: string): string {
+export function add (code: string, isStrictMode: boolean, swScopeHeaderValue?: string, workerSettings?: any): string {
     const header = HEADER
         .replace(STRICT_MODE_PLACEHOLDER, isStrictMode ? '"use strict";' : '')
-        .replace(SW_SCOPE_HEADER_VALUE, swScopeHeaderValue ? `var ${INSTRUCTION.swScopeHeaderValue} = ${stringifyJSON(swScopeHeaderValue)};` : '');
+        .replace(SW_SCOPE_HEADER_VALUE, swScopeHeaderValue ? `var ${INSTRUCTION.swScopeHeaderValue} = ${stringifyJSON(swScopeHeaderValue)};` : '')
+        .replace(WORKER_SETTINGS_PLACEHOLDER, workerSettings ? JSON.stringify(workerSettings) : 'null');
 
     return header + code + '\n' + SCRIPT_PROCESSING_END_COMMENT;
 }

@@ -1,0 +1,1 @@
+self.postMessage({ foo: 'bar' });
