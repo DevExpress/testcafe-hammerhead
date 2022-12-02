@@ -26,7 +26,8 @@ class ScriptResourceProcessor extends ResourceProcessorBase {
 
         if (!processedScript) {
             processedScript = processScript(script, true, false, urlReplacer,
-                ctx.destRes.headers[BUILTIN_HEADERS.serviceWorkerAllowed] as string);
+                ctx.destRes.headers[BUILTIN_HEADERS.serviceWorkerAllowed] as string,
+                ctx.proxyless);
             this.jsCache.set(script, processedScript);
         }
         else
