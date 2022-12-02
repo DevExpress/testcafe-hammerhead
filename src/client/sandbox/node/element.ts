@@ -864,7 +864,7 @@ export default class ElementSandbox extends SandboxBase {
             return str;
 
         if (domUtils.isScriptElement(parentNode))
-            return processScript(str, true, false, urlUtils.convertToProxyUrl);
+            return processScript(str, true, false, urlUtils.convertToProxyUrl, void 0, settings.get().proxyless);
 
         if (domUtils.isStyleElement(parentNode))
             return styleProcessor.process(str, urlUtils.getProxyUrl);

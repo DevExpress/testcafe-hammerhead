@@ -235,7 +235,7 @@ export default class Proxy extends Router {
     _onRequest (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo): void {
         // NOTE: Not a service request, execute the proxy pipeline.
         if (!this._route(req, res, serverInfo))
-            runRequestPipeline(req, res, serverInfo, this.openSessions);
+            runRequestPipeline(req, res, serverInfo, this.openSessions, this.options.proxyless);
     }
 
     _onUpgradeRequest (req: http.IncomingMessage, socket: net.Socket, head: Buffer, serverInfo: ServerInfo): void {

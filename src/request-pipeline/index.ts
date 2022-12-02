@@ -7,8 +7,8 @@ import { respond404 } from '../utils/http';
 import logger from '../utils/logger';
 import requestPipelineStages from './stages';
 
-export async function run (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo, openSessions: Map<string, Session>): Promise<void> {
-    const ctx = new RequestPipelineContext(req, res, serverInfo);
+export async function run (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo, openSessions: Map<string, Session>, proxyless: boolean): Promise<void> {
+    const ctx = new RequestPipelineContext(req, res, serverInfo, proxyless);
 
     logger.proxy.onRequest(ctx);
 
