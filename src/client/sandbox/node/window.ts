@@ -83,6 +83,12 @@ import DocumentTitleStorageInitializer from './document/title-storage-initialize
 import { SET_SERVICE_WORKER_SETTINGS } from '../../worker/set-settings-command';
 
 
+type BlobProcessingSettings = {
+    sessionId: string;
+    windowId: string;
+    origin: string;
+};
+
 const INSTRUCTION_VALUES = (() => {
     const values = [];
     const keys   = nativeMethods.objectKeys(INSTRUCTION);
@@ -165,6 +171,14 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         return stack;
+    }
+
+    private static _getBlobProcessingSettings (): BlobProcessingSettings {
+        return {
+            sessionId: settings.get().sessionId,
+            windowId:  settings.get().windowId,
+            origin:    destLocation.getOriginHeader(),
+        };
     }
 
     private static _isProcessableBlobParts (parts: any[]): boolean {
@@ -611,13 +625,8 @@ export default class WindowSandbox extends SandboxBase {
                 if (arguments.length === 0)
                     return new nativeMethods.Blob();
 
-                if (WindowSandbox._isProcessableBlob(array, opts)) {
-                    array = [processScript(array.join(''), true, false, convertToProxyUrl, void 0, {
-                        sessionId: settings.get().sessionId,
-                        windowId:  settings.get().windowId,
-                        origin:    destLocation.getOriginHeader(),
-                    })];
-                }
+                if (WindowSandbox._isProcessableBlob(array, opts))
+                    array = [processScript(array.join(''), true, false, convertToProxyUrl, void 0, WindowSandbox._getBlobProcessingSettings())];
 
                 // NOTE: IE11 throws an error when the second parameter of the Blob function is undefined (GH-44)
                 // If the overridden function is called with one parameter, we need to call the original function
@@ -632,13 +641,8 @@ export default class WindowSandbox extends SandboxBase {
                 if (arguments.length === 0)
                     return new nativeMethods.File();
 
-                if (WindowSandbox._isProcessableBlob(array, opts)) {
-                    array = [processScript(array.join(''), true, false, convertToProxyUrl, void 0, {
-                        sessionId: settings.get().sessionId,
-                        windowId:  settings.get().windowId,
-                        origin:    destLocation.getOriginHeader(),
-                    })];
-                }
+                if (WindowSandbox._isProcessableBlob(array, opts))
+                    array = [processScript(array.join(''), true, false, convertToProxyUrl, void 0, WindowSandbox._getBlobProcessingSettings())];
 
                 return new nativeMethods.File(array, fileName, opts);
             });

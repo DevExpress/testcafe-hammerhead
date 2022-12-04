@@ -15,7 +15,7 @@ export const SCRIPT_PROCESSING_END_HEADER_COMMENT = '/*hammerhead|script|process
 
 const STRICT_MODE_PLACEHOLDER     = '{strict-placeholder}';
 const SW_SCOPE_HEADER_VALUE       = '{sw-scope-header-value}';
-const WORKER_SETTINGS_PLACEHOLDER = '{worker-settings';
+const WORKER_SETTINGS_PLACEHOLDER = '{worker-settings}';
 
 const HEADER: string = `
     ${SCRIPT_PROCESSING_START_COMMENT}
