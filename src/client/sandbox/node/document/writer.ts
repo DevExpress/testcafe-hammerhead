@@ -13,6 +13,7 @@ import { processScript } from '../../../../processing/script';
 import styleProcessor from '../../../../processing/style';
 import { getProxyUrl, convertToProxyUrl } from '../../../utils/url';
 import SELF_REMOVING_SCRIPTS from '../../../../utils/self-removing-scripts';
+import settings from '../../../settings';
 
 const BEGIN_MARKER_TAG_NAME = 'hammerhead_write_marker_begin';
 const END_MARKER_TAG_NAME   = 'hammerhead_write_marker_end';
@@ -291,7 +292,7 @@ export default class DocumentWriter {
             let processedContent = this.contentForProcessing;
 
             if (isScriptElement(this.nonClosedEl))
-                processedContent = processScript(this.contentForProcessing, true, false, convertToProxyUrl);
+                processedContent = processScript(this.contentForProcessing, true, false, convertToProxyUrl, void 0, settings.get().proxyless);
             else if (isStyleElement(this.nonClosedEl))
                 processedContent = styleProcessor.process(this.contentForProcessing, getProxyUrl, true);
 

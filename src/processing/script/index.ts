@@ -58,12 +58,12 @@ function removeSourceMap (code: string): string {
     return code.replace(SOURCEMAP_RE, '');
 }
 
-function postprocess (processed: string, withHeader: boolean, bom: string | null, strictMode: boolean, swScopeHeaderValue?: string, workerSettings?: any): string {
+function postprocess (processed: string, withHeader: boolean, bom: string | null, strictMode: boolean, swScopeHeaderValue?: string, proxyless?: boolean, workerSettings?: any): string {
     // NOTE: If the 'use strict' directive is not in the beginning of the file, it is ignored.
     // As we insert our header in the beginning of the script, we must put a new 'use strict'
     // before the header, otherwise it will be ignored.
     if (withHeader)
-        processed = addHeader(processed, strictMode, swScopeHeaderValue, workerSettings);
+        processed = addHeader(processed, strictMode, swScopeHeaderValue, proxyless, workerSettings);
 
     return bom ? bom + processed : processed;
 }
@@ -167,7 +167,7 @@ export function isScriptProcessed (code: string): boolean {
     return PROCESSED_SCRIPT_RE.test(code);
 }
 
-export function processScript (src: string, withHeader = false, wrapLastExprWithProcessHtml = false, resolver?: Function, swScopeHeaderValue?: string, workerSettings?: any): string {
+export function processScript (src: string, withHeader = false, wrapLastExprWithProcessHtml = false, resolver?: Function, swScopeHeaderValue?: string, proxyless?: boolean, workerSettings?: any): string {
     const { bom, preprocessed } = preprocess(src);
     const withoutHtmlComments   = removeHtmlComments(preprocessed);
     const { ast, isObject }     = analyze(withoutHtmlComments);
@@ -181,7 +181,7 @@ export function processScript (src: string, withHeader = false, wrapLastExprWith
 
     let processed = changes.length ? applyChanges(withoutHtmlComments, changes, isObject) : preprocessed;
 
-    processed = postprocess(processed, withHeader, bom, isStrictMode(ast), swScopeHeaderValue, workerSettings);
+    processed = postprocess(processed, withHeader, bom, isStrictMode(ast), swScopeHeaderValue, proxyless, workerSettings);
 
     if (isObject)
         processed = processed.replace(OBJECT_WRAPPER_RE, '$1');
