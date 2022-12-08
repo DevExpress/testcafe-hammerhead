@@ -17,17 +17,21 @@ var validDateStr = validDate.toUTCString();
 // Need trying to turn on the disabled tests on the next Safari versions (15.3 and later)
 var isGreaterThanSafari15_1 = browserUtils.isSafari && parseFloat(browserUtils.fullVersion) >= '15.1'; //eslint-disable-line camelcase
 
+function clearCookie () {
+    nativeMethods.documentCookieGetter.call(document)
+        .split(';')
+        .forEach(function (cookie) {
+            var key = cookie.split('=')[0];
+
+            nativeMethods.documentCookieSetter.call(document, key + '=;Path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT');
+        });
+
+    settings.get().cookie = '';
+}
+
 if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
     QUnit.testDone(function () {
-        nativeMethods.documentCookieGetter.call(document)
-            .split(';')
-            .forEach(function (cookie) {
-                var key = cookie.split('=')[0];
-
-                nativeMethods.documentCookieSetter.call(document, key + '=;Path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT');
-            });
-
-        settings.get().cookie = '';
+        clearCookie();
     });
 
     test('get/set', function () {
@@ -278,6 +282,8 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
         strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/(\|[^|]+\|)(\d*=)/, '|lastAccessed|$2'),
             'c|sessionId|temp|example.com|%2F||lastAccessed|9=temp');
 
+        clearCookie();
+
         document.cookie = 'temp=temp; max-age=0';
 
         strictEqual(settings.get().cookie, '');
@@ -285,11 +291,15 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
         strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/(\|[^|]+\|)(\d*=)/, '|lastAccessed|$2'),
             'c|sessionId|temp|example.com|%2F||lastAccessed|0=temp');
 
+        clearCookie();
+
         document.cookie = 'temp=temp; max-age=Infinity';
 
         strictEqual(settings.get().cookie, 'temp=temp');
         strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/(\|[^|]+\|)(=)/, '|lastAccessed|$2'),
             'c|sessionId|temp|example.com|%2F||lastAccessed|=temp');
+
+        clearCookie();
 
         document.cookie = 'temp=temp; max-age=-Infinity';
 
