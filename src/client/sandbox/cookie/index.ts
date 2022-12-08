@@ -135,7 +135,7 @@ class CookieSandboxProxyStrategy implements CookieSandboxStrategy {
             else if (parsedCookie.isWindowSync)
                 this.setCookie(parsedCookie);
             else if (parsedCookie.isClientSync) {
-                const currentDate = cookieUtils.getUTCDate();
+                const currentDate = new nativeMethods.date(); //eslint-disable-line new-cap
                 const maxAge      = Number(parsedCookie.maxAge);
                 const expires     = Number(parsedCookie.expires);
 
@@ -214,7 +214,7 @@ class CookieSandboxProxyStrategy implements CookieSandboxStrategy {
         parsedCookie.isClientSync = true;
         parsedCookie.isWindowSync = true;
         parsedCookie.sid          = settings.get().sessionId;
-        parsedCookie.lastAccessed = cookieUtils.getUTCDate();
+        parsedCookie.lastAccessed = new nativeMethods.date(); //eslint-disable-line new-cap
 
         prepareSyncCookieProperties(parsedCookie);
 
