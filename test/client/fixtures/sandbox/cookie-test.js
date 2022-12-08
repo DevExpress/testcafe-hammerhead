@@ -204,7 +204,6 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
 
         strictEqual(settings.get().cookie, 'temp=temp; test=123');
 
-        console.log(nativeMethods.documentCookieGetter.call(document));
         strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+\|=/, '|lastAccessed|='),
             'c|sessionId|temp|example.com|%2F||lastAccessed|=temp');
     });
@@ -268,6 +267,35 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
         strictEqual(settings.get().cookie, '');
         strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+\|=/, '|lastAccessed|='),
             'c|sessionId|invalid|example.com|%2Fpath||lastAccessed|=path');
+    });
+
+    test('cookie with the max-age', function () {
+        strictEqual(document.cookie, '');
+
+        document.cookie = 'temp=temp; max-age=9';
+
+        strictEqual(settings.get().cookie, 'temp=temp');
+        strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/(\|[^|]+\|)(\d*=)/, '|lastAccessed|$2'),
+            'c|sessionId|temp|example.com|%2F||lastAccessed|9=temp');
+
+        document.cookie = 'temp=temp; max-age=0';
+
+        strictEqual(settings.get().cookie, '');
+
+        strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/(\|[^|]+\|)(\d*=)/, '|lastAccessed|$2'),
+            'c|sessionId|temp|example.com|%2F||lastAccessed|0=temp');
+
+        document.cookie = 'temp=temp; max-age=Infinity';
+
+        strictEqual(settings.get().cookie, 'temp=temp');
+        strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/(\|[^|]+\|)(=)/, '|lastAccessed|$2'),
+            'c|sessionId|temp|example.com|%2F||lastAccessed|=temp');
+
+        document.cookie = 'temp=temp; max-age=-Infinity';
+
+        strictEqual(settings.get().cookie, '');
+        strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/(\|[^|]+\|)(-Infinity=)/, '|lastAccessed|$2'),
+            'c|sessionId|temp|example.com|%2F||lastAccessed|-Infinity=temp');
     });
 
     test('cookie with the invalid secure', function () {
