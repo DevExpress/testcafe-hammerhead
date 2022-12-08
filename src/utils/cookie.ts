@@ -5,6 +5,7 @@
 
 import trim from './string-trim';
 import { CookieRecord, ParsedClientSyncCookie } from '../typings/cookie';
+import { isNil } from 'lodash';
 
 const TIME_RADIX                            = 36;
 const CLEAR_COOKIE_VALUE_STR                = '=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT';
@@ -67,7 +68,7 @@ function formatSyncCookieKey (cookie: CookieRecord): string {
     const path         = encodeURIComponent(cookie.path);
     const expires      = cookie.expires !== 'Infinity' ? cookie.expires.getTime().toString(TIME_RADIX) : '';
     const lastAccessed = cookie.lastAccessed.getTime().toString(TIME_RADIX);
-    const maxAge       = !isNaN(Number(cookie.maxAge)) && String(cookie.maxAge) !== 'Infinity' ? cookie.maxAge.toString(TIME_RADIX) : '';
+    const maxAge       = !isNil(cookie.maxAge) && !isNaN(Number(cookie.maxAge)) && String(cookie.maxAge) !== 'Infinity' ? cookie.maxAge.toString(TIME_RADIX) : '';
 
     return `${syncType}|${cookie.sid}|${key}|${domain}|${path}|${expires}|${lastAccessed}|${maxAge}`;
 }
