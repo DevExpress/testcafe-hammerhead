@@ -67,7 +67,7 @@ function formatSyncCookieKey (cookie: CookieRecord): string {
     const path         = encodeURIComponent(cookie.path);
     const expires      = cookie.expires !== 'Infinity' ? cookie.expires.getTime().toString(TIME_RADIX) : '';
     const lastAccessed = cookie.lastAccessed.getTime().toString(TIME_RADIX);
-    const maxAge       = cookie.maxAge && cookie.maxAge !== 'Infinity' ? cookie.maxAge.toString(TIME_RADIX) : '';
+    const maxAge       = !isNaN(Number(cookie.maxAge)) && String(cookie.maxAge) !== 'Infinity' ? cookie.maxAge.toString(TIME_RADIX) : '';
 
     return `${syncType}|${cookie.sid}|${key}|${domain}|${path}|${expires}|${lastAccessed}|${maxAge}`;
 }

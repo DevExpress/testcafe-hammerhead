@@ -139,10 +139,11 @@ class CookieSandboxProxyStrategy implements CookieSandboxStrategy {
                 const maxAge      = Number(parsedCookie.maxAge);
                 const expires     = Number(parsedCookie.expires);
 
-                if (!isNaN(maxAge) && maxAge * 1000 < currentDate.getTime() - parsedCookie.lastAccessed.getTime() ||
+                if (!isNaN(maxAge) && maxAge * 1000 <= currentDate.getTime() - parsedCookie.lastAccessed.getTime() ||
                       !isNaN(expires) && expires < currentDate.getTime()) {
                     nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(parsedCookie));
                     CookieSandbox._updateClientCookieStr(parsedCookie.key, null);
+                    serverSyncCookies.push(parsedCookie);
                 }
             }
         }
@@ -213,7 +214,7 @@ class CookieSandboxProxyStrategy implements CookieSandboxStrategy {
         parsedCookie.isClientSync = true;
         parsedCookie.isWindowSync = true;
         parsedCookie.sid          = settings.get().sessionId;
-        parsedCookie.lastAccessed = new nativeMethods.date(); //eslint-disable-line new-cap
+        parsedCookie.lastAccessed = cookieUtils.getUTCDate();
 
         prepareSyncCookieProperties(parsedCookie);
 
