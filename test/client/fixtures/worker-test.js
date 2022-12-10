@@ -95,34 +95,6 @@ test('calling Worker without the "new" keyword (GH-1970)', function () {
     }
 });
 
-test('should call postMessage with settings only for urls with the "blob:" protocol', function () {
-    var savedNativeWorker = nativeMethods.Worker;
-    var blobUrl           = 'blob:https://example.com/e4d97ad7-0806-4b18-89f0-242d3c861b26';
-
-    nativeMethods.Worker = function () {
-        return {
-            postMessage: function () {
-                ok(false);
-            },
-        };
-    };
-
-    new Worker('/test'); // eslint-disable-line no-new
-    new Worker('https://exmple.com/test'); // eslint-disable-line no-new
-
-    nativeMethods.Worker = function () {
-        return {
-            postMessage: function () {
-                ok(true);
-            },
-        };
-    };
-
-    new Worker(blobUrl); // eslint-disable-line no-new
-
-    nativeMethods.Worker = savedNativeWorker;
-});
-
 if (!browserUtils.isIE) {
     test('send xhr from worker', function () {
         var worker = new Worker(window.QUnitGlobals.getResourceUrl('../data/web-worker/xhr.js'));
@@ -257,6 +229,31 @@ if (!browserUtils.isIE && !browserUtils.isSafari) {
         return waitForMessage(worker)
             .then(function (proxyUrl) {
                 strictEqual(proxyUrl, '/sessionId!a!1/https://example.com/xhr-test/30');
+
+                worker.terminate();
+            });
+    });
+
+    asyncTest('blob: should try to process data as a script even if the content type is not passed (GH-231)', function () {
+        var script  = 'var obj = {}, prop = "prop"; obj[prop] = true; postMessage(true);';
+        var blobURL = URL.createObjectURL(new Blob([script]));
+        var worker  = new Worker(blobURL);
+
+        worker.onmessage = function (e) {
+            ok(e.data);
+            worker.terminate();
+            start();
+        };
+    });
+
+    test('blob: should support using importScripts', function () {
+        var script  = 'importScripts("' + window.getSameDomainPageUrl('../data/web-worker/simple.js') + '")';
+        var blobURL = URL.createObjectURL(new Blob([script]));
+        var worker  = new Worker(blobURL);
+
+        return waitForMessage(worker)
+            .then(function (data) {
+                strictEqual(data.foo, 'bar');
 
                 worker.terminate();
             });
@@ -413,11 +410,12 @@ if (window.navigator.serviceWorker) {
 
                     serviceWorker.postMessage('callback', [messageChannel.port1]);
 
-                    return new Promise(function (resolve) {
-                        createTestIframe({ src: urlUtils.getProxyUrl('/path/iframe-created-from-service-worker.html') });
-
-                        messageChannel.port2.onmessage = resolve;
-                    });
+                    return createTestIframe({ src: urlUtils.getProxyUrl('/path/iframe-created-from-service-worker.html') })
+                        .then(function () {
+                            return new Promise(function (resolve) {
+                                messageChannel.port2.onmessage = resolve;
+                            });
+                        });
                 })
                 .then(function (e) {
                     strictEqual(e.data, 'image requested');
@@ -448,32 +446,4 @@ if (window.navigator.serviceWorker) {
 
         document.body.appendChild(iframe);
     });
-
-    // NOTE: https://connect.microsoft.com/IE/feedback/details/801810/web-workers-from-blob-urls-in-ie-10-and-11
-    var isWorkerFromBlobSupported = (function () {
-        try {
-            var worker = new Worker(URL.createObjectURL(new Blob(['var a = 42;'])));
-
-            worker.terminate();
-
-            return worker;
-        }
-        catch (e) {
-            return false;
-        }
-    })();
-
-    if (isWorkerFromBlobSupported) {
-        asyncTest('blob should try to process data as a script even if the content type is not passed (GH-231)', function () {
-            var script  = 'var obj = {}, prop = "prop"; obj[prop] = true; postMessage(true);';
-            var blobURL = URL.createObjectURL(new Blob([script]));
-            var worker  = new Worker(blobURL);
-
-            worker.onmessage = function (e) {
-                ok(e.data);
-                worker.terminate();
-                start();
-            };
-        });
-    }
 }

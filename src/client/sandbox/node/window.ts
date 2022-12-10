@@ -80,8 +80,14 @@ import settings from '../../settings';
 import DefaultTarget from '../child-window/default-target';
 import { getNativeQuerySelectorAll } from '../../utils/query-selector';
 import DocumentTitleStorageInitializer from './document/title-storage-initializer';
-import { SET_BLOB_WORKER_SETTINGS, SET_SERVICE_WORKER_SETTINGS } from '../../worker/set-settings-command';
+import { SET_SERVICE_WORKER_SETTINGS } from '../../worker/set-settings-command';
 
+
+type BlobProcessingSettings = {
+    sessionId: string;
+    windowId: string;
+    origin: string;
+};
 
 const INSTRUCTION_VALUES = (() => {
     const values = [];
@@ -165,6 +171,14 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         return stack;
+    }
+
+    private static _getBlobProcessingSettings (): BlobProcessingSettings {
+        return {
+            sessionId: settings.get().sessionId,
+            windowId:  settings.get().windowId,
+            origin:    destLocation.getOriginHeader(),
+        };
     }
 
     private static _isProcessableBlobParts (parts: any[]): boolean {
@@ -602,16 +616,6 @@ export default class WindowSandbox extends SandboxBase {
                     ? new nativeMethods.Worker(scriptURL)
                     : new nativeMethods.Worker(scriptURL, args[1]);
 
-                // eslint-disable-next-line no-restricted-properties
-                if (parseUrl(scriptURL).protocol === 'blob:') {
-                    worker.postMessage({
-                        cmd:       SET_BLOB_WORKER_SETTINGS,
-                        sessionId: settings.get().sessionId,
-                        windowId:  settings.get().windowId,
-                        origin:    destLocation.getOriginHeader(),
-                    });
-                }
-
                 return worker;
             }, true);
         }
@@ -622,7 +626,7 @@ export default class WindowSandbox extends SandboxBase {
                     return new nativeMethods.Blob();
 
                 if (WindowSandbox._isProcessableBlob(array, opts))
-                    array = [processScript(array.join(''), true, false, convertToProxyUrl, void 0, settings.get().proxyless)];
+                    array = [processScript(array.join(''), true, false, convertToProxyUrl, void 0, settings.get().proxyless, WindowSandbox._getBlobProcessingSettings())];
 
                 // NOTE: IE11 throws an error when the second parameter of the Blob function is undefined (GH-44)
                 // If the overridden function is called with one parameter, we need to call the original function
@@ -638,7 +642,7 @@ export default class WindowSandbox extends SandboxBase {
                     return new nativeMethods.File();
 
                 if (WindowSandbox._isProcessableBlob(array, opts))
-                    array = [processScript(array.join(''), true, false, convertToProxyUrl, void 0, settings.get().proxyless)];
+                    array = [processScript(array.join(''), true, false, convertToProxyUrl, void 0, settings.get().proxyless, WindowSandbox._getBlobProcessingSettings())];
 
                 return new nativeMethods.File(array, fileName, opts);
             });

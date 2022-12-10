@@ -116,7 +116,7 @@ if (!browserUtils.isIE11) {
                      'window.destructingResult = "" + a + i + j + JSON.stringify(other);';
 
         var defaultRestObjectStr = 'var ' + scriptHeader.add('')
-            .replace(/[\s\S]+(__rest\$Object\s*=\s*function[\s\S]+return[^}]+})[\s\S]+/g, '$1');
+            .replace(/[\s\S]+(__rest\$Object\s*=\s*function[\s\S]+?return[^}]+})[\s\S]+/g, '$1');
 
         eval(defaultRestObjectStr + ';' + processScript(script));
 

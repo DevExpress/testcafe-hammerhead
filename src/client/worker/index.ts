@@ -1,4 +1,3 @@
-import Promise from 'pinkie';
 import { parseProxyUrl } from '../../utils/url';
 import { getProxyUrl, stringifyResourceType } from '../utils/url';
 import XhrSandbox from '../sandbox/xhr';
@@ -9,10 +8,9 @@ import overrideFetchEvent from './fetch-event';
 import globalContextInfo from '../utils/global-context-info';
 import noop from '../utils/noop';
 import nativeMethods from '../sandbox/native-methods';
-import { SET_BLOB_WORKER_SETTINGS } from './set-settings-command';
 import { forceLocation } from '../utils/destination-location';
-import { stopPropagation } from '../utils/event';
 import { overrideFunction } from '../utils/overriding';
+import INSTRUCTION from '../../processing/script/instruction';
 
 class WorkerHammerhead {
     readonly xhr: XhrSandbox;
@@ -22,36 +20,19 @@ class WorkerHammerhead {
         const parsedLocation    = parseProxyUrl(location.toString());
         const cookieSandboxMock = { syncCookie: noop } as CookieSandbox;
 
-        let waitHammerheadSettings: Promise<void> = null;
-
         // NOTE: the blob location case
-        if (!parsedLocation) {
-            waitHammerheadSettings = new Promise(resolve => {
-                nativeMethods.windowAddEventListener.call(self, 'message', function onMessage (e: MessageEvent) {
-                    const data = nativeMethods.messageEventDataGetter.call(e);
-
-                    if (data.cmd !== SET_BLOB_WORKER_SETTINGS)
-                        return;
-
-                    WorkerHammerhead._setProxySettings(data.sessionId, data.windowId);
-                    forceLocation(data.origin); // eslint-disable-line no-restricted-properties
-
-                    nativeMethods.windowRemoveEventListener.call(self, 'message', onMessage);
-                    stopPropagation(e);
-                    resolve();
-                });
-            });
-        }
+        if (!parsedLocation)
+            this._getBlobSettings();
         else
             WorkerHammerhead._setProxySettings(parsedLocation.sessionId, parsedLocation.windowId);
 
-        this.fetch = new FetchSandbox(cookieSandboxMock, waitHammerheadSettings);
+        this.fetch = new FetchSandbox(cookieSandboxMock);
         this.fetch.attach(self);
 
         WorkerHammerhead._overrideImportScripts();
 
         if (!globalContextInfo.isServiceWorker) {
-            this.xhr = new XhrSandbox(cookieSandboxMock, waitHammerheadSettings);
+            this.xhr = new XhrSandbox(cookieSandboxMock);
             this.xhr.attach(self);
         }
         else
@@ -75,6 +56,13 @@ class WorkerHammerhead {
 
             return nativeMethods.importScripts.apply(self, urls);
         });
+    }
+
+    private _getBlobSettings () {
+        const data = self[INSTRUCTION.getWorkerSettings]();
+
+        WorkerHammerhead._setProxySettings(data.sessionId, data.windowId);
+        forceLocation(data.origin); // eslint-disable-line no-restricted-properties
     }
 }
 

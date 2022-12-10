@@ -19,4 +19,5 @@ export default {
     restObject:     '__rest$Object',
 
     swScopeHeaderValue: '__swScopeHeaderValue',
+    getWorkerSettings:  '__getWorkerSettings$',
 };

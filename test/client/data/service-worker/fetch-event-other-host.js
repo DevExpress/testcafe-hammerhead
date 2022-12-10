@@ -35,7 +35,10 @@ if (typeof window !== 'undefined' && window) {
         for (var i = 0; i < k.length; ++i) if (p.indexOf(k[i]) < 0) n[k[i]] = o[k[i]];
         return n
     };
-    if (typeof importScripts !== "undefined" && /\[native code]/g.test(importScripts.toString())) importScripts(location.origin + "/worker-hammerhead.js");
+    if (typeof importScripts !== "undefined" && /\[native code]/g.test(importScripts.toString())) {
+        var __getWorkerSettings$ = function () { return null };
+        importScripts(location.origin + "/worker-hammerhead.js");
+    }
 }
 /*hammerhead|script|processing-header-end*/
 
