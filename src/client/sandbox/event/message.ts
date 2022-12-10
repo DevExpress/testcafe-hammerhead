@@ -17,11 +17,18 @@ import { overrideDescriptor } from '../../utils/overriding';
 import { parse as parseJSON, stringify as stringifyJSON } from '../../../utils/json';
 import Listeners from './listeners';
 import UnloadSandbox from './unload';
+import settings from '../../settings';
 
 enum MessageType { // eslint-disable-line no-shadow
     Service = 'hammerhead|service-msg',
     User = 'hammerhead|user-msg'
 }
+
+const CHECKED_PROPERTIES_FOR_NESTED_MESSAGE_DATA = [
+    'message',
+    'originUrl',
+    'targetUrl',
+];
 
 export default class MessageSandbox extends SandboxBase {
     readonly PING_DELAY = 200;
@@ -55,10 +62,22 @@ export default class MessageSandbox extends SandboxBase {
         this.iframeInternalMsgQueue = [];
     }
 
+    private static _parseMessageJSONData (str: string): any {
+        if (!settings.get().proxyless)
+            return parseJSON(str);
+
+        try {
+            return parseJSON(str);
+        }
+        catch (err) {
+            return { type: MessageType.User, message: str };
+        }
+    }
+
     private static _getMessageData (e) {
         const rawData = isMessageEvent(e) ? nativeMethods.messageEventDataGetter.call(e) : e.data;
 
-        return typeof rawData === 'string' ? parseJSON(rawData) : rawData;
+        return typeof rawData === 'string' ? MessageSandbox._parseMessageJSONData(rawData) : rawData;
     }
 
     // NOTE: some window may be unavailable for the sending message, for example, if it was removed.
@@ -111,6 +130,14 @@ export default class MessageSandbox extends SandboxBase {
 
         return { message, originUrl, targetUrl, type };
     }
+    private static _getOriginMessageData (data): any {
+        if (data.message
+            && typeof data.message === 'object'
+            && nativeMethods.arrayEvery.call(CHECKED_PROPERTIES_FOR_NESTED_MESSAGE_DATA, checkedProperty => checkedProperty in data.message))
+            return data.message.message;
+
+        return data.message;
+    }
 
     private _removeInternalMsgFromQueue (sendFunc: Function): boolean {
         for (let index = 0, length = this.iframeInternalMsgQueue.length; index < length; index++) {
@@ -154,18 +181,20 @@ export default class MessageSandbox extends SandboxBase {
             configurable: true,
         });
 
-        // @ts-ignore
-        overrideDescriptor(window.MessageEvent.prototype, 'data', {
-            getter: function (this: MessageEvent) {
-                const target = nativeMethods.eventTargetGetter.call(this);
-                const data   = nativeMethods.messageEventDataGetter.call(this);
+        if (!this.proxyless) {
+            // @ts-ignore
+            overrideDescriptor(window.MessageEvent.prototype, 'data', {
+                getter: function (this: MessageEvent) {
+                    const target = nativeMethods.eventTargetGetter.call(this);
+                    const data   = nativeMethods.messageEventDataGetter.call(this);
 
-                if (data && data.type !== MessageType.Service && isWindow(target))
-                    return data.message;
+                    if (data && data.type !== MessageType.Service && isWindow(target))
+                        return MessageSandbox._getOriginMessageData(data);
 
-                return data;
-            },
-        });
+                    return data;
+                },
+            });
+        }
 
         // @ts-ignore
         const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;

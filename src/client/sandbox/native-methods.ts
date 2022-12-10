@@ -184,6 +184,7 @@ class NativeMethods {
     arrayForEach: any;
     arrayIndexOf: any;
     arraySome: any;
+    arrayEvery: any;
     arrayReverse: any;
     arrayReduce: any;
     arrayFrom: any;
@@ -1101,6 +1102,7 @@ class NativeMethods {
         this.arrayForEach = win.Array.prototype.forEach;
         this.arrayIndexOf = win.Array.prototype.indexOf;
         this.arraySome    = win.Array.prototype.some;
+        this.arrayEvery   = win.Array.prototype.every;
         this.arrayReverse = win.Array.prototype.reverse;
         this.arrayReduce  = win.Array.prototype.reduce;
         this.arrayFrom    = win.Array.from;

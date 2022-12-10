@@ -945,28 +945,30 @@ export default class WindowSandbox extends SandboxBase {
             }
         }
 
-        overrideDescriptor(window.MessageEvent.prototype, 'origin', {
-            getter: function (this: MessageEvent) {
-                const target = nativeMethods.eventTargetGetter.call(this);
-                const origin = nativeMethods.messageEventOriginGetter.call(this);
+        if (!this.proxyless) {
+            overrideDescriptor(window.MessageEvent.prototype, 'origin', {
+                getter: function (this: MessageEvent) {
+                    const target = nativeMethods.eventTargetGetter.call(this);
+                    const origin = nativeMethods.messageEventOriginGetter.call(this);
 
-                if (isWebSocket(target)) {
-                    const parsedUrl = parseUrl(target.url);
+                    if (isWebSocket(target)) {
+                        const parsedUrl = parseUrl(target.url);
 
-                    if (parsedUrl)
-                        // eslint-disable-next-line no-restricted-properties
-                        return parsedUrl.protocol + '//' + parsedUrl.host;
-                }
-                else if (isWindow(target)) {
-                    const data = nativeMethods.messageEventDataGetter.call(this);
+                        if (parsedUrl)
+                            // eslint-disable-next-line no-restricted-properties
+                            return parsedUrl.protocol + '//' + parsedUrl.host;
+                    }
+                    else if (isWindow(target)) {
+                        const data = nativeMethods.messageEventDataGetter.call(this);
 
-                    if (data)
-                        return data.originUrl;
-                }
+                        if (data)
+                            return data.originUrl;
+                    }
 
-                return origin;
-            },
-        });
+                    return origin;
+                },
+            });
+        }
 
         overrideDescriptor(window.HTMLCollection.prototype, 'length', {
             getter: function () {

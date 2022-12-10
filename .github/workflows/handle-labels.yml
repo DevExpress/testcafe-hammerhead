@@ -3,13 +3,11 @@ name: 'Label Actions'
 on:
   issues:
     types: [labeled, unlabeled]
-  pull_request:
+  pull_request_target:
     types: [labeled, unlabeled]
 
 jobs:
   reaction:
     runs-on: ubuntu-latest
     steps:
-      - uses: dessant/label-actions@v2
-        with:
-          github-token: ${{ github.token }}
+      - uses: DevExpress/testcafe-build-system/actions/handle-labels@main
