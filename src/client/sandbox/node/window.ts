@@ -586,7 +586,7 @@ export default class WindowSandbox extends SandboxBase {
             return windowSandbox._childWindowSandbox.handleWindowOpen(window, args);
         });
 
-        if (window.FontFace) {
+        if (window.FontFace && !this.proxyless) {
             overrideConstructor(window, 'FontFace', (family, source, descriptors) => {
                 source = styleProcessor.process(source, convertToProxyUrl);
 
@@ -594,7 +594,7 @@ export default class WindowSandbox extends SandboxBase {
             });
         }
 
-        if (window.Worker) {
+        if (window.Worker && !this.proxyless) {
             overrideConstructor(window, 'Worker', function WorkerWrapper (this: Worker, ...args: [string | URL, WorkerOptions?]) {
                 const isCalledWithoutNewKeyword = constructorIsCalledWithoutNewKeyword(this, WorkerWrapper);
 
