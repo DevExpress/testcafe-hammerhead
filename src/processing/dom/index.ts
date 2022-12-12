@@ -74,6 +74,7 @@ export default class DomProcessor {
     private readonly elementProcessorPatterns: ElementProcessingPattern[];
     forceProxySrcForImage = false;
     allowMultipleWindows = false;
+    proxyless = false;
     // Refactor this, see BaseDomAdapter;
     EVENTS: string[];
 
@@ -595,7 +596,7 @@ export default class DomProcessor {
     }
 
     _processUrlAttrs (el: HTMLElement, urlReplacer: UrlReplacer, pattern: ElementProcessingPattern): void {
-        if (!pattern.urlAttr)
+        if (!pattern.urlAttr || this.proxyless)
             return;
 
         const storedUrlAttr     = DomProcessor.getStoredAttrName(pattern.urlAttr);
