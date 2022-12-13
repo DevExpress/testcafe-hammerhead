@@ -49,6 +49,9 @@ export default class DocumentSandbox extends SandboxBase {
     }
 
     static forceProxySrcForImageIfNecessary (element: Element): void {
+        if (settings.get().proxyless)
+            return;
+
         if (isImgElement(element) && settings.get().forceProxySrcForImage)
             element[INTERNAL_PROPS.forceProxySrcForImage] = true;
     }
