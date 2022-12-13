@@ -277,6 +277,17 @@ class Hammerhead {
         nativeMethods.storageRemoveItem.call(nativeLocalStorage, sessionId);
     }
 
+    static _setProxylessForComponents (value: boolean): void {
+        const components = [
+            domProcessor,
+            urlResolver,
+            styleProcessor,
+        ] as any[];
+
+        for (let i = 0; i < components.length; i++)
+            components[i].proxyless = value;
+    }
+
     on (evtName: string, handler: Function): void {
         const eventOwner = this._getEventOwner(evtName);
 
@@ -318,8 +329,8 @@ class Hammerhead {
 
         domProcessor.forceProxySrcForImage = initSettings.forceProxySrcForImage;
         domProcessor.allowMultipleWindows  = initSettings.allowMultipleWindows;
-        domProcessor.proxyless             = initSettings.proxyless;
-        urlResolver.proxyless              = initSettings.proxyless;
+
+        Hammerhead._setProxylessForComponents(initSettings.proxyless);
 
         this.transport.start(this.eventSandbox.message, !initSettings.proxyless);
         this.sandbox.attach(this.win);
