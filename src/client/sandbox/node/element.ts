@@ -1146,6 +1146,9 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     private _handleImageLoadEventRaising (el: HTMLImageElement): void {
+        if (this.proxyless)
+            return;
+
         this._eventSandbox.listeners.initElementListening(el, ['load']);
         this._eventSandbox.listeners.addInternalEventBeforeListener(el, ['load'], (_e, _dispatched, preventEvent, _cancelHandlers, stopEventPropagation) => {
             if (el[INTERNAL_PROPS.cachedImage])

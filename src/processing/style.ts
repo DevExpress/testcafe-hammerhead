@@ -25,6 +25,8 @@ class StyleProcessor {
     STYLESHEET_PROCESSING_START_COMMENT = STYLESHEET_PROCESSING_START_COMMENT;
     STYLESHEET_PROCESSING_END_COMMENT = STYLESHEET_PROCESSING_END_COMMENT;
 
+    proxyless = false;
+
     process (css: string, urlReplacer: Function, shouldIncludeProcessingComments?: boolean): string {
         if (!css || typeof css !== 'string' || shouldIncludeProcessingComments && IS_STYLE_SHEET_PROCESSED_RE.test(css))
             return css;
@@ -36,7 +38,8 @@ class StyleProcessor {
         css = css.replace(SOURCE_MAP_RE, '');
 
         // NOTE: Replace URLs in CSS rules with proxy URLs.
-        css = this._replaceStylesheetUrls(css, urlReplacer);
+        if (!this.proxyless)
+            css = this._replaceStylesheetUrls(css, urlReplacer);
 
         // NOTE: Replace url attributes to stored attributes
         css = this._replaceUrlAttributes(css);
@@ -57,11 +60,15 @@ class StyleProcessor {
 
         css = this._removeStylesheetProcessingComments(css);
 
-        return this._replaceStylesheetUrls(css, (url: string) => {
-            const parsedProxyUrl = parseProxyUrl(url);
+        if (!this.proxyless) {
+            css = this._replaceStylesheetUrls(css, (url: string) => {
+                const parsedProxyUrl = parseProxyUrl(url);
 
-            return parsedProxyUrl ? parsedProxyUrl.destUrl : url;
-        });
+                return parsedProxyUrl ? parsedProxyUrl.destUrl : url;
+            });
+        }
+
+        return css;
     }
 
     private _removeStylesheetProcessingComments (css: string): string {

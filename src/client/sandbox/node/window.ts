@@ -801,22 +801,24 @@ export default class WindowSandbox extends SandboxBase {
             overrideFunction(window.EventTarget.prototype, 'removeEventListener', overriddenMethods.removeEventListener);
         }
 
-        overrideConstructor(window, 'Image', function () {
-            let image = null;
+        if (!this.proxyless) {
+            overrideConstructor(window, 'Image', function () {
+                let image = null;
 
-            if (!arguments.length)
-                image = new nativeMethods.Image();
-            else if (arguments.length === 1)
-                image = new nativeMethods.Image(arguments[0]);
-            else
-                image = new nativeMethods.Image(arguments[0], arguments[1]);
+                if (!arguments.length)
+                    image = new nativeMethods.Image();
+                else if (arguments.length === 1)
+                    image = new nativeMethods.Image(arguments[0]);
+                else
+                    image = new nativeMethods.Image(arguments[0], arguments[1]);
 
-            image[INTERNAL_PROPS.forceProxySrcForImage] = true;
+                image[INTERNAL_PROPS.forceProxySrcForImage] = true;
 
-            nodeSandbox.processNodes(image);
+                nodeSandbox.processNodes(image);
 
-            return image;
-        });
+                return image;
+            });
+        }
 
         overrideConstructor(window, 'Function', function (this: Function, ...args) {
             const functionBodyArgIndex = args.length - 1;
