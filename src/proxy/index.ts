@@ -1,3 +1,4 @@
+import dns from 'dns';
 import net from 'net';
 import Session from '../session';
 import { ExternalProxySettingsRaw } from '../typings/session';
@@ -81,6 +82,9 @@ export default class Proxy extends Router {
         const prepareOptions = Object.assign({}, DEFAULT_PROXY_OPTIONS, options);
 
         super(prepareOptions);
+
+        // NOTE: to avoid https://github.com/nodejs/node/issues/40537
+        dns.setDefaultResultOrder('ipv4first');
 
         const {
             ssl,
