@@ -17,17 +17,21 @@ var validDateStr = validDate.toUTCString();
 // Need trying to turn on the disabled tests on the next Safari versions (15.3 and later)
 var isGreaterThanSafari15_1 = browserUtils.isSafari && parseFloat(browserUtils.fullVersion) >= '15.1'; //eslint-disable-line camelcase
 
+function clearCookie () {
+    nativeMethods.documentCookieGetter.call(document)
+        .split(';')
+        .forEach(function (cookie) {
+            var key = cookie.split('=')[0];
+
+            nativeMethods.documentCookieSetter.call(document, key + '=;Path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT');
+        });
+
+    settings.get().cookie = '';
+}
+
 if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
     QUnit.testDone(function () {
-        nativeMethods.documentCookieGetter.call(document)
-            .split(';')
-            .forEach(function (cookie) {
-                var key = cookie.split('=')[0];
-
-                nativeMethods.documentCookieSetter.call(document, key + '=;Path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT');
-            });
-
-        settings.get().cookie = '';
+        clearCookie();
     });
 
     test('get/set', function () {
@@ -101,7 +105,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
             .then(function () {
                 return testCookies(storedForcedLocation, [
                     'Test1=Expired; expires=' + new Date((Math.floor(Date.now() / 1000) + 1) * 1000).toUTCString(),
-                    'Test2=Expired; max-age=' + 1,
+                    'Test2=Expired; max-age=' + 0,
                 ], '', 2000);
             })
             .then(function () {
@@ -204,7 +208,6 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
 
         strictEqual(settings.get().cookie, 'temp=temp; test=123');
 
-        console.log(nativeMethods.documentCookieGetter.call(document));
         strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+\|=/, '|lastAccessed|='),
             'c|sessionId|temp|example.com|%2F||lastAccessed|=temp');
     });
@@ -268,6 +271,41 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
         strictEqual(settings.get().cookie, '');
         strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+\|=/, '|lastAccessed|='),
             'c|sessionId|invalid|example.com|%2Fpath||lastAccessed|=path');
+    });
+
+    test('cookie with the max-age', function () {
+        strictEqual(document.cookie, '');
+
+        document.cookie = 'temp=temp; max-age=9';
+
+        strictEqual(settings.get().cookie, 'temp=temp');
+        strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/(\|[^|]+\|)(\d*=)/, '|lastAccessed|$2'),
+            'c|sessionId|temp|example.com|%2F||lastAccessed|9=temp');
+
+        clearCookie();
+
+        document.cookie = 'temp=temp; max-age=0';
+
+        strictEqual(settings.get().cookie, '');
+
+        strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/(\|[^|]+\|)(\d*=)/, '|lastAccessed|$2'),
+            'c|sessionId|temp|example.com|%2F||lastAccessed|0=temp');
+
+        clearCookie();
+
+        document.cookie = 'temp=temp; max-age=Infinity';
+
+        strictEqual(settings.get().cookie, 'temp=temp');
+        strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/(\|[^|]+\|)(=)/, '|lastAccessed|$2'),
+            'c|sessionId|temp|example.com|%2F||lastAccessed|=temp');
+
+        clearCookie();
+
+        document.cookie = 'temp=temp; max-age=-Infinity';
+
+        strictEqual(settings.get().cookie, '');
+        strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/(\|[^|]+\|)(-Infinity=)/, '|lastAccessed|$2'),
+            'c|sessionId|temp|example.com|%2F||lastAccessed|-Infinity=temp');
     });
 
     test('cookie with the invalid secure', function () {
