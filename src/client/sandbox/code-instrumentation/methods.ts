@@ -73,7 +73,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
                     MethodCallInstrumentation._error(`Cannot call method '${methName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
 
                 if (typeof owner[methName] !== 'function')
-                    MethodCallInstrumentation._error(`'${methName}' is not a function`);
+                    return void 0
 
                 // OPTIMIZATION: previously we've performed the
                 // `this.methodWrappers.hasOwnProperty(methName)`
