@@ -1513,6 +1513,15 @@ describe('Script processor', () => {
             });
         });
 
+        it('Should not lose parentheses around logical expressions inside nullish coalescing', () => {
+            testProcessing([
+                {
+                    src:      'i[s]=n[s]??(a&&a[s])',
+                    expected: '__set$(i,s,__get$(n,s)??(a&&__get$(a,s)))',
+                },
+            ]);
+        });
+
         it('Should not lose the await keyword in "for await...of" loop', () => {
             testProcessing({
                 src: 'i[j] = async () => {' +
