@@ -134,18 +134,6 @@ class CookieSandboxProxyStrategy implements CookieSandboxStrategy {
                 serverSyncCookies.push(parsedCookie);
             else if (parsedCookie.isWindowSync)
                 this.setCookie(parsedCookie);
-            else if (parsedCookie.isClientSync) {
-                const currentDate = new nativeMethods.date(); //eslint-disable-line new-cap
-                const maxAge      = Number(parsedCookie.maxAge);
-                const expires     = Number(parsedCookie.expires);
-
-                if (!isNaN(maxAge) && maxAge * 1000 <= currentDate.getTime() - parsedCookie.lastAccessed.getTime() ||
-                      !isNaN(expires) && expires < currentDate.getTime()) {
-                    nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(parsedCookie));
-                    CookieSandbox._updateClientCookieStr(parsedCookie.key, null);
-                    serverSyncCookies.push(parsedCookie);
-                }
-            }
         }
 
         if (serverSyncCookies.length)
