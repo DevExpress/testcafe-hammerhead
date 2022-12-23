@@ -439,16 +439,18 @@ export default class WindowSandbox extends SandboxBase {
     private _overrideAllUrlAttrDescriptors (): void {
         this._overrideUrlAttrDescriptors('data', [window.HTMLObjectElement]);
 
-        this._overrideUrlAttrDescriptors('src', [
-            window.HTMLImageElement,
-            window.HTMLScriptElement,
-            window.HTMLEmbedElement,
-            window.HTMLSourceElement,
-            window.HTMLMediaElement,
-            window.HTMLInputElement,
-            window.HTMLFrameElement,
-            window.HTMLIFrameElement,
-        ]);
+        if (!this.proxyless) {
+            this._overrideUrlAttrDescriptors('src', [
+                window.HTMLImageElement,
+                window.HTMLScriptElement,
+                window.HTMLEmbedElement,
+                window.HTMLSourceElement,
+                window.HTMLMediaElement,
+                window.HTMLInputElement,
+                window.HTMLFrameElement,
+                window.HTMLIFrameElement,
+            ]);
+        }
 
         this._overrideUrlAttrDescriptors('action', [window.HTMLFormElement]);
 
@@ -457,12 +459,14 @@ export default class WindowSandbox extends SandboxBase {
             window.HTMLButtonElement,
         ]);
 
-        this._overrideUrlAttrDescriptors('href', [
-            window.HTMLAnchorElement,
-            window.HTMLLinkElement,
-            window.HTMLAreaElement,
-            window.HTMLBaseElement,
-        ]);
+        if (!this.proxyless) {
+            this._overrideUrlAttrDescriptors('href', [
+                window.HTMLAnchorElement,
+                window.HTMLLinkElement,
+                window.HTMLAreaElement,
+                window.HTMLBaseElement,
+            ]);
+        }
 
         if (nativeMethods.htmlManifestGetter)
             this._overrideUrlAttrDescriptors('manifest', [window.HTMLHtmlElement]);
