@@ -177,7 +177,7 @@ export function processScript (src: string, withHeader = false, wrapLastExprWith
 
     withHeader = withHeader && !isObject && !isArrayDataScript(ast);
 
-    const changes = transform(ast, wrapLastExprWithProcessHtml, resolver);
+    const changes = proxyless ? [] : transform(ast, wrapLastExprWithProcessHtml, resolver);
 
     let processed = changes.length ? applyChanges(withoutHtmlComments, changes, isObject) : preprocessed;
 
