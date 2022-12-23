@@ -653,7 +653,7 @@ if (window.fetch) {
             fetchSandbox.proxyless = storedProxyless;
         });
 
-        test('Request - redirect request to proxy', function () {
+        test('Request - should not redirect request to proxy', function () {
             var request = new Request('/xhr-test/100', { credentials: 'omit' });
 
             return fetch(request)
@@ -665,7 +665,7 @@ if (window.fetch) {
                 });
         });
 
-        test('global fetch - redirect request to proxy', function () {
+        test('global fetch - should not redirect request to proxy', function () {
             return fetch('/xhr-test/100', { credentials: 'same-origin' })
                 .then(function (response) {
                     return response.text();
@@ -686,6 +686,20 @@ if (window.fetch) {
             var request = new Request('/xhr-test/100');
 
             strictEqual(request.url, location.origin + '/xhr-test/100');
+        });
+
+        asyncTest('should emit event', function () {
+            expect(0);
+
+            var eventRaisedListener = function () {
+                fetchSandbox.off(fetchSandbox.FETCH_REQUEST_SENT_EVENT, eventRaisedListener);
+
+                start();
+            };
+
+            fetchSandbox.on(fetchSandbox.FETCH_REQUEST_SENT_EVENT, eventRaisedListener);
+
+            fetch('/xhr-test/100');
         });
     });
 }
