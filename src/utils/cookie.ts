@@ -116,7 +116,7 @@ export function parseSyncCookie (cookieStr: string): CookieRecord | null {
         path:         decodeURIComponent(parsedKey[4]),
         expires:      parsedKey[5] ? new Date(parseInt(parsedKey[5], TIME_RADIX)) : 'Infinity',
         lastAccessed: new Date(parseInt(parsedKey[6], TIME_RADIX)),
-        maxAge:       parseInt(parsedKey[7], TIME_RADIX),
+        maxAge:       parsedKey[7] ? parseInt(parsedKey[7], TIME_RADIX) : null,
         syncKey:      key,
 
         value,
