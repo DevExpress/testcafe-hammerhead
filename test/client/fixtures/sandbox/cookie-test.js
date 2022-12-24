@@ -104,8 +104,8 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
             })
             .then(function () {
                 return testCookies(storedForcedLocation, [
-                    'Test1=Expired; expires=' + new Date((Math.floor(Date.now() / 1000) - 1) * 1000).toUTCString(),
-                    'Test2=Expired; max-age=' + 0,
+                    'Test1=Expired; expires=' + new Date((Math.floor(Date.now() / 1000) + 1) * 1000).toUTCString(),
+                    'Test2=Expired; max-age=' + 1,
                 ], '', 2000);
             })
             .then(function () {
