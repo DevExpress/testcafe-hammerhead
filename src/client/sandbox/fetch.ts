@@ -136,43 +136,94 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
 
         const sandbox = this;
 
-        overrideConstructor(window, 'Request', function (...args: ConstructorParameters<typeof Request>) {
-            FetchSandbox._processArguments(args, sandbox.proxyless);
+        if (!this.proxyless) {
+            overrideConstructor(window, 'Request', function (...args: ConstructorParameters<typeof Request>) {
+                FetchSandbox._processArguments(args, sandbox.proxyless);
 
-            window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = nativeMethods.headersEntries;
+                window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = nativeMethods.headersEntries;
 
-            const request = args.length === 1
-                ? new nativeMethods.Request(args[0])
-                : new nativeMethods.Request(args[0], args[1]);
+                const request = args.length === 1
+                    ? new nativeMethods.Request(args[0])
+                    : new nativeMethods.Request(args[0], args[1]);
 
-            window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = FetchSandbox._entriesWrapper;
+                window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = FetchSandbox._entriesWrapper;
 
-            return request;
-        });
+                return request;
+            });
 
-        overrideDescriptor(window.Request.prototype, 'url', {
-            getter: function (this: Request) {
-                const nativeRequestUrl = nativeMethods.requestUrlGetter.call(this);
+            overrideDescriptor(window.Request.prototype, 'url', {
+                getter: function (this: Request) {
+                    const nativeRequestUrl = nativeMethods.requestUrlGetter.call(this);
 
-                return sandbox.proxyless ? nativeRequestUrl : getDestinationUrl(nativeRequestUrl);
-            },
-        });
+                    return sandbox.proxyless ? nativeRequestUrl : getDestinationUrl(nativeRequestUrl);
+                },
+            });
 
-        overrideDescriptor(window.Request.prototype, 'referrer', {
-            getter: function (this: Request) {
-                const nativeReferrer = nativeMethods.requestReferrerGetter.call(this);
+            overrideDescriptor(window.Request.prototype, 'referrer', {
+                getter: function (this: Request) {
+                    const nativeReferrer = nativeMethods.requestReferrerGetter.call(this);
 
-                return sandbox.proxyless ? nativeReferrer : getDestinationUrl(nativeReferrer);
-            },
-        });
+                    return sandbox.proxyless ? nativeReferrer : getDestinationUrl(nativeReferrer);
+                },
+            });
+
+            overrideDescriptor(window.Response.prototype, 'url', {
+                getter: function () {
+                    const nativeResponseUrl = nativeMethods.responseUrlGetter.call(this);
+
+                    return sandbox.proxyless ? nativeResponseUrl : getDestinationUrl(nativeResponseUrl);
+                },
+            });
+
+            overrideFunction(window.Headers.prototype, 'entries', FetchSandbox._entriesWrapper);
+
+            overrideFunction(window.Headers.prototype, Symbol.iterator, FetchSandbox._entriesWrapper);
+
+            overrideFunction(window.Headers.prototype, 'values', FetchSandbox._valuesWrapper);
+
+            overrideFunction(window.Headers.prototype, 'forEach', function (this: Headers, ...args: Parameters<Headers['forEach']>) {
+                const callback = args[0];
+
+                if (typeof callback === 'function') {
+                    args[0] = function (value, name, headers) {
+                        value = FetchSandbox._removeAuthHeadersPrefix(name, value);
+
+                        callback.call(this, value, name, headers);
+                    };
+                }
+
+                return nativeMethods.headersForEach.apply(this, args);
+            });
+
+            overrideFunction(window.Headers.prototype, 'get', function (this: Headers, ...args: Parameters<Headers['get']>) {
+                const value = nativeMethods.headersGet.apply(this, args);
+
+                return value && FetchSandbox._removeAuthHeadersPrefix(args[0], value);
+            });
+
+            overrideFunction(window.Headers.prototype, 'set', function (this: Headers, ...args: Parameters<Headers['set']>) {
+                if (isAuthorizationHeader(args[0]))
+                    args[1] = addAuthorizationPrefix(args[1]);
+
+                return nativeMethods.headersSet.apply(this, args);
+            });
+        }
 
         overrideFunction(window, 'fetch', function (this: Window, ...args: Parameters<Window['fetch']>) {
-            if (sandbox.gettingSettingInProgress())
+            if (!sandbox.proxyless && sandbox.gettingSettingInProgress())
                 return sandbox.delayUntilGetSettings(() => this.fetch.apply(this, args));
 
             // NOTE: Safari processed the empty `fetch()` request without `Promise` rejection (GH-1613)
             if (!args.length && !browserUtils.isSafari)
                 return nativeMethods.fetch.apply(this, args);
+
+            if (sandbox.proxyless) {
+                const fetchPromise = nativeMethods.fetch.apply(this, args);
+
+                sandbox.emit(sandbox.FETCH_REQUEST_SENT_EVENT, fetchPromise);
+
+                return fetchPromise;
+            }
 
             try {
                 FetchSandbox._processArguments(args, sandbox.proxyless);
@@ -194,46 +245,6 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
 
                 return response;
             });
-        });
-
-        overrideDescriptor(window.Response.prototype, 'url', {
-            getter: function () {
-                const nativeResponseUrl = nativeMethods.responseUrlGetter.call(this);
-
-                return sandbox.proxyless ? nativeResponseUrl : getDestinationUrl(nativeResponseUrl);
-            },
-        });
-
-        overrideFunction(window.Headers.prototype, 'entries', FetchSandbox._entriesWrapper);
-        overrideFunction(window.Headers.prototype, Symbol.iterator, FetchSandbox._entriesWrapper);
-
-        overrideFunction(window.Headers.prototype, 'values', FetchSandbox._valuesWrapper);
-
-        overrideFunction(window.Headers.prototype, 'forEach', function (this: Headers, ...args: Parameters<Headers['forEach']>) {
-            const callback = args[0];
-
-            if (typeof callback === 'function') {
-                args[0] = function (value, name, headers) {
-                    value = FetchSandbox._removeAuthHeadersPrefix(name, value);
-
-                    callback.call(this, value, name, headers);
-                };
-            }
-
-            return nativeMethods.headersForEach.apply(this, args);
-        });
-
-        overrideFunction(window.Headers.prototype, 'get', function (this: Headers, ...args: Parameters<Headers['get']>) {
-            const value = nativeMethods.headersGet.apply(this, args);
-
-            return value && FetchSandbox._removeAuthHeadersPrefix(args[0], value);
-        });
-
-        overrideFunction(window.Headers.prototype, 'set', function (this: Headers, ...args: Parameters<Headers['set']>) {
-            if (isAuthorizationHeader(args[0]))
-                args[1] = addAuthorizationPrefix(args[1]);
-
-            return nativeMethods.headersSet.apply(this, args);
         });
     }
 }
