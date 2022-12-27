@@ -89,7 +89,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
     private static _propertyGetter (owner: any, propName: any, optional = false) {
         if (isNullOrUndefined(owner) && !optional)
-            PropertyAccessorsInstrumentation._error(`Cannot read property '${propName}' of ${inaccessibleTypeToStr(owner)}`);
+            return void 0;
 
         if (typeof propName === 'string' && shouldInstrumentProperty(propName)) {
             if (optional && isNullOrUndefined(owner))
