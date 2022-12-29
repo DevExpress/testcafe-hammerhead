@@ -96,7 +96,7 @@ function processSetCookieHeader (src: string | string[], ctx: RequestPipelineCon
 }
 
 function transformContentDispositionHeader (src: string, ctx: RequestPipelineContext) {
-    return ctx.contentInfo.isAttachment && !(src && src.includes('attachment')) ? 'attachment;' + src || '' : src;
+    return ctx.contentInfo.isAttachment && !(src && src.includes('attachment')) ? 'attachment;' + (src || '') : src;
 }
 
 // Request headers
