@@ -16,3 +16,9 @@ export function isPrimitiveType (obj) {
 
     return objType !== 'object' && objType !== 'function';
 }
+
+export function isLooseNull (obj) {
+    //Some times IE cannot compare null correctly
+    // eslint-disable-next-line eqeqeq
+    return obj == null;
+}
