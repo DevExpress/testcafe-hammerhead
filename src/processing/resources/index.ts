@@ -13,7 +13,18 @@ const DISK_RE     = /^[A-Za-z]:/;
 const RESOURCE_PROCESSORS = [pageProcessor, manifestProcessor, scriptProcessor, stylesheetProcessor];
 
 function getResourceUrlReplacer (ctx: RequestPipelineContext): Function {
-    return function (resourceUrl: string, resourceType: string, charsetAttrValue: string, baseUrl: string, isCrossDomain: boolean) {
+    return function urlReplacer (resourceUrl: string, resourceType: string, charsetAttrValue: string, baseUrl: string, isCrossDomain = false) {
+        if (urlUtil.parseResourceType(resourceType).isUrlsSet) {
+            return resourceUrl
+                .split(',')
+                .map(urlStr => urlStr.trim().split(' '))
+                .map(([urlStr, postUrlStr]) => {
+                    return urlReplacer(urlStr, '', charsetAttrValue, baseUrl, isCrossDomain) +
+                    (postUrlStr ? ` ${postUrlStr}` : '');
+                })
+                .join(',');
+        }
+
         if (!urlUtil.isSupportedProtocol(resourceUrl) && !urlUtil.isSpecialPage(resourceUrl))
             return resourceUrl;
 
