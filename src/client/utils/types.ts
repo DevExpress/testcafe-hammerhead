@@ -3,6 +3,8 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
+import { isIE } from './browser';
+
 export function inaccessibleTypeToStr (obj) {
     return obj === null ? 'null' : 'undefined';
 }
@@ -17,8 +19,10 @@ export function isPrimitiveType (obj) {
     return objType !== 'object' && objType !== 'function';
 }
 
-export function isLooseNull (obj) {
+export function isNull (obj) {
     //Some times IE cannot compare null correctly
+    return isIE
     // eslint-disable-next-line eqeqeq
-    return obj == null;
+        ? obj == null
+        : obj === null;
 }

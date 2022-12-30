@@ -18,7 +18,7 @@ import {
 import { CookieRecord } from '../../../typings/cookie';
 import ChildWindowSandbox from '../child-window';
 import getTopOpenerWindow from '../../utils/get-top-opener-window';
-import { isLooseNull } from '../../utils/types';
+import { isNull } from '../../utils/types';
 
 const MIN_DATE_VALUE = new nativeMethods.date(0).toUTCString(); // eslint-disable-line new-cap
 
@@ -104,7 +104,7 @@ class CookieSandboxProxyStrategy implements CookieSandboxStrategy {
             let clientCookieStr = null;
 
             if ((!parsedCookie.expires || parsedCookie.expires === 'Infinity' || parsedCookie.expires > currentDate) &&
-                (isLooseNull(parsedCookie.maxAge) || isNaN(parsedCookie.maxAge) || parsedCookie.maxAge > 0))
+                (isNull(parsedCookie.maxAge) || isNaN(parsedCookie.maxAge) || parsedCookie.maxAge > 0))
                 clientCookieStr = cookieUtils.formatClientString(parsedCookie);
 
             CookieSandbox._updateClientCookieStr(parsedCookie.key, clientCookieStr);
@@ -137,7 +137,7 @@ class CookieSandboxProxyStrategy implements CookieSandboxStrategy {
                 this.setCookie(parsedCookie);
             else if (gettingCookies && parsedCookie.isClientSync) {
                 const currentDate = cookieUtils.getUTCDate();
-                const maxAge      = !isLooseNull(parsedCookie.maxAge) && Number(parsedCookie.maxAge);
+                const maxAge      = !isNull(parsedCookie.maxAge) && Number(parsedCookie.maxAge);
                 const expires     = Number(parsedCookie.expires);
 
                 if (!isNaN(maxAge) && maxAge * 1000 < currentDate.getTime() - parsedCookie.lastAccessed.getTime() ||
