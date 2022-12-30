@@ -1,7 +1,4 @@
-// -------------------------------------------------------------
-// WARNING: this file is used by both the client and the server.
-// Do not use any browser or node-specific API!
-// -------------------------------------------------------------
+import { isIE } from './browser';
 
 export function inaccessibleTypeToStr (obj) {
     return obj === null ? 'null' : 'undefined';
@@ -15,4 +12,12 @@ export function isPrimitiveType (obj) {
     const objType = typeof obj;
 
     return objType !== 'object' && objType !== 'function';
+}
+
+export function isNull (obj) {
+    //Some times IE cannot compare null correctly
+    return isIE
+    // eslint-disable-next-line eqeqeq
+        ? obj == null
+        : obj === null;
 }

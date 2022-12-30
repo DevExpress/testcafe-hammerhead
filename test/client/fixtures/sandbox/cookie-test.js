@@ -105,7 +105,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
             .then(function () {
                 return testCookies(storedForcedLocation, [
                     'Test1=Expired; expires=' + new Date((Math.floor(Date.now() / 1000) + 1) * 1000).toUTCString(),
-                    'Test2=Expired; max-age=' + 0,
+                    'Test2=Expired; max-age=' + 1,
                 ], '', 2000);
             })
             .then(function () {
@@ -184,6 +184,17 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
         strictEqual(parsedCookie.outdated.length, 0);
         strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln2|');
         strictEqual(parsedCookie.actual[0].value, '123=456=789');
+    });
+
+    test('max age should be null if not specified', function () {
+        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5ln2|=123;path=/');
+
+        var parsedCookie = sharedCookieUtils.parseClientSyncCookieStr(nativeMethods.documentCookieGetter.call(document));
+
+        strictEqual(parsedCookie.actual.length, 1);
+        strictEqual(parsedCookie.outdated.length, 0);
+        strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln2|');
+        strictEqual(parsedCookie.actual[0].maxAge, null);
     });
 
     module('server synchronization with client');

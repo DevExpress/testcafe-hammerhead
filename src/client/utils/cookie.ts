@@ -62,7 +62,9 @@ export function parse (str) {
                 break;
 
             case 'max-age':
-                parsedCookie.maxAge = Number(value);
+                if (value)
+                    parsedCookie.maxAge = Number(value);
+
                 break;
 
             case 'path':
