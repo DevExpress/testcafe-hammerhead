@@ -83,8 +83,10 @@ export default class Proxy extends Router {
 
         super(prepareOptions);
 
-        // NOTE: to avoid https://github.com/nodejs/node/issues/40537
-        dns.setDefaultResultOrder('ipv4first');
+        // NOTE: to avoid https://github.com/DevExpress/testcafe/issues/7447
+        if (typeof dns.setDefaultResultOrder === 'function')
+            // NOTE: to avoid https://github.com/nodejs/node/issues/40537
+            dns.setDefaultResultOrder('ipv4first');
 
         const {
             ssl,
