@@ -56,7 +56,6 @@ const RESOURCE_TYPES = [
     { name: 'isServiceWorker', flag: 'c' },
     { name: 'isAjax', flag: 'a' },
     { name: 'isObject', flag: 'o' },
-    { name: 'isUrlsSet', flag: 'u' },
 ] as { name: keyof ResourceType, flag: string }[];
 
 export function parseResourceType (resourceType: string): ResourceType {
