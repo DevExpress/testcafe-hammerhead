@@ -283,7 +283,7 @@ export default class WindowSandbox extends SandboxBase {
         else if (!isValidUrl(attrValue))
             return urlResolver.resolve(attrValue, currentDocument);
 
-        return resolveUrlAsDest(attrValue);
+        return resolveUrlAsDest(attrValue, attr === 'srcset');
     }
 
     static _removeProcessingInstructions (text: string): string {

@@ -46,6 +46,11 @@ function getCharsetFromDocument (parsedResourceType: ResourceType): string | nul
 }
 
 export let getProxyUrl = function (url: string | URL, opts?, proxyless = false): string {
+    if (opts?.isUrlsSet) {
+        opts.isUrlsSet = false;
+        return sharedUrlUtils.handleUrlsSet(getProxyUrl, String(url), opts, proxyless);
+    }
+
     if (proxyless)
         return String(url);
 
@@ -232,8 +237,8 @@ export function getCrossDomainProxyPort (proxyPort: string) {
         : settings.get().crossDomainProxyPort;
 }
 
-export let resolveUrlAsDest = function (url: string) {
-    return sharedUrlUtils.resolveUrlAsDest(url, getProxyUrl);
+export let resolveUrlAsDest = function (url: string, isUrlsSet = false) {
+    return sharedUrlUtils.resolveUrlAsDest(url, getProxyUrl, isUrlsSet);
 };
 
 export function overrideResolveUrlAsDest (func: typeof resolveUrlAsDest): void {

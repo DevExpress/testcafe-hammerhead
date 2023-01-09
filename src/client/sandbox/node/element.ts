@@ -86,12 +86,16 @@ export default class ElementSandbox extends SandboxBase {
             return;
 
         const imgSrc            = nativeMethods.imageSrcGetter.call(img);
+        const imgSrcset         = nativeMethods.imageSrcsetGetter.call(img);
         const skipNextLoadEvent = !!imgSrc && img.complete && !img[INTERNAL_PROPS.cachedImage];
 
         img[INTERNAL_PROPS.forceProxySrcForImage] = true;
 
         if (imgSrc)
             img.setAttribute('src', imgSrc);
+
+        if (imgSrcset)
+            img.setAttribute('srcset', imgSrcset);
 
         img[INTERNAL_PROPS.skipNextLoadEventForImage] = skipNextLoadEvent;
     }
@@ -148,6 +152,7 @@ export default class ElementSandbox extends SandboxBase {
         const tagName     = domUtils.getTagName(el);
         const isUrlAttr   = domProcessor.isUrlAttr(el, attr, ns);
         const isEventAttr = domProcessor.EVENTS.indexOf(attr) !== -1;
+        const isUrlsSet   = attr === 'srcset';
 
         let needToCallTargetChanged = false;
         let needToRecalcHref        = false;
@@ -201,15 +206,12 @@ export default class ElementSandbox extends SandboxBase {
                     else {
                         args[valueIndex] = isIframe && isCrossDomainUrl
                             ? urlUtils.getCrossDomainIframeProxyUrl(value)
-                            : urlUtils.getProxyUrl(value, { resourceType, charset: elCharset, doc: currentDocument });
+                            : urlUtils.getProxyUrl(value, { resourceType, charset: elCharset, doc: currentDocument, isUrlsSet });
                     }
                 }
             }
-            else if (value && !isSpecialPage && !urlUtils.parseProxyUrl(value)) {
-                args[valueIndex] = el[INTERNAL_PROPS.forceProxySrcForImage]
-                    ? urlUtils.getProxyUrl(value)
-                    : urlUtils.resolveUrlAsDest(value);
-            }
+            else if (value && !isSpecialPage && !urlUtils.parseProxyUrl(value))
+                args[valueIndex] = urlUtils.resolveUrlAsDest(value, isUrlsSet);
 
             if (!nativeMethods.nodeParentNodeGetter.call(el)) {
                 nativeMethods.objectDefineProperty(el, INTERNAL_PROPS.currentBaseUrl, {

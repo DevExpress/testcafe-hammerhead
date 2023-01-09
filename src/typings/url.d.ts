@@ -10,7 +10,6 @@ export interface ResourceType {
     isServiceWorker?: boolean;
     isAjax?: boolean;
     isObject?: boolean;
-    isUrlsSet?: boolean;
 }
 
 export interface ParsedUrl {

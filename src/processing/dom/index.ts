@@ -63,7 +63,7 @@ interface ElementProcessingPattern {
     relAttr?: string;
 }
 
-type UrlReplacer = (url: string, resourceType?: string, charset?: string, isCrossDomain?: boolean) => string;
+type UrlReplacer = (url: string, resourceType?: string, charset?: string, isCrossDomain?: boolean, isUrlsSet?: boolean) => string;
 
 export default class DomProcessor {
     readonly HTML_PROCESSING_REQUIRED_EVENT = 'hammerhead|event|html-processing-required';
@@ -310,7 +310,7 @@ export default class DomProcessor {
     }
 
     // Utils
-    getElementResourceType (el: HTMLElement, attr?: string): string | null {
+    getElementResourceType (el: HTMLElement): string | null {
         const tagName = this.adapter.getTagName(el);
 
         if (tagName === 'link' && (this._getAsAttribute(el) === PROCESSED_PRELOAD_LINK_CONTENT_TYPE ||
@@ -323,7 +323,6 @@ export default class DomProcessor {
             isScript:     tagName === 'script',
             isHtmlImport: tagName === 'link' && this._getRelAttribute(el) === 'import',
             isObject:     tagName === 'object',
-            isUrlsSet:    attr === 'srcset',
         });
     }
 
@@ -621,7 +620,7 @@ export default class DomProcessor {
         const isIframe  = elTagName === 'iframe' || elTagName === 'frame';
         const isScript  = elTagName === 'script';
         const isAnchor  = elTagName === 'a';
-        const isSrcSet  = pattern.urlAttr === 'srcset';
+        const isUrlsSet = pattern.urlAttr === 'srcset';
         const target    = pattern.targetAttr ? this.adapter.getAttr(el, pattern.targetAttr) : null;
 
         // NOTE: Elements with target=_parent shouldn’t be processed on the server,because we don't
@@ -629,7 +628,7 @@ export default class DomProcessor {
         if (!this.adapter.needToProcessUrl(elTagName, target || ''))
             return;
 
-        const resourceType         = this.getElementResourceType(el, pattern.urlAttr) || '';
+        const resourceType         = this.getElementResourceType(el) || '';
         const parsedResourceUrl    = parseUrl(resourceUrl);
         const isRelativePath       = parsedResourceUrl.protocol !== 'file:' && !parsedResourceUrl.host;
         const charsetAttrValue     = isScript && this.adapter.getAttr(el, 'charset') || '';
@@ -645,9 +644,9 @@ export default class DomProcessor {
             isCrossDomainSrc = !this.adapter.sameOriginCheck(parsedProxyUrl.destUrl, resourceUrl);
 
         if ((!isSpecialPageUrl || isAnchor) && !isImgWithoutSrc && !isIframeWithEmptySrc) {
-            proxyUrl = elTagName === 'img' && !this.forceProxySrcForImage && !isSrcSet
+            proxyUrl = elTagName === 'img' && !this.forceProxySrcForImage && !isUrlsSet
                 ? resolveUrlAsDest(resourceUrl, urlReplacer)
-                : urlReplacer(resourceUrl, resourceType, charsetAttrValue, isCrossDomainSrc);
+                : urlReplacer(resourceUrl, resourceType, charsetAttrValue, isCrossDomainSrc, isUrlsSet);
         }
 
         this.adapter.setAttr(el, storedUrlAttr, resourceUrl);

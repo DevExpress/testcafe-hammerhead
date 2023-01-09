@@ -199,6 +199,7 @@ class NativeMethods {
     inputRequiredSetter: any;
     textAreaValueSetter: any;
     imageSrcSetter: any;
+    imageSrcsetSetter: any;
     scriptSrcSetter: any;
     embedSrcSetter: any;
     sourceSrcSetter: any;
@@ -267,6 +268,7 @@ class NativeMethods {
     inputRequiredGetter: any;
     textAreaValueGetter: any;
     imageSrcGetter: any;
+    imageSrcsetGetter: any;
     scriptSrcGetter: any;
     embedSrcGetter: any;
     sourceSrcGetter: any;
@@ -722,6 +724,7 @@ class NativeMethods {
         const inputRequiredDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'required');
         const textAreaValueDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLTextAreaElement.prototype, 'value');
         const imageSrcDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLImageElement.prototype, 'src');
+        const imageSrcsetDescriptor          = win.Object.getOwnPropertyDescriptor(win.HTMLImageElement.prototype, 'srcset');
         const scriptSrcDescriptor            = win.Object.getOwnPropertyDescriptor(win.HTMLScriptElement.prototype, 'src');
         const scriptIntegrityDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLScriptElement.prototype, 'integrity');
         const embedSrcDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLEmbedElement.prototype, 'src');
@@ -792,6 +795,7 @@ class NativeMethods {
         this.inputRequiredSetter     = inputRequiredDescriptor.set;
         this.textAreaValueSetter     = textAreaValueDescriptor.set;
         this.imageSrcSetter          = imageSrcDescriptor.set;
+        this.imageSrcsetSetter       = imageSrcsetDescriptor.set;
         this.scriptSrcSetter         = scriptSrcDescriptor.set;
         this.embedSrcSetter          = embedSrcDescriptor.set;
         this.sourceSrcSetter         = sourceSrcDescriptor.set;
@@ -857,6 +861,7 @@ class NativeMethods {
         this.inputRequiredGetter            = inputRequiredDescriptor.get;
         this.textAreaValueGetter            = textAreaValueDescriptor.get;
         this.imageSrcGetter                 = imageSrcDescriptor.get;
+        this.imageSrcsetGetter              = imageSrcsetDescriptor.get;
         this.scriptSrcGetter                = scriptSrcDescriptor.get;
         this.embedSrcGetter                 = embedSrcDescriptor.get;
         this.sourceSrcGetter                = sourceSrcDescriptor.get;
