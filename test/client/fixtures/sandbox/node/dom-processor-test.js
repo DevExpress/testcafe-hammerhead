@@ -634,7 +634,16 @@ test('add element with `formaction` tag to the form', function () {
 });
 
 
-module('should create a proxy url for the img src attribute if the image has the load handler (GH-651)', function () {
+module('should create a proxy url for the img src and srcset attributes if the image has the load handler (GH-651)', function () {
+    function createUrlsSet (url, size) {
+        const urlsSet = [];
+
+        for (var i = 0; i < size; i++)
+            urlsSet.push(`${url} ${i + 1}x`);
+
+        return urlsSet.join(',');
+    }
+
     module('onload property', function () {
         var origin = location.origin || location.protocol + location.host;
 
@@ -797,6 +806,53 @@ module('should create a proxy url for the img src attribute if the image has the
             img.addEventListener('load', function () {});
 
             strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
+        });
+
+        test('attach the load handler before setting up the srcset', function () {
+            var img         = document.createElement('img');
+            var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
+            var imgProxyUrl = urlUtils.getProxyUrl(imgUrl);
+            var listener    = function () {};
+            var setSize     = 2;
+
+            var imgUrlsSet      = createUrlsSet(imgUrl, setSize);
+            var imgProxyUrlsSet = createUrlsSet(imgProxyUrl, setSize);
+
+            img.addEventListener('load', listener);
+            img.setAttribute('srcset', imgUrlsSet);
+
+            strictEqual(nativeMethods.imageSrcsetGetter.call(img), imgProxyUrlsSet);
+
+            img.removeEventListener('load', listener);
+
+            strictEqual(nativeMethods.imageSrcsetGetter.call(img), imgProxyUrlsSet);
+
+            img.setAttribute('src', imgUrlsSet);
+
+            strictEqual(nativeMethods.imageSrcsetGetter.call(img), imgProxyUrlsSet);
+        });
+
+        test('attach the load handler after setting up the srcset', function () {
+            var img         = document.createElement('img');
+            var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
+            var imgProxyUrl = urlUtils.getProxyUrl(imgUrl);
+            var setSize     = 2;
+
+            var imgUrlsSet      = createUrlsSet(imgUrl, setSize);
+            var imgProxyUrlsSet = createUrlsSet(imgProxyUrl, setSize);
+
+            img.setAttribute('srcset', imgUrlsSet);
+
+            var imgSrcset = [];
+
+            for (const imgSrc of nativeMethods.imageSrcsetGetter.call(img).split(','))
+                imgSrcset.push(urlUtils.parseUrl(imgSrc).partAfterHost);
+
+            strictEqual(imgSrcset.join(','), imgUrlsSet);
+
+            img.addEventListener('load', function () {});
+
+            strictEqual(nativeMethods.imageSrcsetGetter.call(img), imgProxyUrlsSet);
         });
     });
 });
