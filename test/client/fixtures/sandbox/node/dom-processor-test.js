@@ -9,6 +9,7 @@ var urlUtils       = hammerhead.utils.url;
 var sharedUrlUtils = hammerhead.sharedUtils.url;
 var destLocation   = hammerhead.utils.destLocation;
 var eventSimulator = hammerhead.sandbox.event.eventSimulator;
+var browserUtils   = hammerhead.utils.browser;
 
 var nativeMethods  = hammerhead.nativeMethods;
 var elementSandbox = hammerhead.sandbox.node.element;
@@ -636,10 +637,10 @@ test('add element with `formaction` tag to the form', function () {
 
 module('should create a proxy url for the img src and srcset attributes if the image has the load handler (GH-651)', function () {
     function createUrlsSet (url, size) {
-        const urlsSet = [];
+        var urlsSet = [];
 
         for (var i = 0; i < size; i++)
-            urlsSet.push(`${url} ${i + 1}x`);
+            urlsSet.push(url + ' ' + (i + 1) + 'x');
 
         return urlsSet.join(',');
     }
@@ -808,52 +809,55 @@ module('should create a proxy url for the img src and srcset attributes if the i
             strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
         });
 
-        test('attach the load handler before setting up the srcset', function () {
-            var img         = document.createElement('img');
-            var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
-            var imgProxyUrl = urlUtils.getProxyUrl(imgUrl);
-            var listener    = function () {};
-            var setSize     = 2;
+        // NOTE: IE11 doesn't support the 'srcset' property
+        if (!browserUtils.isIE) {
+            test('attach the load handler before setting up the srcset', function () {
+                var img         = document.createElement('img');
+                var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
+                var imgProxyUrl = urlUtils.getProxyUrl(imgUrl);
+                var listener    = function () {};
+                var setSize     = 2;
 
-            var imgUrlsSet      = createUrlsSet(imgUrl, setSize);
-            var imgProxyUrlsSet = createUrlsSet(imgProxyUrl, setSize);
+                var imgUrlsSet      = createUrlsSet(imgUrl, setSize);
+                var imgProxyUrlsSet = createUrlsSet(imgProxyUrl, setSize);
 
-            img.addEventListener('load', listener);
-            img.setAttribute('srcset', imgUrlsSet);
+                img.addEventListener('load', listener);
+                img.setAttribute('srcset', imgUrlsSet);
 
-            strictEqual(nativeMethods.imageSrcsetGetter.call(img), imgProxyUrlsSet);
+                strictEqual(nativeMethods.imageSrcsetGetter.call(img), imgProxyUrlsSet);
 
-            img.removeEventListener('load', listener);
+                img.removeEventListener('load', listener);
 
-            strictEqual(nativeMethods.imageSrcsetGetter.call(img), imgProxyUrlsSet);
+                strictEqual(nativeMethods.imageSrcsetGetter.call(img), imgProxyUrlsSet);
 
-            img.setAttribute('src', imgUrlsSet);
+                img.setAttribute('src', imgUrlsSet);
 
-            strictEqual(nativeMethods.imageSrcsetGetter.call(img), imgProxyUrlsSet);
-        });
+                strictEqual(nativeMethods.imageSrcsetGetter.call(img), imgProxyUrlsSet);
+            });
 
-        test('attach the load handler after setting up the srcset', function () {
-            var img         = document.createElement('img');
-            var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
-            var imgProxyUrl = urlUtils.getProxyUrl(imgUrl);
-            var setSize     = 2;
+            test('attach the load handler after setting up the srcset', function () {
+                var img         = document.createElement('img');
+                var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
+                var imgProxyUrl = urlUtils.getProxyUrl(imgUrl);
+                var setSize     = 2;
 
-            var imgUrlsSet      = createUrlsSet(imgUrl, setSize);
-            var imgProxyUrlsSet = createUrlsSet(imgProxyUrl, setSize);
+                var imgUrlsSet      = createUrlsSet(imgUrl, setSize);
+                var imgProxyUrlsSet = createUrlsSet(imgProxyUrl, setSize);
 
-            img.setAttribute('srcset', imgUrlsSet);
+                img.setAttribute('srcset', imgUrlsSet);
 
-            var imgSrcset = [];
+                var imgSrcset = nativeMethods.imageSrcsetGetter.call(img).split(',');
 
-            for (const imgSrc of nativeMethods.imageSrcsetGetter.call(img).split(','))
-                imgSrcset.push(urlUtils.parseUrl(imgSrc).partAfterHost);
+                for (let i = 0; i < imgSrcset.length; i++)
+                    imgSrcset[i] = urlUtils.parseUrl(imgSrcset[i]).partAfterHost;
 
-            strictEqual(imgSrcset.join(','), imgUrlsSet);
+                strictEqual(imgSrcset.join(','), imgUrlsSet);
 
-            img.addEventListener('load', function () {});
+                img.addEventListener('load', function () {});
 
-            strictEqual(nativeMethods.imageSrcsetGetter.call(img), imgProxyUrlsSet);
-        });
+                strictEqual(nativeMethods.imageSrcsetGetter.call(img), imgProxyUrlsSet);
+            });
+        }
     });
 });
 

@@ -795,7 +795,6 @@ class NativeMethods {
         this.inputRequiredSetter     = inputRequiredDescriptor.set;
         this.textAreaValueSetter     = textAreaValueDescriptor.set;
         this.imageSrcSetter          = imageSrcDescriptor.set;
-        this.imageSrcsetSetter       = imageSrcsetDescriptor.set;
         this.scriptSrcSetter         = scriptSrcDescriptor.set;
         this.embedSrcSetter          = embedSrcDescriptor.set;
         this.sourceSrcSetter         = sourceSrcDescriptor.set;
@@ -861,7 +860,6 @@ class NativeMethods {
         this.inputRequiredGetter            = inputRequiredDescriptor.get;
         this.textAreaValueGetter            = textAreaValueDescriptor.get;
         this.imageSrcGetter                 = imageSrcDescriptor.get;
-        this.imageSrcsetGetter              = imageSrcsetDescriptor.get;
         this.scriptSrcGetter                = scriptSrcDescriptor.get;
         this.embedSrcGetter                 = embedSrcDescriptor.get;
         this.sourceSrcGetter                = sourceSrcDescriptor.get;
@@ -968,6 +966,13 @@ class NativeMethods {
             this.htmlManifestGetter = htmlManifestDescriptor.get;
             this.htmlManifestSetter = htmlManifestDescriptor.set;
         }
+
+        // NOTE: IE11 doesn't support the 'srcset' property
+        if (iframeSrcdocDescriptor) {
+            this.imageSrcsetSetter = imageSrcsetDescriptor.set;
+            this.imageSrcsetGetter = imageSrcsetDescriptor.get;
+        }
+
 
         this.titleElementTextGetter = titleElementTextDescriptor.get;
 
