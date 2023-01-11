@@ -69,21 +69,21 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
                     'Test10=' + new Array(350).join('(big cookie)'),
                     'value without key',
                     'Test11=Outdated; max-age=0; path=/',
-                ], 'Test1=Basic; Test2=PathMatch; Test4=DomainMatch; Test7=Secure; Test9=Duplicate; value without key', 5000);
+                ], 'Test1=Basic; Test2=PathMatch; Test4=DomainMatch; Test7=Secure; Test9=Duplicate; value without key');
             })
             .then(function () {
                 return testCookies('http://localhost', [
                     'Test1=DomainMatch; expires=' + validDateStr + '; domain=localhost',
                     'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=localhost:80',
                     'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=127.0.0.1',
-                ], 'Test1=DomainMatch', 5000);
+                ], 'Test1=DomainMatch');
             })
             .then(function () {
                 return testCookies('http://127.0.0.1', [
                     'Test1=DomainMatch; expires=' + validDateStr + '; domain=127.0.0.1',
                     'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=127.0.0.1:80',
                     'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=localhost',
-                ], 'Test1=DomainMatch', 5000);
+                ], 'Test1=DomainMatch');
             })
             .then(function () {
                 return testCookies('http://sub.example.com/', [
@@ -96,7 +96,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
                     'Test7=DomainNotMatch; domain=sub.example',
                     'Test8=DomainNotMatch; domain=example.co',
                     'Test9=DomainNotMatch; domain=b.example.com',
-                ], 'Test1=DomainMatch; Test2=DomainMatch; Test3=DomainMatch; Test4=DomainMatch; Test5=DomainMatch', 5000);
+                ], 'Test1=DomainMatch; Test2=DomainMatch; Test3=DomainMatch; Test4=DomainMatch; Test5=DomainMatch');
             })
             .then(function () {
                 return testCookies(storedForcedLocation, [
