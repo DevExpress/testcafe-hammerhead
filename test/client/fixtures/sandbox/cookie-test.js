@@ -29,6 +29,8 @@ function clearCookie () {
     settings.get().cookie = '';
 }
 
+//unstable tests
+
 if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
     QUnit.testDone(function () {
         clearCookie();
