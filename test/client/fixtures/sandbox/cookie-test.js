@@ -69,7 +69,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
                     'Test10=' + new Array(350).join('(big cookie)'),
                     'value without key',
                     'Test11=Outdated; max-age=0; path=/',
-                ], 'Test1=Basic; Test2=PathMatch; Test4=DomainMatch; Test7=Secure; Test9=Duplicate; value without key');
+                ], 'Test1=Basic; Test2=PathMatch; Test4=DomainMatch; Test7=Secure; Test9=Duplicate; value without key', 10);
             })
             .then(function () {
                 return testCookies('http://localhost', [
@@ -96,7 +96,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
                     'Test7=DomainNotMatch; domain=sub.example',
                     'Test8=DomainNotMatch; domain=example.co',
                     'Test9=DomainNotMatch; domain=b.example.com',
-                ], 'Test1=DomainMatch; Test2=DomainMatch; Test3=DomainMatch; Test4=DomainMatch; Test5=DomainMatch');
+                ], 'Test1=DomainMatch; Test2=DomainMatch; Test3=DomainMatch; Test4=DomainMatch; Test5=DomainMatch', 10);
             })
             .then(function () {
                 return testCookies(storedForcedLocation, [
