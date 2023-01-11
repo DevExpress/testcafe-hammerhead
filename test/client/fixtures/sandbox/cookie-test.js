@@ -76,14 +76,14 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
                     'Test1=DomainMatch; expires=' + validDateStr + '; domain=localhost',
                     'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=localhost:80',
                     'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=127.0.0.1',
-                ], 'Test1=DomainMatch');
+                ], 'Test1=DomainMatch', 10);
             })
             .then(function () {
                 return testCookies('http://127.0.0.1', [
                     'Test1=DomainMatch; expires=' + validDateStr + '; domain=127.0.0.1',
                     'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=127.0.0.1:80',
                     'Test2=DomainNotMatch; expires=' + validDateStr + '; domain=localhost',
-                ], 'Test1=DomainMatch');
+                ], 'Test1=DomainMatch', 10);
             })
             .then(function () {
                 return testCookies('http://sub.example.com/', [
