@@ -1088,6 +1088,24 @@ if (window.HTMLElement.prototype.attachShadow) {
         document.body.removeChild(host);
     });
 
+    test('"findParent" should work properly for elements inside shadowDOM', function () {
+        var host  = document.createElement('div');
+        var root  = host.attachShadow({ mode: 'open' });
+        var div   = document.createElement('div');
+        var input = document.createElement('input');
+
+        nativeMethods.setAttribute.call(host, 'id', 'host');
+
+        document.body.appendChild(host);
+        div.appendChild(input);
+        root.appendChild(div);
+
+        var parent = domUtils.findParent(input, false, (el) => !domUtils.isShadowRoot(el) && nativeMethods.getAttribute.call(el, 'id') === 'host');
+
+        deepEqual(parent, host);
+        document.body.removeChild(host);
+    });
+
     test('"getParents" should work property for elements with slots/templates', function () {
         var template = document.createElement('template');
 
