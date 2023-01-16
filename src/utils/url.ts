@@ -320,7 +320,10 @@ export function isSupportedProtocol (url: string): boolean {
     return SUPPORTED_PROTOCOL_RE.test(protocol[0]);
 }
 
-export function resolveUrlAsDest (url: string, getProxyUrlMeth: Function): string {
+export function resolveUrlAsDest (url: string, getProxyUrlMeth: Function, isUrlsSet = false): string {
+    if (isUrlsSet)
+        return handleUrlsSet(resolveUrlAsDest, url, getProxyUrlMeth);
+
     getProxyUrlMeth = getProxyUrlMeth || getProxyUrl;
 
     if (isSupportedProtocol(url)) {
@@ -361,6 +364,23 @@ export function formatUrl (parsedUrl: ParsedUrl): string {
         url += parsedUrl.partAfterHost;
 
     return url;
+}
+
+export function handleUrlsSet (handler: Function, url: string, ...args) {
+    const resourceUrls = url.split(',');
+    const replacedUrls = [] as string[];
+
+    for (const fullUrlStr of resourceUrls) {
+        const [urlStr, postUrlStr] = fullUrlStr.replace(/ +/g, ' ').trim().split(' ');
+
+        if (urlStr) {
+            const replacedUrl = handler(urlStr, ...args);
+
+            replacedUrls.push(replacedUrl + (postUrlStr ? ` ${postUrlStr}` : ''));
+        }
+    }
+
+    return replacedUrls.join(',');
 }
 
 export function correctMultipleSlashes (url: string, pageProtocol = ''): string {

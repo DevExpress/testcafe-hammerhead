@@ -63,7 +63,7 @@ interface ElementProcessingPattern {
     relAttr?: string;
 }
 
-type UrlReplacer = (url: string, resourceType?: string, charset?: string, isCrossDomain?: boolean) => string;
+type UrlReplacer = (url: string, resourceType?: string, charset?: string, isCrossDomain?: boolean, isUrlsSet?: boolean) => string;
 
 export default class DomProcessor {
     readonly HTML_PROCESSING_REQUIRED_EVENT = 'hammerhead|event|html-processing-required';
@@ -151,6 +151,8 @@ export default class DomProcessor {
 
             HAS_SRC_ATTR: (el: HTMLElement) => this.isUrlAttr(el, 'src'),
 
+            HAS_SRCSET_ATTR: (el: HTMLElement) => this.isUrlAttr(el, 'srcset'),
+
             HAS_ACTION_ATTR: (el: HTMLElement) => this.isUrlAttr(el, 'action'),
 
             HAS_FORMACTION_ATTR: (el: HTMLElement) => this.isUrlAttr(el, 'formaction'),
@@ -223,6 +225,12 @@ export default class DomProcessor {
             {
                 selector:          selectors.HAS_SRC_ATTR,
                 urlAttr:           'src',
+                targetAttr:        'target',
+                elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr],
+            },
+            {
+                selector:          selectors.HAS_SRCSET_ATTR,
+                urlAttr:           'srcset',
                 targetAttr:        'target',
                 elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr],
             },
@@ -612,6 +620,7 @@ export default class DomProcessor {
         const isIframe  = elTagName === 'iframe' || elTagName === 'frame';
         const isScript  = elTagName === 'script';
         const isAnchor  = elTagName === 'a';
+        const isUrlsSet = pattern.urlAttr === 'srcset';
         const target    = pattern.targetAttr ? this.adapter.getAttr(el, pattern.targetAttr) : null;
 
         // NOTE: Elements with target=_parent shouldn’t be processed on the server,because we don't
@@ -635,9 +644,9 @@ export default class DomProcessor {
             isCrossDomainSrc = !this.adapter.sameOriginCheck(parsedProxyUrl.destUrl, resourceUrl);
 
         if ((!isSpecialPageUrl || isAnchor) && !isImgWithoutSrc && !isIframeWithEmptySrc) {
-            proxyUrl = elTagName === 'img' && !this.forceProxySrcForImage
+            proxyUrl = elTagName === 'img' && !this.forceProxySrcForImage && !isUrlsSet
                 ? resolveUrlAsDest(resourceUrl, urlReplacer)
-                : urlReplacer(resourceUrl, resourceType, charsetAttrValue, isCrossDomainSrc);
+                : urlReplacer(resourceUrl, resourceType, charsetAttrValue, isCrossDomainSrc, isUrlsSet);
         }
 
         this.adapter.setAttr(el, storedUrlAttr, resourceUrl);

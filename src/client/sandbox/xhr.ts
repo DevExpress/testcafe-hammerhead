@@ -152,7 +152,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         overrideFunction(xmlHttpRequestProto, 'open', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['open']>) { // eslint-disable-line consistent-return
             let url = args[1];
 
-            if (getProxyUrl(url, xhrSandbox.proxyless) === url) {
+            if (getProxyUrl(url, {}, xhrSandbox.proxyless) === url) {
                 XhrSandbox.setRequestOptions(this, this.withCredentials, args);
 
                 return void nativeMethods.xhrOpen.apply(this, args);

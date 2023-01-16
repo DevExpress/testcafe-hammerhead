@@ -3,7 +3,7 @@ import * as sharedUrlUtils from '../../utils/url';
 import * as destLocation from './destination-location';
 import urlResolver from './url-resolver';
 import settings from '../settings';
-import { ResourceType } from '../../typings/url';
+import { ResourceType, ProxyUrlOptions } from '../../typings/url';
 import globalContextInfo from './global-context-info';
 
 
@@ -45,7 +45,12 @@ function getCharsetFromDocument (parsedResourceType: ResourceType): string | nul
     return self.document && document[INTERNAL_PROPS.documentCharset] || null;
 }
 
-export let getProxyUrl = function (url: string | URL, opts?, proxyless = false): string {
+export let getProxyUrl = function (url: string | URL, opts: Partial<ProxyUrlOptions> = {}, proxyless = false): string {
+    if (opts.isUrlsSet) {
+        opts.isUrlsSet = false;
+        return sharedUrlUtils.handleUrlsSet(getProxyUrl, String(url), opts, proxyless);
+    }
+
     if (proxyless)
         return String(url);
 
@@ -232,8 +237,8 @@ export function getCrossDomainProxyPort (proxyPort: string) {
         : settings.get().crossDomainProxyPort;
 }
 
-export let resolveUrlAsDest = function (url: string) {
-    return sharedUrlUtils.resolveUrlAsDest(url, getProxyUrl);
+export let resolveUrlAsDest = function (url: string, isUrlsSet = false) {
+    return sharedUrlUtils.resolveUrlAsDest(url, getProxyUrl, isUrlsSet);
 };
 
 export function overrideResolveUrlAsDest (func: typeof resolveUrlAsDest): void {

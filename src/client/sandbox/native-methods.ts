@@ -199,6 +199,7 @@ class NativeMethods {
     inputRequiredSetter: any;
     textAreaValueSetter: any;
     imageSrcSetter: any;
+    imageSrcsetSetter: any;
     scriptSrcSetter: any;
     embedSrcSetter: any;
     sourceSrcSetter: any;
@@ -267,6 +268,7 @@ class NativeMethods {
     inputRequiredGetter: any;
     textAreaValueGetter: any;
     imageSrcGetter: any;
+    imageSrcsetGetter: any;
     scriptSrcGetter: any;
     embedSrcGetter: any;
     sourceSrcGetter: any;
@@ -722,6 +724,7 @@ class NativeMethods {
         const inputRequiredDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'required');
         const textAreaValueDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLTextAreaElement.prototype, 'value');
         const imageSrcDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLImageElement.prototype, 'src');
+        const imageSrcsetDescriptor          = win.Object.getOwnPropertyDescriptor(win.HTMLImageElement.prototype, 'srcset');
         const scriptSrcDescriptor            = win.Object.getOwnPropertyDescriptor(win.HTMLScriptElement.prototype, 'src');
         const scriptIntegrityDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLScriptElement.prototype, 'integrity');
         const embedSrcDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLEmbedElement.prototype, 'src');
@@ -963,6 +966,13 @@ class NativeMethods {
             this.htmlManifestGetter = htmlManifestDescriptor.get;
             this.htmlManifestSetter = htmlManifestDescriptor.set;
         }
+
+        // NOTE: IE11 doesn't support the 'srcset' property
+        if (iframeSrcdocDescriptor) {
+            this.imageSrcsetSetter = imageSrcsetDescriptor.set;
+            this.imageSrcsetGetter = imageSrcsetDescriptor.get;
+        }
+
 
         this.titleElementTextGetter = titleElementTextDescriptor.get;
 

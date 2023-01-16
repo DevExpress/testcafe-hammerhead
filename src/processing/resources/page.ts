@@ -242,8 +242,8 @@ class PageProcessor extends ResourceProcessorBase {
             return this.RESTART_PROCESSING;
 
         const domProcessor = new DomProcessor(domAdapter);
-        const replacer     = (resourceUrl, resourceType, charsetAttrValue, isCrossDomain = false) =>
-            urlReplacer(resourceUrl, resourceType, charsetAttrValue, baseUrl, isCrossDomain);
+        const replacer     = (resourceUrl, resourceType, charsetAttrValue, isCrossDomain = false, isUrlsSet = false) =>
+            urlReplacer(resourceUrl, resourceType, charsetAttrValue, baseUrl, isCrossDomain, isUrlsSet);
 
         domProcessor.forceProxySrcForImage = ctx.session.requestHookEventProvider.hasRequestEventListeners();
         domProcessor.allowMultipleWindows  = ctx.session.options.allowMultipleWindows;

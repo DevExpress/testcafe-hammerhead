@@ -56,4 +56,6 @@ export interface ProxyUrlOptions {
     proxyPort: string;
     windowId?: string;
     credentials?: Credentials;
+    isUrlsSet?: boolean;
+    doc?: Document;
 }
