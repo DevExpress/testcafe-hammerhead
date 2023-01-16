@@ -1100,7 +1100,11 @@ if (window.HTMLElement.prototype.attachShadow) {
         div.appendChild(input);
         root.appendChild(div);
 
-        var parent = domUtils.findParent(input, false, (el) => !domUtils.isShadowRoot(el) && nativeMethods.getAttribute.call(el, 'id') === 'host');
+        function findParenPredicate (el) {
+            return !domUtils.isShadowRoot(el) && nativeMethods.getAttribute.call(el, 'id') === 'host';
+        }
+
+        var parent = domUtils.findParent(input, false, findParenPredicate);
 
         deepEqual(parent, host);
         document.body.removeChild(host);
