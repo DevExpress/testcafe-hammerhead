@@ -7,12 +7,20 @@ import { ScrollState } from '../../typings/client';
 // NOTE: For Chrome.
 const MIN_SELECT_SIZE_VALUE = 4;
 
-function getIntValue (value) {
+function getParsedValue (value, parseFn) {
     value = value || '';
 
-    const parsedValue = parseInt(value.replace('px', ''), 10);
+    const parsedValue = parseFn(value.replace('px', ''), 10);
 
     return isNaN(parsedValue) ? 0 : parsedValue;
+}
+
+function getIntValue (value) {
+    return getParsedValue(value, parseInt);
+}
+
+function getFloatValue (value) {
+    return getParsedValue(value, parseFloat);
 }
 
 export function get (el, property: string, doc?: Document, win?: Window) {
@@ -28,13 +36,21 @@ export function set (el, property, value) {
     el.style[property] = value;
 }
 
-export function getBordersWidth (el) {
+export function getBordersWidthInternal (el, parseFn) {
     return {
-        bottom: getIntValue(get(el, 'borderBottomWidth')),
-        left:   getIntValue(get(el, 'borderLeftWidth')),
-        right:  getIntValue(get(el, 'borderRightWidth')),
-        top:    getIntValue(get(el, 'borderTopWidth')),
+        bottom: parseFn(get(el, 'borderBottomWidth')),
+        left:   parseFn(get(el, 'borderLeftWidth')),
+        right:  parseFn(get(el, 'borderRightWidth')),
+        top:    parseFn(get(el, 'borderTopWidth')),
     };
+}
+
+export function getBordersWidth (el) {
+    return getBordersWidthInternal(el, getIntValue);
+}
+
+export function getBordersWidthFloat (el) {
+    return getBordersWidthInternal(el, getFloatValue);
 }
 
 export function getComputedStyle (el, doc, win) {
@@ -58,13 +74,20 @@ export function getElementMargin (el) {
     };
 }
 
-export function getElementPadding (el) {
+export function getElementPaddingInternal (el, parseFn) {
     return {
-        bottom: getIntValue(get(el, 'paddingBottom')),
-        left:   getIntValue(get(el, 'paddingLeft')),
-        right:  getIntValue(get(el, 'paddingRight')),
-        top:    getIntValue(get(el, 'paddingTop')),
+        bottom: parseFn(get(el, 'paddingBottom')),
+        left:   parseFn(get(el, 'paddingLeft')),
+        right:  parseFn(get(el, 'paddingRight')),
+        top:    parseFn(get(el, 'paddingTop')),
     };
+}
+export function getElementPadding (el) {
+    return getElementPaddingInternal(el, getIntValue);
+}
+
+export function getElementPaddingFloat (el) {
+    return getElementPaddingInternal(el, getFloatValue);
 }
 
 export function getElementScroll (el: any): ScrollState {
