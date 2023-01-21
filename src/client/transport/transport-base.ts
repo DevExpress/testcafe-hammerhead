@@ -46,7 +46,8 @@ export default abstract class TransportBase {
             }
         }
 
-        nativeMethods.storageSetItem.call(nativeLocalStorage, settings.get().sessionId, stringifyJSON(messages));
+        if (messages.length)
+            nativeMethods.storageSetItem.call(nativeLocalStorage, settings.get().sessionId, stringifyJSON(messages));
     }
 
     batchUpdate (): Promise<any> {
