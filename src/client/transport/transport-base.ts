@@ -36,6 +36,7 @@ export default abstract class TransportBase {
 
     protected static _removeMessageFromStore (cmd: string): void {
         const messages           = TransportBase._getStoredMessages();
+        const initialMsgLength   = messages.length;
         const nativeLocalStorage = nativeMethods.winLocalStorageGetter.call(window);
 
         for (let i = 0; i < messages.length; i++) {
@@ -46,7 +47,10 @@ export default abstract class TransportBase {
             }
         }
 
-        nativeMethods.storageSetItem.call(nativeLocalStorage, settings.get().sessionId, stringifyJSON(messages));
+        // NOTE: this condition is needed for proxyless mode to preserve saving any data to localStorage
+        // TODO: research why this works in proxy mode and does not work in proxyless
+        if (messages.length < initialMsgLength)
+            nativeMethods.storageSetItem.call(nativeLocalStorage, settings.get().sessionId, stringifyJSON(messages));
     }
 
     batchUpdate (): Promise<any> {
