@@ -660,7 +660,7 @@ module('regression');
 
 if (browserUtils.compareVersions([browserUtils.webkitVersion, '603.1.30']) === -1) {
     // NOTE The Safari iOS 10.3 and later does not provide access to the cross-domain location.
-    test('getting location of a cross-domain window (GH-467)', function () {
+    test('getting location of a cross-domain window (GH-467) ', function () {
         var sameDomainSrc     = getSameDomainPageUrl('../../../data/same-domain/resolving-url-after-document-recreation.html');
         var storedGetProxyUrl = urlUtils.getProxyUrl;
 
