@@ -67,7 +67,7 @@ function isLocationByProto (instance: any): boolean {
     }
     catch (e) {
         // NOTE: Try to detect cross-domain window location.
-        // A cross-domain location has no the "assign" function in Safari and Chrome.
+        // A cross-domain location has no the "assign" function in Safari, Chrome and FireFox.
         const shouldNotHaveAssign = isSafari || isChrome || isFirefox;
 
         return instance.replace && (shouldNotHaveAssign || !!instance.assign);
