@@ -858,13 +858,13 @@ function getParent (el) {
 
 export function findParent (node, includeSelf = false, predicate) {
     if (!includeSelf)
-        node = nativeMethods.nodeParentNodeGetter.call(node);
+        node = getParent(node);
 
     while (node) {
         if (typeof predicate !== 'function' || predicate(node))
             return node;
 
-        node = nativeMethods.nodeParentNodeGetter.call(node);
+        node = getParent(node);
     }
 
     return null;
