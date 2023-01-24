@@ -17,6 +17,7 @@ import {
 
 import { getNativeQuerySelectorAll } from './query-selector';
 import { instanceAndPrototypeToStringAreEqual } from './feature-detection';
+import { isNumber } from './types';
 
 let scrollbarSize = 0;
 
@@ -900,7 +901,7 @@ export function isInputWithoutSelectionProperties (el): boolean {
     if (!isNumberOrEmailInput(el))
         return false;
 
-    const hasSelectionProperties = typeof el.selectionStart === 'number' && typeof el.selectionEnd === 'number';
+    const hasSelectionProperties = isNumber(el.selectionStart) && isNumber(el.selectionEnd);
 
     return !hasSelectionProperties;
 }
