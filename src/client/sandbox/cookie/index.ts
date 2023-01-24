@@ -137,11 +137,11 @@ class CookieSandboxProxyStrategy implements CookieSandboxStrategy {
                 this.setCookie(parsedCookie);
             else if (gettingCookies && parsedCookie.isClientSync) {
                 const currentDate = cookieUtils.getUTCDate();
-                const maxAge      = !isNull(parsedCookie.maxAge) && Number(parsedCookie.maxAge) || void 0;
+                const maxAge      = !isNull(parsedCookie.maxAge) && Number(parsedCookie.maxAge);
                 const expires     = Number(parsedCookie.expires);
 
-                if (!isNaN(maxAge) && maxAge * 1000 < currentDate.getTime() - parsedCookie.lastAccessed.getTime() ||
-                        !isNaN(expires) && expires < currentDate.getTime()) {
+                if (typeof maxAge === 'number' && maxAge * 1000 < currentDate.getTime() - parsedCookie.lastAccessed.getTime() ||
+                    typeof expires === 'number' && expires < currentDate.getTime()) {
                     nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(parsedCookie));
                     CookieSandbox._updateClientCookieStr(parsedCookie.key, null);
                 }
