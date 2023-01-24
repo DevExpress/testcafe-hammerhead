@@ -54,8 +54,8 @@ class StorageSandboxStrategyBase {
 class StorageSandboxProxylessStrategy extends StorageSandboxStrategyBase implements StorageSandboxStrategy {
     backup (): StoragesBackup {
         return {
-            localStorage:   JSON.stringify([Object.keys(localStorage), Object.values(localStorage)]),
-            sessionStorage: JSON.stringify([Object.keys(sessionStorage), Object.values(sessionStorage)]),
+            localStorage:   stringifyJSON(this._getStorageKeysAndValues(localStorage)),
+            sessionStorage: stringifyJSON(this._getStorageKeysAndValues(sessionStorage)),
         };
     }
 
@@ -77,6 +77,16 @@ class StorageSandboxProxylessStrategy extends StorageSandboxStrategyBase impleme
 
     restore (): void {
         return void 0;
+    }
+
+    _getStorageKeysAndValues (storage): string[][] {
+        const storageKeys   = nativeMethods.objectKeys(storage);
+        const storageValues = [];
+
+        for (const key of storageKeys)
+            storageValues.push(storage[key]);
+
+        return [storageKeys, storageValues];
     }
 }
 
