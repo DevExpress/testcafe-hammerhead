@@ -18,7 +18,7 @@ import {
 import { CookieRecord } from '../../../typings/cookie';
 import ChildWindowSandbox from '../child-window';
 import getTopOpenerWindow from '../../utils/get-top-opener-window';
-import { isNull } from '../../utils/types';
+import { isNull, isNumber } from '../../utils/types';
 
 const MIN_DATE_VALUE = new nativeMethods.date(0).toUTCString(); // eslint-disable-line new-cap
 
@@ -140,8 +140,8 @@ class CookieSandboxProxyStrategy implements CookieSandboxStrategy {
                 const maxAge      = !isNull(parsedCookie.maxAge) && Number(parsedCookie.maxAge);
                 const expires     = Number(parsedCookie.expires);
 
-                if (typeof maxAge === 'number' && maxAge * 1000 < currentDate.getTime() - parsedCookie.lastAccessed.getTime() ||
-                    typeof expires === 'number' && expires < currentDate.getTime()) {
+                if (isNumber(maxAge) && maxAge * 1000 < currentDate.getTime() - parsedCookie.lastAccessed.getTime() ||
+                    isNumber(expires) && expires < currentDate.getTime()) {
                     nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(parsedCookie));
                     CookieSandbox._updateClientCookieStr(parsedCookie.key, null);
                 }

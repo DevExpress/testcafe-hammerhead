@@ -21,3 +21,7 @@ export function isNull (obj) {
         ? obj == null
         : obj === null;
 }
+
+export function isNumber (val) {
+    return typeof val === 'number';
+}
