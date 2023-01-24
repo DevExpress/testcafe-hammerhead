@@ -106,7 +106,7 @@ test('lock', function () {
     strictEqual(nativeMethods.storageGetItem.call(nativeLocalStorage, nativeLocalStorageKey), null);
     strictEqual(nativeMethods.storageGetItem.call(nativeSessionStorage, nativeSessionStorageKey), null);
 
-    storageSandbox.isLocked = false;
+    storageSandbox.strategy.isLocked = false;
 });
 
 test('backup/restore', function () {

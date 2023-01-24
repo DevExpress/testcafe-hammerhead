@@ -77,8 +77,6 @@ export default class UnloadSandbox extends SandboxBase {
     }
 
     private _createEventHandler (eventProperties: EventProperties): Function {
-        const that = this;
-
         return function (e, originListener): void {
             // NOTE: Overriding the returnValue property to prevent a native dialog.
             nativeMethods.objectDefineProperty(e, 'returnValue', createPropertyDesc({
@@ -109,11 +107,6 @@ export default class UnloadSandbox extends SandboxBase {
                 eventProperties.storedReturnValue = UnloadSandbox._prepareStoredReturnValue(res);
                 eventProperties.prevented         = true;
             }
-
-            // NOTE: need to return value to show `beforeunload` dialog
-            // in proxyless mode to handle the dialog in the cdp
-            if (that.proxyless)
-                return res;
 
             return void 0;
         };
