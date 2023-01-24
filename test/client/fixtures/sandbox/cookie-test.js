@@ -98,16 +98,16 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
             })
             .then(function () {
                 return testCookies(storedForcedLocation, [
-                    'Test1=Expired; expires=' + new Date((Math.floor(Date.now() / 1000) + 1) * 1000).toUTCString(),
-                    'Test2=Expired; max-age=' + 1,
-                ], 'Test1=Expired; Test2=Expired');
+                    'TestNotExpired1=value; expires=' + new Date((Math.floor(Date.now() / 1000) + 1) * 1000).toUTCString(),
+                    'TestNotExpired2=value; max-age=' + 1,
+                ], 'TestNotExpired1=value; TestNotExpired2=value');
             })
             .then(function () {
                 return testCookies(storedForcedLocation, [
-                    'Test1=Expired; expires=' + new Date((Math.floor(Date.now() / 1000) + 1) * 1000).toUTCString(),
-                    'Test2=Expired; max-age=' + 1,
-                    'Test3=Expired',
-                ], 'Test3=Expired', 2000);
+                    'TestExpired1=value; expires=' + new Date((Math.floor(Date.now() / 1000) + 1) * 1000).toUTCString(),
+                    'TestExpired2=value; max-age=' + 1,
+                    'TestNotExpired3=value',
+                ], 'TestNotExpired3=value', 2000);
             })
             .then(function () {
                 return destLocation.forceLocation(storedForcedLocation);
