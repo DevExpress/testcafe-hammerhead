@@ -6,6 +6,7 @@ import Promise from 'pinkie';
 import { GetUploadedFilesServiceMessage, StoreUploadedFilesServiceMessage } from '../../../typings/upload';
 import Transport from '../../transport';
 import nativeMethods from '../native-methods';
+import { isNumber } from '../../utils/types';
 
 // NOTE: https://html.spec.whatwg.org/multipage/forms.html#fakepath-srsly.
 const FAKE_PATH_STRING = 'C:\\fakepath\\';
@@ -140,7 +141,7 @@ export default class UploadInfoManager {
                     name: file.name,
                 };
 
-                if (typeof file.lastModified === 'number')
+                if (isNumber(file.lastModified))
                     info.lastModified = file.lastModified;
 
                 if (file.lastModifiedDate)
