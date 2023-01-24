@@ -9,6 +9,7 @@ export interface PageInjectableResources {
     stylesheets: string[];
     scripts: string[];
     embeddedScripts: string[];
+    userScripts: string[];
 }
 
 export interface PageRestoreStoragesOptions {

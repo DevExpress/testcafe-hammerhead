@@ -20,14 +20,12 @@ import * as contentTypeUtils from '../../utils/content-type';
 import generateUniqueId from '../../utils/generate-unique-id';
 import { check as checkSameOriginPolicy } from '../same-origin-policy';
 import * as headerTransforms from '../header-transforms';
-import { RequestInfo } from '../request-hooks/events/info';
 import SERVICE_ROUTES from '../../proxy/service-routes';
 import BUILTIN_HEADERS from '../builtin-header-names';
 import logger from '../../utils/logger';
 import createSpecialPageResponse from '../create-special-page-response';
 import { fetchBody } from '../../utils/http';
 import * as requestCache from '../cache';
-import requestIsMatchRule from '../request-hooks/request-is-match-rule';
 import { Http2Response } from '../destination-request/http2';
 import BaseRequestPipelineContext from './base';
 import RequestPipelineRequestHookEventFactory from '../request-hooks/events/factory';
@@ -120,7 +118,6 @@ export default class RequestPipelineContext extends BaseRequestPipelineContext {
     isSameOriginPolicyFailed = false;
     windowId?: string;
     temporaryCacheEntry?: RequestCacheEntry;
-    _injectableUserScripts: string[] = [];
     eventFactory: RequestPipelineRequestHookEventFactory;
 
     constructor (readonly req: IncomingMessage,
@@ -355,23 +352,6 @@ export default class RequestPipelineContext extends BaseRequestPipelineContext {
         logger.proxy.onContentInfoBuilt(this);
     }
 
-    public async prepareInjectableUserScripts (): Promise<void> {
-        const requestInfo        = RequestInfo.from(this);
-        const matchedUserScripts = await Promise.all(this.session.injectable.userScripts.map(async userScript => {
-            if (await requestIsMatchRule(userScript.page, requestInfo))
-                return userScript;
-
-            return void 0;
-        } ));
-
-        const injectableUserScripts = matchedUserScripts
-            .filter(userScript => !!userScript)
-            .map(userScript => userScript?.url || '');
-
-        if (injectableUserScripts)
-            this._injectableUserScripts = injectableUserScripts;
-    }
-
     private _handleAttachment (): void {
         let isOpenedInNewWindow = false;
 
@@ -410,7 +390,7 @@ export default class RequestPipelineContext extends BaseRequestPipelineContext {
 
     getInjectableScripts (): string[] {
         const taskScript = this.isIframe ? SERVICE_ROUTES.iframeTask : SERVICE_ROUTES.task;
-        const scripts    = this.session.injectable.scripts.concat(taskScript, this._injectableUserScripts);
+        const scripts    = this.session.injectable.scripts.concat(taskScript, this.injectableUserScripts);
 
         return this._resolveInjectableUrls(scripts);
     }

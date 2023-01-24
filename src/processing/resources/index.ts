@@ -58,7 +58,7 @@ export async function process (ctx: RequestPipelineContext): Promise<Buffer> {
         const urlReplacer = getResourceUrlReplacer(ctx);
 
         if (pageProcessor === processor)
-            await ctx.prepareInjectableUserScripts();
+            await ctx.prepareInjectableUserScripts(ctx.eventFactory, ctx.session.injectable.userScripts);
 
         // @ts-ignore: Cannot invoke an expression whose type lacks a call signature
         const processed   = processor.processResource(decoded, ctx, charset, urlReplacer);

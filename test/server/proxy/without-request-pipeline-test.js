@@ -10,6 +10,7 @@ describe('New API', () => {
             stylesheets:     ['./styles.css'],
             scripts:         ['common/script1.js', './common/script2.js'],
             embeddedScripts: ['var script1 = 1;', 'var script2 = 2;'],
+            userScripts:     ['/custom-script1.js', '/custom-script2.js'],
         };
 
         const updatedPageContent  = injectResources(pageContent, resources);
