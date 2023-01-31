@@ -73,7 +73,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
         nativeMethods.objectDefineProperty(window, INSTRUCTION.callMethod, {
             value: (owner: any, methName: any, args: any[], optional = false) => {
-                if (isNullOrUndefined(owner))
+                if (isNullOrUndefined(owner) && !optional)
                     MethodCallInstrumentation._error(`Cannot call method '${methName}' of ${inaccessibleTypeToStr(owner)}`);
 
                 if (!isFunction(owner[methName]) && !optional)
