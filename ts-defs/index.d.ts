@@ -190,7 +190,7 @@ declare module 'testcafe-hammerhead' {
         stylesheets: string[];
         scripts: string[];
         embeddedScripts: string[];
-        userScripts: string[];
+        userScripts?: string[];
     }
 
     export interface PageRestoreStoragesOptions {
