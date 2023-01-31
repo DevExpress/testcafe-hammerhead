@@ -249,6 +249,14 @@ if (!browserUtils.isIE11) {
                 src:      'var obj = { href: "123" }; window.optionChainingResult = obj?.["href"];',
                 expected: '123',
             },
+            {
+                src:      'var obj = { href: function() { return "123"; } }; window.optionChainingResult = obj["href"]?.();',
+                expected: '123',
+            },
+            {
+                src:      'var obj = {}; window.optionChainingResult = obj["href"]?.();',
+                expected: void 0,
+            },
         ];
 
         for (var i = 0; i < testCases.length; i++) {
