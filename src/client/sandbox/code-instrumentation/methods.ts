@@ -3,7 +3,11 @@ import INSTRUCTION from '../../../processing/script/instruction';
 import { shouldInstrumentMethod } from '../../../processing/script/instrumented';
 import { isWindow, isLocation } from '../../utils/dom';
 import fastApply from '../../utils/fast-apply';
-import * as typeUtils from '../../utils/types';
+import {
+    isNullOrUndefined,
+    inaccessibleTypeToStr,
+    isFunction,
+} from '../../utils/types';
 import { getProxyUrl, stringifyResourceType } from '../../utils/url';
 import nativeMethods from '../native-methods';
 import MessageSandbox from '../event/message';
@@ -68,20 +72,26 @@ export default class MethodCallInstrumentation extends SandboxBase {
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
         nativeMethods.objectDefineProperty(window, INSTRUCTION.callMethod, {
-            value: (owner: any, methName: any, args: any[]) => {
-                if (typeUtils.isNullOrUndefined(owner))
-                    MethodCallInstrumentation._error(`Cannot call method '${methName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
+            value: (owner: any, methName: any, args: any[], optional = false) => {
+                if (isNullOrUndefined(owner))
+                    MethodCallInstrumentation._error(`Cannot call method '${methName}' of ${inaccessibleTypeToStr(owner)}`);
 
-                if (typeof owner[methName] !== 'function')
+                if (!isFunction(owner[methName]) && !optional)
                     MethodCallInstrumentation._error(`'${methName}' is not a function`);
 
                 // OPTIMIZATION: previously we've performed the
                 // `this.methodWrappers.hasOwnProperty(methName)`
                 // check which is quite slow. Now we use the
                 // fast RegExp check instead.
-                if (typeof methName === 'string' && shouldInstrumentMethod(methName) &&
-                    this.methodWrappers[methName].condition(owner))
-                    return this.methodWrappers[methName].method(owner, args);
+                if (typeof methName === 'string' && shouldInstrumentMethod(methName)) {
+                    if (optional && !isFunction(owner[methName]))
+                        return void 0;
+                    else if (this.methodWrappers[methName].condition(owner))
+                        return this.methodWrappers[methName].method(owner, args);
+                }
+
+                if (optional && !isFunction(owner[methName]))
+                    return void 0;
 
                 return fastApply(owner, methName, args);
             },

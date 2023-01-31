@@ -9,6 +9,7 @@ import {
     Expression,
     Literal,
     Identifier,
+    SimpleCallExpression,
 } from 'estree';
 
 import { Transformer } from './index';
@@ -45,12 +46,13 @@ const transformer: Transformer<CallExpression> = {
     },
 
     run: node => {
-        const callee = node.callee as MemberExpression;
-        const method = callee.computed
+        const callee   = node.callee as MemberExpression;
+        const method   = callee.computed
             ? callee.property as Literal
             : createSimpleLiteral((callee.property as Identifier).name); // eslint-disable-line no-extra-parens
+        const optional = (node as SimpleCallExpression).optional;
 
-        return createMethodCallWrapper(callee.object as Expression, method, node.arguments);
+        return createMethodCallWrapper(callee.object as Expression, method, node.arguments, optional);
     },
 };
 
