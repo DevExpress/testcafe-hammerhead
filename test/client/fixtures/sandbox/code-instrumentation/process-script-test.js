@@ -245,19 +245,21 @@ if (!browserUtils.isIE11) {
                 src:      'var obj = null; var counter = 0; window.optionChainingResult = obj?.[counter -1];',
                 expected: void 0,
             },
-            {
-                src:      'var obj = { href: "123" }; window.optionChainingResult = obj?.["href"];',
-                expected: '123',
-            },
-            {
-                src:      'var obj = { href: function() { return "123"; } }; window.optionChainingResult = obj["href"]?.();',
-                expected: '123',
-            },
-            {
-                src:      'var obj = {}; window.optionChainingResult = obj["href"]?.();',
-                expected: void 0,
-            },
         ];
+
+        // NOTE: Safari until iOS 13.4 don't have full support optional chaining
+        if (!browserUtils.isIOS || browserUtils.compareVersions([browserUtils.webkitVersion, '608.2.11']) === 1) {
+            testCases.push(
+                {
+                    src:      'var obj = { href: "123" }; window.optionChainingResult = obj?.["href"];',
+                    expected: '123',
+                },
+                {
+                    src:      'var obj = {}; window.optionChainingResult = obj["href"]?.();',
+                    expected: void 0,
+                },
+            );
+        }
 
         for (var i = 0; i < testCases.length; i++) {
             var testCase = testCases[i];
