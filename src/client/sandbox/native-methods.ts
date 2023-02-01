@@ -377,6 +377,7 @@ class NativeMethods {
     Function: any;
     Error: any;
     functionToString: Function;
+    functionBind: Function;
     FontFace: any;
     StorageEvent: typeof StorageEvent;
     MutationObserver: any;
@@ -1191,6 +1192,7 @@ class NativeMethods {
         this.Image                = win.Image;
         this.Function             = win.Function;
         this.functionToString     = win.Function.prototype.toString;
+        this.functionBind         = win.Function.prototype.bind;
         this.Error                = win.Error;
         this.FontFace             = win.FontFace;
         this.StorageEvent         = win.StorageEvent;
