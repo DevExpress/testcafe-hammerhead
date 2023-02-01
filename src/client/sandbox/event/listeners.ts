@@ -19,6 +19,7 @@ import {
     overrideFunction,
     overrideStringRepresentation,
 } from '../../utils/overriding';
+import { isFunction } from '../../utils/types';
 
 const LISTENED_EVENTS = [
     'click', 'mousedown', 'mouseup', 'dblclick', 'contextmenu', 'mousemove', 'mouseover', 'mouseout',
@@ -85,7 +86,7 @@ export default class Listeners extends EventEmitter {
             if (Listeners._isIEServiceHandler(listener) || eventCtx.cancelOuterHandlers)
                 return null;
 
-            if (typeof eventCtx.outerHandlersWrapper === 'function')
+            if (isFunction(eventCtx.outerHandlersWrapper))
                 return eventCtx.outerHandlersWrapper.call(this, e, listener);
 
             return callEventListener(this, listener, e);

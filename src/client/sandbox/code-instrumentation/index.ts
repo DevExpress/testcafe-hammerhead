@@ -10,6 +10,7 @@ import { getProxyUrl, stringifyResourceType } from '../../utils/url';
 import urlResolver from '../../utils/url-resolver';
 import EventSandbox from '../event';
 import MessageSandbox from '../event/message';
+import { isFunction } from 'lodash';
 
 export default class CodeInstrumentation extends SandboxBase {
     static readonly WRAPPED_EVAL_FN = 'hammerhead|code-instrumentation|wrapped-eval-fn';
@@ -121,7 +122,7 @@ export default class CodeInstrumentation extends SandboxBase {
                     return target;
 
                 const shouldConvertToArray = !nativeMethods.isArray.call(nativeMethods.Array, target) &&
-                    typeof target[Symbol.iterator] === 'function';
+                    isFunction(target[Symbol.iterator]);
 
                 return shouldConvertToArray ? nativeMethods.arrayFrom.call(nativeMethods.Array, target) : target;
             },

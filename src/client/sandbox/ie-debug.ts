@@ -1,5 +1,6 @@
 import SandboxBase from './base';
 import { isIE } from '../utils/browser';
+import { isFunction } from '../utils/types';
 
 const BROWSERTOOLS_CONSOLE_SAFEFUNC = '__BROWSERTOOLS_CONSOLE_SAFEFUNC';
 
@@ -13,7 +14,7 @@ export default class IEDebugSandbox extends SandboxBase {
     }
 
     _createFuncWrapper (func) {
-        if (typeof func === 'function') {
+        if (isFunction(func)) {
             return (fn, safeAssert) => {
                 const ieDebugSandbox = this;
 

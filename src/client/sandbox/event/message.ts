@@ -18,6 +18,7 @@ import { parse as parseJSON, stringify as stringifyJSON } from '../../../utils/j
 import Listeners from './listeners';
 import UnloadSandbox from './unload';
 import settings from '../../settings';
+import { isFunction } from '../../utils/types';
 
 enum MessageType { // eslint-disable-line no-shadow
     Service = 'hammerhead|service-msg',
@@ -202,7 +203,7 @@ export default class MessageSandbox extends SandboxBase {
         overrideDescriptor(eventPropsOwner, 'onmessage', {
             getter: () => this.storedOnMessageHandler,
             setter: handler => {
-                this.storedOnMessageHandler = typeof handler === 'function' ? handler : null;
+                this.storedOnMessageHandler = isFunction(handler) ? handler : null;
 
                 nativeMethods.winOnMessageSetter.call(window, this.storedOnMessageHandler
                     ? e => this._onWindowMessage(e, handler)

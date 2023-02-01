@@ -8,6 +8,7 @@ import {
 
 import styleProcessor from './../../processing/style';
 import { getProxyUrl, parseProxyUrl } from './../utils/url';
+import { isFunction } from '../utils/types';
 
 const CSS_STYLE_IS_PROCESSED = 'hammerhead|style|is-processed';
 const CSS_STYLE_PROXY_OBJECT = 'hammerhead|style|proxy-object';
@@ -187,7 +188,7 @@ export default class StyleSandbox extends SandboxBase {
             const nativeFn = this.nativeMethods.objectGetOwnPropertyDescriptor.call(window.Object, styleDeclarationProto, prop).value;// eslint-disable-line no-restricted-properties
 
             if (this.nativeMethods.objectHasOwnProperty.call(styleDeclarationProto, prop) &&
-                typeof nativeFn === 'function') {
+                isFunction(nativeFn)) {
                 (styleDeclarationProto[prop] as unknown as Function) = function (this: Window) {
                     return nativeFn.apply(this[CSS_STYLE_PROXY_TARGET] || this, arguments);
                 };

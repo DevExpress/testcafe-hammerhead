@@ -20,6 +20,7 @@ import {
     isAuthorizationHeader, removeAuthenticatePrefix,
     removeAuthorizationPrefix,
 } from '../../utils/headers';
+import { isFunction } from '../utils/types';
 
 function getCredentialsMode (credentialsOpt: any) {
     credentialsOpt = String(credentialsOpt).toLowerCase();
@@ -184,7 +185,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             overrideFunction(window.Headers.prototype, 'forEach', function (this: Headers, ...args: Parameters<Headers['forEach']>) {
                 const callback = args[0];
 
-                if (typeof callback === 'function') {
+                if (isFunction(callback)) {
                     args[0] = function (value, name, headers) {
                         value = FetchSandbox._removeAuthHeadersPrefix(name, value);
 

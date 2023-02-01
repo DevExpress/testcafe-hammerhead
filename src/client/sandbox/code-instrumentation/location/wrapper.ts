@@ -27,6 +27,7 @@ import IntegerIdGenerator from '../../../utils/integer-id-generator';
 import { createOverriddenDescriptor, overrideStringRepresentation } from '../../../utils/overriding';
 import MessageSandbox from '../../event/message';
 import { isIE11 } from '../../../utils/browser';
+import { isFunction } from '../../../utils/types';
 
 const GET_ORIGIN_CMD      = 'hammerhead|command|get-origin';
 const ORIGIN_RECEIVED_CMD = 'hammerhead|command|origin-received';
@@ -263,7 +264,7 @@ export default class LocationWrapper extends LocationInheritor {
         const protoKeys           = nativeMethods.objectKeys(Location.prototype);
         const locWrapper          = this;
         const rewriteDescriptorFn = (descriptor, key: string) => {
-            if (typeof descriptor[key] !== 'function')
+            if (!isFunction(descriptor[key]))
                 return;
 
             const nativeMethod = descriptor[key];
@@ -293,7 +294,7 @@ export default class LocationWrapper extends LocationInheritor {
 }
 
 // NOTE: window.Location in IE11 is object
-if (typeof Location !== 'function')
+if (!isFunction(Location))
     LocationWrapper.toString = () => Location.toString();
 else
     overrideStringRepresentation(LocationWrapper, Location);

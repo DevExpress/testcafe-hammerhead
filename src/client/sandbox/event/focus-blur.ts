@@ -13,6 +13,7 @@ import TimersSandbox from '../timers';
 import ElementEditingWatcher from './element-editing-watcher';
 import { ScrollState } from '../../../typings/client';
 import nextTick from '../../utils/next-tick';
+import { isFunction } from '../../utils/types';
 
 const INTERNAL_FOCUS_BLUR_FLAG_PREFIX = 'hammerhead|event|internal-';
 
@@ -279,7 +280,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         if (browserUtils.isMSEdge && el && domUtils.isTextEditableElement(el))
             this._eventSimulator.selectionchange(el);
 
-        if (typeof callback === 'function')
+        if (isFunction(callback))
             callback();
     }
 
@@ -403,7 +404,7 @@ export default class FocusBlurSandbox extends SandboxBase {
                     this.blur(domUtils.getIframeByElement(activeElement), raiseFocusEvent, true, isNativeFocus);
                 else if (!focusOnChange)
                     raiseFocusEvent();
-                else if (typeof callback === 'function')
+                else if (isFunction(callback))
                     callback();
             }, silent, isNativeFocus, el);
         }
@@ -450,7 +451,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         };
 
         this._raiseEvent(el, 'blur', () => {
-            if (typeof callback === 'function')
+            if (isFunction(callback))
                 callback(focusedOnChange);
         }, raiseEventParameters);
     }

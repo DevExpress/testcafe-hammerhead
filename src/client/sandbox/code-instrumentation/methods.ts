@@ -63,7 +63,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
         if (win.postMessage === win.postMessage)
             return win.postMessage === fn;
 
-        return fn && typeof fn.toString === 'function' && fn.toString() === win.postMessage.toString();
+        return fn && isFunction(fn.toString) && fn.toString() === win.postMessage.toString();
     }
 
     attach (window: Window & typeof globalThis) {

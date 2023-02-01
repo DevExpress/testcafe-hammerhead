@@ -2,6 +2,7 @@ import nativeMethods from '../sandbox/native-methods';
 import * as domUtils from './dom';
 import * as styleUtils from './style';
 import { isFirefox, isIE } from './browser';
+import { isFunction } from './types';
 
 function getAreaElementRectangle (el, mapContainer) {
     const shape = nativeMethods.getAttribute.call(el, 'shape');
@@ -318,7 +319,7 @@ export function getOffsetPosition (el, roundFn = Math.round) {
 
     let { left, top } = calcOffsetPositionFn(el, borders, offsetPosition, doc, currentIframe);
 
-    if (typeof roundFn === 'function') {
+    if (isFunction(roundFn)) {
         left = roundFn(left);
         top  = roundFn(top);
     }

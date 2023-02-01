@@ -1,6 +1,7 @@
 /*global Document, Window */
 import globalContextInfo from '../utils/global-context-info';
 import { isNativeFunction } from '../utils/overriding';
+import { isFunction } from '../utils/types';
 
 const NATIVE_CODE_RE = /\[native code]/;
 
@@ -1210,7 +1211,7 @@ class NativeMethods {
         this.FileList             = win.FileList;
 
         // NOTE: non-IE11 case. window.File in IE11 is not constructable.
-        if (win.File && typeof win.File === 'function')
+        if (win.File && isFunction(win.File))
             this.File = win.File;
     }
 

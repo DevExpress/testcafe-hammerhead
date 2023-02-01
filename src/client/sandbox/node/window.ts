@@ -46,7 +46,7 @@ import {
     isIframeWindow,
 } from '../../utils/dom';
 
-import { isPrimitiveType } from '../../utils/types';
+import { isFunction, isPrimitiveType } from '../../utils/types';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-called-without-new-keyword';
@@ -385,7 +385,7 @@ export default class WindowSandbox extends SandboxBase {
     }
 
     private static _patchFunctionPrototype (fn: Function, ctx: any): void {
-        if (!ctx || typeof ctx === 'function')
+        if (!ctx || isFunction(ctx))
             return;
 
         const inheritorProto = nativeMethods.objectGetPrototypeOf(ctx);
@@ -844,8 +844,8 @@ export default class WindowSandbox extends SandboxBase {
             return nativeMethods.functionToString.call(this);
         });
 
-        if (typeof window.history.pushState === 'function'
-            && typeof window.history.replaceState === 'function'
+        if (isFunction(window.history.pushState)
+            && isFunction(window.history.replaceState)
             && !this.proxyless) {
             const createWrapperForHistoryStateManipulationFn = function (nativeFn) {
                 return function (this: History, ...args) {

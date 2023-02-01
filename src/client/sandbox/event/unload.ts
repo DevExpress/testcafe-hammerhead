@@ -4,6 +4,7 @@ import createPropertyDesc from '../../utils/create-property-desc.js';
 import { isFirefox, isIOS } from '../../utils/browser';
 import { overrideDescriptor } from '../../utils/overriding';
 import Listeners from './listeners';
+import { isFunction } from '../../utils/types';
 
 interface EventProperties {
     storedReturnValue: string;
@@ -163,7 +164,7 @@ export default class UnloadSandbox extends SandboxBase {
     }
 
     setOnEvent (eventProperties: EventProperties, window: Window, handler) {
-        if (typeof handler === 'function') {
+        if (isFunction(handler)) {
             eventProperties.storedHandler = handler;
 
             eventProperties.eventPropSetter.call(window, e => this._createEventHandler(eventProperties)(e, handler));
