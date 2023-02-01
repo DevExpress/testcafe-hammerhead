@@ -138,6 +138,12 @@ class PageProcessor extends ResourceProcessorBase {
             });
         }
 
+        if ((processingOptions as PageInjectableResources).userScripts) {
+            (processingOptions as PageInjectableResources).userScripts.forEach(script => {
+                injectedResources.push(PageProcessor._createShadowUIScriptWithUrlNode(script));
+            });
+        }
+
         for (let i = injectedResources.length - 1; i > -1; i--)
             parse5Utils.insertBeforeFirstScript(injectedResources[i], head);
 

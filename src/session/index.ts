@@ -33,7 +33,7 @@ import { EventEmitter } from 'events';
 
 const TASK_TEMPLATE = read('../client/task.js.mustache');
 
-interface UserScript {
+export interface UserScript {
     url: string;
     page: RequestFilterRule;
 }

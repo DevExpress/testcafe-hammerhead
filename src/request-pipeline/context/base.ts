@@ -11,6 +11,8 @@ import { PreparedResponseInfo } from '../request-hooks/events/info';
 import ResponseEvent from '../request-hooks/events/response-event';
 import { OnResponseEventData } from '../../typings/context';
 import ConfigureResponseEventOptions from '../request-hooks/events/configure-response-event-options';
+import requestIsMatchRule from '../request-hooks/request-is-match-rule';
+import { UserScript } from '../../session';
 
 
 export default abstract class BaseRequestPipelineContext {
@@ -19,10 +21,12 @@ export default abstract class BaseRequestPipelineContext {
     public reqOpts: RequestOptions;
     public mock: ResponseMock;
     public onResponseEventData: OnResponseEventData[] = [];
+    protected injectableUserScripts: string[];
 
     protected constructor (requestId: string) {
-        this.requestFilterRules = [];
-        this.requestId          = requestId;
+        this.requestFilterRules    = [];
+        this.requestId             = requestId;
+        this.injectableUserScripts = [];
     }
 
     private async _forEachRequestFilterRule (fn: (rule: RequestFilterRule) => Promise<void>): Promise<void> {
@@ -97,5 +101,25 @@ export default abstract class BaseRequestPipelineContext {
 
         await eventProvider.callRequestHookErrorHandler(targetRule, this.mock.error as Error);
 
+    }
+
+    public async prepareInjectableUserScripts (eventFactory: BaseRequestHookEventFactory, userScripts: UserScript[]): Promise<void> {
+        if (!userScripts.length)
+            return;
+
+        const requestInfo        = eventFactory.createRequestInfo();
+        const matchedUserScripts = await Promise.all(userScripts.map(async userScript => {
+            if (await requestIsMatchRule(userScript.page, requestInfo))
+                return userScript;
+
+            return void 0;
+        } ));
+
+        const injectableUserScripts = matchedUserScripts
+            .filter(userScript => !!userScript)
+            .map(userScript => userScript?.url || '');
+
+        if (injectableUserScripts)
+            this.injectableUserScripts = injectableUserScripts;
     }
 }

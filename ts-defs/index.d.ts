@@ -190,6 +190,7 @@ declare module 'testcafe-hammerhead' {
         stylesheets: string[];
         scripts: string[];
         embeddedScripts: string[];
+        userScripts?: string[];
     }
 
     export interface PageRestoreStoragesOptions {
@@ -652,6 +653,9 @@ declare module 'testcafe-hammerhead' {
         /** Information for generating the response events **/
         onResponseEventData: OnResponseEventData[];
 
+        /** The target injectable user scripts **/
+        injectableUserScripts: string[];
+
         /** Set request options for the current context **/
         setRequestOptions (eventFactory: BaseRequestHookEventFactory): void;
 
@@ -672,5 +676,8 @@ declare module 'testcafe-hammerhead' {
 
         /** Get OnResponseEventData depending on specified filter **/
         getOnResponseEventData ({ includeBody }: { includeBody: boolean }): OnResponseEventData[];
+
+        /** Prepare the target injectable user scripts for the current route **/
+        prepareInjectableUserScripts (eventFactory: BaseRequestHookEventFactory, userScripts: UserScript[]): Promise<void>;
     }
 }
