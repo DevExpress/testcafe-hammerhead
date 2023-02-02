@@ -247,9 +247,11 @@ if (!browserUtils.isIE11) {
             },
         ];
 
+        var additionalCases = [];
+
         // NOTE: Safari until iOS 13.4 don't have full support optional chaining
         if (!browserUtils.isIOS || browserUtils.compareVersions([browserUtils.webkitVersion, '608.2.11']) === 1) {
-            testCases.push(
+            var additionalCases = [
                 {
                     src:      'var obj = { href: "123" }; window.optionChainingResult = obj?.["href"];',
                     expected: '123',
@@ -258,7 +260,10 @@ if (!browserUtils.isIE11) {
                     src:      'var obj = {}; window.optionChainingResult = obj["href"]?.();',
                     expected: void 0,
                 },
-            );
+            ];
+
+            for (let i = 0; i < additionalCases.length; i++)
+                testCases.push(additionalCases[i]);
         }
 
         for (var i = 0; i < testCases.length; i++) {
