@@ -1,4 +1,5 @@
 import nativeMethods from '../sandbox/native-methods';
+import { isFunction } from './types';
 
 const COMPOSED_EVENTS = [
     'blur',
@@ -77,11 +78,11 @@ export function stopPropagation (ev) {
 }
 
 export function isObjectEventListener (listener) {
-    return typeof listener === 'object' && listener && typeof listener.handleEvent === 'function';
+    return typeof listener === 'object' && listener && isFunction(listener.handleEvent);
 }
 
 export function isValidEventListener (listener) {
-    return typeof listener === 'function' || isObjectEventListener(listener);
+    return isFunction(listener) || isObjectEventListener(listener);
 }
 
 export function callEventListener (ctx, listener, e) {

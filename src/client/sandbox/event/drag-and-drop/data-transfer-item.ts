@@ -1,3 +1,4 @@
+import { isFunction } from '../../../utils/types';
 import nativeMethods from '../../native-methods';
 import DATA_TRANSFER_ITEM_KIND from './data-transfer-item-kind';
 
@@ -23,7 +24,7 @@ export default class DataTransferItem {
                     if (!arguments.length)
                         throw new Error("Failed to execute 'getAsString' on 'DataTransferItem': 1 argument required, but only 0 present.");
 
-                    if (typeof callback !== 'function')
+                    if (!isFunction(callback))
                         return;
 
                     if (kind !== DATA_TRANSFER_ITEM_KIND.string)

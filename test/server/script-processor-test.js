@@ -2,7 +2,10 @@ const { expect }                                  = require('chai');
 const multiline                                   = require('multiline');
 const { processScript, isScriptProcessed }        = require('../../lib/processing/script');
 const { HEADER, SCRIPT_PROCESSING_START_COMMENT } = require('../../lib/processing/script/header');
-const { PROPERTIES: INSTRUMENTED_PROPERTIES }     = require('../../lib/processing/script/instrumented');
+const {
+    PROPERTIES: INSTRUMENTED_PROPERTIES,
+    METHODS: INSTRUMENTED_METHODS,
+} = require('../../lib/processing/script/instrumented');
 
 const ACORN_UNICODE_PATCH_WARNING = multiline(function () {/*
  ATTENTION! If this test fails, this may happen because you have updated acorn.
@@ -103,6 +106,22 @@ function testProcessing (testCases) {
 
 function testPropertyProcessing (templates) {
     INSTRUMENTED_PROPERTIES.forEach(propName => {
+        if (propName.indexOf('-') !== -1)
+            return;
+
+        const testCases = templates.map(template => {
+            return {
+                src:      template.src.replace(/\{0}/g, propName),
+                expected: template.expected.replace(/\{0}/g, propName),
+            };
+        });
+
+        testProcessing(testCases);
+    });
+}
+
+function testMethodProcessing (templates) {
+    INSTRUMENTED_METHODS.forEach(propName => {
         if (propName.indexOf('-') !== -1)
             return;
 
@@ -840,6 +859,17 @@ describe('Script processor', () => {
             {
                 src:      'obj?.{0}?.method(args)',
                 expected: '__get$(obj,"{0}",true)?.method(args)',
+            },
+        ]);
+
+        testMethodProcessing([
+            {
+                src:      'obj.{0}?.()',
+                expected: '__call$(obj,"{0}",[],true)',
+            },
+            {
+                src:      'obj.[0]?.()',
+                expected: 'obj.[0]?.()',
             },
         ]);
     });

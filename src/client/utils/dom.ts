@@ -17,7 +17,7 @@ import {
 
 import { getNativeQuerySelectorAll } from './query-selector';
 import { instanceAndPrototypeToStringAreEqual } from './feature-detection';
-import { isNumber } from './types';
+import { isFunction, isNumber } from './types';
 
 let scrollbarSize = 0;
 
@@ -862,7 +862,7 @@ export function findParent (node, includeSelf = false, predicate) {
         node = getParent(node);
 
     while (node) {
-        if (typeof predicate !== 'function' || predicate(node))
+        if (!isFunction(predicate) || predicate(node))
             return node;
 
         node = getParent(node);
