@@ -1,3 +1,4 @@
+/* eslint-disable */
 import MessageSandbox from '../event/message';
 import UnloadSandbox from '../event/unload';
 import SandboxBase from '../base';
@@ -118,6 +119,7 @@ class CookieSandboxProxyStrategy implements CookieSandboxStrategy {
         }
     }
 
+    /* eslint-disable */
     syncCookie (gettingCookies = false): void {
         const cookies           = nativeMethods.documentCookieGetter.call(this.document);
         const parsedCookies     = parseClientSyncCookieStr(cookies);
@@ -140,7 +142,7 @@ class CookieSandboxProxyStrategy implements CookieSandboxStrategy {
                 const maxAge      = !isNull(parsedCookie.maxAge) && Number(parsedCookie.maxAge);
                 const expires     = Number(parsedCookie.expires);
 
-                if (!isNaN(maxAge) && isNumber(maxAge) && maxAge * 1000 < currentDate.getTime() - parsedCookie.lastAccessed.getTime() ||
+                if (!isNaN(maxAge) && isNumber(maxAge) && maxAge * 1000 <= currentDate.getTime() - parsedCookie.lastAccessed.getTime() ||
                     !isNaN(expires) && isNumber(expires) && expires < currentDate.getTime()) {
                     nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(parsedCookie));
                     CookieSandbox._updateClientCookieStr(parsedCookie.key, null);

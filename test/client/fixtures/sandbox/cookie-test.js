@@ -1,3 +1,4 @@
+/* eslint-disable */
 // NOTE: You should clear a browser's cookie if tests are fail,
 // because document.cookie can contains cookie from another sites which was run through playground
 var sharedCookieUtils = hammerhead.sharedUtils.cookie;
@@ -107,7 +108,8 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
                     'TestExpired1=value; expires=' + new Date((Math.floor(Date.now() / 1000) + 1) * 1000).toUTCString(),
                     'TestExpired2=value; max-age=' + 1,
                     'TestNotExpired3=value',
-                ], 'TestNotExpired3=value', 2000);
+                    'TestExpired4=value; max-age=' + 2,
+                ], 'TestNotExpired3=value', 2100);
             })
             .then(function () {
                 return destLocation.forceLocation(storedForcedLocation);
