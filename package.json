@@ -15,8 +15,8 @@
     "url": "git+https://github.com/DevExpress/testcafe-hammerhead.git"
   },
   "dependencies": {
+    "@electron/asar": "^3.2.3",
     "acorn-hammerhead": "0.6.1",
-    "asar": "^2.0.1",
     "bowser": "1.6.0",
     "crypto-md5": "^1.0.0",
     "css": "2.2.3",
