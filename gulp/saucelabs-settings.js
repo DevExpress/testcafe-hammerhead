@@ -12,11 +12,6 @@ const CLIENT_TESTS_BROWSERS = [
         browserName: 'firefox',
     },
     {
-        platform:    'Windows 10',
-        browserName: 'internet explorer',
-        version:     '11.0',
-    },
-    {
         browserName: 'safari',
         platform:    'macOS 11.00',
         version:     '14',
