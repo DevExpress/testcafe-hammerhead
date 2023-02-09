@@ -1,4 +1,4 @@
-import asar from 'asar';
+import asar from '@electron/asar';
 import { toReadableStream } from './buffer';
 import path from 'path';
 import { stat } from './promisified-functions';
