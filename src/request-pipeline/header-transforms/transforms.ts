@@ -117,8 +117,14 @@ export const requestTransforms = {
 };
 
 export const forcedRequestTransforms = {
-    [BUILTIN_HEADERS.cookie]: (_src: string, ctx: RequestPipelineContext) =>
-        shouldOmitCredentials(ctx) ? void 0 : ctx.session.cookies.getHeader(ctx.dest) || void 0,
+    [BUILTIN_HEADERS.cookie]: (_src: string, ctx: RequestPipelineContext) => {
+        const isApiRequest = !!ctx.req.headers[BUILTIN_HEADERS.isApiRequest];
+
+        if (isApiRequest)
+            return ctx.req.headers[BUILTIN_HEADERS.cookie] || void 0;
+
+        return shouldOmitCredentials(ctx) ? void 0 : ctx.session.cookies.getHeader(ctx.dest) || void 0;
+    },
 };
 
 // Response headers
