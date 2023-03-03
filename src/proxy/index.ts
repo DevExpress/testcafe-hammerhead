@@ -65,10 +65,10 @@ const DEFAULT_PROXY_OPTIONS = {
 
 export default class Proxy extends Router {
     private readonly openSessions: Map<string, Session> = new Map();
-    private readonly server1Info: ServerInfo;
-    private readonly server2Info: ServerInfo;
-    private readonly server1: http.Server | https.Server;
-    private readonly server2: http.Server | https.Server;
+    private server1Info: ServerInfo;
+    private server2Info: ServerInfo;
+    private server1: http.Server | https.Server;
+    private server2: http.Server | https.Server;
     private readonly sockets: Set<net.Socket>;
 
     // Max header size for incoming HTTP requests
@@ -78,43 +78,12 @@ export default class Proxy extends Router {
     // https://github.com/nodejs/node/commit/186035243fad247e3955fa0c202987cae99e82db#diff-1d0d420098503156cddb601e523b82e7R59
     public static MAX_REQUEST_HEADER_SIZE = 80 * 1024;
 
-    constructor (hostname: string, port1: number, port2: number, options?: Partial<ProxyOptions>) {
+    constructor (options?: Partial<ProxyOptions>) {
         const prepareOptions = Object.assign({}, DEFAULT_PROXY_OPTIONS, options);
 
         super(prepareOptions);
 
-        // NOTE: to avoid https://github.com/DevExpress/testcafe/issues/7447
-        if (typeof dns.setDefaultResultOrder === 'function')
-            // NOTE: to avoid https://github.com/nodejs/node/issues/40537
-            dns.setDefaultResultOrder('ipv4first');
-
-        const {
-            ssl,
-            developmentMode,
-            cache,
-        } = prepareOptions;
-
-        const protocol     = ssl ? 'https:' : 'http:';
-        const opts         = this._getOpts(ssl);
-        const createServer = this._getCreateServerMethod(ssl);
-
-        this.server1Info = createServerInfo(hostname, port1, port2, protocol, cache);
-        this.server2Info = createServerInfo(hostname, port2, port1, protocol, cache);
-
-        this.server1 = createServer(opts, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server1Info));
-        this.server2 = createServer(opts, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server2Info));
-
-        this.server1.on('upgrade', (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgradeRequest(req, socket, head, this.server1Info));
-        this.server2.on('upgrade', (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgradeRequest(req, socket, head, this.server2Info));
-
-        this.server1.listen(port1);
-        this.server2.listen(port2);
-
         this.sockets = new Set<net.Socket>();
-
-        // BUG: GH-89
-        this._startSocketsCollecting();
-        this._registerServiceRoutes(developmentMode);
     }
 
     _getOpts (ssl?: {}): ServerOptions {
@@ -254,7 +223,43 @@ export default class Proxy extends Router {
             handler.content = prepareShadowUIStylesheet(handler.content as string);
     }
 
+    _prepareDNSRouting (): void {
+        // NOTE: to avoid https://github.com/DevExpress/testcafe/issues/7447
+        if (typeof dns.setDefaultResultOrder === 'function')
+            // NOTE: to avoid https://github.com/nodejs/node/issues/40537
+            dns.setDefaultResultOrder('ipv4first');
+    }
+
     // API
+    start (hostname: string, port1: number, port2: number) {
+        this._prepareDNSRouting();
+
+        const {
+            ssl,
+            developmentMode,
+            cache,
+        } = this.options;
+
+        const protocol     = ssl ? 'https:' : 'http:';
+        const opts         = this._getOpts(ssl);
+        const createServer = this._getCreateServerMethod(ssl);
+
+        this.server1Info = createServerInfo(hostname, port1, port2, protocol, cache);
+        this.server2Info = createServerInfo(hostname, port2, port1, protocol, cache);
+
+        this.server1 = createServer(opts, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server1Info));
+        this.server2 = createServer(opts, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server2Info));
+
+        this.server1.on('upgrade', (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgradeRequest(req, socket, head, this.server1Info));
+        this.server2.on('upgrade', (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgradeRequest(req, socket, head, this.server2Info));
+
+        this.server1.listen(port1);
+        this.server2.listen(port2);
+
+        // BUG: GH-89
+        this._startSocketsCollecting();
+        this._registerServiceRoutes(developmentMode);
+    }
     close (): void {
         scriptProcessor.jsCache.reset();
         this.server1.close();

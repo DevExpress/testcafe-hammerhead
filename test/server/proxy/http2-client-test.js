@@ -19,7 +19,7 @@ const {
 
 const {
     createSession,
-    createProxy,
+    createAndStartProxy,
     getBasicProxyUrl,
     createDestinationServer,
     createHttp2DestServer,
@@ -143,7 +143,7 @@ describe('https proxy', () => {
 
     beforeEach(() => {
         session = createSession();
-        proxy   = createProxy();
+        proxy   = createAndStartProxy();
         logs    = [];
     });
 

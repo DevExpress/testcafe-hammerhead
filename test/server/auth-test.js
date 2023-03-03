@@ -6,7 +6,7 @@ const request      = require('request-promise-native');
 const headersUtils = require('../../lib/utils/headers');
 
 const {
-    createProxy,
+    createAndStartProxy,
     createSession,
 } = require('./common/utils');
 
@@ -16,7 +16,7 @@ describe('Authentication', () => { // eslint-disable-line
 
     beforeEach(() => {
         session = createSession();
-        proxy   = createProxy();
+        proxy   = createAndStartProxy();
     });
 
     afterEach(() => {

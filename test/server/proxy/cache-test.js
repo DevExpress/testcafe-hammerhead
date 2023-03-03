@@ -12,7 +12,7 @@ const {
 const {
     createDestinationServer,
     createSession,
-    createProxy,
+    createAndStartProxy,
     compareCode,
     getBasicProxyUrl,
 } = require('../common/utils');
@@ -89,7 +89,7 @@ describe('Cache', () => {
     });
 
     beforeEach(() => {
-        proxy = createProxy({ cache: true });
+        proxy = createAndStartProxy({ cache: true });
     });
 
     afterEach(() => {

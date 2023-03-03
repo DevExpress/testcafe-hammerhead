@@ -20,7 +20,7 @@ const RequestOptions         = require('../../../lib/request-pipeline/request-op
 
 const {
     createSession,
-    createProxy,
+    createAndStartProxy,
     compareCode,
     getBasicProxyUrl,
     createDestinationServer,
@@ -245,7 +245,7 @@ describe('Regression', () => {
 
     beforeEach(() => {
         session = createSession();
-        proxy   = createProxy();
+        proxy   = createAndStartProxy();
     });
 
     afterEach(() => {

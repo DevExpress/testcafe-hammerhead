@@ -309,6 +309,9 @@ declare module 'testcafe-hammerhead' {
         /** Information about server2 **/
         server2Info: ServerInfo;
 
+        /** Start the proxy instance **/
+        start (hostname: string, port1: number, port2: number): void;
+
         /**  Close the proxy instance */
         close (): void;
 

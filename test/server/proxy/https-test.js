@@ -5,7 +5,7 @@ const fs                    = require('fs');
 
 const {
     createSession,
-    createProxy,
+    createAndStartProxy,
     compareCode,
     createDestinationServer,
 } = require('../common/utils');
@@ -38,7 +38,7 @@ describe('https proxy', () => {
     beforeEach(() => {
         session = createSession();
 
-        proxy = createProxy({
+        proxy = createAndStartProxy({
             ssl: {
                 key:  selfSignedCertificate.key,
                 cert: selfSignedCertificate.cert,
