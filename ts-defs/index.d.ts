@@ -216,7 +216,6 @@ declare module 'testcafe-hammerhead' {
         developmentMode: boolean;
         cache: boolean;
         disableHttp2: boolean;
-        proxyless: boolean;
     }
 
     export interface OnResponseEventData {
@@ -330,6 +329,9 @@ declare module 'testcafe-hammerhead' {
 
         /** Resolve relative service url **/
         resolveRelativeServiceUrl (relativeServiceUrl: string, domain?: string): string;
+
+        /** Switch proxy to the proxyless mode **/
+        switchToProxyless (): void;
     }
 
     /** The RequestFilterRule class is used to create URL filtering rules for request hook **/

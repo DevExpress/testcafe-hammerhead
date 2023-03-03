@@ -302,4 +302,8 @@ export default class Proxy extends Router {
     public resolveRelativeServiceUrl (relativeServiceUrl: string, domain = this.server1Info.domain): string {
         return new URL(relativeServiceUrl, domain).toString();
     }
+
+    public switchToProxyless (): void {
+        this.options.proxyless = true;
+    }
 }
