@@ -4,7 +4,6 @@ const { expect }                       = require('chai');
 const express                          = require('express');
 const iconv                            = require('iconv-lite');
 const { noop }                         = require('lodash');
-const Proxy                            = require('../../lib/proxy');
 const Session                          = require('../../lib/session');
 const Charset                          = require('../../lib/processing/encoding/charset');
 const { encodeContent, decodeContent } = require('../../lib/processing/encoding');

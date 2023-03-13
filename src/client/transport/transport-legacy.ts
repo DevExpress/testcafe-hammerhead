@@ -1,6 +1,5 @@
 import TransportBase from './transport-base';
 import { ServiceMessage } from '../../typings/proxy';
-import MessageSandbox from '../sandbox/event/message';
 import Promise from 'pinkie';
 import settings from '../settings';
 import XhrSandbox from '../sandbox/xhr';
@@ -127,7 +126,7 @@ export default class TransportLegacy extends TransportBase {
         });
     }
 
-    public start (messageSandbox: MessageSandbox): void {
+    public start (): void {
         // NOTE: There is no special logic here.
     }
 }

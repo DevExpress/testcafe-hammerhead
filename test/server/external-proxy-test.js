@@ -5,7 +5,6 @@ const net                     = require('net');
 const request                 = require('request-promise-native');
 const { expect }              = require('chai');
 const selfSignedCertificate   = require('openssl-self-signed-certificate');
-const Proxy                   = require('../../lib/proxy');
 const Session                 = require('../../lib/session');
 const { createAndStartProxy } = require('./common/utils');
 

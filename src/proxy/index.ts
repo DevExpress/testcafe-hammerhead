@@ -65,10 +65,10 @@ const DEFAULT_PROXY_OPTIONS = {
 
 export default class Proxy extends Router {
     private readonly openSessions: Map<string, Session> = new Map();
-    private server1Info: ServerInfo;
-    private server2Info: ServerInfo;
-    private server1: http.Server | https.Server;
-    private server2: http.Server | https.Server;
+    private server1Info: ServerInfo | null;
+    private server2Info: ServerInfo | null;
+    private server1: http.Server | https.Server | null;
+    private server2: http.Server | https.Server | null;
     private readonly sockets: Set<net.Socket>;
 
     // Max header size for incoming HTTP requests
@@ -83,7 +83,11 @@ export default class Proxy extends Router {
 
         super(prepareOptions);
 
-        this.sockets = new Set<net.Socket>();
+        this.server1     = null;
+        this.server2     = null;
+        this.server1Info = null;
+        this.server2Info = null;
+        this.sockets     = new Set<net.Socket>();
     }
 
     _getOpts (ssl?: {}): ServerOptions {
@@ -112,8 +116,8 @@ export default class Proxy extends Router {
             socket.on('close', () => this.sockets.delete(socket));
         };
 
-        this.server1.on('connection', handler);
-        this.server2.on('connection', handler);
+        this.server1?.on('connection', handler); // eslint-disable-line no-unused-expressions
+        this.server2?.on('connection', handler); // eslint-disable-line no-unused-expressions
     }
 
     _registerServiceRoutes (developmentMode: boolean): void {
@@ -247,11 +251,11 @@ export default class Proxy extends Router {
         this.server1Info = createServerInfo(hostname, port1, port2, protocol, cache);
         this.server2Info = createServerInfo(hostname, port2, port1, protocol, cache);
 
-        this.server1 = createServer(opts, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server1Info));
-        this.server2 = createServer(opts, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server2Info));
+        this.server1 = createServer(opts, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server1Info as ServerInfo));
+        this.server2 = createServer(opts, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server2Info as ServerInfo));
 
-        this.server1.on('upgrade', (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgradeRequest(req, socket, head, this.server1Info));
-        this.server2.on('upgrade', (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgradeRequest(req, socket, head, this.server2Info));
+        this.server1.on('upgrade', (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgradeRequest(req, socket, head, this.server1Info as ServerInfo));
+        this.server2.on('upgrade', (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgradeRequest(req, socket, head, this.server2Info as ServerInfo));
 
         this.server1.listen(port1);
         this.server2.listen(port2);
@@ -262,8 +266,8 @@ export default class Proxy extends Router {
     }
     close (): void {
         scriptProcessor.jsCache.reset();
-        this.server1.close();
-        this.server2.close();
+        this.server1?.close(); // eslint-disable-line no-unused-expressions
+        this.server2?.close(); // eslint-disable-line no-unused-expressions
         this._closeSockets();
         resetKeepAliveConnections();
     }
@@ -287,10 +291,12 @@ export default class Proxy extends Router {
         if (this.options.proxyless)
             return url;
 
+        const serverInfo = this.server1Info as ServerInfo;
+
         return urlUtils.getProxyUrl(url, {
-            proxyHostname: this.server1Info.hostname,
-            proxyPort:     this.server1Info.port.toString(),
-            proxyProtocol: this.server1Info.protocol,
+            proxyHostname: serverInfo.hostname,
+            proxyPort:     serverInfo.port.toString(),
+            proxyProtocol: serverInfo.protocol,
             sessionId:     session.id,
             windowId:      session.options.windowId,
         });
@@ -302,7 +308,7 @@ export default class Proxy extends Router {
         this.openSessions.delete(session.id);
     }
 
-    public resolveRelativeServiceUrl (relativeServiceUrl: string, domain = this.server1Info.domain): string {
+    public resolveRelativeServiceUrl (relativeServiceUrl: string, domain = (this.server1Info as ServerInfo).domain): string {
         return new URL(relativeServiceUrl, domain).toString();
     }
 
