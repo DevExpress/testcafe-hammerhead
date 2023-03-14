@@ -108,10 +108,16 @@ exports.getBasicProxyUrl = function (url, resourceType, reqOrigin, credentials, 
     });
 };
 
-exports.createAndStartProxy = function (options = {}) {
-    const proxy = new Proxy(options);
+exports.createAndStartProxy = function (proxyOptions = {}) {
+    const proxy = new Proxy();
 
-    proxy.start(PROXY_HOSTNAME, PROXY_PORT_1, PROXY_PORT_2);
+    const resultOptions = Object.assign({}, {
+        hostname: PROXY_HOSTNAME,
+        port1:    PROXY_PORT_1,
+        port2:    PROXY_PORT_2,
+    }, proxyOptions);
+
+    proxy.start(resultOptions);
 
     return proxy;
 };
