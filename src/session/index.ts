@@ -148,7 +148,7 @@ export default abstract class Session extends EventEmitter {
         cookie                   = cookie || '{{{cookie}}}';
         iframeTaskScriptTemplate = iframeTaskScriptTemplate || '{{{iframeTaskScriptTemplate}}}';
 
-        if (this.proxy?.isProxyless) {
+        if (this.proxy?.inProxyless) {
             referer = '""';
             cookie  = '""';
         }
@@ -170,7 +170,7 @@ export default abstract class Session extends EventEmitter {
             isRecordMode,
 
             windowId:  windowId || '',
-            proxyless: this.proxy?.isProxyless || false,
+            proxyless: this.proxy?.inProxyless || false,
 
             disableCrossDomain: this.isCrossDomainDisabled() || false,
         });

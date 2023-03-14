@@ -328,7 +328,7 @@ export default class Proxy extends Router {
         (this._proxyOptions as ProxyOptions).proxyless = true;
     }
 
-    public get isProxyless (): boolean {
+    public get inProxyless (): boolean {
         return !!(this._proxyOptions as ProxyOptions).proxyless;
     }
 }
