@@ -11,9 +11,12 @@ on:
         description: 'The merge commit SHA'
       deploy_run_id:
         description: 'The ID of a deployment workspace run with artifacts'
+      test-groups-count:
+        required: false
+        type: number
+        default: 3
 env:
   NO_CACHE: ${{ secrets.NO_CACHE }}
-  TEST_GROUPS_COUNT: 3
 
 jobs:
   prepare-matrix:
@@ -25,7 +28,7 @@ jobs:
         id: generate-matrix
         with:
           script: |
-            return Array.from({length: ${{ fromJSON(env.TEST_GROUPS_COUNT) }}}, (_, i) => i + 1)
+            return Array.from({length: ${{ github.event.inputs.test-groups-count }}}, (_, i) => i + 1)
 
   test:
     needs: prepare-matrix
@@ -33,11 +36,11 @@ jobs:
     environment: test-functional
     continue-on-error: true
     strategy:
-      max-parallel: ${{ env.TEST_GROUPS_COUNT }}
       matrix:
         test-group: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
     env:
       RETRY_FAILED_TESTS: true
+      TEST_GROUPS_COUNT: ${{ github.event.inputs.test-groups-count }}
       TEST_GROUP_NUMBER: ${{ matrix.test-group }}
     outputs:
       # Matrix jobs cannot collect outputs about each of them automatically. It rewrites the same outputs. Improve it once it will be possible.
@@ -93,7 +96,7 @@ jobs:
           result-encoding: string
           script: |
             const statuses = ${{ toJSON(needs.test.outputs.*) }};
-            for (let i = 0; i < ${{ fromJSON(env.TEST_GROUPS_COUNT) }}; i++) {
+            for (let i = 0; i < ${{ github.event.inputs.test-groups-count }}; i++) {
               if (statuses[i] !== 'success')
                 return 'failure';
             }
