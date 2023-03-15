@@ -30,7 +30,6 @@ jobs:
       - uses: DevExpress/testcafe-build-system/actions/read-artifacts@main
         with:
           package-name: 'testcafe-hammerhead'
-          is-docker: false
 
       - name: Get npm cache directory
         id: npm-cache-dir
