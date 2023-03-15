@@ -33,7 +33,7 @@ jobs:
     environment: test-functional
     continue-on-error: true
     strategy:
-      max-parallel: ${{ fromJSON(env.TEST_GROUPS_COUNT) }}
+      max-parallel: ${{ env.TEST_GROUPS_COUNT }}
       matrix:
         test-group: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
     env:
