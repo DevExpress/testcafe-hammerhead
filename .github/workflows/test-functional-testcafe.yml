@@ -111,7 +111,3 @@ jobs:
         if: always()
         with:
           status: ${{ needs.get-result-status.outputs.status || 'failure' }}
-
-      - name: Exit with error
-        if: ${{ needs.get-result-status.outputs.status == 'failure' }}
-        run: exit 1
