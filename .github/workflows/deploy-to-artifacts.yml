@@ -18,7 +18,7 @@ jobs:
     outputs:
       sha: ${{steps.prep.outputs.sha}} 
     steps:
-      - uses: Aleksey28/testcafe-build-system/actions/set-status@main
+      - uses: DevExpress/testcafe-build-system/actions/set-status@main
         with:
           status: 'pending'
       - id: prep
@@ -54,18 +54,9 @@ jobs:
     # TODO: currently cannot generate a list of changes after rebase
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/github-script@v3
+      - uses: DevExpress/testcafe-build-system/actions/set-status@main
         with:
-          github-token: ${{secrets.ACTIVE_TOKEN}}
-          script: |
-            await github.repos.createCommitStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: context.payload.inputs.sha,
-              context: context.workflow,
-              state: 'pending',
-              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
-            });
+          status: 'pending'
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.inputs.sha }}
@@ -122,28 +113,9 @@ jobs:
             tasks.push('test-server-stable.yml');
             
             await Promise.all(tasks.map(task => dispatchWorkflow(task)));
-      - uses: actions/github-script@v3
+      - uses: DevExpress/testcafe-build-system/actions/set-status@main
         with:
-          github-token: ${{secrets.ACTIVE_TOKEN}}
-          script: |
-            await github.repos.createCommitStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: context.payload.inputs.sha,
-              context: context.workflow,
-              state: 'success',
-              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}#artifacts`
-            });
-      - uses: actions/github-script@v3
-        if: failure() || cancelled()
+          status: 'success'
+      - uses: DevExpress/testcafe-build-system/actions/set-status@main
         with:
-          github-token: ${{secrets.ACTIVE_TOKEN}}
-          script: |
-            await github.repos.createCommitStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: context.payload.inputs.sha,
-              context: context.workflow,
-              state: 'failure',
-              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
-            });     
+          status: 'failure'  
