@@ -51,10 +51,8 @@ jobs:
       - run: npm ci
       - run: npx gulp test-functional-testcafe --no-build
         timeout-minutes: 60
+        
       - uses: DevExpress/testcafe-build-system/actions/set-status@main
+        if: always()
         with:
-          status: 'success'
-      - uses: DevExpress/testcafe-build-system/actions/set-status@main
-        if: failure() || cancelled()
-        with:
-          status: 'failure'
+          status: ${{ fromJSON('["failure", "success"]')[job.status == 'success'] }}
