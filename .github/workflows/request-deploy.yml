@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Check permissions
-        uses: actions/github-script@v3
+        uses: actions/github-script@v6
         with:
           script: |
             console.log("${{github.event_name}}", await github.rest.repos.listCommitStatusesForRef({ 
@@ -33,7 +33,7 @@ jobs:
     
     steps:
       - name: Request Deployment
-        uses: actions/github-script@v3
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.ACTIVE_TOKEN}}
           script: |

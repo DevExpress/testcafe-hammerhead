@@ -67,7 +67,7 @@ jobs:
 
     steps:
       - name: Create a PR comment with a job URL
-        uses: actions/github-script@v3
+        uses: actions/github-script@v6
         with:
           script: |
             const request = {
@@ -104,7 +104,7 @@ jobs:
           path: ./HealthMonitor/health-monitor
 
       - name: Get PR info to checkout testcafe-hammerhead branch
-        uses: actions/github-script@v3
+        uses: actions/github-script@v6
         id: get-pr-to-checkout
         with:
           script: |

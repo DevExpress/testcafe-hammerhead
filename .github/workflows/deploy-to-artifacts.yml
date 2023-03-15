@@ -22,7 +22,7 @@ jobs:
         with:
           status: 'pending'
       - id: prep
-        uses: actions/github-script@v3
+        uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.ACTIVE_TOKEN }}
           script: |            
@@ -35,7 +35,7 @@ jobs:
           npx gulp build
           npm pack
       - id: package-name
-        uses: actions/github-script@v3
+        uses: actions/github-script@v6
         with:
           script: |
             const { name, version } = require(require('path').join(process.env.GITHUB_WORKSPACE, 'package.json'));
