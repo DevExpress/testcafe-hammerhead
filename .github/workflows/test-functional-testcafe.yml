@@ -32,7 +32,7 @@ jobs:
         with:
           node-version: 16
 
-      - uses: Aleksey28/testcafe-build-system/actions/read-artifacts@main
+      - uses: DevExpress/testcafe-build-system/actions/read-artifacts@main
         with:
           package-name: 'testcafe-hammerhead'
           is-docker: false
