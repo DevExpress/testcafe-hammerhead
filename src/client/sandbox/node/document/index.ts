@@ -154,12 +154,6 @@ export default class DocumentSandbox extends SandboxBase {
         this.overrideCreateElementNS(docPrototype, documentSandbox);
         this.overrideCreateDocumentFragment(docPrototype, documentSandbox);
 
-        if (nativeMethods.documentDocumentURIGetter)
-            this.overrideDocumentURI(docPrototype);
-
-        this.overrideReferrer(docPrototype, htmlDocPrototype);
-        this.overrideURL(docPrototype, htmlDocPrototype);
-        this.overrideDomain(window, docPrototype, htmlDocPrototype);
         this.overrideStyleSheets(docPrototype, documentSandbox);
 
         this.overrideActiveElement(docPrototype, documentSandbox);
@@ -170,6 +164,12 @@ export default class DocumentSandbox extends SandboxBase {
         if (this.proxyless)
             return;
 
+        if (nativeMethods.documentDocumentURIGetter)
+            this.overrideDocumentURI(docPrototype);
+
+        this.overrideReferrer(docPrototype, htmlDocPrototype);
+        this.overrideURL(docPrototype, htmlDocPrototype);
+        this.overrideDomain(window, docPrototype, htmlDocPrototype);
         this.overrideCookie(window, documentSandbox);
     }
 
