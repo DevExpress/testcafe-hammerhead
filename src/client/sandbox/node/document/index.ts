@@ -162,13 +162,15 @@ export default class DocumentSandbox extends SandboxBase {
         this.overrideDomain(window, docPrototype, htmlDocPrototype);
         this.overrideStyleSheets(docPrototype, documentSandbox);
 
-        if (!this.proxyless)
-            this.overrideCookie(window, documentSandbox);
-
         this.overrideActiveElement(docPrototype, documentSandbox);
 
         if (this._documentTitleStorageInitializer && !partialInitializationForNotLoadedIframe)
             this.overrideTitle(docPrototype, documentSandbox);
+
+        if (this.proxyless)
+            return;
+
+        this.overrideCookie(window, documentSandbox);
     }
 
     private overrideOpen (window: Window, document: Document, documentSandbox: this) {
