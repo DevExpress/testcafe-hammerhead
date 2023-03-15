@@ -76,7 +76,7 @@ jobs:
               run_id: context.runId
             }
 
-            const runJobs = await github.actions.listJobsForWorkflowRun(request)
+            const runJobs = await github.rest.actions.listJobsForWorkflowRun(request)
               .then(res => res.data.jobs)
               .catch(err => {
                 core.setFailed(`Request failed with error ${err}`);
@@ -84,7 +84,7 @@ jobs:
 
             const currentJob = runJobs.find(job => job.name === context.job);
 
-            github.issues.createComment({
+            github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -115,7 +115,7 @@ jobs:
             };
 
             try {
-              const result = await github.pulls.get(request);
+              const result = await github.rest.pulls.get(request);
 
               return result.data;
             }
