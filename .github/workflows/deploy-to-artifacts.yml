@@ -27,7 +27,7 @@ jobs:
           github-token: ${{ secrets.ACTIVE_TOKEN }}
           script: |            
             core.setOutput('sha', context.payload.inputs.merged_sha || context.payload.inputs.sha);
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{steps.prep.outputs.sha}}
       - run: |
@@ -43,7 +43,7 @@ jobs:
             core.setOutput('packageName', `${name}-${version}`);
             core.setOutput('imageName', `${name}/${name}:${version}`);
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: npm
           path: |
@@ -57,14 +57,14 @@ jobs:
       - uses: DevExpress/testcafe-build-system/actions/set-status@main
         with:
           status: 'pending'
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.sha }}
           fetch-depth: 0
       - run: |
           git reset --soft `git merge-base "${{github.event.inputs.base_sha}}" HEAD`
           git diff --name-only --cached > changes.txt
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: changes
           path: changes.txt
@@ -73,10 +73,10 @@ jobs:
     needs: [build, changes]
     environment: CI
     steps:  
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: changes
-      - uses: actions/github-script@v3
+      - uses: actions/github-script@v6
         with:
           github-token: ${{secrets.ACTIVE_TOKEN}}
           script: |
@@ -91,7 +91,7 @@ jobs:
             }
 
             async function dispatchWorkflow (workflowName) {
-              await github.actions.createWorkflowDispatch({
+              await github.rest.actions.createWorkflowDispatch({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 ref: 'master',
