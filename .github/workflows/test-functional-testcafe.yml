@@ -48,6 +48,8 @@ jobs:
       test-2: "${{ steps.save-result.outputs.test_2 }}"
       test-3: "${{ steps.save-result.outputs.test_3 }}"
     steps:
+      - name: Show something
+        run: echo "test_${{ matrix.test-group }}=${{ job.status }}"
       - uses: DevExpress/testcafe-build-system/actions/set-status@main
         with:
           status: 'pending'
