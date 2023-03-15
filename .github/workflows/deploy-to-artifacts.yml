@@ -18,18 +18,9 @@ jobs:
     outputs:
       sha: ${{steps.prep.outputs.sha}} 
     steps:
-      - uses: actions/github-script@v3
+      - uses: Aleksey28/testcafe-build-system/actions/set-status@main
         with:
-          github-token: ${{secrets.ACTIVE_TOKEN}}
-          script: |
-            await github.repos.createCommitStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: context.payload.inputs.sha,
-              context: context.workflow,
-              state: 'pending',
-              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
-            });
+          status: 'pending'
       - id: prep
         uses: actions/github-script@v3
         with:
