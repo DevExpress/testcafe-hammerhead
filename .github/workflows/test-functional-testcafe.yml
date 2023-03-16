@@ -11,68 +11,64 @@ on:
         description: 'The merge commit SHA'
       deploy_run_id:
         description: 'The ID of a deployment workspace run with artifacts'
+      test-groups-count:
+        required: false
+        type: number
+        default: 3
 env:
   NO_CACHE: ${{ secrets.NO_CACHE }}
 
 jobs:
-  test:
+  prepare-matrix:
     runs-on: ubuntu-latest
-    environment: test-functional
-    env:
-      RETRY_FAILED_TESTS: true
+    outputs:
+      matrix: "${{ steps.generate-matrix.outputs.result }}"
     steps:
-      - uses: actions/github-script@v3
+      - uses: actions/github-script@v6
+        id: generate-matrix
         with:
           script: |
-            await github.repos.createCommitStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: context.payload.inputs.sha,
-              context: context.workflow,
-              state: 'pending',
-              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
-            });
-      - uses: actions/checkout@v2
+            return Array.from({length: ${{ github.event.inputs.test-groups-count }}}, (_, i) => i + 1)
+
+  test:
+    needs: prepare-matrix
+    runs-on: ubuntu-latest
+    environment: test-functional
+    continue-on-error: true
+    strategy:
+      matrix:
+        test-group: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
+    env:
+      RETRY_FAILED_TESTS: true
+      TEST_GROUPS_COUNT: ${{ github.event.inputs.test-groups-count }}
+      TEST_GROUP_NUMBER: ${{ matrix.test-group }}
+    outputs:
+      # Matrix jobs cannot collect outputs about each of them automatically. It rewrites the same outputs. Improve it once it will be possible.
+      test-1: "${{ steps.save-result.outputs.test_1 }}"
+      test-2: "${{ steps.save-result.outputs.test_2 }}"
+      test-3: "${{ steps.save-result.outputs.test_3 }}"
+    steps:
+      - uses: DevExpress/testcafe-build-system/actions/set-status@main
+        with:
+          status: 'pending'
+      - uses: actions/checkout@v3
         with:
           ref: ${{github.event.inputs.merged_sha || github.event.inputs.sha}}
 
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
-          node-version: 14
+          node-version: 16
 
-      - uses: actions/github-script@v3
+      - uses: DevExpress/testcafe-build-system/actions/read-artifacts@main
         with:
-          script: |
-            const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-            let artifacts = {};
-
-            for(let i = 0;i<36&&!artifacts.total_count;i++,await delay(5000)) {
-              try {
-                ({ data: artifacts } = await github.actions.listWorkflowRunArtifacts({
-                repo: context.repo.repo,
-                owner: context.repo.owner,
-                run_id: context.payload.inputs.deploy_run_id
-              }));
-              }
-              catch (e) {
-                console.log(e);
-              }
-            }
-
-            const { data: artifact } = await github.request(artifacts.artifacts.find(artifact=> artifact.name === 'npm').archive_download_url);
-            require('fs').writeFileSync(require('path').join(process.env.GITHUB_WORKSPACE, 'package.zip'), Buffer.from(artifact))
-
-      - run: |
-          unzip package.zip
-          tar --strip-components=1 -xzf testcafe-hammerhead-*.tgz
+          package-name: 'testcafe-hammerhead'
 
       - name: Get npm cache directory
         id: npm-cache-dir
         run: |
-          echo "::set-output name=dir::$(npm config get cache)"
+          echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         if: ${{ !env.NO_CACHE }}
         with:
           path: ${{ steps.npm-cache-dir.outputs.dir }}
@@ -82,26 +78,40 @@ jobs:
       - run: npm ci
       - run: npx gulp test-functional-testcafe --no-build
         timeout-minutes: 60
-      - uses: actions/github-script@v3
+      - name: Save result
+        id: save-result
+        if: always()
+        run: echo "test_${{ matrix.test-group }}=${{ job.status }}" >> "$GITHUB_OUTPUT"
+        
+  get-result-status:
+    if: ${{ !cancelled() }}
+    needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.status.outputs.result }}
+    steps:
+      - uses: actions/github-script@v6
+        id: status
         with:
+          result-encoding: string
           script: |
-            await github.repos.createCommitStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: context.payload.inputs.sha,
-              context: context.workflow,
-              state: 'success',
-              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
-            });
-      - uses: actions/github-script@v3
-        if: failure() || cancelled()
+            const statuses = ${{ toJSON(needs.test.outputs.*) }};
+            for (let i = 0; i < ${{ github.event.inputs.test-groups-count }}; i++) {
+              if (statuses[i] !== 'success')
+                return 'failure';
+            }
+            return 'success';
+
+  set-result-status:
+    if: always()
+    needs: get-result-status
+    runs-on: ubuntu-latest
+    steps:
+      - uses: DevExpress/testcafe-build-system/actions/set-status@main
+        if: always()
         with:
-          script: |
-            await github.repos.createCommitStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: context.payload.inputs.sha,
-              context: context.workflow,
-              state: 'failure',
-              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
-            });
+          status: ${{ needs.get-result-status.outputs.status || 'failure' }}
+
+      - name: Exit with error
+        if: ${{ needs.get-result-status.outputs.status == 'failure' }}
+        run: exit 1
