@@ -25,7 +25,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: latest
+          node-version: current
 
       - uses: DevExpress/testcafe-build-system/actions/read-artifacts@main
         with:
