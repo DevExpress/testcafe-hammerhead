@@ -109,8 +109,8 @@ jobs:
 
             tasks.push('test-functional-testcafe.yml');
             
-            tasks.push('test-server-lts.yml');
-            tasks.push('test-server-stable.yml');
+            tasks.push('test-server-minimum.yml');
+            tasks.push('test-server-latest.yml');
             
             await Promise.all(tasks.map(task => dispatchWorkflow(task)));
 
