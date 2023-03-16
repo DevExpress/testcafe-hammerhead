@@ -38,7 +38,7 @@
     "semver": "5.5.0",
     "tough-cookie": "4.0.0",
     "tunnel-agent": "0.6.0",
-    "webauth": "https://github.com/Aleksey28/builds/raw/main/webauth-1.8.2.tgz"
+    "webauth": "https://github.com/Aleksey28/builds/raw/main/webauth-1.1.0.tgz"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.1.0",
