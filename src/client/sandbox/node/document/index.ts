@@ -145,11 +145,6 @@ export default class DocumentSandbox extends SandboxBase {
         const docPrototype     = window.Document.prototype;
         const htmlDocPrototype = window.HTMLDocument.prototype;
 
-        this.overrideOpen(window, document, documentSandbox);
-        this.overrideClose(window, document, documentSandbox);
-        this.overrideWrite(window, document, documentSandbox);
-        this.overrideWriteln(window, document, documentSandbox);
-
         this.overrideCreateElement(docPrototype, documentSandbox);
         this.overrideCreateElementNS(docPrototype, documentSandbox);
         this.overrideCreateDocumentFragment(docPrototype, documentSandbox);
@@ -163,6 +158,11 @@ export default class DocumentSandbox extends SandboxBase {
 
         if (this.proxyless)
             return;
+
+        this.overrideOpen(window, document, documentSandbox);
+        this.overrideClose(window, document, documentSandbox);
+        this.overrideWrite(window, document, documentSandbox);
+        this.overrideWriteln(window, document, documentSandbox);
 
         if (nativeMethods.documentDocumentURIGetter)
             this.overrideDocumentURI(docPrototype);
