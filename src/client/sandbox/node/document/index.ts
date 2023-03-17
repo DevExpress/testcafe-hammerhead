@@ -145,10 +145,6 @@ export default class DocumentSandbox extends SandboxBase {
         const docPrototype     = window.Document.prototype;
         const htmlDocPrototype = window.HTMLDocument.prototype;
 
-        this.overrideCreateElement(docPrototype, documentSandbox);
-        this.overrideCreateElementNS(docPrototype, documentSandbox);
-        this.overrideCreateDocumentFragment(docPrototype, documentSandbox);
-
         this.overrideStyleSheets(docPrototype, documentSandbox);
 
         this.overrideActiveElement(docPrototype, documentSandbox);
@@ -163,6 +159,10 @@ export default class DocumentSandbox extends SandboxBase {
         this.overrideClose(window, document, documentSandbox);
         this.overrideWrite(window, document, documentSandbox);
         this.overrideWriteln(window, document, documentSandbox);
+
+        this.overrideCreateElement(docPrototype, documentSandbox);
+        this.overrideCreateElementNS(docPrototype, documentSandbox);
+        this.overrideCreateDocumentFragment(docPrototype, documentSandbox);
 
         if (nativeMethods.documentDocumentURIGetter)
             this.overrideDocumentURI(docPrototype);
