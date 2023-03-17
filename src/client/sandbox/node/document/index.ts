@@ -145,10 +145,6 @@ export default class DocumentSandbox extends SandboxBase {
         const docPrototype     = window.Document.prototype;
         const htmlDocPrototype = window.HTMLDocument.prototype;
 
-        this.overrideStyleSheets(docPrototype, documentSandbox);
-
-        this.overrideActiveElement(docPrototype, documentSandbox);
-
         if (this._documentTitleStorageInitializer && !partialInitializationForNotLoadedIframe)
             this.overrideTitle(docPrototype, documentSandbox);
 
@@ -170,7 +166,9 @@ export default class DocumentSandbox extends SandboxBase {
         this.overrideReferrer(docPrototype, htmlDocPrototype);
         this.overrideURL(docPrototype, htmlDocPrototype);
         this.overrideDomain(window, docPrototype, htmlDocPrototype);
+        this.overrideStyleSheets(docPrototype, documentSandbox);
         this.overrideCookie(window, documentSandbox);
+        this.overrideActiveElement(docPrototype, documentSandbox);
     }
 
     private overrideOpen (window: Window, document: Document, documentSandbox: this) {
