@@ -1011,14 +1011,9 @@ export default class ElementSandbox extends SandboxBase {
 
         this._createOverriddenMethods();
 
-        if (nativeMethods.attachShadow)
-            overrideFunction(window.Element.prototype, 'attachShadow', this.overriddenMethods.attachShadow);
-
-        overrideFunction(window.Node.prototype, 'cloneNode', this.overriddenMethods.cloneNode);
         overrideFunction(window.Node.prototype, 'appendChild', this.overriddenMethods.appendChild);
         overrideFunction(window.Node.prototype, 'removeChild', this.overriddenMethods.removeChild);
         overrideFunction(window.Node.prototype, 'insertBefore', this.overriddenMethods.insertBefore);
-        overrideFunction(window.Node.prototype, 'replaceChild', this.overriddenMethods.replaceChild);
 
         if (nativeMethods.append)
             overrideFunction(window.Element.prototype, 'append', this.overriddenMethods.append);
@@ -1031,10 +1026,6 @@ export default class ElementSandbox extends SandboxBase {
 
         if (nativeMethods.remove)
             overrideFunction(window.Element.prototype, 'remove', this.overriddenMethods.remove);
-
-        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentHTML', this.overriddenMethods.insertAdjacentHTML);
-        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentElement', this.overriddenMethods.insertAdjacentElement);
-        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentText', this.overriddenMethods.insertAdjacentText);
 
         if (this.proxyless)
             return;
@@ -1053,26 +1044,11 @@ export default class ElementSandbox extends SandboxBase {
         overrideFunction(window.Element.prototype, 'hasAttributeNS', this.overriddenMethods.hasAttributeNS);
         overrideFunction(window.Element.prototype, 'hasAttributes', this.overriddenMethods.hasAttributes);
 
-        // if (nativeMethods.attachShadow)
-        //     overrideFunction(window.Element.prototype, 'attachShadow', this.overriddenMethods.attachShadow);
+        if (nativeMethods.attachShadow)
+            overrideFunction(window.Element.prototype, 'attachShadow', this.overriddenMethods.attachShadow);
 
         overrideFunction(window.Node.prototype, 'cloneNode', this.overriddenMethods.cloneNode);
-        // overrideFunction(window.Node.prototype, 'appendChild', this.overriddenMethods.appendChild);
-        // overrideFunction(window.Node.prototype, 'removeChild', this.overriddenMethods.removeChild);
-        // overrideFunction(window.Node.prototype, 'insertBefore', this.overriddenMethods.insertBefore);
         overrideFunction(window.Node.prototype, 'replaceChild', this.overriddenMethods.replaceChild);
-
-        // if (nativeMethods.append)
-        //     overrideFunction(window.Element.prototype, 'append', this.overriddenMethods.append);
-
-        // if (nativeMethods.prepend)
-        //     overrideFunction(window.Element.prototype, 'prepend', this.overriddenMethods.prepend);
-
-        // if (nativeMethods.after)
-        //     overrideFunction(window.Element.prototype, 'after', this.overriddenMethods.after);
-
-        // if (nativeMethods.remove)
-        //     overrideFunction(window.Element.prototype, 'remove', this.overriddenMethods.remove);
 
         if (nativeMethods.elementReplaceWith)
             overrideFunction(window.Element.prototype, 'replaceWith', this.overriddenMethods.elementReplaceWith);
@@ -1095,9 +1071,9 @@ export default class ElementSandbox extends SandboxBase {
         if (window.Document.prototype.registerElement)
             overrideFunction(window.Document.prototype, 'registerElement', this.overriddenMethods.registerElement);
 
-        // overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentHTML', this.overriddenMethods.insertAdjacentHTML);
-        // overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentElement', this.overriddenMethods.insertAdjacentElement);
-        // overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentText', this.overriddenMethods.insertAdjacentText);
+        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentHTML', this.overriddenMethods.insertAdjacentHTML);
+        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentElement', this.overriddenMethods.insertAdjacentElement);
+        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentText', this.overriddenMethods.insertAdjacentText);
 
         this._setValidBrowsingContextOnElementClick(window);
 
