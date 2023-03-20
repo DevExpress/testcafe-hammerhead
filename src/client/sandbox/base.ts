@@ -35,6 +35,10 @@ export default class SandboxBase extends EventEmitter {
         return true;
     }
 
+    static get isProxyless (): boolean {
+        return !!settings.get().proxyless;
+    }
+
     attach (window: Window & typeof globalThis, document?: Document): void {
         this.window    = window;
         this.document  = document || window.document;

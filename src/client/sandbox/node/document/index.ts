@@ -140,7 +140,7 @@ export default class DocumentSandbox extends SandboxBase {
         if (this._documentTitleStorageInitializer && !partialInitializationForNotLoadedIframe)
             this.overrideTitle(docPrototype, documentSandbox);
 
-        if (this.proxyless)
+        if (SandboxBase.isProxyless)
             return;
 
         this.overrideOpen(window, document, documentSandbox);
