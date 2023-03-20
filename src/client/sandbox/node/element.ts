@@ -1032,6 +1032,48 @@ export default class ElementSandbox extends SandboxBase {
         if (nativeMethods.remove)
             overrideFunction(window.Element.prototype, 'remove', this.overriddenMethods.remove);
 
+        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentHTML', this.overriddenMethods.insertAdjacentHTML);
+        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentElement', this.overriddenMethods.insertAdjacentElement);
+        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentText', this.overriddenMethods.insertAdjacentText);
+
+        if (this.proxyless)
+            return;
+
+        overrideFunction(window.Element.prototype, 'setAttribute', this.overriddenMethods.setAttribute);
+        overrideFunction(window.Element.prototype, 'setAttributeNS', this.overriddenMethods.setAttributeNS);
+        overrideFunction(window.Element.prototype, 'getAttribute', this.overriddenMethods.getAttribute);
+        overrideFunction(window.Element.prototype, 'getAttributeNS', this.overriddenMethods.getAttributeNS);
+        overrideFunction(window.Element.prototype, 'removeAttribute', this.overriddenMethods.removeAttribute);
+        overrideFunction(window.Element.prototype, 'removeAttributeNS', this.overriddenMethods.removeAttributeNS);
+        overrideFunction(window.Element.prototype, 'removeAttributeNode', this.overriddenMethods.removeAttributeNode);
+        overrideFunction(window.Element.prototype, 'cloneNode', this.overriddenMethods.cloneNode);
+        overrideFunction(window.Element.prototype, 'querySelector', this.overriddenMethods.querySelector);
+        overrideFunction(window.Element.prototype, 'querySelectorAll', this.overriddenMethods.querySelectorAll);
+        overrideFunction(window.Element.prototype, 'hasAttribute', this.overriddenMethods.hasAttribute);
+        overrideFunction(window.Element.prototype, 'hasAttributeNS', this.overriddenMethods.hasAttributeNS);
+        overrideFunction(window.Element.prototype, 'hasAttributes', this.overriddenMethods.hasAttributes);
+
+        // if (nativeMethods.attachShadow)
+        //     overrideFunction(window.Element.prototype, 'attachShadow', this.overriddenMethods.attachShadow);
+
+        overrideFunction(window.Node.prototype, 'cloneNode', this.overriddenMethods.cloneNode);
+        // overrideFunction(window.Node.prototype, 'appendChild', this.overriddenMethods.appendChild);
+        // overrideFunction(window.Node.prototype, 'removeChild', this.overriddenMethods.removeChild);
+        // overrideFunction(window.Node.prototype, 'insertBefore', this.overriddenMethods.insertBefore);
+        overrideFunction(window.Node.prototype, 'replaceChild', this.overriddenMethods.replaceChild);
+
+        // if (nativeMethods.append)
+        //     overrideFunction(window.Element.prototype, 'append', this.overriddenMethods.append);
+
+        // if (nativeMethods.prepend)
+        //     overrideFunction(window.Element.prototype, 'prepend', this.overriddenMethods.prepend);
+
+        // if (nativeMethods.after)
+        //     overrideFunction(window.Element.prototype, 'after', this.overriddenMethods.after);
+
+        // if (nativeMethods.remove)
+        //     overrideFunction(window.Element.prototype, 'remove', this.overriddenMethods.remove);
+
         if (nativeMethods.elementReplaceWith)
             overrideFunction(window.Element.prototype, 'replaceWith', this.overriddenMethods.elementReplaceWith);
 
@@ -1053,9 +1095,9 @@ export default class ElementSandbox extends SandboxBase {
         if (window.Document.prototype.registerElement)
             overrideFunction(window.Document.prototype, 'registerElement', this.overriddenMethods.registerElement);
 
-        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentHTML', this.overriddenMethods.insertAdjacentHTML);
-        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentElement', this.overriddenMethods.insertAdjacentElement);
-        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentText', this.overriddenMethods.insertAdjacentText);
+        // overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentHTML', this.overriddenMethods.insertAdjacentHTML);
+        // overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentElement', this.overriddenMethods.insertAdjacentElement);
+        // overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentText', this.overriddenMethods.insertAdjacentText);
 
         this._setValidBrowsingContextOnElementClick(window);
 
@@ -1077,23 +1119,6 @@ export default class ElementSandbox extends SandboxBase {
                 nativeMethods.htmlElementOnloadSetter.call(this, handler);
             },
         });
-
-        if (this.proxyless)
-            return;
-
-        overrideFunction(window.Element.prototype, 'setAttribute', this.overriddenMethods.setAttribute);
-        overrideFunction(window.Element.prototype, 'setAttributeNS', this.overriddenMethods.setAttributeNS);
-        overrideFunction(window.Element.prototype, 'getAttribute', this.overriddenMethods.getAttribute);
-        overrideFunction(window.Element.prototype, 'getAttributeNS', this.overriddenMethods.getAttributeNS);
-        overrideFunction(window.Element.prototype, 'removeAttribute', this.overriddenMethods.removeAttribute);
-        overrideFunction(window.Element.prototype, 'removeAttributeNS', this.overriddenMethods.removeAttributeNS);
-        overrideFunction(window.Element.prototype, 'removeAttributeNode', this.overriddenMethods.removeAttributeNode);
-        overrideFunction(window.Element.prototype, 'cloneNode', this.overriddenMethods.cloneNode);
-        overrideFunction(window.Element.prototype, 'querySelector', this.overriddenMethods.querySelector);
-        overrideFunction(window.Element.prototype, 'querySelectorAll', this.overriddenMethods.querySelectorAll);
-        overrideFunction(window.Element.prototype, 'hasAttribute', this.overriddenMethods.hasAttribute);
-        overrideFunction(window.Element.prototype, 'hasAttributeNS', this.overriddenMethods.hasAttributeNS);
-        overrideFunction(window.Element.prototype, 'hasAttributes', this.overriddenMethods.hasAttributes);
     }
 
     private _ensureTargetContainsExistingBrowsingContext (el: HTMLElement): void {
