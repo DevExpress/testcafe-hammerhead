@@ -1097,15 +1097,7 @@ export default class ElementSandbox extends SandboxBase {
                 ElementSandbox._setProxiedSrc(e.el);
         });
 
-        overrideDescriptor(window.HTMLElement.prototype, 'onload', {
-            getter: null,
-            setter: function (handler) {
-                if (domUtils.isImgElement(this) && isValidEventListener(handler))
-                    ElementSandbox._setProxiedSrc(this);
-
-                nativeMethods.htmlElementOnloadSetter.call(this, handler);
-            },
-        });
+        this.overrideDescriptorOnload(window);
     }
 
     private _setValidBrowsingContextOnElementClick (window): void {
@@ -1136,6 +1128,18 @@ export default class ElementSandbox extends SandboxBase {
         const storedAttr = nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('target'));
 
         el.setAttribute('target', storedAttr || attr);
+    }
+
+    private overrideDescriptorOnload (window) {
+        overrideDescriptor(window.HTMLElement.prototype, 'onload', {
+            getter: null,
+            setter: function (handler) {
+                if (domUtils.isImgElement(this) && isValidEventListener(handler))
+                    ElementSandbox._setProxiedSrc(this);
+
+                nativeMethods.htmlElementOnloadSetter.call(this, handler);
+            },
+        });
     }
 
     processElement (el: Element): void {
