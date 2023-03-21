@@ -353,6 +353,17 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
+    getCorrectedTarget (target = ''): string {
+        if (settings.get().allowMultipleWindows)
+            return target;
+
+        if (target && !isKeywordTarget(target) && !windowsStorage.findByName(target) ||
+            /_blank/i.test(target))
+            return '_top';
+
+        return target;
+    }
+
     private _hasAttributeCore (el: HTMLElement, args, isNs: boolean) {
         const attributeNameArgIndex       = isNs ? 1 : 0;
         const hasAttrMeth                 = isNs ? nativeMethods.hasAttributeNS : nativeMethods.hasAttribute;
@@ -1097,19 +1108,6 @@ export default class ElementSandbox extends SandboxBase {
         });
     }
 
-    private _ensureTargetContainsExistingBrowsingContext (el: HTMLElement): void {
-        if (settings.get().allowMultipleWindows)
-            return;
-
-        if (!nativeMethods.hasAttribute.call(el, 'target'))
-            return;
-
-        const attr       = nativeMethods.getAttribute.call(el, 'target');
-        const storedAttr = nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('target'));
-
-        el.setAttribute('target', storedAttr || attr);
-    }
-
     private _setValidBrowsingContextOnElementClick (window): void {
         this._eventSandbox.listeners.initElementListening(window, ['click']);
         this._eventSandbox.listeners.addInternalEventBeforeListener(window, ['click'], (e: MouseEvent) => {
@@ -1127,67 +1125,17 @@ export default class ElementSandbox extends SandboxBase {
         });
     }
 
-    private _setProxiedSrcUrlOnError (img: HTMLImageElement): void {
-        img.addEventListener('error', e => {
-            const storedAttr = nativeMethods.getAttribute.call(img, DomProcessor.getStoredAttrName('src'));
-            const imgSrc     = nativeMethods.imageSrcGetter.call(img);
-
-            if (storedAttr && !urlUtils.parseProxyUrl(imgSrc) &&
-                urlUtils.isSupportedProtocol(imgSrc) && !urlUtils.isSpecialPage(imgSrc)) {
-                nativeMethods.setAttribute.call(img, 'src', urlUtils.getProxyUrl(storedAttr));
-                stopPropagation(e);
-            }
-        }, false);
-    }
-
-    getCorrectedTarget (target = ''): string {
+    private _ensureTargetContainsExistingBrowsingContext (el: HTMLElement): void {
         if (settings.get().allowMultipleWindows)
-            return target;
-
-        if (target && !isKeywordTarget(target) && !windowsStorage.findByName(target) ||
-            /_blank/i.test(target))
-            return '_top';
-
-        return target;
-    }
-
-    private _handleImageLoadEventRaising (el: HTMLImageElement): void {
-        if (SandboxBase.isProxyless)
             return;
 
-        this._eventSandbox.listeners.initElementListening(el, ['load']);
-        this._eventSandbox.listeners.addInternalEventBeforeListener(el, ['load'], (_e, _dispatched, preventEvent, _cancelHandlers, stopEventPropagation) => {
-            if (el[INTERNAL_PROPS.cachedImage])
-                el[INTERNAL_PROPS.cachedImage] = false;
-
-            if (!el[INTERNAL_PROPS.skipNextLoadEventForImage])
-                return;
-
-            el[INTERNAL_PROPS.skipNextLoadEventForImage] = false;
-
-            preventEvent();
-            stopEventPropagation();
-        });
-
-        if (!el[INTERNAL_PROPS.forceProxySrcForImage] && !settings.get().forceProxySrcForImage)
-            this._setProxiedSrcUrlOnError(el as HTMLImageElement);
-    }
-
-    private _processBaseTag (el: HTMLBaseElement): void {
-        if (!this._isFirstBaseTagOnPage(el))
+        if (!nativeMethods.hasAttribute.call(el, 'target'))
             return;
 
-        const storedUrlAttr = nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('href'));
+        const attr       = nativeMethods.getAttribute.call(el, 'target');
+        const storedAttr = nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('target'));
 
-        if (storedUrlAttr !== null)
-            urlResolver.updateBase(storedUrlAttr, el.ownerDocument || this.document);
-    }
-
-    private _reProcessElementWithTargetAttr (el: Element, tagName: string): void {
-        const targetAttr = domProcessor.getTargetAttr(el);
-
-        if (DomProcessor.isIframeFlagTag(tagName) && nativeMethods.getAttribute.call(el, targetAttr) === '_parent')
-            domProcessor.processElement(el, urlUtils.convertToProxyUrl);
+        el.setAttribute('target', storedAttr || attr);
     }
 
     processElement (el: Element): void {
@@ -1215,5 +1163,57 @@ export default class ElementSandbox extends SandboxBase {
         // NOTE: we need to reprocess a tag client-side if it wasn't processed on the server.
         // See the usage of Parse5DomAdapter.needToProcessUrl
         this._reProcessElementWithTargetAttr(el, tagName);
+    }
+
+    private _handleImageLoadEventRaising (el: HTMLImageElement): void {
+        if (SandboxBase.isProxyless)
+            return;
+
+        this._eventSandbox.listeners.initElementListening(el, ['load']);
+        this._eventSandbox.listeners.addInternalEventBeforeListener(el, ['load'], (_e, _dispatched, preventEvent, _cancelHandlers, stopEventPropagation) => {
+            if (el[INTERNAL_PROPS.cachedImage])
+                el[INTERNAL_PROPS.cachedImage] = false;
+
+            if (!el[INTERNAL_PROPS.skipNextLoadEventForImage])
+                return;
+
+            el[INTERNAL_PROPS.skipNextLoadEventForImage] = false;
+
+            preventEvent();
+            stopEventPropagation();
+        });
+
+        if (!el[INTERNAL_PROPS.forceProxySrcForImage] && !settings.get().forceProxySrcForImage)
+            this._setProxiedSrcUrlOnError(el as HTMLImageElement);
+    }
+
+    private _setProxiedSrcUrlOnError (img: HTMLImageElement): void {
+        img.addEventListener('error', e => {
+            const storedAttr = nativeMethods.getAttribute.call(img, DomProcessor.getStoredAttrName('src'));
+            const imgSrc     = nativeMethods.imageSrcGetter.call(img);
+
+            if (storedAttr && !urlUtils.parseProxyUrl(imgSrc) &&
+                urlUtils.isSupportedProtocol(imgSrc) && !urlUtils.isSpecialPage(imgSrc)) {
+                nativeMethods.setAttribute.call(img, 'src', urlUtils.getProxyUrl(storedAttr));
+                stopPropagation(e);
+            }
+        }, false);
+    }
+
+    private _processBaseTag (el: HTMLBaseElement): void {
+        if (!this._isFirstBaseTagOnPage(el))
+            return;
+
+        const storedUrlAttr = nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('href'));
+
+        if (storedUrlAttr !== null)
+            urlResolver.updateBase(storedUrlAttr, el.ownerDocument || this.document);
+    }
+
+    private _reProcessElementWithTargetAttr (el: Element, tagName: string): void {
+        const targetAttr = domProcessor.getTargetAttr(el);
+
+        if (DomProcessor.isIframeFlagTag(tagName) && nativeMethods.getAttribute.call(el, targetAttr) === '_parent')
+            domProcessor.processElement(el, urlUtils.convertToProxyUrl);
     }
 }
