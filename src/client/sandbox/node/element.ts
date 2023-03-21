@@ -1011,6 +1011,9 @@ export default class ElementSandbox extends SandboxBase {
 
         this._createOverriddenMethods();
 
+        if (nativeMethods.attachShadow)
+            overrideFunction(window.Element.prototype, 'attachShadow', this.overriddenMethods.attachShadow);
+
         overrideFunction(window.Node.prototype, 'appendChild', this.overriddenMethods.appendChild);
         overrideFunction(window.Node.prototype, 'removeChild', this.overriddenMethods.removeChild);
         overrideFunction(window.Node.prototype, 'insertBefore', this.overriddenMethods.insertBefore);
@@ -1043,9 +1046,6 @@ export default class ElementSandbox extends SandboxBase {
         overrideFunction(window.Element.prototype, 'hasAttribute', this.overriddenMethods.hasAttribute);
         overrideFunction(window.Element.prototype, 'hasAttributeNS', this.overriddenMethods.hasAttributeNS);
         overrideFunction(window.Element.prototype, 'hasAttributes', this.overriddenMethods.hasAttributes);
-
-        if (nativeMethods.attachShadow)
-            overrideFunction(window.Element.prototype, 'attachShadow', this.overriddenMethods.attachShadow);
 
         overrideFunction(window.Node.prototype, 'cloneNode', this.overriddenMethods.cloneNode);
         overrideFunction(window.Node.prototype, 'replaceChild', this.overriddenMethods.replaceChild);
