@@ -141,37 +141,35 @@ export default class DocumentSandbox extends SandboxBase {
             });
         }
 
-        const documentSandbox  = this;
-        const docPrototype     = window.Document.prototype;
-        const htmlDocPrototype = window.HTMLDocument.prototype;
-
         if (this._documentTitleStorageInitializer && !partialInitializationForNotLoadedIframe)
-            this.overrideTitle(docPrototype, documentSandbox);
+            this.overrideTitle(window);
 
         if (SandboxBase.isProxyless)
             return;
 
-        this.overrideOpen(window, document, documentSandbox);
-        this.overrideClose(window, document, documentSandbox);
-        this.overrideWrite(window, document, documentSandbox);
-        this.overrideWriteln(window, document, documentSandbox);
+        this.overrideOpen(window, document);
+        this.overrideClose(window, document);
+        this.overrideWrite(window, document);
+        this.overrideWriteln(window, document);
 
-        this.overrideCreateElement(docPrototype, documentSandbox);
-        this.overrideCreateElementNS(docPrototype, documentSandbox);
-        this.overrideCreateDocumentFragment(docPrototype, documentSandbox);
+        this.overrideCreateElement(window);
+        this.overrideCreateElementNS(window);
+        this.overrideCreateDocumentFragment(window);
 
         if (nativeMethods.documentDocumentURIGetter)
-            this.overrideDocumentURI(docPrototype);
+            this.overrideDocumentURI(window);
 
-        this.overrideReferrer(docPrototype, htmlDocPrototype);
-        this.overrideURL(docPrototype, htmlDocPrototype);
-        this.overrideDomain(window, docPrototype, htmlDocPrototype);
-        this.overrideStyleSheets(docPrototype, documentSandbox);
-        this.overrideCookie(window, documentSandbox);
-        this.overrideActiveElement(docPrototype, documentSandbox);
+        this.overrideReferrer(window);
+        this.overrideURL(window);
+        this.overrideDomain(window);
+        this.overrideStyleSheets(window);
+        this.overrideCookie(window);
+        this.overrideActiveElement(window);
     }
 
-    private overrideOpen (window: Window, document: Document, documentSandbox: this) {
+    private overrideOpen (window, document) {
+        const documentSandbox = this;
+
         function open (this: Document, ...args: [string?, string?, string?, boolean?]) {
             const isUninitializedIframe = documentSandbox._isUninitializedIframeWithoutSrc(window);
 
@@ -187,7 +185,6 @@ export default class DocumentSandbox extends SandboxBase {
             // after document.open call
             const objectDefinePropertyFn = window[INTERNAL_PROPS.hammerhead]
                 ? window[INTERNAL_PROPS.hammerhead].nativeMethods.objectDefineProperty
-                //@ts-ignore
                 : window.Object.defineProperty;
 
             objectDefinePropertyFn(window, INTERNAL_PROPS.documentWasCleaned, { value: true, configurable: true });
@@ -208,7 +205,9 @@ export default class DocumentSandbox extends SandboxBase {
         overrideFunction(document, 'open', open);
     }
 
-    private overrideClose (window: Window, document: Document, documentSandbox: this) {
+    private overrideClose (window, document) {
+        const documentSandbox = this;
+
         function close (this: Document, ...args: []) {
             // NOTE: IE11 raise the "load" event only when the document.close method is called. We need to
             // restore the overridden document.open and document.write methods before Hammerhead injection, if the
@@ -238,7 +237,9 @@ export default class DocumentSandbox extends SandboxBase {
         overrideFunction(document, 'close', close);
     }
 
-    private overrideWrite (window: Window, document: Document, documentSandbox: this) {
+    private overrideWrite (window, document) {
+        const documentSandbox = this;
+
         function write () {
             return documentSandbox._performDocumentWrite(this, arguments);
         }
@@ -247,7 +248,9 @@ export default class DocumentSandbox extends SandboxBase {
         overrideFunction(document, 'write', write);
     }
 
-    private overrideWriteln (window: Window, document: Document, documentSandbox: this) {
+    private overrideWriteln (window, document) {
+        const documentSandbox = this;
+
         function writeln () {
             return documentSandbox._performDocumentWrite(this, arguments, true);
         }
@@ -256,8 +259,10 @@ export default class DocumentSandbox extends SandboxBase {
         overrideFunction(document, 'writeln', writeln);
     }
 
-    private overrideCreateElement (docPrototype: Document, documentSandbox: this) {
-        overrideFunction(docPrototype, 'createElement', function (this: Document, ...args: [string, ElementCreationOptions?]) {
+    private overrideCreateElement (window) {
+        const documentSandbox = this;
+
+        overrideFunction(window.Document.prototype, 'createElement', function (this: Document, ...args: [string, ElementCreationOptions?]) {
             const el = nativeMethods.createElement.apply(this, args);
 
             DocumentSandbox.forceProxySrcForImageIfNecessary(el);
@@ -268,8 +273,10 @@ export default class DocumentSandbox extends SandboxBase {
         });
     }
 
-    private overrideCreateElementNS (docPrototype: Document, documentSandbox: this) {
-        overrideFunction(docPrototype, 'createElementNS', function (this: Document, ...args: [string, string, (string | ElementCreationOptions)?]) {
+    private overrideCreateElementNS (window) {
+        const documentSandbox = this;
+
+        overrideFunction(window.Document.prototype, 'createElementNS', function (this: Document, ...args: [string, string, (string | ElementCreationOptions)?]) {
             const el = nativeMethods.createElementNS.apply(this, args);
 
             DocumentSandbox.forceProxySrcForImageIfNecessary(el);
@@ -280,8 +287,10 @@ export default class DocumentSandbox extends SandboxBase {
         });
     }
 
-    private overrideCreateDocumentFragment (docPrototype: Document, documentSandbox: this) {
-        overrideFunction(docPrototype, 'createDocumentFragment', function (this: Document, ...args: []) {
+    private overrideCreateDocumentFragment (window) {
+        const documentSandbox = this;
+
+        overrideFunction(window.Document.prototype, 'createDocumentFragment', function (this: Document, ...args: []) {
             const fragment = nativeMethods.createDocumentFragment.apply(this, args);
 
             documentSandbox._nodeSandbox.processNodes(fragment);
@@ -290,16 +299,16 @@ export default class DocumentSandbox extends SandboxBase {
         });
     }
 
-    private overrideDocumentURI (docPrototype: Document) {
-        overrideDescriptor(docPrototype, 'documentURI', {
+    private overrideDocumentURI (window) {
+        overrideDescriptor(window.Document.prototype, 'documentURI', {
             getter: function () {
                 return getDestinationUrl(nativeMethods.documentDocumentURIGetter.call(this));
             },
         });
     }
 
-    private overrideReferrer (docPrototype: Document, htmlDocPrototype: Document) {
-        const referrerOverriddenDescriptor = createOverriddenDescriptor(docPrototype, 'referrer', {
+    private overrideReferrer (window) {
+        const referrerOverriddenDescriptor = createOverriddenDescriptor(window.Document.prototype, 'referrer', {
             getter: function () {
                 const referrer = getDestinationUrl(nativeMethods.documentReferrerGetter.call(this));
 
@@ -310,21 +319,24 @@ export default class DocumentSandbox extends SandboxBase {
             },
         });
 
-        DocumentSandbox._definePropertyDescriptor(docPrototype, htmlDocPrototype, 'referrer', referrerOverriddenDescriptor);
+        DocumentSandbox._definePropertyDescriptor(window.Document.prototype, window.HTMLDocument.prototype, 'referrer', referrerOverriddenDescriptor);
     }
 
-    private overrideURL (docPrototype: Document, htmlDocPrototype: Document) {
-        const urlOverriddenDescriptor = createOverriddenDescriptor(docPrototype, 'URL', {
+    private overrideURL (window) {
+        const urlOverriddenDescriptor = createOverriddenDescriptor(window.Document.prototype, 'URL', {
             getter: function () {
                 // eslint-disable-next-line no-restricted-properties
                 return LocationAccessorsInstrumentation.getLocationWrapper(this).href;
             },
         });
 
-        DocumentSandbox._definePropertyDescriptor(docPrototype, htmlDocPrototype, 'URL', urlOverriddenDescriptor);
+        DocumentSandbox._definePropertyDescriptor(window.Document.prototype, window.HTMLDocument.prototype, 'URL', urlOverriddenDescriptor);
     }
 
-    private overrideDomain (window: Window, docPrototype: Document, htmlDocPrototype: Document) {
+    private overrideDomain (window) {
+        const docPrototype     = window.Document.prototype;
+        const htmlDocPrototype = window.HTMLDocument.prototype;
+
         let storedDomain          = '';
         const domainPropertyOwner = nativeMethods.objectHasOwnProperty.call(docPrototype, 'domain')
             ? docPrototype
@@ -343,8 +355,10 @@ export default class DocumentSandbox extends SandboxBase {
         DocumentSandbox._definePropertyDescriptor(domainPropertyOwner, htmlDocPrototype, 'domain', domainOverriddenDescriptor);
     }
 
-    private overrideStyleSheets (docPrototype: Document, documentSandbox: this) {
-        overrideDescriptor(docPrototype, 'styleSheets', {
+    private overrideStyleSheets (window) {
+        const documentSandbox = this;
+
+        overrideDescriptor(window.Document.prototype, 'styleSheets', {
             getter: function () {
                 const styleSheets = nativeMethods.documentStyleSheetsGetter.call(this);
 
@@ -353,7 +367,8 @@ export default class DocumentSandbox extends SandboxBase {
         });
     }
 
-    private overrideCookie (window: Window, documentSandbox: this) {
+    private overrideCookie (window) {
+        const documentSandbox                  = this;
         const documentCookiePropOwnerPrototype = window[nativeMethods.documentCookiePropOwnerName].prototype;
 
         overrideDescriptor(documentCookiePropOwnerPrototype, 'cookie', {
@@ -362,8 +377,10 @@ export default class DocumentSandbox extends SandboxBase {
         });
     }
 
-    private overrideActiveElement (docPrototype: Document, documentSandbox: this) {
-        overrideDescriptor(docPrototype, 'activeElement', {
+    private overrideActiveElement (window) {
+        const documentSandbox = this;
+
+        overrideDescriptor(window.Document.prototype, 'activeElement', {
             getter: function (this: Document) {
                 const activeElement = nativeMethods.documentActiveElementGetter.call(this);
 
@@ -375,8 +392,10 @@ export default class DocumentSandbox extends SandboxBase {
         });
     }
 
-    private overrideTitle (docPrototype: Document, documentSandbox: this) {
-        overrideDescriptor(docPrototype, 'title', {
+    private overrideTitle (window) {
+        const documentSandbox = this;
+
+        overrideDescriptor(window.Document.prototype, 'title', {
             getter: function () {
                 return documentSandbox._documentTitleStorageInitializer.storage.getTitle();
             },
