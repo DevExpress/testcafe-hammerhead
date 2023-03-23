@@ -70,7 +70,7 @@ export default class Proxy extends Router {
     private server2Info: ServerInfo | null;
     private server1: http.Server | https.Server | null;
     private server2: http.Server | https.Server | null;
-    private _proxyOptions: ProxyOptions | null;
+    private proxyOptions: ProxyOptions | null;
     private readonly sockets: Set<net.Socket>;
 
     // Max header size for incoming HTTP requests
@@ -87,7 +87,7 @@ export default class Proxy extends Router {
         this.server2       = null;
         this.server1Info   = null;
         this.server2Info   = null;
-        this._proxyOptions = null;
+        this.proxyOptions  = null;
         this.sockets       = new Set<net.Socket>();
     }
 
@@ -161,7 +161,7 @@ export default class Proxy extends Router {
 
                 res.setHeader(BUILTIN_HEADERS.setCookie, session.takePendingSyncCookies());
 
-                respondWithJSON(res, result, false, (this._proxyOptions as ProxyOptions).proxyless);
+                respondWithJSON(res, result, false, this.isProxyless);
             }
             catch (err) {
                 logger.serviceMsg.onError(msg, err);
@@ -177,7 +177,7 @@ export default class Proxy extends Router {
         // NOTE: 'Cache-control' header set in the 'Transport' sandbox on the client side.
         // Request becomes non-simple (https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS#simple_requests)
         // and initiates the CORS preflight request.
-        res.setHeader('access-control-allow-headers', BUILTIN_HEADERS.cacheControl);
+        res.setHeader(BUILTIN_HEADERS.accessControlAllowHeaders, BUILTIN_HEADERS.cacheControl);
         acceptCrossOrigin(res);
         respond204(res);
     }
@@ -213,7 +213,7 @@ export default class Proxy extends Router {
     _onRequest (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo): void {
         // NOTE: Not a service request, execute the proxy pipeline.
         if (!this._route(req, res, serverInfo))
-            runRequestPipeline(req, res, serverInfo, this.openSessions, !!(this._proxyOptions as ProxyOptions).proxyless);
+            runRequestPipeline(req, res, serverInfo, this.openSessions, this.isProxyless);
     }
 
     _onUpgradeRequest (req: http.IncomingMessage, socket: net.Socket, head: Buffer, serverInfo: ServerInfo): void {
@@ -237,7 +237,7 @@ export default class Proxy extends Router {
 
     // API
     start (options: ProxyOptions) {
-        this._proxyOptions = Object.assign({}, DEFAULT_PROXY_OPTIONS, options);
+        this.proxyOptions = Object.assign({}, DEFAULT_PROXY_OPTIONS, options);
 
         this._prepareDNSRouting();
 
@@ -248,7 +248,7 @@ export default class Proxy extends Router {
             ssl,
             developmentMode,
             cache,
-        } = this._proxyOptions;
+        } = this.proxyOptions;
 
         const protocol     = ssl ? 'https:' : 'http:';
         const opts         = this._getOpts(ssl);
@@ -290,7 +290,7 @@ export default class Proxy extends Router {
             disableHttp2,
             disableCrossDomain,
             proxyless,
-        } = this._proxyOptions as ProxyOptions;
+        } = this.proxyOptions as ProxyOptions;
 
         if (disableHttp2)
             session.disableHttp2();
@@ -325,10 +325,10 @@ export default class Proxy extends Router {
     }
 
     public switchToProxyless (): void {
-        (this._proxyOptions as ProxyOptions).proxyless = true;
+        (this.proxyOptions as ProxyOptions).proxyless = true;
     }
 
-    public get inProxyless (): boolean {
-        return !!(this._proxyOptions as ProxyOptions).proxyless;
+    public get isProxyless (): boolean {
+        return !!(this.proxyOptions as ProxyOptions).proxyless;
     }
 }
