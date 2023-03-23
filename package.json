@@ -1,7 +1,7 @@
 {
   "name": "testcafe-hammerhead",
   "description": "A powerful web-proxy used as a core for the TestCafe testing framework (https://github.com/DevExpress/testcafe).",
-  "version": "29.0.0",
+  "version": "30.0.0",
   "homepage": "https://github.com/DevExpress/testcafe-hammerhead",
   "bugs": {
     "url": "https://github.com/DevExpress/testcafe-hammerhead/issues"
@@ -52,8 +52,8 @@
     "@types/parse5": "2.2.34",
     "@types/semver": "^6.0.0",
     "@types/tough-cookie": "^4.0.1",
-    "@typescript-eslint/eslint-plugin": "^5.29.0",
-    "@typescript-eslint/parser": "^5.29.0",
+    "@typescript-eslint/eslint-plugin": "^5.54.1",
+    "@typescript-eslint/parser": "^5.54.1",
     "babel-eslint": "^10.1.0",
     "babel-plugin-add-module-exports": "^1.0.0",
     "basic-auth": "1.0.4",

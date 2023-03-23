@@ -211,12 +211,15 @@ declare module 'testcafe-hammerhead' {
         staticContentCaching?: object;
     }
 
-    export interface ProxyOptions extends RouterOptions {
-        ssl: object;
-        developmentMode: boolean;
-        cache: boolean;
-        disableHttp2: boolean;
-        proxyless: boolean;
+    export interface ProxyOptions {
+        hostname: string;
+        port1: number;
+        port2: number;
+        ssl?: object;
+        developmentMode?: boolean;
+        cache?: boolean;
+        disableHttp2?: boolean;
+        proxyless?: boolean;
     }
 
     export interface OnResponseEventData {
@@ -300,15 +303,15 @@ declare module 'testcafe-hammerhead' {
     /** The Proxy class is used to create a web-proxy **/
     export class Proxy {
         /** Creates a web proxy instance **/
-        constructor ();
-
-        /** Proxy options **/
-        options: ProxyOptions;
+        constructor (options: RouterOptions);
 
         /** Information about server1 **/
         server1Info: ServerInfo;
         /** Information about server2 **/
         server2Info: ServerInfo;
+
+        /** Start the proxy instance **/
+        start (options: ProxyOptions): void;
 
         /**  Close the proxy instance */
         close (): void;
@@ -330,6 +333,9 @@ declare module 'testcafe-hammerhead' {
 
         /** Resolve relative service url **/
         resolveRelativeServiceUrl (relativeServiceUrl: string, domain?: string): string;
+
+        /** Switch proxy to the proxyless mode **/
+        switchToProxyless (): void;
     }
 
     /** The RequestFilterRule class is used to create URL filtering rules for request hook **/

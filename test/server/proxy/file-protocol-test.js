@@ -1,6 +1,6 @@
 const {
     createSession,
-    createProxy,
+    createAndStartProxy,
     getFileProtocolUrl,
     compareCode,
 } = require('../common/utils');
@@ -21,7 +21,7 @@ describe('file:// protocol', () => {
 
     beforeEach(() => {
         session = createSession();
-        proxy   = createProxy();
+        proxy   = createAndStartProxy();
     });
 
     afterEach(() => {

@@ -1,12 +1,12 @@
-const http                  = require('http');
-const https                 = require('https');
-const urlLib                = require('url');
-const net                   = require('net');
-const request               = require('request-promise-native');
-const expect                = require('chai').expect;
-const selfSignedCertificate = require('openssl-self-signed-certificate');
-const Proxy                 = require('../../lib/proxy');
-const Session               = require('../../lib/session');
+const http                    = require('http');
+const https                   = require('https');
+const urlLib                  = require('url');
+const net                     = require('net');
+const request                 = require('request-promise-native');
+const { expect }              = require('chai');
+const selfSignedCertificate   = require('openssl-self-signed-certificate');
+const Session                 = require('../../lib/session');
+const { createAndStartProxy } = require('./common/utils');
 
 const sockets = [];
 
@@ -43,7 +43,7 @@ describe('External proxy', () => {
         session.handleFileDownload = () => void 0;
         session.handleAttachment   = () => void 0;
 
-        proxy = new Proxy('127.0.0.1', 1836, 1837);
+        proxy = createAndStartProxy();
 
         httpServer  = http.createServer((req, res) => res.end(req.url)).listen(2000);
         httpsServer = https.createServer({

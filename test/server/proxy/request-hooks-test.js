@@ -15,7 +15,7 @@ const {
 
 const {
     createSession,
-    createProxy,
+    createAndStartProxy,
     compareCode,
     normalizeNewLine,
     getBasicProxyUrl,
@@ -117,7 +117,7 @@ describe('Request Hooks', () => {
 
     beforeEach(() => {
         session = createSession();
-        proxy   = createProxy();
+        proxy   = createAndStartProxy();
     });
 
     afterEach(() => {

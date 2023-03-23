@@ -1,19 +1,19 @@
-const fs                  = require('fs');
-const request             = require('request-promise-native');
-const expect              = require('chai').expect;
-const express             = require('express');
-const iconv               = require('iconv-lite');
-const noop                = require('lodash').noop;
-const Proxy               = require('../../lib/proxy');
-const Session             = require('../../lib/session');
-const Charset             = require('../../lib/processing/encoding/charset');
-const encodeContent       = require('../../lib/processing/encoding').encodeContent;
-const decodeContent       = require('../../lib/processing/encoding').decodeContent;
-const urlUtils            = require('../../lib/utils/url');
-const processScript       = require('../../lib/processing/script').processScript;
-const pageProcessor       = require('../../lib/processing/resources/page');
-const stylesheetProcessor = require('../../lib/processing/resources/stylesheet');
-const manifestProcessor   = require('../../lib/processing/resources/manifest');
+const fs                               = require('fs');
+const request                          = require('request-promise-native');
+const { expect }                       = require('chai');
+const express                          = require('express');
+const iconv                            = require('iconv-lite');
+const { noop }                         = require('lodash');
+const Session                          = require('../../lib/session');
+const Charset                          = require('../../lib/processing/encoding/charset');
+const { encodeContent, decodeContent } = require('../../lib/processing/encoding');
+const urlUtils                         = require('../../lib/utils/url');
+const { processScript }                = require('../../lib/processing/script');
+const pageProcessor                    = require('../../lib/processing/resources/page');
+const stylesheetProcessor              = require('../../lib/processing/resources/stylesheet');
+const manifestProcessor                = require('../../lib/processing/resources/manifest');
+const { createAndStartProxy }          = require('./common/utils');
+
 
 function normalizeCode (code) {
     return code
@@ -141,7 +141,8 @@ describe('Content charset', () => {
         session.handleAttachment   = () => void 0;
         session.id                 = 'sessionId';
 
-        proxy = new Proxy('127.0.0.1', 1836, 1837);
+        proxy = createAndStartProxy();
+
         proxy.openSession('http://127.0.0.1:2000/', session);
     });
 

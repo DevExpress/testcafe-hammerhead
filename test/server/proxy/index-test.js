@@ -17,7 +17,7 @@ const headersUtils          = require('../../../lib/utils/headers');
 const {
     createDestinationServer,
     createSession,
-    createProxy,
+    createAndStartProxy,
     compareCode,
     getFileProtocolUrl,
     getBasicProxyUrl,
@@ -339,7 +339,7 @@ describe('Proxy', () => {
 
     beforeEach(() => {
         session = createSession();
-        proxy   = createProxy();
+        proxy   = createAndStartProxy();
     });
 
     afterEach(() => {

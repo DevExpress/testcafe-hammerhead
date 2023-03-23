@@ -7,7 +7,7 @@ const {
     createDestinationServer,
     getBasicProxyUrl,
     createSession,
-    createProxy,
+    createAndStartProxy,
 } = require('../common/utils');
 
 const promisifyEvent = require('promisify-event');
@@ -67,7 +67,7 @@ describe('WebSocket', () => {
 
     beforeEach(() => {
         session = createSession();
-        proxy   = createProxy();
+        proxy   = createAndStartProxy();
     });
 
     afterEach(() => {
