@@ -48,6 +48,14 @@ export default class DocumentSandbox extends SandboxBase {
         super();
     }
 
+    static forceProxySrcForImageIfNecessary (element: Element): void {
+        if (settings.get().proxyless)
+            return;
+
+        if (isImgElement(element) && settings.get().forceProxySrcForImage)
+            element[INTERNAL_PROPS.forceProxySrcForImage] = true;
+    }
+
     private static _isDocumentInDesignMode (doc: HTMLDocument): boolean {
         return doc.designMode === 'on';
     }
@@ -252,6 +260,7 @@ export default class DocumentSandbox extends SandboxBase {
         overrideFunction(docPrototype, 'createElement', function (this: Document, ...args: [string, ElementCreationOptions?]) {
             const el = nativeMethods.createElement.apply(this, args);
 
+            DocumentSandbox.forceProxySrcForImageIfNecessary(el);
             domProcessor.processElement(el, convertToProxyUrl);
             documentSandbox._nodeSandbox.processNodes(el);
 
@@ -263,6 +272,7 @@ export default class DocumentSandbox extends SandboxBase {
         overrideFunction(docPrototype, 'createElementNS', function (this: Document, ...args: [string, string, (string | ElementCreationOptions)?]) {
             const el = nativeMethods.createElementNS.apply(this, args);
 
+            DocumentSandbox.forceProxySrcForImageIfNecessary(el);
             domProcessor.processElement(el, convertToProxyUrl);
             documentSandbox._nodeSandbox.processNodes(el);
 
