@@ -1,8 +1,4 @@
-import {
-    createType1Message,
-    parseType2Message,
-    createType3Message,
-} from 'httpntlm';
+import { ntlm } from 'httpntlm';
 
 
 const authMethods = ['NTLM', 'Basic'];
@@ -35,15 +31,15 @@ function addNTLMNegotiateMessageReqInfo (credentials, reqOptions, protocolInterf
     reqOptions.agent = agent;
 
     reqOptions.headers['connection']    = 'keep-alive';
-    reqOptions.headers['Authorization'] = createType1Message({
+    reqOptions.headers['Authorization'] = ntlm.createType1Message({
         domain:      credentials.domain || '',
         workstation: credentials.workstation || '',
     });
 }
 
 function addNTLMAuthenticateReqInfo (credentials, reqOptions, res) {
-    const type2msg = parseType2Message(res.headers['www-authenticate']);
-    const type3msg = createType3Message(type2msg, {
+    const type2msg = ntlm.parseType2Message(res.headers['www-authenticate']);
+    const type3msg = ntlm.createType3Message(type2msg, {
         username:    credentials.username,
         password:    credentials.password,
         domain:      credentials.domain || '',
@@ -55,7 +51,7 @@ function addNTLMAuthenticateReqInfo (credentials, reqOptions, res) {
 }
 
 function isChallengeMessage (res) {
-    return !!parseType2Message(res.headers['www-authenticate'], function () {
+    return !!ntlm.parseType2Message(res.headers['www-authenticate'], function () {
         return void 0;
     });
 }
