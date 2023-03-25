@@ -258,157 +258,20 @@ export default class WindowSandbox extends SandboxBase {
 
         this.addMessageSandBoxListeners();
 
-        this.overrideDrawImageInCanvasRenderingContext2D();
+        if (window.EventTarget)
+            this.overrideListenerMethodsInEventTarget();
 
-        if (nativeMethods.objectAssign)
-            this.overrideAssignInObject();
+        this.overrideFilesInHTMLInputElement();
 
-        this.overrideOpenInWindow();
-
-        if (window.FontFace && !this.proxyless)
-            this.overrideFontFaceInWindow();
-
-        if (window.Worker && !this.proxyless)
-            this.overrideWorkerInWindow();
-
-        if (window.Blob)
-            this.overrideBlobInWindow();
-
-        // NOTE: non-IE11 case. window.File in IE11 is not constructable.
-        if (nativeMethods.File)
-            this.overrideFileInWindow();
-
-        if (window.EventSource && !this.proxyless)
-            this.overrideEventSourceInWindow();
+        if (this._documentTitleStorageInitializer)
+            this.overrideTextInHTMLTitleElement();
 
         if (window.MutationObserver)
             this.overrideMutationObserverInWindow();
 
-        if (window.Proxy)
-            this.overrideProxyInWindow();
-
-        if (nativeMethods.registerServiceWorker && !this.proxyless)
-            this.overrideRegisterInServiceWorker();
-
-        if (nativeMethods.getRegistrationServiceWorker && !this.proxyless)
-            this.overrideGetRegistrationInNavigator();
-
-        if (window.Range.prototype.createContextualFragment)
-            this.overrideCreateContextualFragmentInRange();
-
-        if (window.EventTarget)
-            this.overrideListenerMethodsInEventTarget();
-
-        if (!this.proxyless)
-            this.overrideImageInWindow();
-
-        this.overrideFunctionInWindow();
-        this.overrideToStringInFunction();
-
-        if (isFunction(window.history.pushState)
-            && isFunction(window.history.replaceState)
-            && !this.proxyless) {
-            this.overrideMethodInHistory('pushState', nativeMethods.historyPushState);
-            this.overrideMethodInHistory('replaceState', nativeMethods.historyReplaceState);
-        }
-
-        if (nativeMethods.sendBeacon && !this.proxyless)
-            this.overrideSendBeaconInNavigator();
-
-        if (window.navigator.registerProtocolHandler && !this.proxyless)
-            this.overrideRegisterProtocolHandlerInNavigator();
-
-        if (window.FormData)
-            this.overrideAppendInFormData();
-
-        if (window.WebSocket && !this.proxyless) {
-            this.overrideWebSocketInWindow();
-
-            if (nativeMethods.webSocketUrlGetter)
-                this.overrideUrlInWebSocket();
-        }
-
-        if (!this.proxyless)
-            this.overrideOriginInMessageEvent();
-
         this.overrideLengthInHTMLCollection();
         this.overrideLengthInNodeList();
         this.overrideChildElementCountInElement();
-
-        if (nativeMethods.performanceEntryNameGetter && !this.proxyless)
-            this.overrideNameInPerformanceEntry();
-
-        this.overrideFilesInHTMLInputElement();
-        this.overrideValueInHTMLInputElement();
-
-        // NOTE: HTMLInputElement raises the `change` event on `disabled` only in Chrome
-        if (isChrome)
-            this.overrideDisabledInHTMLInputElement();
-
-        this.overrideRequiredInHTMLInputElement();
-        this.overrideValueInHTMLTextAreaElement();
-
-        if (!this.proxyless)
-            this.overrideAllUrlAttrDescriptors();
-
-        this.overrideAttrDescriptorsInElement('target', [
-            window.HTMLAnchorElement,
-            window.HTMLFormElement,
-            window.HTMLAreaElement,
-            window.HTMLBaseElement,
-        ]);
-
-        this.overrideAttrDescriptorsInElement('formTarget', [
-            window.HTMLInputElement,
-            window.HTMLButtonElement,
-        ]);
-
-        this.overrideAttrDescriptorsInElement('autocomplete', [window.HTMLInputElement]);
-        this.overrideAttrDescriptorsInElement('httpEquiv', [window.HTMLMetaElement]);
-
-        // NOTE: Some browsers (for example, Edge, Internet Explorer 11, Safari) don't support the 'integrity' property.
-        if (nativeMethods.scriptIntegrityGetter && nativeMethods.linkIntegrityGetter) {
-            this.overrideAttrDescriptorsInElement('integrity', [window.HTMLScriptElement]);
-            this.overrideAttrDescriptorsInElement('integrity', [window.HTMLLinkElement]);
-        }
-
-        this.overrideAttrDescriptorsInElement('rel', [window.HTMLLinkElement]);
-
-        if (nativeMethods.linkAsSetter)
-            this.overrideAttrDescriptorsInElement('as', [window.HTMLLinkElement]);
-
-        this.overrideTypeInHTMLInputElement();
-        this.overrideSandboxInHTMLIFrameElement();
-
-        if (nativeMethods.iframeSrcdocGetter)
-            this.overrideSrcdocInHTMLIFrameElement();
-
-        if (!this.proxyless) {
-            this.overrideUrlPropInHTMLAnchorElement('port', nativeMethods.anchorPortGetter, nativeMethods.anchorPortSetter);
-            this.overrideUrlPropInHTMLAnchorElement('host', nativeMethods.anchorHostGetter, nativeMethods.anchorHostSetter);
-            this.overrideUrlPropInHTMLAnchorElement('hostname', nativeMethods.anchorHostnameGetter, nativeMethods.anchorHostnameSetter);
-            this.overrideUrlPropInHTMLAnchorElement('pathname', nativeMethods.anchorPathnameGetter, nativeMethods.anchorPathnameSetter);
-            this.overrideUrlPropInHTMLAnchorElement('protocol', nativeMethods.anchorProtocolGetter, nativeMethods.anchorProtocolSetter);
-            this.overrideUrlPropInHTMLAnchorElement('search', nativeMethods.anchorSearchGetter, nativeMethods.anchorSearchSetter);
-        }
-
-        if (!this.proxyless) {
-            this.overrideHrefInSVGImageElement();
-            this.overrideBaseValInSVGAnimatedString();
-            this.overrideAnimValInSVGAnimatedString();
-        }
-
-        if (nativeMethods.anchorOriginGetter && !this.proxyless)
-            this.overrideOriginInHTMLAnchorElement();
-
-        if (!this.proxyless)
-            this.overrideHrefInStyleSheet();
-
-        if (nativeMethods.cssStyleSheetHrefGetter)
-            this.overrideHrefInCSSStyleSheet();
-
-        if (nativeMethods.nodeBaseURIGetter)
-            this.overrideBaseURIInNode();
 
         if (window.DOMParser)
             this.overrideParseFromStringInDOMParser();
@@ -424,10 +287,179 @@ export default class WindowSandbox extends SandboxBase {
         this.overrideInnerHTMLInElement();
         this.overrideOuterHTMLInElement();
         this.overrideInnerTextInHTMLElement();
+        this.overrideAttributesInElement();
+        this.overrideNextSiblingInMutationRecord();
+        this.overridePreviousSiblingInMutationRecord();
+
+        if (this.proxyless)
+            return;
+
+        this.overrideDrawImageInCanvasRenderingContext2D();
+
+        if (nativeMethods.objectAssign)
+            this.overrideAssignInObject();
+
+        this.overrideOpenInWindow();
+
+        if (window.FontFace)
+            this.overrideFontFaceInWindow();
+
+        if (window.Worker)
+            this.overrideWorkerInWindow();
+
+        if (window.Blob)
+            this.overrideBlobInWindow();
+
+        // NOTE: non-IE11 case. window.File in IE11 is not constructable.
+        if (nativeMethods.File)
+            this.overrideFileInWindow();
+
+        if (window.EventSource)
+            this.overrideEventSourceInWindow();
+
+        if (window.Proxy)
+            this.overrideProxyInWindow();
+
+        if (nativeMethods.registerServiceWorker)
+            this.overrideRegisterInServiceWorker();
+
+        if (nativeMethods.getRegistrationServiceWorker)
+            this.overrideGetRegistrationInServiceWorker();
+
+        if (window.Range.prototype.createContextualFragment)
+            this.overrideCreateContextualFragmentInRange();
+
+        this.overrideImageInWindow();
+
+        this.overrideFunctionInWindow();
+
+        this.overrideToStringInFunction();
+
+        if (isFunction(window.history.pushState) && isFunction(window.history.replaceState)) {
+            this.overrideMethodInHistory('pushState', nativeMethods.historyPushState);
+            this.overrideMethodInHistory('replaceState', nativeMethods.historyReplaceState);
+        }
+
+        if (nativeMethods.sendBeacon)
+            this.overrideSendBeaconInNavigator();
+
+        if (window.navigator.registerProtocolHandler)
+            this.overrideRegisterProtocolHandlerInNavigator();
+
+        if (window.FormData)
+            this.overrideAppendInFormData();
+
+        if (window.WebSocket) {
+            this.overrideWebSocketInWindow();
+
+            if (nativeMethods.webSocketUrlGetter)
+                this.overrideUrlInWebSocket();
+        }
+
+        this.overrideOriginInMessageEvent();
+
+        if (nativeMethods.performanceEntryNameGetter)
+            this.overrideNameInPerformanceEntry();
+
+        this.overrideValueInHTMLInputElement();
+
+        // NOTE: HTMLInputElement raises the `change` event on `disabled` only in Chrome
+        if (isChrome)
+            this.overrideDisabledInHTMLInputElement();
+
+        this.overrideRequiredInHTMLInputElement();
+
+        this.overrideValueInHTMLTextAreaElement();
+
+        this.overrideUrlAttrDescriptors('data', [window.HTMLObjectElement]);
+
+        this.overrideUrlAttrDescriptors('src', [
+            window.HTMLImageElement,
+            window.HTMLScriptElement,
+            window.HTMLEmbedElement,
+            window.HTMLSourceElement,
+            window.HTMLMediaElement,
+            window.HTMLInputElement,
+            window.HTMLFrameElement,
+            window.HTMLIFrameElement,
+        ]);
+
+        this.overrideUrlAttrDescriptors('action', [window.HTMLFormElement]);
+
+        this.overrideUrlAttrDescriptors('formAction', [
+            window.HTMLInputElement,
+            window.HTMLButtonElement,
+        ]);
+
+        this.overrideUrlAttrDescriptors('href', [
+            window.HTMLAnchorElement,
+            window.HTMLLinkElement,
+            window.HTMLAreaElement,
+            window.HTMLBaseElement,
+        ]);
+
+        if (nativeMethods.htmlManifestGetter)
+            this.overrideUrlAttrDescriptors('manifest', [window.HTMLHtmlElement]);
+
+        this.overrideAttrDescriptorsInElement('target', [
+            window.HTMLAnchorElement,
+            window.HTMLFormElement,
+            window.HTMLAreaElement,
+            window.HTMLBaseElement,
+        ]);
+
+        this.overrideAttrDescriptorsInElement('formTarget', [
+            window.HTMLInputElement,
+            window.HTMLButtonElement,
+        ]);
+
+        this.overrideAttrDescriptorsInElement('autocomplete', [window.HTMLInputElement]);
+
+        this.overrideAttrDescriptorsInElement('httpEquiv', [window.HTMLMetaElement]);
+
+        // NOTE: Some browsers (for example, Edge, Internet Explorer 11, Safari) don't support the 'integrity' property.
+        if (nativeMethods.scriptIntegrityGetter && nativeMethods.linkIntegrityGetter) {
+            this.overrideAttrDescriptorsInElement('integrity', [window.HTMLScriptElement]);
+            this.overrideAttrDescriptorsInElement('integrity', [window.HTMLLinkElement]);
+        }
+
+        this.overrideAttrDescriptorsInElement('rel', [window.HTMLLinkElement]);
+
+        if (nativeMethods.linkAsSetter)
+            this.overrideAttrDescriptorsInElement('as', [window.HTMLLinkElement]);
+
+        this.overrideTypeInHTMLInputElement();
+
+        this.overrideSandboxInHTMLIFrameElement();
+
+        if (nativeMethods.iframeSrcdocGetter)
+            this.overrideSrcdocInHTMLIFrameElement();
+
+        this.overrideUrlPropInHTMLAnchorElement('port', nativeMethods.anchorPortGetter, nativeMethods.anchorPortSetter);
+        this.overrideUrlPropInHTMLAnchorElement('host', nativeMethods.anchorHostGetter, nativeMethods.anchorHostSetter);
+        this.overrideUrlPropInHTMLAnchorElement('hostname', nativeMethods.anchorHostnameGetter, nativeMethods.anchorHostnameSetter);
+        this.overrideUrlPropInHTMLAnchorElement('pathname', nativeMethods.anchorPathnameGetter, nativeMethods.anchorPathnameSetter);
+        this.overrideUrlPropInHTMLAnchorElement('protocol', nativeMethods.anchorProtocolGetter, nativeMethods.anchorProtocolSetter);
+        this.overrideUrlPropInHTMLAnchorElement('search', nativeMethods.anchorSearchGetter, nativeMethods.anchorSearchSetter);
+
+        this.overrideHrefInSVGImageElement();
+        this.overrideBaseValInSVGAnimatedString();
+        this.overrideAnimValInSVGAnimatedString();
+
+        if (nativeMethods.anchorOriginGetter)
+            this.overrideOriginInHTMLAnchorElement();
+
+        this.overrideHrefInStyleSheet();
+
+        if (nativeMethods.cssStyleSheetHrefGetter)
+            this.overrideHrefInCSSStyleSheet();
+
+        if (nativeMethods.nodeBaseURIGetter)
+            this.overrideBaseURIInNode();
+
         this.overrideTextInHTMLScriptElement();
         this.overrideTextInHTMLAnchorElement();
         this.overrideTextContentInNode();
-        this.overrideAttributesInElement();
         this.overrideMethodInDOMTokenList('add', nativeMethods.tokenListAdd);
         this.overrideMethodInDOMTokenList('remove', nativeMethods.tokenListRemove);
         this.overrideMethodInDOMTokenList('toggle', nativeMethods.tokenListToggle);
@@ -442,14 +474,9 @@ export default class WindowSandbox extends SandboxBase {
             this.overrideValueInDOMTokenList();
 
         this.overrideCreateHTMLDocumentInDOMImplementation();
-        this.overrideNextSiblingInMutationRecord();
-        this.overridePreviousSiblingInMutationRecord();
 
         if (nativeMethods.windowOriginGetter)
             this.overrideOriginInWindow();
-
-        if (this._documentTitleStorageInitializer)
-            this.overrideTextInHTMLTitleElement();
     }
 
     private initElementListening () {
@@ -816,7 +843,7 @@ export default class WindowSandbox extends SandboxBase {
         /*eslint-enable no-restricted-properties*/
     }
 
-    private overrideGetRegistrationInNavigator () {
+    private overrideGetRegistrationInServiceWorker () {
         const windowSandbox = this;
 
         overrideFunction(this.window.navigator.serviceWorker, 'getRegistration', (...args) => {
@@ -888,7 +915,6 @@ export default class WindowSandbox extends SandboxBase {
 
             return fn;
         }, true);
-
     }
 
     private static patchFunctionPrototype (fn: Function, ctx: any): void {
@@ -1207,42 +1233,6 @@ export default class WindowSandbox extends SandboxBase {
         });
     }
 
-    private overrideAllUrlAttrDescriptors (): void {
-        this.overrideUrlAttrDescriptors('data', [this.window.HTMLObjectElement]);
-
-        if (!this.proxyless) {
-            this.overrideUrlAttrDescriptors('src', [
-                this.window.HTMLImageElement,
-                this.window.HTMLScriptElement,
-                this.window.HTMLEmbedElement,
-                this.window.HTMLSourceElement,
-                this.window.HTMLMediaElement,
-                this.window.HTMLInputElement,
-                this.window.HTMLFrameElement,
-                this.window.HTMLIFrameElement,
-            ]);
-        }
-
-        this.overrideUrlAttrDescriptors('action', [this.window.HTMLFormElement]);
-
-        this.overrideUrlAttrDescriptors('formAction', [
-            this.window.HTMLInputElement,
-            this.window.HTMLButtonElement,
-        ]);
-
-        if (!this.proxyless) {
-            this.overrideUrlAttrDescriptors('href', [
-                this.window.HTMLAnchorElement,
-                this.window.HTMLLinkElement,
-                this.window.HTMLAreaElement,
-                this.window.HTMLBaseElement,
-            ]);
-        }
-
-        if (nativeMethods.htmlManifestGetter)
-            this.overrideUrlAttrDescriptors('manifest', [this.window.HTMLHtmlElement]);
-    }
-
     private overrideUrlAttrDescriptors (attr, elementConstructors): void {
         const windowSandbox = this;
 
@@ -1277,7 +1267,7 @@ export default class WindowSandbox extends SandboxBase {
         return resolveUrlAsDest(attrValue, attr === 'srcset');
     }
 
-    overrideAttrDescriptorsInElement (attr, elementConstructors): void {
+    private overrideAttrDescriptorsInElement (attr, elementConstructors): void {
         const windowSandbox = this;
 
         for (const constructor of elementConstructors) {
