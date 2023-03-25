@@ -1041,6 +1041,13 @@ export default class ElementSandbox extends SandboxBase {
         if (nativeMethods.remove)
             overrideFunction(window.Element.prototype, 'remove', this.overriddenMethods.remove);
 
+        if (nativeMethods.elementReplaceWith)
+            overrideFunction(window.Element.prototype, 'replaceWith', this.overriddenMethods.elementReplaceWith);
+
+        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentHTML', this.overriddenMethods.insertAdjacentHTML);
+        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentElement', this.overriddenMethods.insertAdjacentElement);
+        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentText', this.overriddenMethods.insertAdjacentText);
+
         if (SandboxBase.isProxyless)
             return;
 
@@ -1061,9 +1068,6 @@ export default class ElementSandbox extends SandboxBase {
         overrideFunction(window.Node.prototype, 'cloneNode', this.overriddenMethods.cloneNode);
         overrideFunction(window.Node.prototype, 'replaceChild', this.overriddenMethods.replaceChild);
 
-        if (nativeMethods.elementReplaceWith)
-            overrideFunction(window.Element.prototype, 'replaceWith', this.overriddenMethods.elementReplaceWith);
-
         overrideFunction(window.DocumentFragment.prototype, 'querySelector', this.overriddenMethods.querySelector);
         overrideFunction(window.DocumentFragment.prototype, 'querySelectorAll', this.overriddenMethods.querySelectorAll);
 
@@ -1081,10 +1085,6 @@ export default class ElementSandbox extends SandboxBase {
 
         if (window.Document.prototype.registerElement)
             overrideFunction(window.Document.prototype, 'registerElement', this.overriddenMethods.registerElement);
-
-        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentHTML', this.overriddenMethods.insertAdjacentHTML);
-        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentElement', this.overriddenMethods.insertAdjacentElement);
-        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentText', this.overriddenMethods.insertAdjacentText);
 
         this._setValidBrowsingContextOnElementClick(window);
 

@@ -144,6 +144,9 @@ export default class DocumentSandbox extends SandboxBase {
         if (this._documentTitleStorageInitializer && !partialInitializationForNotLoadedIframe)
             this.overrideTitle(window);
 
+        this.overrideStyleSheets(window);
+        this.overrideActiveElement(window);
+
         if (SandboxBase.isProxyless)
             return;
 
@@ -151,7 +154,6 @@ export default class DocumentSandbox extends SandboxBase {
         this.overrideClose(window, document);
         this.overrideWrite(window, document);
         this.overrideWriteln(window, document);
-
         this.overrideCreateElement(window);
         this.overrideCreateElementNS(window);
         this.overrideCreateDocumentFragment(window);
@@ -162,9 +164,7 @@ export default class DocumentSandbox extends SandboxBase {
         this.overrideReferrer(window);
         this.overrideURL(window);
         this.overrideDomain(window);
-        this.overrideStyleSheets(window);
         this.overrideCookie(window);
-        this.overrideActiveElement(window);
     }
 
     private overrideOpen (window, document) {
