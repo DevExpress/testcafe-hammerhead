@@ -23,6 +23,7 @@
     "debug": "4.3.1",
     "esotope-hammerhead": "0.6.3",
     "http-cache-semantics": "^4.1.0",
+    "httpntlm": "^1.8.10",
     "iconv-lite": "0.5.1",
     "lodash": "^4.17.20",
     "lru-cache": "2.6.3",
@@ -37,8 +38,7 @@
     "read-file-relative": "^1.2.0",
     "semver": "5.5.0",
     "tough-cookie": "4.0.0",
-    "tunnel-agent": "0.6.0",
-    "webauth": "https://github.com/Aleksey28/builds/raw/main/webauth-1.1.0.tgz"
+    "tunnel-agent": "0.6.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.1.0",
