@@ -9,6 +9,7 @@ import {
     ServiceMessage,
     ServerInfo,
     ProxyOptions,
+    RouterOptions,
 } from '../typings/proxy';
 
 import http, { ServerOptions } from 'http';
@@ -65,10 +66,11 @@ const DEFAULT_PROXY_OPTIONS = {
 
 export default class Proxy extends Router {
     private readonly openSessions: Map<string, Session> = new Map();
-    private readonly server1Info: ServerInfo;
-    private readonly server2Info: ServerInfo;
-    private readonly server1: http.Server | https.Server;
-    private readonly server2: http.Server | https.Server;
+    private server1Info: ServerInfo | null;
+    private server2Info: ServerInfo | null;
+    private server1: http.Server | https.Server | null;
+    private server2: http.Server | https.Server | null;
+    private proxyOptions: ProxyOptions | null;
     private readonly sockets: Set<net.Socket>;
 
     // Max header size for incoming HTTP requests
@@ -78,43 +80,15 @@ export default class Proxy extends Router {
     // https://github.com/nodejs/node/commit/186035243fad247e3955fa0c202987cae99e82db#diff-1d0d420098503156cddb601e523b82e7R59
     public static MAX_REQUEST_HEADER_SIZE = 80 * 1024;
 
-    constructor (hostname: string, port1: number, port2: number, options?: Partial<ProxyOptions>) {
-        const prepareOptions = Object.assign({}, DEFAULT_PROXY_OPTIONS, options);
+    constructor (options: RouterOptions) {
+        super(options);
 
-        super(prepareOptions);
-
-        // NOTE: to avoid https://github.com/DevExpress/testcafe/issues/7447
-        if (typeof dns.setDefaultResultOrder === 'function')
-            // NOTE: to avoid https://github.com/nodejs/node/issues/40537
-            dns.setDefaultResultOrder('ipv4first');
-
-        const {
-            ssl,
-            developmentMode,
-            cache,
-        } = prepareOptions;
-
-        const protocol     = ssl ? 'https:' : 'http:';
-        const opts         = this._getOpts(ssl);
-        const createServer = this._getCreateServerMethod(ssl);
-
-        this.server1Info = createServerInfo(hostname, port1, port2, protocol, cache);
-        this.server2Info = createServerInfo(hostname, port2, port1, protocol, cache);
-
-        this.server1 = createServer(opts, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server1Info));
-        this.server2 = createServer(opts, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server2Info));
-
-        this.server1.on('upgrade', (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgradeRequest(req, socket, head, this.server1Info));
-        this.server2.on('upgrade', (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgradeRequest(req, socket, head, this.server2Info));
-
-        this.server1.listen(port1);
-        this.server2.listen(port2);
-
-        this.sockets = new Set<net.Socket>();
-
-        // BUG: GH-89
-        this._startSocketsCollecting();
-        this._registerServiceRoutes(developmentMode);
+        this.server1       = null;
+        this.server2       = null;
+        this.server1Info   = null;
+        this.server2Info   = null;
+        this.proxyOptions  = null;
+        this.sockets       = new Set<net.Socket>();
     }
 
     _getOpts (ssl?: {}): ServerOptions {
@@ -143,8 +117,8 @@ export default class Proxy extends Router {
             socket.on('close', () => this.sockets.delete(socket));
         };
 
-        this.server1.on('connection', handler);
-        this.server2.on('connection', handler);
+        this.server1?.on('connection', handler); // eslint-disable-line no-unused-expressions
+        this.server2?.on('connection', handler); // eslint-disable-line no-unused-expressions
     }
 
     _registerServiceRoutes (developmentMode: boolean): void {
@@ -168,9 +142,7 @@ export default class Proxy extends Router {
         });
 
         this.POST(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onServiceMessage(req, res, serverInfo));
-
-        if (this.options.proxyless)
-            this.OPTIONS(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse) => this._onServiceMessagePreflight(req, res));
+        this.OPTIONS(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse) => this._onServiceMessagePreflight(req, res));
 
         this.GET(SERVICE_ROUTES.task, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onTaskScriptRequest(req, res, serverInfo, false));
         this.GET(SERVICE_ROUTES.iframeTask, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onTaskScriptRequest(req, res, serverInfo, true));
@@ -189,7 +161,7 @@ export default class Proxy extends Router {
 
                 res.setHeader(BUILTIN_HEADERS.setCookie, session.takePendingSyncCookies());
 
-                respondWithJSON(res, result, false, this.options.proxyless);
+                respondWithJSON(res, result, false, this.isProxyless);
             }
             catch (err) {
                 logger.serviceMsg.onError(msg, err);
@@ -205,7 +177,7 @@ export default class Proxy extends Router {
         // NOTE: 'Cache-control' header set in the 'Transport' sandbox on the client side.
         // Request becomes non-simple (https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS#simple_requests)
         // and initiates the CORS preflight request.
-        res.setHeader('access-control-allow-headers', BUILTIN_HEADERS.cacheControl);
+        res.setHeader(BUILTIN_HEADERS.accessControlAllowHeaders, BUILTIN_HEADERS.cacheControl);
         acceptCrossOrigin(res);
         respond204(res);
     }
@@ -241,7 +213,7 @@ export default class Proxy extends Router {
     _onRequest (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo): void {
         // NOTE: Not a service request, execute the proxy pipeline.
         if (!this._route(req, res, serverInfo))
-            runRequestPipeline(req, res, serverInfo, this.openSessions, this.options.proxyless);
+            runRequestPipeline(req, res, serverInfo, this.openSessions, this.isProxyless);
     }
 
     _onUpgradeRequest (req: http.IncomingMessage, socket: net.Socket, head: Buffer, serverInfo: ServerInfo): void {
@@ -256,11 +228,52 @@ export default class Proxy extends Router {
             handler.content = prepareShadowUIStylesheet(handler.content as string);
     }
 
+    _prepareDNSRouting (): void {
+        // NOTE: to avoid https://github.com/DevExpress/testcafe/issues/7447
+        if (typeof dns.setDefaultResultOrder === 'function')
+            // NOTE: to avoid https://github.com/nodejs/node/issues/40537
+            dns.setDefaultResultOrder('ipv4first');
+    }
+
     // API
+    start (options: ProxyOptions) {
+        this.proxyOptions = Object.assign({}, DEFAULT_PROXY_OPTIONS, options);
+
+        this._prepareDNSRouting();
+
+        const {
+            hostname,
+            port1,
+            port2,
+            ssl,
+            developmentMode,
+            cache,
+        } = this.proxyOptions;
+
+        const protocol     = ssl ? 'https:' : 'http:';
+        const opts         = this._getOpts(ssl);
+        const createServer = this._getCreateServerMethod(ssl);
+
+        this.server1Info = createServerInfo(hostname, port1, port2, protocol, !!cache);
+        this.server2Info = createServerInfo(hostname, port2, port1, protocol, !!cache);
+
+        this.server1 = createServer(opts, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server1Info as ServerInfo));
+        this.server2 = createServer(opts, (req: http.IncomingMessage, res: http.ServerResponse) => this._onRequest(req, res, this.server2Info as ServerInfo));
+
+        this.server1.on('upgrade', (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgradeRequest(req, socket, head, this.server1Info as ServerInfo));
+        this.server2.on('upgrade', (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => this._onUpgradeRequest(req, socket, head, this.server2Info as ServerInfo));
+
+        this.server1.listen(port1);
+        this.server2.listen(port2);
+
+        // BUG: GH-89
+        this._startSocketsCollecting();
+        this._registerServiceRoutes(!!developmentMode);
+    }
     close (): void {
         scriptProcessor.jsCache.reset();
-        this.server1.close();
-        this.server2.close();
+        this.server1?.close(); // eslint-disable-line no-unused-expressions
+        this.server2?.close(); // eslint-disable-line no-unused-expressions
         this._closeSockets();
         resetKeepAliveConnections();
     }
@@ -273,21 +286,29 @@ export default class Proxy extends Router {
         if (externalProxySettings)
             session.setExternalProxySettings(externalProxySettings);
 
-        if (this.options.disableHttp2)
+        const {
+            disableHttp2,
+            disableCrossDomain,
+            proxyless,
+        } = this.proxyOptions as ProxyOptions;
+
+        if (disableHttp2)
             session.disableHttp2();
 
-        if (this.options.disableCrossDomain)
+        if (disableCrossDomain)
             session.disableCrossDomain();
 
         url = urlUtils.prepareUrl(url);
 
-        if (this.options.proxyless)
+        if (proxyless)
             return url;
 
+        const serverInfo = this.server1Info as ServerInfo;
+
         return urlUtils.getProxyUrl(url, {
-            proxyHostname: this.server1Info.hostname,
-            proxyPort:     this.server1Info.port.toString(),
-            proxyProtocol: this.server1Info.protocol,
+            proxyHostname: serverInfo.hostname,
+            proxyPort:     serverInfo.port.toString(),
+            proxyProtocol: serverInfo.protocol,
             sessionId:     session.id,
             windowId:      session.options.windowId,
         });
@@ -299,7 +320,15 @@ export default class Proxy extends Router {
         this.openSessions.delete(session.id);
     }
 
-    public resolveRelativeServiceUrl (relativeServiceUrl: string, domain = this.server1Info.domain): string {
+    public resolveRelativeServiceUrl (relativeServiceUrl: string, domain = (this.server1Info as ServerInfo).domain): string {
         return new URL(relativeServiceUrl, domain).toString();
+    }
+
+    public switchToProxyless (): void {
+        (this.proxyOptions as ProxyOptions).proxyless = true;
+    }
+
+    public get isProxyless (): boolean {
+        return !!(this.proxyOptions as ProxyOptions).proxyless;
     }
 }

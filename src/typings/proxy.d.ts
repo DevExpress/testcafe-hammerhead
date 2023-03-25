@@ -31,11 +31,14 @@ interface RequestTimeout {
     ajax: number;
 }
 
-interface ProxyOptions extends RouterOptions {
-    ssl: object;
-    developmentMode: boolean;
-    cache: boolean;
-    disableHttp2: boolean;
-    proxyless: boolean;
-    disableCrossDomain: boolean;
+interface ProxyOptions {
+    hostname: string;
+    port1: number;
+    port2: number;
+    ssl?: object;
+    developmentMode?: boolean;
+    cache?: boolean;
+    disableHttp2?: boolean;
+    disableCrossDomain?: boolean;
+    proxyless?: boolean;
 }

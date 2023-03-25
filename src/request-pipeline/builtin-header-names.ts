@@ -38,6 +38,7 @@ export default {
 
     accessControlAllowOrigin:         'access-control-allow-origin',
     accessControlAllowCredentials:    'access-control-allow-credentials',
+    accessControlAllowHeaders:        'access-control-allow-headers',
     contentSecurityPolicy:            'content-security-policy',
     contentSecurityPolicyReportOnly:  'content-security-policy-report-only',
     xContentSecurityPolicy:           'x-content-security-policy',
