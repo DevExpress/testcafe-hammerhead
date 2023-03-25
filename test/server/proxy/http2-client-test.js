@@ -10,6 +10,7 @@ const http                         = require('http');
 const http2                        = require('http2');
 const urlLib                       = require('url');
 const net                          = require('net');
+const semver                       = require('semver');
 
 const {
     HTTP2_HEADER_STATUS,
@@ -177,22 +178,22 @@ describe('https proxy', () => {
     if (semver.lt(process.version, '19.0.0')) {
         it('Should send request through https', () => {
             session.id = 'sessionId';
-            
+
             const proxyUrl = getProxyUrl('https://127.0.0.1:2002/stylesheet');
-            
+
             proxy.openSession('https://127.0.0.1:2000', session);
-            
-        return request(proxyUrl)
-        .then(body => {
-            const expected = fs.readFileSync('test/server/data/stylesheet/expected.css').toString();
-            
-            compareCode(body, expected);
-            expect(logs.length).eql(4);
-            expect(logs[0]).eql('onHttp2Unsupported');
-            expect(logs[1][0]).eql('https://127.0.0.1:2002');
-                expect(logs[2]).eql('onRequest');
-                expect(logs[3]).eql('https://127.0.0.1:2002/stylesheet');
-            });
+
+            return request(proxyUrl)
+                .then(body => {
+                    const expected = fs.readFileSync('test/server/data/stylesheet/expected.css').toString();
+
+                    compareCode(body, expected);
+                    expect(logs.length).eql(4);
+                    expect(logs[0]).eql('onHttp2Unsupported');
+                    expect(logs[1][0]).eql('https://127.0.0.1:2002');
+                    expect(logs[2]).eql('onRequest');
+                    expect(logs[3]).eql('https://127.0.0.1:2002/stylesheet');
+                });
         });
     }
 
