@@ -10,7 +10,7 @@ import {
     getAuthInfo,
     addCredentials,
     requiresResBody,
-} from 'webauth';
+} from './auth-credentials';
 
 import { connectionResetGuard } from '../connection-reset-guard';
 import { MESSAGE, getText } from '../../messages';
