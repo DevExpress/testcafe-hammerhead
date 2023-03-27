@@ -193,7 +193,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         });
 
         overrideFunction(xmlHttpRequestProto, 'setRequestHeader', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['setRequestHeader']>) {
-            if (isAuthorizationHeader(args[0]))
+            if (!xhrSandbox.proxyless && isAuthorizationHeader(args[0]))
                 args[1] = addAuthorizationPrefix(args[1]);
 
             nativeMethods.xhrSetRequestHeader.apply(this, args);
