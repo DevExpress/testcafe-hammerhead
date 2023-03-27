@@ -5,7 +5,6 @@ import removeElement from '../../../utils/remove-element';
 
 export default class DocumentTitleStorageInitializer {
     constructor (readonly storage: DocumentTitleStorage) {
-        this.storage.on('titleElementAdded', () => this._processFirstTitleElement());
     }
 
     private _setProxiedTitleValue (): void {
@@ -34,11 +33,14 @@ export default class DocumentTitleStorageInitializer {
     }
 
     onAttach (): void {
-        this._processFirstTitleElement();
+        if (!settings.get().proxyless) {
+            this.storage.on('titleElementAdded', () => this._processFirstTitleElement());
+            this._processFirstTitleElement();
+        }
     }
 
     onPageTitleLoaded (): void {
-        if (this._processFirstTitleElement())
+        if (settings.get().proxyless || this._processFirstTitleElement())
             return;
 
         const firstTitle = this.storage.getFirstTitleElement();
