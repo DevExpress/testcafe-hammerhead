@@ -328,7 +328,7 @@ export default class DocumentSandbox extends SandboxBase {
             },
         });
 
-        if (this._documentTitleStorageInitializer && !partialInitializationForNotLoadedIframe) {
+        if (!this.proxyless && this._documentTitleStorageInitializer && !partialInitializationForNotLoadedIframe) {
             overrideDescriptor(docPrototype, 'title', {
                 getter: function () {
                     return documentSandbox._documentTitleStorageInitializer.storage.getTitle();
