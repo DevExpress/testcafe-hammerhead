@@ -181,7 +181,7 @@ export default class ElementSandbox extends SandboxBase {
                 if (value !== '' && (!isSpecialPage || tagName === 'a')) {
                     const isIframe         = tagName === 'iframe' || tagName === 'frame';
                     const isScript         = tagName === 'script';
-                    const isCrossDomainUrl = !this.proxyless && isSupportedProtocol && !sameOriginCheck(this.window.location.toString(), value);
+                    const isCrossDomainUrl = !SandboxBase.isProxyless && isSupportedProtocol && !sameOriginCheck(this.window.location.toString(), value);
                     let resourceType       = domProcessor.getElementResourceType(el);
                     const elCharset        = isScript && (el as HTMLScriptElement).charset; // eslint-disable-line no-extra-parens
                     const currentDocument  = el.ownerDocument || this.document;
@@ -201,7 +201,7 @@ export default class ElementSandbox extends SandboxBase {
                         domUtils.isElementInDocument(el, currentDocument))
                         urlResolver.updateBase(value, currentDocument);
 
-                    if (this.proxyless)
+                    if (SandboxBase.isProxyless)
                         args[valueIndex] = value;
                     else {
                         args[valueIndex] = isIframe && isCrossDomainUrl
@@ -351,6 +351,17 @@ export default class ElementSandbox extends SandboxBase {
             this.setAttributeCore(el, ['href', nativeMethods.getAttribute.call(el, 'href')]);
 
         return result;
+    }
+
+    getCorrectedTarget (target = ''): string {
+        if (settings.get().allowMultipleWindows)
+            return target;
+
+        if (target && !isKeywordTarget(target) && !windowsStorage.findByName(target) ||
+            /_blank/i.test(target))
+            return '_top';
+
+        return target;
     }
 
     private _hasAttributeCore (el: HTMLElement, args, isNs: boolean) {
@@ -866,7 +877,7 @@ export default class ElementSandbox extends SandboxBase {
             return str;
 
         if (domUtils.isScriptElement(parentNode))
-            return processScript(str, true, false, urlUtils.convertToProxyUrl, void 0, settings.get().proxyless);
+            return processScript(str, true, false, urlUtils.convertToProxyUrl, void 0, SandboxBase.isProxyless);
 
         if (domUtils.isStyleElement(parentNode))
             return styleProcessor.process(str, urlUtils.getProxyUrl);
@@ -1011,28 +1022,12 @@ export default class ElementSandbox extends SandboxBase {
 
         this._createOverriddenMethods();
 
-        overrideFunction(window.Element.prototype, 'setAttribute', this.overriddenMethods.setAttribute);
-        overrideFunction(window.Element.prototype, 'setAttributeNS', this.overriddenMethods.setAttributeNS);
-        overrideFunction(window.Element.prototype, 'getAttribute', this.overriddenMethods.getAttribute);
-        overrideFunction(window.Element.prototype, 'getAttributeNS', this.overriddenMethods.getAttributeNS);
-        overrideFunction(window.Element.prototype, 'removeAttribute', this.overriddenMethods.removeAttribute);
-        overrideFunction(window.Element.prototype, 'removeAttributeNS', this.overriddenMethods.removeAttributeNS);
-        overrideFunction(window.Element.prototype, 'removeAttributeNode', this.overriddenMethods.removeAttributeNode);
-        overrideFunction(window.Element.prototype, 'cloneNode', this.overriddenMethods.cloneNode);
-        overrideFunction(window.Element.prototype, 'querySelector', this.overriddenMethods.querySelector);
-        overrideFunction(window.Element.prototype, 'querySelectorAll', this.overriddenMethods.querySelectorAll);
-        overrideFunction(window.Element.prototype, 'hasAttribute', this.overriddenMethods.hasAttribute);
-        overrideFunction(window.Element.prototype, 'hasAttributeNS', this.overriddenMethods.hasAttributeNS);
-        overrideFunction(window.Element.prototype, 'hasAttributes', this.overriddenMethods.hasAttributes);
-
         if (nativeMethods.attachShadow)
             overrideFunction(window.Element.prototype, 'attachShadow', this.overriddenMethods.attachShadow);
 
-        overrideFunction(window.Node.prototype, 'cloneNode', this.overriddenMethods.cloneNode);
         overrideFunction(window.Node.prototype, 'appendChild', this.overriddenMethods.appendChild);
         overrideFunction(window.Node.prototype, 'removeChild', this.overriddenMethods.removeChild);
         overrideFunction(window.Node.prototype, 'insertBefore', this.overriddenMethods.insertBefore);
-        overrideFunction(window.Node.prototype, 'replaceChild', this.overriddenMethods.replaceChild);
 
         if (nativeMethods.append)
             overrideFunction(window.Element.prototype, 'append', this.overriddenMethods.append);
@@ -1048,6 +1043,30 @@ export default class ElementSandbox extends SandboxBase {
 
         if (nativeMethods.elementReplaceWith)
             overrideFunction(window.Element.prototype, 'replaceWith', this.overriddenMethods.elementReplaceWith);
+
+        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentHTML', this.overriddenMethods.insertAdjacentHTML);
+        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentElement', this.overriddenMethods.insertAdjacentElement);
+        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentText', this.overriddenMethods.insertAdjacentText);
+
+        if (SandboxBase.isProxyless)
+            return;
+
+        overrideFunction(window.Element.prototype, 'setAttribute', this.overriddenMethods.setAttribute);
+        overrideFunction(window.Element.prototype, 'setAttributeNS', this.overriddenMethods.setAttributeNS);
+        overrideFunction(window.Element.prototype, 'getAttribute', this.overriddenMethods.getAttribute);
+        overrideFunction(window.Element.prototype, 'getAttributeNS', this.overriddenMethods.getAttributeNS);
+        overrideFunction(window.Element.prototype, 'removeAttribute', this.overriddenMethods.removeAttribute);
+        overrideFunction(window.Element.prototype, 'removeAttributeNS', this.overriddenMethods.removeAttributeNS);
+        overrideFunction(window.Element.prototype, 'removeAttributeNode', this.overriddenMethods.removeAttributeNode);
+        overrideFunction(window.Element.prototype, 'cloneNode', this.overriddenMethods.cloneNode);
+        overrideFunction(window.Element.prototype, 'querySelector', this.overriddenMethods.querySelector);
+        overrideFunction(window.Element.prototype, 'querySelectorAll', this.overriddenMethods.querySelectorAll);
+        overrideFunction(window.Element.prototype, 'hasAttribute', this.overriddenMethods.hasAttribute);
+        overrideFunction(window.Element.prototype, 'hasAttributeNS', this.overriddenMethods.hasAttributeNS);
+        overrideFunction(window.Element.prototype, 'hasAttributes', this.overriddenMethods.hasAttributes);
+
+        overrideFunction(window.Node.prototype, 'cloneNode', this.overriddenMethods.cloneNode);
+        overrideFunction(window.Node.prototype, 'replaceChild', this.overriddenMethods.replaceChild);
 
         overrideFunction(window.DocumentFragment.prototype, 'querySelector', this.overriddenMethods.querySelector);
         overrideFunction(window.DocumentFragment.prototype, 'querySelectorAll', this.overriddenMethods.querySelectorAll);
@@ -1067,10 +1086,6 @@ export default class ElementSandbox extends SandboxBase {
         if (window.Document.prototype.registerElement)
             overrideFunction(window.Document.prototype, 'registerElement', this.overriddenMethods.registerElement);
 
-        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentHTML', this.overriddenMethods.insertAdjacentHTML);
-        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentElement', this.overriddenMethods.insertAdjacentElement);
-        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentText', this.overriddenMethods.insertAdjacentText);
-
         this._setValidBrowsingContextOnElementClick(window);
 
         // NOTE: Cookie can be set up for the page by using the request initiated by img.
@@ -1082,28 +1097,7 @@ export default class ElementSandbox extends SandboxBase {
                 ElementSandbox._setProxiedSrc(e.el);
         });
 
-        overrideDescriptor(window.HTMLElement.prototype, 'onload', {
-            getter: null,
-            setter: function (handler) {
-                if (domUtils.isImgElement(this) && isValidEventListener(handler))
-                    ElementSandbox._setProxiedSrc(this);
-
-                nativeMethods.htmlElementOnloadSetter.call(this, handler);
-            },
-        });
-    }
-
-    private _ensureTargetContainsExistingBrowsingContext (el: HTMLElement): void {
-        if (settings.get().allowMultipleWindows)
-            return;
-
-        if (!nativeMethods.hasAttribute.call(el, 'target'))
-            return;
-
-        const attr       = nativeMethods.getAttribute.call(el, 'target');
-        const storedAttr = nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('target'));
-
-        el.setAttribute('target', storedAttr || attr);
+        this.overrideDescriptorOnload(window);
     }
 
     private _setValidBrowsingContextOnElementClick (window): void {
@@ -1123,67 +1117,29 @@ export default class ElementSandbox extends SandboxBase {
         });
     }
 
-    private _setProxiedSrcUrlOnError (img: HTMLImageElement): void {
-        img.addEventListener('error', e => {
-            const storedAttr = nativeMethods.getAttribute.call(img, DomProcessor.getStoredAttrName('src'));
-            const imgSrc     = nativeMethods.imageSrcGetter.call(img);
-
-            if (storedAttr && !urlUtils.parseProxyUrl(imgSrc) &&
-                urlUtils.isSupportedProtocol(imgSrc) && !urlUtils.isSpecialPage(imgSrc)) {
-                nativeMethods.setAttribute.call(img, 'src', urlUtils.getProxyUrl(storedAttr));
-                stopPropagation(e);
-            }
-        }, false);
-    }
-
-    getCorrectedTarget (target = ''): string {
+    private _ensureTargetContainsExistingBrowsingContext (el: HTMLElement): void {
         if (settings.get().allowMultipleWindows)
-            return target;
-
-        if (target && !isKeywordTarget(target) && !windowsStorage.findByName(target) ||
-            /_blank/i.test(target))
-            return '_top';
-
-        return target;
-    }
-
-    private _handleImageLoadEventRaising (el: HTMLImageElement): void {
-        if (this.proxyless)
             return;
 
-        this._eventSandbox.listeners.initElementListening(el, ['load']);
-        this._eventSandbox.listeners.addInternalEventBeforeListener(el, ['load'], (_e, _dispatched, preventEvent, _cancelHandlers, stopEventPropagation) => {
-            if (el[INTERNAL_PROPS.cachedImage])
-                el[INTERNAL_PROPS.cachedImage] = false;
+        if (!nativeMethods.hasAttribute.call(el, 'target'))
+            return;
 
-            if (!el[INTERNAL_PROPS.skipNextLoadEventForImage])
-                return;
+        const attr       = nativeMethods.getAttribute.call(el, 'target');
+        const storedAttr = nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('target'));
 
-            el[INTERNAL_PROPS.skipNextLoadEventForImage] = false;
+        el.setAttribute('target', storedAttr || attr);
+    }
 
-            preventEvent();
-            stopEventPropagation();
+    private overrideDescriptorOnload (window) {
+        overrideDescriptor(window.HTMLElement.prototype, 'onload', {
+            getter: null,
+            setter: function (handler) {
+                if (domUtils.isImgElement(this) && isValidEventListener(handler))
+                    ElementSandbox._setProxiedSrc(this);
+
+                nativeMethods.htmlElementOnloadSetter.call(this, handler);
+            },
         });
-
-        if (!el[INTERNAL_PROPS.forceProxySrcForImage] && !settings.get().forceProxySrcForImage)
-            this._setProxiedSrcUrlOnError(el as HTMLImageElement);
-    }
-
-    private _processBaseTag (el: HTMLBaseElement): void {
-        if (!this._isFirstBaseTagOnPage(el))
-            return;
-
-        const storedUrlAttr = nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('href'));
-
-        if (storedUrlAttr !== null)
-            urlResolver.updateBase(storedUrlAttr, el.ownerDocument || this.document);
-    }
-
-    private _reProcessElementWithTargetAttr (el: Element, tagName: string): void {
-        const targetAttr = domProcessor.getTargetAttr(el);
-
-        if (DomProcessor.isIframeFlagTag(tagName) && nativeMethods.getAttribute.call(el, targetAttr) === '_parent')
-            domProcessor.processElement(el, urlUtils.convertToProxyUrl);
     }
 
     processElement (el: Element): void {
@@ -1211,5 +1167,57 @@ export default class ElementSandbox extends SandboxBase {
         // NOTE: we need to reprocess a tag client-side if it wasn't processed on the server.
         // See the usage of Parse5DomAdapter.needToProcessUrl
         this._reProcessElementWithTargetAttr(el, tagName);
+    }
+
+    private _handleImageLoadEventRaising (el: HTMLImageElement): void {
+        if (SandboxBase.isProxyless)
+            return;
+
+        this._eventSandbox.listeners.initElementListening(el, ['load']);
+        this._eventSandbox.listeners.addInternalEventBeforeListener(el, ['load'], (_e, _dispatched, preventEvent, _cancelHandlers, stopEventPropagation) => {
+            if (el[INTERNAL_PROPS.cachedImage])
+                el[INTERNAL_PROPS.cachedImage] = false;
+
+            if (!el[INTERNAL_PROPS.skipNextLoadEventForImage])
+                return;
+
+            el[INTERNAL_PROPS.skipNextLoadEventForImage] = false;
+
+            preventEvent();
+            stopEventPropagation();
+        });
+
+        if (!el[INTERNAL_PROPS.forceProxySrcForImage] && !settings.get().forceProxySrcForImage)
+            this._setProxiedSrcUrlOnError(el as HTMLImageElement);
+    }
+
+    private _setProxiedSrcUrlOnError (img: HTMLImageElement): void {
+        img.addEventListener('error', e => {
+            const storedAttr = nativeMethods.getAttribute.call(img, DomProcessor.getStoredAttrName('src'));
+            const imgSrc     = nativeMethods.imageSrcGetter.call(img);
+
+            if (storedAttr && !urlUtils.parseProxyUrl(imgSrc) &&
+                urlUtils.isSupportedProtocol(imgSrc) && !urlUtils.isSpecialPage(imgSrc)) {
+                nativeMethods.setAttribute.call(img, 'src', urlUtils.getProxyUrl(storedAttr));
+                stopPropagation(e);
+            }
+        }, false);
+    }
+
+    private _processBaseTag (el: HTMLBaseElement): void {
+        if (!this._isFirstBaseTagOnPage(el))
+            return;
+
+        const storedUrlAttr = nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('href'));
+
+        if (storedUrlAttr !== null)
+            urlResolver.updateBase(storedUrlAttr, el.ownerDocument || this.document);
+    }
+
+    private _reProcessElementWithTargetAttr (el: Element, tagName: string): void {
+        const targetAttr = domProcessor.getTargetAttr(el);
+
+        if (DomProcessor.isIframeFlagTag(tagName) && nativeMethods.getAttribute.call(el, targetAttr) === '_parent')
+            domProcessor.processElement(el, urlUtils.convertToProxyUrl);
     }
 }

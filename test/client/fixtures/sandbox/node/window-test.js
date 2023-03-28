@@ -517,7 +517,7 @@ test('UNCAUGHT_JS_ERROR_EVENT', function () {
             };
 
             windowSandox.on(hammerhead.EVENTS.uncaughtJsError, handler);
-            windowSandox._raiseUncaughtJsErrorEvent(hammerhead.EVENTS.uncaughtJsError, testCase.event, window);
+            windowSandox.raiseUncaughtJsErrorEvent(hammerhead.EVENTS.uncaughtJsError, testCase.event, window);
         });
     };
 
@@ -565,7 +565,7 @@ if (nativeMethods.winOnUnhandledRejectionSetter) {
                 };
 
                 windowSandox.on(hammerhead.EVENTS.unhandledRejection, handler);
-                windowSandox._raiseUncaughtJsErrorEvent(hammerhead.EVENTS.unhandledRejection, { reason: testCase.reason }, window);
+                windowSandox.raiseUncaughtJsErrorEvent(hammerhead.EVENTS.unhandledRejection, { reason: testCase.reason }, window);
             });
         };
 
