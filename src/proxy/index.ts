@@ -324,8 +324,8 @@ export default class Proxy extends Router {
         return new URL(relativeServiceUrl, domain).toString();
     }
 
-    public switchToNativeAutomation (): void {
-        (this.proxyOptions as ProxyOptions).nativeAutomation = true;
+    public setMode (isNativeAutomation: boolean): void {
+        (this.proxyOptions as ProxyOptions).nativeAutomation = isNativeAutomation;
     }
 
     public get isNativeAutomation (): boolean {

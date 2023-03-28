@@ -334,8 +334,8 @@ declare module 'testcafe-hammerhead' {
         /** Resolve relative service url **/
         resolveRelativeServiceUrl (relativeServiceUrl: string, domain?: string): string;
 
-        /** Switch proxy to the nativeAutomation mode **/
-        switchToNativeAutomation (): void;
+        /** Set proxy mode **/
+        setMode (isNativeAutomation: boolean): void;
     }
 
     /** The RequestFilterRule class is used to create URL filtering rules for request hook **/
