@@ -102,6 +102,10 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             this.overrideResponseURL();
 
         this.overrideGetResponseHeader();
+
+        if (XhrSandbox.isProxyless)
+            return;
+
         this.overrideGetAllResponseHeaders();
     }
 
