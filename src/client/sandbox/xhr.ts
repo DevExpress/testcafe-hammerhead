@@ -92,7 +92,6 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
     attach (window): void {
         super.attach(window);
 
-        const xhrSandbox          = this;
         const xmlHttpRequestProto = window.XMLHttpRequest.prototype;
 
         this.overrideXMLHttpRequest();
@@ -101,15 +100,8 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         this.overrideSend();
         this.overrideSetRequestHeader();
 
-        if (nativeMethods.xhrResponseURLGetter) {
-            overrideDescriptor(window.XMLHttpRequest.prototype, 'responseURL', {
-                getter: function () {
-                    const nativeResponseURL = nativeMethods.xhrResponseURLGetter.call(this);
-
-                    return xhrSandbox.proxyless ? nativeResponseURL : getDestinationUrl(nativeResponseURL);
-                },
-            });
-        }
+        if (nativeMethods.xhrResponseURLGetter)
+            this.overrideResponseURL();
 
         overrideFunction(xmlHttpRequestProto, 'getResponseHeader', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['getResponseHeader']>) {
             let value = nativeMethods.xhrGetResponseHeader.apply(this, args);
@@ -272,6 +264,18 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
 
             if (reqOpts)
                 reqOpts.headers.push([String(args[0]), String(args[1])]);
+        });
+    }
+
+    private overrideResponseURL () {
+        const xhrSandbox = this;
+
+        overrideDescriptor(this.window.XMLHttpRequest.prototype, 'responseURL', {
+            getter: function () {
+                const nativeResponseURL = nativeMethods.xhrResponseURLGetter.call(this);
+
+                return xhrSandbox.proxyless ? nativeResponseURL : getDestinationUrl(nativeResponseURL);
+            },
         });
     }
 }
