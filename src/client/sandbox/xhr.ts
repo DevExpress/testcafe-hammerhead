@@ -95,47 +95,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         const xhrSandbox          = this;
         const xmlHttpRequestProto = window.XMLHttpRequest.prototype;
 
-        const emitXhrCompletedEvent = function (this: XMLHttpRequest) {
-            const nativeRemoveEventListener = nativeMethods.xhrRemoveEventListener || nativeMethods.removeEventListener;
-
-            xhrSandbox.emit(xhrSandbox.XHR_COMPLETED_EVENT, { xhr: this });
-            nativeRemoveEventListener.call(this, 'loadend', emitXhrCompletedEvent);
-        };
-
-        const syncCookieWithClientIfNecessary = function (this: XMLHttpRequest) {
-            if (this.readyState < this.HEADERS_RECEIVED)
-                return;
-
-            const nativeRemoveEventListener = nativeMethods.xhrRemoveEventListener || nativeMethods.removeEventListener;
-
-            xhrSandbox._cookieSandbox.syncCookie();
-
-            nativeRemoveEventListener.call(this, 'readystatechange', syncCookieWithClientIfNecessary);
-        };
-
-        const xmlHttpRequestWrapper = function () {
-            const nativeAddEventListener = nativeMethods.xhrAddEventListener || nativeMethods.addEventListener;
-
-            const xhr = new nativeMethods.XMLHttpRequest();
-
-            nativeAddEventListener.call(xhr, 'loadend', emitXhrCompletedEvent);
-            nativeAddEventListener.call(xhr, 'readystatechange', syncCookieWithClientIfNecessary);
-
-            return xhr;
-        };
-
-        for (const readyState of XHR_READY_STATES) {
-            nativeMethods.objectDefineProperty(xmlHttpRequestWrapper, readyState,
-                nativeMethods.objectGetOwnPropertyDescriptor(nativeMethods.XMLHttpRequest, readyState));
-        }
-
-        // NOTE: We cannot just assign constructor property of the prototype of XMLHttpRequest starts from safari 9.0
-        overrideConstructor(window, 'XMLHttpRequest', xmlHttpRequestWrapper);
-
-        nativeMethods.objectDefineProperty(xmlHttpRequestProto, 'constructor', {
-            value: xmlHttpRequestWrapper,
-        });
-
+        this.overrideXMLHttpRequestInWindow();
         overrideFunction(xmlHttpRequestProto, 'abort', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['abort']>) { // eslint-disable-line consistent-return
             if (xhrSandbox.gettingSettingInProgress())
                 return void xhrSandbox.delayUntilGetSettings(() => this.abort.apply(this, args));
@@ -172,26 +132,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             XhrSandbox.setRequestOptions(this, this.withCredentials, args);
         });
 
-        overrideFunction(xmlHttpRequestProto, 'send', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['send']>) { // eslint-disable-line consistent-return
-            if (xhrSandbox.gettingSettingInProgress())
-                return void xhrSandbox.delayUntilGetSettings(() => this.send.apply(this, args));
-
-            const reqOpts = XhrSandbox.REQUESTS_OPTIONS.get(this);
-
-            if (reqOpts && reqOpts.withCredentials !== this.withCredentials)
-                XhrSandbox._reopenXhr(this, reqOpts, xhrSandbox.proxyless);
-
-            xhrSandbox.emit(xhrSandbox.BEFORE_XHR_SEND_EVENT, { xhr: this });
-
-            nativeMethods.xhrSend.apply(this, args);
-
-            // NOTE: For xhr with the sync mode
-            if (this.readyState === this.DONE)
-                emitXhrCompletedEvent.call(this);
-
-            syncCookieWithClientIfNecessary.call(this);
-        });
-
+        this.overrideSendInXMLHttpRequest();
         overrideFunction(xmlHttpRequestProto, 'setRequestHeader', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['setRequestHeader']>) {
             if (!xhrSandbox.proxyless && isAuthorizationHeader(args[0]))
                 args[1] = addAuthorizationPrefix(args[1]);
@@ -231,5 +172,90 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
 
             return allHeaders;
         });
+    }
+
+    private overrideXMLHttpRequestInWindow () {
+        const emitXhrCompletedEvent           = this.createEmitXhrCompletedEvent();
+        const syncCookieWithClientIfNecessary = this.createSyncCookieWithClientIfNecessary();
+
+        const xmlHttpRequestWrapper = function () {
+            const nativeAddEventListener = nativeMethods.xhrAddEventListener || nativeMethods.addEventListener;
+
+            const xhr = new nativeMethods.XMLHttpRequest();
+
+            nativeAddEventListener.call(xhr, 'loadend', emitXhrCompletedEvent);
+            nativeAddEventListener.call(xhr, 'readystatechange', syncCookieWithClientIfNecessary);
+
+            return xhr;
+        };
+
+        for (const readyState of XHR_READY_STATES) {
+            nativeMethods.objectDefineProperty(xmlHttpRequestWrapper, readyState,
+                nativeMethods.objectGetOwnPropertyDescriptor(nativeMethods.XMLHttpRequest, readyState));
+        }
+
+        // NOTE: We cannot just assign constructor property of the prototype of XMLHttpRequest starts from safari 9.0
+        overrideConstructor(this.window, 'XMLHttpRequest', xmlHttpRequestWrapper);
+
+        nativeMethods.objectDefineProperty(this.window.XMLHttpRequest.prototype, 'constructor', {
+            value: xmlHttpRequestWrapper,
+        });
+    }
+
+    private overrideSendInXMLHttpRequest () {
+        const xhrSandbox = this;
+
+        const emitXhrCompletedEvent           = this.createEmitXhrCompletedEvent();
+        const syncCookieWithClientIfNecessary = this.createSyncCookieWithClientIfNecessary();
+
+        overrideFunction(this.window.XMLHttpRequest.prototype, 'send', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['send']>) { // eslint-disable-line consistent-return
+            if (xhrSandbox.gettingSettingInProgress())
+                return void xhrSandbox.delayUntilGetSettings(() => this.send.apply(this, args));
+
+            const reqOpts = XhrSandbox.REQUESTS_OPTIONS.get(this);
+
+            if (reqOpts && reqOpts.withCredentials !== this.withCredentials)
+                XhrSandbox._reopenXhr(this, reqOpts, xhrSandbox.proxyless);
+
+            xhrSandbox.emit(xhrSandbox.BEFORE_XHR_SEND_EVENT, { xhr: this });
+
+            nativeMethods.xhrSend.apply(this, args);
+
+            // NOTE: For xhr with the sync mode
+            if (this.readyState === this.DONE)
+                emitXhrCompletedEvent.call(this);
+
+            syncCookieWithClientIfNecessary.call(this);
+        });
+    }
+
+    private createEmitXhrCompletedEvent () {
+        const xhrSandbox = this;
+
+        const emitXhrCompletedEvent = function (this: XMLHttpRequest) {
+            const nativeRemoveEventListener = nativeMethods.xhrRemoveEventListener || nativeMethods.removeEventListener;
+
+            xhrSandbox.emit(xhrSandbox.XHR_COMPLETED_EVENT, { xhr: this });
+            nativeRemoveEventListener.call(this, 'loadend', emitXhrCompletedEvent);
+        };
+
+        return emitXhrCompletedEvent;
+    }
+
+    private createSyncCookieWithClientIfNecessary () {
+        const xhrSandbox = this;
+
+        const syncCookieWithClientIfNecessary = function (this: XMLHttpRequest) {
+            if (this.readyState < this.HEADERS_RECEIVED)
+                return;
+
+            const nativeRemoveEventListener = nativeMethods.xhrRemoveEventListener || nativeMethods.removeEventListener;
+
+            xhrSandbox._cookieSandbox.syncCookie();
+
+            nativeRemoveEventListener.call(this, 'readystatechange', syncCookieWithClientIfNecessary);
+        };
+
+        return syncCookieWithClientIfNecessary;
     }
 }
