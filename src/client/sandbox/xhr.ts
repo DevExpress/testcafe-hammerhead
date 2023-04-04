@@ -100,17 +100,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         this.overrideOpenInXMLHttpRequest();
 
         this.overrideSendInXMLHttpRequest();
-        overrideFunction(xmlHttpRequestProto, 'setRequestHeader', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['setRequestHeader']>) {
-            if (!xhrSandbox.proxyless && isAuthorizationHeader(args[0]))
-                args[1] = addAuthorizationPrefix(args[1]);
-
-            nativeMethods.xhrSetRequestHeader.apply(this, args);
-
-            const reqOpts = XhrSandbox.REQUESTS_OPTIONS.get(this);
-
-            if (reqOpts)
-                reqOpts.headers.push([String(args[0]), String(args[1])]);
-        });
+        this.overrideSetRequestHeader();
 
         if (nativeMethods.xhrResponseURLGetter) {
             overrideDescriptor(window.XMLHttpRequest.prototype, 'responseURL', {
@@ -267,6 +257,22 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             args[1] = url;
 
             XhrSandbox.setRequestOptions(this, this.withCredentials, args);
+        });
+    }
+
+    private overrideSetRequestHeader () {
+        const xhrSandbox = this;
+
+        overrideFunction(window.XMLHttpRequest.prototype, 'setRequestHeader', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['setRequestHeader']>) {
+            if (!xhrSandbox.proxyless && isAuthorizationHeader(args[0]))
+                args[1] = addAuthorizationPrefix(args[1]);
+
+            nativeMethods.xhrSetRequestHeader.apply(this, args);
+
+            const reqOpts = XhrSandbox.REQUESTS_OPTIONS.get(this);
+
+            if (reqOpts)
+                reqOpts.headers.push([String(args[0]), String(args[1])]);
         });
     }
 }
