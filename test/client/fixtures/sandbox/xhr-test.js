@@ -8,6 +8,7 @@ var nativeMethods = hammerhead.nativeMethods;
 var xhrSandbox    = hammerhead.sandbox.xhr;
 var Promise       = hammerhead.Promise;
 var browserUtils  = hammerhead.utils.browser;
+var settings      = hammerhead.settings;
 
 function getPrototypeFromChainContainsProp (obj, prop) {
     while (obj && !obj.hasOwnProperty(prop))
@@ -514,13 +515,13 @@ test('should handle blob object urls (GH-1397)', function () {
 });
 
 module('proxyless', function (hooks) {
-    var storedProxyless = xhrSandbox.proxyless;
+    var storedSettings = settings.get();
 
     hooks.beforeEach(function () {
-        xhrSandbox.proxyless = true;
+        settings.set({ ...storedSettings, proxyless: true });
     });
     hooks.afterEach(function () {
-        xhrSandbox.proxyless = storedProxyless;
+        settings.set(storedSettings);
     });
 
     test('xhr.open method', function () {
