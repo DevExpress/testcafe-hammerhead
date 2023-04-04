@@ -95,11 +95,10 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         const xhrSandbox          = this;
         const xmlHttpRequestProto = window.XMLHttpRequest.prototype;
 
-        this.overrideXMLHttpRequestInWindow();
-        this.overrideAbortInXMLHttpRequest();
-        this.overrideOpenInXMLHttpRequest();
-
-        this.overrideSendInXMLHttpRequest();
+        this.overrideXMLHttpRequest();
+        this.overrideAbort();
+        this.overrideOpen();
+        this.overrideSend();
         this.overrideSetRequestHeader();
 
         if (nativeMethods.xhrResponseURLGetter) {
@@ -131,7 +130,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         });
     }
 
-    private overrideXMLHttpRequestInWindow () {
+    private overrideXMLHttpRequest () {
         const emitXhrCompletedEvent           = this.createEmitXhrCompletedEvent();
         const syncCookieWithClientIfNecessary = this.createSyncCookieWithClientIfNecessary();
 
@@ -159,7 +158,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         });
     }
 
-    private overrideSendInXMLHttpRequest () {
+    private overrideSend () {
         const xhrSandbox = this;
 
         const emitXhrCompletedEvent           = this.createEmitXhrCompletedEvent();
@@ -216,7 +215,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         return syncCookieWithClientIfNecessary;
     }
 
-    private overrideAbortInXMLHttpRequest () {
+    private overrideAbort () {
         const xhrSandbox = this;
 
         overrideFunction(window.XMLHttpRequest.prototype, 'abort', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['abort']>) { // eslint-disable-line consistent-return
@@ -231,7 +230,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         });
     }
 
-    private overrideOpenInXMLHttpRequest () {
+    private overrideOpen () {
         // NOTE: Redirect all requests to the Hammerhead proxy and ensure that requests don't
         // violate Same Origin Policy.
         const xhrSandbox = this;
