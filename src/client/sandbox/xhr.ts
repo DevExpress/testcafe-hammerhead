@@ -103,14 +103,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         if (nativeMethods.xhrResponseURLGetter)
             this.overrideResponseURL();
 
-        overrideFunction(xmlHttpRequestProto, 'getResponseHeader', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['getResponseHeader']>) {
-            let value = nativeMethods.xhrGetResponseHeader.apply(this, args);
-
-            if (value && isAuthenticateHeader(args[0]))
-                value = removeAuthenticatePrefix(value);
-
-            return value;
-        });
+        this.overrideGetResponseHeader();
 
         overrideFunction(xmlHttpRequestProto, 'getAllResponseHeaders', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['getAllResponseHeaders']>) {
             let allHeaders = nativeMethods.xhrGetAllResponseHeaders.apply(this, args);
@@ -276,6 +269,17 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
 
                 return xhrSandbox.proxyless ? nativeResponseURL : getDestinationUrl(nativeResponseURL);
             },
+        });
+    }
+
+    private overrideGetResponseHeader () {
+        overrideFunction(this.window.XMLHttpRequest.prototype, 'getResponseHeader', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['getResponseHeader']>) {
+            let value = nativeMethods.xhrGetResponseHeader.apply(this, args);
+
+            if (value && isAuthenticateHeader(args[0]))
+                value = removeAuthenticatePrefix(value);
+
+            return value;
         });
     }
 }
