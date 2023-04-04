@@ -96,16 +96,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         const xmlHttpRequestProto = window.XMLHttpRequest.prototype;
 
         this.overrideXMLHttpRequestInWindow();
-        overrideFunction(xmlHttpRequestProto, 'abort', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['abort']>) { // eslint-disable-line consistent-return
-            if (xhrSandbox.gettingSettingInProgress())
-                return void xhrSandbox.delayUntilGetSettings(() => this.abort.apply(this, args));
-
-            nativeMethods.xhrAbort.apply(this, args);
-            xhrSandbox.emit(xhrSandbox.XHR_ERROR_EVENT, {
-                err: new Error('XHR aborted'),
-                xhr: this,
-            });
-        });
+        this.overrideAbortInXMLHttpRequest();
 
         // NOTE: Redirect all requests to the Hammerhead proxy and ensure that requests don't
         // violate Same Origin Policy.
@@ -257,5 +248,20 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         };
 
         return syncCookieWithClientIfNecessary;
+    }
+
+    private overrideAbortInXMLHttpRequest () {
+        const xhrSandbox = this;
+
+        overrideFunction(window.XMLHttpRequest.prototype, 'abort', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['abort']>) { // eslint-disable-line consistent-return
+            if (xhrSandbox.gettingSettingInProgress())
+                return void xhrSandbox.delayUntilGetSettings(() => this.abort.apply(this, args));
+
+            nativeMethods.xhrAbort.apply(this, args);
+            xhrSandbox.emit(xhrSandbox.XHR_ERROR_EVENT, {
+                err: new Error('XHR aborted'),
+                xhr: this,
+            });
+        });
     }
 }
