@@ -74,21 +74,6 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         xhr.setRequestHeader(BUILTIN_HEADERS.cacheControl, 'no-cache, no-store, must-revalidate');
     }
 
-    private static _reopenXhr (xhr: XMLHttpRequest, reqOpts: RequestOptions, proxyless: boolean): void {
-        const url             = reqOpts.openArgs[1];
-        const withCredentials = xhr.withCredentials;
-
-        reqOpts.withCredentials = withCredentials;
-        reqOpts.openArgs[1]     = getAjaxProxyUrl(url, withCredentials ? Credentials.include : Credentials.sameOrigin, proxyless);
-
-        nativeMethods.xhrOpen.apply(xhr, reqOpts.openArgs);
-
-        reqOpts.openArgs[1] = url;
-
-        for (const header of reqOpts.headers)
-            nativeMethods.xhrSetRequestHeader.apply(xhr, header);
-    }
-
     attach (window): void {
         super.attach(window);
 
@@ -150,7 +135,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             const reqOpts = XhrSandbox.REQUESTS_OPTIONS.get(this);
 
             if (reqOpts && reqOpts.withCredentials !== this.withCredentials)
-                XhrSandbox._reopenXhr(this, reqOpts, XhrSandbox.isProxyless);
+                XhrSandbox.reopenXhr(this, reqOpts);
 
             xhrSandbox.emit(xhrSandbox.BEFORE_XHR_SEND_EVENT, { xhr: this });
 
@@ -192,6 +177,21 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         };
 
         return syncCookieWithClientIfNecessary;
+    }
+
+    private static reopenXhr (xhr: XMLHttpRequest, reqOpts: RequestOptions): void {
+        const url             = reqOpts.openArgs[1];
+        const withCredentials = xhr.withCredentials;
+
+        reqOpts.withCredentials = withCredentials;
+        reqOpts.openArgs[1]     = getAjaxProxyUrl(url, withCredentials ? Credentials.include : Credentials.sameOrigin, XhrSandbox.isProxyless);
+
+        nativeMethods.xhrOpen.apply(xhr, reqOpts.openArgs);
+
+        reqOpts.openArgs[1] = url;
+
+        for (const header of reqOpts.headers)
+            nativeMethods.xhrSetRequestHeader.apply(xhr, header);
     }
 
     private overrideAbort () {
@@ -257,7 +257,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             getter: function () {
                 const nativeResponseURL = nativeMethods.xhrResponseURLGetter.call(this);
 
-                return XhrSandbox.isProxyless ? nativeResponseURL : getDestinationUrl(nativeResponseURL);
+                return getDestinationUrl(nativeResponseURL);
             },
         });
     }
