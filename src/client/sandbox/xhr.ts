@@ -92,8 +92,6 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
     attach (window): void {
         super.attach(window);
 
-        const xmlHttpRequestProto = window.XMLHttpRequest.prototype;
-
         this.overrideXMLHttpRequest();
         this.overrideAbort();
         this.overrideOpen();
@@ -104,15 +102,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             this.overrideResponseURL();
 
         this.overrideGetResponseHeader();
-
-        overrideFunction(xmlHttpRequestProto, 'getAllResponseHeaders', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['getAllResponseHeaders']>) {
-            let allHeaders = nativeMethods.xhrGetAllResponseHeaders.apply(this, args);
-
-            while (hasAuthenticatePrefix(allHeaders))
-                allHeaders = removeAuthenticatePrefix(allHeaders);
-
-            return allHeaders;
-        });
+        this.overrideGetAllResponseHeaders();
     }
 
     private overrideXMLHttpRequest () {
@@ -280,6 +270,17 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
                 value = removeAuthenticatePrefix(value);
 
             return value;
+        });
+    }
+
+    private overrideGetAllResponseHeaders () {
+        overrideFunction(this.window.XMLHttpRequest.prototype, 'getAllResponseHeaders', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['getAllResponseHeaders']>) {
+            let allHeaders = nativeMethods.xhrGetAllResponseHeaders.apply(this, args);
+
+            while (hasAuthenticatePrefix(allHeaders))
+                allHeaders = removeAuthenticatePrefix(allHeaders);
+
+            return allHeaders;
         });
     }
 }
