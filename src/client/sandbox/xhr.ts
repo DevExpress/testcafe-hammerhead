@@ -97,31 +97,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
 
         this.overrideXMLHttpRequestInWindow();
         this.overrideAbortInXMLHttpRequest();
-
-        // NOTE: Redirect all requests to the Hammerhead proxy and ensure that requests don't
-        // violate Same Origin Policy.
-        overrideFunction(xmlHttpRequestProto, 'open', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['open']>) { // eslint-disable-line consistent-return
-            let url = args[1];
-
-            if (getProxyUrl(url, {}, xhrSandbox.proxyless) === url) {
-                XhrSandbox.setRequestOptions(this, this.withCredentials, args);
-
-                return void nativeMethods.xhrOpen.apply(this, args);
-            }
-
-            if (xhrSandbox.gettingSettingInProgress())
-                return void xhrSandbox.delayUntilGetSettings(() => this.open.apply(this, args));
-
-            url = typeof url === 'string' ? url : String(url);
-
-            args[1] = getAjaxProxyUrl(url, this.withCredentials ? Credentials.include : Credentials.sameOrigin, xhrSandbox.proxyless);
-
-            nativeMethods.xhrOpen.apply(this, args);
-
-            args[1] = url;
-
-            XhrSandbox.setRequestOptions(this, this.withCredentials, args);
-        });
+        this.overrideOpenInXMLHttpRequest();
 
         this.overrideSendInXMLHttpRequest();
         overrideFunction(xmlHttpRequestProto, 'setRequestHeader', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['setRequestHeader']>) {
@@ -262,6 +238,35 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
                 err: new Error('XHR aborted'),
                 xhr: this,
             });
+        });
+    }
+
+    private overrideOpenInXMLHttpRequest () {
+        // NOTE: Redirect all requests to the Hammerhead proxy and ensure that requests don't
+        // violate Same Origin Policy.
+        const xhrSandbox = this;
+
+        overrideFunction(window.XMLHttpRequest.prototype, 'open', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['open']>) { // eslint-disable-line consistent-return
+            let url = args[1];
+
+            if (getProxyUrl(url, {}, xhrSandbox.proxyless) === url) {
+                XhrSandbox.setRequestOptions(this, this.withCredentials, args);
+
+                return void nativeMethods.xhrOpen.apply(this, args);
+            }
+
+            if (xhrSandbox.gettingSettingInProgress())
+                return void xhrSandbox.delayUntilGetSettings(() => this.open.apply(this, args));
+
+            url = typeof url === 'string' ? url : String(url);
+
+            args[1] = getAjaxProxyUrl(url, this.withCredentials ? Credentials.include : Credentials.sameOrigin, xhrSandbox.proxyless);
+
+            nativeMethods.xhrOpen.apply(this, args);
+
+            args[1] = url;
+
+            XhrSandbox.setRequestOptions(this, this.withCredentials, args);
         });
     }
 }
