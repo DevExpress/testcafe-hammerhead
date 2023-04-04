@@ -146,7 +146,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
             const reqOpts = XhrSandbox.REQUESTS_OPTIONS.get(this);
 
             if (reqOpts && reqOpts.withCredentials !== this.withCredentials)
-                XhrSandbox._reopenXhr(this, reqOpts, xhrSandbox.proxyless);
+                XhrSandbox._reopenXhr(this, reqOpts, XhrSandbox.isProxyless);
 
             xhrSandbox.emit(xhrSandbox.BEFORE_XHR_SEND_EVENT, { xhr: this });
 
@@ -213,7 +213,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         overrideFunction(this.window.XMLHttpRequest.prototype, 'open', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['open']>) { // eslint-disable-line consistent-return
             let url = args[1];
 
-            if (getProxyUrl(url, {}, xhrSandbox.proxyless) === url) {
+            if (getProxyUrl(url, {}, XhrSandbox.isProxyless) === url) {
                 XhrSandbox.setRequestOptions(this, this.withCredentials, args);
 
                 return void nativeMethods.xhrOpen.apply(this, args);
@@ -224,7 +224,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
 
             url = typeof url === 'string' ? url : String(url);
 
-            args[1] = getAjaxProxyUrl(url, this.withCredentials ? Credentials.include : Credentials.sameOrigin, xhrSandbox.proxyless);
+            args[1] = getAjaxProxyUrl(url, this.withCredentials ? Credentials.include : Credentials.sameOrigin, XhrSandbox.isProxyless);
 
             nativeMethods.xhrOpen.apply(this, args);
 
@@ -235,10 +235,8 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
     }
 
     private overrideSetRequestHeader () {
-        const xhrSandbox = this;
-
         overrideFunction(this.window.XMLHttpRequest.prototype, 'setRequestHeader', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['setRequestHeader']>) {
-            if (!xhrSandbox.proxyless && isAuthorizationHeader(args[0]))
+            if (!XhrSandbox.isProxyless && isAuthorizationHeader(args[0]))
                 args[1] = addAuthorizationPrefix(args[1]);
 
             nativeMethods.xhrSetRequestHeader.apply(this, args);
@@ -251,13 +249,11 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
     }
 
     private overrideResponseURL () {
-        const xhrSandbox = this;
-
         overrideDescriptor(this.window.XMLHttpRequest.prototype, 'responseURL', {
             getter: function () {
                 const nativeResponseURL = nativeMethods.xhrResponseURLGetter.call(this);
 
-                return xhrSandbox.proxyless ? nativeResponseURL : getDestinationUrl(nativeResponseURL);
+                return XhrSandbox.isProxyless ? nativeResponseURL : getDestinationUrl(nativeResponseURL);
             },
         });
     }
