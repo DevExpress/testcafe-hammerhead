@@ -218,7 +218,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
     private overrideAbort () {
         const xhrSandbox = this;
 
-        overrideFunction(window.XMLHttpRequest.prototype, 'abort', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['abort']>) { // eslint-disable-line consistent-return
+        overrideFunction(this.window.XMLHttpRequest.prototype, 'abort', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['abort']>) { // eslint-disable-line consistent-return
             if (xhrSandbox.gettingSettingInProgress())
                 return void xhrSandbox.delayUntilGetSettings(() => this.abort.apply(this, args));
 
@@ -235,7 +235,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         // violate Same Origin Policy.
         const xhrSandbox = this;
 
-        overrideFunction(window.XMLHttpRequest.prototype, 'open', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['open']>) { // eslint-disable-line consistent-return
+        overrideFunction(this.window.XMLHttpRequest.prototype, 'open', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['open']>) { // eslint-disable-line consistent-return
             let url = args[1];
 
             if (getProxyUrl(url, {}, xhrSandbox.proxyless) === url) {
@@ -262,7 +262,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
     private overrideSetRequestHeader () {
         const xhrSandbox = this;
 
-        overrideFunction(window.XMLHttpRequest.prototype, 'setRequestHeader', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['setRequestHeader']>) {
+        overrideFunction(this.window.XMLHttpRequest.prototype, 'setRequestHeader', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['setRequestHeader']>) {
             if (!xhrSandbox.proxyless && isAuthorizationHeader(args[0]))
                 args[1] = addAuthorizationPrefix(args[1]);
 
