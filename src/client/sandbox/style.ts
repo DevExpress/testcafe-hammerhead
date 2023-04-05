@@ -96,6 +96,9 @@ export default class StyleSandbox extends SandboxBase {
     attach (window: Window & typeof globalThis) {
         super.attach(window);
 
+        if (StyleSandbox.isProxyless)
+            return;
+
         this.overrideStyleInElement();
 
         if (this.FEATURES.css2PropertiesProtoContainsAllProps)
