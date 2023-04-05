@@ -211,19 +211,7 @@ export default class StyleSandbox extends SandboxBase {
         else
             this.overridePropsInCSSStyleDeclaration();
 
-        overrideDescriptor(window.CSSStyleDeclaration.prototype, 'cssText', {
-            getter: function () {
-                const cssText = nativeMethods.styleCssTextGetter.call(this);
-
-                return styleProcessor.cleanUp(cssText, parseProxyUrl);
-            },
-            setter: function (value) {
-                if (typeof value === 'string')
-                    value = styleProcessor.process(value, getProxyUrl);
-
-                nativeMethods.styleCssTextSetter.call(this, value);
-            },
-        });
+        this.overrideCssTextInCSSStyleDeclaration();
 
         overrideFunction(window.CSSStyleSheet.prototype, 'insertRule', function (this: CSSStyleSheet, rule, index) {
             const newRule = styleProcessor.process(rule, getProxyUrl);
@@ -301,5 +289,23 @@ export default class StyleSandbox extends SandboxBase {
             for (const prop of this.DASHED_URL_PROPS)
                 this._overrideStyleProp(this.window.CSSStyleDeclaration.prototype, prop);
         }
+    }
+
+    private overrideCssTextInCSSStyleDeclaration () {
+        const nativeMethods = this.nativeMethods;
+
+        overrideDescriptor(this.window.CSSStyleDeclaration.prototype, 'cssText', {
+            getter: function () {
+                const cssText = nativeMethods.styleCssTextGetter.call(this);
+
+                return styleProcessor.cleanUp(cssText, parseProxyUrl);
+            },
+            setter: function (value) {
+                if (typeof value === 'string')
+                    value = styleProcessor.process(value, getProxyUrl);
+
+                nativeMethods.styleCssTextSetter.call(this, value);
+            },
+        });
     }
 }
