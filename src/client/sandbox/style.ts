@@ -149,38 +149,6 @@ export default class StyleSandbox extends SandboxBase {
         return style;
     }
 
-    _getStyleProxy (style) {
-        let proxyObject = style[CSS_STYLE_PROXY_OBJECT];
-
-        if (!proxyObject) {
-            proxyObject = new this.nativeMethods.Proxy(style, {
-                get: (target, prop) => {
-                    if (this.URL_PROPS.indexOf(prop) !== -1 || this.DASHED_URL_PROPS.indexOf(prop) !== -1)
-                        return styleProcessor.cleanUp(target[prop], parseProxyUrl);
-
-                    if (prop === CSS_STYLE_PROXY_TARGET)
-                        return target;
-
-                    return target[prop];
-                },
-                set: (target, prop, value) => {
-                    if (this.URL_PROPS.indexOf(prop) !== -1 || this.DASHED_URL_PROPS.indexOf(prop) !== -1) {
-                        if (typeof value === 'string')
-                            value = styleProcessor.process(value, getProxyUrl);
-                    }
-
-                    target[prop] = value;
-
-                    return true;
-                },
-            });
-
-            this.nativeMethods.objectDefineProperty(style, CSS_STYLE_PROXY_OBJECT, { value: proxyObject });
-        }
-
-        return proxyObject;
-    }
-
     attach (window: Window & typeof globalThis) {
         super.attach(window);
 
@@ -215,7 +183,7 @@ export default class StyleSandbox extends SandboxBase {
                     const style = nativeMethods.htmlElementStyleGetter.call(this);
 
                     if (styleSandbox.FEATURES.propsCannotBeOverridden)
-                        return styleSandbox._getStyleProxy(style);
+                        return styleSandbox.getStyleProxy(style);
 
                     return styleSandbox._processStyleInstance(style);
                 },
@@ -225,6 +193,38 @@ export default class StyleSandbox extends SandboxBase {
                 nativeMethods.htmlElementStyleSetter.call(this, processedCss);
             } : null,
         });
+    }
+
+    private getStyleProxy (style) {
+        let proxyObject = style[CSS_STYLE_PROXY_OBJECT];
+
+        if (!proxyObject) {
+            proxyObject = new this.nativeMethods.Proxy(style, {
+                get: (target, prop) => {
+                    if (this.URL_PROPS.indexOf(prop) !== -1 || this.DASHED_URL_PROPS.indexOf(prop) !== -1)
+                        return styleProcessor.cleanUp(target[prop], parseProxyUrl);
+
+                    if (prop === CSS_STYLE_PROXY_TARGET)
+                        return target;
+
+                    return target[prop];
+                },
+                set: (target, prop, value) => {
+                    if (this.URL_PROPS.indexOf(prop) !== -1 || this.DASHED_URL_PROPS.indexOf(prop) !== -1) {
+                        if (typeof value === 'string')
+                            value = styleProcessor.process(value, getProxyUrl);
+                    }
+
+                    target[prop] = value;
+
+                    return true;
+                },
+            });
+
+            this.nativeMethods.objectDefineProperty(style, CSS_STYLE_PROXY_OBJECT, { value: proxyObject });
+        }
+
+        return proxyObject;
     }
 
     private overridePropsInCSS2Properties () {
