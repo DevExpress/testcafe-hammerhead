@@ -208,16 +208,8 @@ export default class StyleSandbox extends SandboxBase {
 
         if (this.FEATURES.css2PropertiesProtoContainsAllProps)
             this.overridePropsInCSS2Properties();
-        else {
-            if (this.FEATURES.cssStyleDeclarationProtoContainsUrlProps) {
-                for (const prop of this.URL_PROPS)
-                    this._overrideStyleProp(window.CSSStyleDeclaration.prototype, prop);
-            }
-            if (this.FEATURES.cssStyleDeclarationProtoContainsDashedProps) {
-                for (const prop of this.DASHED_URL_PROPS)
-                    this._overrideStyleProp(window.CSSStyleDeclaration.prototype, prop);
-            }
-        }
+        else
+            this.overridePropsInCSSStyleDeclaration();
 
         overrideDescriptor(window.CSSStyleDeclaration.prototype, 'cssText', {
             getter: function () {
@@ -298,5 +290,16 @@ export default class StyleSandbox extends SandboxBase {
         for (const prop of this.DASHED_URL_PROPS)
         // @ts-ignore
             this._overrideStyleProp(this.window.CSS2Properties.prototype, prop);
+    }
+
+    private overridePropsInCSSStyleDeclaration () {
+        if (this.FEATURES.cssStyleDeclarationProtoContainsUrlProps) {
+            for (const prop of this.URL_PROPS)
+                this._overrideStyleProp(this.window.CSSStyleDeclaration.prototype, prop);
+        }
+        if (this.FEATURES.cssStyleDeclarationProtoContainsDashedProps) {
+            for (const prop of this.DASHED_URL_PROPS)
+                this._overrideStyleProp(this.window.CSSStyleDeclaration.prototype, prop);
+        }
     }
 }
