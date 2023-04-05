@@ -203,19 +203,11 @@ export default class StyleSandbox extends SandboxBase {
         super.attach(window);
 
         const nativeMethods = this.nativeMethods;
-        const styleSandbox  = this;
 
         this.overrideStyleInElement();
 
-        if (this.FEATURES.css2PropertiesProtoContainsAllProps) {
-            for (const prop of this.URL_PROPS)
-                // @ts-ignore
-                this._overrideStyleProp(window.CSS2Properties.prototype, prop);
-
-            for (const prop of this.DASHED_URL_PROPS)
-                // @ts-ignore
-                this._overrideStyleProp(window.CSS2Properties.prototype, prop);
-        }
+        if (this.FEATURES.css2PropertiesProtoContainsAllProps)
+            this.overridePropsInCSS2Properties();
         else {
             if (this.FEATURES.cssStyleDeclarationProtoContainsUrlProps) {
                 for (const prop of this.URL_PROPS)
@@ -296,5 +288,15 @@ export default class StyleSandbox extends SandboxBase {
                 nativeMethods.htmlElementStyleSetter.call(this, processedCss);
             } : null,
         });
+    }
+
+    private overridePropsInCSS2Properties () {
+        for (const prop of this.URL_PROPS)
+        // @ts-ignore
+            this._overrideStyleProp(this.window.CSS2Properties.prototype, prop);
+
+        for (const prop of this.DASHED_URL_PROPS)
+        // @ts-ignore
+            this._overrideStyleProp(this.window.CSS2Properties.prototype, prop);
     }
 }
