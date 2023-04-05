@@ -213,12 +213,7 @@ export default class StyleSandbox extends SandboxBase {
 
         this.overrideCssTextInCSSStyleDeclaration();
         this.overrideInsertRuleInCSSStyleSheet();
-
-        overrideFunction(window.CSSStyleDeclaration.prototype, 'getPropertyValue', function (this: CSSStyleDeclaration, ...args) {
-            const value = nativeMethods.styleGetPropertyValue.apply(this, args);
-
-            return styleProcessor.cleanUp(value, parseProxyUrl);
-        });
+        this.overrideGetPropertyValueInCSSStyleDeclaration();
 
         overrideFunction(window.CSSStyleDeclaration.prototype, 'setProperty', function (this: CSSStyleDeclaration, ...args) {
             const value = args[1];
@@ -311,6 +306,16 @@ export default class StyleSandbox extends SandboxBase {
             const newRule = styleProcessor.process(rule, getProxyUrl);
 
             return nativeMethods.styleInsertRule.call(this, newRule, index);
+        });
+    }
+
+    private overrideGetPropertyValueInCSSStyleDeclaration () {
+        const nativeMethods = this.nativeMethods;
+
+        overrideFunction(this.window.CSSStyleDeclaration.prototype, 'getPropertyValue', function (this: CSSStyleDeclaration, ...args) {
+            const value = nativeMethods.styleGetPropertyValue.apply(this, args);
+
+            return styleProcessor.cleanUp(value, parseProxyUrl);
         });
     }
 }
