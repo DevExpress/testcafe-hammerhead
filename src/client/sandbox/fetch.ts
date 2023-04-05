@@ -135,20 +135,21 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         if (!nativeMethods.fetch)
             return;
 
-        if (!FetchSandbox.isNativeAutomation) {
-            this.overrideRequestInWindow();
-            this.overrideUrlInRequest();
-            this.overrideReferrerInRequest();
-            this.overrideUrlInResponse();
-            this.overrideEntriesInHeaders();
-            this.overrideSymbolIteratorInHeaders();
-            this.overrideValuesInHeaders();
-            this.overrideForEachInHeaders();
-            this.overrideGetInHeaders();
-            this.overrideSetInHeaders();
-        }
-
         this.overrideFetchInWindow();
+
+        if (!FetchSandbox.isNativeAutomation)
+            return;
+
+        this.overrideRequestInWindow();
+        this.overrideUrlInRequest();
+        this.overrideReferrerInRequest();
+        this.overrideUrlInResponse();
+        this.overrideEntriesInHeaders();
+        this.overrideSymbolIteratorInHeaders();
+        this.overrideValuesInHeaders();
+        this.overrideForEachInHeaders();
+        this.overrideGetInHeaders();
+        this.overrideSetInHeaders();
     }
 
     private overrideRequestInWindow () {
