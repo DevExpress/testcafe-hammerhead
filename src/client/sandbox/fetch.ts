@@ -74,7 +74,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         return init;
     }
 
-    private static _processArguments (args: Parameters<Window['fetch']>, nativeAutomation: boolean) {
+    private static _processArguments (args: Parameters<Window['fetch']>) {
         const [input, init]   = args;
         const inputIsString   = typeof input === 'string';
         const optsCredentials = getCredentialsMode(init && init.credentials);
@@ -83,7 +83,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             const url         = inputIsString ? input : String(input);
             const credentials = optsCredentials === Credentials.unknown ? DEFAULT_REQUEST_CREDENTIALS : optsCredentials;
 
-            args[0] = getAjaxProxyUrl(url, credentials, nativeAutomation);
+            args[0] = getAjaxProxyUrl(url, credentials, FetchSandbox.isNativeAutomation);
             args[1] = FetchSandbox._processInit(init || {});
         }
         else {
@@ -135,7 +135,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         if (!nativeMethods.fetch)
             return;
 
-        if (!this.nativeAutomation) {
+        if (!FetchSandbox.isNativeAutomation) {
             this.overrideRequestInWindow();
             this.overrideUrlInRequest();
             this.overrideReferrerInRequest();
@@ -152,10 +152,8 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
     }
 
     private overrideRequestInWindow () {
-        const sandbox = this;
-
         overrideConstructor(window, 'Request', function (...args: ConstructorParameters<typeof Request>) {
-            FetchSandbox._processArguments(args, sandbox.nativeAutomation);
+            FetchSandbox._processArguments(args);
 
             window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = nativeMethods.headersEntries;
 
@@ -170,37 +168,31 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
     }
 
     private overrideUrlInRequest () {
-        const sandbox = this;
-
         overrideDescriptor(window.Request.prototype, 'url', {
             getter: function (this: Request) {
                 const nativeRequestUrl = nativeMethods.requestUrlGetter.call(this);
 
-                return sandbox.nativeAutomation ? nativeRequestUrl : getDestinationUrl(nativeRequestUrl);
+                return getDestinationUrl(nativeRequestUrl);
             },
         });
     }
 
     private overrideReferrerInRequest () {
-        const sandbox = this;
-
         overrideDescriptor(window.Request.prototype, 'referrer', {
             getter: function (this: Request) {
                 const nativeReferrer = nativeMethods.requestReferrerGetter.call(this);
 
-                return sandbox.nativeAutomation ? nativeReferrer : getDestinationUrl(nativeReferrer);
+                return getDestinationUrl(nativeReferrer);
             },
         });
     }
 
     private overrideUrlInResponse () {
-        const sandbox = this;
-
         overrideDescriptor(window.Response.prototype, 'url', {
             getter: function () {
                 const nativeResponseUrl = nativeMethods.responseUrlGetter.call(this);
 
-                return sandbox.nativeAutomation ? nativeResponseUrl : getDestinationUrl(nativeResponseUrl);
+                return getDestinationUrl(nativeResponseUrl);
             },
         });
     }
@@ -254,14 +246,14 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         const sandbox = this;
 
         overrideFunction(window, 'fetch', function (this: Window, ...args: Parameters<Window['fetch']>) {
-            if (!sandbox.nativeAutomation && sandbox.gettingSettingInProgress())
+            if (!FetchSandbox.isNativeAutomation && sandbox.gettingSettingInProgress())
                 return sandbox.delayUntilGetSettings(() => this.fetch.apply(this, args));
 
             // NOTE: Safari processed the empty `fetch()` request without `Promise` rejection (GH-1613)
             if (!args.length && !browserUtils.isSafari)
                 return nativeMethods.fetch.apply(this, args);
 
-            if (sandbox.nativeAutomation) {
+            if (FetchSandbox.isNativeAutomation) {
                 const fetchPromise = nativeMethods.fetch.apply(this, args);
 
                 sandbox.emit(sandbox.FETCH_REQUEST_SENT_EVENT, fetchPromise);
@@ -270,7 +262,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             }
 
             try {
-                FetchSandbox._processArguments(args, sandbox.nativeAutomation);
+                FetchSandbox._processArguments(args);
             }
             catch (e) {
                 return nativeMethods.promiseReject.call(sandbox.window.Promise, e);
