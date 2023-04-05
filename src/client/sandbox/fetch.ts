@@ -138,19 +138,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         const sandbox = this;
 
         if (!this.nativeAutomation) {
-            overrideConstructor(window, 'Request', function (...args: ConstructorParameters<typeof Request>) {
-                FetchSandbox._processArguments(args, sandbox.nativeAutomation);
-
-                window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = nativeMethods.headersEntries;
-
-                const request = args.length === 1
-                    ? new nativeMethods.Request(args[0])
-                    : new nativeMethods.Request(args[0], args[1]);
-
-                window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = FetchSandbox._entriesWrapper;
-
-                return request;
-            });
+            this.overrideRequestInWindow();
 
             overrideDescriptor(window.Request.prototype, 'url', {
                 getter: function (this: Request) {
@@ -246,6 +234,24 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
 
                 return response;
             });
+        });
+    }
+
+    private overrideRequestInWindow () {
+        const sandbox = this;
+
+        overrideConstructor(window, 'Request', function (...args: ConstructorParameters<typeof Request>) {
+            FetchSandbox._processArguments(args, sandbox.nativeAutomation);
+
+            window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = nativeMethods.headersEntries;
+
+            const request = args.length === 1
+                ? new nativeMethods.Request(args[0])
+                : new nativeMethods.Request(args[0], args[1]);
+
+            window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = FetchSandbox._entriesWrapper;
+
+            return request;
         });
     }
 }
