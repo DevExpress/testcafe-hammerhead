@@ -146,12 +146,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             this.overrideSymbolIteratorInHeaders();
             this.overrideValuesInHeaders();
             this.overrideForEachInHeaders();
-
-            overrideFunction(window.Headers.prototype, 'get', function (this: Headers, ...args: Parameters<Headers['get']>) {
-                const value = nativeMethods.headersGet.apply(this, args);
-
-                return value && FetchSandbox._removeAuthHeadersPrefix(args[0], value);
-            });
+            this.overrideGetInHeaders();
 
             overrideFunction(window.Headers.prototype, 'set', function (this: Headers, ...args: Parameters<Headers['set']>) {
                 if (isAuthorizationHeader(args[0]))
@@ -279,6 +274,14 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             }
 
             return nativeMethods.headersForEach.apply(this, args);
+        });
+    }
+
+    private overrideGetInHeaders () {
+        overrideFunction(window.Headers.prototype, 'get', function (this: Headers, ...args: Parameters<Headers['get']>) {
+            const value = nativeMethods.headersGet.apply(this, args);
+
+            return value && FetchSandbox._removeAuthHeadersPrefix(args[0], value);
         });
     }
 }
