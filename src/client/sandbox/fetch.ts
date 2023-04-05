@@ -135,24 +135,25 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         if (!nativeMethods.fetch)
             return;
 
+        if (!FetchSandbox.isNativeAutomation) {
+            this.overrideRequestInWindow();
+            this.overrideUrlInRequest();
+            this.overrideReferrerInRequest();
+            this.overrideUrlInResponse();
+            this.overrideEntriesInHeaders();
+            this.overrideSymbolIteratorInHeaders();
+            this.overrideValuesInHeaders();
+            this.overrideForEachInHeaders();
+            this.overrideGetInHeaders();
+            this.overrideSetInHeaders();
+        }
+
         this.overrideFetchInWindow();
-
-        if (!FetchSandbox.isNativeAutomation)
-            return;
-
-        this.overrideRequestInWindow();
-        this.overrideUrlInRequest();
-        this.overrideReferrerInRequest();
-        this.overrideUrlInResponse();
-        this.overrideEntriesInHeaders();
-        this.overrideSymbolIteratorInHeaders();
-        this.overrideValuesInHeaders();
-        this.overrideForEachInHeaders();
-        this.overrideGetInHeaders();
-        this.overrideSetInHeaders();
     }
 
     private overrideRequestInWindow () {
+        const window = this.window;
+
         overrideConstructor(window, 'Request', function (...args: ConstructorParameters<typeof Request>) {
             FetchSandbox.processArguments(args);
 
@@ -169,7 +170,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
     }
 
     private overrideUrlInRequest () {
-        overrideDescriptor(window.Request.prototype, 'url', {
+        overrideDescriptor(this.window.Request.prototype, 'url', {
             getter: function (this: Request) {
                 const nativeRequestUrl = nativeMethods.requestUrlGetter.call(this);
 
@@ -179,7 +180,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
     }
 
     private overrideReferrerInRequest () {
-        overrideDescriptor(window.Request.prototype, 'referrer', {
+        overrideDescriptor(this.window.Request.prototype, 'referrer', {
             getter: function (this: Request) {
                 const nativeReferrer = nativeMethods.requestReferrerGetter.call(this);
 
@@ -189,7 +190,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
     }
 
     private overrideUrlInResponse () {
-        overrideDescriptor(window.Response.prototype, 'url', {
+        overrideDescriptor(this.window.Response.prototype, 'url', {
             getter: function () {
                 const nativeResponseUrl = nativeMethods.responseUrlGetter.call(this);
 
@@ -199,19 +200,19 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
     }
 
     private overrideEntriesInHeaders () {
-        overrideFunction(window.Headers.prototype, 'entries', FetchSandbox.entriesWrapper);
+        overrideFunction(this.window.Headers.prototype, 'entries', FetchSandbox.entriesWrapper);
     }
 
     private overrideSymbolIteratorInHeaders () {
-        overrideFunction(window.Headers.prototype, Symbol.iterator, FetchSandbox.entriesWrapper);
+        overrideFunction(this.window.Headers.prototype, Symbol.iterator, FetchSandbox.entriesWrapper);
     }
 
     private overrideValuesInHeaders () {
-        overrideFunction(window.Headers.prototype, 'values', FetchSandbox.valuesWrapper);
+        overrideFunction(this.window.Headers.prototype, 'values', FetchSandbox.valuesWrapper);
     }
 
     private overrideForEachInHeaders () {
-        overrideFunction(window.Headers.prototype, 'forEach', function (this: Headers, ...args: Parameters<Headers['forEach']>) {
+        overrideFunction(this.window.Headers.prototype, 'forEach', function (this: Headers, ...args: Parameters<Headers['forEach']>) {
             const callback = args[0];
 
             if (isFunction(callback)) {
@@ -227,7 +228,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
     }
 
     private overrideGetInHeaders () {
-        overrideFunction(window.Headers.prototype, 'get', function (this: Headers, ...args: Parameters<Headers['get']>) {
+        overrideFunction(this.window.Headers.prototype, 'get', function (this: Headers, ...args: Parameters<Headers['get']>) {
             const value = nativeMethods.headersGet.apply(this, args);
 
             return value && FetchSandbox.removeAuthHeadersPrefix(args[0], value);
@@ -235,7 +236,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
     }
 
     private overrideSetInHeaders () {
-        overrideFunction(window.Headers.prototype, 'set', function (this: Headers, ...args: Parameters<Headers['set']>) {
+        overrideFunction(this.window.Headers.prototype, 'set', function (this: Headers, ...args: Parameters<Headers['set']>) {
             if (isAuthorizationHeader(args[0]))
                 args[1] = addAuthorizationPrefix(args[1]);
 
@@ -246,7 +247,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
     private overrideFetchInWindow () {
         const sandbox = this;
 
-        overrideFunction(window, 'fetch', function (this: Window, ...args: Parameters<Window['fetch']>) {
+        overrideFunction(this.window, 'fetch', function (this: Window, ...args: Parameters<Window['fetch']>) {
             if (!FetchSandbox.isNativeAutomation && sandbox.gettingSettingInProgress())
                 return sandbox.delayUntilGetSettings(() => this.fetch.apply(this, args));
 
@@ -269,11 +270,11 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
                 return nativeMethods.promiseReject.call(sandbox.window.Promise, e);
             }
 
-            window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = nativeMethods.headersEntries;
+            sandbox.window.Headers.prototype.entries = sandbox.window.Headers.prototype[Symbol.iterator] = nativeMethods.headersEntries;
 
             const fetchPromise = nativeMethods.fetch.apply(this, args);
 
-            window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = FetchSandbox.entriesWrapper;
+            sandbox.window.Headers.prototype.entries = sandbox.window.Headers.prototype[Symbol.iterator] = FetchSandbox.entriesWrapper;
 
             sandbox.emit(sandbox.FETCH_REQUEST_SENT_EVENT, fetchPromise);
 
