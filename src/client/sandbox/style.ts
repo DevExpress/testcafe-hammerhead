@@ -24,11 +24,11 @@ export default class StyleSandbox extends SandboxBase {
 
         this.URL_PROPS        = ['background', 'backgroundImage', 'borderImage',
             'borderImageSource', 'listStyle', 'listStyleImage', 'cursor'];
-        this.DASHED_URL_PROPS = StyleSandbox._generateDashedProps(this.URL_PROPS);
+        this.DASHED_URL_PROPS = StyleSandbox.generateDashedProps(this.URL_PROPS);
         this.FEATURES         = this.detectBrowserFeatures();
     }
 
-    static _generateDashedProps (props) {
+    private static generateDashedProps (props) {
         const dashedProps = [];
 
         for (const prop of props) {
