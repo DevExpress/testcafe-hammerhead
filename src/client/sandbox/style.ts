@@ -25,7 +25,7 @@ export default class StyleSandbox extends SandboxBase {
         this.URL_PROPS        = ['background', 'backgroundImage', 'borderImage',
             'borderImageSource', 'listStyle', 'listStyleImage', 'cursor'];
         this.DASHED_URL_PROPS = StyleSandbox._generateDashedProps(this.URL_PROPS);
-        this.FEATURES         = this._detectBrowserFeatures();
+        this.FEATURES         = this.detectBrowserFeatures();
     }
 
     static _convertToDashed (prop) {
@@ -45,7 +45,7 @@ export default class StyleSandbox extends SandboxBase {
         return dashedProps;
     }
 
-    _detectBrowserFeatures () {
+    private detectBrowserFeatures () {
         const features: any = {};
 
         // NOTE: The CSS2Properties class is supported only in the Firefox
