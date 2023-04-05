@@ -147,13 +147,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             this.overrideValuesInHeaders();
             this.overrideForEachInHeaders();
             this.overrideGetInHeaders();
-
-            overrideFunction(window.Headers.prototype, 'set', function (this: Headers, ...args: Parameters<Headers['set']>) {
-                if (isAuthorizationHeader(args[0]))
-                    args[1] = addAuthorizationPrefix(args[1]);
-
-                return nativeMethods.headersSet.apply(this, args);
-            });
+            this.overrideSetInHeaders();
         }
 
         overrideFunction(window, 'fetch', function (this: Window, ...args: Parameters<Window['fetch']>) {
@@ -282,6 +276,15 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             const value = nativeMethods.headersGet.apply(this, args);
 
             return value && FetchSandbox._removeAuthHeadersPrefix(args[0], value);
+        });
+    }
+
+    private overrideSetInHeaders () {
+        overrideFunction(window.Headers.prototype, 'set', function (this: Headers, ...args: Parameters<Headers['set']>) {
+            if (isAuthorizationHeader(args[0]))
+                args[1] = addAuthorizationPrefix(args[1]);
+
+            return nativeMethods.headersSet.apply(this, args);
         });
     }
 }
