@@ -205,23 +205,7 @@ export default class StyleSandbox extends SandboxBase {
         const nativeMethods = this.nativeMethods;
         const styleSandbox  = this;
 
-        overrideDescriptor(window[nativeMethods.htmlElementStylePropOwnerName].prototype, 'style', {
-            getter: this.FEATURES.css2PropertiesProtoContainsAllProps || this.FEATURES.cssStyleDeclarationContainsAllProps
-                ? null
-                : function (this: Window) {
-                    const style = nativeMethods.htmlElementStyleGetter.call(this);
-
-                    if (styleSandbox.FEATURES.propsCannotBeOverridden)
-                        return styleSandbox._getStyleProxy(style);
-
-                    return styleSandbox._processStyleInstance(style);
-                },
-            setter: nativeMethods.htmlElementStyleSetter ? function (this: Window, value) {
-                const processedCss = styleProcessor.process(value, getProxyUrl);
-
-                nativeMethods.htmlElementStyleSetter.call(this, processedCss);
-            } : null,
-        });
+        this.overrideStyleInElement();
 
         if (this.FEATURES.css2PropertiesProtoContainsAllProps) {
             for (const prop of this.URL_PROPS)
@@ -289,5 +273,28 @@ export default class StyleSandbox extends SandboxBase {
         // The error above occurs if functions will be called on a proxy instance.
         if (this.FEATURES.propsCannotBeOverridden)
             this._overrideCSSStyleDeclarationFunctionsCtx(window);
+    }
+
+    private overrideStyleInElement () {
+        const nativeMethods = this.nativeMethods;
+        const styleSandbox  = this;
+
+        overrideDescriptor(this.window[nativeMethods.htmlElementStylePropOwnerName].prototype, 'style', {
+            getter: this.FEATURES.css2PropertiesProtoContainsAllProps || this.FEATURES.cssStyleDeclarationContainsAllProps
+                ? null
+                : function (this: Window) {
+                    const style = nativeMethods.htmlElementStyleGetter.call(this);
+
+                    if (styleSandbox.FEATURES.propsCannotBeOverridden)
+                        return styleSandbox._getStyleProxy(style);
+
+                    return styleSandbox._processStyleInstance(style);
+                },
+            setter: nativeMethods.htmlElementStyleSetter ? function (this: Window, value) {
+                const processedCss = styleProcessor.process(value, getProxyUrl);
+
+                nativeMethods.htmlElementStyleSetter.call(this, processedCss);
+            } : null,
+        });
     }
 }
