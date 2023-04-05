@@ -202,8 +202,6 @@ export default class StyleSandbox extends SandboxBase {
     attach (window: Window & typeof globalThis) {
         super.attach(window);
 
-        const nativeMethods = this.nativeMethods;
-
         this.overrideStyleInElement();
 
         if (this.FEATURES.css2PropertiesProtoContainsAllProps)
@@ -215,12 +213,7 @@ export default class StyleSandbox extends SandboxBase {
         this.overrideInsertRuleInCSSStyleSheet();
         this.overrideGetPropertyValueInCSSStyleDeclaration();
         this.overrideSetPropertyInCSSStyleDeclaration();
-
-        overrideFunction(window.CSSStyleDeclaration.prototype, 'removeProperty', function (this: CSSStyleDeclaration, ...args) {
-            const oldValue = nativeMethods.styleRemoveProperty.apply(this, args);
-
-            return styleProcessor.cleanUp(oldValue, parseProxyUrl);
-        });
+        this.overrideRemovePropertyInCSSStyleDeclaration();
 
         // NOTE: We need to override context of all functions from the CSSStyleDeclaration prototype if we use the Proxy feature.
         // Can only call CSSStyleDeclaration.<function name> on instances of CSSStyleDeclaration
@@ -321,6 +314,16 @@ export default class StyleSandbox extends SandboxBase {
                 args[1] = styleProcessor.process(value, getProxyUrl);
 
             return nativeMethods.styleSetProperty.apply(this, args);
+        });
+    }
+
+    private overrideRemovePropertyInCSSStyleDeclaration () {
+        const nativeMethods = this.nativeMethods;
+
+        overrideFunction(this.window.CSSStyleDeclaration.prototype, 'removeProperty', function (this: CSSStyleDeclaration, ...args) {
+            const oldValue = nativeMethods.styleRemoveProperty.apply(this, args);
+
+            return styleProcessor.cleanUp(oldValue, parseProxyUrl);
         });
     }
 }
