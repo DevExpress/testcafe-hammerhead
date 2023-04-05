@@ -93,25 +93,6 @@ export default class StyleSandbox extends SandboxBase {
         return features;
     }
 
-    _overrideStyleProp (proto, prop) {
-        const nativeMethods = this.nativeMethods;
-        const dashedProp    = StyleSandbox._convertToDashed(prop);
-
-        overrideDescriptor(proto, prop, {
-            getter: function () {
-                const value = nativeMethods.styleGetPropertyValue.call(this, dashedProp);
-
-                return styleProcessor.cleanUp(value, parseProxyUrl);
-            },
-            setter: function (value) {
-                if (typeof value === 'string')
-                    value = styleProcessor.process(value, getProxyUrl);
-
-                nativeMethods.styleSetProperty.call(this, dashedProp, value);
-            },
-        });
-    }
-
     attach (window: Window & typeof globalThis) {
         super.attach(window);
 
@@ -230,22 +211,41 @@ export default class StyleSandbox extends SandboxBase {
     private overridePropsInCSS2Properties () {
         for (const prop of this.URL_PROPS)
         // @ts-ignore
-            this._overrideStyleProp(this.window.CSS2Properties.prototype, prop);
+            this.overrideStyleProp(this.window.CSS2Properties.prototype, prop);
 
         for (const prop of this.DASHED_URL_PROPS)
         // @ts-ignore
-            this._overrideStyleProp(this.window.CSS2Properties.prototype, prop);
+            this.overrideStyleProp(this.window.CSS2Properties.prototype, prop);
     }
 
     private overridePropsInCSSStyleDeclaration () {
         if (this.FEATURES.cssStyleDeclarationProtoContainsUrlProps) {
             for (const prop of this.URL_PROPS)
-                this._overrideStyleProp(this.window.CSSStyleDeclaration.prototype, prop);
+                this.overrideStyleProp(this.window.CSSStyleDeclaration.prototype, prop);
         }
         if (this.FEATURES.cssStyleDeclarationProtoContainsDashedProps) {
             for (const prop of this.DASHED_URL_PROPS)
-                this._overrideStyleProp(this.window.CSSStyleDeclaration.prototype, prop);
+                this.overrideStyleProp(this.window.CSSStyleDeclaration.prototype, prop);
         }
+    }
+
+    private overrideStyleProp (proto, prop) {
+        const nativeMethods = this.nativeMethods;
+        const dashedProp    = StyleSandbox._convertToDashed(prop);
+
+        overrideDescriptor(proto, prop, {
+            getter: function () {
+                const value = nativeMethods.styleGetPropertyValue.call(this, dashedProp);
+
+                return styleProcessor.cleanUp(value, parseProxyUrl);
+            },
+            setter: function (value) {
+                if (typeof value === 'string')
+                    value = styleProcessor.process(value, getProxyUrl);
+
+                nativeMethods.styleSetProperty.call(this, dashedProp, value);
+            },
+        });
     }
 
     private overrideCssTextInCSSStyleDeclaration () {
