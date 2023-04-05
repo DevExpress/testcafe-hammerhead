@@ -181,24 +181,6 @@ export default class StyleSandbox extends SandboxBase {
         return proxyObject;
     }
 
-    _overrideCSSStyleDeclarationFunctionsCtx (window: Window & typeof globalThis) {
-        const styleDeclarationProto = window.CSSStyleDeclaration.prototype;
-
-        for (const prop in styleDeclarationProto) {
-            const nativeFn = this.nativeMethods.objectGetOwnPropertyDescriptor.call(window.Object, styleDeclarationProto, prop).value;// eslint-disable-line no-restricted-properties
-
-            if (this.nativeMethods.objectHasOwnProperty.call(styleDeclarationProto, prop) &&
-                isFunction(nativeFn)) {
-                (styleDeclarationProto[prop] as unknown as Function) = function (this: Window) {
-                    return nativeFn.apply(this[CSS_STYLE_PROXY_TARGET] || this, arguments);
-                };
-
-                // NOTE: we cannot use 'overrideFunction' here since the function may not exist
-                overrideStringRepresentation(styleDeclarationProto[prop] as unknown as Function, nativeFn);
-            }
-        }
-    }
-
     attach (window: Window & typeof globalThis) {
         super.attach(window);
 
@@ -219,7 +201,7 @@ export default class StyleSandbox extends SandboxBase {
         // Can only call CSSStyleDeclaration.<function name> on instances of CSSStyleDeclaration
         // The error above occurs if functions will be called on a proxy instance.
         if (this.FEATURES.propsCannotBeOverridden)
-            this._overrideCSSStyleDeclarationFunctionsCtx(window);
+            this.overrideCSSStyleDeclarationFunctionsCtx(window);
     }
 
     private overrideStyleInElement () {
@@ -325,5 +307,23 @@ export default class StyleSandbox extends SandboxBase {
 
             return styleProcessor.cleanUp(oldValue, parseProxyUrl);
         });
+    }
+
+    private overrideCSSStyleDeclarationFunctionsCtx (window: Window & typeof globalThis) {
+        const styleDeclarationProto = window.CSSStyleDeclaration.prototype;
+
+        for (const prop in styleDeclarationProto) {
+            const nativeFn = this.nativeMethods.objectGetOwnPropertyDescriptor.call(window.Object, styleDeclarationProto, prop).value;// eslint-disable-line no-restricted-properties
+
+            if (this.nativeMethods.objectHasOwnProperty.call(styleDeclarationProto, prop) &&
+                isFunction(nativeFn)) {
+                (styleDeclarationProto[prop] as unknown as Function) = function (this: Window) {
+                    return nativeFn.apply(this[CSS_STYLE_PROXY_TARGET] || this, arguments);
+                };
+
+                // NOTE: we cannot use 'overrideFunction' here since the function may not exist
+                overrideStringRepresentation(styleDeclarationProto[prop] as unknown as Function, nativeFn);
+            }
+        }
     }
 }
