@@ -143,8 +143,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             this.overrideReferrerInRequest();
             this.overrideUrlInResponse();
             this.overrideEntriesInHeaders();
-
-            overrideFunction(window.Headers.prototype, Symbol.iterator, FetchSandbox._entriesWrapper);
+            this.overrideSymbolIteratorInHeaders();
 
             overrideFunction(window.Headers.prototype, 'values', FetchSandbox._valuesWrapper);
 
@@ -271,5 +270,9 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
 
     private overrideEntriesInHeaders () {
         overrideFunction(window.Headers.prototype, 'entries', FetchSandbox._entriesWrapper);
+    }
+
+    private overrideSymbolIteratorInHeaders () {
+        overrideFunction(window.Headers.prototype, Symbol.iterator, FetchSandbox._entriesWrapper);
     }
 }
