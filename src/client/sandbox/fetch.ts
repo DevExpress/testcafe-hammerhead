@@ -144,8 +144,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             this.overrideUrlInResponse();
             this.overrideEntriesInHeaders();
             this.overrideSymbolIteratorInHeaders();
-
-            overrideFunction(window.Headers.prototype, 'values', FetchSandbox._valuesWrapper);
+            this.overrideValuesInHeaders();
 
             overrideFunction(window.Headers.prototype, 'forEach', function (this: Headers, ...args: Parameters<Headers['forEach']>) {
                 const callback = args[0];
@@ -274,5 +273,9 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
 
     private overrideSymbolIteratorInHeaders () {
         overrideFunction(window.Headers.prototype, Symbol.iterator, FetchSandbox._entriesWrapper);
+    }
+
+    private overrideValuesInHeaders () {
+        overrideFunction(window.Headers.prototype, 'values', FetchSandbox._valuesWrapper);
     }
 }
