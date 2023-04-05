@@ -4,6 +4,7 @@ var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var Promise       = hammerhead.Promise;
 var fetchSandbox  = hammerhead.sandbox.fetch;
+var settings      = hammerhead.settings;
 
 if (window.fetch) {
     test('fetch.toString (GH-1662)', function () {
@@ -643,14 +644,14 @@ if (window.fetch) {
         });
     });
 
-    module('nativeAutomation', function (hooks) {
-        var storedNativeAutomation = fetchSandbox.nativeAutomation;
+    module('proxyless', function (hooks) {
+        var storedSettings = settings.get();
 
         hooks.beforeEach(function () {
-            fetchSandbox.nativeAutomation = true;
+            settings.set({ ...storedSettings, proxyless: true });
         });
         hooks.afterEach(function () {
-            fetchSandbox.nativeAutomation = storedNativeAutomation;
+            settings.set(storedSettings);
         });
 
         test('Request - should not redirect request to proxy', function () {
