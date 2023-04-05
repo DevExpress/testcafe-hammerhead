@@ -28,21 +28,21 @@ export default class StyleSandbox extends SandboxBase {
         this.FEATURES         = this.detectBrowserFeatures();
     }
 
-    static _convertToDashed (prop) {
-        return prop.replace(/[A-Z]/g, '-$&').toLowerCase();
-    }
-
     static _generateDashedProps (props) {
         const dashedProps = [];
 
         for (const prop of props) {
-            const dashedProp = StyleSandbox._convertToDashed(prop);
+            const dashedProp = StyleSandbox.convertToDashed(prop);
 
             if (prop !== dashedProp)
                 dashedProps.push(dashedProp);
         }
 
         return dashedProps;
+    }
+
+    private static convertToDashed (prop) {
+        return prop.replace(/[A-Z]/g, '-$&').toLowerCase();
     }
 
     private detectBrowserFeatures () {
@@ -159,7 +159,7 @@ export default class StyleSandbox extends SandboxBase {
 
     private overrideStyleInstanceProp (style, prop) {
         const nativeMethods = this.nativeMethods;
-        const dashedProp    = StyleSandbox._convertToDashed(prop);
+        const dashedProp    = StyleSandbox.convertToDashed(prop);
 
         overrideDescriptor(style, prop, {
             getter: function () {
@@ -231,7 +231,7 @@ export default class StyleSandbox extends SandboxBase {
 
     private overrideStyleProp (proto, prop) {
         const nativeMethods = this.nativeMethods;
-        const dashedProp    = StyleSandbox._convertToDashed(prop);
+        const dashedProp    = StyleSandbox.convertToDashed(prop);
 
         overrideDescriptor(proto, prop, {
             getter: function () {
