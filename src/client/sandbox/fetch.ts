@@ -141,14 +141,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             this.overrideRequestInWindow();
             this.overrideUrlInRequest();
             this.overrideReferrerInRequest();
-
-            overrideDescriptor(window.Response.prototype, 'url', {
-                getter: function () {
-                    const nativeResponseUrl = nativeMethods.responseUrlGetter.call(this);
-
-                    return sandbox.nativeAutomation ? nativeResponseUrl : getDestinationUrl(nativeResponseUrl);
-                },
-            });
+            this.overrideUrlInResponse();
 
             overrideFunction(window.Headers.prototype, 'entries', FetchSandbox._entriesWrapper);
 
@@ -261,6 +254,18 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
                 const nativeReferrer = nativeMethods.requestReferrerGetter.call(this);
 
                 return sandbox.nativeAutomation ? nativeReferrer : getDestinationUrl(nativeReferrer);
+            },
+        });
+    }
+
+    private overrideUrlInResponse () {
+        const sandbox = this;
+
+        overrideDescriptor(window.Response.prototype, 'url', {
+            getter: function () {
+                const nativeResponseUrl = nativeMethods.responseUrlGetter.call(this);
+
+                return sandbox.nativeAutomation ? nativeResponseUrl : getDestinationUrl(nativeResponseUrl);
             },
         });
     }
