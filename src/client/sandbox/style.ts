@@ -131,24 +131,6 @@ export default class StyleSandbox extends SandboxBase {
         });
     }
 
-    _processStyleInstance (style) {
-        const isProcessed = style[CSS_STYLE_IS_PROCESSED];
-
-        if (!isProcessed) {
-            for (const prop of this.DASHED_URL_PROPS)
-                this._overrideStyleInstanceProp(style, prop);
-
-            if (!this.FEATURES.cssStyleDeclarationProtoContainsUrlProps) {
-                for (const prop of this.URL_PROPS)
-                    this._overrideStyleInstanceProp(style, prop);
-            }
-
-            this.nativeMethods.objectDefineProperty(style, CSS_STYLE_IS_PROCESSED, { value: true });
-        }
-
-        return style;
-    }
-
     attach (window: Window & typeof globalThis) {
         super.attach(window);
 
@@ -185,7 +167,7 @@ export default class StyleSandbox extends SandboxBase {
                     if (styleSandbox.FEATURES.propsCannotBeOverridden)
                         return styleSandbox.getStyleProxy(style);
 
-                    return styleSandbox._processStyleInstance(style);
+                    return styleSandbox.processStyleInstance(style);
                 },
             setter: nativeMethods.htmlElementStyleSetter ? function (this: Window, value) {
                 const processedCss = styleProcessor.process(value, getProxyUrl);
@@ -193,6 +175,24 @@ export default class StyleSandbox extends SandboxBase {
                 nativeMethods.htmlElementStyleSetter.call(this, processedCss);
             } : null,
         });
+    }
+
+    private processStyleInstance (style) {
+        const isProcessed = style[CSS_STYLE_IS_PROCESSED];
+
+        if (!isProcessed) {
+            for (const prop of this.DASHED_URL_PROPS)
+                this._overrideStyleInstanceProp(style, prop);
+
+            if (!this.FEATURES.cssStyleDeclarationProtoContainsUrlProps) {
+                for (const prop of this.URL_PROPS)
+                    this._overrideStyleInstanceProp(style, prop);
+            }
+
+            this.nativeMethods.objectDefineProperty(style, CSS_STYLE_IS_PROCESSED, { value: true });
+        }
+
+        return style;
     }
 
     private getStyleProxy (style) {
