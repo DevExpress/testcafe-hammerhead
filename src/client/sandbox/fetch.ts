@@ -135,8 +135,6 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         if (!nativeMethods.fetch)
             return;
 
-        const sandbox = this;
-
         if (!this.nativeAutomation) {
             this.overrideRequestInWindow();
             this.overrideUrlInRequest();
@@ -150,43 +148,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             this.overrideSetInHeaders();
         }
 
-        overrideFunction(window, 'fetch', function (this: Window, ...args: Parameters<Window['fetch']>) {
-            if (!sandbox.nativeAutomation && sandbox.gettingSettingInProgress())
-                return sandbox.delayUntilGetSettings(() => this.fetch.apply(this, args));
-
-            // NOTE: Safari processed the empty `fetch()` request without `Promise` rejection (GH-1613)
-            if (!args.length && !browserUtils.isSafari)
-                return nativeMethods.fetch.apply(this, args);
-
-            if (sandbox.nativeAutomation) {
-                const fetchPromise = nativeMethods.fetch.apply(this, args);
-
-                sandbox.emit(sandbox.FETCH_REQUEST_SENT_EVENT, fetchPromise);
-
-                return fetchPromise;
-            }
-
-            try {
-                FetchSandbox._processArguments(args, sandbox.nativeAutomation);
-            }
-            catch (e) {
-                return nativeMethods.promiseReject.call(sandbox.window.Promise, e);
-            }
-
-            window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = nativeMethods.headersEntries;
-
-            const fetchPromise = nativeMethods.fetch.apply(this, args);
-
-            window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = FetchSandbox._entriesWrapper;
-
-            sandbox.emit(sandbox.FETCH_REQUEST_SENT_EVENT, fetchPromise);
-
-            return nativeMethods.promiseThen.call(fetchPromise, response => {
-                sandbox.cookieSandbox.syncCookie();
-
-                return response;
-            });
-        });
+        this.overrideFetchInWindow();
     }
 
     private overrideRequestInWindow () {
@@ -285,6 +247,48 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
                 args[1] = addAuthorizationPrefix(args[1]);
 
             return nativeMethods.headersSet.apply(this, args);
+        });
+    }
+
+    private overrideFetchInWindow () {
+        const sandbox = this;
+
+        overrideFunction(window, 'fetch', function (this: Window, ...args: Parameters<Window['fetch']>) {
+            if (!sandbox.nativeAutomation && sandbox.gettingSettingInProgress())
+                return sandbox.delayUntilGetSettings(() => this.fetch.apply(this, args));
+
+            // NOTE: Safari processed the empty `fetch()` request without `Promise` rejection (GH-1613)
+            if (!args.length && !browserUtils.isSafari)
+                return nativeMethods.fetch.apply(this, args);
+
+            if (sandbox.nativeAutomation) {
+                const fetchPromise = nativeMethods.fetch.apply(this, args);
+
+                sandbox.emit(sandbox.FETCH_REQUEST_SENT_EVENT, fetchPromise);
+
+                return fetchPromise;
+            }
+
+            try {
+                FetchSandbox._processArguments(args, sandbox.nativeAutomation);
+            }
+            catch (e) {
+                return nativeMethods.promiseReject.call(sandbox.window.Promise, e);
+            }
+
+            window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = nativeMethods.headersEntries;
+
+            const fetchPromise = nativeMethods.fetch.apply(this, args);
+
+            window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = FetchSandbox._entriesWrapper;
+
+            sandbox.emit(sandbox.FETCH_REQUEST_SENT_EVENT, fetchPromise);
+
+            return nativeMethods.promiseThen.call(fetchPromise, response => {
+                sandbox.cookieSandbox.syncCookie();
+
+                return response;
+            });
         });
     }
 }
