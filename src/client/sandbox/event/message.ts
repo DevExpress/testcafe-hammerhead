@@ -182,20 +182,8 @@ export default class MessageSandbox extends SandboxBase {
             configurable: true,
         });
 
-        if (!MessageSandbox.isNativeAutomation) {
-            // @ts-ignore
-            overrideDescriptor(window.MessageEvent.prototype, 'data', {
-                getter: function (this: MessageEvent) {
-                    const target = nativeMethods.eventTargetGetter.call(this);
-                    const data   = nativeMethods.messageEventDataGetter.call(this);
-
-                    if (data && data.type !== MessageType.Service && isWindow(target))
-                        return MessageSandbox._getOriginMessageData(data);
-
-                    return data;
-                },
-            });
-        }
+        if (!MessageSandbox.isNativeAutomation)
+            this.overrideDataInMessageEvent();
 
         // @ts-ignore
         const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;
@@ -208,6 +196,20 @@ export default class MessageSandbox extends SandboxBase {
                 nativeMethods.winOnMessageSetter.call(window, this.storedOnMessageHandler
                     ? e => this._onWindowMessage(e, handler)
                     : null);
+            },
+        });
+    }
+
+    private overrideDataInMessageEvent () {
+        overrideDescriptor(this.window.MessageEvent.prototype, 'data', {
+            getter: function (this: MessageEvent) {
+                const target = nativeMethods.eventTargetGetter.call(this);
+                const data   = nativeMethods.messageEventDataGetter.call(this);
+
+                if (data && data.type !== MessageType.Service && isWindow(target))
+                    return MessageSandbox._getOriginMessageData(data);
+
+                return data;
             },
         });
     }
