@@ -145,20 +145,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             this.overrideEntriesInHeaders();
             this.overrideSymbolIteratorInHeaders();
             this.overrideValuesInHeaders();
-
-            overrideFunction(window.Headers.prototype, 'forEach', function (this: Headers, ...args: Parameters<Headers['forEach']>) {
-                const callback = args[0];
-
-                if (isFunction(callback)) {
-                    args[0] = function (value, name, headers) {
-                        value = FetchSandbox._removeAuthHeadersPrefix(name, value);
-
-                        callback.call(this, value, name, headers);
-                    };
-                }
-
-                return nativeMethods.headersForEach.apply(this, args);
-            });
+            this.overrideForEachInHeaders();
 
             overrideFunction(window.Headers.prototype, 'get', function (this: Headers, ...args: Parameters<Headers['get']>) {
                 const value = nativeMethods.headersGet.apply(this, args);
@@ -277,5 +264,21 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
 
     private overrideValuesInHeaders () {
         overrideFunction(window.Headers.prototype, 'values', FetchSandbox._valuesWrapper);
+    }
+
+    private overrideForEachInHeaders () {
+        overrideFunction(window.Headers.prototype, 'forEach', function (this: Headers, ...args: Parameters<Headers['forEach']>) {
+            const callback = args[0];
+
+            if (isFunction(callback)) {
+                args[0] = function (value, name, headers) {
+                    value = FetchSandbox._removeAuthHeadersPrefix(name, value);
+
+                    callback.call(this, value, name, headers);
+                };
+            }
+
+            return nativeMethods.headersForEach.apply(this, args);
+        });
     }
 }
