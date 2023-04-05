@@ -112,25 +112,6 @@ export default class StyleSandbox extends SandboxBase {
         });
     }
 
-    _overrideStyleInstanceProp (style, prop) {
-        const nativeMethods = this.nativeMethods;
-        const dashedProp    = StyleSandbox._convertToDashed(prop);
-
-        overrideDescriptor(style, prop, {
-            getter: function () {
-                const value = nativeMethods.styleGetPropertyValue.call(this, dashedProp);
-
-                return styleProcessor.cleanUp(value, parseProxyUrl);
-            },
-            setter: function (value) {
-                if (typeof value === 'string')
-                    value = styleProcessor.process(value, getProxyUrl);
-
-                nativeMethods.styleSetProperty.call(this, dashedProp, value);
-            },
-        });
-    }
-
     attach (window: Window & typeof globalThis) {
         super.attach(window);
 
@@ -182,17 +163,36 @@ export default class StyleSandbox extends SandboxBase {
 
         if (!isProcessed) {
             for (const prop of this.DASHED_URL_PROPS)
-                this._overrideStyleInstanceProp(style, prop);
+                this.overrideStyleInstanceProp(style, prop);
 
             if (!this.FEATURES.cssStyleDeclarationProtoContainsUrlProps) {
                 for (const prop of this.URL_PROPS)
-                    this._overrideStyleInstanceProp(style, prop);
+                    this.overrideStyleInstanceProp(style, prop);
             }
 
             this.nativeMethods.objectDefineProperty(style, CSS_STYLE_IS_PROCESSED, { value: true });
         }
 
         return style;
+    }
+
+    private overrideStyleInstanceProp (style, prop) {
+        const nativeMethods = this.nativeMethods;
+        const dashedProp    = StyleSandbox._convertToDashed(prop);
+
+        overrideDescriptor(style, prop, {
+            getter: function () {
+                const value = nativeMethods.styleGetPropertyValue.call(this, dashedProp);
+
+                return styleProcessor.cleanUp(value, parseProxyUrl);
+            },
+            setter: function (value) {
+                if (typeof value === 'string')
+                    value = styleProcessor.process(value, getProxyUrl);
+
+                nativeMethods.styleSetProperty.call(this, dashedProp, value);
+            },
+        });
     }
 
     private getStyleProxy (style) {
