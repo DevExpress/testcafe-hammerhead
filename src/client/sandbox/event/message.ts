@@ -185,19 +185,7 @@ export default class MessageSandbox extends SandboxBase {
         if (!MessageSandbox.isNativeAutomation)
             this.overrideDataInMessageEvent();
 
-        // @ts-ignore
-        const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;
-
-        overrideDescriptor(eventPropsOwner, 'onmessage', {
-            getter: () => this.storedOnMessageHandler,
-            setter: handler => {
-                this.storedOnMessageHandler = isFunction(handler) ? handler : null;
-
-                nativeMethods.winOnMessageSetter.call(window, this.storedOnMessageHandler
-                    ? e => this._onWindowMessage(e, handler)
-                    : null);
-            },
-        });
+        this.overrideOnmessageInWindow();
     }
 
     private overrideDataInMessageEvent () {
@@ -210,6 +198,24 @@ export default class MessageSandbox extends SandboxBase {
                     return MessageSandbox._getOriginMessageData(data);
 
                 return data;
+            },
+        });
+    }
+
+    private overrideOnmessageInWindow () {
+        const window = this.window;
+
+        // @ts-ignore
+        const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;
+
+        overrideDescriptor(eventPropsOwner, 'onmessage', {
+            getter: () => this.storedOnMessageHandler,
+            setter: handler => {
+                this.storedOnMessageHandler = isFunction(handler) ? handler : null;
+
+                nativeMethods.winOnMessageSetter.call(window, this.storedOnMessageHandler
+                    ? e => this._onWindowMessage(e, handler)
+                    : null);
             },
         });
     }
