@@ -42,7 +42,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         super(waitHammerheadSettings);
     }
 
-    private static _removeAuthHeadersPrefix (name: string, value: string) {
+    private static removeAuthHeadersPrefix (name: string, value: string) {
         if (isAuthorizationHeader(name))
             return removeAuthorizationPrefix(value);
         else if (isAuthenticateHeader(name))
@@ -51,7 +51,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         return value;
     }
 
-    private static _processInit (init?: RequestInit) {
+    private static processInit (init?: RequestInit) {
         let headers = init.headers;
 
         if (!headers)
@@ -74,7 +74,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         return init;
     }
 
-    private static _processArguments (args: Parameters<Window['fetch']>) {
+    private static processArguments (args: Parameters<Window['fetch']>) {
         const [input, init]   = args;
         const inputIsString   = typeof input === 'string';
         const optsCredentials = getCredentialsMode(init && init.credentials);
@@ -84,23 +84,23 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             const credentials = optsCredentials === Credentials.unknown ? DEFAULT_REQUEST_CREDENTIALS : optsCredentials;
 
             args[0] = getAjaxProxyUrl(url, credentials, FetchSandbox.isNativeAutomation);
-            args[1] = FetchSandbox._processInit(init || {});
+            args[1] = FetchSandbox.processInit(init || {});
         }
         else {
             if (optsCredentials !== Credentials.unknown)
                 args[0] = getAjaxProxyUrl(input.url, optsCredentials);
 
             if (init && init.headers && input.destination !== 'worker')
-                args[1] = FetchSandbox._processInit(init);
+                args[1] = FetchSandbox.processInit(init);
         }
     }
 
-    private static _processHeaderEntry (entry: IteratorResult<[string, string]>, isOnlyValue = false) {
+    private static processHeaderEntry (entry: IteratorResult<[string, string]>, isOnlyValue = false) {
         if (entry.done)
             return entry;
 
         /* eslint-disable no-restricted-properties */
-        const processedValue = FetchSandbox._removeAuthHeadersPrefix(entry.value[0], entry.value[1]);
+        const processedValue = FetchSandbox.removeAuthHeadersPrefix(entry.value[0], entry.value[1]);
 
         if (isOnlyValue)
             entry.value = processedValue;
@@ -111,20 +111,20 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         return entry;
     }
 
-    private static _entriesWrapper (...args: Parameters<Headers['entries']>) {
+    private static entriesWrapper (...args: Parameters<Headers['entries']>) {
         const iterator   = nativeMethods.headersEntries.apply(this, args);
         const nativeNext = iterator.next;
 
-        iterator.next = () => FetchSandbox._processHeaderEntry(nativeNext.call(iterator));
+        iterator.next = () => FetchSandbox.processHeaderEntry(nativeNext.call(iterator));
 
         return iterator;
     }
 
-    private static _valuesWrapper (...args: Parameters<Headers['values']>) {
+    private static valuesWrapper (...args: Parameters<Headers['values']>) {
         const iterator   = nativeMethods.headersEntries.apply(this, args);
         const nativeNext = iterator.next;
 
-        iterator.next = () => FetchSandbox._processHeaderEntry(nativeNext.call(iterator), true);
+        iterator.next = () => FetchSandbox.processHeaderEntry(nativeNext.call(iterator), true);
 
         return iterator;
     }
@@ -154,7 +154,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
 
     private overrideRequestInWindow () {
         overrideConstructor(window, 'Request', function (...args: ConstructorParameters<typeof Request>) {
-            FetchSandbox._processArguments(args);
+            FetchSandbox.processArguments(args);
 
             window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = nativeMethods.headersEntries;
 
@@ -162,7 +162,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
                 ? new nativeMethods.Request(args[0])
                 : new nativeMethods.Request(args[0], args[1]);
 
-            window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = FetchSandbox._entriesWrapper;
+            window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = FetchSandbox.entriesWrapper;
 
             return request;
         });
@@ -199,15 +199,15 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
     }
 
     private overrideEntriesInHeaders () {
-        overrideFunction(window.Headers.prototype, 'entries', FetchSandbox._entriesWrapper);
+        overrideFunction(window.Headers.prototype, 'entries', FetchSandbox.entriesWrapper);
     }
 
     private overrideSymbolIteratorInHeaders () {
-        overrideFunction(window.Headers.prototype, Symbol.iterator, FetchSandbox._entriesWrapper);
+        overrideFunction(window.Headers.prototype, Symbol.iterator, FetchSandbox.entriesWrapper);
     }
 
     private overrideValuesInHeaders () {
-        overrideFunction(window.Headers.prototype, 'values', FetchSandbox._valuesWrapper);
+        overrideFunction(window.Headers.prototype, 'values', FetchSandbox.valuesWrapper);
     }
 
     private overrideForEachInHeaders () {
@@ -216,7 +216,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
 
             if (isFunction(callback)) {
                 args[0] = function (value, name, headers) {
-                    value = FetchSandbox._removeAuthHeadersPrefix(name, value);
+                    value = FetchSandbox.removeAuthHeadersPrefix(name, value);
 
                     callback.call(this, value, name, headers);
                 };
@@ -230,7 +230,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         overrideFunction(window.Headers.prototype, 'get', function (this: Headers, ...args: Parameters<Headers['get']>) {
             const value = nativeMethods.headersGet.apply(this, args);
 
-            return value && FetchSandbox._removeAuthHeadersPrefix(args[0], value);
+            return value && FetchSandbox.removeAuthHeadersPrefix(args[0], value);
         });
     }
 
@@ -263,7 +263,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             }
 
             try {
-                FetchSandbox._processArguments(args);
+                FetchSandbox.processArguments(args);
             }
             catch (e) {
                 return nativeMethods.promiseReject.call(sandbox.window.Promise, e);
@@ -273,7 +273,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
 
             const fetchPromise = nativeMethods.fetch.apply(this, args);
 
-            window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = FetchSandbox._entriesWrapper;
+            window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = FetchSandbox.entriesWrapper;
 
             sandbox.emit(sandbox.FETCH_REQUEST_SENT_EVENT, fetchPromise);
 
