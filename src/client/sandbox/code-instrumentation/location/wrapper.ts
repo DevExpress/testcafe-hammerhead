@@ -139,7 +139,7 @@ export default class LocationWrapper extends LocationInheritor {
         locationProps.hash = this.createOverriddenHashDescriptor();
 
         if (window.location.ancestorOrigins)
-            this.createOverriddenAncestorOrigins();
+            this.createOverriddenAncestorOriginsDescriptor();
 
         const createLocationPropertyDesc = (property, nativePropSetter) => {
             locationProps[property] = createOverriddenDescriptor(locationPropsOwner, property, {
@@ -351,7 +351,7 @@ export default class LocationWrapper extends LocationInheritor {
         });
     }
 
-    private createOverriddenAncestorOrigins () {
+    private createOverriddenAncestorOriginsDescriptor () {
         const wrapper     = this;
         const callbacks   = nativeMethods.objectCreate(null);
         const idGenerator = new IntegerIdGenerator();
