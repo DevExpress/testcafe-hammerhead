@@ -133,10 +133,7 @@ export default class LocationWrapper extends LocationInheritor {
         locationProps.search = this.createOverriddenSearchDescriptor();
 
         // eslint-disable-next-line no-restricted-properties
-        locationProps.origin = createOverriddenDescriptor(locationPropsOwner, 'origin', {
-            getter: () => getDomain(getParsedDestLocation()),
-            setter: origin => origin,
-        });
+        locationProps.origin = this.createOverriddenOriginDescriptor();
 
         locationProps.hash = createOverriddenDescriptor(locationPropsOwner, 'hash', {
             getter: () => window.location.hash,
@@ -368,6 +365,13 @@ export default class LocationWrapper extends LocationInheritor {
 
                 return search;
             },
+        });
+    }
+
+    private createOverriddenOriginDescriptor () {
+        return createOverriddenDescriptor(this.locationPropsOwner, 'origin', {
+            getter: () => getDomain(getParsedDestLocation()),
+            setter: origin => origin,
         });
     }
 }
