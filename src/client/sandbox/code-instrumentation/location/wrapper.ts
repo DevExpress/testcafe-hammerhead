@@ -28,6 +28,8 @@ import { createOverriddenDescriptor, overrideStringRepresentation } from '../../
 import MessageSandbox from '../../event/message';
 import { isIE11 } from '../../../utils/browser';
 import { isFunction } from '../../../utils/types';
+import { ParsedProxyUrl, ResourceType } from '../../../../typings/url';
+
 
 const GET_ORIGIN_CMD      = 'hammerhead|command|get-origin';
 const ORIGIN_RECEIVED_CMD = 'hammerhead|command|origin-received';
@@ -46,6 +48,12 @@ class LocationInheritor {}
 LocationInheritor.prototype = Location.prototype;
 
 export default class LocationWrapper extends LocationInheritor {
+    private window: Window;
+    private onChanged: Function;
+    private locationResourceType: string;
+    private locationPropsOwner: Location;
+    private resourceType: string | null;
+
     constructor (window: Window, messageSandbox: MessageSandbox, onChanged: Function) {
         super();
 
@@ -64,6 +72,13 @@ export default class LocationWrapper extends LocationInheritor {
             isIframe: parsedResourceType.isIframe,
             isForm:   parsedResourceType.isForm,
         });
+
+        this.window = window;
+        this.onChanged = onChanged;
+        this.locationResourceType = locationResourceType;
+        this.locationPropsOwner = locationPropsOwner;
+        this.resourceType = resourceType;
+
         const getHref        = () => {
             // eslint-disable-next-line no-restricted-properties
             if (domUtils.isIframeWindow(window) && window.location.href === SPECIAL_BLANK_PAGE)
@@ -112,19 +127,7 @@ export default class LocationWrapper extends LocationInheritor {
         };
 
         // eslint-disable-next-line no-restricted-properties
-        locationProps.href = createOverriddenDescriptor(locationPropsOwner, 'href', {
-            getter: getHref,
-            setter: (href: string) => {
-                const proxiedHref = getProxiedHref(href);
-
-                // eslint-disable-next-line no-restricted-properties
-                window.location.href = proxiedHref;
-
-                onChanged(proxiedHref);
-
-                return href;
-            },
-        });
+        locationProps.href = this.createOverriddenHrefDescriptor();
 
         // eslint-disable-next-line no-restricted-properties
         locationProps.search = createOverriddenDescriptor(locationPropsOwner, 'search', {
@@ -290,6 +293,76 @@ export default class LocationWrapper extends LocationInheritor {
             // NOTE: We hide errors with a new browser API and we should know about it.
             nativeMethods.consoleMeths.log(`testcafe-hammerhead: unwrapped Location.prototype.${protoKey} descriptor!`);
         }
+    }
+
+    private createOverriddenHrefDescriptor () {
+        const wrapper = this;
+
+        return createOverriddenDescriptor(this.locationPropsOwner, 'href', {
+            getter: wrapper.createHrefGetter(wrapper.window),
+            setter: (href: string) => {
+                const proxiedHref = wrapper.getProxiedHref(href, wrapper);
+
+                // eslint-disable-next-line no-restricted-properties
+                wrapper.window.location.href = proxiedHref;
+
+                wrapper.onChanged(proxiedHref);
+
+                return href;
+            },
+        });
+    }
+
+    private createHrefGetter (window: Window) {
+        return function () {
+            // eslint-disable-next-line no-restricted-properties
+            if (domUtils.isIframeWindow(window) && window.location.href === SPECIAL_BLANK_PAGE)
+                return SPECIAL_BLANK_PAGE;
+
+            const locationUrl    = getDestLocation();
+            const resolveElement = urlResolver.getResolverElement(window.document);
+
+            nativeMethods.anchorHrefSetter.call(resolveElement, locationUrl);
+
+            const href = nativeMethods.anchorHrefGetter.call(resolveElement);
+
+            return ensureTrailingSlash(href, locationUrl);
+        };
+    }
+
+    private getProxiedHref (href: any, locationWrapper: this) {
+        const window = locationWrapper.window;
+
+        if (typeof href !== 'string')
+            href = String(href);
+
+        href = prepareUrl(href);
+
+        if (DomProcessor.isJsProtocol(href))
+            return DomProcessor.processJsAttrValue(href, { isJsProtocol: true, isEventAttr: false });
+
+        const locationUrl = getLocationUrl(window);
+
+        let proxyPort = null;
+
+        if (window !== window.parent) {
+            const parentLocationUrl       = getLocationUrl(window.parent) as string;
+            const parsedParentLocationUrl = parseProxyUrl(parentLocationUrl);
+
+            if (parsedParentLocationUrl && parsedParentLocationUrl.proxy) {
+            // eslint-disable-next-line no-restricted-properties
+                const parentProxyPort = parsedParentLocationUrl.proxy.port;
+
+                proxyPort = sameOriginCheck(parentLocationUrl, href)
+                    ? parentProxyPort
+                    : getCrossDomainProxyPort(parentProxyPort);
+            }
+        }
+
+        const changedOnlyHash     = locationUrl && isChangedOnlyHash(locationUrl, href);
+        const currentResourceType = changedOnlyHash ? locationWrapper.locationResourceType : locationWrapper.resourceType;
+
+        return getProxyUrl(href, { resourceType: currentResourceType, proxyPort });
     }
 }
 
