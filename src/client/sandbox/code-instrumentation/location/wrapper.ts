@@ -53,6 +53,7 @@ export default class LocationWrapper extends LocationInheritor {
     private onChanged: Function;
     private locationResourceType: string;
     private locationPropsOwner: Location;
+    private locationProps: any;
     private resourceType: string | null;
 
     constructor (window: Window, messageSandbox: MessageSandbox, onChanged: Function) {
@@ -79,6 +80,7 @@ export default class LocationWrapper extends LocationInheritor {
         this.onChanged = onChanged;
         this.locationResourceType = locationResourceType;
         this.locationPropsOwner = locationPropsOwner;
+        this.locationProps = locationProps;
         this.resourceType = resourceType;
 
         // eslint-disable-next-line no-restricted-properties
@@ -123,35 +125,7 @@ export default class LocationWrapper extends LocationInheritor {
         if (isIE11)
             return;
 
-        const protoKeys           = nativeMethods.objectKeys(Location.prototype);
-        const locWrapper          = this;
-        const rewriteDescriptorFn = (descriptor, key: string) => {
-            if (!isFunction(descriptor[key]))
-                return;
-
-            const nativeMethod = descriptor[key];
-
-            descriptor[key] = function () {
-                const ctx = this === locWrapper ? window.location : this;
-
-                return nativeMethod.apply(ctx, arguments);
-            };
-        };
-
-        for (const protoKey of protoKeys) {
-            if (protoKey in locationProps)
-                continue;
-
-            const protoKeyDescriptor = nativeMethods.objectGetOwnPropertyDescriptor(Location.prototype, protoKey);
-
-            rewriteDescriptorFn(protoKeyDescriptor, 'get');
-            rewriteDescriptorFn(protoKeyDescriptor, 'set');
-            rewriteDescriptorFn(protoKeyDescriptor, 'value');
-
-            nativeMethods.objectDefineProperty(locWrapper, protoKey, protoKeyDescriptor);
-            // NOTE: We hide errors with a new browser API and we should know about it.
-            nativeMethods.consoleMeths.log(`testcafe-hammerhead: unwrapped Location.prototype.${protoKey} descriptor!`);
-        }
+        this.overrideRestDescriptors();
     }
 
     private createOverriddenHrefDescriptor () {
@@ -389,6 +363,39 @@ export default class LocationWrapper extends LocationInheritor {
         return createOverriddenDescriptor(this.locationPropsOwner, 'valueOf', {
             value: () => this,
         });
+    }
+
+    private overrideRestDescriptors () {
+        const protoKeys = nativeMethods.objectKeys(Location.prototype);
+
+        for (const protoKey of protoKeys) {
+            if (protoKey in this.locationProps)
+                continue;
+
+            const protoKeyDescriptor = nativeMethods.objectGetOwnPropertyDescriptor(Location.prototype, protoKey);
+
+            this.overrideRestDescriptor(protoKeyDescriptor, 'get');
+            this.overrideRestDescriptor(protoKeyDescriptor, 'set');
+            this.overrideRestDescriptor(protoKeyDescriptor, 'value');
+
+            nativeMethods.objectDefineProperty(this, protoKey, protoKeyDescriptor);
+            // NOTE: We hide errors with a new browser API and we should know about it.
+            nativeMethods.consoleMeths.log(`testcafe-hammerhead: unwrapped Location.prototype.${protoKey} descriptor!`);
+        }
+    }
+
+    private overrideRestDescriptor (descriptor, key: string) {
+        if (!isFunction(descriptor[key]))
+            return;
+
+        const wrapper      = this;
+        const nativeMethod = descriptor[key];
+
+        descriptor[key] = function () {
+            const ctx = this === wrapper ? wrapper.window.location : this;
+
+            return nativeMethod.apply(ctx, arguments);
+        };
     }
 }
 
