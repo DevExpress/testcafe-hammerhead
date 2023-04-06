@@ -363,26 +363,26 @@ export default class LocationWrapper extends LocationInheritor {
     }
 
     private createOverriddenPortDescriptor () {
-        return this.createOverriddenLocationPropertyDescriptor('port', nativeMethods.anchorPortSetter);
+        return this.createOverriddenLocationAccessorDescriptor('port', nativeMethods.anchorPortSetter);
     }
 
     private createOverriddenHostDescriptor () {
-        return this.createOverriddenLocationPropertyDescriptor('host', nativeMethods.anchorHostSetter);
+        return this.createOverriddenLocationAccessorDescriptor('host', nativeMethods.anchorHostSetter);
     }
 
     private createOverriddenHostnameDescriptor () {
-        return this.createOverriddenLocationPropertyDescriptor('hostname', nativeMethods.anchorHostnameSetter);
+        return this.createOverriddenLocationAccessorDescriptor('hostname', nativeMethods.anchorHostnameSetter);
     }
 
     private createOverriddenPathnameDescriptor () {
-        return this.createOverriddenLocationPropertyDescriptor('pathname', nativeMethods.anchorPathnameSetter);
+        return this.createOverriddenLocationAccessorDescriptor('pathname', nativeMethods.anchorPathnameSetter);
     }
 
     private createOverriddenProtocolDescriptor () {
-        return this.createOverriddenLocationPropertyDescriptor('protocol', nativeMethods.anchorProtocolSetter);
+        return this.createOverriddenLocationAccessorDescriptor('protocol', nativeMethods.anchorProtocolSetter);
     }
 
-    private createOverriddenLocationPropertyDescriptor (property, nativePropSetter) {
+    private createOverriddenLocationAccessorDescriptor (property, nativePropSetter) {
         const wrapper = this;
 
         return createOverriddenDescriptor(this.locationPropsOwner, property, {
