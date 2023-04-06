@@ -49,6 +49,7 @@ LocationInheritor.prototype = Location.prototype;
 
 export default class LocationWrapper extends LocationInheritor {
     private window: Window;
+    private messageSandbox: MessageSandbox;
     private onChanged: Function;
     private locationResourceType: string;
     private locationPropsOwner: Location;
@@ -74,6 +75,7 @@ export default class LocationWrapper extends LocationInheritor {
         });
 
         this.window = window;
+        this.messageSandbox = messageSandbox;
         this.onChanged = onChanged;
         this.locationResourceType = locationResourceType;
         this.locationPropsOwner = locationPropsOwner;
@@ -136,39 +138,8 @@ export default class LocationWrapper extends LocationInheritor {
         locationProps.origin = this.createOverriddenOriginDescriptor();
         locationProps.hash = this.createOverriddenHashDescriptor();
 
-        if (window.location.ancestorOrigins) {
-            const callbacks   = nativeMethods.objectCreate(null);
-            const idGenerator = new IntegerIdGenerator();
-
-            const getCrossDomainOrigin = (win, callback) => {
-                const id = idGenerator.increment();
-
-                callbacks[id] = callback;
-
-                messageSandbox.sendServiceMsg({ id, cmd: GET_ORIGIN_CMD }, win);
-            };
-
-            if (messageSandbox) {
-                messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, ({ message, source }) => {
-                    if (message.cmd === GET_ORIGIN_CMD) {
-                        // @ts-ignore
-                        messageSandbox.sendServiceMsg({ id: message.id, cmd: ORIGIN_RECEIVED_CMD, origin: this.origin }, source);// eslint-disable-line no-restricted-properties
-                    }
-                    else if (message.cmd === ORIGIN_RECEIVED_CMD) {
-                        const callback = callbacks[message.id];
-
-                        if (callback)
-                            callback(message.origin); // eslint-disable-line no-restricted-properties
-                    }
-                });
-            }
-
-            const ancestorOrigins = new DOMStringListWrapper(window, messageSandbox ? getCrossDomainOrigin : void 0);
-
-            locationProps.ancestorOrigins = createOverriddenDescriptor(locationPropsOwner, 'ancestorOrigins', {
-                getter: () => ancestorOrigins,
-            });
-        }
+        if (window.location.ancestorOrigins)
+            this.createOverriddenAncestorOrigins();
 
         const createLocationPropertyDesc = (property, nativePropSetter) => {
             locationProps[property] = createOverriddenDescriptor(locationPropsOwner, property, {
@@ -377,6 +348,42 @@ export default class LocationWrapper extends LocationInheritor {
 
                 return hash;
             },
+        });
+    }
+
+    private createOverriddenAncestorOrigins () {
+        const wrapper     = this;
+        const callbacks   = nativeMethods.objectCreate(null);
+        const idGenerator = new IntegerIdGenerator();
+
+        const getCrossDomainOrigin = (win, callback) => {
+            const id = idGenerator.increment();
+
+            callbacks[id] = callback;
+
+            wrapper.messageSandbox.sendServiceMsg({ id, cmd: GET_ORIGIN_CMD }, win);
+        };
+
+        if (this.messageSandbox) {
+            this.messageSandbox.on(this.messageSandbox.SERVICE_MSG_RECEIVED_EVENT, ({ message, source }) => {
+                if (message.cmd === GET_ORIGIN_CMD) {
+                    // @ts-ignore
+                    wrapper.messageSandbox.sendServiceMsg({ id: message.id, cmd: ORIGIN_RECEIVED_CMD, origin: this.origin }, source);// eslint-disable-line no-restricted-properties
+                }
+                else if (message.cmd === ORIGIN_RECEIVED_CMD) {
+                    const callback = callbacks[message.id];
+
+                    if (callback)
+                        callback(message.origin); // eslint-disable-line no-restricted-properties
+                }
+            });
+        }
+
+        const ancestorOrigins = new DOMStringListWrapper(this.window, this.messageSandbox ? getCrossDomainOrigin : void 0);
+
+        return createOverriddenDescriptor(this.locationPropsOwner, 'ancestorOrigins', {
+            //@ts-ignore
+            getter: () => ancestorOrigins,
         });
     }
 }
