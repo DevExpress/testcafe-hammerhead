@@ -130,19 +130,7 @@ export default class LocationWrapper extends LocationInheritor {
         locationProps.href = this.createOverriddenHrefDescriptor();
 
         // eslint-disable-next-line no-restricted-properties
-        locationProps.search = createOverriddenDescriptor(locationPropsOwner, 'search', {
-            // eslint-disable-next-line no-restricted-properties
-            getter: () => window.location.search,
-            setter: search => {
-                const newLocation = changeDestUrlPart(window.location.toString(), nativeMethods.anchorSearchSetter, search, resourceType);
-
-                // @ts-ignore
-                window.location = newLocation;
-                onChanged(newLocation);
-
-                return search;
-            },
-        });
+        locationProps.search = this.createOverriddenSearchDescriptor();
 
         // eslint-disable-next-line no-restricted-properties
         locationProps.origin = createOverriddenDescriptor(locationPropsOwner, 'origin', {
@@ -363,6 +351,24 @@ export default class LocationWrapper extends LocationInheritor {
         const currentResourceType = changedOnlyHash ? locationWrapper.locationResourceType : locationWrapper.resourceType;
 
         return getProxyUrl(href, { resourceType: currentResourceType, proxyPort });
+    }
+
+    private createOverriddenSearchDescriptor () {
+        const wrapper = this;
+
+        return createOverriddenDescriptor(this.locationPropsOwner, 'search', {
+            // eslint-disable-next-line no-restricted-properties
+            getter: () => wrapper.window.location.search,
+            setter: search => {
+                const newLocation = changeDestUrlPart(wrapper.window.location.toString(), nativeMethods.anchorSearchSetter, search, wrapper.resourceType);
+
+                // @ts-ignore
+                wrapper.window.location = newLocation;
+                wrapper.onChanged(newLocation);
+
+                return search;
+            },
+        });
     }
 }
 
