@@ -152,16 +152,7 @@ export default class LocationWrapper extends LocationInheritor {
         // eslint-disable-next-line no-restricted-properties
         locationProps.protocol = this.createOverriddenProtocolDescriptor();
 
-        locationProps.assign = createOverriddenDescriptor(locationPropsOwner, 'assign', {
-            value: url => {
-                const proxiedHref = getProxiedHref(url);
-                const result      = window.location.assign(proxiedHref);
-
-                onChanged(proxiedHref);
-
-                return result;
-            },
-        });
+        locationProps.assign = this.createOverriddenAssignDescriptor();
 
         locationProps.replace = createOverriddenDescriptor(locationPropsOwner, 'replace', {
             value: url => {
@@ -410,6 +401,21 @@ export default class LocationWrapper extends LocationInheritor {
                 wrapper.onChanged(newLocation);
 
                 return value;
+            },
+        });
+    }
+
+    private createOverriddenAssignDescriptor () {
+        const wrapper = this;
+
+        return createOverriddenDescriptor(this.locationPropsOwner, 'assign', {
+            value: url => {
+                const proxiedHref = wrapper.getProxiedHref(url, wrapper);
+                const result      = wrapper.window.location.assign(proxiedHref);
+
+                wrapper.onChanged(proxiedHref);
+
+                return result;
             },
         });
     }
