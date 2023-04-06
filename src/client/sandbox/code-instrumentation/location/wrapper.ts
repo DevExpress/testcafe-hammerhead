@@ -81,53 +81,6 @@ export default class LocationWrapper extends LocationInheritor {
         this.locationPropsOwner = locationPropsOwner;
         this.resourceType = resourceType;
 
-        const getHref        = () => {
-            // eslint-disable-next-line no-restricted-properties
-            if (domUtils.isIframeWindow(window) && window.location.href === SPECIAL_BLANK_PAGE)
-                return SPECIAL_BLANK_PAGE;
-
-            const locationUrl    = getDestLocation();
-            const resolveElement = urlResolver.getResolverElement(window.document);
-
-            nativeMethods.anchorHrefSetter.call(resolveElement, locationUrl);
-
-            const href = nativeMethods.anchorHrefGetter.call(resolveElement);
-
-            return ensureTrailingSlash(href, locationUrl);
-        };
-        const getProxiedHref = (href: any) => {
-            if (typeof href !== 'string')
-                href = String(href);
-
-            href = prepareUrl(href);
-
-            if (DomProcessor.isJsProtocol(href))
-                return DomProcessor.processJsAttrValue(href, { isJsProtocol: true, isEventAttr: false });
-
-            const locationUrl = getLocationUrl(window);
-
-            let proxyPort = null;
-
-            if (window !== window.parent) {
-                const parentLocationUrl       = getLocationUrl(window.parent) as string;
-                const parsedParentLocationUrl = parseProxyUrl(parentLocationUrl);
-
-                if (parsedParentLocationUrl && parsedParentLocationUrl.proxy) {
-                    // eslint-disable-next-line no-restricted-properties
-                    const parentProxyPort = parsedParentLocationUrl.proxy.port;
-
-                    proxyPort = sameOriginCheck(parentLocationUrl, href)
-                        ? parentProxyPort
-                        : getCrossDomainProxyPort(parentProxyPort);
-                }
-            }
-
-            const changedOnlyHash     = locationUrl && isChangedOnlyHash(locationUrl, href);
-            const currentResourceType = changedOnlyHash ? locationResourceType : resourceType;
-
-            return getProxyUrl(href, { resourceType: currentResourceType, proxyPort });
-        };
-
         // eslint-disable-next-line no-restricted-properties
         locationProps.href = this.createOverriddenHrefDescriptor();
 
@@ -158,7 +111,7 @@ export default class LocationWrapper extends LocationInheritor {
 
         locationProps.reload = this.createOverriddenReloadDescriptor();
 
-        locationProps.toString = createOverriddenDescriptor(locationPropsOwner, 'toString', { value: getHref });
+        locationProps.toString = this.createOverriddenToStringDescriptor();
 
         if (!isLocationPropsInProto && nativeMethods.objectHasOwnProperty.call(window.location, 'valueOf'))
             locationProps.valueOf  = createOverriddenDescriptor(locationPropsOwner, 'valueOf', { value: () => this });
@@ -216,6 +169,12 @@ export default class LocationWrapper extends LocationInheritor {
 
                 return href;
             },
+        });
+    }
+
+    private createOverriddenToStringDescriptor () {
+        return createOverriddenDescriptor(this.locationPropsOwner, 'toString', {
+            value: this.createHrefGetter(this.window),
         });
     }
 
