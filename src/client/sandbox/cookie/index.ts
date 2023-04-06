@@ -36,12 +36,12 @@ interface CookieSandboxStrategy {
 }
 
 class CookieSandboxStrategyFactory {
-    static create (proxyless: boolean, document: Document | null, windowSync: WindowSync) {
-        return proxyless ? new CookieSandboxProxylessStrategy() : new CookieSandboxProxyStrategy(document, windowSync);
+    static create (nativeAutomation: boolean, document: Document | null, windowSync: WindowSync) {
+        return nativeAutomation ? new CookieSandboxNativeAutomationStrategy() : new CookieSandboxProxyStrategy(document, windowSync);
     }
 }
 
-class CookieSandboxProxylessStrategy implements CookieSandboxStrategy {
+class CookieSandboxNativeAutomationStrategy implements CookieSandboxStrategy {
     getCookie (): string {
         return '';
     }
@@ -279,7 +279,7 @@ export default class CookieSandbox extends SandboxBase {
         this._windowSync.attach(window);
 
         this._cookieStrategy = CookieSandboxStrategyFactory.create(
-            this.proxyless,
+            this.nativeAutomation,
             this.document,
             this._windowSync);
 

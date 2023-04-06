@@ -643,14 +643,14 @@ if (window.fetch) {
         });
     });
 
-    module('proxyless', function (hooks) {
-        var storedProxyless = fetchSandbox.proxyless;
+    module('nativeAutomation', function (hooks) {
+        var storedNativeAutomation = fetchSandbox.nativeAutomation;
 
         hooks.beforeEach(function () {
-            fetchSandbox.proxyless = true;
+            fetchSandbox.nativeAutomation = true;
         });
         hooks.afterEach(function () {
-            fetchSandbox.proxyless = storedProxyless;
+            fetchSandbox.nativeAutomation = storedNativeAutomation;
         });
 
         test('Request - should not redirect request to proxy', function () {

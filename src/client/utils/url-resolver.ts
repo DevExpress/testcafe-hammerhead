@@ -74,7 +74,7 @@ export default {
     },
 
     updateBase (url: string, doc: Document) {
-        if (this.proxyless)
+        if (this.nativeAutomation)
             return;
 
         const resolverDocument = this._getResolver(doc);
@@ -117,11 +117,11 @@ export default {
         doc[DOCUMENT_URL_RESOLVER] = null;
     },
 
-    get proxyless () {
-        return this._proxyless;
+    get nativeAutomation () {
+        return this._nativeAutomation;
     },
 
-    set proxyless (value: boolean) {
-        this._proxyless = value;
+    set nativeAutomation (value: boolean) {
+        this._nativeAutomation = value;
     },
 };

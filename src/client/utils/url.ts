@@ -19,7 +19,7 @@ export const DEFAULT_PROXY_SETTINGS = (function () {
     let proxyLocation  = locationWindow.location;
 
     while (!proxyLocation.hostname) {
-        // about:blank page in proxyless mode
+        // about:blank page in nativeAutomation mode
         if (!globalContextInfo.isInWorker
             && locationWindow === (locationWindow as Window).top)
             break;
@@ -45,13 +45,13 @@ function getCharsetFromDocument (parsedResourceType: ResourceType): string | nul
     return self.document && document[INTERNAL_PROPS.documentCharset] || null;
 }
 
-export let getProxyUrl = function (url: string | URL, opts: Partial<ProxyUrlOptions> = {}, proxyless = false): string {
+export let getProxyUrl = function (url: string | URL, opts: Partial<ProxyUrlOptions> = {}, nativeAutomation = false): string {
     if (opts.isUrlsSet) {
         opts.isUrlsSet = false;
-        return sharedUrlUtils.handleUrlsSet(getProxyUrl, String(url), opts, proxyless);
+        return sharedUrlUtils.handleUrlsSet(getProxyUrl, String(url), opts, nativeAutomation);
     }
 
-    if (proxyless)
+    if (nativeAutomation)
         return String(url);
 
     url = sharedUrlUtils.getURLString(url);
@@ -191,8 +191,8 @@ function getProxyNavigationUrl (url: string, win: Window): string {
     return getProxyUrl(url);
 }
 
-export function getNavigationUrl (url: string, win, proxyless = false): string {
-    return proxyless
+export function getNavigationUrl (url: string, win, nativeAutomation = false): string {
+    return nativeAutomation
         ? url
         : getProxyNavigationUrl(url, win);
 }
@@ -356,8 +356,8 @@ export function getScope (url: string): string | null {
     return partAfterHostWithoutQueryAndHash.replace(SCOPE_RE, '/') || '/';
 }
 
-export function getAjaxProxyUrl (url: string | URL, credentials: sharedUrlUtils.Credentials, proxyless = false) {
-    if (proxyless)
+export function getAjaxProxyUrl (url: string | URL, credentials: sharedUrlUtils.Credentials, nativeAutomation = false) {
+    if (nativeAutomation)
         return String(url);
 
     const isCrossDomain = !destLocation.sameOriginCheck(destLocation.getLocation(), url);

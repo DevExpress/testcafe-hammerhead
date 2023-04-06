@@ -514,11 +514,11 @@ test('should handle blob object urls (GH-1397)', function () {
     });
 });
 
-module('proxyless', function (hooks) {
+module('nativeAutomation', function (hooks) {
     var storedSettings = settings.get();
 
     hooks.beforeEach(function () {
-        settings.set({ ...storedSettings, proxyless: true });
+        settings.set({ ...storedSettings, nativeAutomation: true });
     });
     hooks.afterEach(function () {
         settings.set(storedSettings);

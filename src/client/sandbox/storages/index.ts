@@ -51,7 +51,7 @@ class StorageSandboxStrategyBase {
     sessionStorageProxy: StorageProxy | null;
 }
 
-class StorageSandboxProxylessStrategy extends StorageSandboxStrategyBase implements StorageSandboxStrategy {
+class StorageSandboxNativeAutomationStrategy extends StorageSandboxStrategyBase implements StorageSandboxStrategy {
     backup (): StoragesBackup {
         return {
             localStorage:   stringifyJSON(this._getStorageKeysAndValues(localStorage)),
@@ -412,7 +412,7 @@ export default class StorageSandbox extends SandboxBase {
     attach (window: Window & typeof globalThis) {
         super.attach(window);
 
-        this.strategy = this.proxyless ? new StorageSandboxProxylessStrategy() : new StorageSandboxProxyStrategy(
+        this.strategy = this.nativeAutomation ? new StorageSandboxNativeAutomationStrategy() : new StorageSandboxProxyStrategy(
             this,
             window,
             this._listeners,

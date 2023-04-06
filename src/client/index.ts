@@ -277,7 +277,7 @@ class Hammerhead {
         nativeMethods.storageRemoveItem.call(nativeLocalStorage, sessionId);
     }
 
-    static _setProxylessForComponents (value: boolean): void {
+    static _setNativeAutomationForComponents (value: boolean): void {
         const components = [
             domProcessor,
             urlResolver,
@@ -285,7 +285,7 @@ class Hammerhead {
         ] as any[];
 
         for (let i = 0; i < components.length; i++)
-            components[i].proxyless = value;
+            components[i].nativeAutomation = value;
     }
 
     on (evtName: string, handler: Function): void {
@@ -303,8 +303,8 @@ class Hammerhead {
     }
 
     navigateTo (url: string, forceReload: boolean): void {
-        const proxyless     = !!settings.get().proxyless;
-        const navigationUrl = urlUtils.getNavigationUrl(url, this.win, proxyless);
+        const nativeAutomation     = !!settings.get().nativeAutomation;
+        const navigationUrl = urlUtils.getNavigationUrl(url, this.win, nativeAutomation);
 
         if (!navigationUrl)
             return;
@@ -330,9 +330,9 @@ class Hammerhead {
         domProcessor.forceProxySrcForImage = initSettings.forceProxySrcForImage;
         domProcessor.allowMultipleWindows  = initSettings.allowMultipleWindows;
 
-        Hammerhead._setProxylessForComponents(initSettings.proxyless);
+        Hammerhead._setNativeAutomationForComponents(initSettings.nativeAutomation);
 
-        this.transport.start(this.eventSandbox.message, !initSettings.proxyless);
+        this.transport.start(this.eventSandbox.message, !initSettings.nativeAutomation);
         this.sandbox.attach(this.win);
         this.pageNavigationWatch.start();
     }

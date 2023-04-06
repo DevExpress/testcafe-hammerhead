@@ -14,7 +14,7 @@ export default class SandboxBase extends EventEmitter {
     window: Window & typeof globalThis | null = null;
     nativeMethods = nativeMethods;
     document: Document | null = null;
-    protected proxyless = false;
+    protected nativeAutomation = false;
 
     // NOTE: The sandbox is deactivated when its window is removed from the DOM.
     isDeactivated (): boolean {
@@ -35,13 +35,13 @@ export default class SandboxBase extends EventEmitter {
         return true;
     }
 
-    static get isProxyless (): boolean {
-        return !!settings.get().proxyless;
+    static get isNativeAutomation (): boolean {
+        return !!settings.get().nativeAutomation;
     }
 
     attach (window: Window & typeof globalThis, document?: Document): void {
         this.window    = window;
         this.document  = document || window.document;
-        this.proxyless = !!settings.get().proxyless;
+        this.nativeAutomation = !!settings.get().nativeAutomation;
     }
 }

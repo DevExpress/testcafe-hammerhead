@@ -64,7 +64,7 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     private static _parseMessageJSONData (str: string): any {
-        if (!settings.get().proxyless)
+        if (!settings.get().nativeAutomation)
             return parseJSON(str);
 
         try {
@@ -182,7 +182,7 @@ export default class MessageSandbox extends SandboxBase {
             configurable: true,
         });
 
-        if (!this.proxyless) {
+        if (!this.nativeAutomation) {
             // @ts-ignore
             overrideDescriptor(window.MessageEvent.prototype, 'data', {
                 getter: function (this: MessageEvent) {

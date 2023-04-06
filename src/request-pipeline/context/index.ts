@@ -123,7 +123,7 @@ export default class RequestPipelineContext extends BaseRequestPipelineContext {
     constructor (readonly req: IncomingMessage,
         readonly res: ServerResponse | Socket,
         readonly serverInfo: ServerInfo,
-        readonly proxyless: boolean) {
+        readonly nativeAutomation: boolean) {
         super(generateUniqueId());
         this._initParsedClientSyncCookie();
 

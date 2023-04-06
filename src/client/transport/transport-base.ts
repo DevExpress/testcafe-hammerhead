@@ -47,8 +47,8 @@ export default abstract class TransportBase {
             }
         }
 
-        // NOTE: this condition is needed for proxyless mode to preserve saving any data to localStorage
-        // TODO: research why this works in proxy mode and does not work in proxyless
+        // NOTE: this condition is needed for nativeAutomation mode to preserve saving any data to localStorage
+        // TODO: research why this works in proxy mode and does not work in nativeAutomation
         if (messages.length < initialMsgLength)
             nativeMethods.storageSetItem.call(nativeLocalStorage, settings.get().sessionId, stringifyJSON(messages));
     }

@@ -40,5 +40,5 @@ interface ProxyOptions {
     cache?: boolean;
     disableHttp2?: boolean;
     disableCrossDomain?: boolean;
-    proxyless?: boolean;
+    nativeAutomation?: boolean;
 }

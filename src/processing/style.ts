@@ -25,7 +25,7 @@ class StyleProcessor {
     STYLESHEET_PROCESSING_START_COMMENT = STYLESHEET_PROCESSING_START_COMMENT;
     STYLESHEET_PROCESSING_END_COMMENT = STYLESHEET_PROCESSING_END_COMMENT;
 
-    proxyless = false;
+    nativeAutomation = false;
 
     process (css: string, urlReplacer: Function, shouldIncludeProcessingComments?: boolean): string {
         if (!css || typeof css !== 'string' || shouldIncludeProcessingComments && IS_STYLE_SHEET_PROCESSED_RE.test(css))
@@ -38,7 +38,7 @@ class StyleProcessor {
         css = css.replace(SOURCE_MAP_RE, '');
 
         // NOTE: Replace URLs in CSS rules with proxy URLs.
-        if (!this.proxyless)
+        if (!this.nativeAutomation)
             css = this._replaceStylesheetUrls(css, urlReplacer);
 
         // NOTE: Replace url attributes to stored attributes
@@ -60,7 +60,7 @@ class StyleProcessor {
 
         css = this._removeStylesheetProcessingComments(css);
 
-        if (!this.proxyless) {
+        if (!this.nativeAutomation) {
             css = this._replaceStylesheetUrls(css, (url: string) => {
                 const parsedProxyUrl = parseProxyUrl(url);
 
