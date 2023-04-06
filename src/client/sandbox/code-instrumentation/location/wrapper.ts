@@ -51,7 +51,10 @@ export default class LocationWrapper extends LocationInheritor {
     private window: Window;
     private messageSandbox: MessageSandbox;
     private onChanged: Function;
+    private parsedLocation: ParsedProxyUrl | null;
     private locationResourceType: string;
+    private parsedResourceType: ResourceType;
+    private isLocationPropsInProto: boolean;
     private locationPropsOwner: Location;
     private locationProps: any;
     private resourceType: string | null;
@@ -59,66 +62,54 @@ export default class LocationWrapper extends LocationInheritor {
     constructor (window: Window, messageSandbox: MessageSandbox, onChanged: Function) {
         super();
 
-        const parsedLocation         = parseProxyUrl(getLocationUrl(window) as string);
-        const locationResourceType   = parsedLocation ? parsedLocation.resourceType : '';
-        const parsedResourceType     = parseResourceType(locationResourceType);
-        // @ts-ignore
-        const isLocationPropsInProto = nativeMethods.objectHasOwnProperty.call(window.Location.prototype, 'href');
-        // @ts-ignore
-        const locationPropsOwner     = isLocationPropsInProto ? window.Location.prototype : window.location;
-        const locationProps: any     = {};
+        this.window         = window;
+        this.messageSandbox = messageSandbox;
+        this.onChanged      = onChanged;
 
-        parsedResourceType.isIframe = parsedResourceType.isIframe || domUtils.isIframeWindow(window);
+        this.parsedLocation         = parseProxyUrl(getLocationUrl(window) as string);
+        this.locationResourceType   = this.parsedLocation ? this.parsedLocation.resourceType : '';
+        this.parsedResourceType     = parseResourceType(this.locationResourceType);// @ts-ignore
+        this.isLocationPropsInProto = nativeMethods.objectHasOwnProperty.call(window.Location.prototype, 'href');// @ts-ignore
+        this.locationPropsOwner     = isLocationPropsInProto ? window.Location.prototype : window.location;
+        this.locationProps          = {};
 
-        const resourceType   = getResourceTypeString({
-            isIframe: parsedResourceType.isIframe,
-            isForm:   parsedResourceType.isForm,
+        this.parsedResourceType.isIframe = this.parsedResourceType.isIframe || domUtils.isIframeWindow(window);
+
+        this.resourceType = getResourceTypeString({
+            isIframe: this.parsedResourceType.isIframe,
+            isForm:   this.parsedResourceType.isForm,
         });
 
-        this.window = window;
-        this.messageSandbox = messageSandbox;
-        this.onChanged = onChanged;
-        this.locationResourceType = locationResourceType;
-        this.locationPropsOwner = locationPropsOwner;
-        this.locationProps = locationProps;
-        this.resourceType = resourceType;
-
         // eslint-disable-next-line no-restricted-properties
-        locationProps.href = this.createOverriddenHrefDescriptor();
-
+        this.locationProps.href   = this.createOverriddenHrefDescriptor();
         // eslint-disable-next-line no-restricted-properties
-        locationProps.search = this.createOverriddenSearchDescriptor();
-
+        this.locationProps.search = this.createOverriddenSearchDescriptor();
         // eslint-disable-next-line no-restricted-properties
-        locationProps.origin = this.createOverriddenOriginDescriptor();
-        locationProps.hash = this.createOverriddenHashDescriptor();
+        this.locationProps.origin = this.createOverriddenOriginDescriptor();
+        this.locationProps.hash   = this.createOverriddenHashDescriptor();
 
         if (window.location.ancestorOrigins)
             this.createOverriddenAncestorOriginsDescriptor();
 
         // eslint-disable-next-line no-restricted-properties
-        locationProps.port = this.createOverriddenPortDescriptor();
+        this.locationProps.port     = this.createOverriddenPortDescriptor();
         // eslint-disable-next-line no-restricted-properties
-        locationProps.host = this.createOverriddenHostDescriptor();
+        this.locationProps.host     = this.createOverriddenHostDescriptor();
         // eslint-disable-next-line no-restricted-properties
-        locationProps.hostname = this.createOverriddenHostnameDescriptor();
+        this.locationProps.hostname = this.createOverriddenHostnameDescriptor();
         // eslint-disable-next-line no-restricted-properties
-        locationProps.pathname = this.createOverriddenPathnameDescriptor();
+        this.locationProps.pathname = this.createOverriddenPathnameDescriptor();
         // eslint-disable-next-line no-restricted-properties
-        locationProps.protocol = this.createOverriddenProtocolDescriptor();
+        this.locationProps.protocol = this.createOverriddenProtocolDescriptor();
+        this.locationProps.assign   = this.createOverriddenAssignDescriptor();
+        this.locationProps.replace  = this.createOverriddenReplaceDescriptor();
+        this.locationProps.reload   = this.createOverriddenReloadDescriptor();
+        this.locationProps.toString = this.createOverriddenToStringDescriptor();
 
-        locationProps.assign = this.createOverriddenAssignDescriptor();
+        if (!this.isLocationPropsInProto && nativeMethods.objectHasOwnProperty.call(window.location, 'valueOf'))
+            this.locationProps.valueOf = this.createOverriddenValueOfDescriptor();
 
-        locationProps.replace = this.createOverriddenReplaceDescriptor();
-
-        locationProps.reload = this.createOverriddenReloadDescriptor();
-
-        locationProps.toString = this.createOverriddenToStringDescriptor();
-
-        if (!isLocationPropsInProto && nativeMethods.objectHasOwnProperty.call(window.location, 'valueOf'))
-            locationProps.valueOf  = this.createOverriddenValueOfDescriptor();
-
-        nativeMethods.objectDefineProperties(this, locationProps);
+        nativeMethods.objectDefineProperties(this, this.locationProps);
 
         // NOTE: We shouldn't break the client script if the browser add the new API. For example:
         // > From Chrome 80 to Chrome 85, the fragmentDirective property was defined on Location.prototype.
@@ -147,8 +138,10 @@ export default class LocationWrapper extends LocationInheritor {
     }
 
     private createOverriddenToStringDescriptor () {
+        const wrapper = this;
+
         return createOverriddenDescriptor(this.locationPropsOwner, 'toString', {
-            value: this.createHrefGetter(this.window),
+            value: this.createHrefGetter(wrapper.window),
         });
     }
 
