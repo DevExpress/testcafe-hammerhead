@@ -114,7 +114,7 @@ export default class LocationWrapper extends LocationInheritor {
         locationProps.toString = this.createOverriddenToStringDescriptor();
 
         if (!isLocationPropsInProto && nativeMethods.objectHasOwnProperty.call(window.location, 'valueOf'))
-            locationProps.valueOf  = createOverriddenDescriptor(locationPropsOwner, 'valueOf', { value: () => this });
+            locationProps.valueOf  = this.createOverriddenValueOfDescriptor();
 
         nativeMethods.objectDefineProperties(this, locationProps);
 
@@ -381,6 +381,13 @@ export default class LocationWrapper extends LocationInheritor {
 
                 return result;
             },
+        });
+    }
+
+    private createOverriddenValueOfDescriptor () {
+        //@ts-ignore
+        return createOverriddenDescriptor(this.locationPropsOwner, 'valueOf', {
+            value: () => this,
         });
     }
 }
