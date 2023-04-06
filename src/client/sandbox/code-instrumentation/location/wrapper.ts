@@ -154,16 +154,7 @@ export default class LocationWrapper extends LocationInheritor {
 
         locationProps.assign = this.createOverriddenAssignDescriptor();
 
-        locationProps.replace = createOverriddenDescriptor(locationPropsOwner, 'replace', {
-            value: url => {
-                const proxiedHref = getProxiedHref(url);
-                const result      = window.location.replace(proxiedHref);
-
-                onChanged(proxiedHref);
-
-                return result;
-            },
-        });
+        locationProps.replace = this.createOverriddenReplaceDescriptor();
 
         locationProps.reload = createOverriddenDescriptor(locationPropsOwner, 'reload', {
             value: () => {
@@ -407,6 +398,10 @@ export default class LocationWrapper extends LocationInheritor {
 
     private createOverriddenAssignDescriptor () {
         return this.createOverriddenLocationDataDescriptor('assign');
+    }
+
+    private createOverriddenReplaceDescriptor () {
+        return this.createOverriddenLocationDataDescriptor('replace');
     }
 
     private createOverriddenLocationDataDescriptor (property) {
