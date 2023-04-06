@@ -141,32 +141,16 @@ export default class LocationWrapper extends LocationInheritor {
         if (window.location.ancestorOrigins)
             this.createOverriddenAncestorOriginsDescriptor();
 
-        const createLocationPropertyDesc = (property, nativePropSetter) => {
-            locationProps[property] = createOverriddenDescriptor(locationPropsOwner, property, {
-                getter: () => {
-                    const frameElement       = domUtils.getFrameElement(window);
-                    const inIframeWithoutSrc = frameElement && domUtils.isIframeWithoutSrc(frameElement);
-                    const parsedDestLocation = inIframeWithoutSrc ? window.location : getParsedDestLocation();
-
-                    return parsedDestLocation[property];
-                },
-                setter: value => {
-                    const newLocation = changeDestUrlPart(window.location.toString(), nativePropSetter, value, resourceType);
-
-                    // @ts-ignore
-                    window.location = newLocation;
-                    onChanged(newLocation);
-
-                    return value;
-                },
-            });
-        };
-
-        createLocationPropertyDesc('port', nativeMethods.anchorPortSetter);
-        createLocationPropertyDesc('host', nativeMethods.anchorHostSetter);
-        createLocationPropertyDesc('hostname', nativeMethods.anchorHostnameSetter);
-        createLocationPropertyDesc('pathname', nativeMethods.anchorPathnameSetter);
-        createLocationPropertyDesc('protocol', nativeMethods.anchorProtocolSetter);
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.port = this.createOverriddenPortDescriptor();
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.host = this.createOverriddenHostDescriptor();
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.hostname = this.createOverriddenHostnameDescriptor();
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.pathname = this.createOverriddenPathnameDescriptor();
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.protocol = this.createOverriddenProtocolDescriptor();
 
         locationProps.assign = createOverriddenDescriptor(locationPropsOwner, 'assign', {
             value: url => {
@@ -384,6 +368,49 @@ export default class LocationWrapper extends LocationInheritor {
         return createOverriddenDescriptor(this.locationPropsOwner, 'ancestorOrigins', {
             //@ts-ignore
             getter: () => ancestorOrigins,
+        });
+    }
+
+    private createOverriddenPortDescriptor () {
+        return this.createOverriddenLocationPropertyDescriptor('port', nativeMethods.anchorPortSetter);
+    }
+
+    private createOverriddenHostDescriptor () {
+        return this.createOverriddenLocationPropertyDescriptor('host', nativeMethods.anchorHostSetter);
+    }
+
+    private createOverriddenHostnameDescriptor () {
+        return this.createOverriddenLocationPropertyDescriptor('hostname', nativeMethods.anchorHostnameSetter);
+    }
+
+    private createOverriddenPathnameDescriptor () {
+        return this.createOverriddenLocationPropertyDescriptor('pathname', nativeMethods.anchorPathnameSetter);
+    }
+
+    private createOverriddenProtocolDescriptor () {
+        return this.createOverriddenLocationPropertyDescriptor('protocol', nativeMethods.anchorProtocolSetter);
+    }
+
+    private createOverriddenLocationPropertyDescriptor (property, nativePropSetter) {
+        const wrapper = this;
+
+        return createOverriddenDescriptor(this.locationPropsOwner, property, {
+            getter: () => {
+                const frameElement       = domUtils.getFrameElement(wrapper.window);
+                const inIframeWithoutSrc = frameElement && domUtils.isIframeWithoutSrc(frameElement);
+                const parsedDestLocation = inIframeWithoutSrc ? wrapper.window.location : getParsedDestLocation();
+
+                return parsedDestLocation[property];
+            },
+            setter: value => {
+                const newLocation = changeDestUrlPart(wrapper.window.location.toString(), nativePropSetter, value, wrapper.resourceType);
+
+                // @ts-ignore
+                wrapper.window.location = newLocation;
+                wrapper.onChanged(newLocation);
+
+                return value;
+            },
         });
     }
 }
