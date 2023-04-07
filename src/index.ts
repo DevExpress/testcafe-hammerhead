@@ -3,6 +3,7 @@ import Session from './session';
 import ResponseMock from './request-pipeline/request-hooks/response-mock';
 import RequestFilterRule from './request-pipeline/request-hooks/request-filter-rule';
 import UploadStorage from './upload/storage';
+import { inject } from './upload/index';
 import { processScript, isScriptProcessed } from './processing/script';
 import ConfigureResponseEventOptions from './request-pipeline/request-hooks/events/configure-response-event-options';
 import StateSnapshot from './session/state-snapshot';
@@ -57,6 +58,7 @@ export default {
     parseProxyUrl,
     sameOriginCheck,
     injectResources:    PageProcessor.injectResources,
+    injectUpload:       inject,
     INJECTABLE_SCRIPTS: SCRIPTS,
     acceptCrossOrigin,
     getAssetPath,
