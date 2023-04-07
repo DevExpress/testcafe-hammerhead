@@ -48,20 +48,65 @@ class LocationInheritor {}
 LocationInheritor.prototype = Location.prototype;
 
 export default class LocationWrapper extends LocationInheritor {
+    constructor (window: Window, messageSandbox: MessageSandbox, onChanged: Function) {
+        super();
+
+        const context = new LocationContext(window, messageSandbox, onChanged);
+
+        const locationProps: any = {};
+
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.href   = context.createOverriddenHrefDescriptor();
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.search = context.createOverriddenSearchDescriptor();
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.origin = context.createOverriddenOriginDescriptor();
+        locationProps.hash   = context.createOverriddenHashDescriptor();
+
+        if (window.location.ancestorOrigins)
+            locationProps.ancestorOrigins = context.createOverriddenAncestorOriginsDescriptor();
+
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.port     = context.createOverriddenPortDescriptor();
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.host     = context.createOverriddenHostDescriptor();
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.hostname = context.createOverriddenHostnameDescriptor();
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.pathname = context.createOverriddenPathnameDescriptor();
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.protocol = context.createOverriddenProtocolDescriptor();
+        locationProps.assign   = context.createOverriddenAssignDescriptor();
+        locationProps.replace  = context.createOverriddenReplaceDescriptor();
+        locationProps.reload   = context.createOverriddenReloadDescriptor();
+        locationProps.toString = context.createOverriddenToStringDescriptor();
+
+        if (!context.isLocationPropsInProto && nativeMethods.objectHasOwnProperty.call(window.location, 'valueOf'))
+            locationProps.valueOf = context.createOverriddenValueOfDescriptor();
+
+        nativeMethods.objectDefineProperties(this, locationProps);
+
+        // NOTE: We shouldn't break the client script if the browser add the new API. For example:
+        // > From Chrome 80 to Chrome 85, the fragmentDirective property was defined on Location.prototype.
+        if (isIE11)
+            return;
+
+        context.overrideRestDescriptors(this, locationProps);
+    }
+}
+
+class LocationContext {
+    public isLocationPropsInProto: boolean;
     private window: Window;
     private messageSandbox: MessageSandbox;
     private onChanged: Function;
     private parsedLocation: ParsedProxyUrl | null;
     private locationResourceType: string;
     private parsedResourceType: ResourceType;
-    private isLocationPropsInProto: boolean;
     private locationPropsOwner: Location;
-    private locationProps: any;
     private resourceType: string | null;
 
     constructor (window: Window, messageSandbox: MessageSandbox, onChanged: Function) {
-        super();
-
         this.window         = window;
         this.messageSandbox = messageSandbox;
         this.onChanged      = onChanged;
@@ -70,8 +115,7 @@ export default class LocationWrapper extends LocationInheritor {
         this.locationResourceType   = this.parsedLocation ? this.parsedLocation.resourceType : '';
         this.parsedResourceType     = parseResourceType(this.locationResourceType);// @ts-ignore
         this.isLocationPropsInProto = nativeMethods.objectHasOwnProperty.call(window.Location.prototype, 'href');// @ts-ignore
-        this.locationPropsOwner     = isLocationPropsInProto ? window.Location.prototype : window.location;
-        this.locationProps          = {};
+        this.locationPropsOwner     = this.isLocationPropsInProto ? window.Location.prototype : window.location;
 
         this.parsedResourceType.isIframe = this.parsedResourceType.isIframe || domUtils.isIframeWindow(window);
 
@@ -79,47 +123,9 @@ export default class LocationWrapper extends LocationInheritor {
             isIframe: this.parsedResourceType.isIframe,
             isForm:   this.parsedResourceType.isForm,
         });
-
-        // eslint-disable-next-line no-restricted-properties
-        this.locationProps.href   = this.createOverriddenHrefDescriptor();
-        // eslint-disable-next-line no-restricted-properties
-        this.locationProps.search = this.createOverriddenSearchDescriptor();
-        // eslint-disable-next-line no-restricted-properties
-        this.locationProps.origin = this.createOverriddenOriginDescriptor();
-        this.locationProps.hash   = this.createOverriddenHashDescriptor();
-
-        if (window.location.ancestorOrigins)
-            this.createOverriddenAncestorOriginsDescriptor();
-
-        // eslint-disable-next-line no-restricted-properties
-        this.locationProps.port     = this.createOverriddenPortDescriptor();
-        // eslint-disable-next-line no-restricted-properties
-        this.locationProps.host     = this.createOverriddenHostDescriptor();
-        // eslint-disable-next-line no-restricted-properties
-        this.locationProps.hostname = this.createOverriddenHostnameDescriptor();
-        // eslint-disable-next-line no-restricted-properties
-        this.locationProps.pathname = this.createOverriddenPathnameDescriptor();
-        // eslint-disable-next-line no-restricted-properties
-        this.locationProps.protocol = this.createOverriddenProtocolDescriptor();
-        this.locationProps.assign   = this.createOverriddenAssignDescriptor();
-        this.locationProps.replace  = this.createOverriddenReplaceDescriptor();
-        this.locationProps.reload   = this.createOverriddenReloadDescriptor();
-        this.locationProps.toString = this.createOverriddenToStringDescriptor();
-
-        if (!this.isLocationPropsInProto && nativeMethods.objectHasOwnProperty.call(window.location, 'valueOf'))
-            this.locationProps.valueOf = this.createOverriddenValueOfDescriptor();
-
-        nativeMethods.objectDefineProperties(this, this.locationProps);
-
-        // NOTE: We shouldn't break the client script if the browser add the new API. For example:
-        // > From Chrome 80 to Chrome 85, the fragmentDirective property was defined on Location.prototype.
-        if (isIE11)
-            return;
-
-        this.overrideRestDescriptors();
     }
 
-    private createOverriddenHrefDescriptor () {
+    public createOverriddenHrefDescriptor () {
         const wrapper = this;
 
         return createOverriddenDescriptor(this.locationPropsOwner, 'href', {
@@ -137,7 +143,7 @@ export default class LocationWrapper extends LocationInheritor {
         });
     }
 
-    private createOverriddenToStringDescriptor () {
+    public createOverriddenToStringDescriptor () {
         const wrapper = this;
 
         return createOverriddenDescriptor(this.locationPropsOwner, 'toString', {
@@ -197,7 +203,7 @@ export default class LocationWrapper extends LocationInheritor {
         return getProxyUrl(href, { resourceType: currentResourceType, proxyPort });
     }
 
-    private createOverriddenSearchDescriptor () {
+    public createOverriddenSearchDescriptor () {
         const wrapper = this;
 
         return createOverriddenDescriptor(this.locationPropsOwner, 'search', {
@@ -215,14 +221,14 @@ export default class LocationWrapper extends LocationInheritor {
         });
     }
 
-    private createOverriddenOriginDescriptor () {
+    public createOverriddenOriginDescriptor () {
         return createOverriddenDescriptor(this.locationPropsOwner, 'origin', {
             getter: () => getDomain(getParsedDestLocation()),
             setter: origin => origin,
         });
     }
 
-    private createOverriddenHashDescriptor () {
+    public createOverriddenHashDescriptor () {
         const wrapper = this;
 
         return createOverriddenDescriptor(this.locationPropsOwner, 'hash', {
@@ -235,7 +241,7 @@ export default class LocationWrapper extends LocationInheritor {
         });
     }
 
-    private createOverriddenAncestorOriginsDescriptor () {
+    public createOverriddenAncestorOriginsDescriptor () {
         const wrapper     = this;
         const callbacks   = nativeMethods.objectCreate(null);
         const idGenerator = new IntegerIdGenerator();
@@ -271,23 +277,23 @@ export default class LocationWrapper extends LocationInheritor {
         });
     }
 
-    private createOverriddenPortDescriptor () {
+    public createOverriddenPortDescriptor () {
         return this.createOverriddenLocationAccessorDescriptor('port', nativeMethods.anchorPortSetter);
     }
 
-    private createOverriddenHostDescriptor () {
+    public createOverriddenHostDescriptor () {
         return this.createOverriddenLocationAccessorDescriptor('host', nativeMethods.anchorHostSetter);
     }
 
-    private createOverriddenHostnameDescriptor () {
+    public createOverriddenHostnameDescriptor () {
         return this.createOverriddenLocationAccessorDescriptor('hostname', nativeMethods.anchorHostnameSetter);
     }
 
-    private createOverriddenPathnameDescriptor () {
+    public createOverriddenPathnameDescriptor () {
         return this.createOverriddenLocationAccessorDescriptor('pathname', nativeMethods.anchorPathnameSetter);
     }
 
-    private createOverriddenProtocolDescriptor () {
+    public createOverriddenProtocolDescriptor () {
         return this.createOverriddenLocationAccessorDescriptor('protocol', nativeMethods.anchorProtocolSetter);
     }
 
@@ -314,11 +320,11 @@ export default class LocationWrapper extends LocationInheritor {
         });
     }
 
-    private createOverriddenAssignDescriptor () {
+    public createOverriddenAssignDescriptor () {
         return this.createOverriddenLocationDataDescriptor('assign');
     }
 
-    private createOverriddenReplaceDescriptor () {
+    public createOverriddenReplaceDescriptor () {
         return this.createOverriddenLocationDataDescriptor('replace');
     }
 
@@ -337,7 +343,7 @@ export default class LocationWrapper extends LocationInheritor {
         });
     }
 
-    private createOverriddenReloadDescriptor () {
+    public createOverriddenReloadDescriptor () {
         const wrapper = this;
 
         return createOverriddenDescriptor(this.locationPropsOwner, 'reload', {
@@ -351,33 +357,33 @@ export default class LocationWrapper extends LocationInheritor {
         });
     }
 
-    private createOverriddenValueOfDescriptor () {
+    public createOverriddenValueOfDescriptor () {
         //@ts-ignore
         return createOverriddenDescriptor(this.locationPropsOwner, 'valueOf', {
             value: () => this,
         });
     }
 
-    private overrideRestDescriptors () {
+    public overrideRestDescriptors (locationWrapper, locationProps) {
         const protoKeys = nativeMethods.objectKeys(Location.prototype);
 
         for (const protoKey of protoKeys) {
-            if (protoKey in this.locationProps)
+            if (protoKey in locationProps)
                 continue;
 
             const protoKeyDescriptor = nativeMethods.objectGetOwnPropertyDescriptor(Location.prototype, protoKey);
 
-            this.overrideRestDescriptor(protoKeyDescriptor, 'get');
-            this.overrideRestDescriptor(protoKeyDescriptor, 'set');
-            this.overrideRestDescriptor(protoKeyDescriptor, 'value');
+            this.overrideRestDescriptor(locationWrapper, protoKeyDescriptor, 'get');
+            this.overrideRestDescriptor(locationWrapper, protoKeyDescriptor, 'set');
+            this.overrideRestDescriptor(locationWrapper, protoKeyDescriptor, 'value');
 
-            nativeMethods.objectDefineProperty(this, protoKey, protoKeyDescriptor);
+            nativeMethods.objectDefineProperty(locationWrapper, protoKey, protoKeyDescriptor);
             // NOTE: We hide errors with a new browser API and we should know about it.
             nativeMethods.consoleMeths.log(`testcafe-hammerhead: unwrapped Location.prototype.${protoKey} descriptor!`);
         }
     }
 
-    private overrideRestDescriptor (descriptor, key: string) {
+    public overrideRestDescriptor (locationWrapper, descriptor, key: string) {
         if (!isFunction(descriptor[key]))
             return;
 
@@ -385,7 +391,7 @@ export default class LocationWrapper extends LocationInheritor {
         const nativeMethod = descriptor[key];
 
         descriptor[key] = function () {
-            const ctx = this === wrapper ? wrapper.window.location : this;
+            const ctx = this === locationWrapper ? wrapper.window.location : this;
 
             return nativeMethod.apply(ctx, arguments);
         };
