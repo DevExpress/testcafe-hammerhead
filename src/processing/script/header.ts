@@ -30,7 +30,7 @@ function trim (val: string): string {
     return val.replace(/\n(?!$)\s*/g, '');
 }
 
-const PROXYLESS_HEADER = trim(`
+const NATIVE_AUTOMATION_HEADER = trim(`
     ${SCRIPT_PROCESSING_START_COMMENT}
     ${STRICT_MODE_PLACEHOLDER}
 
@@ -95,8 +95,8 @@ export function remove (code: string): string {
         .replace(PROCESSING_END_COMMENT_RE, '');
 }
 
-export function add (code: string, isStrictMode: boolean, swScopeHeaderValue?: string, proxyless?: boolean, workerSettings?: any): string {
-    const targetHeader = proxyless ? PROXYLESS_HEADER : HEADER;
+export function add (code: string, isStrictMode: boolean, swScopeHeaderValue?: string, nativeAutomation?: boolean, workerSettings?: any): string {
+    const targetHeader = nativeAutomation ? NATIVE_AUTOMATION_HEADER : HEADER;
 
     const header = targetHeader
         .replace(STRICT_MODE_PLACEHOLDER, isStrictMode ? '"use strict";' : '')

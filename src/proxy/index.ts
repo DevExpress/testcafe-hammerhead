@@ -59,9 +59,9 @@ function createServerInfo (hostname: string, port: number, crossDomainPort: numb
 }
 
 const DEFAULT_PROXY_OPTIONS = {
-    developmentMode: false,
-    cache:           false,
-    proxyless:       false,
+    developmentMode:  false,
+    cache:            false,
+    nativeAutomation: false,
 };
 
 export default class Proxy extends Router {
@@ -161,7 +161,7 @@ export default class Proxy extends Router {
 
                 res.setHeader(BUILTIN_HEADERS.setCookie, session.takePendingSyncCookies());
 
-                respondWithJSON(res, result, false, this.isProxyless);
+                respondWithJSON(res, result, false, this.isNativeAutomation);
             }
             catch (err) {
                 logger.serviceMsg.onError(msg, err);
@@ -213,7 +213,7 @@ export default class Proxy extends Router {
     _onRequest (req: http.IncomingMessage, res: http.ServerResponse | net.Socket, serverInfo: ServerInfo): void {
         // NOTE: Not a service request, execute the proxy pipeline.
         if (!this._route(req, res, serverInfo))
-            runRequestPipeline(req, res, serverInfo, this.openSessions, this.isProxyless);
+            runRequestPipeline(req, res, serverInfo, this.openSessions, this.isNativeAutomation);
     }
 
     _onUpgradeRequest (req: http.IncomingMessage, socket: net.Socket, head: Buffer, serverInfo: ServerInfo): void {
@@ -289,7 +289,7 @@ export default class Proxy extends Router {
         const {
             disableHttp2,
             disableCrossDomain,
-            proxyless,
+            nativeAutomation,
         } = this.proxyOptions as ProxyOptions;
 
         if (disableHttp2)
@@ -300,7 +300,7 @@ export default class Proxy extends Router {
 
         url = urlUtils.prepareUrl(url);
 
-        if (proxyless)
+        if (nativeAutomation)
             return url;
 
         const serverInfo = this.server1Info as ServerInfo;
@@ -324,11 +324,11 @@ export default class Proxy extends Router {
         return new URL(relativeServiceUrl, domain).toString();
     }
 
-    public switchToProxyless (): void {
-        (this.proxyOptions as ProxyOptions).proxyless = true;
+    public switchToNativeAutomation (): void {
+        (this.proxyOptions as ProxyOptions).nativeAutomation = true;
     }
 
-    public get isProxyless (): boolean {
-        return !!(this.proxyOptions as ProxyOptions).proxyless;
+    public get isNativeAutomation (): boolean {
+        return !!(this.proxyOptions as ProxyOptions).nativeAutomation;
     }
 }

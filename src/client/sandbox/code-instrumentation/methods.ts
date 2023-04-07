@@ -29,7 +29,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
             },
         };
 
-        if (this.proxyless)
+        if (this.nativeAutomation)
             return;
 
         // NOTE: We cannot get the location wrapper for a cross-domain window. Therefore, we need to

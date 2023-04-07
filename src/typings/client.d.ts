@@ -19,7 +19,7 @@ export interface HammerheadInitSettings {
     allowMultipleWindows: boolean;
     isRecordMode: boolean;
     windowId: string;
-    proxyless: boolean;
+    nativeAutomation: boolean;
     disableCrossDomain: boolean;
 }
 

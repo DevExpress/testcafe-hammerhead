@@ -36,7 +36,7 @@ interface SessionOptions {
     allowMultipleWindows: boolean;
     windowId: string;
     requestTimeout: RequestTimeout;
-    proxyless: boolean;
+    nativeAutomation: boolean;
 }
 
 interface RequestEventListenerError {
@@ -219,7 +219,7 @@ declare module 'testcafe-hammerhead' {
         developmentMode?: boolean;
         cache?: boolean;
         disableHttp2?: boolean;
-        proxyless?: boolean;
+        nativeAutomation?: boolean;
     }
 
     export interface OnResponseEventData {
@@ -334,8 +334,8 @@ declare module 'testcafe-hammerhead' {
         /** Resolve relative service url **/
         resolveRelativeServiceUrl (relativeServiceUrl: string, domain?: string): string;
 
-        /** Switch proxy to the proxyless mode **/
-        switchToProxyless (): void;
+        /** Switch proxy to the nativeAutomation mode **/
+        switchToNativeAutomation (): void;
     }
 
     /** The RequestFilterRule class is used to create URL filtering rules for request hook **/
