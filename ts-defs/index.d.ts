@@ -600,6 +600,9 @@ declare module 'testcafe-hammerhead' {
     /** Inject specified stuff to the page **/
     export function injectResources (html: string, resources: PageInjectableResources, options?: PageRestoreStoragesOptions): string;
 
+    /** Prepare form post data **/
+    export function injectUpload (contentTypeHeader: string|void, body: Buffer): Buffer | null;
+
     /** Proxy injectable scripts **/
     export const INJECTABLE_SCRIPTS: string[];
 
