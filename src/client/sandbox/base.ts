@@ -40,8 +40,8 @@ export default class SandboxBase extends EventEmitter {
     }
 
     attach (window: Window & typeof globalThis, document?: Document): void {
-        this.window    = window;
-        this.document  = document || window.document;
+        this.window           = window;
+        this.document         = document || window.document;
         this.nativeAutomation = !!settings.get().nativeAutomation;
     }
 }

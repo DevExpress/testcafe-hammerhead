@@ -303,8 +303,8 @@ class Hammerhead {
     }
 
     navigateTo (url: string, forceReload: boolean): void {
-        const nativeAutomation     = !!settings.get().nativeAutomation;
-        const navigationUrl = urlUtils.getNavigationUrl(url, this.win, nativeAutomation);
+        const nativeAutomation = !!settings.get().nativeAutomation;
+        const navigationUrl    = urlUtils.getNavigationUrl(url, this.win, nativeAutomation);
 
         if (!navigationUrl)
             return;
