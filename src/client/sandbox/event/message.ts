@@ -17,7 +17,6 @@ import { overrideDescriptor } from '../../utils/overriding';
 import { parse as parseJSON, stringify as stringifyJSON } from '../../../utils/json';
 import Listeners from './listeners';
 import UnloadSandbox from './unload';
-import settings from '../../settings';
 import { isFunction } from '../../utils/types';
 
 enum MessageType { // eslint-disable-line no-shadow
