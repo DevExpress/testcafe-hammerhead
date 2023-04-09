@@ -64,7 +64,7 @@ export default class LocationWrapper extends LocationInheritor {
         locationProps.hash   = context.createOverriddenHashDescriptor();
 
         if (window.location.ancestorOrigins)
-            locationProps.ancestorOrigins = context.createOverriddenAncestorOriginsDescriptor();
+            locationProps.ancestorOrigins = context.createOverriddenAncestorOriginsDescriptor(this);
 
         // eslint-disable-next-line no-restricted-properties
         locationProps.port     = context.createOverriddenPortDescriptor();
@@ -241,8 +241,8 @@ class LocationContext {
         });
     }
 
-    public createOverriddenAncestorOriginsDescriptor () {
-        const wrapper     = this;
+    public createOverriddenAncestorOriginsDescriptor (locationWrapper) {
+        const context     = this;
         const callbacks   = nativeMethods.objectCreate(null);
         const idGenerator = new IntegerIdGenerator();
 
@@ -251,14 +251,14 @@ class LocationContext {
 
             callbacks[id] = callback;
 
-            wrapper.messageSandbox.sendServiceMsg({ id, cmd: GET_ORIGIN_CMD }, win);
+            context.messageSandbox.sendServiceMsg({ id, cmd: GET_ORIGIN_CMD }, win);
         };
 
-        if (this.messageSandbox) {
-            this.messageSandbox.on(this.messageSandbox.SERVICE_MSG_RECEIVED_EVENT, ({ message, source }) => {
+        if (context.messageSandbox) {
+            context.messageSandbox.on(context.messageSandbox.SERVICE_MSG_RECEIVED_EVENT, ({ message, source }) => {
                 if (message.cmd === GET_ORIGIN_CMD) {
                     // @ts-ignore
-                    wrapper.messageSandbox.sendServiceMsg({ id: message.id, cmd: ORIGIN_RECEIVED_CMD, origin: this.origin }, source);// eslint-disable-line no-restricted-properties
+                    context.messageSandbox.sendServiceMsg({ id: message.id, cmd: ORIGIN_RECEIVED_CMD, origin: locationWrapper.origin }, source);// eslint-disable-line no-restricted-properties
                 }
                 else if (message.cmd === ORIGIN_RECEIVED_CMD) {
                     const callback = callbacks[message.id];
@@ -269,9 +269,9 @@ class LocationContext {
             });
         }
 
-        const ancestorOrigins = new DOMStringListWrapper(this.window, this.messageSandbox ? getCrossDomainOrigin : void 0);
+        const ancestorOrigins = new DOMStringListWrapper(context.window, context.messageSandbox ? getCrossDomainOrigin : void 0);
 
-        return createOverriddenDescriptor(this.locationPropsOwner, 'ancestorOrigins', {
+        return createOverriddenDescriptor(context.locationPropsOwner, 'ancestorOrigins', {
             //@ts-ignore
             getter: () => ancestorOrigins,
         });
