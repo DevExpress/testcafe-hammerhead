@@ -126,17 +126,17 @@ class LocationContext {
     }
 
     public createOverriddenHrefDescriptor () {
-        const wrapper = this;
+        const context = this;
 
         return createOverriddenDescriptor(this.locationPropsOwner, 'href', {
-            getter: wrapper.createHrefGetter(wrapper.window),
+            getter: context.createHrefGetter(context.window),
             setter: (href: string) => {
-                const proxiedHref = wrapper.getProxiedHref(href, wrapper);
+                const proxiedHref = context.getProxiedHref(href, context);
 
                 // eslint-disable-next-line no-restricted-properties
-                wrapper.window.location.href = proxiedHref;
+                context.window.location.href = proxiedHref;
 
-                wrapper.onChanged(proxiedHref);
+                context.onChanged(proxiedHref);
 
                 return href;
             },
@@ -144,10 +144,10 @@ class LocationContext {
     }
 
     public createOverriddenToStringDescriptor () {
-        const wrapper = this;
+        const context = this;
 
         return createOverriddenDescriptor(this.locationPropsOwner, 'toString', {
-            value: this.createHrefGetter(wrapper.window),
+            value: this.createHrefGetter(context.window),
         });
     }
 
@@ -204,17 +204,17 @@ class LocationContext {
     }
 
     public createOverriddenSearchDescriptor () {
-        const wrapper = this;
+        const context = this;
 
         return createOverriddenDescriptor(this.locationPropsOwner, 'search', {
             // eslint-disable-next-line no-restricted-properties
-            getter: () => wrapper.window.location.search,
+            getter: () => context.window.location.search,
             setter: search => {
-                const newLocation = changeDestUrlPart(wrapper.window.location.toString(), nativeMethods.anchorSearchSetter, search, wrapper.resourceType);
+                const newLocation = changeDestUrlPart(context.window.location.toString(), nativeMethods.anchorSearchSetter, search, context.resourceType);
 
                 // @ts-ignore
-                wrapper.window.location = newLocation;
-                wrapper.onChanged(newLocation);
+                context.window.location = newLocation;
+                context.onChanged(newLocation);
 
                 return search;
             },
@@ -229,12 +229,12 @@ class LocationContext {
     }
 
     public createOverriddenHashDescriptor () {
-        const wrapper = this;
+        const context = this;
 
         return createOverriddenDescriptor(this.locationPropsOwner, 'hash', {
-            getter: () => wrapper.window.location.hash,
+            getter: () => context.window.location.hash,
             setter: hash => {
-                wrapper.window.location.hash = hash;
+                context.window.location.hash = hash;
 
                 return hash;
             },
@@ -298,22 +298,22 @@ class LocationContext {
     }
 
     private createOverriddenLocationAccessorDescriptor (property, nativePropSetter) {
-        const wrapper = this;
+        const context = this;
 
         return createOverriddenDescriptor(this.locationPropsOwner, property, {
             getter: () => {
-                const frameElement       = domUtils.getFrameElement(wrapper.window);
+                const frameElement       = domUtils.getFrameElement(context.window);
                 const inIframeWithoutSrc = frameElement && domUtils.isIframeWithoutSrc(frameElement);
-                const parsedDestLocation = inIframeWithoutSrc ? wrapper.window.location : getParsedDestLocation();
+                const parsedDestLocation = inIframeWithoutSrc ? context.window.location : getParsedDestLocation();
 
                 return parsedDestLocation[property];
             },
             setter: value => {
-                const newLocation = changeDestUrlPart(wrapper.window.location.toString(), nativePropSetter, value, wrapper.resourceType);
+                const newLocation = changeDestUrlPart(context.window.location.toString(), nativePropSetter, value, context.resourceType);
 
                 // @ts-ignore
-                wrapper.window.location = newLocation;
-                wrapper.onChanged(newLocation);
+                context.window.location = newLocation;
+                context.onChanged(newLocation);
 
                 return value;
             },
@@ -329,14 +329,14 @@ class LocationContext {
     }
 
     private createOverriddenLocationDataDescriptor (property) {
-        const wrapper = this;
+        const context = this;
 
         return createOverriddenDescriptor(this.locationPropsOwner, property, {
             value: url => {
-                const proxiedHref = wrapper.getProxiedHref(url, wrapper);
-                const result      = wrapper.window.location[property](proxiedHref);
+                const proxiedHref = context.getProxiedHref(url, context);
+                const result      = context.window.location[property](proxiedHref);
 
-                wrapper.onChanged(proxiedHref);
+                context.onChanged(proxiedHref);
 
                 return result;
             },
@@ -344,13 +344,13 @@ class LocationContext {
     }
 
     public createOverriddenReloadDescriptor () {
-        const wrapper = this;
+        const context = this;
 
         return createOverriddenDescriptor(this.locationPropsOwner, 'reload', {
             value: () => {
-                const result = wrapper.window.location.reload();
+                const result = context.window.location.reload();
 
-                wrapper.onChanged(wrapper.window.location.toString());
+                context.onChanged(context.window.location.toString());
 
                 return result;
             },
@@ -387,11 +387,11 @@ class LocationContext {
         if (!isFunction(descriptor[key]))
             return;
 
-        const wrapper      = this;
+        const context      = this;
         const nativeMethod = descriptor[key];
 
         descriptor[key] = function () {
-            const ctx = this === locationWrapper ? wrapper.window.location : this;
+            const ctx = this === locationWrapper ? context.window.location : this;
 
             return nativeMethod.apply(ctx, arguments);
         };
