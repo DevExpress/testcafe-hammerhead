@@ -648,7 +648,7 @@ if (window.fetch) {
         var storedSettings = settings.get();
 
         hooks.beforeEach(function () {
-            settings.set({ ...storedSettings, proxyless: true });
+            settings.set({ ...storedSettings, nativeAutomation: true });
         });
         hooks.afterEach(function () {
             settings.set(storedSettings);
