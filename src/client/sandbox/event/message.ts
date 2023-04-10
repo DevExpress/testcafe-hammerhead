@@ -17,7 +17,6 @@ import { overrideDescriptor } from '../../utils/overriding';
 import { parse as parseJSON, stringify as stringifyJSON } from '../../../utils/json';
 import Listeners from './listeners';
 import UnloadSandbox from './unload';
-import settings from '../../settings';
 import { isFunction } from '../../utils/types';
 
 enum MessageType { // eslint-disable-line no-shadow
@@ -64,7 +63,7 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     private static _parseMessageJSONData (str: string): any {
-        if (!settings.get().nativeAutomation)
+        if (!MessageSandbox.isNativeAutomation)
             return parseJSON(str);
 
         try {
@@ -182,20 +181,28 @@ export default class MessageSandbox extends SandboxBase {
             configurable: true,
         });
 
-        if (!this.nativeAutomation) {
-            // @ts-ignore
-            overrideDescriptor(window.MessageEvent.prototype, 'data', {
-                getter: function (this: MessageEvent) {
-                    const target = nativeMethods.eventTargetGetter.call(this);
-                    const data   = nativeMethods.messageEventDataGetter.call(this);
+        if (!MessageSandbox.isNativeAutomation)
+            this.overrideDataInMessageEvent();
 
-                    if (data && data.type !== MessageType.Service && isWindow(target))
-                        return MessageSandbox._getOriginMessageData(data);
+        this.overrideOnmessageInWindow();
+    }
 
-                    return data;
-                },
-            });
-        }
+    private overrideDataInMessageEvent () {
+        overrideDescriptor(this.window.MessageEvent.prototype, 'data', {
+            getter: function (this: MessageEvent) {
+                const target = nativeMethods.eventTargetGetter.call(this);
+                const data   = nativeMethods.messageEventDataGetter.call(this);
+
+                if (data && data.type !== MessageType.Service && isWindow(target))
+                    return MessageSandbox._getOriginMessageData(data);
+
+                return data;
+            },
+        });
+    }
+
+    private overrideOnmessageInWindow () {
+        const window = this.window;
 
         // @ts-ignore
         const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;

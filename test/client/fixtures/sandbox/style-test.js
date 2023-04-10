@@ -86,8 +86,8 @@ test('url properties', function () {
     styleSandbox.URL_PROPS.forEach(function (prop) {
         // NOTE: If we setup `borderImage` property then it affects a `borderImageSource` property.
         var affectedProp       = prop === 'borderImage' ? 'borderImageSource' : prop;
-        var dashedProp         = StyleSandbox._convertToDashed(prop);
-        var dashedAffectedProp = StyleSandbox._convertToDashed(affectedProp);
+        var dashedProp         = StyleSandbox.convertToDashed(prop);
+        var dashedAffectedProp = StyleSandbox.convertToDashed(affectedProp);
 
         setNativeStyleProp(div, dashedProp, value);
 
