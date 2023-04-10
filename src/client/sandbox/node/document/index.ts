@@ -30,6 +30,7 @@ import {
     isSpecialPage,
     convertToProxyUrl,
     getCrossDomainProxyOrigin,
+    isNativeAutomation,
 } from '../../../utils/url';
 
 import { getReferrer } from '../../../utils/destination-location';
@@ -49,7 +50,7 @@ export default class DocumentSandbox extends SandboxBase {
     }
 
     static forceProxySrcForImageIfNecessary (element: Element): void {
-        if (SandboxBase.isNativeAutomation)
+        if (isNativeAutomation())
             return;
 
         if (isImgElement(element) && settings.get().forceProxySrcForImage)
@@ -147,7 +148,7 @@ export default class DocumentSandbox extends SandboxBase {
         this.overrideStyleSheets(window);
         this.overrideActiveElement(window);
 
-        if (SandboxBase.isNativeAutomation)
+        if (isNativeAutomation())
             return;
 
         this.overrideOpen(window, document);

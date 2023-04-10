@@ -35,10 +35,6 @@ export default class SandboxBase extends EventEmitter {
         return true;
     }
 
-    static get isNativeAutomation (): boolean {
-        return !!settings.get().nativeAutomation;
-    }
-
     attach (window: Window & typeof globalThis, document?: Document): void {
         this.window           = window;
         this.document         = document || window.document;

@@ -16,6 +16,7 @@ import {
     resolveUrlAsDest,
     getDestinationUrl,
     getScope,
+    isNativeAutomation,
 } from '../../utils/url';
 
 import {
@@ -291,7 +292,7 @@ export default class WindowSandbox extends SandboxBase {
         this.overrideNextSiblingInMutationRecord();
         this.overridePreviousSiblingInMutationRecord();
 
-        if (SandboxBase.isNativeAutomation)
+        if (isNativeAutomation())
             return;
 
         this.overrideDrawImageInCanvasRenderingContext2D();
@@ -647,7 +648,7 @@ export default class WindowSandbox extends SandboxBase {
                 return new nativeMethods.Blob();
 
             if (WindowSandbox.isProcessableBlob(array, opts))
-                array = [processScript(array.join(''), true, false, convertToProxyUrl, void 0, SandboxBase.isNativeAutomation, WindowSandbox.getBlobProcessingSettings())];
+                array = [processScript(array.join(''), true, false, convertToProxyUrl, void 0, isNativeAutomation(), WindowSandbox.getBlobProcessingSettings())];
 
             // NOTE: IE11 throws an error when the second parameter of the Blob function is undefined (GH-44)
             // If the overridden function is called with one parameter, we need to call the original function
@@ -662,7 +663,7 @@ export default class WindowSandbox extends SandboxBase {
                 return new nativeMethods.File();
 
             if (WindowSandbox.isProcessableBlob(array, opts))
-                array = [processScript(array.join(''), true, false, convertToProxyUrl, void 0, SandboxBase.isNativeAutomation, WindowSandbox.getBlobProcessingSettings())];
+                array = [processScript(array.join(''), true, false, convertToProxyUrl, void 0, isNativeAutomation(), WindowSandbox.getBlobProcessingSettings())];
 
             return new nativeMethods.File(array, fileName, opts);
         });
@@ -1585,7 +1586,7 @@ export default class WindowSandbox extends SandboxBase {
                     if (isStyleEl)
                         processedValue = styleProcessor.process(processedValue, getProxyUrl, true);
                     else if (isScriptEl)
-                        processedValue = processScript(processedValue, true, false, convertToProxyUrl, void 0, SandboxBase.isNativeAutomation);
+                        processedValue = processScript(processedValue, true, false, convertToProxyUrl, void 0, isNativeAutomation());
                     else {
                         processedValue = processHtml(processedValue, {
                             parentTag:        el.tagName,
@@ -1738,7 +1739,7 @@ export default class WindowSandbox extends SandboxBase {
                 return removeProcessingHeader(text);
             },
             setter: function (value) {
-                const processedValue = value ? processScript(String(value), true, false, convertToProxyUrl, void 0, SandboxBase.isNativeAutomation) : value;
+                const processedValue = value ? processScript(String(value), true, false, convertToProxyUrl, void 0, isNativeAutomation()) : value;
 
                 nativeMethods.scriptTextSetter.call(this, processedValue);
             },
@@ -1805,7 +1806,7 @@ export default class WindowSandbox extends SandboxBase {
 
         if (processedText) {
             if (isScriptElement(el))
-                return processScript(processedText, true, false, convertToProxyUrl, void 0, SandboxBase.isNativeAutomation);
+                return processScript(processedText, true, false, convertToProxyUrl, void 0, isNativeAutomation());
             else if (isStyleElement(el))
                 return styleProcessor.process(processedText, getProxyUrl, true);
         }
