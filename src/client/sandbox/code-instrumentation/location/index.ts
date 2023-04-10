@@ -5,6 +5,7 @@ import INSTRUCTION from '../../../../processing/script/instruction';
 import nativeMethods from '../../native-methods';
 import { isIE } from '../../../utils/browser';
 import MessageSandbox from '../../event/message';
+import { isNativeAutomation } from '../../../utils/url';
 
 const LOCATION_WRAPPER = 'hammerhead|location-wrapper';
 
@@ -42,6 +43,9 @@ export default class LocationAccessorsInstrumentation extends SandboxBase {
 
     attach (window: Window & typeof globalThis) {
         super.attach(window);
+
+        if (isNativeAutomation())
+            return;
 
         const document        = window.document;
         const locationWrapper = new LocationWrapper(window, this._messageSandbox, this._locationChangedEventCallback);
