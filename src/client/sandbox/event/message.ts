@@ -2,7 +2,7 @@ import Promise from 'pinkie';
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import * as destLocation from '../../utils/destination-location';
-import { formatUrl } from '../../utils/url';
+import { formatUrl, isNativeAutomation } from '../../utils/url';
 
 import {
     isCrossDomainWindows,
@@ -63,7 +63,7 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     private static _parseMessageJSONData (str: string): any {
-        if (!MessageSandbox.isNativeAutomation)
+        if (!isNativeAutomation())
             return parseJSON(str);
 
         try {
@@ -181,7 +181,7 @@ export default class MessageSandbox extends SandboxBase {
             configurable: true,
         });
 
-        if (!MessageSandbox.isNativeAutomation)
+        if (!isNativeAutomation())
             this.overrideDataInMessageEvent();
 
         this.overrideOnmessageInWindow();

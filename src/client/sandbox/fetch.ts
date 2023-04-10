@@ -2,7 +2,11 @@ import Promise from 'pinkie';
 import SandboxBaseWithDelayedSettings from '../worker/sandbox-base-with-delayed-settings';
 import nativeMethods from './native-methods';
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
-import { getAjaxProxyUrl, getDestinationUrl } from '../utils/url';
+import {
+    getAjaxProxyUrl,
+    getDestinationUrl,
+    isNativeAutomation,
+} from '../utils/url';
 import { isFetchHeaders, isFetchRequest } from '../utils/dom';
 
 import {
@@ -83,7 +87,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
             const url         = inputIsString ? input : String(input);
             const credentials = optsCredentials === Credentials.unknown ? DEFAULT_REQUEST_CREDENTIALS : optsCredentials;
 
-            args[0] = getAjaxProxyUrl(url, credentials, FetchSandbox.isNativeAutomation);
+            args[0] = getAjaxProxyUrl(url, credentials, isNativeAutomation());
             args[1] = FetchSandbox.processInit(init || {});
         }
         else {
@@ -135,7 +139,7 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         if (!nativeMethods.fetch)
             return;
 
-        if (!FetchSandbox.isNativeAutomation) {
+        if (!isNativeAutomation()) {
             this.overrideRequestInWindow();
             this.overrideUrlInRequest();
             this.overrideReferrerInRequest();
@@ -248,14 +252,14 @@ export default class FetchSandbox extends SandboxBaseWithDelayedSettings {
         const sandbox = this;
 
         overrideFunction(this.window, 'fetch', function (this: Window, ...args: Parameters<Window['fetch']>) {
-            if (!FetchSandbox.isNativeAutomation && sandbox.gettingSettingInProgress())
+            if (!isNativeAutomation() && sandbox.gettingSettingInProgress())
                 return sandbox.delayUntilGetSettings(() => this.fetch.apply(this, args));
 
             // NOTE: Safari processed the empty `fetch()` request without `Promise` rejection (GH-1613)
             if (!args.length && !browserUtils.isSafari)
                 return nativeMethods.fetch.apply(this, args);
 
-            if (FetchSandbox.isNativeAutomation) {
+            if (isNativeAutomation()) {
                 const fetchPromise = nativeMethods.fetch.apply(this, args);
 
                 sandbox.emit(sandbox.FETCH_REQUEST_SENT_EVENT, fetchPromise);
