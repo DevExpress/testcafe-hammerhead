@@ -21,6 +21,7 @@ const STORE_CHILD_WINDOW_CMD    = 'hammerhead|command|store-child-window';
 
 export default class ChildWindowSandbox extends SandboxBase {
     public readonly WINDOW_OPENED_EVENT = 'hammerhead|event|window-opened';
+    public readonly BEFORE_WINDOW_OPENED_EVENT = 'hammerhead|event|before-window-opened';
     public readonly BEFORE_WINDOW_OPEN_IN_SAME_TAB = 'hammerhead|event|before-window-open-in-same-tab';
     private _childWindows: Set<Window> | null;
 
@@ -58,6 +59,9 @@ export default class ChildWindowSandbox extends SandboxBase {
 
         const newPageUrl   = urlUtils.getPageProxyUrl(url, windowId);
         const targetWindow = window || this.window;
+
+        this.emit(this.BEFORE_WINDOW_OPENED_EVENT);
+
         const openedWindow = nativeMethods.windowOpen.call(targetWindow, newPageUrl, windowName, windowParams);
 
         this._tryToStoreChildWindow(openedWindow, getTopOpenerWindow());
