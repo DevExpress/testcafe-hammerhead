@@ -57,10 +57,14 @@ export default class ChildWindowSandbox extends SandboxBase {
         windowParams = windowParams || DEFAULT_WINDOW_PARAMETERS;
         windowName   = windowName || windowId;
 
-        const newPageUrl   = urlUtils.getPageProxyUrl(url, windowId);
-        const targetWindow = window || this.window;
+        const newPageUrl                  = urlUtils.getPageProxyUrl(url, windowId);
+        const targetWindow                = window || this.window;
+        const beforeWindowOpenedEventArgs = { isPrevented: false };
 
-        this.emit(this.BEFORE_WINDOW_OPENED_EVENT);
+        this.emit(this.BEFORE_WINDOW_OPENED_EVENT, beforeWindowOpenedEventArgs);
+
+        if (beforeWindowOpenedEventArgs.isPrevented)
+            return null;
 
         const openedWindow = nativeMethods.windowOpen.call(targetWindow, newPageUrl, windowName, windowParams);
 

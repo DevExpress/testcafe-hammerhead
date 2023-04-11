@@ -115,6 +115,7 @@ class Hammerhead {
             scriptElementAdded:      this.sandbox.node.element.SCRIPT_ELEMENT_ADDED_EVENT,
             consoleMethCalled:       this.sandbox.console.CONSOLE_METH_CALLED_EVENT,
             windowOpened:            this.sandbox.childWindow.WINDOW_OPENED_EVENT,
+            beforeWindowOpened:      this.sandbox.childWindow.BEFORE_WINDOW_OPENED_EVENT,
         };
 
         this.PROCESSING_INSTRUCTIONS = {
@@ -264,6 +265,7 @@ class Hammerhead {
                 return this.sandbox.console;
 
             case this.EVENTS.windowOpened:
+            case this.EVENTS.beforeWindowOpened:
                 return this.sandbox.childWindow;
 
             default:
