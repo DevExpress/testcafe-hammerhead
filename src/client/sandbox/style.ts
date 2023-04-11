@@ -7,12 +7,9 @@ import {
 } from '../utils/overriding';
 
 import styleProcessor from './../../processing/style';
-import {
-    getProxyUrl,
-    isNativeAutomation,
-    parseProxyUrl,
-} from './../utils/url';
+import { getProxyUrl, parseProxyUrl } from './../utils/url';
 import { isFunction } from '../utils/types';
+import settings from '../settings';
 
 const CSS_STYLE_IS_PROCESSED = 'hammerhead|style|is-processed';
 const CSS_STYLE_PROXY_OBJECT = 'hammerhead|style|proxy-object';
@@ -100,7 +97,7 @@ export default class StyleSandbox extends SandboxBase {
     attach (window: Window & typeof globalThis) {
         super.attach(window);
 
-        if (isNativeAutomation())
+        if (settings.isNativeAutomation())
             return;
 
         this.overrideStyleInElement();

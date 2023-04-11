@@ -370,7 +370,3 @@ export function getAjaxProxyUrl (url: string | URL, credentials: sharedUrlUtils.
 
     return getProxyUrl(url, opts);
 }
-
-export function isNativeAutomation (): boolean {
-    return !!settings.get().nativeAutomation;
-}

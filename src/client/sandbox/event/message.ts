@@ -2,7 +2,7 @@ import Promise from 'pinkie';
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import * as destLocation from '../../utils/destination-location';
-import { formatUrl, isNativeAutomation } from '../../utils/url';
+import { formatUrl } from '../../utils/url';
 
 import {
     isCrossDomainWindows,
@@ -18,6 +18,7 @@ import { parse as parseJSON, stringify as stringifyJSON } from '../../../utils/j
 import Listeners from './listeners';
 import UnloadSandbox from './unload';
 import { isFunction } from '../../utils/types';
+import settings from '../../settings';
 
 enum MessageType { // eslint-disable-line no-shadow
     Service = 'hammerhead|service-msg',
@@ -63,7 +64,7 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     private static _parseMessageJSONData (str: string): any {
-        if (!isNativeAutomation())
+        if (!settings.isNativeAutomation())
             return parseJSON(str);
 
         try {
@@ -181,7 +182,7 @@ export default class MessageSandbox extends SandboxBase {
             configurable: true,
         });
 
-        if (!isNativeAutomation())
+        if (!settings.isNativeAutomation())
             this.overrideDataInMessageEvent();
 
         this.overrideOnmessageInWindow();

@@ -18,7 +18,6 @@ import EventSimulator from '../event/simulator';
 import nativeMethods from '../native-methods';
 import { HammerheadStorageEventInit, StorageProxy } from '../../../typings/client';
 import { stringify as stringifyJSON } from '../../../utils/json';
-import { isNativeAutomation } from '../../utils/url';
 
 
 interface StoragesBackup {
@@ -413,7 +412,7 @@ export default class StorageSandbox extends SandboxBase {
     attach (window: Window & typeof globalThis) {
         super.attach(window);
 
-        this.strategy = isNativeAutomation() ? new StorageSandboxNativeAutomationStrategy() : new StorageSandboxProxyStrategy(
+        this.strategy = settings.isNativeAutomation() ? new StorageSandboxNativeAutomationStrategy() : new StorageSandboxProxyStrategy(
             this,
             window,
             this._listeners,

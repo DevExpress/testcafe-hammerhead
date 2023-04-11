@@ -6,7 +6,6 @@ import {
     getAjaxProxyUrl,
     getDestinationUrl,
     getProxyUrl,
-    isNativeAutomation,
 } from '../utils/url';
 
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
@@ -25,6 +24,7 @@ import {
     isAuthorizationHeader,
     removeAuthenticatePrefix,
 } from '../../utils/headers';
+import settings from '../settings';
 
 const XHR_READY_STATES = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
 
@@ -83,7 +83,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         this.overrideOpen();
         this.overrideSend();
 
-        if (isNativeAutomation())
+        if (settings.isNativeAutomation())
             return;
 
         this.overrideSetRequestHeader();
@@ -185,7 +185,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         const withCredentials = xhr.withCredentials;
 
         reqOpts.withCredentials = withCredentials;
-        reqOpts.openArgs[1]     = getAjaxProxyUrl(url, withCredentials ? Credentials.include : Credentials.sameOrigin, isNativeAutomation());
+        reqOpts.openArgs[1]     = getAjaxProxyUrl(url, withCredentials ? Credentials.include : Credentials.sameOrigin, settings.isNativeAutomation());
 
         nativeMethods.xhrOpen.apply(xhr, reqOpts.openArgs);
 
@@ -218,7 +218,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         overrideFunction(this.window.XMLHttpRequest.prototype, 'open', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['open']>) { // eslint-disable-line consistent-return
             let url = args[1];
 
-            if (getProxyUrl(url, {}, isNativeAutomation()) === url) {
+            if (getProxyUrl(url, {}, settings.isNativeAutomation()) === url) {
                 XhrSandbox.setRequestOptions(this, this.withCredentials, args);
 
                 return void nativeMethods.xhrOpen.apply(this, args);
@@ -229,7 +229,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
 
             url = typeof url === 'string' ? url : String(url);
 
-            args[1] = getAjaxProxyUrl(url, this.withCredentials ? Credentials.include : Credentials.sameOrigin, isNativeAutomation());
+            args[1] = getAjaxProxyUrl(url, this.withCredentials ? Credentials.include : Credentials.sameOrigin, settings.isNativeAutomation());
 
             nativeMethods.xhrOpen.apply(this, args);
 
