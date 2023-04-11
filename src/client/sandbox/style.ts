@@ -97,7 +97,7 @@ export default class StyleSandbox extends SandboxBase {
     attach (window: Window & typeof globalThis) {
         super.attach(window);
 
-        if (settings.isNativeAutomation())
+        if (settings.nativeAutomation)
             return;
 
         this.overrideStyleInElement();

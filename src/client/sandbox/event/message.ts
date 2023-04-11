@@ -64,7 +64,7 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     private static _parseMessageJSONData (str: string): any {
-        if (!settings.isNativeAutomation())
+        if (!settings.nativeAutomation)
             return parseJSON(str);
 
         try {
@@ -182,7 +182,7 @@ export default class MessageSandbox extends SandboxBase {
             configurable: true,
         });
 
-        if (!settings.isNativeAutomation())
+        if (!settings.nativeAutomation)
             this.overrideDataInMessageEvent();
 
         this.overrideOnmessageInWindow();

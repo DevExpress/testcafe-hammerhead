@@ -30,7 +30,7 @@ class Settings {
         return this._settings;
     }
 
-    isNativeAutomation () {
+    get nativeAutomation () {
         return this._settings.nativeAutomation;
     }
 }

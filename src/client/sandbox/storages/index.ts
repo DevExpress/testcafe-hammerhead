@@ -412,7 +412,7 @@ export default class StorageSandbox extends SandboxBase {
     attach (window: Window & typeof globalThis) {
         super.attach(window);
 
-        this.strategy = settings.isNativeAutomation() ? new StorageSandboxNativeAutomationStrategy() : new StorageSandboxProxyStrategy(
+        this.strategy = settings.nativeAutomation ? new StorageSandboxNativeAutomationStrategy() : new StorageSandboxProxyStrategy(
             this,
             window,
             this._listeners,
