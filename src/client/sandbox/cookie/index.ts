@@ -279,7 +279,7 @@ export default class CookieSandbox extends SandboxBase {
         this._windowSync.attach(window);
 
         this._cookieStrategy = CookieSandboxStrategyFactory.create(
-            this.nativeAutomation,
+            settings.nativeAutomation,
             this.document,
             this._windowSync);
 

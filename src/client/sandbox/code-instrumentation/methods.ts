@@ -11,6 +11,7 @@ import {
 import { getProxyUrl, stringifyResourceType } from '../../utils/url';
 import nativeMethods from '../native-methods';
 import MessageSandbox from '../event/message';
+import settings from '../../settings';
 
 export default class MethodCallInstrumentation extends SandboxBase {
     methodWrappers: any;
@@ -29,7 +30,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
             },
         };
 
-        if (this.nativeAutomation)
+        if (settings.nativeAutomation)
             return;
 
         // NOTE: We cannot get the location wrapper for a cross-domain window. Therefore, we need to
