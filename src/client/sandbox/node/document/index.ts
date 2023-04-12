@@ -49,7 +49,7 @@ export default class DocumentSandbox extends SandboxBase {
     }
 
     static forceProxySrcForImageIfNecessary (element: Element): void {
-        if (SandboxBase.isNativeAutomation)
+        if (settings.nativeAutomation)
             return;
 
         if (isImgElement(element) && settings.get().forceProxySrcForImage)
@@ -147,7 +147,7 @@ export default class DocumentSandbox extends SandboxBase {
         this.overrideStyleSheets(window);
         this.overrideActiveElement(window);
 
-        if (SandboxBase.isNativeAutomation)
+        if (settings.nativeAutomation)
             return;
 
         this.overrideOpen(window, document);

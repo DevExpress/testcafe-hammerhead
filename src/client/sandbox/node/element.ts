@@ -181,7 +181,7 @@ export default class ElementSandbox extends SandboxBase {
                 if (value !== '' && (!isSpecialPage || tagName === 'a')) {
                     const isIframe         = tagName === 'iframe' || tagName === 'frame';
                     const isScript         = tagName === 'script';
-                    const isCrossDomainUrl = !SandboxBase.isNativeAutomation && isSupportedProtocol && !sameOriginCheck(this.window.location.toString(), value);
+                    const isCrossDomainUrl = !settings.nativeAutomation && isSupportedProtocol && !sameOriginCheck(this.window.location.toString(), value);
                     let resourceType       = domProcessor.getElementResourceType(el);
                     const elCharset        = isScript && (el as HTMLScriptElement).charset; // eslint-disable-line no-extra-parens
                     const currentDocument  = el.ownerDocument || this.document;
@@ -201,7 +201,7 @@ export default class ElementSandbox extends SandboxBase {
                         domUtils.isElementInDocument(el, currentDocument))
                         urlResolver.updateBase(value, currentDocument);
 
-                    if (SandboxBase.isNativeAutomation)
+                    if (settings.nativeAutomation)
                         args[valueIndex] = value;
                     else {
                         args[valueIndex] = isIframe && isCrossDomainUrl
@@ -877,7 +877,7 @@ export default class ElementSandbox extends SandboxBase {
             return str;
 
         if (domUtils.isScriptElement(parentNode))
-            return processScript(str, true, false, urlUtils.convertToProxyUrl, void 0, SandboxBase.isNativeAutomation);
+            return processScript(str, true, false, urlUtils.convertToProxyUrl, void 0, settings.nativeAutomation);
 
         if (domUtils.isStyleElement(parentNode))
             return styleProcessor.process(str, urlUtils.getProxyUrl);
@@ -1048,7 +1048,7 @@ export default class ElementSandbox extends SandboxBase {
         overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentElement', this.overriddenMethods.insertAdjacentElement);
         overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentText', this.overriddenMethods.insertAdjacentText);
 
-        if (SandboxBase.isNativeAutomation)
+        if (settings.nativeAutomation)
             return;
 
         overrideFunction(window.Element.prototype, 'setAttribute', this.overriddenMethods.setAttribute);
@@ -1170,7 +1170,7 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     private _handleImageLoadEventRaising (el: HTMLImageElement): void {
-        if (SandboxBase.isNativeAutomation)
+        if (settings.nativeAutomation)
             return;
 
         this._eventSandbox.listeners.initElementListening(el, ['load']);

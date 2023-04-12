@@ -95,7 +95,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             if (optional && isNullOrUndefined(owner))
                 return void 0;
 
-            else if (!WindowSandbox.isProxyObject(owner) && PropertyAccessorsInstrumentation._ACCESSORS[propName].condition(owner))
+            else if (!WindowSandbox.isProxyObject(owner) && PropertyAccessorsInstrumentation._ACCESSORS[propName].condition(owner) && !settings.nativeAutomation)
                 return PropertyAccessorsInstrumentation._ACCESSORS[propName].get(owner);
         }
 
@@ -109,10 +109,9 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         if (isNullOrUndefined(owner))
             PropertyAccessorsInstrumentation._error(`Cannot set property '${propName}' of ${inaccessibleTypeToStr(owner)}`);
 
-        if (typeof propName === 'string' && shouldInstrumentProperty(propName)) {
-            if (!WindowSandbox.isProxyObject(owner) && PropertyAccessorsInstrumentation._ACCESSORS[propName].condition(owner))
-                return PropertyAccessorsInstrumentation._ACCESSORS[propName].set(owner, value);
-        }
+        if (typeof propName === 'string' && shouldInstrumentProperty(propName) && !settings.nativeAutomation &&
+                !WindowSandbox.isProxyObject(owner) && PropertyAccessorsInstrumentation._ACCESSORS[propName].condition(owner))
+            return PropertyAccessorsInstrumentation._ACCESSORS[propName].set(owner, value);
 
         return owner[propName] = value; // eslint-disable-line no-return-assign
     }

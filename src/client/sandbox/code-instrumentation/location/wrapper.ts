@@ -28,6 +28,8 @@ import { createOverriddenDescriptor, overrideStringRepresentation } from '../../
 import MessageSandbox from '../../event/message';
 import { isIE11 } from '../../../utils/browser';
 import { isFunction } from '../../../utils/types';
+import { ParsedProxyUrl, ResourceType } from '../../../../typings/url';
+
 
 const GET_ORIGIN_CMD      = 'hammerhead|command|get-origin';
 const ORIGIN_RECEIVED_CMD = 'hammerhead|command|origin-received';
@@ -49,22 +51,108 @@ export default class LocationWrapper extends LocationInheritor {
     constructor (window: Window, messageSandbox: MessageSandbox, onChanged: Function) {
         super();
 
-        const parsedLocation         = parseProxyUrl(getLocationUrl(window) as string);
-        const locationResourceType   = parsedLocation ? parsedLocation.resourceType : '';
-        const parsedResourceType     = parseResourceType(locationResourceType);
-        // @ts-ignore
-        const isLocationPropsInProto = nativeMethods.objectHasOwnProperty.call(window.Location.prototype, 'href');
-        // @ts-ignore
-        const locationPropsOwner     = isLocationPropsInProto ? window.Location.prototype : window.location;
-        const locationProps: any     = {};
+        const context = new LocationContext(window, messageSandbox, onChanged);
 
-        parsedResourceType.isIframe = parsedResourceType.isIframe || domUtils.isIframeWindow(window);
+        const locationProps: any = {};
 
-        const resourceType   = getResourceTypeString({
-            isIframe: parsedResourceType.isIframe,
-            isForm:   parsedResourceType.isForm,
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.href   = context.createOverriddenHrefDescriptor();
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.search = context.createOverriddenSearchDescriptor();
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.origin = context.createOverriddenOriginDescriptor();
+        locationProps.hash   = context.createOverriddenHashDescriptor();
+
+        if (window.location.ancestorOrigins)
+            locationProps.ancestorOrigins = context.createOverriddenAncestorOriginsDescriptor(this);
+
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.port     = context.createOverriddenPortDescriptor();
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.host     = context.createOverriddenHostDescriptor();
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.hostname = context.createOverriddenHostnameDescriptor();
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.pathname = context.createOverriddenPathnameDescriptor();
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.protocol = context.createOverriddenProtocolDescriptor();
+        locationProps.assign   = context.createOverriddenAssignDescriptor();
+        locationProps.replace  = context.createOverriddenReplaceDescriptor();
+        locationProps.reload   = context.createOverriddenReloadDescriptor();
+        locationProps.toString = context.createOverriddenToStringDescriptor();
+
+        if (!context.isLocationPropsInProto && nativeMethods.objectHasOwnProperty.call(window.location, 'valueOf'))
+            locationProps.valueOf = context.createOverriddenValueOfDescriptor();
+
+        nativeMethods.objectDefineProperties(this, locationProps);
+
+        // NOTE: We shouldn't break the client script if the browser add the new API. For example:
+        // > From Chrome 80 to Chrome 85, the fragmentDirective property was defined on Location.prototype.
+        if (isIE11)
+            return;
+
+        context.overrideRestDescriptors(this, locationProps);
+    }
+}
+
+class LocationContext {
+    public isLocationPropsInProto: boolean;
+    private window: Window;
+    private messageSandbox: MessageSandbox;
+    private onChanged: Function;
+    private parsedLocation: ParsedProxyUrl | null;
+    private locationResourceType: string;
+    private parsedResourceType: ResourceType;
+    private locationPropsOwner: Location;
+    private resourceType: string | null;
+
+    constructor (window: Window, messageSandbox: MessageSandbox, onChanged: Function) {
+        this.window         = window;
+        this.messageSandbox = messageSandbox;
+        this.onChanged      = onChanged;
+
+        this.parsedLocation         = parseProxyUrl(getLocationUrl(window) as string);
+        this.locationResourceType   = this.parsedLocation ? this.parsedLocation.resourceType : '';
+        this.parsedResourceType     = parseResourceType(this.locationResourceType);// @ts-ignore
+        this.isLocationPropsInProto = nativeMethods.objectHasOwnProperty.call(window.Location.prototype, 'href');// @ts-ignore
+        this.locationPropsOwner     = this.isLocationPropsInProto ? window.Location.prototype : window.location;
+
+        this.parsedResourceType.isIframe = this.parsedResourceType.isIframe || domUtils.isIframeWindow(window);
+
+        this.resourceType = getResourceTypeString({
+            isIframe: this.parsedResourceType.isIframe,
+            isForm:   this.parsedResourceType.isForm,
         });
-        const getHref        = () => {
+    }
+
+    public createOverriddenHrefDescriptor () {
+        const context = this;
+
+        return createOverriddenDescriptor(this.locationPropsOwner, 'href', {
+            getter: context.createHrefGetter(context.window),
+            setter: (href: string) => {
+                const proxiedHref = context.getProxiedHref(href, context);
+
+                // eslint-disable-next-line no-restricted-properties
+                context.window.location.href = proxiedHref;
+
+                context.onChanged(proxiedHref);
+
+                return href;
+            },
+        });
+    }
+
+    public createOverriddenToStringDescriptor () {
+        const context = this;
+
+        return createOverriddenDescriptor(this.locationPropsOwner, 'toString', {
+            value: this.createHrefGetter(context.window),
+        });
+    }
+
+    private createHrefGetter (window: Window) {
+        return function () {
             // eslint-disable-next-line no-restricted-properties
             if (domUtils.isIframeWindow(window) && window.location.href === SPECIAL_BLANK_PAGE)
                 return SPECIAL_BLANK_PAGE;
@@ -78,203 +166,206 @@ export default class LocationWrapper extends LocationInheritor {
 
             return ensureTrailingSlash(href, locationUrl);
         };
-        const getProxiedHref = (href: any) => {
-            if (typeof href !== 'string')
-                href = String(href);
+    }
 
-            href = prepareUrl(href);
+    private getProxiedHref (href: any, locationWrapper: this) {
+        const window = locationWrapper.window;
 
-            if (DomProcessor.isJsProtocol(href))
-                return DomProcessor.processJsAttrValue(href, { isJsProtocol: true, isEventAttr: false });
+        if (typeof href !== 'string')
+            href = String(href);
 
-            const locationUrl = getLocationUrl(window);
+        href = prepareUrl(href);
 
-            let proxyPort = null;
+        if (DomProcessor.isJsProtocol(href))
+            return DomProcessor.processJsAttrValue(href, { isJsProtocol: true, isEventAttr: false });
 
-            if (window !== window.parent) {
-                const parentLocationUrl       = getLocationUrl(window.parent) as string;
-                const parsedParentLocationUrl = parseProxyUrl(parentLocationUrl);
+        const locationUrl = getLocationUrl(window);
 
-                if (parsedParentLocationUrl && parsedParentLocationUrl.proxy) {
-                    // eslint-disable-next-line no-restricted-properties
-                    const parentProxyPort = parsedParentLocationUrl.proxy.port;
+        let proxyPort = null;
 
-                    proxyPort = sameOriginCheck(parentLocationUrl, href)
-                        ? parentProxyPort
-                        : getCrossDomainProxyPort(parentProxyPort);
-                }
-            }
+        if (window !== window.parent) {
+            const parentLocationUrl       = getLocationUrl(window.parent) as string;
+            const parsedParentLocationUrl = parseProxyUrl(parentLocationUrl);
 
-            const changedOnlyHash     = locationUrl && isChangedOnlyHash(locationUrl, href);
-            const currentResourceType = changedOnlyHash ? locationResourceType : resourceType;
-
-            return getProxyUrl(href, { resourceType: currentResourceType, proxyPort });
-        };
-
-        // eslint-disable-next-line no-restricted-properties
-        locationProps.href = createOverriddenDescriptor(locationPropsOwner, 'href', {
-            getter: getHref,
-            setter: (href: string) => {
-                const proxiedHref = getProxiedHref(href);
-
-                // eslint-disable-next-line no-restricted-properties
-                window.location.href = proxiedHref;
-
-                onChanged(proxiedHref);
-
-                return href;
-            },
-        });
-
-        // eslint-disable-next-line no-restricted-properties
-        locationProps.search = createOverriddenDescriptor(locationPropsOwner, 'search', {
+            if (parsedParentLocationUrl && parsedParentLocationUrl.proxy) {
             // eslint-disable-next-line no-restricted-properties
-            getter: () => window.location.search,
+                const parentProxyPort = parsedParentLocationUrl.proxy.port;
+
+                proxyPort = sameOriginCheck(parentLocationUrl, href)
+                    ? parentProxyPort
+                    : getCrossDomainProxyPort(parentProxyPort);
+            }
+        }
+
+        const changedOnlyHash     = locationUrl && isChangedOnlyHash(locationUrl, href);
+        const currentResourceType = changedOnlyHash ? locationWrapper.locationResourceType : locationWrapper.resourceType;
+
+        return getProxyUrl(href, { resourceType: currentResourceType, proxyPort });
+    }
+
+    public createOverriddenSearchDescriptor () {
+        const context = this;
+
+        return createOverriddenDescriptor(this.locationPropsOwner, 'search', {
+            // eslint-disable-next-line no-restricted-properties
+            getter: () => context.window.location.search,
             setter: search => {
-                const newLocation = changeDestUrlPart(window.location.toString(), nativeMethods.anchorSearchSetter, search, resourceType);
+                const newLocation = changeDestUrlPart(context.window.location.toString(), nativeMethods.anchorSearchSetter, search, context.resourceType);
 
                 // @ts-ignore
-                window.location = newLocation;
-                onChanged(newLocation);
+                context.window.location = newLocation;
+                context.onChanged(newLocation);
 
                 return search;
             },
         });
+    }
 
-        // eslint-disable-next-line no-restricted-properties
-        locationProps.origin = createOverriddenDescriptor(locationPropsOwner, 'origin', {
+    public createOverriddenOriginDescriptor () {
+        return createOverriddenDescriptor(this.locationPropsOwner, 'origin', {
             getter: () => getDomain(getParsedDestLocation()),
             setter: origin => origin,
         });
+    }
 
-        locationProps.hash = createOverriddenDescriptor(locationPropsOwner, 'hash', {
-            getter: () => window.location.hash,
+    public createOverriddenHashDescriptor () {
+        const context = this;
+
+        return createOverriddenDescriptor(this.locationPropsOwner, 'hash', {
+            getter: () => context.window.location.hash,
             setter: hash => {
-                window.location.hash = hash;
+                context.window.location.hash = hash;
 
                 return hash;
             },
         });
+    }
 
-        if (window.location.ancestorOrigins) {
-            const callbacks   = nativeMethods.objectCreate(null);
-            const idGenerator = new IntegerIdGenerator();
+    public createOverriddenAncestorOriginsDescriptor (locationWrapper) {
+        const context     = this;
+        const callbacks   = nativeMethods.objectCreate(null);
+        const idGenerator = new IntegerIdGenerator();
 
-            const getCrossDomainOrigin = (win, callback) => {
-                const id = idGenerator.increment();
+        const getCrossDomainOrigin = (win, callback) => {
+            const id = idGenerator.increment();
 
-                callbacks[id] = callback;
+            callbacks[id] = callback;
 
-                messageSandbox.sendServiceMsg({ id, cmd: GET_ORIGIN_CMD }, win);
-            };
+            context.messageSandbox.sendServiceMsg({ id, cmd: GET_ORIGIN_CMD }, win);
+        };
 
-            if (messageSandbox) {
-                messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, ({ message, source }) => {
-                    if (message.cmd === GET_ORIGIN_CMD) {
-                        // @ts-ignore
-                        messageSandbox.sendServiceMsg({ id: message.id, cmd: ORIGIN_RECEIVED_CMD, origin: this.origin }, source);// eslint-disable-line no-restricted-properties
-                    }
-                    else if (message.cmd === ORIGIN_RECEIVED_CMD) {
-                        const callback = callbacks[message.id];
+        if (context.messageSandbox) {
+            context.messageSandbox.on(context.messageSandbox.SERVICE_MSG_RECEIVED_EVENT, ({ message, source }) => {
+                if (message.cmd === GET_ORIGIN_CMD) {
+                    // @ts-ignore
+                    context.messageSandbox.sendServiceMsg({ id: message.id, cmd: ORIGIN_RECEIVED_CMD, origin: locationWrapper.origin }, source);// eslint-disable-line no-restricted-properties
+                }
+                else if (message.cmd === ORIGIN_RECEIVED_CMD) {
+                    const callback = callbacks[message.id];
 
-                        if (callback)
-                            callback(message.origin); // eslint-disable-line no-restricted-properties
-                    }
-                });
-            }
-
-            const ancestorOrigins = new DOMStringListWrapper(window, messageSandbox ? getCrossDomainOrigin : void 0);
-
-            locationProps.ancestorOrigins = createOverriddenDescriptor(locationPropsOwner, 'ancestorOrigins', {
-                getter: () => ancestorOrigins,
+                    if (callback)
+                        callback(message.origin); // eslint-disable-line no-restricted-properties
+                }
             });
         }
 
-        const createLocationPropertyDesc = (property, nativePropSetter) => {
-            locationProps[property] = createOverriddenDescriptor(locationPropsOwner, property, {
-                getter: () => {
-                    const frameElement       = domUtils.getFrameElement(window);
-                    const inIframeWithoutSrc = frameElement && domUtils.isIframeWithoutSrc(frameElement);
-                    const parsedDestLocation = inIframeWithoutSrc ? window.location : getParsedDestLocation();
+        const ancestorOrigins = new DOMStringListWrapper(context.window, context.messageSandbox ? getCrossDomainOrigin : void 0);
 
-                    return parsedDestLocation[property];
-                },
-                setter: value => {
-                    const newLocation = changeDestUrlPart(window.location.toString(), nativePropSetter, value, resourceType);
+        return createOverriddenDescriptor(context.locationPropsOwner, 'ancestorOrigins', {
+            //@ts-ignore
+            getter: () => ancestorOrigins,
+        });
+    }
 
-                    // @ts-ignore
-                    window.location = newLocation;
-                    onChanged(newLocation);
+    public createOverriddenPortDescriptor () {
+        return this.createOverriddenLocationAccessorDescriptor('port', nativeMethods.anchorPortSetter);
+    }
 
-                    return value;
-                },
-            });
-        };
+    public createOverriddenHostDescriptor () {
+        return this.createOverriddenLocationAccessorDescriptor('host', nativeMethods.anchorHostSetter);
+    }
 
-        createLocationPropertyDesc('port', nativeMethods.anchorPortSetter);
-        createLocationPropertyDesc('host', nativeMethods.anchorHostSetter);
-        createLocationPropertyDesc('hostname', nativeMethods.anchorHostnameSetter);
-        createLocationPropertyDesc('pathname', nativeMethods.anchorPathnameSetter);
-        createLocationPropertyDesc('protocol', nativeMethods.anchorProtocolSetter);
+    public createOverriddenHostnameDescriptor () {
+        return this.createOverriddenLocationAccessorDescriptor('hostname', nativeMethods.anchorHostnameSetter);
+    }
 
-        locationProps.assign = createOverriddenDescriptor(locationPropsOwner, 'assign', {
+    public createOverriddenPathnameDescriptor () {
+        return this.createOverriddenLocationAccessorDescriptor('pathname', nativeMethods.anchorPathnameSetter);
+    }
+
+    public createOverriddenProtocolDescriptor () {
+        return this.createOverriddenLocationAccessorDescriptor('protocol', nativeMethods.anchorProtocolSetter);
+    }
+
+    private createOverriddenLocationAccessorDescriptor (property, nativePropSetter) {
+        const context = this;
+
+        return createOverriddenDescriptor(this.locationPropsOwner, property, {
+            getter: () => {
+                const frameElement       = domUtils.getFrameElement(context.window);
+                const inIframeWithoutSrc = frameElement && domUtils.isIframeWithoutSrc(frameElement);
+                const parsedDestLocation = inIframeWithoutSrc ? context.window.location : getParsedDestLocation();
+
+                return parsedDestLocation[property];
+            },
+            setter: value => {
+                const newLocation = changeDestUrlPart(context.window.location.toString(), nativePropSetter, value, context.resourceType);
+
+                // @ts-ignore
+                context.window.location = newLocation;
+                context.onChanged(newLocation);
+
+                return value;
+            },
+        });
+    }
+
+    public createOverriddenAssignDescriptor () {
+        return this.createOverriddenLocationDataDescriptor('assign');
+    }
+
+    public createOverriddenReplaceDescriptor () {
+        return this.createOverriddenLocationDataDescriptor('replace');
+    }
+
+    private createOverriddenLocationDataDescriptor (property) {
+        const context = this;
+
+        return createOverriddenDescriptor(this.locationPropsOwner, property, {
             value: url => {
-                const proxiedHref = getProxiedHref(url);
-                const result      = window.location.assign(proxiedHref);
+                const proxiedHref = context.getProxiedHref(url, context);
+                const result      = context.window.location[property](proxiedHref);
 
-                onChanged(proxiedHref);
+                context.onChanged(proxiedHref);
 
                 return result;
             },
         });
+    }
 
-        locationProps.replace = createOverriddenDescriptor(locationPropsOwner, 'replace', {
-            value: url => {
-                const proxiedHref = getProxiedHref(url);
-                const result      = window.location.replace(proxiedHref);
+    public createOverriddenReloadDescriptor () {
+        const context = this;
 
-                onChanged(proxiedHref);
-
-                return result;
-            },
-        });
-
-        locationProps.reload = createOverriddenDescriptor(locationPropsOwner, 'reload', {
+        return createOverriddenDescriptor(this.locationPropsOwner, 'reload', {
             value: () => {
-                const result = window.location.reload();
+                const result = context.window.location.reload();
 
-                onChanged(window.location.toString());
+                context.onChanged(context.window.location.toString());
 
                 return result;
             },
         });
+    }
 
-        locationProps.toString = createOverriddenDescriptor(locationPropsOwner, 'toString', { value: getHref });
+    public createOverriddenValueOfDescriptor () {
+        //@ts-ignore
+        return createOverriddenDescriptor(this.locationPropsOwner, 'valueOf', {
+            value: () => this,
+        });
+    }
 
-        if (!isLocationPropsInProto && nativeMethods.objectHasOwnProperty.call(window.location, 'valueOf'))
-            locationProps.valueOf  = createOverriddenDescriptor(locationPropsOwner, 'valueOf', { value: () => this });
-
-        nativeMethods.objectDefineProperties(this, locationProps);
-
-        // NOTE: We shouldn't break the client script if the browser add the new API. For example:
-        // > From Chrome 80 to Chrome 85, the fragmentDirective property was defined on Location.prototype.
-        if (isIE11)
-            return;
-
-        const protoKeys           = nativeMethods.objectKeys(Location.prototype);
-        const locWrapper          = this;
-        const rewriteDescriptorFn = (descriptor, key: string) => {
-            if (!isFunction(descriptor[key]))
-                return;
-
-            const nativeMethod = descriptor[key];
-
-            descriptor[key] = function () {
-                const ctx = this === locWrapper ? window.location : this;
-
-                return nativeMethod.apply(ctx, arguments);
-            };
-        };
+    public overrideRestDescriptors (locationWrapper, locationProps) {
+        const protoKeys = nativeMethods.objectKeys(Location.prototype);
 
         for (const protoKey of protoKeys) {
             if (protoKey in locationProps)
@@ -282,14 +373,28 @@ export default class LocationWrapper extends LocationInheritor {
 
             const protoKeyDescriptor = nativeMethods.objectGetOwnPropertyDescriptor(Location.prototype, protoKey);
 
-            rewriteDescriptorFn(protoKeyDescriptor, 'get');
-            rewriteDescriptorFn(protoKeyDescriptor, 'set');
-            rewriteDescriptorFn(protoKeyDescriptor, 'value');
+            this.overrideRestDescriptor(locationWrapper, protoKeyDescriptor, 'get');
+            this.overrideRestDescriptor(locationWrapper, protoKeyDescriptor, 'set');
+            this.overrideRestDescriptor(locationWrapper, protoKeyDescriptor, 'value');
 
-            nativeMethods.objectDefineProperty(locWrapper, protoKey, protoKeyDescriptor);
+            nativeMethods.objectDefineProperty(locationWrapper, protoKey, protoKeyDescriptor);
             // NOTE: We hide errors with a new browser API and we should know about it.
             nativeMethods.consoleMeths.log(`testcafe-hammerhead: unwrapped Location.prototype.${protoKey} descriptor!`);
         }
+    }
+
+    public overrideRestDescriptor (locationWrapper, descriptor, key: string) {
+        if (!isFunction(descriptor[key]))
+            return;
+
+        const context      = this;
+        const nativeMethod = descriptor[key];
+
+        descriptor[key] = function () {
+            const ctx = this === locationWrapper ? context.window.location : this;
+
+            return nativeMethod.apply(ctx, arguments);
+        };
     }
 }
 

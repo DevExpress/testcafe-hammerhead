@@ -18,6 +18,7 @@ import { parse as parseJSON, stringify as stringifyJSON } from '../../../utils/j
 import Listeners from './listeners';
 import UnloadSandbox from './unload';
 import { isFunction } from '../../utils/types';
+import settings from '../../settings';
 
 enum MessageType { // eslint-disable-line no-shadow
     Service = 'hammerhead|service-msg',
@@ -63,7 +64,7 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     private static _parseMessageJSONData (str: string): any {
-        if (!MessageSandbox.isNativeAutomation)
+        if (!settings.nativeAutomation)
             return parseJSON(str);
 
         try {
@@ -181,7 +182,7 @@ export default class MessageSandbox extends SandboxBase {
             configurable: true,
         });
 
-        if (!MessageSandbox.isNativeAutomation)
+        if (!settings.nativeAutomation)
             this.overrideDataInMessageEvent();
 
         this.overrideOnmessageInWindow();

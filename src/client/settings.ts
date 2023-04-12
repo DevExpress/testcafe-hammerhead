@@ -29,6 +29,10 @@ class Settings {
     get (): HammerheadInitSettings {
         return this._settings;
     }
+
+    get nativeAutomation () {
+        return this._settings.nativeAutomation;
+    }
 }
 
 const settings = new Settings();

@@ -292,7 +292,7 @@ export default class DocumentWriter {
             let processedContent = this.contentForProcessing;
 
             if (isScriptElement(this.nonClosedEl))
-                processedContent = processScript(this.contentForProcessing, true, false, convertToProxyUrl, void 0, settings.get().nativeAutomation);
+                processedContent = processScript(this.contentForProcessing, true, false, convertToProxyUrl, void 0, settings.nativeAutomation);
             else if (isStyleElement(this.nonClosedEl))
                 processedContent = styleProcessor.process(this.contentForProcessing, getProxyUrl, true);
 
