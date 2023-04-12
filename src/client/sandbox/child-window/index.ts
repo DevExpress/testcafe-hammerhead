@@ -51,7 +51,7 @@ export default class ChildWindowSandbox extends SandboxBase {
         return !windowsStorage.findByName(target);
     }
 
-    private _openUrlInNewWindow (url: string, windowName?: string, windowParams?: string, window?: Window): OpenedWindowInfo {
+    private _openUrlInNewWindow (url: string, windowName?: string, windowParams?: string, window?: Window): OpenedWindowInfo | null {
         const windowId = getRandomInt16Value().toString();
 
         windowParams = windowParams || DEFAULT_WINDOW_PARAMETERS;
@@ -139,7 +139,7 @@ export default class ChildWindowSandbox extends SandboxBase {
         if (settings.get().allowMultipleWindows && ChildWindowSandbox._shouldOpenInNewWindow(target, DefaultTarget.windowOpen)) {
             const openedWindowInfo = this._openUrlInNewWindow(url, target, parameters, window);
 
-            return openedWindowInfo.wnd;
+            return openedWindowInfo?.wnd;
         }
 
         // NOTE: Safari stopped throwing the 'unload' event for this case starting from 14 version.
@@ -164,6 +164,10 @@ export default class ChildWindowSandbox extends SandboxBase {
 
             const aboutBlankUrl = urlUtils.getProxyUrl(SPECIAL_BLANK_PAGE);
             const openedInfo    = this._openUrlInNewWindow(aboutBlankUrl);
+
+            if (!openedInfo)
+                return;
+
             const formAction    = nativeMethods.formActionGetter.call(form);
             const newWindowUrl  = urlUtils.getPageProxyUrl(formAction, openedInfo.windowId);
 
