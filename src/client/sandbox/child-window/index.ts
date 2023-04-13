@@ -21,6 +21,7 @@ const STORE_CHILD_WINDOW_CMD    = 'hammerhead|command|store-child-window';
 
 export default class ChildWindowSandbox extends SandboxBase {
     public readonly WINDOW_OPENED_EVENT = 'hammerhead|event|window-opened';
+    public readonly BEFORE_WINDOW_OPENED_EVENT = 'hammerhead|event|before-window-opened';
     public readonly BEFORE_WINDOW_OPEN_IN_SAME_TAB = 'hammerhead|event|before-window-open-in-same-tab';
     private _childWindows: Set<Window> | null;
 
@@ -50,14 +51,21 @@ export default class ChildWindowSandbox extends SandboxBase {
         return !windowsStorage.findByName(target);
     }
 
-    private _openUrlInNewWindow (url: string, windowName?: string, windowParams?: string, window?: Window): OpenedWindowInfo {
+    private _openUrlInNewWindow (url: string, windowName?: string, windowParams?: string, window?: Window): OpenedWindowInfo | null {
         const windowId = getRandomInt16Value().toString();
 
         windowParams = windowParams || DEFAULT_WINDOW_PARAMETERS;
         windowName   = windowName || windowId;
 
-        const newPageUrl   = urlUtils.getPageProxyUrl(url, windowId);
-        const targetWindow = window || this.window;
+        const newPageUrl                  = urlUtils.getPageProxyUrl(url, windowId);
+        const targetWindow                = window || this.window;
+        const beforeWindowOpenedEventArgs = { isPrevented: false };
+
+        this.emit(this.BEFORE_WINDOW_OPENED_EVENT, beforeWindowOpenedEventArgs);
+
+        if (beforeWindowOpenedEventArgs.isPrevented)
+            return null;
+
         const openedWindow = nativeMethods.windowOpen.call(targetWindow, newPageUrl, windowName, windowParams);
 
         this._tryToStoreChildWindow(openedWindow, getTopOpenerWindow());
@@ -131,7 +139,7 @@ export default class ChildWindowSandbox extends SandboxBase {
         if (settings.get().allowMultipleWindows && ChildWindowSandbox._shouldOpenInNewWindow(target, DefaultTarget.windowOpen)) {
             const openedWindowInfo = this._openUrlInNewWindow(url, target, parameters, window);
 
-            return openedWindowInfo.wnd;
+            return openedWindowInfo?.wnd;
         }
 
         // NOTE: Safari stopped throwing the 'unload' event for this case starting from 14 version.
@@ -156,6 +164,10 @@ export default class ChildWindowSandbox extends SandboxBase {
 
             const aboutBlankUrl = urlUtils.getProxyUrl(SPECIAL_BLANK_PAGE);
             const openedInfo    = this._openUrlInNewWindow(aboutBlankUrl);
+
+            if (!openedInfo)
+                return;
+
             const formAction    = nativeMethods.formActionGetter.call(form);
             const newWindowUrl  = urlUtils.getPageProxyUrl(formAction, openedInfo.windowId);
 

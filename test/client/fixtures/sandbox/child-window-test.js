@@ -254,3 +254,26 @@ test('should be prevented only default behaviour (GH-2467)', function () {
             document.body.removeChild(anchor);
         });
 });
+
+test('prevent window.open', function () {
+    settings.get().allowMultipleWindows = true;
+
+    var handled = false;
+
+    function beforeWindowOpenedHandler (e) {
+        handled = true;
+
+        e.isPrevented = true;
+    }
+
+    windowSandbox._childWindowSandbox.on(hammerhead.EVENTS.beforeWindowOpened, beforeWindowOpenedHandler);
+
+    var wnd = window.open('/test');
+
+    notOk(wnd);
+    ok(handled);
+
+    windowSandbox._childWindowSandbox.off(hammerhead.EVENTS.beforeWindowOpened, beforeWindowOpenedHandler);
+
+    settings.get().allowMultipleWindows = false;
+});
