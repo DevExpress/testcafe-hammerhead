@@ -32,10 +32,15 @@ exports.start = (options = {}) => {
     const appServer = http.createServer({ maxHeaderSize: Proxy.MAX_REQUEST_HEADER_SIZE }, app);
 
     const resultOptions = Object.assign(options, {
+        hostname:        'localhost',
+        port1:           PROXY_PORT_1,
+        port2:           PROXY_PORT_2,
         developmentMode: true,
     });
 
-    const proxy = new Proxy('localhost', PROXY_PORT_1, PROXY_PORT_2, resultOptions);
+    const proxy = new Proxy();
+
+    proxy.start(resultOptions);
 
     if (resultOptions.needBeautifyScripts) {
         const nativeProcessScript = scriptProc.processScript;
