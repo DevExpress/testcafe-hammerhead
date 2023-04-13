@@ -1,6 +1,4 @@
-var Promise       = hammerhead.Promise;
 var nativeMethods = hammerhead.nativeMethods;
-var browserUtils  = hammerhead.utils.browser;
 
 if (window.console && typeof window.console.log !== 'undefined') {
     test('must convert `log`, `warn`, `error` and `info` methods arguments to string lines (GH-1750)', function () {
@@ -25,11 +23,8 @@ if (window.console && typeof window.console.log !== 'undefined') {
         var expectedHandledConsoleMethodLines = ['true', 'false', 'null', 'undefined', '42', 'string', '[object Object]',
             'object', 'object'];
 
-        // NOTE: IE11 doesn't support 'Symbol'
-        if (!browserUtils.isIE11) {
-            testCases.push(Symbol('foo'));
-            expectedHandledConsoleMethodLines.push('Symbol(foo)');
-        }
+        testCases.push(Symbol('foo'));
+        expectedHandledConsoleMethodLines.push('Symbol(foo)');
 
         function onConsoleMethCalled (e) {
             handledConsoleMethodLines.push(e.line);
@@ -115,44 +110,42 @@ if (window.console && typeof window.console.log !== 'undefined') {
         hammerhead.off(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);
     });
 
-    if (!browserUtils.isIE && !browserUtils.isMSEdge) { //TODO: remove this with the #1326 issue fix.
-        test('`consoleMethCalled event` should be raised after document.write in an iframe', function () {
-            var lastLine   = '';
-            var lastMeth   = '';
-            var testIframe = '';
+    test('`consoleMethCalled event` should be raised after document.write in an iframe', function () {
+        var lastLine   = '';
+        var lastMeth   = '';
+        var testIframe = '';
 
-            hammerhead.on(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);
+        hammerhead.on(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);
 
-            function onConsoleMethCalled (e) {
-                lastLine = e.line;
-                lastMeth = e.meth;
-            }
+        function onConsoleMethCalled (e) {
+            lastLine = e.line;
+            lastMeth = e.meth;
+        }
 
-            return createTestIframe({ src: getSameDomainPageUrl('../../data/console-sandbox/iframe.html') })
-                .then(function (iframe) {
-                    testIframe = iframe;
+        return createTestIframe({ src: getSameDomainPageUrl('../../data/console-sandbox/iframe.html') })
+            .then(function (iframe) {
+                testIframe = iframe;
 
-                    iframe.contentWindow.console.log('msg1');
+                iframe.contentWindow.console.log('msg1');
 
-                    return window.wait(50);
-                })
-                .then(function () {
-                    equal(lastLine, 'msg1');
-                    equal(lastMeth, 'log');
+                return window.wait(50);
+            })
+            .then(function () {
+                equal(lastLine, 'msg1');
+                equal(lastMeth, 'log');
 
-                    testIframe.contentDocument.write('<div>dummy</div>');
-                    testIframe.contentWindow.console.info('msg2');
+                testIframe.contentDocument.write('<div>dummy</div>');
+                testIframe.contentWindow.console.info('msg2');
 
-                    return window.wait(50);
-                })
-                .then(function () {
-                    equal(lastLine, 'msg2');
-                    equal(lastMeth, 'info');
+                return window.wait(50);
+            })
+            .then(function () {
+                equal(lastLine, 'msg2');
+                equal(lastMeth, 'info');
 
-                    hammerhead.off(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);
-                });
-        });
-    }
+                hammerhead.off(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);
+            });
+    });
 
     test('wrappers of native functions should return the correct string representations', function () {
         window.checkStringRepresentation(window.console.log, nativeMethods.consoleMeths.log, 'console.log');

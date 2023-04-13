@@ -12,47 +12,44 @@ var nativeMethods         = hammerhead.nativeMethods;
 var browserUtils          = hammerhead.utils.browser;
 var unloadSandbox         = hammerhead.sandbox.event.unload;
 
-// NOTE: IE11 has a strange bug that does not allow this test to pass
-if (!browserUtils.isIE11) {
-    test('onsubmit', function () {
-        var etalon = nativeMethods.createElement.call(document, 'form');
-        var form   = document.createElement('form');
+test('onsubmit', function () {
+    var etalon = nativeMethods.createElement.call(document, 'form');
+    var form   = document.createElement('form');
 
-        var check = function () {
-            strictEqual(form.getAttribute('onsubmit'), nativeMethods.getAttribute.call(etalon, 'onsubmit'));
+    var check = function () {
+        strictEqual(form.getAttribute('onsubmit'), nativeMethods.getAttribute.call(etalon, 'onsubmit'));
 
-            var onsubmit = form.onsubmit;
+        var onsubmit = form.onsubmit;
 
-            strictEqual(onsubmit ? onsubmit() : onsubmit, etalon.onsubmit ? etalon.onsubmit() : etalon.onsubmit);
-        };
+        strictEqual(onsubmit ? onsubmit() : onsubmit, etalon.onsubmit ? etalon.onsubmit() : etalon.onsubmit);
+    };
 
-        check();
+    check();
 
-        form.setAttribute('onsubmit', 'return 1;');
-        nativeMethods.setAttribute.call(etalon, 'onsubmit', 'return 1;');
-        check();
+    form.setAttribute('onsubmit', 'return 1;');
+    nativeMethods.setAttribute.call(etalon, 'onsubmit', 'return 1;');
+    check();
 
-        form.onsubmit = function () {
-            return 3;
-        };
-        etalon.onsubmit = function () {
-            return 3;
-        };
-        check();
+    form.onsubmit = function () {
+        return 3;
+    };
+    etalon.onsubmit = function () {
+        return 3;
+    };
+    check();
 
-        form.removeAttribute('onsubmit');
-        nativeMethods.removeAttribute.call(etalon, 'onsubmit');
-        check();
+    form.removeAttribute('onsubmit');
+    nativeMethods.removeAttribute.call(etalon, 'onsubmit');
+    check();
 
-        form.setAttribute('onsubmit', 'return 2;');
-        nativeMethods.setAttribute.call(etalon, 'onsubmit', 'return 2;');
-        check();
+    form.setAttribute('onsubmit', 'return 2;');
+    nativeMethods.setAttribute.call(etalon, 'onsubmit', 'return 2;');
+    check();
 
-        form.onsubmit = null;
-        etalon.onsubmit = null;
-        check();
-    });
-}
+    form.onsubmit = null;
+    etalon.onsubmit = null;
+    check();
+});
 
 test('url attributes overridden by descriptor', function () {
     var testUrlAttr = function (tagName, attr, getter) {
@@ -619,34 +616,31 @@ test('element.innerHTML', function () {
     checkElement(container.querySelector('script'), 'src', '!s');
 });
 
-// NOTE: IE11 adds extra 'NS' namespace to stored xlink href attribute during processing (GH-1083)
-if (!browserUtils.isIE11) {
-    test('SVGImageElement with an existing xlink:href should contain only one stored href attribute after href.baseVal is changed', function () {
-        var div               = document.createElement('div');
-        var xlinkNamespaceUrl = 'http://www.w3.org/1999/xlink';
-        var baseVal           = 'http://example.com/test.svg';
+test('SVGImageElement with an existing xlink:href should contain only one stored href attribute after href.baseVal is changed', function () {
+    var div               = document.createElement('div');
+    var xlinkNamespaceUrl = 'http://www.w3.org/1999/xlink';
+    var baseVal           = 'http://example.com/test.svg';
 
-        div.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="' + xlinkNamespaceUrl + '">\n' +
+    div.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="' + xlinkNamespaceUrl + '">\n' +
                         '<image xlink:href="' + baseVal + '"></image>\n' +
                         '</svg>';
 
-        var image = div.querySelector('image');
+    var image = div.querySelector('image');
 
-        var checkHrefStoredAttribute = function (el) {
-            strictEqual(nativeMethods.getAttribute.call(el, 'xlink:' + DomProcessor.getStoredAttrName('href')), baseVal);
-            notOk(nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('href')));
-            notOk(nativeMethods.getAttributeNS.call(el, xlinkNamespaceUrl, 'xlink:' + DomProcessor.getStoredAttrName('href')));
-            notOk(nativeMethods.getAttributeNS.call(el, xlinkNamespaceUrl, DomProcessor.getStoredAttrName('href')));
-        };
+    var checkHrefStoredAttribute = function (el) {
+        strictEqual(nativeMethods.getAttribute.call(el, 'xlink:' + DomProcessor.getStoredAttrName('href')), baseVal);
+        notOk(nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('href')));
+        notOk(nativeMethods.getAttributeNS.call(el, xlinkNamespaceUrl, 'xlink:' + DomProcessor.getStoredAttrName('href')));
+        notOk(nativeMethods.getAttributeNS.call(el, xlinkNamespaceUrl, DomProcessor.getStoredAttrName('href')));
+    };
 
-        checkHrefStoredAttribute(image);
+    checkHrefStoredAttribute(image);
 
-        baseVal            = 'http://example.com/test-1.svg';
-        image.href.baseVal = baseVal;
+    baseVal            = 'http://example.com/test-1.svg';
+    image.href.baseVal = baseVal;
 
-        checkHrefStoredAttribute(image);
-    });
-}
+    checkHrefStoredAttribute(image);
+});
 
 test('anchor with target attribute', function () {
     var anchor   = document.createElement('a');
@@ -684,13 +678,6 @@ test('anchor.toString()', function () {
 
     strictEqual(anchor.toString(), url);
 });
-
-if (window.Node.prototype.hasOwnProperty('attributes')) {
-    test('the "attributes" property should return null for textNode in ie11', function () {
-        strictEqual(document.createTextNode('text').attributes, null);
-    });
-}
-
 
 module('"rel" attribute (HTMLLinkElement)');
 
@@ -1146,7 +1133,7 @@ test('Url resolving in an instance of document.implementation (GH-1673)', functi
     baseEl.href   = 'http://example.com/some';
     anchorEl.href = '';
 
-    strictEqual(anchorEl.href, browserUtils.isIE11 ? 'http://example.com/' : 'http://example.com/some');
+    strictEqual(anchorEl.href, 'http://example.com/some');
 
     baseEl.href   = 'http://example.com/some';
     anchorEl.href = 'page.html';
@@ -1161,7 +1148,7 @@ test('Url resolving in an instance of document.implementation (GH-1673)', functi
     baseEl.href   = 'https://example.com/page.html';
     anchorEl.href = '';
 
-    strictEqual(anchorEl.href, browserUtils.isIE11 ? 'https://example.com/' : 'https://example.com/page.html');
+    strictEqual(anchorEl.href, 'https://example.com/page.html');
 });
 
 test('The overridden "createHTMLDocument" method should has right context (GH-1722)', function () {
@@ -1211,30 +1198,26 @@ test('instance of attributesWrapper should contain enumerable attribute properti
     deepEqual(testSiteFunction(input, 'data-parsley-'), { multiple: 'should-not-change', test123: 'value' });
 });
 
-// NOTE: IE11 doesn't fetch content for <link rel=preload as=script>.
-// So, it's not neccessary to process such elements in IE11
-if (nativeMethods.linkAsSetter) {
-    test('"preload" link with "script" behavior (GH-2299)', function () {
-        var link = document.createElement('link');
+test('"preload" link with "script" behavior (GH-2299)', function () {
+    var link = document.createElement('link');
 
-        link.href = '/test';
+    link.href = '/test';
 
-        strictEqual(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test'));
+    strictEqual(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test'));
 
-        link.as = 'script';
+    link.as = 'script';
 
-        strictEqual(link.as, 'script');
-        strictEqual(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test', { resourceType: 's' } ));
+    strictEqual(link.as, 'script');
+    strictEqual(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test', { resourceType: 's' } ));
 
-        link.as = 'style';
-        strictEqual(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test'));
+    link.as = 'style';
+    strictEqual(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test'));
 
-        link.setAttribute('as', 'script');
+    link.setAttribute('as', 'script');
 
-        strictEqual(link.as, 'script');
-        strictEqual(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test', { resourceType: 's' } ));
-    });
-}
+    strictEqual(link.as, 'script');
+    strictEqual(nativeMethods.getAttribute.call(link, 'href'), urlUtils.getProxyUrl('/test', { resourceType: 's' } ));
+});
 
 test('"modulepreload" link (GH-2518)', function () {
     var link = document.createElement('link');

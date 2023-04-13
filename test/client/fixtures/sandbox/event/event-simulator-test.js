@@ -69,14 +69,14 @@ test('mouse left button click', function () {
     bindMouseEvent('click', eventUtils.BUTTON.left);
     eventSimulator.click(domElement);
     ok(raised);
-    strictEqual(detail, browserUtils.isIE ? 0 : 1, 'should provide the correct event.detail value');
+    strictEqual(detail, 1, 'should provide the correct event.detail value');
 });
 
 test('mouse double click', function () {
     bindMouseEvent('dblclick', eventUtils.BUTTON.left);
     eventSimulator.dblclick(domElement);
     ok(raised);
-    strictEqual(detail, browserUtils.isIE ? 0 : 2, 'should provide the correct event.detail value');
+    strictEqual(detail, 2, 'should provide the correct event.detail value');
 });
 
 test('mouse right click', function () {
@@ -85,7 +85,7 @@ test('mouse right click', function () {
     bindMouseEvent('mouseup', eventUtils.BUTTON.right);
     eventSimulator.rightclick(domElement);
     ok(raised);
-    strictEqual(detail, browserUtils.isIE ? 0 : 1, 'should provide the correct event.detail value');
+    strictEqual(detail, 1, 'should provide the correct event.detail value');
 });
 
 test('mouse down left', function () {
@@ -324,44 +324,6 @@ if (featureDetection.hasTouchEvents) {
     }
 }
 
-if (browserUtils.isIE) {
-    if (!browserUtils.isIE11) {
-        test('preventing via the window.event property', function () {
-            var $checkBox = $('<input type="checkbox">')
-                .click(function () {
-                    window.event.returnValue = false;
-                })
-                .appendTo('body');
-
-            var initChecked = $checkBox[0].checked;
-
-            eventSimulator.click($checkBox[0]);
-            strictEqual(initChecked, $checkBox[0].checked);
-
-            $checkBox.remove();
-        });
-    }
-
-    test('cancel bubble via the window.event property', function () {
-        var $checkBox           = $('<input type="checkbox" />')
-            .click(function () {
-                window.event.cancelBubble = true;
-            })
-            .appendTo('body');
-        var documentClickRaised = false;
-
-        document.addEventListener('click', function () {
-            documentClickRaised = true;
-        });
-
-        eventSimulator.click($checkBox[0]);
-
-        ok(!documentClickRaised);
-
-        $checkBox.remove();
-    });
-}
-
 if (eventUtils.hasPointerEvents) {
     test('pointer down', function () {
         bindMouseEvent('pointerdown', eventUtils.BUTTON.left);
@@ -495,7 +457,7 @@ test('drag and drop events', function () {
 // NOTE: Firefox does not support textInput event
 if (!browserUtils.isFirefox) {
     test('text input', function () {
-        var textInputEventName = browserUtils.isIE11 ? 'textinput' : 'textInput';
+        var textInputEventName = 'textInput';
 
         var handler = function (e) {
             var ev = e || window.event;
@@ -513,7 +475,7 @@ if (!browserUtils.isFirefox) {
 }
 
 // NOTE: The `beforeinput` event works only in Chrome/Safari
-if (!browserUtils.isFirefox && !browserUtils.isIE) {
+if (!browserUtils.isFirefox) {
     test('before input', function () {
         var handler = function (e) {
             if (e instanceof Event && e instanceof InputEvent && e.data === 'Hello')
@@ -684,17 +646,15 @@ test('mouse event buttons properties', function () {
     });
 });
 
-if (!browserUtils.isIE) {
-    test('timestamp', function () {
-        var options = { timeStamp: 1000 };
+test('timestamp', function () {
+    var options = { timeStamp: 1000 };
 
-        domElement.addEventListener('click', function (event) {
-            strictEqual(event.timeStamp, 1000);
-        });
-
-        eventSimulator.click(domElement, options);
+    domElement.addEventListener('click', function (event) {
+        strictEqual(event.timeStamp, 1000);
     });
-}
+
+    eventSimulator.click(domElement, options);
+});
 
 module('mouse events on disabled elements', {
     beforeEach: function () {
@@ -725,12 +685,7 @@ module('mouse events on disabled elements', {
         eventSimulator.click(div);
         eventSimulator.mouseup(div);
 
-        // NOTE: it's possible to disable the 'div' element in IE
-        if (browserUtils.isIE11)
-            deepEqual(this.getEventLog(), []);
-        else
-            deepEqual(this.getEventLog(), ['mousedown', 'click', 'mouseup']);
-
+        deepEqual(this.getEventLog(), ['mousedown', 'click', 'mouseup']);
 
         document.body.removeChild(div);
     });
@@ -783,106 +738,41 @@ module('mouse events on disabled elements', {
         document.body.removeChild(button);
     });
 
-    if (!browserUtils.isIE) {
-        test('custom elements (GH-2346)', function () {
-            function DisabledCustomElement () {
-                return Reflect.construct(HTMLElement, [], this.constructor);
-            }
+    test('custom elements (GH-2346)', function () {
+        function DisabledCustomElement () {
+            return Reflect.construct(HTMLElement, [], this.constructor);
+        }
 
-            DisabledCustomElement.prototype = Object.create(HTMLElement.prototype);
-            DisabledCustomElement.prototype.constructor = DisabledCustomElement;
+        DisabledCustomElement.prototype = Object.create(HTMLElement.prototype);
+        DisabledCustomElement.prototype.constructor = DisabledCustomElement;
 
-            Object.setPrototypeOf(DisabledCustomElement, HTMLElement);
+        Object.setPrototypeOf(DisabledCustomElement, HTMLElement);
 
-            customElements.define('disabled-cutsom-element', DisabledCustomElement);
+        customElements.define('disabled-cutsom-element', DisabledCustomElement);
 
-            var disabledCustomElement = document.createElement('disabled-cutsom-element');
-            var span                  = document.createElement('span');
+        var disabledCustomElement = document.createElement('disabled-cutsom-element');
+        var span                  = document.createElement('span');
 
-            document.body.appendChild(disabledCustomElement);
-            disabledCustomElement.appendChild(span);
+        document.body.appendChild(disabledCustomElement);
+        disabledCustomElement.appendChild(span);
 
-            disabledCustomElement.setAttribute('disabled', true);
+        disabledCustomElement.setAttribute('disabled', true);
 
-            span.addEventListener('mousedown', this.mouseEventHandler);
-            span.addEventListener('mouseup', this.mouseEventHandler);
-            span.addEventListener('click', this.mouseEventHandler);
+        span.addEventListener('mousedown', this.mouseEventHandler);
+        span.addEventListener('mouseup', this.mouseEventHandler);
+        span.addEventListener('click', this.mouseEventHandler);
 
-            eventSimulator.mousedown(span);
-            eventSimulator.click(span);
-            eventSimulator.mouseup(span);
+        eventSimulator.mousedown(span);
+        eventSimulator.click(span);
+        eventSimulator.mouseup(span);
 
-            deepEqual(this.getEventLog(), ['mousedown', 'click', 'mouseup']);
+        deepEqual(this.getEventLog(), ['mousedown', 'click', 'mouseup']);
 
-            document.body.removeChild(disabledCustomElement);
-        });
-    }
+        document.body.removeChild(disabledCustomElement);
+    });
 });
 
 module('regression');
-
-if (browserUtils.isIE) {
-    if (!browserUtils.isIE11) {
-        test('window.event save/restore for сlick (B237144)', function () {
-            var $textInput = $('<input type="text">').appendTo('body');
-
-            var $checkBox1 = $('<input type="checkbox">')
-                .attr('id', 'cb1')
-                .appendTo('body');
-
-            var $checkBox2 = $('<input type="checkbox">')
-                .attr('id', 'cb2')
-                .appendTo('body');
-
-            $checkBox1[0].onclick = function () {
-                $checkBox2[0].click();
-                window.event.returnValue = false;
-            };
-
-            $checkBox2[0].addEventListener('click', function () {
-                $checkBox2[0].focus();
-                window.event.returnValue = false;
-            });
-
-            var initChecked1 = $checkBox1[0].checked;
-            var initChecked2 = $checkBox2[0].checked;
-
-            eventSimulator.click($checkBox1[0]);
-
-            strictEqual(initChecked1, $checkBox1[0].checked);
-            strictEqual(initChecked2, $checkBox2[0].checked);
-
-            $checkBox1.remove();
-            $checkBox2.remove();
-            $textInput.remove();
-        });
-    }
-
-    test('window.event must contain toElement and fromElement properties for mouseout and mouseover events (B237405)', function () {
-        var mouseoutChecked  = false;
-        var mouseoverChecked = false;
-
-        var $divFrom = $('<div>').mouseout(onmouseout).appendTo('body');
-        var $divTo   = $('<div>').mouseover(onmouseover).appendTo('body');
-
-        function onmouseout () {
-            mouseoutChecked = window.event && window.event.fromElement === $divFrom[0] &&
-                              window.event.toElement === $divTo[0];
-        }
-
-        function onmouseover () {
-            mouseoverChecked = window.event && window.event.fromElement === $divFrom[0] &&
-                               window.event.toElement === $divTo[0];
-        }
-
-        eventSimulator.mouseout($divFrom[0], { relatedTarget: $divTo[0] });
-        eventSimulator.mouseover($divTo[0], { relatedTarget: $divFrom[0] });
-        ok(mouseoutChecked, 'mouseout checked');
-        ok(mouseoverChecked, 'mouseover checked');
-        $divFrom.remove();
-        $divTo.remove();
-    });
-}
 
 if (!browserUtils.isFirefox) {
     test('window event should not be undefined inside iframe handler (B254199)', function () {
@@ -894,15 +784,6 @@ if (!browserUtils.isFirefox) {
                 });
 
                 eventSimulator.click(iframe.contentDocument.body);
-
-                ok(!window.top.error);
-            });
-    });
-
-    test('window.event becomes empty when a click event handler triggers the click event on a different element in IE11 (GH-226)', function () {
-        return createTestIframe({ src: getSameDomainPageUrl('../../../data/event-sandbox/event-simulator.html') })
-            .then(function (iframe) {
-                eventSimulator.click(iframe.contentDocument.getElementById('span'));
 
                 ok(!window.top.error);
             });
@@ -1037,68 +918,66 @@ test('wrong type of the blur event (GH-947)', function () {
     ok(raised);
 });
 
-if (!browserUtils.isIE) {
-    test('specific events has the `composed: true` property', function () {
-        var log = {};
+test('specific events has the `composed: true` property', function () {
+    var log = {};
 
-        var expectedLog = {
-            'blur':        true,
-            'focus':       true,
-            'focusin':     true,
-            'focusout':    true,
-            'click':       true,
-            'dblclick':    true,
-            'mousedown':   true,
-            'mousemove':   true,
-            'mouseout':    true,
-            'mouseover':   true,
-            'mouseup':     true,
-            'beforeinput': true,
-            'input':       true,
-            'keydown':     true,
-            'keyup':       true,
-        };
+    var expectedLog = {
+        'blur':        true,
+        'focus':       true,
+        'focusin':     true,
+        'focusout':    true,
+        'click':       true,
+        'dblclick':    true,
+        'mousedown':   true,
+        'mousemove':   true,
+        'mouseout':    true,
+        'mouseover':   true,
+        'mouseup':     true,
+        'beforeinput': true,
+        'input':       true,
+        'keydown':     true,
+        'keyup':       true,
+    };
 
-        function handler (e) {
-            log[e.type] = e.composed;
-        }
+    function handler (e) {
+        log[e.type] = e.composed;
+    }
 
-        domElement.addEventListener('blur', handler);
-        domElement.addEventListener('focus', handler);
-        domElement.addEventListener('focusin', handler);
-        domElement.addEventListener('focusout', handler);
-        domElement.addEventListener('click', handler);
-        domElement.addEventListener('dblclick', handler);
-        domElement.addEventListener('mousedown', handler);
-        domElement.addEventListener('mousemove', handler);
-        domElement.addEventListener('mouseout', handler);
-        domElement.addEventListener('mouseover', handler);
-        domElement.addEventListener('mouseup', handler);
-        domElement.addEventListener('beforeinput', handler);
-        domElement.addEventListener('input', handler);
-        domElement.addEventListener('keyup', handler);
-        domElement.addEventListener('keydown', handler);
-        domElement.addEventListener('keyup', handler);
+    domElement.addEventListener('blur', handler);
+    domElement.addEventListener('focus', handler);
+    domElement.addEventListener('focusin', handler);
+    domElement.addEventListener('focusout', handler);
+    domElement.addEventListener('click', handler);
+    domElement.addEventListener('dblclick', handler);
+    domElement.addEventListener('mousedown', handler);
+    domElement.addEventListener('mousemove', handler);
+    domElement.addEventListener('mouseout', handler);
+    domElement.addEventListener('mouseover', handler);
+    domElement.addEventListener('mouseup', handler);
+    domElement.addEventListener('beforeinput', handler);
+    domElement.addEventListener('input', handler);
+    domElement.addEventListener('keyup', handler);
+    domElement.addEventListener('keydown', handler);
+    domElement.addEventListener('keyup', handler);
 
-        eventSimulator.blur(domElement);
-        eventSimulator.focus(domElement);
-        eventSimulator.focusin(domElement);
-        eventSimulator.focusout(domElement);
-        eventSimulator.click(domElement);
-        eventSimulator.dblclick(domElement);
-        eventSimulator.mousedown(domElement);
-        eventSimulator.mousemove(domElement);
-        eventSimulator.mouseout(domElement);
-        eventSimulator.mouseover(domElement);
-        eventSimulator.mouseup(domElement);
-        eventSimulator.beforeInput(domElement);
-        eventSimulator.input(domElement);
-        eventSimulator.keydown(domElement);
-        eventSimulator.keyup(domElement);
+    eventSimulator.blur(domElement);
+    eventSimulator.focus(domElement);
+    eventSimulator.focusin(domElement);
+    eventSimulator.focusout(domElement);
+    eventSimulator.click(domElement);
+    eventSimulator.dblclick(domElement);
+    eventSimulator.mousedown(domElement);
+    eventSimulator.mousemove(domElement);
+    eventSimulator.mouseout(domElement);
+    eventSimulator.mouseover(domElement);
+    eventSimulator.mouseup(domElement);
+    eventSimulator.beforeInput(domElement);
+    eventSimulator.input(domElement);
+    eventSimulator.keydown(domElement);
+    eventSimulator.keyup(domElement);
 
-        deepEqual(log, expectedLog);
-    });
-}
+    deepEqual(log, expectedLog);
+});
 
 if (nativeMethods.WindowInputEvent) {
     test('Simulated "input" event should contain the "data" property (GH-2377)', function () {

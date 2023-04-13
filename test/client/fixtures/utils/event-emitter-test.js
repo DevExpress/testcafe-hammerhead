@@ -1,5 +1,4 @@
 var EventEmitter = hammerhead.EventEmitter;
-var browserUtils = hammerhead.utils.browser;
 
 module('regression');
 
@@ -25,12 +24,12 @@ test('the "emit" function should not throw errors', function () {
 
             emitter.emit('event');
 
-            strictEqual(emitter.eventsListeners.event.length, browserUtils.isIE ? 1 : 2);
-            deepEqual(window.eventCounter, browserUtils.isIE ? ['event'] : ['event', 'iframe event']);
+            strictEqual(emitter.eventsListeners.event.length, 2);
+            deepEqual(window.eventCounter, ['event', 'iframe event']);
 
             emitter.emit('event');
 
-            strictEqual(emitter.eventsListeners.event.length, browserUtils.isIE ? 1 : 2);
-            deepEqual(window.eventCounter, browserUtils.isIE ? ['event', 'event'] : ['event', 'iframe event', 'event', 'iframe event']);
+            strictEqual(emitter.eventsListeners.event.length, 2);
+            deepEqual(window.eventCounter, ['event', 'iframe event', 'event', 'iframe event']);
         });
 });

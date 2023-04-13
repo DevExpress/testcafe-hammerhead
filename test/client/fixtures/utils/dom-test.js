@@ -548,25 +548,22 @@ test('after the location is set to an iframe without src isIframeWithoutSrc shou
         });
 });
 
-// NOTE: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/8187450/
-if (!browserUtils.isIE) {
-    test('should return "false" after calling document.open, document.write, document.close for the same-domain iframe (GH-703) (GH-704)', function () {
-        return createTestIframe({ src: getSameDomainPageUrl('../../data/code-instrumentation/iframe.html') })
-            .then(function (iframe) {
-                ok(!domUtils.isIframeWithoutSrc(iframe));
+test('should return "false" after calling document.open, document.write, document.close for the same-domain iframe (GH-703) (GH-704)', function () {
+    return createTestIframe({ src: getSameDomainPageUrl('../../data/code-instrumentation/iframe.html') })
+        .then(function (iframe) {
+            ok(!domUtils.isIframeWithoutSrc(iframe));
 
-                iframe.contentDocument.open();
+            iframe.contentDocument.open();
 
-                ok(domUtils.isIframeWithoutSrc(iframe));
+            ok(domUtils.isIframeWithoutSrc(iframe));
 
-                iframe.contentDocument.write('<h1>test</h1>');
-                ok(domUtils.isIframeWithoutSrc(iframe));
+            iframe.contentDocument.write('<h1>test</h1>');
+            ok(domUtils.isIframeWithoutSrc(iframe));
 
-                iframe.contentDocument.close();
-                ok(domUtils.isIframeWithoutSrc(iframe));
-            });
-    });
-}
+            iframe.contentDocument.close();
+            ok(domUtils.isIframeWithoutSrc(iframe));
+        });
+});
 
 test('should return "false" after calling document.open, document.write, document.close for the iframe with javascript src (GH-815)', function () {
     return createTestIframe({ src: 'javascript:false;' })
@@ -769,20 +766,9 @@ test('isElementFocusable', function () {
             var expectedFocusedElements = Array.prototype.slice.call(iframeDocument.querySelectorAll('.expected'));
             var focusedElements         = [];
 
-            if (browserUtils.isIE) {
-                expectedFocusedElements = expectedFocusedElements.filter(function (el) {
-                    if (browserUtils.version <= 10 && domUtils.isAnchorElement(el) && el.getAttribute('href') === '' &&
-                        domUtils.getTabIndex(el) === null)
-                        return false;
-
-                    return !domUtils.isOptionElement(el);
-                });
-            }
-            else {
-                expectedFocusedElements = expectedFocusedElements.filter(function (el) {
-                    return !domUtils.isTableDataCellElement(el);
-                });
-            }
+            expectedFocusedElements = expectedFocusedElements.filter(function (el) {
+                return !domUtils.isTableDataCellElement(el);
+            });
 
             for (var i = 0; i < allElements.length; i++) {
                 if (domUtils.isElementFocusable(allElements[i]))
@@ -833,7 +819,7 @@ test('isInputWithoutSelectionProperties', function () {
     input2.type = 'number';
     input3.type = 'text';
 
-    if (browserUtils.isIE || browserUtils.isSafari) {
+    if (browserUtils.isSafari) {
         notOk(domUtils.isInputWithoutSelectionProperties(input1));
         notOk(domUtils.isInputWithoutSelectionProperties(input2));
     }
@@ -984,7 +970,7 @@ test('inspect html elements', function () {
         { tagName: 'input', assertFn: domUtils.isCheckboxElement, attributes: { type: 'checkbox' } },
     ];
 
-    if (!browserUtils.isIE11 && !browserUtils.isSafari)
+    if (!browserUtils.isSafari)
         htmlElements.push({ tagName: 'input', assertFn: domUtils.isColorInputElement, attributes: { type: 'color' } });
 
     htmlElements.forEach(function (info) {
@@ -1115,7 +1101,6 @@ if (window.HTMLElement.prototype.attachShadow) {
 
         template.innerHTML = '<div class=\'slot-parent\'><slot name=\'slot-name\'></slot></div>';
 
-        // NOTE: bypass IE syntax validation
         customElements.define('custom-test-element', eval(
             '(class El extends HTMLElement { ' +
             'constructor () { ' +

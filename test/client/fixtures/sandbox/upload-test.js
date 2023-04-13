@@ -7,12 +7,11 @@ const listeningContext  = hammerhead.sandboxUtils.listeningContext;
 const INTERNAL_PROPS    = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_props;
 const settings          = hammerhead.settings;
 
-const Promise        = hammerhead.Promise;
-const transport      = hammerhead.transport;
-const uploadSandbox  = hammerhead.sandbox.upload;
-const infoManager    = hammerhead.sandbox.upload.infoManager;
-const eventSimulator = hammerhead.sandbox.event.eventSimulator;
-const nativeMethods  = hammerhead.nativeMethods;
+const Promise       = hammerhead.Promise;
+const transport     = hammerhead.transport;
+const uploadSandbox = hammerhead.sandbox.upload;
+const infoManager   = hammerhead.sandbox.upload.infoManager;
+const nativeMethods = hammerhead.nativeMethods;
 
 const browserUtils  = hammerhead.utils.browser;
 const isChrome      = browserUtils.isChrome;
@@ -119,10 +118,7 @@ function getInputMock (fileNames) {
     var value = fileNames.join(',');
 
     var fileListWrapper = fileNames.map(function (name) {
-        // NOTE: window.File in IE11 is not constructable.
-        var file = nativeMethods.File
-            ? new File(['123'], name, { type: 'image/png', lastModified: Date.now() })
-            : new Blob(['123'], { type: 'image/png' });
+        var file = new File(['123'], name, { type: 'image/png', lastModified: Date.now() });
 
         file.name = name;
 
@@ -180,15 +176,13 @@ test('hidden input should not affect both the length/count value and the element
 
     var expectedElements = [input1, input2]; // eslint-disable-line @typescript-eslint/no-unused-vars
 
-    // NOTE: We are forced to use this hack because IE11 raises a syntax error if a page contains the 'for..of' loop
-    function getForOfLoopCode (iterableObjString) {
-        return [
-            'var index = 0;',
-            'for (var el of ' + iterableObjString + ') {',
-            '    strictEqual(el, expectedElements[index]);',
-            '    index++;',
-            '}',
-        ].join('\n');
+    function checkElements (iterableObj) {
+        var index = 0;
+
+        for (var el of iterableObj) {
+            strictEqual(el, expectedElements[index]);
+            index++;
+        }
     }
 
     function checkLength (expeсted) {
@@ -210,11 +204,9 @@ test('hidden input should not affect both the length/count value and the element
 
             checkLength(2);
 
-            if (!browserUtils.isIE11) {
-                eval(getForOfLoopCode('form.elements'));
-                eval(getForOfLoopCode('form.children'));
-                eval(getForOfLoopCode('form.childNodes'));
-            }
+            checkElements(form.elements);
+            checkElements(form.children);
+            checkElements(form.childNodes);
 
             strictEqual(form.firstChild, input1);
             strictEqual(form.firstElementChild, input1);
@@ -874,35 +866,6 @@ test('document fragment', function () {
 
 module('regression');
 
-if (browserUtils.isIE) {
-    asyncTest("prevent the browser's open file dialog (T394838)", function () {
-        var div                   = document.createElement('div');
-        var fileInput             = document.createElement('input');
-        var isInputAlreadyClicked = false;
-
-        fileInput.type = 'file';
-        div.appendChild(fileInput);
-        document.body.appendChild(div);
-
-        fileInput.addEventListener('click', function (e) {
-            ok(e.defaultPrevented);
-
-            if (isInputAlreadyClicked || !browserUtils.isMSEdge) {
-                document.body.removeChild(div);
-                start();
-            }
-
-            isInputAlreadyClicked = true;
-        }, true);
-
-        div.addEventListener('click', function () {
-            fileInput.click();
-        }, true);
-
-        eventSimulator.click(fileInput);
-    });
-}
-
 if (window.FileList) {
     test('the "instanceof FileList" operation works correctly with FileListWrapper instances (GH-689)', function () {
         const input = document.createElement('input');
@@ -931,29 +894,26 @@ if (window.FileList) {
     });
 
     module('FileListWrapper should work correctly if window.File and window.Blob are overridden (TC-GH-5647)', function () {
-        // window.File in IE11 is not constructable.
-        if (nativeMethods.File) {
-            test('File', function () {
-                const storedFile = window.File;
+        test('File', function () {
+            const storedFile = window.File;
 
-                window.File = function () {
-                    throw new Error('File constructor is not supposed to be called');
-                };
+            window.File = function () {
+                throw new Error('File constructor is not supposed to be called');
+            };
 
-                const wrapper = FileListWrapper._createFileWrapper({
-                    info: {
-                        size: 4,
-                        type: 'text/plain',
-                        name: 'correctName.txt',
-                    },
-                    data: 'MTIzDQo=',
-                });
-
-                ok(wrapper instanceof storedFile);
-
-                window.File = storedFile;
+            const wrapper = FileListWrapper._createFileWrapper({
+                info: {
+                    size: 4,
+                    type: 'text/plain',
+                    name: 'correctName.txt',
+                },
+                data: 'MTIzDQo=',
             });
-        }
+
+            ok(wrapper instanceof storedFile);
+
+            window.File = storedFile;
+        });
 
         test('Blob', function () {
             const storedBlob = window.Blob;

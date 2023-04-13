@@ -2,8 +2,6 @@ var StorageWrapper = hammerhead.sandboxUtils.StorageWrapper;
 var settings       = hammerhead.settings;
 
 var storageSandbox = hammerhead.sandbox.storageSandbox;
-var Promise        = hammerhead.Promise;
-var browserUtils   = hammerhead.utils.browser;
 var nativeMethods  = hammerhead.nativeMethods;
 var unloadSandbox  = hammerhead.sandbox.event.unload;
 
@@ -364,7 +362,7 @@ test('event firing in all same host windows except current', function () {
             strictEqual(iframeStorageEventArgs.length, 0);
 
             strictEqual(topStorageEventArgs[0].key, 'key1');
-            strictEqual(topStorageEventArgs[0].oldValue, browserUtils.isIE ? '' : null);
+            strictEqual(topStorageEventArgs[0].oldValue, null);
             strictEqual(topStorageEventArgs[0].newValue, 'value1');
             strictEqual(topStorageEventArgs[0].url, 'https://example.com/');
             strictEqual(topStorageEventArgs[0].storageArea, iframe.contentWindow.localStorage);
@@ -378,7 +376,7 @@ test('event firing in all same host windows except current', function () {
             strictEqual(iframeStorageEventArgs.length, 1);
 
             strictEqual(iframeStorageEventArgs[0].key, 'key2');
-            strictEqual(iframeStorageEventArgs[0].oldValue, browserUtils.isIE ? '' : null);
+            strictEqual(iframeStorageEventArgs[0].oldValue, null);
             strictEqual(iframeStorageEventArgs[0].newValue, 'value2');
             strictEqual(iframeStorageEventArgs[0].url, 'https://example.com/');
             strictEqual(iframeStorageEventArgs[0].storageArea, localStorage);
@@ -407,14 +405,14 @@ test('event argument parameters', function () {
             });
         })
         .then(function (e) {
-            checkEventArg(e, 'key1', browserUtils.isIE ? '' : null, 'value1');
+            checkEventArg(e, 'key1', null, 'value1');
 
             return waitStorageEvent(window, function () {
                 iframeStorageSandbox.key2 = 'value2';
             });
         })
         .then(function (e) {
-            checkEventArg(e, 'key2', browserUtils.isIE ? '' : null, 'value2');
+            checkEventArg(e, 'key2', null, 'value2');
 
             return waitStorageEvent(window, function () {
                 iframeStorageSandbox.key1 = 'value3';
@@ -428,7 +426,7 @@ test('event argument parameters', function () {
             });
         })
         .then(function (e) {
-            checkEventArg(e, 'key1', 'value3', browserUtils.isIE ? 'null' : null);
+            checkEventArg(e, 'key1', 'value3', null);
         });
 });
 
@@ -472,12 +470,10 @@ test("should work with keys named as wrapper's internal members (GH-735)", funct
         notEqual(sessionStorage[property], 'test1');
         strictEqual(sessionStorage.getItem(property), 'test1');
 
-        if (!browserUtils.isIE11) {
-            localStorage[property] = 'test2';
+        localStorage[property] = 'test2';
 
-            notEqual(localStorage[property], 'test2');
-            strictEqual(localStorage.getItem(property), 'test2');
-        }
+        notEqual(localStorage[property], 'test2');
+        strictEqual(localStorage.getItem(property), 'test2');
     });
 });
 

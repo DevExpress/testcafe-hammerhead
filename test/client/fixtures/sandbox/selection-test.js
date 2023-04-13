@@ -7,10 +7,6 @@ var numberInputTestValue = '42';
 
 var isSafari  = browserUtils.isSafari;
 var isFirefox = browserUtils.isFirefox;
-var isIE      = browserUtils.isIE;
-var isIE11    = browserUtils.isIE11;
-
-var FOCUS_TIMEOUT = isIE11 ? 100 : 0;
 
 var createTestInput = function (type, value) {
     var input = document.createElement('input');
@@ -51,9 +47,7 @@ test('Set and get selection on input with "email" type', function () {
 
     strictEqual(selection.start, testSelection.start);
     strictEqual(selection.end, testSelection.end);
-
-    if (!isIE)
-        strictEqual(selection.direction, testSelection.direction);
+    strictEqual(selection.direction, testSelection.direction);
 
     document.body.removeChild(input);
 });
@@ -98,9 +92,7 @@ test('Focus should stay on input with "number" type after setting selection', fu
 
     strictEqual(selection.start, testSelection.start);
     strictEqual(selection.end, testSelection.end);
-
-    if (!isIE)
-        strictEqual(selection.direction, testSelection.direction);
+    strictEqual(selection.direction, testSelection.direction);
 
     strictEqual(document.activeElement, input);
     document.body.removeChild(input);
@@ -125,37 +117,31 @@ asyncTest('Focus should not be called during setting selection if conteneditable
         selectionSet = true;
     }, true, true);
 
-    window.setTimeout(function () {
-        if (!isFirefox)
-            ok(focused);
+    if (!isFirefox)
+        ok(focused);
 
-        ok(selectionSet);
-        div.focus();
+    ok(selectionSet);
+    div.focus();
 
-        window.setTimeout(function () {
-            focused      = false;
-            selectionSet = false;
+    focused      = false;
+    selectionSet = false;
 
-            selectionSandbox.wrapSetterSelection(div, function () {
-                selectionSet = true;
-            }, true, true);
+    selectionSandbox.wrapSetterSelection(div, function () {
+        selectionSet = true;
+    }, true, true);
 
-            window.setTimeout(function () {
-                notOk(focused);
-                ok(selectionSet);
-                strictEqual(document.activeElement, div);
+    notOk(focused);
+    ok(selectionSet);
+    strictEqual(document.activeElement, div);
 
-                document.body.removeChild(div);
-                start();
-            }, FOCUS_TIMEOUT);
-        }, FOCUS_TIMEOUT);
-    }, FOCUS_TIMEOUT);
+    document.body.removeChild(div);
+    start();
 });
 
 asyncTest('Focus should not be called during setting selection if editable element has been already focused (TestCafe GH - 2301)', function () {
     var input           = createTestInput('text', 'some text');
     var focused         = false;
-    var shouldBeFocused = isIE || isSafari;
+    var shouldBeFocused = isSafari;
     var startPos        = 1;
     var endPos          = 3;
 
@@ -170,25 +156,19 @@ asyncTest('Focus should not be called during setting selection if editable eleme
 
     input.setSelectionRange(startPos, endPos);
 
-    window.setTimeout(function () {
-        strictEqual(focused, shouldBeFocused);
-        isSelectionSet();
+    strictEqual(focused, shouldBeFocused);
+    isSelectionSet();
 
-        input.focus();
+    input.focus();
 
-        window.setTimeout(function () {
-            focused = false;
+    focused = false;
 
-            input.setSelectionRange(startPos, endPos);
+    input.setSelectionRange(startPos, endPos);
 
-            window.setTimeout(function () {
-                notOk(focused);
-                isSelectionSet();
-                strictEqual(document.activeElement, input);
+    notOk(focused);
+    isSelectionSet();
+    strictEqual(document.activeElement, input);
 
-                document.body.removeChild(input);
-                start();
-            }, FOCUS_TIMEOUT);
-        }, FOCUS_TIMEOUT);
-    }, FOCUS_TIMEOUT);
+    document.body.removeChild(input);
+    start();
 });

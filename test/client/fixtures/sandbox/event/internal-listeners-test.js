@@ -60,19 +60,6 @@ var dispatchEvent = function (el, type) {
     el.dispatchEvent(ev);
 };
 
-var dispatchPointerEvent = function (el, type) {
-    var pointEvent = browserUtils.isIE11 ? document.createEvent('PointerEvent') : document.createEvent('MSPointerEvent');
-
-    if (pointEvent.initPointerEvent) {
-        pointEvent.initPointerEvent(type, true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null,
-            0, 0, 0, 0, 0.5, 0, 0, 0, 1, 'mouse', Date.now(), true);
-    }
-    else
-        pointEvent.initMouseEvent(type, true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-
-    el.dispatchEvent(pointEvent);
-};
-
 QUnit.testStart(function () {
     containerCaptureEventRaised = false;
     containerBubbleEventRaised  = false;
@@ -135,8 +122,6 @@ test('initElementListening', function () {
         strictEqual(fourthHandlerCounter, fourth);
     }
 
-    // NOTE: Because of T233158 - Wrong test run for a mouse click in IE
-    // there should be different handlers.
     container.addEventListener(event, firstHandler, true);
     container.addEventListener(event, secondHandler);
     container.addEventListener(event, thirdHandler, true);
@@ -386,18 +371,6 @@ test('canceller added after listener', function () {
 
 module('regression');
 
-test('ie service handlers should be ignored (GH-379)', function () {
-    var ieServiceHandlerMock = {
-        toString: function () {
-            return '[object FunctionWrapper]';
-        },
-    };
-
-    var listenerWrapper = Listeners._getEventListenerWrapper({}, ieServiceHandlerMock);
-
-    strictEqual(listenerWrapper(), null);
-});
-
 test('only one of several handlers must be called (document handlers) (T233158)', function () {
     var event               = 'click';
     var clickHandlerCounter = 0;
@@ -550,101 +523,6 @@ test('should allow removing a listener inside a listener (testcafe/#3652', funct
     strictEqual(expendableHandlerCallCount, 1);
 });
 
-if (browserUtils.isIE) {
-    test('only one of several handlers must be called (MSPointerDown, pointerdown combination) (T233158)', function () {
-        var events              = browserUtils.isMSEdge ? 'pointerdown MSPointerDown' : 'pointerdown';
-        var eventHandlerCounter = 0;
-
-        var handler = function () {
-            eventHandlerCounter++;
-        };
-
-        listeners.initElementListening(document, [events]);
-
-        listeners.addInternalEventBeforeListener(document, [events], function () {
-        });
-
-        document.addEventListener('pointerdown', handler, true);
-        document.addEventListener('pointerdown', handler, true);
-        dispatchPointerEvent(container, 'pointerdown');
-        strictEqual(eventHandlerCounter, 1);
-
-        document.addEventListener('pointerdown', handler, true);
-        document.addEventListener('pointerdown', handler, false);
-        dispatchPointerEvent(container, 'pointerdown');
-        strictEqual(eventHandlerCounter, 3);
-        document.removeEventListener('pointerdown', handler, true);
-        document.removeEventListener('pointerdown', handler, false);
-
-        var $document = $(document);
-
-        $document.bind('pointerdown', handler);
-        $document.bind('pointerdown', handler);
-        dispatchPointerEvent(container, 'pointerdown');
-        strictEqual(eventHandlerCounter, 5);
-        $document.unbind('pointerdown', handler);
-
-        $document.on('pointerdown', handler);
-        $document.on('pointerdown', handler);
-        dispatchPointerEvent(container, 'pointerdown');
-        strictEqual(eventHandlerCounter, 7);
-        $document.off('pointerdown', handler);
-
-        if (browserUtils.isIE11) {
-            document.addEventListener('pointerdown', handler, true);
-            document.addEventListener('MSPointerDown', handler, true);
-            dispatchPointerEvent(container, 'pointerdown');
-            strictEqual(eventHandlerCounter, 8);
-
-            document.removeEventListener('pointerdown', handler, true);
-            document.addEventListener('MSPointerDown', handler, true);
-            dispatchPointerEvent(container, 'pointerdown');
-            strictEqual(eventHandlerCounter, 9);
-
-            document.removeEventListener('MSPointerDown', handler, true);
-            document.addEventListener('MSPointerDown', handler, true);
-            document.addEventListener('MSPointerDown', handler, false);
-            dispatchPointerEvent(container, 'pointerdown');
-            strictEqual(eventHandlerCounter, 11);
-            document.removeEventListener('MSPointerDown', handler, true);
-            document.removeEventListener('MSPointerDown', handler, false);
-
-            document.addEventListener('pointerdown', handler, true);
-            document.addEventListener('MSPointerDown', handler, false);
-            dispatchPointerEvent(container, 'pointerdown');
-            strictEqual(eventHandlerCounter, 13);
-            document.removeEventListener('pointerdown', handler, true);
-            document.removeEventListener('MSPointerDown', handler, false);
-
-            $document.bind('pointerdown', handler);
-            $document.bind('MSPointerDown', handler);
-            dispatchPointerEvent(container, 'pointerdown');
-            strictEqual(eventHandlerCounter, 14);
-            $document.unbind('pointerdown', handler);
-            $document.unbind('MSPointerDown', handler);
-
-            $document.bind('MSPointerDown', handler);
-            $document.bind('MSPointerDown', handler);
-            dispatchPointerEvent(container, 'pointerdown');
-            strictEqual(eventHandlerCounter, 14);
-            $document.unbind('MSPointerDown', handler);
-
-            $document.on('pointerdown', handler);
-            $document.on('MSPointerDown', handler);
-            dispatchPointerEvent(container, 'pointerdown');
-            strictEqual(eventHandlerCounter, 15);
-            $document.off('pointerdown', handler);
-            $document.off('MSPointerDown', handler);
-
-            $document.on('MSPointerDown', handler);
-            $document.on('MSPointerDown', handler);
-            dispatchPointerEvent(container, 'pointerdown');
-            strictEqual(eventHandlerCounter, 15);
-            $document.off('MSPointerDown', handler);
-        }
-    });
-}
-
 module('dispatched event flag should be written in the proper window (GH-529)');
 
 test('dispatchEvent, fireEvent, click', function () {
@@ -656,9 +534,7 @@ test('dispatchEvent, fireEvent, click', function () {
     // some browsers automatically replace the element prototype's methods
     // with methods of the element prototype from the different window.
     var getListenersModule = function (iframeListenersModule, topLevelListenersModule) {
-        return browserUtils.isWebKit || browserUtils.isMSEdge && browserUtils.version < 15
-            ? topLevelListenersModule
-            : iframeListenersModule;
+        return browserUtils.isWebKit ? topLevelListenersModule : iframeListenersModule;
     };
 
     return createTestIframe()
@@ -699,60 +575,3 @@ test('dispatchEvent, fireEvent, click', function () {
                 link.fireEvent('click');
         });
 });
-
-if (browserUtils.isIE && !browserUtils.isMSEdge) {
-    asyncTest('setSelection', function () {
-        var testInput = document.createElement('input');
-        // NOTE: To prevent the export of the constant and modification of the Listeners module export,
-        // we declare the constant in the test again.
-        var dispatchedEventFlag = 'hammerhead|event-sandbox-dispatch-event-flag';
-        var counter             = 0;
-
-        testInput.addEventListener('focus', function () {
-            start();
-        });
-
-        testInput.value = 'test';
-
-        createTestIframe()
-            .then(function (iframe) {
-                var iframeDocument            = iframe.contentDocument;
-                var iframeHammerhead          = iframe.contentWindow['%hammerhead%'];
-                var iframeListeners           = iframeHammerhead.sandboxUtils.EventListeners;
-                var storedBeforeDispatchEvent = iframeListeners.beforeDispatchEvent;
-                var storedAfterDispatchEvent  = iframeListeners.afterDispatchEvent;
-
-                iframeListeners.beforeDispatchEvent = function (el) {
-                    strictEqual(!!counter, !!iframe.contentWindow[dispatchedEventFlag]);
-                    ok(!window[dispatchedEventFlag]);
-
-                    storedBeforeDispatchEvent(el);
-
-                    ok(iframe.contentWindow[dispatchedEventFlag]);
-                    ok(!window[dispatchedEventFlag]);
-
-                    counter++;
-                };
-
-                iframeListeners.afterDispatchEvent = function (el) {
-                    ok(iframe.contentWindow[dispatchedEventFlag]);
-                    ok(!window[dispatchedEventFlag]);
-
-                    storedAfterDispatchEvent(el);
-
-                    if (counter === 2)
-                        ok(iframe.contentWindow[dispatchedEventFlag]);
-                    else
-                        ok(!iframe.contentWindow[dispatchedEventFlag]);
-
-                    ok(!window[dispatchedEventFlag]);
-
-                    counter++;
-                };
-
-                iframeDocument.body.appendChild(testInput);
-                testInput.setSelectionRange(1, 2);
-            });
-    });
-}
-

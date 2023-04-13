@@ -17,7 +17,7 @@ asyncTest('override setTimeout error (T203986)', function () {
 });
 
 test('remove event listener in the context of optional parameters ("options" object or "useCapture") (GH-1737)', function () {
-    expect(browserUtils.isIE11 ? 0 : 4);
+    expect(4);
 
     function expectedClickHandler () {
         ok(true);
@@ -35,15 +35,12 @@ test('remove event listener in the context of optional parameters ("options" obj
         { addEventListener: [unexpectedClickHandler, { capture: false }], removeEventListener: [unexpectedClickHandler, { capture: false }] },
     ];
 
-    // NOTE: IE11 doesn't support 'options.capture' option
-    if (!browserUtils.isIE11) {
-        testCases = testCases.concat([
-            { addEventListener: [unexpectedClickHandler, { capture: false }], removeEventListener: [unexpectedClickHandler] },
-            { addEventListener: [unexpectedClickHandler], removeEventListener: [unexpectedClickHandler, { capture: false }] },
-            { addEventListener: [expectedClickHandler, { capture: true }], removeEventListener: [expectedClickHandler, false] },
-            { addEventListener: [expectedClickHandler, false], removeEventListener: [expectedClickHandler, { capture: true }] },
-        ]);
-    }
+    testCases = testCases.concat([
+        { addEventListener: [unexpectedClickHandler, { capture: false }], removeEventListener: [unexpectedClickHandler] },
+        { addEventListener: [unexpectedClickHandler], removeEventListener: [unexpectedClickHandler, { capture: false }] },
+        { addEventListener: [expectedClickHandler, { capture: true }], removeEventListener: [expectedClickHandler, false] },
+        { addEventListener: [expectedClickHandler, false], removeEventListener: [expectedClickHandler, { capture: true }] },
+    ]);
 
     function checkEventListenerRemoving (el) {
         testCases.forEach(function (testCase) {
@@ -176,30 +173,28 @@ test('firing and dispatching the events created in different ways (Q532574)', fu
     strictEqual(inlineHandlerClickedCount, 1);
     strictEqual(jQueryHandlerClickedCount, 1);
 
-    // NOTE: new MouseEvent (not for IE with its fireEvent).
     var error = false;
 
-    if (!browserUtils.isIE) {
-        try {
-            event = new MouseEvent('click', {
-                'view':       window,
-                'bubbles':    true,
-                'cancelable': true,
-            });
-        }
-        catch (e) {
-            // NOTE: The browser doesn't support this action.
-            error = true;
-        }
-
-        if (!error) {
-            div.dispatchEvent(event);
-            strictEqual(attachedHandlerCount, 0);
-            strictEqual(addedHandlerCount, 2);
-            strictEqual(inlineHandlerClickedCount, 2);
-            strictEqual(jQueryHandlerClickedCount, 2);
-        }
+    try {
+        event = new MouseEvent('click', {
+            'view':       window,
+            'bubbles':    true,
+            'cancelable': true,
+        });
     }
+    catch (e) {
+        // NOTE: The browser doesn't support this action.
+        error = true;
+    }
+
+    if (!error) {
+        div.dispatchEvent(event);
+        strictEqual(attachedHandlerCount, 0);
+        strictEqual(addedHandlerCount, 2);
+        strictEqual(inlineHandlerClickedCount, 2);
+        strictEqual(jQueryHandlerClickedCount, 2);
+    }
+
     $div.remove();
 });
 
@@ -542,10 +537,7 @@ asyncTest('hover style in iframe', function () {
 
             eventSimulator.mouseover(iframe, { clientX: 190, clientY: 130 });
 
-            if (browserUtils.isIE)
-                equal(window.getComputedStyle(iframe).backgroundColor, initialBackgroundColor);
-            else
-                notEqual(window.getComputedStyle(iframe).backgroundColor, initialBackgroundColor);
+            notEqual(window.getComputedStyle(iframe).backgroundColor, initialBackgroundColor);
 
             eventSimulator.mouseover(div, { clientX: 0, clientY: 0 });
             equal(window.getComputedStyle(iframe).backgroundColor, initialBackgroundColor);
@@ -614,16 +606,9 @@ test('events should be restored after iframe rewriting (GH-1881)', function () {
 
             internalClickEventCounter = 0;
 
-            // TODO: remove the next string and fix tests in IE and Edge
             contentDocument.open();
             contentDocument.write('<!doctype html><html><head></head><body>world</body></html>');
             contentDocument.close();
-
-            if (browserUtils.isIE) {
-                contentWindow['%hammerhead%'].eventSandbox.listeners.addInternalEventBeforeListener(contentWindow, ['click'], function () {
-                    ++internalClickEventCounter;
-                });
-            }
 
             eventSimulator.click(contentDocument.body);
 

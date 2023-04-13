@@ -2,7 +2,6 @@ var urlUtils      = hammerhead.utils.url;
 var nativeMethods = hammerhead.nativeMethods;
 var StyleSandbox  = hammerhead.sandboxes.StyleSandbox;
 var styleSandbox  = hammerhead.sandbox.style;
-var browserUtils  = hammerhead.utils.browser;
 
 function getNativeStylePropValue (el, prop) {
     var nativeStyle = nativeMethods.htmlElementStyleGetter.call(el);
@@ -42,8 +41,7 @@ test('set the "style" attribute', function () {
 
     var getAttributeResult = 'background-image: url("' + urlUtils.resolveUrlAsDest('index.png') + '");';
 
-    if (!browserUtils.isIE11)
-        getAttributeResult = removeDoubleQuotes(getAttributeResult);
+    getAttributeResult = removeDoubleQuotes(getAttributeResult);
 
     strictEqual(div.getAttribute('style'), getAttributeResult);
 });
@@ -162,9 +160,7 @@ test('the getAttribute function should return cleaned style (GH-1922)', function
 
     div.style.display = 'none';
 
-    strictEqual(div.getAttribute('style'), browserUtils.isIE
-        ? 'display: none; background-color: green;'
-        : 'background-color: green; display: none;');
+    strictEqual(div.getAttribute('style'), 'background-color: green; display: none;');
 });
 
 test('the appendData function should append processed text (TC-3830)', function () {

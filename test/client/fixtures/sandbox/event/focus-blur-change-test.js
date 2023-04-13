@@ -1,6 +1,5 @@
 var SHADOW_UI_CLASSNAME = hammerhead.SHADOW_UI_CLASS_NAME;
 
-var Promise               = hammerhead.Promise;
 var browserUtils          = hammerhead.utils.browser;
 var styleUtil             = hammerhead.utils.style;
 var activeWindowTracker   = hammerhead.sandbox.event.focusBlur._activeWindowTracker;
@@ -20,7 +19,6 @@ var input2BlurHandlersExecutedCount   = 0;
 var input1ChangeHandlersExecutedCount = 0;
 var input2ChangeHandlersExecutedCount = 0;
 var TEST_ELEMENT_CLASS                = 'testElement';
-var testEndDelay                      = 25;
 
 var enableLogging = false;
 
@@ -43,9 +41,7 @@ function startNext () {
     focusBlur.focus(document.body, function () {
         removeTestElements();
 
-        if (browserUtils.isIE)
-            setDoubleTimeout(testEndDelay).then(start);
-        else start();
+        start();
     });
 }
 
@@ -545,8 +541,7 @@ asyncTest('blurring body with blur handler', function () {
 
     focusBlur.focus(document.body, function () {
         focusBlur.focus(input1, function () {
-            //body blur handler is raised only is IE
-            strictEqual(blurCount, browserUtils.isIE ? 1 : 0, 'check amount of body blur handlers called');
+            strictEqual(blurCount, 0, 'check amount of body blur handlers called');
             startNext();
         });
     });
@@ -653,7 +648,7 @@ asyncTest('blur() must not raise event if element is already blured', function (
 
 if (window.HTMLInputElement.prototype.setSelectionRange) {
     asyncTest('focus after calling setSelectionRange()', function () {
-        var needFocus   = browserUtils.isIE || browserUtils.isSafari;
+        var needFocus   = browserUtils.isSafari;
         var focusRaised = false;
         var checkFocus  = function () {
             return focusRaised === needFocus;
@@ -673,7 +668,7 @@ if (window.HTMLInputElement.prototype.setSelectionRange) {
     });
 
     asyncTest('setSelectionRange() called by some event handler when the browser window is in background', function () {
-        var needFocus  = browserUtils.isIE || browserUtils.isSafari;
+        var needFocus  = browserUtils.isSafari;
         var focusCount = 0;
 
         input2.onfocus = function () {
@@ -803,7 +798,6 @@ asyncTest('check that scrolling does not happen when focus is set (after mouse e
         })
         .attr('tabIndex', 1);
 
-    // NOTE: We should use unfocusable element in IE. (T292365)
     $(childDiv)
         .css({
             marginLeft: '110%',
@@ -872,12 +866,6 @@ asyncTest('events order', function () {
     var input                          = document.createElement('input');
     var nativeInput                    = nativeMethods.createElement.call(document, 'input');
     var getNativeEventLogFallbackValue = function () {
-        if (browserUtils.isMSEdge && browserUtils.version < 17)
-            return 'focus|focusin|focusout|blur';
-
-        else if (browserUtils.isIE && !browserUtils.isMSEdge)
-            return 'focusin|focusout|focus|blur|';
-
         return 'focus|focusin|blur|focusout|';
     };
 
@@ -927,9 +915,6 @@ asyncTest('events order with not native focus', function () {
     };
 
     var getEventOrderLog = function () {
-        if (browserUtils.isIE11)
-            return 'focusin|focus|focusout|blur|';
-
         return 'focus|focusin|blur|focusout|';
     };
 
@@ -1039,12 +1024,7 @@ test('querySelector must return active element even when browser is not focused 
 
     result = document.querySelectorAll(':focus');
 
-    if (browserUtils.isIE && !browserUtils.isMSEdge) {
-        strictEqual(result.length, 1);
-        strictEqual(result[0], document.body);
-    }
-    else
-        strictEqual(result.length, 0);
+    strictEqual(result.length, 0);
 });
 
 asyncTest('error on the http://phonejs.devexpress.com/Demos/?url=KitchenSink&sm=3 page (B237723)', function () {
@@ -1304,16 +1284,14 @@ asyncTest('relatedTarget property should be passed correctly to the FocusEvent',
 
     var p1 = new Promise(function (resolve) {
         secondInput.addEventListener('focus', function (e) {
-            if (!browserUtils.isIE)
-                strictEqual(e.relatedTarget, firstInput);
+            strictEqual(e.relatedTarget, firstInput);
             resolve();
         });
     });
 
     var p2 = new Promise(function (resolve) {
         firstInput.addEventListener('blur', function (e) {
-            if (!browserUtils.isIE)
-                strictEqual(e.relatedTarget, secondInput);
+            strictEqual(e.relatedTarget, secondInput);
             resolve();
         });
     });
@@ -1342,22 +1320,6 @@ asyncTest('relatedTarget property should be passed correctly to the FocusEvent',
         startNext();
     });
 });
-
-test('focus should not raise an error in IE11 when is called with element within a removed iframe (GH-1684)', function () {
-    return createTestIframe()
-        .then(function (iframe) {
-            var input = document.createElement('input');
-
-            iframe.contentDocument.body.appendChild(input);
-
-            document.body.removeChild(iframe);
-
-            eventSimulator.focus(input);
-
-            ok(true);
-        });
-});
-
 
 asyncTest('Should not change active element after source element was focused on change', function () {
     var firstInput        = document.createElement('input');
@@ -1492,30 +1454,28 @@ asyncTest('an active input should not be blurred after a call of the focus on a 
     });
 });
 
-if (!browserUtils.isIE11) {
-    asyncTest('the target property of the Event prototype can be overridden (GH-2662)', function () {
-        var activeInput            = document.createElement('input');
-        var storedTargetDescriptor = Object.getOwnPropertyDescriptor(window.Event.prototype, 'target');
+asyncTest('the target property of the Event prototype can be overridden (GH-2662)', function () {
+    var activeInput            = document.createElement('input');
+    var storedTargetDescriptor = Object.getOwnPropertyDescriptor(window.Event.prototype, 'target');
 
-        activeInput.className = TEST_ELEMENT_CLASS;
+    activeInput.className = TEST_ELEMENT_CLASS;
 
-        document.body.appendChild(activeInput);
+    document.body.appendChild(activeInput);
 
-        activeInput.onfocus = function () {
-            Object.defineProperty(window.Event.prototype, 'target', storedTargetDescriptor);
-            ok(true);
-            document.body.removeChild(activeInput);
-            start();
-        };
+    activeInput.onfocus = function () {
+        Object.defineProperty(window.Event.prototype, 'target', storedTargetDescriptor);
+        ok(true);
+        document.body.removeChild(activeInput);
+        start();
+    };
 
-        Object.defineProperty(window.Event.prototype, 'target', {
-            configurable: true,
+    Object.defineProperty(window.Event.prototype, 'target', {
+        configurable: true,
 
-            get: function () {
-                return null;
-            },
-        });
-
-        activeInput.dispatchEvent(new CustomEvent('focus'));
+        get: function () {
+            return null;
+        },
     });
-}
+
+    activeInput.dispatchEvent(new CustomEvent('focus'));
+});

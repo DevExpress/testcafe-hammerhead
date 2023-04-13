@@ -7,7 +7,6 @@ var urlUtils                = hammerhead.utils.url;
 var DomProcessor            = hammerhead.processors.DomProcessor;
 
 var nativeMethods = hammerhead.nativeMethods;
-var browserUtils  = hammerhead.utils.browser;
 
 test('clean up outerHTML', function () {
     var htmlText = '<a href="http://domain.com/">link</a>';
@@ -110,11 +109,9 @@ test('script.<innerHTML/innerText/text/textContent>', function () {
 
         strictEqual(nativeGetter.call(script), expectedValueForUndefined);
 
-        if (!browserUtils.isIE11) {
-            script[property] = scriptWithImport;
+        script[property] = scriptWithImport;
 
-            strictEqual(nativeGetter.call(script).replace(/\s/g, ''), processedScriptWithImport);
-        }
+        strictEqual(nativeGetter.call(script).replace(/\s/g, ''), processedScriptWithImport);
     });
 });
 
@@ -384,9 +381,6 @@ test('we should clean up html and remove extra namespaces from svg (GH-1083)', f
 
     strictEqual(div.innerHTML, nativeMethods.elementInnerHTMLGetter.call(nativeDiv));
 
-    // NOTE: IE added additional attributes with namespaces
-    // such as 'xmlns:NS2=""', NS2:xmlns:ns1=""
-    // after setting div.innerHTML property
     nativeMethods.elementInnerHTMLSetter.call(div, nativeMethods.elementInnerHTMLGetter.call(div));
     nativeMethods.elementInnerHTMLSetter.call(nativeDiv, nativeMethods.elementInnerHTMLGetter.call(nativeDiv));
 

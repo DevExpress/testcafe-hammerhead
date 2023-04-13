@@ -102,104 +102,104 @@ test("the script processor should process eval's global", function () {
     strictEqual(execScript('var ev = eval; ev("test.href")'), testUrl);
 });
 
-if (!browserUtils.isIE11) {
-    module('destructuring');
 
-    var defaultRestArrayStr = 'var ' + scriptHeader.add('')
-        .replace(/[\s\S]+(__rest\$Array\s*=\s*function[^}]+})[\s\S]+/g, '$1');
-    var defaultArrayFromStr = 'var ' + scriptHeader.add('')
-        .replace(/[\s\S]+(__arrayFrom\$\s*=\s*function[^}]+})[\s\S]+/g, '$1');
+module('destructuring');
 
-    test('destructuring object with rest element', function () {
-        var script = 'let obj = { a: 1, b: 2, c: 3, d: 4 };' +
+var defaultRestArrayStr = 'var ' + scriptHeader.add('')
+    .replace(/[\s\S]+(__rest\$Array\s*=\s*function[^}]+})[\s\S]+/g, '$1');
+var defaultArrayFromStr = 'var ' + scriptHeader.add('')
+    .replace(/[\s\S]+(__arrayFrom\$\s*=\s*function[^}]+})[\s\S]+/g, '$1');
+
+test('destructuring object with rest element', function () {
+    var script = 'let obj = { a: 1, b: 2, c: 3, d: 4 };' +
                      'let { a, "b": i, j = 7, ...other } = obj;' +
                      'window.destructingResult = "" + a + i + j + JSON.stringify(other);';
 
-        var defaultRestObjectStr = 'var ' + scriptHeader.add('')
-            .replace(/[\s\S]+(__rest\$Object\s*=\s*function[\s\S]+?return[^}]+})[\s\S]+/g, '$1');
+    var defaultRestObjectStr = 'var ' + scriptHeader.add('')
+        .replace(/[\s\S]+(__rest\$Object\s*=\s*function[\s\S]+?return[^}]+})[\s\S]+/g, '$1');
 
-        eval(defaultRestObjectStr + ';' + processScript(script));
+    eval(defaultRestObjectStr + ';' + processScript(script));
 
-        strictEqual(window.destructingResult, '127{"c":3,"d":4}');
+    strictEqual(window.destructingResult, '127{"c":3,"d":4}');
 
-        window.destructingResult = void 0;
+    window.destructingResult = void 0;
 
-        eval(processScript(script));
+    eval(processScript(script));
 
-        strictEqual(window.destructingResult, '127{"c":3,"d":4}');
-    });
+    strictEqual(window.destructingResult, '127{"c":3,"d":4}');
+});
 
-    test('destructuring array with rest element', function () {
-        var script = 'let arr = [1, 2, 3, 4];' +
+test('destructuring array with rest element', function () {
+    var script = 'let arr = [1, 2, 3, 4];' +
                      'let [ a, b = 9, ...other ] = arr;' +
                      'window.destructingResult = "" + a + b + JSON.stringify(other);';
 
 
-        eval(defaultRestArrayStr + ';' + processScript(script));
+    eval(defaultRestArrayStr + ';' + processScript(script));
 
-        strictEqual(window.destructingResult, '12[3,4]');
+    strictEqual(window.destructingResult, '12[3,4]');
 
-        window.destructingResult = void 0;
+    window.destructingResult = void 0;
 
-        eval(processScript(script));
+    eval(processScript(script));
 
-        strictEqual(window.destructingResult, '12[3,4]');
-    });
+    strictEqual(window.destructingResult, '12[3,4]');
+});
 
-    test('destructuring iterable', function () {
-        var script = 'const iterable = {};' +
+test('destructuring iterable', function () {
+    var script = 'const iterable = {};' +
             'iterable[Symbol.iterator] = function* () { yield 1; yield 2; };' +
             'let a, b = 9;' +
             '[a, b] = iterable;' +
             'window.destructingResult = "" + a + b;';
 
-        eval(defaultArrayFromStr + ';' + processScript(script));
+    eval(defaultArrayFromStr + ';' + processScript(script));
 
-        strictEqual(window.destructingResult, '12');
+    strictEqual(window.destructingResult, '12');
 
-        window.destructingResult = void 0;
+    window.destructingResult = void 0;
 
-        eval(processScript(script));
+    eval(processScript(script));
 
-        strictEqual(window.destructingResult, '12');
-    });
+    strictEqual(window.destructingResult, '12');
+});
 
-    test('destructuring iterable with rest element', function () {
-        var script = 'const iterable = {};' +
+test('destructuring iterable with rest element', function () {
+    var script = 'const iterable = {};' +
             'iterable[Symbol.iterator] = function* () { yield 1; yield 2; yield 3; yield 4; };' +
             'let [ a, b = 9, ...other ] = iterable;' +
             'window.destructingResult = "" + a + b + JSON.stringify(other);';
 
-        eval(defaultRestArrayStr + ';' + defaultArrayFromStr + ';' + processScript(script));
+    eval(defaultRestArrayStr + ';' + defaultArrayFromStr + ';' + processScript(script));
 
-        strictEqual(window.destructingResult, '12[3,4]');
+    strictEqual(window.destructingResult, '12[3,4]');
 
-        window.destructingResult = void 0;
+    window.destructingResult = void 0;
 
-        eval(processScript(script));
+    eval(processScript(script));
 
-        strictEqual(window.destructingResult, '12[3,4]');
-    });
+    strictEqual(window.destructingResult, '12[3,4]');
+});
 
-    test('destructuring for...of iterable', function () {
-        var script = 'window.destructingResult = "";' +
+test('destructuring for...of iterable', function () {
+    var script = 'window.destructingResult = "";' +
             'const iterable = {};' +
             'iterable[Symbol.iterator] = function* () { yield 1; yield 2; yield 3; yield 4; };' +
             'for (const item of iterable) window.destructingResult += item;';
 
-        eval(defaultArrayFromStr + ';' + processScript(script));
+    eval(defaultArrayFromStr + ';' + processScript(script));
 
-        strictEqual(window.destructingResult, '1234');
+    strictEqual(window.destructingResult, '1234');
 
-        window.destructingResult = void 0;
+    window.destructingResult = void 0;
 
-        eval(processScript(script));
+    eval(processScript(script));
 
-        strictEqual(window.destructingResult, '1234');
-    });
+    strictEqual(window.destructingResult, '1234');
+});
 
-    test('destructuring nested for...of iterable', function () {
-        var script = 'window.destructingResult = "";\n' +
+test('destructuring nested for...of iterable', function () {
+    var script = 'window.destructingResult = "";\n' +
             'let item1, item2;' +
             'const iterable = {};' +
             'iterable[Symbol.iterator] = function* () { yield [1,2]; yield [3,4]; };' +
@@ -210,72 +210,71 @@ if (!browserUtils.isIE11) {
             '    }' +
             '}';
 
-        eval(defaultArrayFromStr + ';' + processScript(script));
+    eval(defaultArrayFromStr + ';' + processScript(script));
 
-        strictEqual(window.destructingResult, '12341234');
+    strictEqual(window.destructingResult, '12341234');
 
-        window.destructingResult = void 0;
+    window.destructingResult = void 0;
 
-        eval(processScript(script));
+    eval(processScript(script));
 
-        strictEqual(window.destructingResult, '12341234');
-    });
+    strictEqual(window.destructingResult, '12341234');
+});
 
-    test('should process script arg', function () {
-        strictEqual(execScript('({ a: b } = { a: null }).a'), null);
-    });
+test('should process script arg', function () {
+    strictEqual(execScript('({ a: b } = { a: null }).a'), null);
+});
 
-    module('others');
+module('others');
 
-    test('optional chaining', function () {
-        var testCases = [
+test('optional chaining', function () {
+    var testCases = [
+        {
+            src:      'var obj = null; window.optionChainingResult = obj?.href;',
+            expected: void 0,
+        },
+        {
+            src:      'var obj = { href: "123" }; window.optionChainingResult = obj?.href;',
+            expected: '123',
+        },
+        {
+            src:      'var obj = null; window.optionChainingResult = obj?.["href"];',
+            expected: void 0,
+        },
+        {
+            src:      'var obj = null; var counter = 0; window.optionChainingResult = obj?.[counter -1];',
+            expected: void 0,
+        },
+    ];
+
+    var additionalCases = [];
+
+    // NOTE: Safari until iOS 13.4 don't have full support optional chaining
+    if (!browserUtils.isIOS || browserUtils.compareVersions([browserUtils.webkitVersion, '608.2.11']) === 1) {
+        var additionalCases = [
             {
-                src:      'var obj = null; window.optionChainingResult = obj?.href;',
-                expected: void 0,
-            },
-            {
-                src:      'var obj = { href: "123" }; window.optionChainingResult = obj?.href;',
+                src:      'var obj = { href: "123" }; window.optionChainingResult = obj?.["href"];',
                 expected: '123',
             },
             {
-                src:      'var obj = null; window.optionChainingResult = obj?.["href"];',
-                expected: void 0,
-            },
-            {
-                src:      'var obj = null; var counter = 0; window.optionChainingResult = obj?.[counter -1];',
+                src:      'var obj = {}; window.optionChainingResult = obj["href"]?.();',
                 expected: void 0,
             },
         ];
 
-        var additionalCases = [];
+        for (let i = 0; i < additionalCases.length; i++)
+            testCases.push(additionalCases[i]);
+    }
 
-        // NOTE: Safari until iOS 13.4 don't have full support optional chaining
-        if (!browserUtils.isIOS || browserUtils.compareVersions([browserUtils.webkitVersion, '608.2.11']) === 1) {
-            var additionalCases = [
-                {
-                    src:      'var obj = { href: "123" }; window.optionChainingResult = obj?.["href"];',
-                    expected: '123',
-                },
-                {
-                    src:      'var obj = {}; window.optionChainingResult = obj["href"]?.();',
-                    expected: void 0,
-                },
-            ];
+    for (var i = 0; i < testCases.length; i++) {
+        var testCase = testCases[i];
+        var script   = processScript(testCase.src);
 
-            for (let i = 0; i < additionalCases.length; i++)
-                testCases.push(additionalCases[i]);
-        }
+        eval(script);
 
-        for (var i = 0; i < testCases.length; i++) {
-            var testCase = testCases[i];
-            var script   = processScript(testCase.src);
+        strictEqual(window.optionChainingResult, testCase.expected);
 
-            eval(script);
-
-            strictEqual(window.optionChainingResult, testCase.expected);
-
-            delete window.optionChainingResult;
-            delete window.obj;
-        }
-    });
-}
+        delete window.optionChainingResult;
+        delete window.obj;
+    }
+});
