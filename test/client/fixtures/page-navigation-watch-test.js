@@ -346,23 +346,20 @@ test('Click prevented in the html "onclick" handler', function () {
         });
 });
 
-if (!browserUtils.isIE || browserUtils.isMSEdge) {
-    // NOTE: we can't detect if default handling was cancelled by returning 'false' from an inline handler in IE yet
-    test('Click prevented via "return false" in the html "onclick" handler', function () {
-        var navigationScript = 'var container = document.createElement("div");' +
+test('Click prevented via "return false" in the html "onclick" handler', function () {
+    var navigationScript = 'var container = document.createElement("div");' +
                                'container.innerHTML += \'<a id="link" href="./index.html" onclick="return false;">Link</a>\';' +
                                'document.body.appendChild(container);' +
                                'link.click();';
 
-        return navigateIframe(navigationScript, { timeout: 500 })
-            .then(function () {
-                ok(false, 'event should not be triggered');
-            })
-            .catch(function (reason) {
-                ok(reason === 'timeout exceeded', reason);
-            });
-    });
-}
+    return navigateIframe(navigationScript, { timeout: 500 })
+        .then(function () {
+            ok(false, 'event should not be triggered');
+        })
+        .catch(function (reason) {
+            ok(reason === 'timeout exceeded', reason);
+        });
+});
 
 module('Form submission');
 
@@ -442,10 +439,8 @@ test('Submission canceled in the "addEventListener" method', function () {
         });
 });
 
-if (!browserUtils.isIE || browserUtils.isMSEdge) {
-    // NOTE: we can't detect if default handling was cancelled by returning 'false' from an inline handler in IE yet
-    test('Submission canceled in the "onsubmit" property', function () {
-        var navigationScript = 'var form = document.createElement("form");' +
+test('Submission canceled in the "onsubmit" property', function () {
+    var navigationScript = 'var form = document.createElement("form");' +
                                'var submit = document.createElement("input");' +
                                'form.onsubmit = function () { return false; };' +
                                'form.action = "./index.html";' +
@@ -454,17 +449,17 @@ if (!browserUtils.isIE || browserUtils.isMSEdge) {
                                'document.body.appendChild(form);' +
                                'submit.click();';
 
-        return navigateIframe(navigationScript, { timeout: 500 })
-            .then(function () {
-                ok(false, 'event should not be triggered');
-            })
-            .catch(function (reason) {
-                ok(reason === 'timeout exceeded', reason);
-            });
-    });
+    return navigateIframe(navigationScript, { timeout: 500 })
+        .then(function () {
+            ok(false, 'event should not be triggered');
+        })
+        .catch(function (reason) {
+            ok(reason === 'timeout exceeded', reason);
+        });
+});
 
-    test('Submission canceled in the "onsubmit" attribute', function () {
-        var navigationScript = 'var form = document.createElement("form");' +
+test('Submission canceled in the "onsubmit" attribute', function () {
+    var navigationScript = 'var form = document.createElement("form");' +
                                'var submit = document.createElement("input");' +
                                'form.action = "./index.html";' +
                                'form.setAttribute("onsubmit", "return false;");' +
@@ -473,30 +468,29 @@ if (!browserUtils.isIE || browserUtils.isMSEdge) {
                                'document.body.appendChild(form);' +
                                'submit.click();';
 
-        return navigateIframe(navigationScript, { timeout: 500 })
-            .then(function () {
-                ok(false, 'event should not be triggered');
-            })
-            .catch(function (reason) {
-                ok(reason === 'timeout exceeded', reason);
-            });
-    });
+    return navigateIframe(navigationScript, { timeout: 500 })
+        .then(function () {
+            ok(false, 'event should not be triggered');
+        })
+        .catch(function (reason) {
+            ok(reason === 'timeout exceeded', reason);
+        });
+});
 
-    test('Submission canceled in the html "onsubmit" handler', function () {
-        var navigationScript = 'var container = document.createElement("div");' +
+test('Submission canceled in the html "onsubmit" handler', function () {
+    var navigationScript = 'var container = document.createElement("div");' +
                                'container.innerHTML += \'<form action="./index.html" onsubmit="return false;"><input type="submit" id="submit"/></form>\';' +
                                'document.body.appendChild(container);' +
                                'document.getElementById("submit").click();';
 
-        return navigateIframe(navigationScript, { timeout: 500 })
-            .then(function () {
-                ok(false, 'event should not be triggered');
-            })
-            .catch(function (reason) {
-                ok(reason === 'timeout exceeded', reason);
-            });
-    });
-}
+    return navigateIframe(navigationScript, { timeout: 500 })
+        .then(function () {
+            ok(false, 'event should not be triggered');
+        })
+        .catch(function (reason) {
+            ok(reason === 'timeout exceeded', reason);
+        });
+});
 
 if (browserUtils.isSafari && browserUtils.version >= 15) {
     test('Navigation through the opening window in the same tab', function () {

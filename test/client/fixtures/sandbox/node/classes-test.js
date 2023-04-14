@@ -89,7 +89,7 @@ test('window.Blob([data], { type: "" }) should return correct result for `ArrayB
 
                 var dataView = new constructor(arrayBuffer);
 
-                data = browserUtils.isIE11 ? dataView.buffer : dataView;
+                data = dataView;
             }
             else {
                 typedArray = new constructor(bmpExample.signature);
@@ -139,228 +139,198 @@ asyncTest('should process Blob parts in the case of the "Array<string | number |
     reader.readAsText(blob);
 });
 
-// IE11 cannot create a Blob object from a boolean/number array
-var canCreateBlobFromNumberBooleanArray = (function () {
-    var array = [true, false, 1, 0];
+test('should not process unprocessable Blob parts (GH-2115)', function () {
+    var unprocessableBlobParts = [true, false, 1, 0];
+    var processableBlobParts   = ['const val1 =', true, '; const var2 =', 1];
 
-    try {
-        return !!new nativeMethods.Blob(array);
-    }
-    catch (err) {
-        return false;
-    }
-})();
+    var testCases = [
+        {
+            blobParts: unprocessableBlobParts,
+            options:   { type: '' },
+        },
+        {
+            blobParts: unprocessableBlobParts,
+            options:   { type: 'text/javascript' },
+        },
+        {
+            blobParts: processableBlobParts.concat([new nativeMethods.Blob(['unprocessable part'])]),
+            options:   { type: '' },
+        },
+        {
+            blobParts: processableBlobParts.concat([new nativeMethods.Blob(['unprocessable part'])]),
+            options:   { type: 'text/javascript' },
+        },
+    ];
 
-if (canCreateBlobFromNumberBooleanArray) {
-    test('should not process unprocessable Blob parts (GH-2115)', function () {
-        var unprocessableBlobParts = [true, false, 1, 0];
-        var processableBlobParts   = ['const val1 =', true, '; const var2 =', 1];
+    var readBlobContent = function (blob) {
+        return new hammerhead.Promise(function (resolve) {
+            var reader = new FileReader();
 
-        var testCases = [
-            {
-                blobParts: unprocessableBlobParts,
-                options:   { type: '' },
-            },
-            {
-                blobParts: unprocessableBlobParts,
-                options:   { type: 'text/javascript' },
-            },
-            {
-                blobParts: processableBlobParts.concat([new nativeMethods.Blob(['unprocessable part'])]),
-                options:   { type: '' },
-            },
-            {
-                blobParts: processableBlobParts.concat([new nativeMethods.Blob(['unprocessable part'])]),
-                options:   { type: 'text/javascript' },
-            },
-        ];
+            reader.addEventListener('loadend', function () {
+                var arr = new Uint8Array(this.result);
 
-        var readBlobContent = function (blob) {
-            return new hammerhead.Promise(function (resolve) {
-                var reader = new FileReader();
-
-                reader.addEventListener('loadend', function () {
-                    var arr = new Uint8Array(this.result);
-
-                    resolve(arr);
-                });
-                reader.readAsArrayBuffer(blob);
+                resolve(arr);
             });
-        };
+            reader.readAsArrayBuffer(blob);
+        });
+    };
 
 
-        return Promise.all(testCases.map(function (testCase) {
-            var overridenBlob  = new Blob(testCase.blobParts, testCase.options);
-            var nativeBlob     = new nativeMethods.Blob(testCase.blobParts, testCase.options);
-            var redBlobContent = null;
+    return Promise.all(testCases.map(function (testCase) {
+        var overridenBlob  = new Blob(testCase.blobParts, testCase.options);
+        var nativeBlob     = new nativeMethods.Blob(testCase.blobParts, testCase.options);
+        var redBlobContent = null;
 
-            return readBlobContent(overridenBlob)
-                .then(function (blobContent) {
-                    redBlobContent = blobContent;
+        return readBlobContent(overridenBlob)
+            .then(function (blobContent) {
+                redBlobContent = blobContent;
 
-                    return readBlobContent(nativeBlob);
-                })
-                .then(function (nativeBlobContent) {
-                    deepEqual(redBlobContent, nativeBlobContent);
-                });
-        }));
-    });
-}
+                return readBlobContent(nativeBlob);
+            })
+            .then(function (nativeBlobContent) {
+                deepEqual(redBlobContent, nativeBlobContent);
+            });
+    }));
+});
 
 module('File');
 
-// IE11 doesn't support File constructor
-var isFileConstructable = (function () {
-    var array = [true, false, 1, 0];
+test('window.File should be overridden', function () {
+    notEqual(window.File, nativeMethods.File);
+});
 
-    try {
-        return !!new nativeMethods.File(array, 'file.js');
-    }
-    catch (err) {
-        return false;
-    }
-})();
+test('window.File([data], "file.name", { type: "" }) should return correct result for `ArrayBuffer`, `Uint8Array` and `DataView` data types', function () {
+    var bmpExample = {
+        signature: [0x42, 0x4D],
+    };
 
-if (isFileConstructable) {
-    test('window.File should be overridden', function () {
-        notEqual(window.File, nativeMethods.File);
-    });
+    var testConstructor = function (constructor) {
+        return new Promise(function (resolve) {
+            var arrayBuffer;
+            var data;
+            var typedArray;
+            var i;
 
-    test('window.File([data], "file.name", { type: "" }) should return correct result for `ArrayBuffer`, `Uint8Array` and `DataView` data types', function () {
-        var bmpExample = {
-            signature: [0x42, 0x4D],
-        };
+            if (constructor === ArrayBuffer) {
+                arrayBuffer = new constructor(bmpExample.signature.length);
+                typedArray  = new Uint8Array(arrayBuffer);
 
-        var testConstructor = function (constructor) {
-            return new Promise(function (resolve) {
-                var arrayBuffer;
-                var data;
-                var typedArray;
-                var i;
+                for (i = 0; i < typedArray.length; i++)
+                    typedArray[i] = bmpExample.signature[i];
 
-                if (constructor === ArrayBuffer) {
-                    arrayBuffer = new constructor(bmpExample.signature.length);
-                    typedArray  = new Uint8Array(arrayBuffer);
+                data = arrayBuffer;
+            }
+            else if (constructor === DataView) {
+                arrayBuffer = new ArrayBuffer(bmpExample.signature.length);
+                typedArray  = new Uint8Array(arrayBuffer);
 
-                    for (i = 0; i < typedArray.length; i++)
-                        typedArray[i] = bmpExample.signature[i];
+                for (i = 0; i < typedArray.length; i++)
+                    typedArray[i] = bmpExample.signature[i];
 
-                    data = arrayBuffer;
-                }
-                else if (constructor === DataView) {
-                    arrayBuffer = new ArrayBuffer(bmpExample.signature.length);
-                    typedArray  = new Uint8Array(arrayBuffer);
+                var dataView = new constructor(arrayBuffer);
 
-                    for (i = 0; i < typedArray.length; i++)
-                        typedArray[i] = bmpExample.signature[i];
+                data = dataView;
+            }
+            else {
+                typedArray = new constructor(bmpExample.signature);
+                data       = typedArray;
+            }
 
-                    var dataView = new constructor(arrayBuffer);
+            var resultFile = new File([data], 'file.name', { type: '' });
+            var fileReader = new FileReader();
 
-                    data = browserUtils.isIE11 ? dataView.buffer : dataView;
-                }
-                else {
-                    typedArray = new constructor(bmpExample.signature);
-                    data       = typedArray;
-                }
+            fileReader.onload = function () {
+                var resultArrayBuffer = this.result;
 
-                var resultFile = new File([data], 'file.name', { type: '' });
-                var fileReader = new FileReader();
+                var resultTypedArray = constructor === ArrayBuffer || constructor === DataView
+                    ? new Uint8Array(resultArrayBuffer)
+                    : new constructor(resultArrayBuffer);
 
-                fileReader.onload = function () {
-                    var resultArrayBuffer = this.result;
+                var resultArray = [].slice.call(resultTypedArray);
 
-                    var resultTypedArray = constructor === ArrayBuffer || constructor === DataView
-                        ? new Uint8Array(resultArrayBuffer)
-                        : new constructor(resultArrayBuffer);
-
-                    var resultArray = [].slice.call(resultTypedArray);
-
-                    strictEqual(resultArray.toString(), bmpExample.signature.toString());
-                    resolve();
-                };
-
-                fileReader.readAsArrayBuffer(resultFile);
-            });
-        };
-
-        return Promise.all([
-            testConstructor(ArrayBuffer),
-            testConstructor(Uint8Array),
-            testConstructor(DataView),
-        ]);
-    });
-
-    asyncTest('should process File parts in the case of the "Array<string | number | boolean>" array', function () {
-        var parts = ['var test = ', 1, '+', true, ';'];
-
-        var expectedScript = processScript(parts.join(''), true, false, void 0, void 0, false, { sessionId: 'sessionId', origin: 'https://example.com' }).replace(/\s/g, '');
-
-        var file   = new window.File(parts, { type: 'texT/javascript' });
-        var reader = new FileReader();
-
-        reader.addEventListener('loadend', function (e) {
-            strictEqual(e.target.result.replace(/\s/g, ''), expectedScript);
-            start();
-        });
-
-        reader.readAsText(file);
-    });
-
-    if (canCreateBlobFromNumberBooleanArray) {
-        test('should not process unprocessable File parts', function () {
-            var unprocessableFileParts = [true, false, 1, 0];
-            var processableFileParts   = ['const val1 =', true, '; const var2 =', 1];
-
-            var testCases = [
-                {
-                    fileParts: unprocessableFileParts,
-                    options:   { type: '' },
-                },
-                {
-                    fileParts: unprocessableFileParts,
-                    options:   { type: 'text/javascript' },
-                },
-                {
-                    fileParts: processableFileParts.concat([new nativeMethods.File(['unprocessable part'], 'file.name')]),
-                    options:   { type: '' },
-                },
-                {
-                    fileParts: processableFileParts.concat([new nativeMethods.File(['unprocessable part'], 'file.name')]),
-                    options:   { type: 'text/javascript' },
-                },
-            ];
-
-            var readFileContent = function (file) {
-                return new hammerhead.Promise(function (resolve) {
-                    var reader = new FileReader();
-
-                    reader.addEventListener('loadend', function () {
-                        var arr = new Uint8Array(this.result);
-
-                        resolve(arr);
-                    });
-                    reader.readAsArrayBuffer(file);
-                });
+                strictEqual(resultArray.toString(), bmpExample.signature.toString());
+                resolve();
             };
 
-            return Promise.all(testCases.map(function (testCase) {
-                var overridenFile  = new File(testCase.fileParts, 'file.name', testCase.options);
-                var nativeFile     = new nativeMethods.File(testCase.fileParts, 'file.name', testCase.options);
-                var redFileContent = null;
-
-                return readFileContent(overridenFile)
-                    .then(function (fileContent) {
-                        redFileContent = fileContent;
-
-                        return readFileContent(nativeFile);
-                    })
-                    .then(function (nativeFileContent) {
-                        deepEqual(redFileContent, nativeFileContent);
-                    });
-            }));
+            fileReader.readAsArrayBuffer(resultFile);
         });
-    }
-}
+    };
+
+    return Promise.all([
+        testConstructor(ArrayBuffer),
+        testConstructor(Uint8Array),
+        testConstructor(DataView),
+    ]);
+});
+
+asyncTest('should process File parts in the case of the "Array<string | number | boolean>" array', function () {
+    var parts = ['var test = ', 1, '+', true, ';'];
+
+    var expectedScript = processScript(parts.join(''), true, false, void 0, void 0, false, { sessionId: 'sessionId', origin: 'https://example.com' }).replace(/\s/g, '');
+
+    var file   = new window.File(parts, { type: 'texT/javascript' });
+    var reader = new FileReader();
+
+    reader.addEventListener('loadend', function (e) {
+        strictEqual(e.target.result.replace(/\s/g, ''), expectedScript);
+        start();
+    });
+
+    reader.readAsText(file);
+});
+
+test('should not process unprocessable File parts', function () {
+    var unprocessableFileParts = [true, false, 1, 0];
+    var processableFileParts   = ['const val1 =', true, '; const var2 =', 1];
+
+    var testCases = [
+        {
+            fileParts: unprocessableFileParts,
+            options:   { type: '' },
+        },
+        {
+            fileParts: unprocessableFileParts,
+            options:   { type: 'text/javascript' },
+        },
+        {
+            fileParts: processableFileParts.concat([new nativeMethods.File(['unprocessable part'], 'file.name')]),
+            options:   { type: '' },
+        },
+        {
+            fileParts: processableFileParts.concat([new nativeMethods.File(['unprocessable part'], 'file.name')]),
+            options:   { type: 'text/javascript' },
+        },
+    ];
+
+    var readFileContent = function (file) {
+        return new hammerhead.Promise(function (resolve) {
+            var reader = new FileReader();
+
+            reader.addEventListener('loadend', function () {
+                var arr = new Uint8Array(this.result);
+
+                resolve(arr);
+            });
+            reader.readAsArrayBuffer(file);
+        });
+    };
+
+    return Promise.all(testCases.map(function (testCase) {
+        var overridenFile  = new File(testCase.fileParts, 'file.name', testCase.options);
+        var nativeFile     = new nativeMethods.File(testCase.fileParts, 'file.name', testCase.options);
+        var redFileContent = null;
+
+        return readFileContent(overridenFile)
+            .then(function (fileContent) {
+                redFileContent = fileContent;
+
+                return readFileContent(nativeFile);
+            })
+            .then(function (nativeFileContent) {
+                deepEqual(redFileContent, nativeFileContent);
+            });
+    }));
+});
 
 module('Image');
 
@@ -375,12 +345,6 @@ test('should work with the operator "instanceof" (GH-690)', function () {
 });
 
 module('EventSource');
-
-if (browserUtils.isIE) {
-    test('should not create the window.EventSource property in IE (GH-716)', function () {
-        ok(!window.EventSource);
-    });
-}
 
 if (window.EventSource) {
     test('should work with the "instanceof" operator (GH-690)', function () {
@@ -648,10 +612,7 @@ if (window.FormData) {
                 type: 'text/plain',
                 name: 'correctName.txt',
             },
-            // NOTE: window.File in IE11 is not constructable.
-            blob: nativeMethods.File
-                ? new File(['text'], 'correctName.txt', { type: 'text/plain' })
-                : new Blob(['text'], { type: 'text/plain' }),
+            blob: new File(['text'], 'correctName.txt', { type: 'text/plain' }),
         }));
         formData.append(INTERNAL_ATTRS.uploadInfoHiddenInputName, '[]');
 

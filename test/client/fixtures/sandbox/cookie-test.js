@@ -475,10 +475,8 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
 
                 strictEqual(settings.get().cookie, 'test=123; set=cookie; client=cookie');
 
-                if (!browserUtils.isIE) {
-                    strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+\|=/, '|lastAccessed|='),
-                        'cw|sessionId|client|example.com|%2F||lastAccessed|=cookie');// ??
-                }
+                strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+\|=/, '|lastAccessed|='),
+                    'cw|sessionId|client|example.com|%2F||lastAccessed|=cookie');
 
                 return window.QUnitGlobals.wait(function () {
                     return nativeMethods.documentCookieGetter.call(document).indexOf('c|sessionId') === 0;
@@ -699,20 +697,6 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
         document.cookie = '';
         strictEqual(document.cookie, '; t=3');
     });
-
-    if (browserUtils.isIE) {
-        test('should not set cookie in iframe without the src attribute in IE only', function () {
-            return createTestIframe()
-                .then(function (iframe) {
-                    var iframeDocument = iframe.contentDocument;
-
-                    iframeDocument.cookie = 'test=iframe without src';
-                    nativeMethods.documentCookieSetter.call(iframeDocument, 'test_native=iframe without src');
-
-                    strictEqual(iframeDocument.cookie, nativeMethods.documentCookieGetter.call(iframeDocument));
-                });
-        });
-    }
 
     test('the client cookie string should not contains an extra spaces (GH-1843)', function () {
         document.cookie = 'test1=test1';

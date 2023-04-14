@@ -7,7 +7,6 @@ var headersUtils   = hammerhead.sharedUtils.headers;
 var nativeMethods = hammerhead.nativeMethods;
 var xhrSandbox    = hammerhead.sandbox.xhr;
 var Promise       = hammerhead.Promise;
-var browserUtils  = hammerhead.utils.browser;
 var settings      = hammerhead.settings;
 
 function getPrototypeFromChainContainsProp (obj, prop) {
@@ -96,11 +95,8 @@ test('different url types for xhr.open method (GH-1613)', function () {
         };
     };
 
-    // NOTE: IE11 doesn't support 'URL()'
-    if (!browserUtils.isIE11) {
-        nativeMethods.xhrOpen = getNativeOpenWrapper('https://example.com/some-path');
-        xhr.open('GET', new URL('https://example.com/some-path'));
-    }
+    nativeMethods.xhrOpen = getNativeOpenWrapper('https://example.com/some-path');
+    xhr.open('GET', new URL('https://example.com/some-path'));
 
     nativeMethods.xhrOpen = getNativeOpenWrapper('https://example.com/null');
     xhr.open('GET', null);
@@ -228,7 +224,6 @@ asyncTest('xhr.responseURL', function () {
     var testCount = 0;
 
     xhr.addEventListener('readystatechange', function () {
-        // NOTE: IE11 doesn't support 'XMLHttpRequest.responseURL'
         if (this.responseURL) {
             strictEqual(this.responseURL, 'https://example.com/xhr-large-response');
             ++testCount;
@@ -474,9 +469,6 @@ test('should correctly send headers when the "withCredentials" property is chang
                     'http://' + location.host + '/sessionId!a!0/https://example.com/echo-request-headers/');
             }
 
-            if (browserUtils.isIE11)
-                return;
-
             xhr.open('get', '/echo-request-headers/');
             xhr.setRequestHeader('content-type', 'text/plain');
             xhr.withCredentials = false;
@@ -488,9 +480,6 @@ test('should correctly send headers when the "withCredentials" property is chang
             });
         })
         .then(function () {
-            if (browserUtils.isIE11)
-                return;
-
             strictEqual(JSON.parse(xhr.responseText)['content-type'], 'text/plain');
             strictEqual(nativeMethods.xhrResponseURLGetter.call(xhr),
                 'http://' + location.host + '/sessionId!a!1/https://example.com/echo-request-headers/');
@@ -541,17 +530,14 @@ module('nativeAutomation', function (hooks) {
         strictEqual(xhr.responseText, '/xhr-test/100');
     });
 
-    // NOTE: IE11 doesn't support 'XMLHttpRequest.responseURL'
-    if (nativeMethods.xhrResponseURLGetter) {
-        test('xhr.responseURL', function () {
-            var xhr = new XMLHttpRequest();
+    test('xhr.responseURL', function () {
+        var xhr = new XMLHttpRequest();
 
-            xhr.open('get', '/xhr-test/100', false);
-            xhr.send();
+        xhr.open('get', '/xhr-test/100', false);
+        xhr.send();
 
-            strictEqual(xhr.responseURL, location.origin + '/xhr-test/100');
-        });
-    }
+        strictEqual(xhr.responseURL, location.origin + '/xhr-test/100');
+    });
 
     test('should handle blob object urls (GH-1397)', function () {
         return new Promise(function (resolve) {

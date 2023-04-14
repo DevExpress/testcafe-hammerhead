@@ -2,9 +2,7 @@ var urlUtils       = hammerhead.utils.url;
 var destLocation   = hammerhead.utils.destLocation;
 var DomProcessor   = hammerhead.processors.DomProcessor;
 var urlResolver    = hammerhead.utils.urlResolver;
-
-var browserUtils  = hammerhead.utils.browser;
-var nativeMethods = hammerhead.nativeMethods;
+var nativeMethods  = hammerhead.nativeMethods;
 
 test('autocomplete', function () {
     var input  = document.createElement('input');
@@ -86,7 +84,7 @@ test('CSSStyleSheet.href', function () {
 
     document.body.appendChild(style);
 
-    var nativeGetterName          = browserUtils.isIE11 ? 'cssStyleSheetHrefGetter' : 'styleSheetHrefGetter';
+    var nativeGetterName          = 'styleSheetHrefGetter';
     var styleSheet                = document.styleSheets[0];
     var savedStyleSheetHrefGetter = nativeMethods[nativeGetterName];
 
@@ -112,12 +110,6 @@ test('CSSStyleSheet structure', function () {
 
     for (let i = 0; i < document.styleSheets.length; i++)
         ok(document.styleSheets[i] instanceof CSSStyleSheet);
-
-    if (browserUtils.isIE11) {
-        var styleSheet = document.styleSheets[id];
-
-        strictEqual(styleSheet.id, id);
-    }
 
     document.body.removeChild(style);
 });
@@ -219,26 +211,11 @@ test('should not create proxy url for invalid url (GH-778)', function () {
     var nativeAnchor = nativeMethods.createElement.call(document, 'a');
 
     var testCases = [
-        {
-            value:     '//',
-            skipForIE: false,
-        },
-        {
-            value:     '//:0',
-            skipForIE: false,
-        },
-        {
-            value:     '//:0/',
-            skipForIE: false,
-        },
-        {
-            value:     'http://test:0',
-            skipForIE: false,
-        },
-        {
-            value:     'http://test:123456789',
-            skipForIE: true,
-        },
+        '//',
+        '//:0',
+        '//:0/',
+        'http://test:0',
+        'http://test:123456789',
     ];
 
     var storedBaseUrl = urlResolver.getBaseUrl(document);
@@ -246,12 +223,8 @@ test('should not create proxy url for invalid url (GH-778)', function () {
     urlResolver.updateBase(location.origin, document);
 
     for (var i = 0; i < testCases.length; i++) {
-        // NOTE: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/9513048/
-        if (browserUtils.isIE && testCases[i].skipForIE)
-            continue;
-
-        anchor.setAttribute('href', testCases[i].value);
-        nativeMethods.setAttribute.call(nativeAnchor, 'href', testCases[i].value);
+        anchor.setAttribute('href', testCases[i]);
+        nativeMethods.setAttribute.call(nativeAnchor, 'href', testCases[i]);
 
         strictEqual(anchor.getAttribute('href'), nativeMethods.getAttribute.call(nativeAnchor, 'href'));
         strictEqual(anchor.href, nativeMethods.anchorHrefGetter.call(nativeAnchor));

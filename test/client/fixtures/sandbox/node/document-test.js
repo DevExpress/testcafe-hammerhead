@@ -295,8 +295,8 @@ test('parameters passed to the native function in its original form', function (
     checkNativeFunctionArgs('getElementsByTagName', 'getElementsByTagName', document);
     checkNativeFunctionArgs('querySelector', 'querySelector', document);
     checkNativeFunctionArgs('querySelectorAll', 'querySelectorAll', document);
-    checkNativeFunctionArgs('addEventListener', browserUtils.isIE11 ? 'documentAddEventListener' : 'addEventListener', document);
-    checkNativeFunctionArgs('removeEventListener', browserUtils.isIE11 ? 'documentRemoveEventListener' : 'removeEventListener', document);
+    checkNativeFunctionArgs('addEventListener', 'addEventListener', document);
+    checkNativeFunctionArgs('removeEventListener', 'removeEventListener', document);
 
     var storedBeforeDocumentCleaned = hammerhead.sandbox.node.doc._beforeDocumentCleaned;
     var storedRestoreDocumentMeths  = nativeMethods.restoreDocumentMeths;
@@ -736,7 +736,7 @@ test('document.write for page html (T190753)', function () {
     $div.remove();
 });
 
-if (browserUtils.isFirefox || browserUtils.isIE11) {
+if (browserUtils.isFirefox) {
     asyncTest('override window methods after document.write call (T239109)', function () {
         var iframe = document.createElement('iframe');
 
@@ -882,25 +882,22 @@ test('"permission denied" error inside documentWriter (GH-384)', function () {
         });
 });
 
-// NOTE: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/8187450/
-if (!browserUtils.isIE) {
-    test('document.write for same-domain iframe (GH-679)', function () {
-        return createTestIframe({ src: getSameDomainPageUrl('../../../data/code-instrumentation/iframe.html') })
-            .then(function (iframe) {
-                iframe.contentDocument.open();
-                iframe.contentDocument.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"><title></title><span></span><script type="text/javascript"><' + '/script>');
-                iframe.contentDocument.close();
+test('document.write for same-domain iframe (GH-679)', function () {
+    return createTestIframe({ src: getSameDomainPageUrl('../../../data/code-instrumentation/iframe.html') })
+        .then(function (iframe) {
+            iframe.contentDocument.open();
+            iframe.contentDocument.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"><title></title><span></span><script type="text/javascript"><' + '/script>');
+            iframe.contentDocument.close();
 
-                strictEqual(iframe.contentDocument.childNodes.length, 2);
+            strictEqual(iframe.contentDocument.childNodes.length, 2);
 
-                iframe.contentDocument.open();
-                iframe.contentDocument.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"><title></title><span></span><script type="text/javascript"><' + '/script>');
-                iframe.contentDocument.close();
+            iframe.contentDocument.open();
+            iframe.contentDocument.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"><title></title><span></span><script type="text/javascript"><' + '/script>');
+            iframe.contentDocument.close();
 
-                strictEqual(iframe.contentDocument.childNodes.length, 2);
-            });
-    });
-}
+            strictEqual(iframe.contentDocument.childNodes.length, 2);
+        });
+});
 
 test('an iframe should not contain self-removing scripts after document.close (GH-871)', function () {
     return createTestIframe()

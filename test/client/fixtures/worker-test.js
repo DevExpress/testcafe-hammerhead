@@ -85,7 +85,7 @@ test('calling overridden window.Worker should not cause the "use the \'new\'..."
 });
 
 test('calling Worker without the "new" keyword (GH-1970)', function () {
-    expect(browserUtils.isIE11 || browserUtils.isMSEdge ? 0 : 1);
+    expect(1);
 
     try {
         Worker('/test');
@@ -95,30 +95,28 @@ test('calling Worker without the "new" keyword (GH-1970)', function () {
     }
 });
 
-if (!browserUtils.isIE) {
-    test('send xhr from worker', function () {
-        var worker = new Worker(window.QUnitGlobals.getResourceUrl('../data/web-worker/xhr.js'));
+test('send xhr from worker', function () {
+    var worker = new Worker(window.QUnitGlobals.getResourceUrl('../data/web-worker/xhr.js'));
 
-        return waitForMessage(worker)
-            .then(function (proxyUrl) {
-                strictEqual(proxyUrl, '/sessionId!a!1/https://example.com/xhr-test/100');
+    return waitForMessage(worker)
+        .then(function (proxyUrl) {
+            strictEqual(proxyUrl, '/sessionId!a!1/https://example.com/xhr-test/100');
 
-                worker.terminate();
-            });
-    });
+            worker.terminate();
+        });
+});
 
-    test('importScripts', function () {
-        var worker = new Worker(window.QUnitGlobals.getResourceUrl('../data/web-worker/import-scripts.js'));
+test('importScripts', function () {
+    var worker = new Worker(window.QUnitGlobals.getResourceUrl('../data/web-worker/import-scripts.js'));
 
-        return waitForMessage(worker)
-            .then(function (requestUrls) {
-                strictEqual(requestUrls[0], '/sessionId!s/https://example.com/url1/script-url.js');
-                strictEqual(requestUrls[1], '/sessionId!s/https://example.com/url2/script-url.js');
+    return waitForMessage(worker)
+        .then(function (requestUrls) {
+            strictEqual(requestUrls[0], '/sessionId!s/https://example.com/url1/script-url.js');
+            strictEqual(requestUrls[1], '/sessionId!s/https://example.com/url2/script-url.js');
 
-                worker.terminate();
-            });
-    });
-}
+            worker.terminate();
+        });
+});
 
 if (nativeMethods.fetch) {
     test('send fetch from worker', function () {
@@ -133,7 +131,7 @@ if (nativeMethods.fetch) {
     });
 }
 
-if (!browserUtils.isIE && !browserUtils.isSafari) {
+if (!browserUtils.isSafari) {
     asyncTest('window.Blob with type=javascript must be overriden (T259367)', function () {
         var script = ['self.onmessage = function() { var t = {};', '__set$(t, "blobTest", true); postMessage(t.blobTest); };'];
         var blob   = new window.Blob(script, { type: 'texT/javascript' });

@@ -150,43 +150,39 @@ test('simple type', function () {
     strictEqual(setProperty(1, 'prop_name', 2), 2);
 });
 
-// NOTE: IE does not allow overriding the postMessage method.
-if (!browserUtils.isIE) {
-    asyncTest('postMessage', function () {
-        var target = window.location.protocol + '//' + window.location.host;
 
-        createTestIframe({ src: window.location.origin })
-            .then(function (iframe) {
-                iframe.contentWindow.postMessage = function () {
-                    strictEqual(target, window.location.origin);
-                    start();
-                };
-                eval(processScript('iframe.contentWindow.postMessage("data", "' + target + '")'));
-            });
-    });
-}
+asyncTest('postMessage', function () {
+    var target = window.location.protocol + '//' + window.location.host;
+
+    createTestIframe({ src: window.location.origin })
+        .then(function (iframe) {
+            iframe.contentWindow.postMessage = function () {
+                strictEqual(target, window.location.origin);
+                start();
+            };
+            eval(processScript('iframe.contentWindow.postMessage("data", "' + target + '")'));
+        });
+});
 
 module('regression');
 
-if (!browserUtils.isIE) {
-    asyncTest('valid resource type for iframe.contentWindow.location must be calculated', function () {
-        var iframe  = document.createElement('iframe');
-        var handler = function () {
-            iframe.removeEventListener('load', handler);
-            iframe.addEventListener('load', function () {
-                strictEqual(urlUtils.parseProxyUrl(iframe.contentWindow.location).resourceType, 'i');
-                iframe.parentNode.removeChild(iframe);
-                start();
-            });
+asyncTest('valid resource type for iframe.contentWindow.location must be calculated', function () {
+    var iframe  = document.createElement('iframe');
+    var handler = function () {
+        iframe.removeEventListener('load', handler);
+        iframe.addEventListener('load', function () {
+            strictEqual(urlUtils.parseProxyUrl(iframe.contentWindow.location).resourceType, 'i');
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
 
-            eval(processScript('iframe.contentWindow.location = "/test.html";'));
-        };
+        eval(processScript('iframe.contentWindow.location = "/test.html";'));
+    };
 
-        iframe.id = 'testT260697';
-        iframe.addEventListener('load', handler);
-        document.body.appendChild(iframe);
-    });
-}
+    iframe.id = 'testT260697';
+    iframe.addEventListener('load', handler);
+    document.body.appendChild(iframe);
+});
 
 test('setting the link.href attribute to "mailto" in iframe (T228218)', function () {
     var storedGetProxyUrl = urlUtils.getProxyUrl;

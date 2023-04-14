@@ -6,10 +6,8 @@ var hiddenInfo          = hammerhead.sandboxUtils.hiddenInfo;
 
 var shadowUI      = hammerhead.sandbox.shadowUI;
 var domUtils      = hammerhead.utils.dom;
-var browserUtils  = hammerhead.utils.browser;
 var positionUtils = hammerhead.utils.position;
 var nativeMethods = hammerhead.nativeMethods;
-var Promise       = hammerhead.Promise;
 
 var TEST_DIV_SELECTOR   = '#testDiv';
 var TEST_CLASS_NAME     = 'test-class';
@@ -23,57 +21,6 @@ QUnit.testStart(function () {
     $(shadowUI.getRoot()).empty();
     $(TEST_CLASS_SELECTOR).remove();
 });
-
-// IE11 and Edge have a strange behavior: shadow container collection flag may be lost (GH-1763)
-if (browserUtils.isIE) {
-    test('shadow container collection flag should not be lost (GH-1763 and GH-2034)', function () {
-        var IS_SHADOW_CONTAINER_COLLECTION_FLAG = 'hammerhead|shadow-ui|container-collection-flag';
-        var childrenNativeLength                = nativeMethods.htmlCollectionLengthGetter.call(document.body.children);
-
-        strictEqual(document.body.children.length, childrenNativeLength - 1);
-        strictEqual(document.body.children[IS_SHADOW_CONTAINER_COLLECTION_FLAG], true);
-
-        delete document.body.children[IS_SHADOW_CONTAINER_COLLECTION_FLAG];
-
-        strictEqual(document.body.children[IS_SHADOW_CONTAINER_COLLECTION_FLAG], void 0);
-        strictEqual(document.body.children.length, childrenNativeLength - 1);
-        strictEqual(document.body.children[IS_SHADOW_CONTAINER_COLLECTION_FLAG], true);
-
-        document.body.insertAdjacentHTML('beforeend', '<div><form><input type="file"></form></div>');
-
-        var div = document.body.lastElementChild;
-
-        strictEqual(div.children.length, 1);
-        strictEqual(div.children[IS_SHADOW_CONTAINER_COLLECTION_FLAG], false);
-
-        var form  = div.firstElementChild;
-        var input = form.firstElementChild;
-
-        hiddenInfo.setFormInfo(input, {});
-
-        var nativeFormLength = nativeMethods.htmlCollectionLengthGetter.call(form.children);
-
-        strictEqual(form.children.length, nativeFormLength - 1);
-        strictEqual(form.children[IS_SHADOW_CONTAINER_COLLECTION_FLAG], true);
-
-        delete form.children[IS_SHADOW_CONTAINER_COLLECTION_FLAG];
-
-        strictEqual(form.children[IS_SHADOW_CONTAINER_COLLECTION_FLAG], void 0);
-        strictEqual(form.children.length, nativeFormLength - 1);
-        strictEqual(form.children[IS_SHADOW_CONTAINER_COLLECTION_FLAG], true);
-
-        strictEqual(form.elements.length, nativeFormLength - 1);
-        strictEqual(form.elements[IS_SHADOW_CONTAINER_COLLECTION_FLAG], true);
-
-        delete form.elements[IS_SHADOW_CONTAINER_COLLECTION_FLAG];
-
-        strictEqual(form.elements[IS_SHADOW_CONTAINER_COLLECTION_FLAG], void 0);
-        strictEqual(form.elements.length, nativeFormLength - 1);
-        strictEqual(form.elements[IS_SHADOW_CONTAINER_COLLECTION_FLAG], true);
-
-        document.body.removeChild(div);
-    });
-}
 
 test('add UI class and get UI element with selector', function () {
     var uiElem = document.createElement('div');
@@ -613,22 +560,16 @@ module('childNodes', function () {
             ok(!found, 'check that document.head.childNodes does not return Hammerhead elements');
         });
 
-        if (!browserUtils.isIE11) {
-            test('for ...of', function () {
-                expect(0);
+        test('for ...of', function () {
+            expect(0);
 
-                // NOTE: We are forced to use this hack because IE11 raises a syntax error if a page contains the 'for..of' loop
-                var code = [
-                    'var root = shadowUI.getRoot();',
-                    'for (var childNode of document.body.childNodes) {',
-                    '    if (childNode === root)',
-                    '        ok(false, "ShadowUI root was found");',
-                    '}',
-                ].join('\n');
+            var root = shadowUI.getRoot();
 
-                eval(code);
-            });
-        }
+            for (var childNode of document.body.childNodes) {
+                if (childNode === root)
+                    ok(false, 'ShadowUI root was found');
+            }
+        });
     });
 
     test('isShadowContainerCollection', function () {

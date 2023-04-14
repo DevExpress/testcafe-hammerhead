@@ -50,9 +50,7 @@ test('wrappers of native functions should return the correct string representati
     if (window.Blob)
         window.checkStringRepresentation(window.Blob, nativeMethods.Blob, 'Blob');
 
-    // NOTE: File in IE11 is not constructable.
-    if (window.File && typeof window.File === 'function')
-        window.checkStringRepresentation(window.File, nativeMethods.File, 'File');
+    window.checkStringRepresentation(window.File, nativeMethods.File, 'File');
 
     if (window.EventSource)
         window.checkStringRepresentation(window.EventSource, nativeMethods.EventSource, 'EventSource');
@@ -355,8 +353,8 @@ test('parameters passed to the native function in its original form', function (
     checkNativeFunctionArgs('send', 'xhrSend', xhr);
 
     // Event
-    checkNativeFunctionArgs('addEventListener', browserUtils.isIE11 ? 'windowAddEventListener' : 'addEventListener', window);
-    checkNativeFunctionArgs('removeEventListener', browserUtils.isIE11 ? 'windowRemoveEventListener' : 'removeEventListener', window);
+    checkNativeFunctionArgs('addEventListener', 'addEventListener', window);
+    checkNativeFunctionArgs('removeEventListener', 'removeEventListener', window);
 
     // Canvas
     var canvas = document.createElement('canvas');
@@ -370,7 +368,7 @@ test('parameters passed to the native function in its original form', function (
     if (window.navigator.registerProtocolHandler)
         checkNativeFunctionArgs('registerProtocolHandler', 'registerProtocolHandler', window.navigator);
 
-    if (!browserUtils.isIE || browserUtils.version >= 12) {
+    if (browserUtils.version >= 12) {
         checkNativeFunctionArgs('setTimeout', 'setTimeout', window);
         checkNativeFunctionArgs('setTimeout', 'setTimeout', window);
     }
@@ -379,7 +377,7 @@ test('parameters passed to the native function in its original form', function (
 
     checkNativeFunctionArgs('querySelector', 'documentFragmentQuerySelector', documentFragment);
     checkNativeFunctionArgs('querySelectorAll', 'documentFragmentQuerySelectorAll', documentFragment);
-    checkNativeFunctionArgs('dispatchEvent', browserUtils.isIE11 ? 'windowDispatchEvent' : 'dispatchEvent', window);
+    checkNativeFunctionArgs('dispatchEvent', 'dispatchEvent', window);
 });
 
 if (window.history.replaceState && window.history.pushState) {
@@ -712,9 +710,6 @@ test('should not raise internal events if an origin error event is prevented', f
             return testPreventing();
         })
         .then(function () {
-            if (browserUtils.isIE11 || browserUtils.isMSEdge)
-                return null;
-
             window.addEventListener('error', function onUncaughtError (event) {
                 setTimeout(function () {
                     window.removeEventListener('error', onUncaughtError);
@@ -752,49 +747,35 @@ test('the constructor field of a function should return a wrapped Function objec
     Function.prototype.toString = nativeToString;
 });
 
-// IE11 cannot create a Blob object from a number array
-var canCreateBlobFromNumberArray = (function () {
-    var array = [1, 2, 3, 4, 5];
+test('should not process a common binary data (images, font and etc.) passed to a Blob constructor (GH-1359) as script', function () {
+    var gifImageData    = [71, 73, 70, 56, 57, 97, 1, 0];
+    var overridenBlob   = new Blob(gifImageData);
+    var nativeBlob      = new nativeMethods.Blob(gifImageData);
+    var redBlobContent  = null;
+    var readBlobContent = function (blob) {
+        return new hammerhead.Promise(function (resolve) {
+            var reader = new FileReader();
 
-    try {
-        return !!new nativeMethods.Blob(array);
-    }
-    catch (err) {
-        return false;
-    }
-})();
+            reader.addEventListener('loadend', function () {
+                var arr = new Uint8Array(this.result);
 
-if (canCreateBlobFromNumberArray) {
-    test('should not process a common binary data (images, font and etc.) passed to a Blob constructor (GH-1359) as script', function () {
-        var gifImageData    = [71, 73, 70, 56, 57, 97, 1, 0];
-        var overridenBlob   = new Blob(gifImageData);
-        var nativeBlob      = new nativeMethods.Blob(gifImageData);
-        var redBlobContent  = null;
-        var readBlobContent = function (blob) {
-            return new hammerhead.Promise(function (resolve) {
-                var reader = new FileReader();
-
-                reader.addEventListener('loadend', function () {
-                    var arr = new Uint8Array(this.result);
-
-                    resolve(arr);
-                });
-                reader.readAsArrayBuffer(blob);
+                resolve(arr);
             });
-        };
+            reader.readAsArrayBuffer(blob);
+        });
+    };
 
 
-        return readBlobContent(overridenBlob)
-            .then(function (blobContent) {
-                redBlobContent = blobContent;
+    return readBlobContent(overridenBlob)
+        .then(function (blobContent) {
+            redBlobContent = blobContent;
 
-                return readBlobContent(nativeBlob);
-            })
-            .then(function (nativeBlobContent) {
-                deepEqual(redBlobContent, nativeBlobContent);
-            });
-    });
-}
+            return readBlobContent(nativeBlob);
+        })
+        .then(function (nativeBlobContent) {
+            deepEqual(redBlobContent, nativeBlobContent);
+        });
+});
 
 if (window.Proxy) {
     module('Proxy');
@@ -914,72 +895,68 @@ asyncTest('window.onhashchange should be instrumented', function () {
     window.location += '#test';
 });
 
-if (!browserUtils.isIE11) {
-    test('patching EventTarget methods on the client side: addEventListener, removeEventListener, dispatchEvent (GH-1902)', function () {
-        var eventTargetMethods = [
-            'addEventListener',
-            'removeEventListener',
-            'dispatchEvent',
-        ];
-        var savedMethods       = eventTargetMethods.map(function (methodName) {
-            return window.EventTarget.prototype[methodName];
-        });
-        const div              = document.createElement('div');
-        var contextElements    = [
-            window,
-            document,
-            document.body,
-            div,
-        ];
-
-        expect(eventTargetMethods.length * contextElements.length);
-
-        document.body.appendChild(div);
-
-        function callMethod (contextEl, methodName) {
-            if (methodName === 'dispatchEvent')
-                contextEl[methodName]('click');
-            else
-                contextEl[methodName]('click', function () { });
-        }
-
-        function checkMethod (methodName) {
-            contextElements.forEach(function (el) {
-                callMethod(el, methodName);
-            });
-        }
-
-
-        eventTargetMethods.forEach(function (methodName) {
-            window.EventTarget.prototype[methodName] = function () {
-                ok(true, this + ': ' + methodName);
-            };
-        });
-
-        eventTargetMethods.forEach(function (methodName) {
-            checkMethod(methodName);
-        });
-
-        eventTargetMethods.forEach(function (methodName, index) {
-            window.EventTarget.prototype[methodName] = savedMethods[index];
-        });
+test('patching EventTarget methods on the client side: addEventListener, removeEventListener, dispatchEvent (GH-1902)', function () {
+    var eventTargetMethods = [
+        'addEventListener',
+        'removeEventListener',
+        'dispatchEvent',
+    ];
+    var savedMethods       = eventTargetMethods.map(function (methodName) {
+        return window.EventTarget.prototype[methodName];
     });
-}
+    const div              = document.createElement('div');
+    var contextElements    = [
+        window,
+        document,
+        document.body,
+        div,
+    ];
 
-if (!browserUtils.isIE11) {
-    test('An instance of a class that extends Function should contains class methods (GH-2439)', function () {
-        var functionInheritorInstance = nativeMethods.eval([
-            'class A extends Function {',
-            '    methodA () {}',
-            '}',
-            'class B extends A {',
-            '    methodB () {}',
-            '}',
-            'new B("return \'hello\'");',
-        ].join('\n'));
+    expect(eventTargetMethods.length * contextElements.length);
 
-        ok(!!functionInheritorInstance.methodA);
-        ok(!!functionInheritorInstance.methodB);
-        strictEqual(functionInheritorInstance(), 'hello');
+    document.body.appendChild(div);
+
+    function callMethod (contextEl, methodName) {
+        if (methodName === 'dispatchEvent')
+            contextEl[methodName]('click');
+        else
+            contextEl[methodName]('click', function () { });
+    }
+
+    function checkMethod (methodName) {
+        contextElements.forEach(function (el) {
+            callMethod(el, methodName);
+        });
+    }
+
+
+    eventTargetMethods.forEach(function (methodName) {
+        window.EventTarget.prototype[methodName] = function () {
+            ok(true, this + ': ' + methodName);
+        };
     });
-}
+
+    eventTargetMethods.forEach(function (methodName) {
+        checkMethod(methodName);
+    });
+
+    eventTargetMethods.forEach(function (methodName, index) {
+        window.EventTarget.prototype[methodName] = savedMethods[index];
+    });
+});
+
+test('An instance of a class that extends Function should contains class methods (GH-2439)', function () {
+    var functionInheritorInstance = nativeMethods.eval([
+        'class A extends Function {',
+        '    methodA () {}',
+        '}',
+        'class B extends A {',
+        '    methodB () {}',
+        '}',
+        'new B("return \'hello\'");',
+    ].join('\n'));
+
+    ok(!!functionInheritorInstance.methodA);
+    ok(!!functionInheritorInstance.methodB);
+    strictEqual(functionInheritorInstance(), 'hello');
+});

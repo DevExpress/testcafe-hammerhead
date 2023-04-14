@@ -329,13 +329,10 @@ test('different url types for locationWrapper methods (href, replace, assign) (G
         },
     ];
 
-    // NOTE: IE11 doesn't support 'URL()'
-    if (!browserUtils.isIE11) {
-        testCases.push({
-            url:         new URL('https://example.com/some-path'),
-            expectedUrl: 'https://example.com/some-path',
-        });
-    }
+    testCases.push({
+        url:         new URL('https://example.com/some-path'),
+        expectedUrl: 'https://example.com/some-path',
+    });
 
     var windowMock      = getWindowMock({ isTop: true });
     var locationWrapper = new LocationWrapper(windowMock, null, window.noop);
@@ -353,7 +350,7 @@ test('different url types for locationWrapper methods (href, replace, assign) (G
 });
 
 test('throwing errors on calling locationWrapper methods (href, replace, assign) with invalid arguments', function () {
-    expect(browserUtils.isIE11 ? 1 : 3);
+    expect(3);
 
     var invalidUrlObject = {
         toString: function () {
@@ -372,22 +369,20 @@ test('throwing errors on calling locationWrapper methods (href, replace, assign)
         ok(true, 'href');
     }
 
-    if (!browserUtils.isIE11) {
-        try {
-            locationWrapper.replace(invalidUrlObject);
-            strictEqual(windowMock.location.href, urlUtils.getProxyUrl(''));
-        }
-        catch (e) {
-            ok(true, 'replace');
-        }
+    try {
+        locationWrapper.replace(invalidUrlObject);
+        strictEqual(windowMock.location.href, urlUtils.getProxyUrl(''));
+    }
+    catch (e) {
+        ok(true, 'replace');
+    }
 
-        try {
-            locationWrapper.assign(invalidUrlObject);
-            strictEqual(windowMock.location.href, urlUtils.getProxyUrl(''));
-        }
-        catch (e) {
-            ok(true, 'assign');
-        }
+    try {
+        locationWrapper.assign(invalidUrlObject);
+        strictEqual(windowMock.location.href, urlUtils.getProxyUrl(''));
+    }
+    catch (e) {
+        ok(true, 'assign');
     }
 });
 
@@ -434,9 +429,7 @@ test('different url types for "location" property (GH-1613)', function () {
            '}'),
     ];
 
-    // NOTE: IE11 doesn't support 'URL()'
-    if (!browserUtils.isIE11)
-        cases.push(checkLocationAssignment(new URL(location.origin + '/some-path'), 'new URL(location.origin + "/some-path")'));
+    cases.push(checkLocationAssignment(new URL(location.origin + '/some-path'), 'new URL(location.origin + "/some-path")'));
 
     return Promise.all(cases);
 });
@@ -875,35 +868,33 @@ test('location.replace should not throw an error when called by iframe added dyn
     }
 });
 
-if (!browserUtils.isIE11) {
-    // NOTE: From Chrome 80 to Chrome 85, the fragmentDirective property was defined on Location.prototype.
-    test('we should not break a user script which uses new browser API if we are not overridden it', function () {
-        const hashDescriptor = Object.getOwnPropertyDescriptor(Location.prototype, 'hash') ||
+// NOTE: From Chrome 80 to Chrome 85, the fragmentDirective property was defined on Location.prototype.
+test('we should not break a user script which uses new browser API if we are not overridden it', function () {
+    const hashDescriptor = Object.getOwnPropertyDescriptor(Location.prototype, 'hash') ||
             Object.getOwnPropertyDescriptor(location, 'hash');
 
-        hashDescriptor.configurable = true;
+    hashDescriptor.configurable = true;
 
-        Object.defineProperty(Location.prototype, 'newAPIProp', hashDescriptor);
+    Object.defineProperty(Location.prototype, 'newAPIProp', hashDescriptor);
 
-        hashDescriptor.value = hashDescriptor.get;
-        delete hashDescriptor.get;
-        delete hashDescriptor.set;
+    hashDescriptor.value = hashDescriptor.get;
+    delete hashDescriptor.get;
+    delete hashDescriptor.set;
 
-        Object.defineProperty(Location.prototype, 'newAPIFn', hashDescriptor);
+    Object.defineProperty(Location.prototype, 'newAPIFn', hashDescriptor);
 
-        var locWrapper = new LocationWrapper(window);
+    var locWrapper = new LocationWrapper(window);
 
-        locWrapper.newAPIProp = '123';
+    locWrapper.newAPIProp = '123';
 
-        strictEqual(locWrapper.newAPIProp, '#123');
-        strictEqual(locWrapper.newAPIFn(), '#123');
+    strictEqual(locWrapper.newAPIProp, '#123');
+    strictEqual(locWrapper.newAPIFn(), '#123');
 
-        throws(function () {
-            var obj = {};
+    throws(function () {
+        var obj = {};
 
-            Object.defineProperty(obj, 'some', Object.getOwnPropertyDescriptor(locWrapper, 'newAPIProp'));
+        Object.defineProperty(obj, 'some', Object.getOwnPropertyDescriptor(locWrapper, 'newAPIProp'));
 
-            obj.some; // eslint-disable-line no-unused-expressions
-        });
+        obj.some; // eslint-disable-line no-unused-expressions
     });
-}
+});

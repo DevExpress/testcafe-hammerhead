@@ -1,13 +1,9 @@
-var urlUtils                = hammerhead.utils.url;
-var htmlUtils               = hammerhead.utils.html;
-var styleProcessor          = hammerhead.processors.styleProcessor;
-var scriptProcessingHeaders = hammerhead.utils.processing.header;
 
+var urlUtils      = hammerhead.utils.url;
 var nativeMethods = hammerhead.nativeMethods;
 var iframeSandbox = hammerhead.sandbox.iframe;
 var nodeSandbox   = hammerhead.sandbox.node;
 var domUtils      = hammerhead.utils.dom;
-var browserUtils  = hammerhead.utils.browser;
 
 iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
 iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
@@ -53,12 +49,6 @@ function testHTML () {
     var innerHTML = processedIframeForWrite.contentDocument.documentElement.innerHTML;
     var outerHTML = processedIframeForWrite.contentDocument.documentElement.outerHTML;
 
-    // TODO: remove this condition after GH-1326 pull request
-    if (browserUtils.isFirefox) {
-        innerHTML = htmlUtils.cleanUpHtml(innerHTML);
-        outerHTML = htmlUtils.cleanUpHtml(outerHTML);
-    }
-
     strictEqual(innerHTML, nativeMethods.elementInnerHTMLGetter.call(nativeIframeForWrite.contentDocument.documentElement));
     strictEqual(outerHTML, nativeMethods.elementOuterHTMLGetter.call(nativeIframeForWrite.contentDocument.documentElement));
 }
@@ -72,20 +62,12 @@ function testContent (selector) {
             var el       = elsFromIframe[i];
             var nativeEl = elsFromNativeIframe[i];
 
-            // TODO: remove this function after GH-1326 pull request
-            var cleanUpTextIfNecessary = function (text) {
-                if (browserUtils.isFirefox || browserUtils.isIE)
-                    return scriptProcessingHeaders.remove(styleProcessor.cleanUp(text, urlUtils.parseProxyUrl));
-
-                return text;
-            };
-
-            strictEqual(cleanUpTextIfNecessary(el.innerHTML), nativeMethods.elementInnerHTMLGetter.call(nativeEl));
-            strictEqual(cleanUpTextIfNecessary(el.innerText).trim(), nativeMethods.htmlElementInnerTextGetter.call(nativeEl).trim());
-            strictEqual(cleanUpTextIfNecessary(el.textContent), nativeMethods.nodeTextContentGetter.call(nativeEl));
+            strictEqual(el.innerHTML, nativeMethods.elementInnerHTMLGetter.call(nativeEl));
+            strictEqual(el.innerText.trim(), nativeMethods.htmlElementInnerTextGetter.call(nativeEl).trim());
+            strictEqual(el.textContent, nativeMethods.nodeTextContentGetter.call(nativeEl));
 
             if (domUtils.isScriptElement(el))
-                strictEqual(cleanUpTextIfNecessary(el.text), nativeMethods.scriptTextGetter.call(nativeEl));
+                strictEqual(el.text, nativeMethods.scriptTextGetter.call(nativeEl));
             else if (domUtils.isAnchorElement(el))
                 strictEqual(el.text, nativeMethods.anchorTextGetter.call(nativeEl));
             else
