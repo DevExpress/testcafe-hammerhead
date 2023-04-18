@@ -225,6 +225,14 @@ test('should process script arg', function () {
     strictEqual(execScript('({ a: b } = { a: null }).a'), null);
 });
 
+test('private identifier and property definition', function () {
+    var script = `const {T:xc}={},Nc=class s{static#e=this.field="test";}; window.output = Nc.field`;
+
+    eval(processScript(script));
+
+    strictEqual(window.output, 'test');
+});
+
 module('others');
 
 test('optional chaining', function () {
