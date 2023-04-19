@@ -328,6 +328,10 @@ export default class Proxy extends Router {
         (this.proxyOptions as ProxyOptions).nativeAutomation = true;
     }
 
+    public setMode (isNativeAutomation: boolean): void {
+        (this.proxyOptions as ProxyOptions).nativeAutomation = isNativeAutomation;
+    }
+
     public get isNativeAutomation (): boolean {
         return !!(this.proxyOptions as ProxyOptions).nativeAutomation;
     }
