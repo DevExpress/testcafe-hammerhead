@@ -334,6 +334,9 @@ declare module 'testcafe-hammerhead' {
         /** Resolve relative service url **/
         resolveRelativeServiceUrl (relativeServiceUrl: string, domain?: string): string;
 
+        /** Switch proxy to the nativeAutomation mode **/
+        switchToNativeAutomation (): void;
+
         /** Set proxy mode **/
         setMode (isNativeAutomation: boolean): void;
     }
