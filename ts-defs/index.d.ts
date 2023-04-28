@@ -140,6 +140,14 @@ declare module 'testcafe-hammerhead' {
         remove(res: IncomingMessageLikeInitOptions): void;
     }
 
+    interface ContentTypeUtils {
+        isPage (header: string): boolean;
+        isTextPage (contentTypeHeader: string): boolean;
+        isCSSResource (contentTypeHeader: string, acceptHeader: string): boolean;
+        isScriptResource (contentTypeHeader: string, acceptHeader: string): boolean;
+        isManifest (contentTypeHeader: string): boolean;
+}
+
     export interface RequestOptionsParams {
         method: string;
         url: string;
@@ -590,6 +598,8 @@ declare module 'testcafe-hammerhead' {
 
     /** The set of utility methods to manipulate with ResponseMock.setBody method **/
     export const responseMockSetBodyMethod: ResponseMockSetBodyMethod;
+
+    export const contentTypeUtils: ContentTypeUtils;
 
     /** Promisify steam **/
     export function promisifyStream(s: NodeJS.ReadableStream, contentLength?: string): Promise<Buffer>;

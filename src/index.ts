@@ -30,6 +30,7 @@ import { RequestInfo, ResponseInfo } from './request-pipeline/request-hooks/even
 import BaseRequestHookEventFactory from './request-pipeline/request-hooks/events/factory/base';
 import BaseRequestPipelineContext from './request-pipeline/context/base';
 import isRedirectStatusCode from './utils/is-redirect-status-code';
+import * as contentTypeUtils from './utils/content-type';
 
 export default {
     Proxy,
@@ -64,4 +65,5 @@ export default {
     getAssetPath,
     ResponseInfo,
     isRedirectStatusCode,
+    contentTypeUtils,
 };
