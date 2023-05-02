@@ -1088,7 +1088,8 @@ describe('Regression', () => {
             .then(body => {
                 expect(body).eql('');
 
-                reqOptions.path += 'redirect';
+                reqOptions.path     += 'redirect';
+                reqOptions.pathname += 'redirect';
 
                 return sendRequest(reqOptions);
             })
