@@ -1010,7 +1010,7 @@ describe('Regression', () => {
         ]);
     });
 
-    it.skip('Should close a proxy connection if a connection to destination server hang up (GH-1384)', () => {
+    it('Should close a proxy connection if a connection to destination server hang up (GH-1384)', () => {
         const agent        = new http.Agent({
             keepAlive:      true,
             keepAliveMsecs: 10000,
@@ -1088,7 +1088,8 @@ describe('Regression', () => {
             .then(body => {
                 expect(body).eql('');
 
-                reqOptions.path += 'redirect';
+                reqOptions.path     += 'redirect';
+                reqOptions.pathname += 'redirect';
 
                 return sendRequest(reqOptions);
             })
