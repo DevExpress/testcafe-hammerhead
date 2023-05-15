@@ -82,10 +82,6 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         this.overrideAbort();
         this.overrideOpen();
         this.overrideSend();
-
-        if (settings.nativeAutomation)
-            return;
-
         this.overrideSetRequestHeader();
 
         if (nativeMethods.xhrResponseURLGetter)
