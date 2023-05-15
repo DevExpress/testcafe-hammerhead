@@ -16,3 +16,4 @@ jobs:
     uses: ./.github/workflows/test-functional-testcafe.yml
     with:
       test-script: 'npx gulp test-functional-testcafe-native-automation --no-build'
+      testcafe-gulp-task: 'test-functional-local-native-automation'

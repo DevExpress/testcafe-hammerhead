@@ -6,6 +6,9 @@ on:
       test-script:
         required: true
         type: string
+      testcafe-gulp-task:
+        required: true
+        type: string
       node-version:
         required: false
         type: number
@@ -24,6 +27,7 @@ on:
         default: 25
 env:
   NO_CACHE: ${{ secrets.NO_CACHE }}
+  GULP_TASK: ${{ inputs.testcafe-gulp-task }}
 
 jobs:
   prepare-matrix:
