@@ -221,15 +221,17 @@ gulp.step('cached-http-playground-server', () => {
 gulp.task('cached-http-playground', gulp.series(BUILD_TASK, 'cached-http-playground-server'));
 
 gulp.step('test-functional-testcafe-proxy-run', gulpRunCommand([
-    'chmod +x ./test/functional/run-testcafe-functional-proxy-tests.sh',
-    './test/functional/run-testcafe-functional-proxy-tests.sh',
+    'chmod +x ./test/functional/run-testcafe-functional-tests.sh',
+    'export GULP_TASK="test-functional-local-headless-chrome"',
+    './test/functional/run-testcafe-functional-tests.sh',
 ]));
 
 gulp.task('test-functional-testcafe-proxy', gulp.series(BUILD_TASK, 'test-functional-testcafe-proxy-run'));
 
 gulp.step('test-functional-testcafe-native-automation-run', gulpRunCommand([
-    'chmod +x ./test/functional/run-testcafe-functional-native-automation-tests.sh',
-    './test/functional/run-testcafe-functional-native-automation-tests.sh',
+    'chmod +x ./test/functional/run-testcafe-functional-tests.sh',
+    'export GULP_TASK="test-functional-local-native-automation"',
+    './test/functional/run-testcafe-functional-tests.sh',
 ]));
 
 gulp.task('test-functional-testcafe-native-automation', gulp.series(BUILD_TASK, 'test-functional-testcafe-native-automation-run'));
