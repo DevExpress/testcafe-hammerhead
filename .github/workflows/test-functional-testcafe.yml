@@ -1,22 +1,33 @@
-name: Test Functional (TestCafe)
+name: Test Functional Proxy (TestCafe)
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      sha:
-        description: 'The test commit SHA or ref'
+      test-script:
         required: true
-        default: 'master'
-      merged_sha:
-        description: 'The merge commit SHA'
-      deploy_run_id:
-        description: 'The ID of a deployment workspace run with artifacts'
-      test-groups-count:
+        type: string
+      testcafe-gulp-task:
+        required: true
+        type: string
+      node-version:
+        required: false
+        type: number
+        default: 16
+      matrix-jobs-count:
         required: false
         type: number
         default: 3
+      retry_failed_tests:
+        required: false
+        type: boolean
+        default: true
+      timeout:
+        required: false
+        type: number
+        default: 25
 env:
   NO_CACHE: ${{ secrets.NO_CACHE }}
+  GULP_TASK: ${{ inputs.testcafe-gulp-task }}
 
 jobs:
   prepare-matrix:
@@ -28,7 +39,7 @@ jobs:
         id: generate-matrix
         with:
           script: |
-            return Array.from({length: ${{ github.event.inputs.test-groups-count }}}, (_, i) => i + 1)
+            return Array.from({length: ${{ inputs.matrix-jobs-count }}}, (_, i) => i + 1)
 
   test:
     needs: prepare-matrix
@@ -39,8 +50,8 @@ jobs:
       matrix:
         test-group: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
     env:
-      RETRY_FAILED_TESTS: true
-      TEST_GROUPS_COUNT: ${{ github.event.inputs.test-groups-count }}
+      RETRY_FAILED_TESTS: ${{ inputs.retry_failed_tests }}
+      TEST_GROUPS_COUNT: ${{ inputs.matrix-jobs-count }}
       TEST_GROUP_NUMBER: ${{ matrix.test-group }}
     outputs:
       # Matrix jobs cannot collect outputs about each of them automatically. It rewrites the same outputs. Improve it once it will be possible.
@@ -57,7 +68,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: ${{ inputs.node-version }}
 
       - uses: DevExpress/testcafe-build-system/actions/read-artifacts@main
         with:
@@ -76,8 +87,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
       - run: npm ci
-      - run: npx gulp test-functional-testcafe --no-build
-        timeout-minutes: 60
+      - run: ${{ inputs.test-script }}
+        timeout-minutes: ${{ inputs.timeout }}
       - name: Save result
         id: save-result
         if: always()
@@ -96,7 +107,7 @@ jobs:
           result-encoding: string
           script: |
             const statuses = ${{ toJSON(needs.test.outputs.*) }};
-            for (let i = 0; i < ${{ github.event.inputs.test-groups-count }}; i++) {
+            for (let i = 0; i < ${{ inputs.matrix-jobs-count }}; i++) {
               if (statuses[i] !== 'success')
                 return 'failure';
             }
