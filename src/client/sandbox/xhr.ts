@@ -82,11 +82,10 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
         this.overrideAbort();
         this.overrideOpen();
         this.overrideSend();
+        this.overrideSetRequestHeader();
 
         if (settings.nativeAutomation)
             return;
-
-        this.overrideSetRequestHeader();
 
         if (nativeMethods.xhrResponseURLGetter)
             this.overrideResponseURL();
@@ -241,7 +240,7 @@ export default class XhrSandbox extends SandboxBaseWithDelayedSettings {
 
     private overrideSetRequestHeader () {
         overrideFunction(this.window.XMLHttpRequest.prototype, 'setRequestHeader', function (this: XMLHttpRequest, ...args: Parameters<XMLHttpRequest['setRequestHeader']>) {
-            if (isAuthorizationHeader(args[0]))
+            if (!settings.nativeAutomation && isAuthorizationHeader(args[0]))
                 args[1] = addAuthorizationPrefix(args[1]);
 
             nativeMethods.xhrSetRequestHeader.apply(this, args);
