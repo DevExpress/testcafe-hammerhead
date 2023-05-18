@@ -255,6 +255,10 @@ test('optional chaining', function () {
             src:      'var obj = null; var counter = 0; window.optionChainingResult = obj?.[counter -1];',
             expected: void 0,
         },
+        {
+            src:      'var obj = null; var counter = 0; window.optionChainingResult = obj?.href[counter];',
+            expected: void 0,
+        },
     ];
 
     var additionalCases = [];

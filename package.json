@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@electron/asar": "^3.2.3",
-    "acorn-hammerhead": "0.6.1",
+    "acorn-hammerhead": "0.6.2",
     "bowser": "1.6.0",
     "crypto-md5": "^1.0.0",
     "css": "2.2.3",

@@ -860,6 +860,10 @@ describe('Script processor', () => {
                 src:      'obj?.{0}?.method(args)',
                 expected: '__get$(obj,"{0}",true)?.method(args)',
             },
+            {
+                src:      'obj?.{0}.{0}',
+                expected: '__get$(__get$(obj,"{0}",true),"{0}",true)',
+            },
         ]);
 
         testMethodProcessing([
