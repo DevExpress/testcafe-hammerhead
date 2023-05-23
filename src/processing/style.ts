@@ -12,7 +12,9 @@ import DomProcessor from './dom';
 
 const SOURCE_MAP_RE                       = /\/\*\s*[#@]\s*sourceMappingURL\s*=[\s\S]*?\*\/|\/\/[\t ]*[#@][\t ]*sourceMappingURL[\t ]*=.*/ig;
 const CSS_URL_PROPERTY_VALUE_RE           = /(url\s*\(\s*(['"]?))([^\s]*?)(\2\s*\))|(@import\s+(['"]))([^\s]*?)(\6)/g;
-const ATTRIBUTE_SELECTOR_RE               = /((?:(\W?)(\w+))?\[\s*)(\w+)(\s*\^?=)/g;
+const TAGS_STRING                         = Object.values(URL_ATTR_TAGS).join().replace(/,/g, '|');
+const ATTRS_STRING                        = Object.keys(URL_ATTR_TAGS).join('|');
+const ATTRIBUTE_SELECTOR_RE               = new RegExp(`((?<![#.])(?:${TAGS_STRING})\\[\\s*)(${ATTRS_STRING}])(\\s*\\^?=)`, 'g');
 const STYLESHEET_PROCESSING_START_COMMENT = '/*hammerhead|stylesheet|start*/';
 const STYLESHEET_PROCESSING_END_COMMENT   = '/*hammerhead|stylesheet|end*/';
 const HOVER_PSEUDO_CLASS_RE               = /:\s*hover(\W)/gi;
@@ -109,12 +111,7 @@ class StyleProcessor {
     }
 
     private _replaceUrlAttributes (css: string): string {
-        return css.replace(ATTRIBUTE_SELECTOR_RE, (match, prefix, prev, possibleTag, attribute, postfix) => {
-            const tagName = prev === '.' || prev === '#' ? '' : possibleTag;
-
-            if (!tagName || !URL_ATTR_TAGS[attribute] || URL_ATTR_TAGS[attribute].indexOf(tagName) === -1)
-                return match;
-
+        return css.replace(ATTRIBUTE_SELECTOR_RE, (_, prefix, attribute, postfix) => {
             return prefix + DomProcessor.getStoredAttrName(attribute) + postfix;
         });
     }
