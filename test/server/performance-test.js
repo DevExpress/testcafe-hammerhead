@@ -4,6 +4,9 @@ const processScript    = require('../../lib/processing/script').processScript;
 const transformProgram = require('../../lib/processing/script/transform');
 const parseUrl         = require('../../lib/utils/url').parseUrl;
 const getFirstDestUrl  = require('../../lib/utils/stack-processing').getFirstDestUrl;
+const styleProcessor   = require('../../lib/processing/style');
+const fs               = require('fs');
+const getRandomString  = require('../../lib/utils/generate-unique-id');
 
 describe('Performance', () => {
     it('getFirstDestUrl', () => {
@@ -84,5 +87,19 @@ describe('Performance', () => {
         const executionTime = new Date().getTime() - start;
 
         expect(executionTime).below(6000);
+    });
+
+    it('style process', () => {
+        const style       = fs.readFileSync('test/server/data/stylesheet/src.css').toString();
+        const css         = (getRandomString(50000) + style).repeat(100);
+        const urlReplacer = url => url;
+
+        const start = new Date().getTime();
+
+        styleProcessor.process(css, urlReplacer);
+
+        const executionTime = new Date().getTime() - start;
+
+        expect(executionTime).below(100);
     });
 });
