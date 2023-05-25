@@ -18,8 +18,8 @@ const CLIENT_TESTS_BROWSERS = [
     },
     {
         browserName: 'safari',
-        platform:    'macOS 12',
-        version:     '15',
+        platform:    'macOS 13',
+        version:     '16',
     },
     {
         browserName:     'Safari',

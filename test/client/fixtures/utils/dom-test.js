@@ -819,15 +819,8 @@ test('isInputWithoutSelectionProperties', function () {
     input2.type = 'number';
     input3.type = 'text';
 
-    if (browserUtils.isSafari) {
-        notOk(domUtils.isInputWithoutSelectionProperties(input1));
-        notOk(domUtils.isInputWithoutSelectionProperties(input2));
-    }
-    else {
-        ok(domUtils.isInputWithoutSelectionProperties(input1));
-        ok(domUtils.isInputWithoutSelectionProperties(input2));
-    }
-
+    ok(domUtils.isInputWithoutSelectionProperties(input1));
+    ok(domUtils.isInputWithoutSelectionProperties(input2));
     notOk(domUtils.isInputWithoutSelectionProperties(input3));
 });
 
