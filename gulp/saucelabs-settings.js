@@ -13,18 +13,13 @@ const CLIENT_TESTS_BROWSERS = [
     },
     {
         browserName: 'safari',
-        platform:    'macOS 11.00',
-        version:     '14',
-    },
-    {
-        browserName: 'safari',
         platform:    'macOS 13',
         version:     '16',
     },
     {
         browserName:     'Safari',
-        deviceName:      'iPhone 7 Plus Simulator',
-        platformVersion: '11.3',
+        deviceName:      'iPhone Simulator',
+        platformVersion: '16.2',
         platformName:    'iOS',
     },
     {
