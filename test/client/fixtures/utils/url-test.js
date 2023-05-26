@@ -248,10 +248,7 @@ test('destination with port', function () {
 });
 
 test('undefined or null', function () {
-    // NOTE: In Safari, a.href = null  leads to the empty url, not <current_url>/null.
-    if (!browserUtils.isSafari)
-        strictEqual(getProxyUrl(null), 'http://' + PROXY_HOST + '/sessionId/https://example.com/null');
-
+    strictEqual(getProxyUrl(null), 'http://' + PROXY_HOST + '/sessionId/https://example.com/null');
     strictEqual(getProxyUrl(void 0), 'http://' + PROXY_HOST + '/sessionId/https://example.com/undefined');
 });
 
