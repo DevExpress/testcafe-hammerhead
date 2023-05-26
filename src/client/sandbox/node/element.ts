@@ -1004,8 +1004,10 @@ export default class ElementSandbox extends SandboxBase {
 
     addFileInputInfo (el: HTMLElement): void {
         const infoManager = this._uploadSandbox.infoManager;
+        const files       = infoManager.getFiles(el);
 
-        hiddenInfo.addInputInfo(el, infoManager.getFiles(el), infoManager.getValue(el));
+        if (files.length)
+            hiddenInfo.addInputInfo(el, files, infoManager.getValue(el));
     }
 
     onIframeAddedToDOM (iframe: HTMLIFrameElement | HTMLFrameElement): void {
