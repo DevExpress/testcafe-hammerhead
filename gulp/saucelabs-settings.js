@@ -17,10 +17,9 @@ const CLIENT_TESTS_BROWSERS = [
         version:     '16',
     },
     {
-        browserName:     'Safari',
-        deviceName:      'iPhone Simulator',
-        platformVersion: '16.2',
-        platformName:    'iOS',
+        platformName: 'iOS',
+        browserName:  'Safari',
+        deviceName:   'iPhone Simulator',
     },
     {
         deviceName:      'Android GoogleAPI Emulator',
