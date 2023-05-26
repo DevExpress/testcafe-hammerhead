@@ -961,10 +961,8 @@ test('inspect html elements', function () {
         { tagName: 'td', assertFn: domUtils.isTableDataCellElement },
         { tagName: 'input', assertFn: domUtils.isRadioButtonElement, attributes: { type: 'radio' } },
         { tagName: 'input', assertFn: domUtils.isCheckboxElement, attributes: { type: 'checkbox' } },
+        { tagName: 'input', assertFn: domUtils.isColorInputElement, attributes: { type: 'color' } },
     ];
-
-    if (!browserUtils.isSafari)
-        htmlElements.push({ tagName: 'input', assertFn: domUtils.isColorInputElement, attributes: { type: 'color' } });
 
     htmlElements.forEach(function (info) {
         var existingTags = ['html', 'body', 'script', 'head'];
