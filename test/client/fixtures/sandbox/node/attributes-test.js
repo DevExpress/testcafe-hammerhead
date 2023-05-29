@@ -267,12 +267,15 @@ if (nativeMethods.scriptIntegrityGetter && nativeMethods.linkIntegrityGetter) {
     });
 }
 
-test('iframe with "javascript: <html>...</html>" src', function () {
-    return createTestIframe({ src: 'javascript:"<script>var d = {}; d.src = 1; window.test = true;<' + '/script>"' })
-        .then(function (iframe) {
-            ok(iframe.contentWindow.test);
-        });
-});
+// TODO: Bug in Safari 16.1. It doesn't reproduced in 16.5.
+if (browserUtils.isSafari && browserUtils.fullVersion !== '16.1') {
+    test('iframe with "javascript: <html>...</html>" src', function () {
+        return createTestIframe({ src: 'javascript:"<script>var d = {}; d.src = 1; window.test = true;<' + '/script>"' })
+            .then(function (iframe) {
+                ok(iframe.contentWindow.test);
+            });
+    });
+}
 
 asyncTest('iframe html src', function () {
     var iframe = document.createElement('iframe');
