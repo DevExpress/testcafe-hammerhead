@@ -97,3 +97,11 @@ export function removeInputInfo (input) {
 
     return false;
 }
+
+export function moveInputToFormBottom (form: HTMLFormElement) {
+    const inputSelector = '[name="' + INTERNAL_ATTRS.uploadInfoHiddenInputName + '"]';
+    const inputElement  = nativeMethods.elementQuerySelector.call(form, inputSelector);
+
+    if (inputElement)
+        nativeMethods.appendChild.call(form, inputElement);
+}

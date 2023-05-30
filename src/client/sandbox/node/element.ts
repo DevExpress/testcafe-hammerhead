@@ -545,6 +545,9 @@ export default class ElementSandbox extends SandboxBase {
         for (const child of childNodesArray)
             this._onElementAdded(child);
 
+        if (domUtils.getTagName(parent) === 'form')
+            hiddenInfo.moveInputToFormBottom(parent as HTMLFormElement);
+
         return result;
     }
 
@@ -1006,8 +1009,7 @@ export default class ElementSandbox extends SandboxBase {
         const infoManager = this._uploadSandbox.infoManager;
         const files       = infoManager.getFiles(el);
 
-        if (files.length)
-            hiddenInfo.addInputInfo(el, files, infoManager.getValue(el));
+        hiddenInfo.addInputInfo(el, files, infoManager.getValue(el));
     }
 
     onIframeAddedToDOM (iframe: HTMLIFrameElement | HTMLFrameElement): void {
