@@ -4,7 +4,7 @@ import nativeMethods from '../native-methods';
 import ShadowUI from '../shadow-ui';
 
 
-const INPUT_SELECTOR = '[name="' + INTERNAL_ATTRS.uploadInfoHiddenInputName + '"]';
+const INPUT_SELECTOR = `[name="${INTERNAL_ATTRS.uploadInfoHiddenInputName}"]`;
 
 function createInput (form: HTMLFormElement) {
     const hiddenInput = nativeMethods.createElement.call(document, 'input') as HTMLInputElement;
