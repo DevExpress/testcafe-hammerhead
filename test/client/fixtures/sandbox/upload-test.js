@@ -217,6 +217,23 @@ test('hidden input should not affect both the length/count value and the element
         });
 });
 
+test('hidden input should not affect on getting element by index in multilevel form', function () {
+    var form   = document.createElement('form');
+
+    var input1 = $('<label><input type="file"></label>')[0];
+    var input2 = $('<input type="checkbox">')[0];
+
+    document.body.appendChild(form);
+
+    form.appendChild(input1);
+    form.appendChild(input2);
+
+    strictEqual(input1, form.childNodes[0]);
+    strictEqual(input2, form.childNodes[1]);
+
+    form.parentNode.removeChild(form);
+});
+
 test('get/set upload info', function () {
     var fileInputWithoutForm = $('<input type="file">')[0];
     var fileInputWithForm    = $('<form><input type="file"></form>').children()[0];
