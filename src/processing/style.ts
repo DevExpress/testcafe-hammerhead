@@ -11,10 +11,10 @@ import { URL_ATTR_TAGS } from './dom/attributes';
 import DomProcessor from './dom';
 import { Dictionary } from '../typings/common';
 
-function getTagsString (tagsDict: Dictionary<string>[]) {
+function getTagsString (tagsDict: Dictionary<string[]>) {
     const tags: string[] = [];
 
-    for (const key of Object.keys(tagsDict)) {
+    for (const key in tagsDict) {
         for (const tag of tagsDict[key])
             tags.push(tag);
     }
@@ -24,7 +24,7 @@ function getTagsString (tagsDict: Dictionary<string>[]) {
 
 const SOURCE_MAP_RE                       = /\/\*\s*[#@]\s*sourceMappingURL\s*=[\s\S]*?\*\/|\/\/[\t ]*[#@][\t ]*sourceMappingURL[\t ]*=.*/ig;
 const CSS_URL_PROPERTY_VALUE_RE           = /(url\s*\(\s*(['"]?))([^\s]*?)(\2\s*\))|(@import\s+(['"]))([^\s]*?)(\6)/g;
-const TAGS_STRING                         = getTagsString(URL_ATTR_TAGS as unknown as Dictionary<string>[]);
+const TAGS_STRING                         = getTagsString(URL_ATTR_TAGS);
 const ATTRS_STRING                        = Object.keys(URL_ATTR_TAGS).join('|');
 const ATTRIBUTE_SELECTOR_RE               = new RegExp(`(([#.])?(?:${TAGS_STRING})\\[\\s*)(${ATTRS_STRING})(\\s*(?:\\^)?=)`, 'g');
 const STYLESHEET_PROCESSING_START_COMMENT = '/*hammerhead|stylesheet|start*/';
