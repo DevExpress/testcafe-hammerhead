@@ -11,8 +11,6 @@ import { URL_ATTR_TAGS } from './dom/attributes';
 import DomProcessor from './dom';
 import { Dictionary } from '../typings/common';
 
-// NOTE: We should avoid using native object prototype methods,
-// since they can be overriden by the client code.
 const arrayJoin  = Array.prototype.join;
 const objectKeys = Object.keys;
 
