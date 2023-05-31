@@ -11,6 +11,11 @@ import { URL_ATTR_TAGS } from './dom/attributes';
 import DomProcessor from './dom';
 import { Dictionary } from '../typings/common';
 
+// NOTE: We should avoid using native object prototype methods,
+// since they can be overriden by the client code.
+const arrayJoin  = Array.prototype.join;
+const objectKeys = Object.keys;
+
 function getTagsString (tagsDict: Dictionary<string[]>) {
     const tags: string[] = [];
 
@@ -19,13 +24,13 @@ function getTagsString (tagsDict: Dictionary<string[]>) {
             tags.push(tag);
     }
 
-    return tags.join().replace(/,/g, '|');
+    return arrayJoin.call(tags).replace(/,/g, '|');
 }
 
 const SOURCE_MAP_RE                       = /\/\*\s*[#@]\s*sourceMappingURL\s*=[\s\S]*?\*\/|\/\/[\t ]*[#@][\t ]*sourceMappingURL[\t ]*=.*/ig;
 const CSS_URL_PROPERTY_VALUE_RE           = /(url\s*\(\s*(['"]?))([^\s]*?)(\2\s*\))|(@import\s+(['"]))([^\s]*?)(\6)/g;
 const TAGS_STRING                         = getTagsString(URL_ATTR_TAGS);
-const ATTRS_STRING                        = Object.keys(URL_ATTR_TAGS).join('|');
+const ATTRS_STRING                        = arrayJoin.call(objectKeys(URL_ATTR_TAGS), '|');
 const ATTRIBUTE_SELECTOR_RE               = new RegExp(`(([#.])?(?:${TAGS_STRING})\\[\\s*)(${ATTRS_STRING})(\\s*(?:\\^)?=)`, 'g');
 const STYLESHEET_PROCESSING_START_COMMENT = '/*hammerhead|stylesheet|start*/';
 const STYLESHEET_PROCESSING_END_COMMENT   = '/*hammerhead|stylesheet|end*/';
@@ -108,7 +113,7 @@ class StyleProcessor {
         }
 
 
-        return parts.join('');
+        return arrayJoin.call(parts, '');
     }
 
     private _replaceStylesheetUrls (css: string, processor: Function): string {
