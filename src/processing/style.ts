@@ -9,11 +9,26 @@ import INTERNAL_ATTRS from '../processing/dom/internal-attributes';
 import { isSpecialPage } from '../utils/url';
 import { URL_ATTR_TAGS } from './dom/attributes';
 import DomProcessor from './dom';
+import { Dictionary } from '../typings/common';
+
+const arrayJoin  = Array.prototype.join;
+const objectKeys = Object.keys;
+
+function getTagsString (tagsDict: Dictionary<string[]>) {
+    const tags: string[] = [];
+
+    for (const key in tagsDict) {
+        for (const tag of tagsDict[key])
+            tags.push(tag);
+    }
+
+    return arrayJoin.call(tags).replace(/,/g, '|');
+}
 
 const SOURCE_MAP_RE                       = /\/\*\s*[#@]\s*sourceMappingURL\s*=[\s\S]*?\*\/|\/\/[\t ]*[#@][\t ]*sourceMappingURL[\t ]*=.*/ig;
 const CSS_URL_PROPERTY_VALUE_RE           = /(url\s*\(\s*(['"]?))([^\s]*?)(\2\s*\))|(@import\s+(['"]))([^\s]*?)(\6)/g;
-const TAGS_STRING                         = Object.values(URL_ATTR_TAGS).join().replace(/,/g, '|');
-const ATTRS_STRING                        = Object.keys(URL_ATTR_TAGS).join('|');
+const TAGS_STRING                         = getTagsString(URL_ATTR_TAGS);
+const ATTRS_STRING                        = arrayJoin.call(objectKeys(URL_ATTR_TAGS), '|');
 const ATTRIBUTE_SELECTOR_RE               = new RegExp(`(([#.])?(?:${TAGS_STRING})\\[\\s*)(${ATTRS_STRING})(\\s*(?:\\^)?=)`, 'g');
 const STYLESHEET_PROCESSING_START_COMMENT = '/*hammerhead|stylesheet|start*/';
 const STYLESHEET_PROCESSING_END_COMMENT   = '/*hammerhead|stylesheet|end*/';
@@ -96,7 +111,7 @@ class StyleProcessor {
         }
 
 
-        return parts.join('');
+        return arrayJoin.call(parts, '');
     }
 
     private _replaceStylesheetUrls (css: string, processor: Function): string {
