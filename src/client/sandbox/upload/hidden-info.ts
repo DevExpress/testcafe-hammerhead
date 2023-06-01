@@ -3,6 +3,9 @@ import { parse as parseJSON, stringify as stringifyJSON } from '../../../utils/j
 import nativeMethods from '../native-methods';
 import ShadowUI from '../shadow-ui';
 
+
+const INPUT_SELECTOR = `[name="${INTERNAL_ATTRS.uploadInfoHiddenInputName}"]`;
+
 function createInput (form: HTMLFormElement) {
     const hiddenInput = nativeMethods.createElement.call(document, 'input') as HTMLInputElement;
 
@@ -20,9 +23,7 @@ function createInput (form: HTMLFormElement) {
 }
 
 function getInput (form: HTMLFormElement) {
-    const inputSelector = '[name="' + INTERNAL_ATTRS.uploadInfoHiddenInputName + '"]';
-
-    return nativeMethods.elementQuerySelector.call(form, inputSelector) || createInput(form);
+    return nativeMethods.elementQuerySelector.call(form, INPUT_SELECTOR) || createInput(form);
 }
 
 function indexOf (info, input) {
@@ -96,4 +97,11 @@ export function removeInputInfo (input) {
     }
 
     return false;
+}
+
+export function moveInputToFormBottom (form: HTMLFormElement) {
+    const inputElement  = nativeMethods.elementQuerySelector.call(form, INPUT_SELECTOR);
+
+    if (inputElement)
+        nativeMethods.appendChild.call(form, inputElement);
 }
