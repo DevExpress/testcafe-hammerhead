@@ -59,7 +59,8 @@ debug.formatters.i = (ctx: RequestPipelineContext): string => {
     return `{ ${stringifiedInfoArr.join(', ')} }`;
 };
 
-const hammerhead              = debug('hammerhead');
+const testcafe                = debug('testcafe');
+const hammerhead              = testcafe.extend('hammerhead');
 const proxyLogger             = hammerhead.extend('proxy');
 const destinationLogger       = hammerhead.extend('destination');
 const http2DestinationLogger  = destinationLogger.extend('http2');
