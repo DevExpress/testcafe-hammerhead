@@ -11,6 +11,7 @@ import {
 import md5 from 'crypto-md5';
 import { getPathname } from '../utils/url';
 import { isEqual } from 'lodash';
+import logger from '../utils/logger';
 
 const PARAM_RE = /^{(\S+)}$/;
 
@@ -42,6 +43,8 @@ export default abstract class Router {
     }
 
     _registerRoute (route: string, method: string, handler: StaticContent | Function): void {
+        logger.router('register route %s %s', method, route);
+
         const tokens            = route.split('/');
         const isRouteWithParams = tokens.some(token => PARAM_RE.test(token));
 
@@ -143,6 +146,8 @@ export default abstract class Router {
     }
 
     unRegisterRoute (route: string, method: string): void {
+        logger.router('unregister route %s %s', method, route);
+
         const tokens            = route.split('/');
         const isRouteWithParams = tokens.some(token => PARAM_RE.test(token));
 

@@ -67,101 +67,102 @@ const http2DestinationLogger  = destinationLogger.extend('http2');
 const cachedDestinationLogger = destinationLogger.extend('cached');
 const destinationSocketLogger = destinationLogger.extend('socket');
 const serviceMsgLogger        = hammerhead.extend('service-message');
+const router                  = proxyLogger.extend('router');
 
 const proxy = {
     onRequest: (ctx: RequestPipelineContext) => {
-        proxyLogger('Proxy request %s %s %s %j', ctx.requestId, ctx.req.method, ctx.req.url, ctx.req.headers);
+        proxyLogger('request %s %s %s %j', ctx.requestId, ctx.req.method, ctx.req.url, ctx.req.headers);
     },
 
     onResponse: (ctx: RequestPipelineContext, headers: OutgoingHttpHeaders) => {
-        proxyLogger('Proxy response %s %d %j', ctx.requestId, ctx.destRes.statusCode, headers);
+        proxyLogger('response %s %d %j', ctx.requestId, ctx.destRes.statusCode, headers);
     },
 
     onRequestError: (ctx: RequestPipelineContext) => {
-        proxyLogger('Proxy error: request to proxy cannot be dispatched %s, responding 404', ctx.requestId);
+        proxyLogger('error: request to proxy cannot be dispatched %s, responding 404', ctx.requestId);
     },
 
     onWebSocketResponseError: (ctx: RequestPipelineContext, e: Error) => {
-        proxyLogger('Proxy error %s %o', ctx.requestId, e);
+        proxyLogger('error %s %o', ctx.requestId, e);
     },
 
     onCORSFailed: (ctx: RequestPipelineContext) => {
-        proxyLogger('Proxy CORS check failed %s', ctx.requestId);
+        proxyLogger('CORS check failed %s', ctx.requestId);
     },
 
     onContentInfoBuilt: (ctx: RequestPipelineContext) => {
-        proxyLogger('Proxy resource content info %s %i', ctx.requestId, ctx);
+        proxyLogger('resource content info %s %i', ctx.requestId, ctx);
     },
 
     onMockResponseError: (rule: RequestFilterRule, e: Error) => {
-        proxyLogger('Proxy error %s %s', rule, e);
+        proxyLogger('error %s %s', rule, e);
     },
 };
 
 const serviceMsg = {
     onMessage: (msg: ServiceMessage, result: object) => {
-        serviceMsgLogger('Service message %j, result %j', msg, result);
+        serviceMsgLogger('%j, result %j', msg, result);
     },
 
     onError: (msg: ServiceMessage, err: object) => {
         const isError = err instanceof Error;
         const errMsg  = isError ? err : getIncorrectErrorTypeMessage(err);
 
-        serviceMsgLogger('Service message %j, error %o', msg, errMsg);
+        serviceMsgLogger('%j, error %o', msg, errMsg);
     },
 };
 
 const destination = {
     onMockedRequest: (ctx: RequestPipelineContext) => {
-        destinationLogger('Destination request is mocked %s %s %j', ctx.requestId, ctx.mock.statusCode, ctx.mock.headers);
+        destinationLogger('mocked %s %s %j', ctx.requestId, ctx.mock.statusCode, ctx.mock.headers);
     },
 
     onRequest: (opts: RequestOptions) => {
-        destinationLogger('Destination request %s %s %s %j', opts.requestId, opts.method, opts.url, opts.headers);
+        destinationLogger('%s %s %s %j', opts.requestId, opts.method, opts.url, opts.headers);
     },
 
     onCachedRequest: (opts: RequestOptions, hitCount: number) => {
-        cachedDestinationLogger('Cached destination request %s %s %s %j (hitCount: %d)', opts.requestId, opts.method, opts.url, opts.headers, hitCount);
+        cachedDestinationLogger('%s %s %s %j (hitCount: %d)', opts.requestId, opts.method, opts.url, opts.headers, hitCount);
     },
 
     onHttp2Stream: (requestId: string, headers: OutgoingHttpHeaders) => {
-        http2DestinationLogger('Destination stream %s %j', requestId, headers);
+        http2DestinationLogger('stream %s %j', requestId, headers);
     },
 
     onHttp2Unsupported: (requestId: string, origin: string) => {
-        http2DestinationLogger('Destination server does not support http2 %s %s', requestId, origin);
+        http2DestinationLogger('server does not support http2 %s %s', requestId, origin);
     },
 
     onHttp2SessionCreated: (requestId: string, origin: string, cacheSize: number, cacheTotalSize: number) => {
-        http2DestinationLogger('Destination session created %s %s (cache size %d of %d)', requestId, origin, cacheSize, cacheTotalSize);
+        http2DestinationLogger('session created %s %s (cache size %d of %d)', requestId, origin, cacheSize, cacheTotalSize);
     },
 
     onHttp2SessionClosed: (requestId: string, origin: string, cacheSize: number, cacheTotalSize: number) => {
-        http2DestinationLogger('Destination session closed %s %s (cache size %d of %d)', requestId, origin, cacheSize, cacheTotalSize);
+        http2DestinationLogger('session closed %s %s (cache size %d of %d)', requestId, origin, cacheSize, cacheTotalSize);
     },
 
     onHttp2Error: (requestId: string, origin: string, err: Error) => {
-        http2DestinationLogger('Destination error %s %s %o', requestId, origin, err);
+        http2DestinationLogger('error %s %s %o', requestId, origin, err);
     },
 
     onHttp2SessionTimeout: (origin: string, timeout: number) => {
-        http2DestinationLogger('Destination session is unused more than %d min and will be closed %s', timeout / 60_000, origin);
+        http2DestinationLogger('session is unused more than %d min and will be closed %s', timeout / 60_000, origin);
     },
 
     onUpgradeRequest: (opts: RequestOptions, res: IncomingMessage) => {
-        destinationLogger('Destination upgrade %s %d %j', opts.requestId, res.statusCode, res.headers);
+        destinationLogger('upgrade %s %d %j', opts.requestId, res.statusCode, res.headers);
     },
 
     onResponse: (opts: RequestOptions, res: IncomingMessage | Http2Response) => {
-        destinationLogger('Destination response %s %d %j', opts.requestId, res.statusCode, res.headers);
+        destinationLogger('response %s %d %j', opts.requestId, res.statusCode, res.headers);
     },
 
     onProxyAuthenticationError: (opts: RequestOptions) => {
-        destinationLogger('Destination error: Cannot authorize to proxy %s', opts.requestId);
+        destinationLogger('error: Cannot authorize to proxy %s', opts.requestId);
     },
 
     onResendWithCredentials: (opts: RequestOptions) => {
-        destinationLogger('Destination request resent with credentials %s', opts.requestId);
+        destinationLogger('request resent with credentials %s', opts.requestId);
     },
 
     onFileRead: (ctx: RequestPipelineContext) => {
@@ -173,11 +174,11 @@ const destination = {
     },
 
     onTimeoutError: (opts: RequestOptions, timeout: number) => {
-        destinationLogger('Destination request timeout %s (%d ms)', opts.requestId, timeout);
+        destinationLogger('request timeout %s (%d ms)', opts.requestId, timeout);
     },
 
     onError: (opts: RequestOptions, err: Error) => {
-        destinationLogger('Destination error %s %o', opts.requestId, err);
+        destinationLogger('error %s %o', opts.requestId, err);
     },
 };
 
@@ -185,13 +186,19 @@ const destinationSocket = {
     enabled: destinationSocketLogger.enabled,
 
     onFirstChunk: (opts: RequestOptions, data: Buffer) => {
-        destinationSocketLogger('Destination request socket first chunk of data %s %d %s',
+        destinationSocketLogger('socket first chunk of data %s %d %s',
             opts.requestId, data.length, JSON.stringify(data.toString()));
     },
 
     onError: (opts: RequestOptions, err: Error) => {
-        destinationSocketLogger('Destination request socket error %s %o', opts.requestId, err);
+        destinationSocketLogger('socket error %s %o', opts.requestId, err);
     },
 };
 
-export default { proxy, destination, destinationSocket, serviceMsg };
+export default {
+    proxy,
+    destination,
+    destinationSocket,
+    serviceMsg,
+    router,
+};
