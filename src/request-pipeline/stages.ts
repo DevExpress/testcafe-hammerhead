@@ -146,6 +146,8 @@ export default [
                 await ctx.onRequestHookResponse(ctx.session.requestHookEventProvider, ctx.eventFactory, eventData.rule, eventData.opts);
             }));
 
+            logger.proxy.onSendResponseBody(ctx);
+
             ctx.res.write(ctx.destResBody);
             ctx.res.end();
         });

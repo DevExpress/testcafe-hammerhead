@@ -87,6 +87,13 @@ const proxy = {
         });
     },
 
+    onSendResponseBody: (ctx: RequestPipelineContext) => {
+        proxyLogger('send response body %O', {
+            requestId: ctx.requestId,
+            body:      ctx.destResBody.toString(),
+        });
+    },
+
     onRequestError: (ctx: RequestPipelineContext) => {
         proxyLogger('error: request to proxy cannot be dispatched %s, responding 404', ctx.requestId);
     },
