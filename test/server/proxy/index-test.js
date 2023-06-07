@@ -455,7 +455,7 @@ describe('Proxy', () => {
         });
 
         it('Should handle undefined/wrong-type error correctly', () => {
-            debug.enable('hammerhead:service-message');
+            debug.enable('testcafe:hammerhead:service-message');
 
             const srderrWrite = process.stderr.write;
             let log           = '';
