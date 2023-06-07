@@ -71,11 +71,20 @@ const router                  = proxyLogger.extend('router');
 
 const proxy = {
     onRequest: (ctx: RequestPipelineContext) => {
-        proxyLogger('request %s %s %s %j', ctx.requestId, ctx.req.method, ctx.req.url, ctx.req.headers);
+        proxyLogger('request %O', {
+            requestId: ctx.requestId,
+            method:    ctx.req.method,
+            url:       ctx.req.url,
+            headers:   ctx.req.headers,
+        });
     },
 
     onResponse: (ctx: RequestPipelineContext, headers: OutgoingHttpHeaders) => {
-        proxyLogger('response %s %d %j', ctx.requestId, ctx.destRes.statusCode, headers);
+        proxyLogger('response %O', {
+            requestId:  ctx.requestId,
+            statusCode: ctx.destRes.statusCode,
+            headers,
+        });
     },
 
     onRequestError: (ctx: RequestPipelineContext) => {
