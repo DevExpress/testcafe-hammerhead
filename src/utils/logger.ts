@@ -123,15 +123,30 @@ const serviceMsg = {
 
 const destination = {
     onMockedRequest: (ctx: RequestPipelineContext) => {
-        destinationLogger('mocked %s %s %j', ctx.requestId, ctx.mock.statusCode, ctx.mock.headers);
+        destinationLogger('mocked %O', {
+            requestId:  ctx.requestId,
+            statusCode: ctx.mock.statusCode,
+            headers:    ctx.mock.headers,
+        });
     },
 
     onRequest: (opts: RequestOptions) => {
-        destinationLogger('%s %s %s %j', opts.requestId, opts.method, opts.url, opts.headers);
+        destinationLogger('%O', {
+            requestId: opts.requestId,
+            method:    opts.method,
+            url:       opts.url,
+            headers:   opts.headers,
+        });
     },
 
     onCachedRequest: (opts: RequestOptions, hitCount: number) => {
-        cachedDestinationLogger('%s %s %s %j (hitCount: %d)', opts.requestId, opts.method, opts.url, opts.headers, hitCount);
+        cachedDestinationLogger('%O', {
+            requestId: opts.requestId,
+            method:    opts.method,
+            url:       opts.url,
+            headers:   opts.headers,
+            hitCount,
+        });
     },
 
     onHttp2Stream: (requestId: string, headers: OutgoingHttpHeaders) => {
@@ -159,11 +174,19 @@ const destination = {
     },
 
     onUpgradeRequest: (opts: RequestOptions, res: IncomingMessage) => {
-        destinationLogger('upgrade %s %d %j', opts.requestId, res.statusCode, res.headers);
+        destinationLogger('upgrade %O', {
+            requestId:  opts.requestId,
+            statusCode: res.statusCode,
+            headers:    res.headers,
+        });
     },
 
     onResponse: (opts: RequestOptions, res: IncomingMessage | Http2Response) => {
-        destinationLogger('response %s %d %j', opts.requestId, res.statusCode, res.headers);
+        destinationLogger('response %O', {
+            requestId:  opts.requestId,
+            statusCode: res.statusCode,
+            headers:    res.headers,
+        });
     },
 
     onProxyAuthenticationError: (opts: RequestOptions) => {
@@ -195,8 +218,11 @@ const destinationSocket = {
     enabled: destinationSocketLogger.enabled,
 
     onFirstChunk: (opts: RequestOptions, data: Buffer) => {
-        destinationSocketLogger('socket first chunk of data %s %d %s',
-            opts.requestId, data.length, JSON.stringify(data.toString()));
+        destinationSocketLogger('socket first chunk of data %O', {
+            requestId: opts.requestId,
+            length:    data.length,
+            data:      JSON.stringify(data.toString()),
+        });
     },
 
     onError: (opts: RequestOptions, err: Error) => {
