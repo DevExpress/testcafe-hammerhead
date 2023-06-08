@@ -144,7 +144,7 @@ export default class Proxy extends Router {
             content:     workerHammerheadContent,
         });
 
-        this.GET(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onServiceMessage(req, res, serverInfo));
+        this.GET(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onServiceWebSocket(req, res, serverInfo));
         this.POST(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onServiceMessage(req, res, serverInfo));
         this.OPTIONS(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse) => this._onServiceMessagePreflight(req, res));
 
@@ -153,15 +153,6 @@ export default class Proxy extends Router {
     }
 
     async _onServiceMessage (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo): Promise<void> {
-        if (req.headers?.upgrade?.toLowerCase() === 'websocket') {
-            serverInfo.wss.handleUpgrade(req, res, Buffer.alloc(0), (ws) => {
-                serverInfo.wss.emit('connection', ws, req);
-            });
-
-            return;
-        }
-
-
         const body    = await fetchBody(req);
         const msg     = parseAsJson(body);
         const session = msg && this.openSessions.get(msg.sessionId);
@@ -186,7 +177,14 @@ export default class Proxy extends Router {
             respond500(res, SESSION_IS_NOT_OPENED_ERR);
     }
 
-    async _onSocketServiceMessage (ws, data, serverInfo): Promise<void> {
+    _onServiceWebSocket (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo): void {
+        if (req.headers?.upgrade?.toLowerCase() !== 'websocket')
+            return;
+
+        serverInfo.wss.handleUpgrade(req, res, Buffer.alloc(0), (ws) => {
+            serverInfo.wss.emit('connection', ws, req);
+        });
+    }
         const msg     = parseAsJson(data);
         const session = msg && this.openSessions.get(msg.sessionId);
 
