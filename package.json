@@ -38,7 +38,8 @@
     "read-file-relative": "^1.2.0",
     "semver": "5.5.0",
     "tough-cookie": "4.0.0",
-    "tunnel-agent": "0.6.0"
+    "tunnel-agent": "0.6.0",
+    "ws": "^7.4.6"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.1.0",
@@ -52,6 +53,7 @@
     "@types/parse5": "2.2.34",
     "@types/semver": "^6.0.0",
     "@types/tough-cookie": "^4.0.1",
+    "@types/ws": "^7.4.7",
     "@typescript-eslint/eslint-plugin": "^5.54.1",
     "@typescript-eslint/parser": "^5.54.1",
     "babel-eslint": "^10.1.0",
@@ -90,8 +92,7 @@
     "rollup-plugin-typescript2": "^0.32.1",
     "tmp": "0.0.26",
     "tslib": "^2.4.0",
-    "typescript": "^4.7.4",
-    "ws": "^7.4.6"
+    "typescript": "^4.7.4"
   },
   "main": "lib/index",
   "types": "ts-defs/index.d.ts",
