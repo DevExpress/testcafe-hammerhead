@@ -187,7 +187,9 @@ export default class Proxy extends Router {
     }
 
     _onServiceWebSocketConnection (ws, serverInfo): void {
-        ws.on('error', console.error);
+        logger.serviceWebSocket.onConnection(ws);
+
+        ws.on('error', (err) => logger.serviceWebSocket.onError(err));
 
         ws.on('message', (data) => {
             this._onServiceWebSocketMessage(ws, data, serverInfo);
