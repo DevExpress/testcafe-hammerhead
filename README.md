@@ -44,4 +44,4 @@ Read our [Contributing Guide](https://github.com/DevExpress/testcafe-hammerhead/
 
 [![Sauce Test Status](https://saucelabs.com/browser-matrix/testcafebot.svg)](https://saucelabs.com/u/testcafebot)
 
-[![Health Monitor](http://20.124.101.246:13500/badge/last-commit.svg)](http://20.124.101.246:13500/)
+[![Health Monitor](http://4.227.198.23:13500/badge/last-commit.svg)](http://4.227.198.23:13500/)
