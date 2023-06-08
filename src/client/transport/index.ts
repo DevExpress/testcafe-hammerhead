@@ -1,9 +1,9 @@
 import MessageSandbox from '../sandbox/event/message';
 import TransportBase from './transport-base';
-import TransportLegacy from './transport-legacy';
 import TransportInWorker from './transport-in-worker';
 import { ServiceMessage } from '../../typings/proxy';
 import Promise from 'pinkie';
+import TransportInSocket from './transport-in-socket';
 
 
 export default class Transport {
@@ -12,7 +12,7 @@ export default class Transport {
     start (messageSandbox: MessageSandbox, useWorker = true): void {
         this._implementation = useWorker
             ? new TransportInWorker()
-            : new TransportLegacy();
+            : new TransportInSocket();
 
         this._implementation.start(messageSandbox);
     }
