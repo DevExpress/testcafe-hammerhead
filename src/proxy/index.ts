@@ -185,6 +185,16 @@ export default class Proxy extends Router {
             serverInfo.wss.emit('connection', ws, req);
         });
     }
+
+    _onServiceWebSocketConnection (ws, serverInfo): void {
+        ws.on('error', console.error);
+
+        ws.on('message', (data) => {
+            this._onServiceWebSocketMessage(ws, data, serverInfo);
+        });
+    }
+
+    async _onServiceWebSocketMessage (ws, data, serverInfo): Promise<void> {
         const msg     = parseAsJson(data);
         const session = msg && this.openSessions.get(msg.sessionId);
 
@@ -302,21 +312,8 @@ export default class Proxy extends Router {
         this.wss1 = new nodeWebSocket.Server({ noServer: true });
         this.wss2 = new nodeWebSocket.Server({ noServer: true });
 
-        this.wss1.on('connection', (ws) => {
-            ws.on('error', console.error);
-
-            ws.on('message', (data) => {
-                this._onSocketServiceMessage(ws, data, this.server1Info);
-            });
-        });
-
-        this.wss2.on('connection', (ws) => {
-            ws.on('error', console.error);
-
-            ws.on('message', (data) => {
-                this._onSocketServiceMessage(ws, data, this.server2Info);
-            });
-        });
+        this.wss1.on('connection', (ws) => this._onServiceWebSocketConnection(ws, this.server1Info));
+        this.wss2.on('connection', (ws) => this._onServiceWebSocketConnection(ws, this.server2Info));
 
         this.server1Info.wss = this.wss1;
         this.server2Info.wss = this.wss2;
