@@ -9,7 +9,7 @@ import { add as addHeader, remove as removeHeader } from './header';
 import { parse } from 'acorn-hammerhead';
 import { generate, Syntax } from 'esotope-hammerhead';
 import reEscape from '../../utils/regexp-escape';
-import getBOM from '../../utils/get-bom';
+import { getBOM } from '../../utils/get-bom';
 
 const HTML_COMMENT_RE       = /(^|\n)\s*<!--[^\n]*(\n|$)/g;
 const OBJECT_RE             = /^\s*\{.*\}\s*$/;
