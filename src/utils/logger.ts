@@ -257,4 +257,5 @@ export default {
     destinationSocket,
     serviceMsg,
     router,
+    serviceSocket,
 };
