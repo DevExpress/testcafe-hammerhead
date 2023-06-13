@@ -5,7 +5,7 @@ import DomProcessor from '../dom';
 import DomAdapter from '../dom/parse5-dom-adapter';
 import ResourceProcessorBase from './resource-processor-base';
 import * as parse5Utils from '../../utils/parse5';
-import getBOM from '../../utils/get-bom';
+import { getBOM, getBOMDecoded } from '../../utils/get-bom';
 import getStorageKey from '../../utils/get-storage-key';
 import SELF_REMOVING_SCRIPTS from '../../utils/self-removing-scripts';
 import RequestPipelineContext from '../../request-pipeline/context';
@@ -275,6 +275,10 @@ class PageProcessor extends ResourceProcessorBase {
 
     // NOTE: API for new implementation without request pipeline
     injectResources (html: string, resources: PageInjectableResources, options?: PageRestoreStoragesOptions): string {
+        const bom = getBOMDecoded(html);
+
+        html = bom ? html.replace(bom, '') : html;
+
         const root     = parse5.parse(html);
         const elements = parse5Utils.findElementsByTagNames(root, ['head', 'body']);
         const head     = elements.head[0];
@@ -283,7 +287,7 @@ class PageProcessor extends ResourceProcessorBase {
         PageProcessor._addPageResources(head, resources, options);
         PageProcessor._addBodyCreatedEventScript(body);
 
-        return parse5.serialize(root);
+        return (bom || '') + parse5.serialize(root);
     }
 }
 
