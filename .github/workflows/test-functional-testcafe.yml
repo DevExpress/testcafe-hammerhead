@@ -25,6 +25,10 @@ on:
         required: false
         type: number
         default: 25
+      display:
+        required: false
+        type: string
+        default: ''
 env:
   NO_CACHE: ${{ secrets.NO_CACHE }}
   GULP_TASK: ${{ inputs.testcafe-gulp-task }}
@@ -53,6 +57,7 @@ jobs:
       RETRY_FAILED_TESTS: ${{ inputs.retry_failed_tests }}
       TEST_GROUPS_COUNT: ${{ inputs.matrix-jobs-count }}
       TEST_GROUP_NUMBER: ${{ matrix.test-group }}
+      DISPLAY: ${{ inputs.display }}
     outputs:
       # Matrix jobs cannot collect outputs about each of them automatically. It rewrites the same outputs. Improve it once it will be possible.
       test-1: "${{ steps.save-result.outputs.test_1 }}"
@@ -62,6 +67,14 @@ jobs:
       - uses: DevExpress/testcafe-build-system/actions/set-status@main
         with:
           status: 'pending'
+
+      - run: |
+          sudo apt install fluxbox
+          Xvfb ${{ inputs.display }} -screen 0 1920x1080x24 &
+          sleep 3
+          fluxbox >/dev/null 2>&1 &
+        if: ${{ inputs.display }}
+
       - uses: actions/checkout@v3
         with:
           ref: ${{github.event.inputs.merged_sha || github.event.inputs.sha}}
