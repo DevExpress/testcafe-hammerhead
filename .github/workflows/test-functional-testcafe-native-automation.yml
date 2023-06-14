@@ -17,3 +17,4 @@ jobs:
     with:
       test-script: 'npx gulp test-functional-testcafe-native-automation --no-build'
       testcafe-gulp-task: 'test-functional-local-native-automation'
+      display: ':99.0'
