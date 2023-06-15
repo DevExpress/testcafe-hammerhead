@@ -563,7 +563,7 @@ declare module 'testcafe-hammerhead' {
         isAjax: boolean;
 
         /** Creates a RequestOptions instance **/
-        constructor (params: RequestOptionsParams);
+        constructor (params: RequestOptionsParams, trackChanges?: boolean);
     }
 
     /** The ResponseMock class is used to send request **/

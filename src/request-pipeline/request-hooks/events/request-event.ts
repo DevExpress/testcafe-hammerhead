@@ -5,11 +5,6 @@ import generateUniqueId from '../../../utils/generate-unique-id';
 import RequestOptions from '../../request-options';
 import { RequestInfoInit } from '../typings';
 
-interface SerializedRequestEvent {
-    requestFilterRule: RequestFilterRule;
-    _requestInfo: RequestInfo;
-    id: string;
-}
 
 export default class RequestEvent {
     public readonly requestFilterRule: RequestFilterRule;
@@ -20,8 +15,19 @@ export default class RequestEvent {
 
     public constructor (init: RequestInfoInit) {
         Object.assign(this, init);
+        this._setRequestOptionsTracking(this.reqOpts);
 
         this.id = generateUniqueId();
+    }
+
+    private _setRequestOptionsTracking (reqOpts: RequestOptions): void {
+        reqOpts.on('headerChanged', changedHeader => {
+            this._requestInfo.headers[changedHeader.name] = changedHeader.value;
+        });
+
+        reqOpts.on('headerRemoved', name => {
+            delete this._requestInfo.headers[name];
+        });
     }
 
     public async setMock (mock: ResponseMock): Promise<void> {
@@ -34,20 +40,5 @@ export default class RequestEvent {
 
     public get isAjax (): boolean {
         return this._requestInfo.isAjax;
-    }
-
-    public static from (data: unknown): RequestEvent {
-        const { id, requestFilterRule, _requestInfo } = data as SerializedRequestEvent;
-
-        const requestEvent = new RequestEvent({
-            requestFilterRule: requestFilterRule,
-            reqOpts:           {} as RequestOptions,
-            setMockFn:         () => Promise.resolve(),
-            _requestInfo,
-        });
-
-        requestEvent.id = id;
-
-        return requestEvent;
     }
 }

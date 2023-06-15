@@ -3,17 +3,6 @@ import { PreparedResponseInfo } from './info';
 import generateUniqueId from '../../../utils/generate-unique-id';
 import { OutgoingHttpHeaders } from 'http';
 
-interface SerializedResponseEvent {
-    requestFilterRule: RequestFilterRule;
-    id: string;
-    requestId: string;
-    statusCode: number;
-    sessionId: string;
-    isSameOriginPolicyFailed: boolean;
-    headers?: OutgoingHttpHeaders;
-    body?: Buffer;
-}
-
 export default class ResponseEvent {
     public requestFilterRule: RequestFilterRule;
     public readonly requestId: string;
@@ -43,31 +32,5 @@ export default class ResponseEvent {
 
         this.id                = generateUniqueId();
         this.requestFilterRule = requestFilterRule;
-    }
-
-    public static from (data: unknown): ResponseEvent {
-        const {
-            requestFilterRule,
-            id,
-            requestId,
-            statusCode,
-            sessionId,
-            isSameOriginPolicyFailed,
-            headers,
-            body,
-        } = data as SerializedResponseEvent;
-
-        const responseEvent = new ResponseEvent(requestFilterRule, {
-            requestId,
-            statusCode,
-            sessionId,
-            isSameOriginPolicyFailed,
-            headers,
-            body,
-        });
-
-        responseEvent.id = id;
-
-        return responseEvent;
     }
 }

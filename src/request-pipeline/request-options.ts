@@ -12,6 +12,7 @@ import matchUrl from 'match-url-wildcard';
 import { RequestTimeout } from '../typings/proxy';
 import generateUniqueId from '../utils/generate-unique-id';
 import { addAuthorizationPrefix } from '../utils/headers';
+import { EventEmitter } from 'events';
 
 const DEFAULT_REQUEST_OPTIONS = {
     isAjax:      false,
@@ -21,6 +22,11 @@ const DEFAULT_REQUEST_OPTIONS = {
         return generateUniqueId();
     },
 };
+
+interface ChangedProperty {
+    name: string;
+    value: unknown;
+}
 
 export default class RequestOptions {
     url: string;
@@ -46,12 +52,67 @@ export default class RequestOptions {
     requestTimeout?: RequestTimeout;
     isWebSocket: boolean;
     disableHttp2: boolean;
+    _changedUrlProperties: ChangedProperty[] = [];
+    _changedHeaders: ChangedProperty[] = [];
+    _removedHeaders: string[] = [];
+    _eventEmitter: EventEmitter = new EventEmitter();
 
-    constructor (params: RequestOptionsInit) {
+    constructor (params: RequestOptionsInit, trackChanges = false) {
         Object.assign(this, DEFAULT_REQUEST_OPTIONS, params);
 
         this._applyExternalProxySettings();
         this.prepare();
+
+        if (trackChanges)
+            return this._setTrackChanges(this);
+    }
+
+    private _setTrackChanges (obj: RequestOptions): RequestOptions {
+        // NOTE: this code is necessary to support request modification inside RequestHooks
+        // in the 'nativeAutomation' mode.
+        const self = obj;
+
+        obj.headers = new Proxy(obj.headers, {
+            set (target: OutgoingHttpHeaders, propName: string, newValue: any): boolean {
+                if (target[propName] !== newValue) {
+                    const changedHeader = {
+                        name:  propName,
+                        value: newValue,
+                    };
+
+                    self._changedHeaders.push(changedHeader);
+                    self._eventEmitter.emit('headerChanged', changedHeader);
+                }
+
+                return Reflect.set(target, propName, newValue);
+            },
+            deleteProperty (target: OutgoingHttpHeaders, propName: string): boolean {
+                if (propName in target) {
+                    self._removedHeaders.push(propName);
+                    self._eventEmitter.emit('headerRemoved', propName);
+                }
+
+                return Reflect.deleteProperty(target, propName);
+            },
+        });
+
+        obj = new Proxy(obj, {
+            set (target: RequestOptions, propName: string, newValue: any): boolean {
+                if (target[propName] !== newValue) {
+                    const changedUrlProperty = {
+                        name:  propName,
+                        value: newValue,
+                    };
+
+                    self._changedUrlProperties.push(changedUrlProperty);
+                    self._eventEmitter.emit('urlPropertyChange', changedUrlProperty);
+                }
+
+                return Reflect.set(target, propName, newValue);
+            },
+        });
+
+        return obj;
     }
 
     public static createFrom (ctx: RequestPipelineContext): RequestOptions {
@@ -128,5 +189,9 @@ export default class RequestOptions {
         clonedReqOptions['headers'] = transformedHeaders;
 
         return clonedReqOptions;
+    }
+
+    on (event: string, listener: (...args: any[]) => void): void {
+        this._eventEmitter.on(event, listener);
     }
 }
