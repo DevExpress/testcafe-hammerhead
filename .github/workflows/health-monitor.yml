@@ -1,12 +1,6 @@
 name: Health Monitor
 
 on:
-  schedule:
-    - cron: '0 2 * * *'
-
-  issue_comment:
-    types: [ created ]
-
   workflow_dispatch:
 
 jobs:
