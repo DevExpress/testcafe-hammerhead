@@ -53,7 +53,6 @@ jobs:
       - name: Run Health Monitor
         run: npx gulp health-monitor
         working-directory: ./HealthMonitor/health-monitor
-        timeout-minutes: 700
 
   pr-branch:
     if: |
