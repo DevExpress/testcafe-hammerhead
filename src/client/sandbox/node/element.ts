@@ -989,10 +989,13 @@ export default class ElementSandbox extends SandboxBase {
             return;
 
         const escapedIframeName  = iframe.name.replace(/"/g, '\\"');
-        const elementsWithTarget = nativeMethods.querySelectorAll.call(this.document, `*[target="${escapedIframeName}"]`);
-
-        for (const el of elementsWithTarget)
-            this._reprocessElementAssociatedWithIframe(el);
+        let elementsWithTarget = [];
+        try {
+            elementsWithTarget = nativeMethods.querySelectorAll.call(this.document, `*[target="${escapedIframeName}"]`);
+        } finally  {
+            for (const el of elementsWithTarget)
+                this._reprocessElementAssociatedWithIframe(el);
+        }
     }
 
     private _reprocessElementAssociatedWithIframe (el: HTMLFormElement | HTMLLinkElement): void {
