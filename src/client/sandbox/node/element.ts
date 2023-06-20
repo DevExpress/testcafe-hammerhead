@@ -1,37 +1,37 @@
-import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
-import SandboxBase from '../base';
-import NodeSandbox from '../node/index';
 import DomProcessor from '../../../processing/dom';
-import nativeMethods from '../native-methods';
-import domProcessor from '../../dom-processor';
+import { ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../../processing/dom/attributes';
+import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import { processScript } from '../../../processing/script';
 import styleProcessor from '../../../processing/style';
-import * as urlUtils from '../../utils/url';
-import * as domUtils from '../../utils/dom';
-import * as hiddenInfo from '../upload/hidden-info';
-import urlResolver from '../../utils/url-resolver';
-import { sameOriginCheck, get as getDestLocation } from '../../utils/destination-location';
-import { isValidEventListener, stopPropagation } from '../../utils/event';
-import { processHtml, isInternalHtmlParserElement } from '../../utils/html';
-import { getNativeQuerySelector, getNativeQuerySelectorAll } from '../../utils/query-selector';
-import { HASH_RE } from '../../../utils/url';
+import BUILTIN_HEADERS from '../../../request-pipeline/builtin-header-names';
+import isKeywordTarget from '../../../utils/is-keyword-target';
 import trim from '../../../utils/string-trim';
+import { HASH_RE } from '../../../utils/url';
+import domProcessor from '../../dom-processor';
+import settings from '../../settings';
+import { isFirefox, isIE } from '../../utils/browser';
+import { get as getDestLocation, sameOriginCheck } from '../../utils/destination-location';
+import * as domUtils from '../../utils/dom';
+import { isValidEventListener, stopPropagation } from '../../utils/event';
+import { isInternalHtmlParserElement, processHtml } from '../../utils/html';
+import InsertPosition from '../../utils/insert-position';
+import { overrideDescriptor, overrideFunction } from '../../utils/overriding';
+import { getNativeQuerySelector, getNativeQuerySelectorAll } from '../../utils/query-selector';
+import toKebabCase from '../../utils/to-kebab-case';
+import * as urlUtils from '../../utils/url';
+import urlResolver from '../../utils/url-resolver';
+import SandboxBase from '../base';
+import ChildWindowSandbox from '../child-window';
+import EventSandbox from '../event';
+import IframeSandbox from '../iframe';
+import nativeMethods from '../native-methods';
+import NodeSandbox from '../node/index';
+import ShadowUI from '../shadow-ui';
+import UploadSandbox from '../upload';
+import * as hiddenInfo from '../upload/hidden-info';
 import * as windowsStorage from '../windows-storage';
 import { refreshAttributesWrapper } from './attributes';
-import ShadowUI from '../shadow-ui';
 import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
-import { ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../../processing/dom/attributes';
-import settings from '../../settings';
-import { overrideDescriptor, overrideFunction } from '../../utils/overriding';
-import InsertPosition from '../../utils/insert-position';
-import { isFirefox, isIE } from '../../utils/browser';
-import UploadSandbox from '../upload';
-import IframeSandbox from '../iframe';
-import EventSandbox from '../event';
-import ChildWindowSandbox from '../child-window';
-import isKeywordTarget from '../../../utils/is-keyword-target';
-import BUILTIN_HEADERS from '../../../request-pipeline/builtin-header-names';
-import toKebabCase from '../../utils/to-kebab-case';
 
 const RESTRICTED_META_HTTP_EQUIV_VALUES = [BUILTIN_HEADERS.refresh, BUILTIN_HEADERS.contentSecurityPolicy];
 
@@ -990,9 +990,11 @@ export default class ElementSandbox extends SandboxBase {
 
         const escapedIframeName  = iframe.name.replace(/"/g, '\\"');
         let elementsWithTarget = [];
+
         try {
             elementsWithTarget = nativeMethods.querySelectorAll.call(this.document, `*[target="${escapedIframeName}"]`);
-        } finally  {
+        }
+        finally {
             for (const el of elementsWithTarget)
                 this._reprocessElementAssociatedWithIframe(el);
         }
