@@ -1,11 +1,18 @@
 name: Health Monitor
 
 on:
+  schedule:
+    - cron: '0 2 * * *'
+
+  issue_comment:
+    types: [ created ]
+
   workflow_dispatch:
     inputs:
       repeat-failed-sites-count:
         required: false
-        default: ''
+        type: number
+        default: 1
 
 jobs:
   main-branch:
@@ -14,7 +21,7 @@ jobs:
       github.event_name == 'workflow_dispatch'
     runs-on: windows-latest
     env:
-      REPEAT_FAILED_SITES_COUNT: ${{ inputs.repeat-failed-sites-count }}
+      REPEAT_FAILED_SITES_COUNT: ${{ inputs.repeat-failed-sites-count || 1 }}
 
     steps:
       - name: Use Node.js
@@ -53,7 +60,6 @@ jobs:
       - name: Run Health Monitor
         run: npx gulp health-monitor
         working-directory: ./HealthMonitor/health-monitor
-        timeout-minutes: 700
 
   pr-branch:
     if: |
