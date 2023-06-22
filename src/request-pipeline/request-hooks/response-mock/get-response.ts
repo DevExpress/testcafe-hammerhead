@@ -33,6 +33,9 @@ export default async function (mock: ResponseMock): Promise<IncomingMessageLike>
 
         try {
             response = Object.assign(response, await mock.body(mock.requestOptions, response));
+
+            if (typeof response.statusCode !== 'number')
+                response.statusCode = Number(response.statusCode);
         }
         catch (err) {
             response.statusCode = 500;

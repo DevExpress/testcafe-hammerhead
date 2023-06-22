@@ -3,14 +3,13 @@ const { expect }                             = require('chai');
 const ResponseMock                           = require('../../lib/request-pipeline/request-hooks/response-mock');
 const RequestFilterRule                      = require('../../lib/request-pipeline/request-hooks/request-filter-rule');
 const RequestEvent                           = require('../../lib/request-pipeline/request-hooks/events/request-event');
-const ResponseEvent                          = require('../../lib/request-pipeline/request-hooks/events/response-event');
-const ConfigureResponseEvent                 = require('../../lib/request-pipeline/request-hooks/events/configure-response-event');
 const ConfigureResponseEventOptions          = require('../../lib/request-pipeline/request-hooks/events/configure-response-event-options');
 const requestIsMatchRule                     = require('../../lib/request-pipeline/request-hooks/request-is-match-rule');
 const { noop }                               = require('lodash');
 const getMockResponse                        = require('../../lib/request-pipeline/request-hooks/response-mock/get-response');
 const { RequestInfo }                        = require('../../lib/request-pipeline/request-hooks/events/info');
 const RequestPipelineRequestHookEventFactory = require('../../lib/request-pipeline/request-hooks/events/factory');
+const RequestOptions                         = require('../../lib/request-pipeline/request-options');
 
 const requestInfoMock = {
     url:     'http://example.com/',
@@ -176,6 +175,16 @@ describe('ResponseMock', () => {
 
             expect(mock.isPredicate).eql(true);
             expect(response.read().toString()).eql('body');
+        });
+
+        it('Custom status code via respond function', async () => {
+            const mock = new ResponseMock((req, res) => {
+                res.statusCode = '200';
+            });
+
+            const response = await getMockResponse(mock);
+
+            expect(response.statusCode).eql(200);
         });
     });
 
@@ -418,64 +427,81 @@ describe('ConfigureResponseEvent', () => {
     });
 });
 
-describe('<RequestHookEvent>.from method', () => {
-    it('RequestEvent', () => {
-        const requestEventInit = {
-            id:                '1',
-            requestFilterRule: RequestFilterRule.ANY,
-            _requestInfo:      requestInfoMock,
-        };
-
-        const requestEvent = RequestEvent.from(requestEventInit);
-
-        expect(requestEvent).instanceOf(RequestEvent);
-        expect(requestEvent.id).eql(requestEventInit.id);
-        expect(requestEvent._requestInfo).eql(requestEventInit._requestInfo);
-        expect(requestEvent.requestFilterRule).eql(requestEventInit.requestFilterRule);
-    });
-
-    it('ConfigureResponseEvent', () => {
-        const configureResponseEventInit = {
-            id:                '2',
-            requestFilterRule: RequestFilterRule.ANY,
-            opts:              ConfigureResponseEventOptions.DEFAULT,
-        };
-
-        const configureResponseEvent = ConfigureResponseEvent.from(configureResponseEventInit);
-
-        expect(configureResponseEvent).instanceOf(ConfigureResponseEvent);
-        expect(configureResponseEvent.id).eql(configureResponseEventInit.id);
-        expect(configureResponseEvent.requestFilterRule).eql(configureResponseEventInit.requestFilterRule);
-        expect(JSON.stringify(configureResponseEvent.opts)).eql(JSON.stringify(configureResponseEventInit.opts));
-    });
-
-    it('ResponseEvent', () => {
-        const bodyBuffer = Buffer.from([0x62, 0x75, 0x66, 0x66, 0x65, 0x72]);
-
-        const responseEventInit = {
-            id:                       3,
-            requestId:                'requestId',
-            statusCode:               200,
-            sessionId:                'sessionId',
-            isSameOriginPolicyFailed: false,
-            headers:                  { 'header': 'value' },
-            body:                     bodyBuffer,
-        };
-
-        const responseEvent = ResponseEvent.from(responseEventInit);
-
-        expect(responseEvent).instanceOf(ResponseEvent);
-        expect(responseEvent.id).eql(responseEventInit.id);
-        expect(responseEvent.requestId).eql(responseEventInit.requestId);
-        expect(responseEvent.statusCode).eql(responseEventInit.statusCode);
-        expect(responseEvent.sessionId).eql(responseEventInit.sessionId);
-        expect(responseEvent.isSameOriginPolicyFailed).eql(responseEventInit.isSameOriginPolicyFailed);
-        expect(responseEvent.headers).eql(responseEventInit.headers);
-        expect(responseEvent.body).eql(responseEventInit.body);
-    });
-});
-
 it('RequestInfo.getUserAgent', () => {
     expect(RequestInfo.getUserAgent({ 'user-agent': 'chrome' })).eql('chrome');
     expect(RequestInfo.getUserAgent({ 'User-Agent': 'chrome' })).eql('chrome');
+});
+
+it('Track changes for RequestOptions', () => {
+    const requestOptions = new RequestOptions({
+        url:      'http://example.com',
+        host:     'example.com',
+        hostname: 'example.com',
+        protocol: 'http:',
+        path:     '/',
+        method:   'GET',
+        headers:  {
+            'user-agent': 'chrome',
+        },
+    }, true);
+
+    requestOptions.path = '/script';
+    requestOptions.path = '/script';
+
+    expect(requestOptions._changedUrlProperties).eql([{
+        name:  'path',
+        value: '/script',
+    }]);
+
+    requestOptions.headers['user-agent'] = 'firefox';
+    requestOptions.headers['user-agent'] = 'firefox';
+    requestOptions.headers['x-custom-header'] = 'value';
+    delete requestOptions.headers['user-agent'];
+    delete requestOptions.headers['user-agent'];
+
+    expect(requestOptions._changedHeaders).eql([{
+        name:  'user-agent',
+        value: 'firefox',
+    }, {
+        name:  'x-custom-header',
+        value: 'value',
+    }]);
+
+    expect(requestOptions._removedHeaders).eql(['user-agent']);
+});
+
+it('RequestEvent: synchronize changes with reqOpts', () => {
+    const headers = {
+        'user-agent':      'chrome',
+        'x-custom-header': 'value',
+    };
+
+    const requestOptions = new RequestOptions({
+        url:      'http://example.com',
+        host:     'example.com',
+        hostname: 'example.com',
+        protocol: 'http:',
+        path:     '/',
+        method:   'GET',
+        headers,
+    }, true);
+
+    const requestInfo = new RequestInfo({
+        headers: Object.assign({}, headers),
+    });
+
+    const requestEvent = new RequestEvent({
+        requestFilterRule: RequestFilterRule.ANY,
+        _requestInfo:      requestInfo,
+        reqOpts:           requestOptions,
+        setMockFn:         noop,
+    });
+
+    requestOptions.headers['user-agent'] = 'firefox';
+
+    delete requestOptions.headers['x-custom-header'];
+
+    expect(requestEvent._requestInfo.headers).eql({
+        'user-agent': 'firefox',
+    });
 });

@@ -1,14 +1,7 @@
 import RequestFilterRule from '../request-filter-rule';
-import RequestPipelineContext from '../../context';
 import ConfigureResponseEventOptions from './configure-response-event-options';
 import generateUniqueId from '../../../utils/generate-unique-id';
 
-interface SerializedConfigureResponseEvent {
-    requestFilterRule: RequestFilterRule;
-    _requestContext: RequestPipelineContext;
-    opts: ConfigureResponseEventOptions;
-    id: string;
-}
 
 interface ModifyResponseFunctions {
     setHeader: (name: string, value: string) => void;
@@ -40,15 +33,5 @@ export default class ConfigureResponseEvent {
             return;
 
         this._modifyResponseFunctions.removeHeader(name);
-    }
-
-    public static from (data: unknown): ConfigureResponseEvent {
-        const { id, opts, requestFilterRule } = data as SerializedConfigureResponseEvent;
-
-        const configureResponseEvent = new ConfigureResponseEvent(requestFilterRule, null, opts);
-
-        configureResponseEvent.id = id;
-
-        return configureResponseEvent;
     }
 }
