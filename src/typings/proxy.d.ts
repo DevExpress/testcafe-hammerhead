@@ -5,6 +5,7 @@ export interface ServerInfo {
     protocol: string;
     domain: string;
     cacheRequests: boolean;
+    wss?: any;
 }
 
 export interface ServiceMessage {

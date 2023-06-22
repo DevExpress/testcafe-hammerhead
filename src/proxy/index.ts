@@ -35,6 +35,7 @@ import logger from '../utils/logger';
 import errToString from '../utils/err-to-string';
 import { parse as parseJSON } from '../utils/json';
 import loadClientScript from '../utils/load-client-script';
+import nodeWebSocket from 'ws';
 
 const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
 
@@ -72,6 +73,8 @@ export default class Proxy extends Router {
     private server2: http.Server | https.Server | null;
     private proxyOptions: ProxyOptions | null;
     private readonly sockets: Set<net.Socket>;
+    private wss1: nodeWebSocket.Server;
+    private wss2: nodeWebSocket.Server;
 
     // Max header size for incoming HTTP requests
     // Set to 80 KB as it was the original limit:
@@ -141,6 +144,7 @@ export default class Proxy extends Router {
             content:     workerHammerheadContent,
         });
 
+        this.GET(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onServiceWebSocket(req, res, serverInfo));
         this.POST(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo) => this._onServiceMessage(req, res, serverInfo));
         this.OPTIONS(SERVICE_ROUTES.messaging, (req: http.IncomingMessage, res: http.ServerResponse) => this._onServiceMessagePreflight(req, res));
 
@@ -171,6 +175,47 @@ export default class Proxy extends Router {
         }
         else
             respond500(res, SESSION_IS_NOT_OPENED_ERR);
+    }
+
+    _onServiceWebSocket (req: http.IncomingMessage, res: http.ServerResponse, serverInfo: ServerInfo): void {
+        if (req.headers?.upgrade?.toLowerCase() !== 'websocket')
+            return;
+
+        serverInfo.wss.handleUpgrade(req, res, Buffer.alloc(0), (ws) => {
+            serverInfo.wss.emit('connection', ws, req);
+        });
+    }
+
+    _onServiceWebSocketConnection (ws, serverInfo): void {
+        logger.serviceSocket.onConnection(ws);
+
+        ws.on('error', (err) => logger.serviceSocket.onError(err));
+
+        ws.on('message', (data) => {
+            this._onServiceWebSocketMessage(ws, data, serverInfo);
+        });
+    }
+
+    async _onServiceWebSocketMessage (ws, data, serverInfo): Promise<void> {
+        const msg     = parseAsJson(data);
+        const session = msg && this.openSessions.get(msg.sessionId);
+
+        if (msg && session) {
+            try {
+                const result = await session.handleServiceMessage(msg, serverInfo);
+
+                logger.serviceMsg.onMessage(msg, result);
+
+                ws.send(JSON.stringify(result));
+            }
+            catch (err) {
+                logger.serviceMsg.onError(msg, err);
+
+                ws.send(errToString(err));
+            }
+        }
+        else
+            ws.send(SESSION_IS_NOT_OPENED_ERR);
     }
 
     _onServiceMessagePreflight (_req: http.IncomingMessage, res: http.ServerResponse): void {
@@ -265,6 +310,15 @@ export default class Proxy extends Router {
 
         this.server1.listen(port1);
         this.server2.listen(port2);
+
+        this.wss1 = new nodeWebSocket.Server({ noServer: true });
+        this.wss2 = new nodeWebSocket.Server({ noServer: true });
+
+        this.wss1.on('connection', (ws) => this._onServiceWebSocketConnection(ws, this.server1Info));
+        this.wss2.on('connection', (ws) => this._onServiceWebSocketConnection(ws, this.server2Info));
+
+        this.server1Info.wss = this.wss1;
+        this.server2Info.wss = this.wss2;
 
         // BUG: GH-89
         this._startSocketsCollecting();

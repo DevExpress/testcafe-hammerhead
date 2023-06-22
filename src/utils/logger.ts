@@ -68,6 +68,7 @@ const cachedDestinationLogger = destinationLogger.extend('cached');
 const destinationSocketLogger = destinationLogger.extend('socket');
 const serviceMsgLogger        = hammerhead.extend('service-message');
 const router                  = proxyLogger.extend('router');
+const serviceSocketLogger     = hammerhead.extend('service-socket');
 
 const proxy = {
     onRequest: (ctx: RequestPipelineContext) => {
@@ -125,6 +126,19 @@ const serviceMsg = {
         const errMsg  = isError ? err : getIncorrectErrorTypeMessage(err);
 
         serviceMsgLogger('%j, error %o', msg, errMsg);
+    },
+};
+
+const serviceSocket = {
+    onConnection: (ws) => {
+        serviceSocketLogger('Service socket connected to %j', ws.url);
+    },
+
+    onError: (err: object) => {
+        const isError = err instanceof Error;
+        const errMsg  = isError ? err : getIncorrectErrorTypeMessage(err);
+
+        serviceSocketLogger('Service socket error %j', errMsg);
     },
 };
 
@@ -243,4 +257,5 @@ export default {
     destinationSocket,
     serviceMsg,
     router,
+    serviceSocket,
 };
