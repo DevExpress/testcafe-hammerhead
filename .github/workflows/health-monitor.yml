@@ -5,7 +5,8 @@ on:
     inputs:
       repeat-failed-sites-count:
         required: false
-        default: ''
+        type: number
+        default: 1
 
 jobs:
   main-branch:
