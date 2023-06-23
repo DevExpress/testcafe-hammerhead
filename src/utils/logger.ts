@@ -6,6 +6,7 @@ import RequestOptions from '../request-pipeline/request-options';
 import errToString from './err-to-string';
 import { Http2Response } from '../request-pipeline/destination-request/http2';
 import RequestFilterRule from '../request-pipeline/request-hooks/request-filter-rule';
+import { IncomingMessageLikeInitOptions } from '../request-pipeline/incoming-message-like';
 
 function getIncorrectErrorTypeMessage (err: object) {
     const errType = typeof err;
@@ -69,6 +70,7 @@ const destinationSocketLogger = destinationLogger.extend('socket');
 const serviceMsgLogger        = hammerhead.extend('service-message');
 const router                  = proxyLogger.extend('router');
 const serviceSocketLogger     = hammerhead.extend('service-socket');
+const requestHooksLogger      = hammerhead.extend('request-hooks');
 
 const proxy = {
     onRequest: (ctx: RequestPipelineContext) => {
@@ -251,6 +253,12 @@ const destinationSocket = {
     },
 };
 
+const requestHooks = {
+    onMockedResponse: (init: IncomingMessageLikeInitOptions) => {
+        requestHooksLogger('mocked response %O', init);
+    },
+};
+
 export default {
     proxy,
     destination,
@@ -258,4 +266,5 @@ export default {
     serviceMsg,
     router,
     serviceSocket,
+    requestHooks,
 };

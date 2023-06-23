@@ -5,6 +5,7 @@ import lowerCaseHeaderNames from './lowercase-header-names';
 import { JSON_MIME } from '../../../utils/content-type';
 import { ResponseMockBodyInit } from './response-mock-init';
 import * as setBodyMethod from './set-body-method';
+import logger from '../../../utils/logger';
 
 const PAGE_CONTENT_TYPE          = 'text/html; charset=utf-8';
 const EMPTY_PAGE_HTML            = '<html><body></body></html>';
@@ -50,6 +51,8 @@ export default async function (mock: ResponseMock): Promise<IncomingMessageLike>
         response.body = mock.body;
 
     response.headers = lowerCaseHeaderNames(response.headers);
+
+    logger.requestHooks.onMockedResponse(response);
 
     return new IncomingMessageLike(response);
 }
