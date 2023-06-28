@@ -290,6 +290,8 @@ export default class WindowSandbox extends SandboxBase {
         this.overrideAttributesInElement();
         this.overrideNextSiblingInMutationRecord();
         this.overridePreviousSiblingInMutationRecord();
+        // NOTE: We need this overriding for Selector('title').textContent to return correct value
+        this.overrideTextContentInNode();
 
         if (settings.nativeAutomation)
             return;
@@ -459,7 +461,6 @@ export default class WindowSandbox extends SandboxBase {
 
         this.overrideTextInHTMLScriptElement();
         this.overrideTextInHTMLAnchorElement();
-        this.overrideTextContentInNode();
         this.overrideMethodInDOMTokenList('add', nativeMethods.tokenListAdd);
         this.overrideMethodInDOMTokenList('remove', nativeMethods.tokenListRemove);
         this.overrideMethodInDOMTokenList('toggle', nativeMethods.tokenListToggle);
