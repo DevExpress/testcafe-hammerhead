@@ -33,10 +33,9 @@ export default class UploadInfoManager {
         fileNames = typeof fileNames === 'string' ? [fileNames] : fileNames;
 
         if (fileNames && fileNames.length) {
-            if (Browser.isWebKit)
-                value = FAKE_PATH_STRING + fileNames[0].split('/').pop();
-            else
-                return fileNames[0].split('/').pop();
+            const fileName = fileNames[0].replace(/\\/g, '/');
+
+            value = FAKE_PATH_STRING + fileName.split('/').pop();
         }
 
         return value;

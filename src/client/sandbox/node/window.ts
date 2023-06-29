@@ -290,6 +290,7 @@ export default class WindowSandbox extends SandboxBase {
         this.overrideAttributesInElement();
         this.overrideNextSiblingInMutationRecord();
         this.overridePreviousSiblingInMutationRecord();
+        this.overrideValueInHTMLInputElement();
 
         if (settings.nativeAutomation)
             return;
@@ -360,8 +361,6 @@ export default class WindowSandbox extends SandboxBase {
 
         if (nativeMethods.performanceEntryNameGetter)
             this.overrideNameInPerformanceEntry();
-
-        this.overrideValueInHTMLInputElement();
 
         // NOTE: HTMLInputElement raises the `change` event on `disabled` only in Chrome
         if (isChrome)

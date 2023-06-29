@@ -410,18 +410,13 @@ test('set/clear info', function () {
 });
 
 test('format value', function () {
-    var formatValueOneFile   = UploadInfoManager.formatValue(['text.pdf']);
-    var formatValueMultiFile = UploadInfoManager.formatValue(['text.txt', 'doc.doc']);
+    const formatValueOneFile        = UploadInfoManager.formatValue(['text.pdf']);
+    const formatValueMultiFile      = UploadInfoManager.formatValue(['text.txt', 'doc.doc']);
+    const formatValueForWindowsPath = UploadInfoManager.formatValue(['C:\\users\\test-user\\text.txt']);
 
-    if (browserUtils.isWebKit) {
-        strictEqual(formatValueOneFile, 'C:\\fakepath\\text.pdf');
-        strictEqual(formatValueMultiFile, 'C:\\fakepath\\text.txt');
-    }
-    else {
-        strictEqual(formatValueOneFile, 'text.pdf');
-        strictEqual(formatValueMultiFile, 'text.txt');
-    }
-
+    strictEqual(formatValueOneFile, 'C:\\fakepath\\text.pdf');
+    strictEqual(formatValueMultiFile, 'C:\\fakepath\\text.txt');
+    strictEqual(formatValueForWindowsPath, 'C:\\fakepath\\text.txt');
 });
 
 module('server errs');
@@ -570,11 +565,7 @@ test('set empty value', function () {
             value     = fileInput.value;
             testFiles = fileInput.files;
 
-            if (browserUtils.isWebKit)
-                strictEqual(value, 'C:\\fakepath\\file.txt');
-            else
-                strictEqual(value, 'file.txt');
-
+            strictEqual(value, 'C:\\fakepath\\file.txt');
             strictEqual(testFiles.length, 1);
 
             fileInput.value = '';
@@ -596,11 +587,7 @@ test('repeated select file', function () {
             value     = fileInput.value;
             testFiles = fileInput.files;
 
-            if (browserUtils.isWebKit)
-                strictEqual(value, 'C:\\fakepath\\file.txt');
-            else
-                strictEqual(value, 'file.txt');
-
+            strictEqual(value, 'C:\\fakepath\\file.txt');
             strictEqual(testFiles[0].name, 'file.txt');
 
             return uploadSandbox.doUpload(fileInput, 'folder/file.png');
@@ -609,11 +596,7 @@ test('repeated select file', function () {
             value     = fileInput.value;
             testFiles = fileInput.files;
 
-            if (browserUtils.isWebKit)
-                strictEqual(value, 'C:\\fakepath\\file.png');
-            else
-                strictEqual(value, 'file.png');
-
+            strictEqual(value, 'C:\\fakepath\\file.png');
             strictEqual(testFiles[0].name, 'file.png');
         });
 });
@@ -625,11 +608,7 @@ asyncTest('change event', function () {
         var value     = fileInput.value;
         var testFiles = fileInput.files;
 
-        if (browserUtils.isWebKit)
-            strictEqual(value, 'C:\\fakepath\\file.txt');
-        else
-            strictEqual(value, 'file.txt');
-
+        strictEqual(value, 'C:\\fakepath\\file.txt');
         strictEqual(testFiles.length, 1);
 
         start();
@@ -709,11 +688,7 @@ test('multi-select files', function () {
             value     = fileInput.value;
             testFiles = fileInput.files;
 
-            if (browserUtils.isWebKit)
-                strictEqual(value, 'C:\\fakepath\\file.txt');
-            else
-                strictEqual(value, 'file.txt');
-
+            strictEqual(value, 'C:\\fakepath\\file.txt');
             strictEqual(testFiles.length, 2);
         });
 });
@@ -737,11 +712,7 @@ asyncTest('get file info from iframe', function () {
                 strictEqual(data.filesLength, 1);
                 strictEqual(data.fileName, 'file.txt');
                 strictEqual(data.fileType, 'text/plain');
-
-                if (browserUtils.isWebKit)
-                    strictEqual(data.value, 'C:\\fakepath\\file.txt');
-                else
-                    strictEqual(data.value, 'file.txt');
+                strictEqual(data.value, 'C:\\fakepath\\file.txt');
 
                 fileInput.parentNode.removeChild(fileInput);
                 iframe.parentNode.removeChild(iframe);
