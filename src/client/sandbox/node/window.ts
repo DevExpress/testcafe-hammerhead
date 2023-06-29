@@ -263,9 +263,6 @@ export default class WindowSandbox extends SandboxBase {
 
         this.overrideFilesInHTMLInputElement();
 
-        if (this._documentTitleStorageInitializer)
-            this.overrideTextInHTMLTitleElement();
-
         if (window.MutationObserver)
             this.overrideMutationObserverInWindow();
 
@@ -284,9 +281,9 @@ export default class WindowSandbox extends SandboxBase {
         this.overridePreviousSiblingInNode();
         this.overrideNextElementSiblingInElement();
         this.overridePreviousElementSiblingInElement();
-        this.overrideInnerHTMLInElement();
+        this.overrideInnerHTMLInElement(settings.nativeAutomation);
         this.overrideOuterHTMLInElement();
-        this.overrideInnerTextInHTMLElement();
+        this.overrideInnerTextInHTMLElement(settings.nativeAutomation);
         this.overrideAttributesInElement();
         this.overrideNextSiblingInMutationRecord();
         this.overridePreviousSiblingInMutationRecord();
@@ -294,6 +291,9 @@ export default class WindowSandbox extends SandboxBase {
 
         if (settings.nativeAutomation)
             return;
+
+        if (this._documentTitleStorageInitializer)
+            this.overrideTextInHTMLTitleElement();
 
         this.overrideDrawImageInCanvasRenderingContext2D();
 
@@ -1550,12 +1550,12 @@ export default class WindowSandbox extends SandboxBase {
         });
     }
 
-    private overrideInnerHTMLInElement () {
+    private overrideInnerHTMLInElement (nativeAutomation: boolean) {
         const windowSandbox = this;
 
         overrideDescriptor(this.window[nativeMethods.elementHTMLPropOwnerName].prototype, 'innerHTML', {
             getter: function (this: HTMLElement) {
-                if (windowSandbox._documentTitleStorageInitializer && isTitleElement(this))
+                if (!nativeAutomation && windowSandbox._documentTitleStorageInitializer && isTitleElement(this))
                     return windowSandbox._documentTitleStorageInitializer.storage.getTitleElementPropertyValue(this);
 
                 const innerHTML = nativeMethods.elementInnerHTMLGetter.call(this);
@@ -1701,12 +1701,12 @@ export default class WindowSandbox extends SandboxBase {
         }
     }
 
-    private overrideInnerTextInHTMLElement () {
+    private overrideInnerTextInHTMLElement (nativeAutomation: boolean) {
         const windowSandbox = this;
 
         overrideDescriptor(this.window.HTMLElement.prototype, 'innerText', {
             getter: function (this: HTMLElement) {
-                if (windowSandbox._documentTitleStorageInitializer && isTitleElement(this))
+                if (!nativeAutomation && windowSandbox._documentTitleStorageInitializer && isTitleElement(this))
                     return windowSandbox._documentTitleStorageInitializer.storage.getTitleElementPropertyValue(this);
 
                 const textContent = nativeMethods.htmlElementInnerTextGetter.call(this);
