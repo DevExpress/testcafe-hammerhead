@@ -410,18 +410,13 @@ test('set/clear info', function () {
 });
 
 test('format value', function () {
-    var formatValueOneFile   = UploadInfoManager.formatValue(['text.pdf']);
-    var formatValueMultiFile = UploadInfoManager.formatValue(['text.txt', 'doc.doc']);
+    const formatValueOneFile        = UploadInfoManager.formatValue(['text.pdf']);
+    const formatValueMultiFile      = UploadInfoManager.formatValue(['text.txt', 'doc.doc']);
+    const formatValueForWindowsPath = UploadInfoManager.formatValue(['C:\\users\\test-user\\text.txt']);
 
-    if (browserUtils.isWebKit) {
-        strictEqual(formatValueOneFile, 'C:\\fakepath\\text.pdf');
-        strictEqual(formatValueMultiFile, 'C:\\fakepath\\text.txt');
-    }
-    else {
-        strictEqual(formatValueOneFile, 'text.pdf');
-        strictEqual(formatValueMultiFile, 'text.txt');
-    }
-
+    strictEqual(formatValueOneFile, 'C:\\fakepath\\text.pdf');
+    strictEqual(formatValueMultiFile, 'C:\\fakepath\\text.txt');
+    strictEqual(formatValueForWindowsPath, 'C:\\fakepath\\text.txt');
 });
 
 module('server errs');
