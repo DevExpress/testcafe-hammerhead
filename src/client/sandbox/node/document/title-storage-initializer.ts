@@ -16,6 +16,9 @@ export default class DocumentTitleStorageInitializer {
     }
 
     private _processFirstTitleElement (): boolean {
+        if (settings.nativeAutomation)
+            return true;
+
         const firstTitle = this.storage.getFirstTitleElement();
 
         if (!firstTitle)

@@ -141,14 +141,14 @@ export default class DocumentSandbox extends SandboxBase {
             });
         }
 
-        if (this._documentTitleStorageInitializer && !partialInitializationForNotLoadedIframe)
-            this.overrideTitle(window);
-
         this.overrideStyleSheets(window);
         this.overrideActiveElement(window);
 
         if (settings.nativeAutomation)
             return;
+
+        if (this._documentTitleStorageInitializer && !partialInitializationForNotLoadedIframe)
+            this.overrideTitle(window);
 
         this.overrideOpen(window, document);
         this.overrideClose(window, document);
