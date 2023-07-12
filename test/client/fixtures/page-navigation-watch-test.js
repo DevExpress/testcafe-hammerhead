@@ -516,3 +516,11 @@ test('the onNavigationTriggered function should not throw an error when receives
         });
 });
 
+if (browserUtils.isSafari && browserUtils.isOS) {
+    test('Raise PAGE_NAVIGATION_TRIGGERED event for "hammerhead.navigateTo" function', function () {
+        return navigateIframe('window["%hammerhead%"].navigateTo("./index.html");')
+            .then(function (url) {
+                strictEqual(url, iframeLocation + 'index.html');
+            });
+    });
+}

@@ -319,6 +319,9 @@ class Hammerhead {
                 this.win.location.reload();
             });
         }
+
+        if (browserUtils.isSafari || browserUtils.isIOS)
+            this.pageNavigationWatch.onNavigationTriggered(navigationUrl);
     }
 
     start (initSettings: HammerheadInitSettings, win: Window & typeof globalThis): void {
