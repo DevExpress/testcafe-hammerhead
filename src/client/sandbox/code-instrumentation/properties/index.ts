@@ -10,7 +10,6 @@ import { shouldInstrumentProperty } from '../../../../processing/script/instrume
 import nativeMethods from '../../native-methods';
 import DomProcessor from '../../../../processing/dom';
 import settings from '../../../settings';
-import { isIE } from '../../../utils/browser';
 import WindowSandbox from '../../node/window';
 import noop from '../../../utils/noop';
 
@@ -62,8 +61,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         const ownerWindow     = domUtils.isWindow(owner) ? owner : owner.defaultView;
         const locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(ownerWindow);
 
-        if (!locationWrapper || locationWrapper === owner.location ||
-            isIE && domUtils.isCrossDomainWindows(window, ownerWindow))
+        if (!locationWrapper || locationWrapper === owner.location)
             PropertyAccessorsInstrumentation._setCrossDomainLocation(owner.location, location);
         else if (locationWrapper)
             locationWrapper.href = location; // eslint-disable-line no-restricted-properties

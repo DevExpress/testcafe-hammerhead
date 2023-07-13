@@ -26,7 +26,6 @@ import DOMStringListWrapper from './ancestor-origins-wrapper';
 import IntegerIdGenerator from '../../../utils/integer-id-generator';
 import { createOverriddenDescriptor, overrideStringRepresentation } from '../../../utils/overriding';
 import MessageSandbox from '../../event/message';
-import { isIE11 } from '../../../utils/browser';
 import { isFunction } from '../../../utils/types';
 import { ParsedProxyUrl, ResourceType } from '../../../../typings/url';
 
@@ -88,9 +87,6 @@ export default class LocationWrapper extends LocationInheritor {
 
         // NOTE: We shouldn't break the client script if the browser add the new API. For example:
         // > From Chrome 80 to Chrome 85, the fragmentDirective property was defined on Location.prototype.
-        if (isIE11)
-            return;
-
         context.overrideRestDescriptors(this, locationProps);
     }
 }
@@ -398,9 +394,4 @@ class LocationContext {
     }
 }
 
-// NOTE: window.Location in IE11 is object
-if (!isFunction(Location))
-    LocationWrapper.toString = () => Location.toString();
-else
-    overrideStringRepresentation(LocationWrapper, Location);
-
+overrideStringRepresentation(LocationWrapper, Location);
