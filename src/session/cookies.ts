@@ -129,12 +129,13 @@ export default class Cookies {
             } = cookie;
 
             return {
-                name:    key,
-                domain:  domain || void 0,
-                path:    path || void 0,
-                expires: expires === 'Infinity' ? void 0 : expires,
-                maxAge:  maxAge || void 0,
-                value, secure, httpOnly, sameSite,
+                name:     key,
+                domain:   domain || void 0,
+                path:     path || void 0,
+                expires:  expires === 'Infinity' ? void 0 : expires,
+                maxAge:   maxAge || void 0,
+                sameSite: sameSite || 'none',
+                value, secure, httpOnly,
             };
         });
     }
