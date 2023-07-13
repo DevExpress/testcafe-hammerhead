@@ -125,7 +125,7 @@ export default class Cookies {
             const {
                 key, value, domain,
                 path, expires, maxAge,
-                secure, httpOnly, sameSite,
+                secure, httpOnly, sameSite = 'none',
             } = cookie;
 
             return {
