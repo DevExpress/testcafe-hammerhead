@@ -417,9 +417,7 @@ test('isContentEditableElement', function () {
     // isAlwaysNotEditableElement
     notOk(domUtils.isContentEditableElement(document.createElement('select')));
     notOk(domUtils.isContentEditableElement(document.createElement('option')));
-
-    // NOTE: Disable due to IEWebDriver problem (Saucelabs)
-    //notOk(domUtils.isContentEditableElement(document.createElement('applet')));
+    notOk(domUtils.isContentEditableElement(document.createElement('applet')));
     notOk(domUtils.isContentEditableElement(document.createElement('area')));
     notOk(domUtils.isContentEditableElement(document.createElement('audio')));
     notOk(domUtils.isContentEditableElement(document.createElement('canvas')));

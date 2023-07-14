@@ -1,11 +1,10 @@
-var INTERNAL_PROPS   = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_props;
-var DomProcessor     = hammerhead.processors.DomProcessor;
-var domProcessor     = hammerhead.processors.domProcessor;
-var settings         = hammerhead.settings;
-var urlUtils         = hammerhead.utils.url;
-var destLocation     = hammerhead.utils.destLocation;
-var featureDetection = hammerhead.utils.featureDetection;
-var processScript    = hammerhead.utils.processing.script.processScript;
+var INTERNAL_PROPS = hammerhead.PROCESSING_INSTRUCTIONS.dom.internal_props;
+var DomProcessor   = hammerhead.processors.DomProcessor;
+var domProcessor   = hammerhead.processors.domProcessor;
+var settings       = hammerhead.settings;
+var urlUtils       = hammerhead.utils.url;
+var destLocation   = hammerhead.utils.destLocation;
+var processScript  = hammerhead.utils.processing.script.processScript;
 
 var elementEditingWatcher = hammerhead.sandbox.event.elementEditingWatcher;
 var nativeMethods         = hammerhead.nativeMethods;
@@ -107,10 +106,7 @@ test('url attributes overridden by descriptor', function () {
         strictEqual(getWrapAttr(), null);
         strictEqual(getAttr(), null);
 
-        if (attr === 'action' && featureDetection.emptyActionAttrFallbacksToTheLocation)
-            strictEqual(el[attr], destLocation.get());
-        else
-            strictEqual(el[attr], '');
+        strictEqual(el[attr], '');
 
         el.setAttributeNS(namespace, attr, dest);
         strictEqual(nativeMethods.getAttributeNS.call(el, namespace, attr), proxy);
