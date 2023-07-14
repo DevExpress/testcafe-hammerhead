@@ -50,10 +50,7 @@ export default class DocumentTitleStorageInitializer {
         if (!secondTitle)
             return;
 
-        // NOTE: IE11 returns an empty string for the second <title> tag in the elements hierarchy.
-        const pageOriginValue =
-            nativeMethods.titleElementTextGetter.call(secondTitle) ||
-            nativeMethods.htmlElementInnerTextGetter.call(secondTitle);
+        const pageOriginValue = nativeMethods.titleElementTextGetter.call(secondTitle);
 
         const serviceValue = nativeMethods.titleElementTextGetter.call(firstTitle);
 
