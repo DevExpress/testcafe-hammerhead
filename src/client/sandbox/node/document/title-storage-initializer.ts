@@ -44,15 +44,14 @@ export default class DocumentTitleStorageInitializer {
         if (this._processFirstTitleElement())
             return;
 
-        const firstTitle = this.storage.getFirstTitleElement();
+        const firstTitle  = this.storage.getFirstTitleElement();
         const secondTitle = this.storage.getSecondTitleElement();
 
         if (!secondTitle)
             return;
 
-        const pageOriginValue = nativeMethods.htmlElementInnerTextGetter.call(secondTitle);
-
-        const serviceValue = nativeMethods.titleElementTextGetter.call(firstTitle);
+        const pageOriginValue = nativeMethods.titleElementTextGetter.call(secondTitle);
+        const serviceValue    = nativeMethods.titleElementTextGetter.call(firstTitle);
 
         nativeMethods.titleElementTextSetter.call(secondTitle, serviceValue);
         removeElement(firstTitle);
