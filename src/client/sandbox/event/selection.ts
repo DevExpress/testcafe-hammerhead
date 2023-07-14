@@ -34,7 +34,6 @@ export default class Selection {
             const el                 = this;
             const fn                 = domUtils.isTextAreaElement(el) ? nativeMethods.textAreaSetSelectionRange : nativeMethods.setSelectionRange;
             const activeElement      = domUtils.getActiveElement(domUtils.findDocument(el));
-            const curDocument        = domUtils.findDocument(el);
             let isElementActive      = false;
 
             const selectionSetter = () => {
@@ -42,20 +41,11 @@ export default class Selection {
                 // So we need to use our own mechanism to store the `selectionStart` and `selectionEnd` properties.
                 const useInternalSelection = domUtils.isInputWithoutSelectionProperties(el);
                 const savedType            = el.type;
-                let res;
 
                 if (useInternalSelection)
                     el.setAttribute('type', 'text');
 
-                // NOTE: In MSEdge, an error occurs when the setSelectionRange method is called for an input with
-                // 'display = none' and selectionStart !== selectionEnd in other IEs, the error doesn't occur, but
-                // as a result selectionStart === selectionEnd === 0.
-                try {
-                    res = fn.call(el, selectionStart, selectionEnd, selectionDirection);
-                }
-                catch (e) {
-                    res = fn.call(el, 0, 0, selectionDirection);
-                }
+                const res = fn.call(el, selectionStart, selectionEnd, selectionDirection);
 
                 if (useInternalSelection ) {
                     el[INTERNAL_PROPS.selection] = {
@@ -82,11 +72,6 @@ export default class Selection {
                     }
                 }
 
-                // NOTE: In MSEdge, the 'selectionchange' event doesn't occur immediately (it occurs with a delay)
-                // So, we should raise it right after the 'setSelectionRange' method.
-                if (browserUtils.isMSEdge)
-                    eventSimulator.selectionchange(el);
-
                 return res;
             };
 
@@ -95,16 +80,11 @@ export default class Selection {
                 return selectionSetter();
             }
 
-            const needFocus = browserUtils.isIE11 || browserUtils.isMSEdge &&
-                              (browserUtils.version === 17 && !curDocument.hasFocus() || browserUtils.version > 17);
-
-            return selection.wrapSetterSelection(el, selectionSetter, needFocus);
+            return selection.wrapSetterSelection(el, selectionSetter);
         };
 
         this.selectWrapper = function (this: HTMLElement) {
-            // NOTE: Non-standard IE Only class TextRange
-            // @ts-ignore
-            const element = this.parentElement();
+            const element = this.parentElement;
 
             if (!element || domUtils.getActiveElement(domUtils.findDocument(element)) === element)
                 return nativeMethods.select.call(this);
@@ -152,7 +132,7 @@ export default class Selection {
         };
     }
 
-    wrapSetterSelection (el, selectionSetter, needFocus, isContentEditable?: boolean) {
+    wrapSetterSelection (el, selectionSetter, needFocus?: boolean, isContentEditable?: boolean) {
         const curDocument = domUtils.findDocument(el);
         let activeElement = domUtils.getActiveElement(curDocument);
         let result        = null;
@@ -183,35 +163,22 @@ export default class Selection {
         if (needFocus) {
             activeElement = domUtils.getActiveElement(curDocument);
 
-            if (activeElement !== el && (browserUtils.isWebKit || browserUtils.isMSEdge && browserUtils.version > 17)) {
+            if (activeElement !== el && browserUtils.isWebKit) {
                 if (focusRaised)
                     el[FocusBlurSandbox.getInternalEventFlag('focus')] = true;
 
                 el.focus();
             }
 
-            // NOTE: In MSEdge, focus and blur are sync.
-            if (browserUtils.isIE11) {
-                this.timersSandbox.setTimeout.call(window, () => {
-                    this.timersSandbox.setTimeout.call(window, () => {
-                        this.listeners.removeInternalEventBeforeListener(document, ['focus'], focusHandler);
+            this.listeners.removeInternalEventBeforeListener(document, ['focus'], focusHandler);
 
-                        if (!focusRaised)
-                            this.eventSimulator.focus(el);
-                    }, 0);
-                }, 0);
-            }
-            else {
-                this.listeners.removeInternalEventBeforeListener(document, ['focus'], focusHandler);
-
-                if (!focusRaised) {
-                    // NOTE: In Firefox, raising the dispatchEvent 'focus' doesn’t activate an element.
-                    // We should call the native focus method.
-                    if (isContentEditable && browserUtils.isFirefox)
-                        this.focusBlurSandbox.focus(el, null, true, false, true);
-                    else
-                        this.eventSimulator.focus(el);
-                }
+            if (!focusRaised) {
+                // NOTE: In Firefox, raising the dispatchEvent 'focus' doesn’t activate an element.
+                // We should call the native focus method.
+                if (isContentEditable && browserUtils.isFirefox)
+                    this.focusBlurSandbox.focus(el, null, true, false, true);
+                else
+                    this.eventSimulator.focus(el);
             }
         }
 

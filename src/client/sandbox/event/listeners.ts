@@ -11,14 +11,6 @@ import {
     callEventListener,
 } from '../../utils/event';
 
-import { isWindow } from '../../utils/dom';
-import { isIE11 } from '../../utils/browser';
-
-import {
-    isNativeFunction,
-    overrideFunction,
-    overrideStringRepresentation,
-} from '../../utils/overriding';
 import { isFunction } from '../../utils/types';
 
 const LISTENED_EVENTS = [
@@ -54,36 +46,9 @@ export default class Listeners extends EventEmitter {
         this.removeInternalEventBeforeListener   = this.listeningCtx.removeInternalBeforeHandler;
     }
 
-    static getNativeAddEventListener (el: any) {
-        if (isIE11) {
-            if (isWindow(el))
-                return nativeMethods.windowAddEventListener;
-
-            return el.body !== void 0 ? nativeMethods.documentAddEventListener : nativeMethods.addEventListener;
-        }
-
-        return nativeMethods.addEventListener;
-    }
-
-    static getNativeRemoveEventListener (el) {
-        if (isIE11) {
-            if (isWindow(el))
-                return nativeMethods.windowRemoveEventListener;
-
-            return el.body !== void 0 ? nativeMethods.documentRemoveEventListener : nativeMethods.removeEventListener;
-        }
-
-        return nativeMethods.removeEventListener;
-    }
-
-    private static _isIEServiceHandler (listener): boolean {
-        return listener.toString() === '[object FunctionWrapper]';
-    }
-
     private static _getEventListenerWrapper (eventCtx, listener) {
         return function (this: EventTarget, e: Event) {
-            // NOTE: Ignore IE11's and Edge's service handlers (GH-379)
-            if (Listeners._isIEServiceHandler(listener) || eventCtx.cancelOuterHandlers)
+            if (eventCtx.cancelOuterHandlers)
                 return null;
 
             if (isFunction(eventCtx.outerHandlersWrapper))
@@ -168,7 +133,7 @@ export default class Listeners extends EventEmitter {
                 const el                     = this;
                 const useCapture             = Listeners._getUseCaptureParam(args[2]);
                 const eventCtx               = listeningCtx.getEventCtx(el, eventType);
-                const nativeAddEventListener = Listeners.getNativeAddEventListener(el);
+                const nativeAddEventListener = nativeMethods.addEventListener;
 
                 if (!eventCtx || !isValidEventListener(listener))
                     return nativeAddEventListener.apply(el, args);
@@ -197,7 +162,7 @@ export default class Listeners extends EventEmitter {
                 const [eventType, listener]     = args;
                 const el                        = this;
                 const useCapture                = Listeners._getUseCaptureParam(args[2]);
-                const nativeRemoveEventListener = Listeners.getNativeRemoveEventListener(el);
+                const nativeRemoveEventListener = nativeMethods.removeEventListener;
                 const eventCtx                  = listeningCtx.getEventCtx(el, eventType);
 
                 if (!eventCtx || !isValidEventListener(listener))
@@ -217,7 +182,7 @@ export default class Listeners extends EventEmitter {
     }
 
     initElementListening (el: HTMLElement|Window|Document, events: string[] = LISTENED_EVENTS) {
-        const nativeAddEventListener = Listeners.getNativeAddEventListener(el);
+        const nativeAddEventListener = nativeMethods.addEventListener;
 
         for (const event of events) {
             if (!this.listeningCtx.getEventCtx(el, event))
@@ -225,38 +190,14 @@ export default class Listeners extends EventEmitter {
         }
 
         this.listeningCtx.addListeningElement(el, events);
-
-        if (isIE11) {
-            const overriddenMethods = this.createOverriddenMethods();
-
-            if (!el.addEventListener) {
-                // NOTE: we cannot use 'overrideFunction' here since the functions may not exist
-                el.addEventListener    = overriddenMethods.addEventListener;
-                el.removeEventListener = overriddenMethods.removeEventListener;
-
-                overrideStringRepresentation(el.addEventListener, nativeMethods.addEventListener);
-                overrideStringRepresentation(el.removeEventListener, nativeMethods.removeEventListener);
-            }
-            else if (isNativeFunction(el.addEventListener)) {
-                overrideFunction(el, 'addEventListener', overriddenMethods.addEventListener);
-                overrideFunction(el, 'removeEventListener', overriddenMethods.removeEventListener);
-            }
-        }
     }
 
     initDocumentBodyListening (doc: Document) {
         listeningCtx.addListeningElement(doc.body, DOM_EVENTS);
-
-        if (isIE11) {
-            const overriddenMethods = this.createOverriddenMethods();
-
-            overrideFunction(doc.body, 'addEventListener', overriddenMethods.addEventListener);
-            overrideFunction(doc.body, 'removeEventListener', overriddenMethods.removeEventListener);
-        }
     }
 
     restartElementListening (el: HTMLElement) {
-        const nativeAddEventListener = Listeners.getNativeAddEventListener(el);
+        const nativeAddEventListener = nativeMethods.addEventListener;
         const elementCtx             = this.listeningCtx.getElementCtx(el);
 
         if (elementCtx) {

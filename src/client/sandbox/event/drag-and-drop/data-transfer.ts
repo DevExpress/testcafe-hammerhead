@@ -2,7 +2,6 @@
 // create a useful DataTransfer object from script, since DataTransfer objects have a
 // processing and security model that is coordinated by the browser during drag-and-drops.
 // So we have to create a mock for it to use it in drag-and-drop events
-import { isIE11 } from '../../../utils/browser';
 import { hasDataTransfer } from '../../../utils/feature-detection';
 import nativeMethods from '../../native-methods';
 import DataTransferItemList from './data-transfer-item-list';
@@ -63,14 +62,12 @@ export default class DataTransfer {
             },
         });
 
-        if (!isIE11) {
-            nativeMethods.objectDefineProperty(this, 'items', {
-                configurable: true,
-                enumerable:   true,
+        nativeMethods.objectDefineProperty(this, 'items', {
+            configurable: true,
+            enumerable:   true,
 
-                get: getActualItemList,
-            });
-        }
+            get: getActualItemList,
+        });
 
         nativeMethods.objectDefineProperty(this, 'types', {
             configurable: true,
@@ -86,11 +83,9 @@ export default class DataTransfer {
             get: () => fileList,
         });
 
-        if (!isIE11) {
-            this.setDragImage = function () {
-                // do nothing
-            };
-        }
+        this.setDragImage = function () {
+            // do nothing
+        };
 
         this.getData = function (format) {
             if (!arguments.length)
