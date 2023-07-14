@@ -50,7 +50,7 @@ export default class DocumentTitleStorageInitializer {
         if (!secondTitle)
             return;
 
-        const pageOriginValue = nativeMethods.titleElementTextGetter.call(secondTitle);
+        const pageOriginValue = nativeMethods.htmlElementInnerTextGetter.call(secondTitle);
 
         const serviceValue = nativeMethods.titleElementTextGetter.call(firstTitle);
 
