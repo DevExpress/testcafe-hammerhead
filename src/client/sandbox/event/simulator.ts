@@ -23,11 +23,9 @@ const POINTER_EVENT_BUTTON = {
     rightButton: 2,
 };
 
-// NOTE: (IE11 only) 'MouseEvent.detail' value always equals 0 for 'click' and 'dblclick' events.
-// Otherwise, MouseEvent.detail behave as described in specification - https://www.w3.org/TR/uievents/#events-mouseevents
 const DEFAULT_MOUSE_EVENT_DETAIL_PROP_VALUE = {
-    click:     browserUtils.isIE ? 0 : 1,
-    dblclick:  browserUtils.isIE ? 0 : 2,
+    click:     1,
+    dblclick:  2,
     mousedown: 1,
     mouseup:   1,
 };
@@ -36,9 +34,6 @@ const KEY_EVENT_NAME_RE          = /^key\w+$/;
 const MOUSE_EVENT_NAME_RE        = /^((mouse\w+)|((dbl)?click)|(contextmenu)|(drag\w*)|(drop))$/;
 const TOUCH_EVENT_NAME_RE        = /^touch\w+$/;
 const FOCUS_IN_OUT_EVENT_NAME_RE = /^focus(in|out)$/;
-
-// NOTE: initTextEvent method required INPUT_METHOD param in IE
-const DOM_INPUT_METHOD_KEYBOARD = 1;
 
 const MOUSE_EVENTS_TO_FORCE_POINTER_EVENTS = [
     'mouseover',
@@ -75,20 +70,9 @@ export default class EventSimulator {
     DISPATCHED_EVENT_FLAG = 'hammerhead|dispatched-event';
 
     touchIdentifier: any;
-    savedWindowEvents: any[];
-    savedNativeClickCount: number;
-    browserWithNewEventsStyle: boolean;
 
     constructor () {
         this.touchIdentifier = nativeMethods.dateNow();
-        // NOTE: (IE only) If event dispatching calls a native click function, we should clear the window.event
-        // property (which was set in the raiseDispatchEvent function). Otherwise, the window.event property will
-        // contain the dispatched event, not the native click event. We should restore the window.event value after
-        // the click is handled. (B237144)
-        this.savedWindowEvents     = [];
-        this.savedNativeClickCount = 0;
-
-        this.browserWithNewEventsStyle = !browserUtils.isIE11;
     }
 
     static _dispatchStorageEvent (el, args) {
@@ -389,31 +373,10 @@ export default class EventSimulator {
         return this.touchIdentifier;
     }
 
-    _raiseNativeClick (el, originClick) {
-        // NOTE: B254199
-        const iframe          = domUtils.isElementInIframe(el) && domUtils.getIframeByElement(el);
-        const curWindow       = iframe ? nativeMethods.contentWindowGetter.call(iframe) : window;
-        const prevWindowEvent = curWindow.event;
-
-        if (browserUtils.isIE11)
-            delete curWindow.event;
-
-        originClick.call(el);
-
-        // NOTE: Window.event becomes empty when the click event handler
-        // triggers the click event for a different element in IE11.(GH-226).
-        if (browserUtils.isIE11 && prevWindowEvent) {
-            nativeMethods.objectDefineProperty(curWindow, 'event', {
-                get:          () => prevWindowEvent,
-                configurable: true,
-            });
-        }
-    }
-
     _dispatchKeyEvent (el, args) {
         let ev = null;
 
-        if (this.browserWithNewEventsStyle && nativeMethods.WindowKeyboardEvent) {
+        if (nativeMethods.WindowKeyboardEvent) {
             const eventArgs: any = {
                 bubbles:          args.canBubble,
                 composed:         args.composed,
@@ -483,38 +446,17 @@ export default class EventSimulator {
             }
 
             let defaultPrevented = false;
-            let returnValue      = true;
 
             // NOTE: the dispatchEvent method does not return false in the case when preventDefault method
             // was called for events that were created with the KeyboardEvent constructor
-            if (this.browserWithNewEventsStyle) {
-                ev.preventDefault = function () {
-                    defaultPrevented = true;
-                    nativeMethods.preventDefault.call(ev);
+            ev.preventDefault = function () {
+                defaultPrevented = true;
+                nativeMethods.preventDefault.call(ev);
 
-                    return false;
-                };
-            }
+                return false;
+            };
 
-            // NOTE: the dispatchEvent method does not return false when returnValue was set to false (only in MSEdge)
-            if (browserUtils.isMSEdge) {
-                nativeMethods.objectDefineProperty(ev, 'returnValue', {
-                    get: () => returnValue,
-                    set: value => {
-                        if (value === false)
-                            ev.preventDefault();
-
-                        returnValue = value;
-                    },
-                });
-            }
-
-            const res = this._raiseDispatchEvent(el, ev);
-
-            if (browserUtils.isMSEdge)
-                return returnValue && !defaultPrevented;
-            else if (browserUtils.isIE)
-                return res;
+            this._raiseDispatchEvent(el, ev);
 
             return !defaultPrevented;
         }
@@ -576,40 +518,10 @@ export default class EventSimulator {
         if (args.type === 'mousemove' || args.type === 'mouseover' || args.type === 'mouseout')
             pointerArgs.button = args.buttons === eventUtils.BUTTONS_PARAMETER.noButton ? POINTER_EVENT_BUTTON.noButton : pointerArgs.button;
 
-        if (browserUtils.isIE11) {
-            pointerArgs.rotation = 0;
+        pointerArgs.bubbles    = true;
+        pointerArgs.cancelable = true;
 
-            pointEvent = nativeMethods.documentCreateEvent.call(document, 'PointerEvent');
-
-            // NOTE: We set the relatedTarget argument to null because IE has a memory leak.
-            pointEvent.initPointerEvent(pointerArgs.type, pointerArgs.canBubble, pointerArgs.cancelable, window,
-                pointerArgs.detail, pointerArgs.screenX, pointerArgs.screenY, pointerArgs.clientX, pointerArgs.clientY,
-                pointerArgs.ctrlKey, pointerArgs.altKey, pointerArgs.shiftKey, pointerArgs.metaKey, pointerArgs.button,
-                null, pointerArgs.offsetX, pointerArgs.offsetY, pointerArgs.width, pointerArgs.height, pointerArgs.pressure,
-                pointerArgs.rotation, pointerArgs.tiltX, pointerArgs.tiltY, pointerArgs.pointerId, pointerArgs.pointerType,
-                pointerArgs.timeStamp, pointerArgs.isPrimary);
-
-            // NOTE: After dispatching the pointer event, it doesn't contain the 'target' and 'relatedTarget' properties.
-            nativeMethods.objectDefineProperty(pointEvent, 'target', {
-                get:          () => el,
-                configurable: true,
-            });
-
-            nativeMethods.objectDefineProperty(pointEvent, 'relatedTarget', {
-                get:          () => args.relatedTarget,
-                configurable: true,
-            });
-
-            nativeMethods.objectDefineProperty(pointEvent, 'buttons', {
-                get: () => args.buttons,
-            });
-        }
-        else {
-            pointerArgs.bubbles    = true;
-            pointerArgs.cancelable = true;
-
-            pointEvent = new nativeMethods.WindowPointerEvent(eventType, pointerArgs);
-        }
+        pointEvent = new nativeMethods.WindowPointerEvent(eventType, pointerArgs);
 
         this._raiseDispatchEvent(el, pointEvent);
     }
@@ -626,21 +538,6 @@ export default class EventSimulator {
     _dispatchMouseRelatedEvents (el, args, userOptions = {}) {
         if (args.type !== 'mouseover' && args.type !== 'mouseenter' && shouldIgnoreEventInsideIframe(el, args.clientX, args.clientY))
             return true;
-
-        // NOTE: In IE, submit doesn't work if a click is simulated for some submit button's children (for example,
-        // img, B236676). In addition, if a test is being recorded in IE, the target of a click event is always a
-        // button, not a child, so the child does not receive the click event.
-        if (browserUtils.isIE) {
-            if (args.type === 'click' || args.type === 'mouseup' || args.type === 'mousedown') {
-                const elParent      = nativeMethods.nodeParentNodeGetter.call(el);
-                const closestButton = domUtils.closest(elParent, 'button');
-
-                if (elParent && closestButton) {
-                    if (nativeMethods.getAttribute.call(closestButton, 'type') === 'submit')
-                        el = closestButton;
-                }
-            }
-        }
 
         if (eventUtils.hasPointerEvents && (!isTouchDevice || MOUSE_EVENTS_TO_FORCE_POINTER_EVENTS.includes(args.type)))
             this._dispatchPointerEvent(el, args);
@@ -662,7 +559,7 @@ export default class EventSimulator {
 
         let event = null;
 
-        if (this.browserWithNewEventsStyle && nativeMethods.WindowMouseEvent) {
+        if (nativeMethods.WindowMouseEvent) {
             event = new nativeMethods.WindowMouseEvent(args.type, {
                 bubbles:       args.canBubble,
                 composed:      args.composed,
@@ -701,7 +598,7 @@ export default class EventSimulator {
             });
         }
 
-        if (timeStamp && !browserUtils.isIE) {
+        if (timeStamp) {
             nativeMethods.objectDefineProperty(event, 'timeStamp', {
                 get: () => timeStamp,
             });
@@ -722,7 +619,7 @@ export default class EventSimulator {
         let event     = null;
         const bubbles = FOCUS_IN_OUT_EVENT_NAME_RE.test(name);
 
-        if (this.browserWithNewEventsStyle && nativeMethods.WindowFocusEvent) {
+        if (nativeMethods.WindowFocusEvent) {
             event = new nativeMethods.WindowFocusEvent(name, {
                 bubbles:          bubbles,
                 composed:         eventUtils.isComposedEvent(name),
@@ -752,16 +649,14 @@ export default class EventSimulator {
             const event = nativeMethods.documentCreateEvent.call(document, 'TextEvent');
 
             const args = {
-                eventType:   browserUtils.isIE11 ? 'textinput' : 'textInput',
-                bubbles:     true,
-                cancelable:  true,
-                view:        window,
-                data:        text,
-                inputMethod: DOM_INPUT_METHOD_KEYBOARD,
-                locale:      navigator.language,
+                eventType:  'textInput',
+                bubbles:    true,
+                cancelable: true,
+                view:       window,
+                data:       text,
             };
 
-            event.initTextEvent(args.eventType, args.bubbles, args.cancelable, args.view, args.data, args.inputMethod, args.locale);
+            event.initTextEvent(args.eventType, args.bubbles, args.cancelable, args.view, args.data);
 
             return this._raiseDispatchEvent(el, event);
         }
@@ -809,33 +704,7 @@ export default class EventSimulator {
     }
 
     _raiseDispatchEvent (el, ev) {
-        const iframe    = domUtils.isElementInIframe(el) && domUtils.getIframeByElement(el);
-        const curWindow = iframe ? nativeMethods.contentWindowGetter.call(iframe) : window;
-
-        if (browserUtils.isIE11 && iframe && curWindow) {
-            // NOTE: In IE, when we raise an event by using the dispatchEvent function, the window.event object is null.
-            // If a real event happens, there is a window.event object, but it is not identical with the first argument
-            // of the event handler. The window.Event object is identical with the object that is created when we raise
-            // the event by using  the fireEvent function. So, when we raise the event by using the dispatchEvent function,
-            // we need to set the window.event object manually. An exception for IE11: The window.event object is not null
-            // and it’s the same as in the event handler (only in window.top.event). Also, in iE11, window.event doesn’t
-            // have the returnValue property, so it’s impossible to prevent the event by assigning window.event.returnValue
-            // to false.
-            // NOTE: In IE11, iframe's window.event object is null. We need to set
-            // iframe's window.event object manually by using window.event (B254199).
-            nativeMethods.objectDefineProperty(curWindow, 'event', {
-                get:          () => window.event,
-                configurable: true,
-            });
-        }
-
-        const res = el.dispatchEvent(ev);
-
-        // NOTE: GH-226
-        if (browserUtils.isIE11 && curWindow)
-            delete curWindow.event;
-
-        return res;
+        return el.dispatchEvent(ev);
     }
 
     /* NOTE: options = {
@@ -856,7 +725,7 @@ export default class EventSimulator {
     }
 
     nativeClick (el, originClick) {
-        this._raiseNativeClick(el, originClick);
+        originClick.call(el);
     }
 
     dblclick (el, options) {
@@ -1029,10 +898,5 @@ export default class EventSimulator {
 
     dragend (el, options) {
         return this._simulateEvent(el, 'dragend', options);
-    }
-
-
-    isSavedWindowsEventsExists () {
-        return this.savedWindowEvents && this.savedWindowEvents.length;
     }
 }

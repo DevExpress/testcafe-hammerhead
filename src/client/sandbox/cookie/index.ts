@@ -78,8 +78,7 @@ class CookieSandboxProxyStrategy implements CookieSandboxStrategy {
     setCookie (cookie: CookieRecord | string): void {
         const setByClient = typeof cookie === 'string';
 
-        // NOTE: Cookie cannot be set in iframe without src in IE
-        // Also cookie cannot be set on a page with 'file:' protocol
+        // NOTE: Cookie cannot be set on a page with 'file:' protocol
         // or if the length of cookie higher than limit
         if (!this._canSetCookie(cookie, setByClient))
             return;

@@ -15,15 +15,10 @@ export default class ActiveWindowTracker extends SandboxBase {
     }
 
     _notifyPrevActiveWindow (): void {
-        try {
-            if (this._activeWindow.top && this._activeWindow !== this._activeWindow.top) {
-                this._messageSandbox.sendServiceMsg({
-                    cmd: WINDOW_DEACTIVATED_EVENT,
-                }, this._activeWindow);
-            }
-        }
-        catch (err) {
-            // NOTE: The error appears in IE when the corresponding iframe is removed.
+        if (this._activeWindow.top && this._activeWindow !== this._activeWindow.top) {
+            this._messageSandbox.sendServiceMsg({
+                cmd: WINDOW_DEACTIVATED_EVENT,
+            }, this._activeWindow);
         }
     }
 

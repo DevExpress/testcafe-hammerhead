@@ -38,7 +38,6 @@ export default class MessageSandbox extends SandboxBase {
     readonly SERVICE_MSG_RECEIVED_EVENT = 'hammerhead|event|service-msg-received';
     readonly RECEIVE_MSG_FN = 'hammerhead|receive-msg-function';
 
-    topWindow: Window & typeof globalThis | null;
     window: Window & typeof globalThis | null;
 
     pingCallback: any;
@@ -53,9 +52,7 @@ export default class MessageSandbox extends SandboxBase {
         private readonly _unloadSandbox: UnloadSandbox) {
         super();
 
-        // NOTE: The window.top property may be changed after an iframe is removed from DOM in IE, so we save it.
-        this.topWindow = null;
-        this.window    = null;
+        this.window = null;
 
         this.storedOnMessageHandler = null;
         this.isWindowUnloaded       = false;
@@ -154,8 +151,6 @@ export default class MessageSandbox extends SandboxBase {
 
     attach (window: Window & typeof globalThis): void {
         super.attach(window);
-        // NOTE: The window.top property may be changed after an iframe is removed from DOM in IE, so we save it.
-        this.topWindow        = window.top as Window & typeof globalThis;
         this.isWindowUnloaded = false;
 
         this._unloadSandbox.on(this._unloadSandbox.UNLOAD_EVENT, () => {
@@ -240,8 +235,6 @@ export default class MessageSandbox extends SandboxBase {
             return MessageSandbox._isWindowAvailable(targetWindow) && targetWindow.postMessage(message, '*', ports);
 
         const sendFunc = (force: boolean) => {
-            // NOTE: In IE, this function is called on the timeout despite the fact that the timer has been cleared
-            // in the unload event handler, so we check whether the function is in the queue
             if (force || this._removeInternalMsgFromQueue(sendFunc)) {
                 // NOTE: The 'sendFunc' function may be called on timeout, so we must call 'canSendDirectly' again,
                 // because the iframe could become cross-domain in the meantime. Unfortunately, Chrome hangs when

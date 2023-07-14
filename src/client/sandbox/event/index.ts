@@ -6,11 +6,7 @@ import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import * as domUtils from '../../utils/dom';
 
-import {
-    isIE,
-    isIE11,
-    isFirefox,
-} from '../../utils/browser';
+import { isFirefox } from '../../utils/browser';
 
 import { DOM_EVENTS, preventDefault } from '../../utils/event';
 import DataTransfer from './drag-and-drop/data-transfer';
@@ -59,7 +55,7 @@ export default class EventSandbox extends SandboxBase {
         this.unload                = unloadSandbox;
         this.timers                = timerSandbox;
         this.eventSimulator        = eventSimulator;
-        this.focusBlur             = new FocusBlurSandbox(listeners, eventSimulator, messageSandbox, timerSandbox, elementEditingWatcher);
+        this.focusBlur             = new FocusBlurSandbox(listeners, eventSimulator, messageSandbox, elementEditingWatcher);
         this.selection             = new Selection(this);
         this.hover                 = new HoverSandbox(listeners);
         this._shadowUI              = _shadowUI;
@@ -87,9 +83,7 @@ export default class EventSandbox extends SandboxBase {
             dispatchEvent: function () {
                 Listeners.beforeDispatchEvent(this);
 
-                const res = isIE11 && domUtils.isWindow(this)
-                    ? nativeMethods.windowDispatchEvent.apply(this, arguments)
-                    : nativeMethods.dispatchEvent.apply(this, arguments);
+                const res = nativeMethods.dispatchEvent.apply(this, arguments);
 
                 Listeners.afterDispatchEvent(this);
 
@@ -160,7 +154,7 @@ export default class EventSandbox extends SandboxBase {
     }
 
     _preventInputNativeDialogs (window: Window): void {
-        const shouldPreventClickEvents = isFirefox || isIE;
+        const shouldPreventClickEvents = isFirefox;
 
         if (!shouldPreventClickEvents)
             return;
@@ -180,16 +174,7 @@ export default class EventSandbox extends SandboxBase {
 
         overrideFunction(window.HTMLInputElement.prototype, 'setSelectionRange', this._overriddenMethods.setSelectionRange);
         overrideFunction(window.HTMLTextAreaElement.prototype, 'setSelectionRange', this._overriddenMethods.setSelectionRange);
-
-        if (isIE11) {
-            overrideFunction(window.Window.prototype, 'dispatchEvent', this._overriddenMethods.dispatchEvent);
-            overrideFunction(window.Document.prototype, 'dispatchEvent', this._overriddenMethods.dispatchEvent);
-            overrideFunction(window.HTMLElement.prototype, 'dispatchEvent', this._overriddenMethods.dispatchEvent);
-            overrideFunction(window.SVGElement.prototype, 'dispatchEvent', this._overriddenMethods.dispatchEvent);
-        }
-        else
-            overrideFunction(window.EventTarget.prototype, 'dispatchEvent', this._overriddenMethods.dispatchEvent);
-
+        overrideFunction(window.EventTarget.prototype, 'dispatchEvent', this._overriddenMethods.dispatchEvent);
         overrideFunction(window.HTMLElement.prototype, 'focus', this._overriddenMethods.focus);
         overrideFunction(window.HTMLElement.prototype, 'blur', this._overriddenMethods.blur);
         overrideFunction(window.HTMLElement.prototype, 'click', this._overriddenMethods.click);
@@ -209,11 +194,6 @@ export default class EventSandbox extends SandboxBase {
         // NOTE: we cannot use 'overrideFunction' here since the blur method may not exist
         // @ts-ignore Window constructor has no the blur method
         overrideStringRepresentation(window.Window.blur, nativeMethods.blur);
-
-        // @ts-ignore TextRange exists only in IE
-        if (window.TextRange && window.TextRange.prototype.select)
-            // @ts-ignore TextRange exists only in IE
-            overrideFunction(window.TextRange.prototype, 'select', this._overriddenMethods.select);
 
         this.listeners.initElementListening(document, DOM_EVENTS);
         this.listeners.initElementListening(window, DOM_EVENTS.concat(['load', 'beforeunload', 'pagehide', 'unload', 'message']));

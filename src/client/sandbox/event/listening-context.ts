@@ -1,5 +1,4 @@
 // NOTE: For internal usage of Listeners.
-import { isIE, version as browserVersion } from '../../utils/browser';
 import nativeMethods from '../native-methods';
 
 const ELEMENT_LISTENING_EVENTS_STORAGE_PROP = 'hammerhead|element-listening-events-storage-prop';
@@ -9,8 +8,6 @@ export function getElementCtx (el) {
 }
 
 export function getEventCtx (el: Window | Document | HTMLElement, event: string) {
-    event = isIE && browserVersion > 10 && /MSPointer/.test(event) ? event.replace('MS', '').toLowerCase() : event;
-
     const elementCtx = getElementCtx(el);
 
     return elementCtx && elementCtx[event];

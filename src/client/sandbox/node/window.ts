@@ -490,8 +490,8 @@ export default class WindowSandbox extends SandboxBase {
     }
 
     private reattachHandler (eventName: string): void {
-        const nativeAddEventListener    = Listeners.getNativeAddEventListener(this.window);
-        const nativeRemoveEventListener = Listeners.getNativeRemoveEventListener(this.window);
+        const nativeAddEventListener    = nativeMethods.addEventListener;
+        const nativeRemoveEventListener = nativeMethods.removeEventListener;
 
         nativeRemoveEventListener.call(this.window, eventName, this);
         nativeAddEventListener.call(this.window, eventName, this);
