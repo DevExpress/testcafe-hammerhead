@@ -143,10 +143,6 @@ export default class IframeSandbox extends SandboxBase {
         return true;
     }
 
-    static isWindowInited (window: Window): boolean {
-        return window[IFRAME_WINDOW_INITED];
-    }
-
     iframeReadyToInitHandler (iframe: HTMLIFrameElement | HTMLFrameElement): void {
         // NOTE: We are using String.replace in order to avoid adding Mustache scripts on the client side.
         // If it is needed elsewhere in a certain place, we should consider using Mustache.

@@ -1,5 +1,4 @@
 import EventEmitter from '../../utils/event-emitter';
-import { isIE } from '../../utils/browser';
 import { parseProxyUrl } from '../../utils/url';
 import * as destLocation from '../../utils/destination-location';
 import nativeMethods from '../native-methods';
@@ -8,7 +7,7 @@ import { parse as parseJSON, stringify as stringifyJSON } from '../../../utils/j
 
 
 const STORAGE_WRAPPER_KEY = 'hammerhead|get-storage-wrapper';
-const EMPTY_OLD_VALUE_ARG = isIE ? '' : null;
+const EMPTY_OLD_VALUE_ARG = null;
 
 const storageWrappersInternalInfo = new WeakMap<StorageWrapper, StorageInternalInfo>();
 

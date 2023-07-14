@@ -8,7 +8,7 @@ import {
     isScriptElement,
 } from '../../../utils/dom';
 
-import { isFirefox, isIE } from '../../../utils/browser';
+import { isFirefox } from '../../../utils/browser';
 import { processScript } from '../../../../processing/script';
 import styleProcessor from '../../../../processing/style';
 import { getProxyUrl, convertToProxyUrl } from '../../../utils/url';
@@ -278,8 +278,8 @@ export default class DocumentWriter {
         });
         htmlChunk = this._unwrapHtmlChunk(htmlChunk);
 
-        // NOTE: Firefox and IE recreate a window instance during the document.write function execution (T213930).
-        if (htmlChunk && this.isBeginMarkerInDOM && (isFirefox || isIE) && !htmlUtils.isPageHtml(htmlChunk))
+        // NOTE: Firefox recreate a window instance during the document.write function execution (T213930).
+        if (htmlChunk && this.isBeginMarkerInDOM && isFirefox && !htmlUtils.isPageHtml(htmlChunk))
             htmlChunk = SELF_REMOVING_SCRIPTS.iframeInit + htmlChunk;
 
         return htmlChunk;
@@ -303,9 +303,6 @@ export default class DocumentWriter {
 
         const nativeWriteMethod = ln ? nativeMethods.documentWriteLn : nativeMethods.documentWrite;
         const result            = nativeWriteMethod.call(this.document, htmlChunk);
-
-        if (isDocumentCleaned && isIE)
-            return result;
 
         if (!this.isEndMarkerInDOM && !this.isAddContentToEl) {
             let el = this.document.documentElement;
