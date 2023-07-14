@@ -32,10 +32,7 @@ export default class FileListWrapper {
             byteArrays.push(new Uint8Array(byteNumbers));
         }
 
-        // NOTE: window.File in IE11 is not constructable.
-        return nativeMethods.File
-            ? new nativeMethods.File(byteArrays, fileInfo.info.name, { type: mimeType, lastModified: fileInfo.info.lastModified })
-            : new nativeMethods.Blob(byteArrays, { type: mimeType });
+        return new nativeMethods.File(byteArrays, fileInfo.info.name, { type: mimeType, lastModified: fileInfo.info.lastModified });
     }
 
     static _createFileWrapper (fileInfo) {
@@ -47,12 +44,8 @@ export default class FileListWrapper {
                 type: fileInfo.info.type,
             };
         }
-        else if (fileInfo.blob) {
-            // NOTE: window.File in IE11 is not constructable.
-            wrapper = nativeMethods.File
-                ? new nativeMethods.File([fileInfo.blob], fileInfo.info.name, { type: fileInfo.info.type, lastModified: fileInfo.info.lastModified })
-                : new nativeMethods.Blob([fileInfo.blob], { type: fileInfo.info.type });
-        }
+        else if (fileInfo.blob)
+            wrapper = new nativeMethods.File([fileInfo.blob], fileInfo.info.name, { type: fileInfo.info.type, lastModified: fileInfo.info.lastModified });
         else
             wrapper = FileListWrapper._base64ToBlob(fileInfo.data, fileInfo);
 

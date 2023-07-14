@@ -9,7 +9,6 @@ import * as styleUtils from '../../utils/style';
 import Listeners from './listeners';
 import EventSimulator from './simulator';
 import MessageSandbox from './message';
-import TimersSandbox from '../timers';
 import ElementEditingWatcher from './element-editing-watcher';
 import { ScrollState } from '../../../typings/client';
 import nextTick from '../../utils/next-tick';

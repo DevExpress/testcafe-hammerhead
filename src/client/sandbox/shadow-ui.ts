@@ -11,7 +11,7 @@ import { stopPropagation } from '../utils/event';
 import { getNativeQuerySelectorAll } from '../utils/query-selector';
 import HTMLCollectionWrapper from './node/live-node-list/html-collection-wrapper';
 import { getElementsByNameReturnsHTMLCollection } from '../utils/feature-detection';
-import { isIE, isChrome } from '../utils/browser';
+import { isChrome } from '../utils/browser';
 import { DocumentCleanedEvent } from '../../typings/client';
 import NodeMutation from './node/mutation';
 import MessageSandbox from './event/message';
@@ -122,15 +122,6 @@ export default class ShadowUI extends SandboxBase {
 
             if (el)
                 filteredList.push(list[i]);
-        }
-
-        //HACK: Sometimes client scripts want to get StyleSheet by one's property 'id' and by index. Real StyleSheetList can provide this possibility.
-        //We can't create a new StyleSheetList or change current yet, so we need to create a fake StyleSheetList.
-        if (isIE && list instanceof StyleSheetList) {
-            for (const item of filteredList) {
-                if (item.id)
-                    nativeMethods.objectDefineProperty(filteredList, item.id, { get: () => item });
-            }
         }
 
         nativeMethods.objectDefineProperty(filteredList, 'item', {
@@ -585,24 +576,6 @@ export default class ShadowUI extends SandboxBase {
     private static _hasFlag (obj, flag: string): boolean {
         try {
             return !!obj[flag];
-        }
-        catch (e) {
-            return false;
-        }
-    }
-
-    // IE11 and Edge have a strange behavior: shadow container collection flag may be lost (GH-1763 and GH-2034)
-    private static _hasCollectionFlagForIE (obj: any, flag: string): boolean {
-        try {
-            if (flag in obj)
-                return obj[flag];
-
-            const parent = nativeMethods.nodeParentNodeGetter.call(obj[0]);
-            const result = domUtils.isHeadOrBodyElement(parent) || domUtils.isFormElement(parent);
-
-            nativeMethods.objectDefineProperty(obj, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: result, configurable: true });
-
-            return result;
         }
         catch (e) {
             return false;

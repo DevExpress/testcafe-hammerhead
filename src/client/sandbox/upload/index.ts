@@ -4,8 +4,6 @@ import UploadInfoManager from './info-manager';
 import { isFileInput } from '../../utils/dom';
 
 import {
-    isIE,
-    isIE11,
     isFirefox,
     isChrome,
     isMacPlatform,
@@ -78,7 +76,7 @@ export default class UploadSandbox extends SandboxBase {
             }
         });
 
-        if (!settings.get().isRecordMode && (isIE || isFirefox)) {
+        if (!settings.get().isRecordMode && isFirefox) {
             // NOTE: Google Chrome and Safari don't open the native browser dialog when TestCafe clicks on the input.
             // 'Click' is a complex emulated action that uses 'dispatchEvent' method internally.
             // Another browsers open the native browser dialog in this case.
@@ -103,8 +101,8 @@ export default class UploadSandbox extends SandboxBase {
     }
 
     setUploadElementValue (input: HTMLInputElement, value: string): void {
-        if (value === '' && UploadSandbox._getCurrentInfoManager(input).clearUploadInfo(input) && isIE11)
-            this._riseChangeEvent(input);
+        if (value === '')
+            UploadSandbox._getCurrentInfoManager(input).clearUploadInfo(input);
     }
 
     // GH-1844, GH-2007
