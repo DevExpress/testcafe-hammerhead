@@ -22,13 +22,11 @@ import DocumentTitleStorage from './document/title-storage';
 import DocumentTitleStorageInitializer from './document/title-storage-initializer';
 import urlResolver from '../../utils/url-resolver';
 
+
 const ATTRIBUTE_SELECTOR_REG_EX          = /\[([\w-]+)(\^?=.+?)]/g;
 const ATTRIBUTE_OPERATOR_WITH_HASH_VALUE = /^\W+\s*#/;
 const PSEUDO_CLASS_FOCUS_REG_EX          = /\s*:focus\b/gi;
 const PSEUDO_CLASS_HOVER_REG_EX          = /:hover\b/gi;
-
-// NOTE: for IE11 only
-const DOCUMENT_FRAGMENT_NODE_TYPE = Node.DOCUMENT_FRAGMENT_NODE;
 
 export default class NodeSandbox extends SandboxBase {
     raiseBodyCreatedEvent: Function;
@@ -125,7 +123,7 @@ export default class NodeSandbox extends SandboxBase {
                 this.processNodes(doc.documentElement);
         }
         else if (el.querySelectorAll) {
-            if (el.nodeType !== DOCUMENT_FRAGMENT_NODE_TYPE)
+            if (el.nodeType !== Node.DOCUMENT_FRAGMENT_NODE)
                 this._processElement(el as Element);
 
             const children = getNativeQuerySelectorAll(el).call(el, '*');
@@ -212,17 +210,9 @@ export default class NodeSandbox extends SandboxBase {
     }
 
     static _processPseudoClassSelectors (selector: string): string {
-        // NOTE: When a selector that contains the ':focus' pseudo-class is used in the querySelector and
-        // querySelectorAll functions, these functions return an empty result if the browser is not focused.
-        // This replaces ':focus' with a custom CSS class to return the current active element in that case.
-        // IE returns a valid element, so there is no need to replace the selector for it.
-
-        if (!browserUtils.isIE)
-            selector = selector.replace(PSEUDO_CLASS_FOCUS_REG_EX, '[' + INTERNAL_ATTRS.focusPseudoClass + ']');
-
-        selector = selector.replace(PSEUDO_CLASS_HOVER_REG_EX, '[' + INTERNAL_ATTRS.hoverPseudoClass + ']');
-
-        return selector;
+        return selector
+            .replace(PSEUDO_CLASS_FOCUS_REG_EX, '[' + INTERNAL_ATTRS.focusPseudoClass + ']')
+            .replace(PSEUDO_CLASS_HOVER_REG_EX, '[' + INTERNAL_ATTRS.hoverPseudoClass + ']');
     }
 
     static processSelector (selector: string): string {

@@ -613,10 +613,8 @@ export default class ShadowUI extends SandboxBase {
         return ShadowUI._hasFlag(el, IS_SHADOW_CONTAINER_FLAG);
     }
 
-    static isShadowContainerCollection (collection, length?: number) {
-        return isIE && length
-            ? ShadowUI._hasCollectionFlagForIE(collection, IS_SHADOW_CONTAINER_COLLECTION_FLAG)
-            : ShadowUI._hasFlag(collection, IS_SHADOW_CONTAINER_COLLECTION_FLAG);
+    static isShadowContainerCollection (collection) {
+        return ShadowUI._hasFlag(collection, IS_SHADOW_CONTAINER_COLLECTION_FLAG);
     }
 
     static _isShadowUIChildListMutation (mutation: MutationRecord) {

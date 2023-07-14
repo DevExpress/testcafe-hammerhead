@@ -24,7 +24,7 @@ import { ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../../processing/dom/attri
 import settings from '../../settings';
 import { overrideDescriptor, overrideFunction } from '../../utils/overriding';
 import InsertPosition from '../../utils/insert-position';
-import { isFirefox, isIE } from '../../utils/browser';
+import { isFirefox } from '../../utils/browser';
 import UploadSandbox from '../upload';
 import IframeSandbox from '../iframe';
 import EventSandbox from '../event';
@@ -86,7 +86,7 @@ export default class ElementSandbox extends SandboxBase {
             return;
 
         const imgSrc            = nativeMethods.imageSrcGetter.call(img);
-        const imgSrcset         = isIE ? null : nativeMethods.imageSrcsetGetter.call(img); // NOTE: IE11 doesn't support the 'srcset' property
+        const imgSrcset         = nativeMethods.imageSrcsetGetter.call(img);
         const skipNextLoadEvent = !!imgSrc && img.complete && !img[INTERNAL_PROPS.cachedImage];
 
         img[INTERNAL_PROPS.forceProxySrcForImage] = true;

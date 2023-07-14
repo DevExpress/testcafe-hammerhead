@@ -21,10 +21,7 @@ import {
 import {
     isFirefox,
     isChrome,
-    isIE,
     isAndroid,
-    isMSEdge,
-    version as browserVersion,
 } from '../../utils/browser';
 
 import {
@@ -58,7 +55,6 @@ import {
     overrideFunction,
     overrideConstructor,
 } from '../../utils/overriding';
-import { emptyActionAttrFallbacksToTheLocation } from '../../utils/feature-detection';
 import { HASH_RE, isValidUrl } from '../../../utils/url';
 import UploadSandbox from '../upload';
 import { getAnchorProperty, setAnchorProperty } from '../code-instrumentation/properties/anchor';
@@ -311,9 +307,7 @@ export default class WindowSandbox extends SandboxBase {
         if (window.Blob)
             this.overrideBlobInWindow();
 
-        // NOTE: non-IE11 case. window.File in IE11 is not constructable.
-        if (nativeMethods.File)
-            this.overrideFileInWindow();
+        this.overrideFileInWindow();
 
         if (window.EventSource)
             this.overrideEventSourceInWindow();
@@ -413,15 +407,9 @@ export default class WindowSandbox extends SandboxBase {
         ]);
 
         this.overrideAttrDescriptorsInElement('autocomplete', [window.HTMLInputElement]);
-
         this.overrideAttrDescriptorsInElement('httpEquiv', [window.HTMLMetaElement]);
-
-        // NOTE: Some browsers (for example, Edge, Internet Explorer 11, Safari) don't support the 'integrity' property.
-        if (nativeMethods.scriptIntegrityGetter && nativeMethods.linkIntegrityGetter) {
-            this.overrideAttrDescriptorsInElement('integrity', [window.HTMLScriptElement]);
-            this.overrideAttrDescriptorsInElement('integrity', [window.HTMLLinkElement]);
-        }
-
+        this.overrideAttrDescriptorsInElement('integrity', [window.HTMLScriptElement]);
+        this.overrideAttrDescriptorsInElement('integrity', [window.HTMLLinkElement]);
         this.overrideAttrDescriptorsInElement('rel', [window.HTMLLinkElement]);
 
         if (nativeMethods.linkAsSetter)
@@ -648,10 +636,7 @@ export default class WindowSandbox extends SandboxBase {
             if (WindowSandbox.isProcessableBlob(array, opts))
                 array = [processScript(array.join(''), true, false, convertToProxyUrl, void 0, settings.nativeAutomation, WindowSandbox.getBlobProcessingSettings())];
 
-            // NOTE: IE11 throws an error when the second parameter of the Blob function is undefined (GH-44)
-            // If the overridden function is called with one parameter, we need to call the original function
-            // with one parameter as well.
-            return arguments.length === 1 ? new nativeMethods.Blob(array) : new nativeMethods.Blob(array, opts);
+            return new nativeMethods.Blob(array, opts);
         });
     }
 
@@ -786,9 +771,9 @@ export default class WindowSandbox extends SandboxBase {
 
             if (typeof url === 'string') {
                 if (WindowSandbox.isSecureOrigin(url)) {
-                    // NOTE: We cannot create an instance of the DOMException in the Android 6.0 and in the Edge 17 browsers.
+                    // NOTE: We cannot create an instance of the DOMException in the Android 6.0 browsers.
                     // The 'TypeError: Illegal constructor' error is raised if we try to call the constructor.
-                    return Promise.reject(isAndroid || isMSEdge && browserVersion >= 17
+                    return Promise.reject(isAndroid
                         ? new Error('Only secure origins are allowed.')
                         : new DOMException('Only secure origins are allowed.', 'SecurityError'));
                 }
@@ -954,7 +939,7 @@ export default class WindowSandbox extends SandboxBase {
         overrideFunction(this.window.history, name, function (this: History, ...args) {
             const url = args[2];
 
-            if (args.length > 2 && (url !== null && (isIE || url !== void 0)))
+            if (args.length > 2 && (url !== null && url !== void 0))
                 args[2] = getProxyUrl(url);
 
             return nativeMethod.apply(this, args);
@@ -1086,7 +1071,7 @@ export default class WindowSandbox extends SandboxBase {
             getter: function () {
                 const length = nativeMethods.htmlCollectionLengthGetter.call(this);
 
-                if (ShadowUI.isShadowContainerCollection(this, length))
+                if (ShadowUI.isShadowContainerCollection(this))
                     return windowSandbox.shadowUI.getShadowUICollectionLength(this, length);
 
                 return length;
@@ -1251,7 +1236,7 @@ export default class WindowSandbox extends SandboxBase {
         const attrValue       = nativeMethods.getAttribute.call(el, attr);
         const currentDocument = el.ownerDocument || document;
 
-        if (attrValue === '' || attrValue === null && attr === 'action' && emptyActionAttrFallbacksToTheLocation)
+        if (attrValue === '')
             return urlResolver.resolve('', currentDocument);
 
         else if (attrValue === null)
