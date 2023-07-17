@@ -3,9 +3,6 @@ import nativeMethods from './native-methods';
 import { processScript } from '../../processing/script';
 import { overrideFunction } from '../utils/overriding';
 
-// NOTE: When you call the focus and blur function for some elements in IE, the event handlers  must be raised
-// asynchronously, but before executing functions that are called by using the window.setTimeout function. So,
-// we need to raise the handlers with a timeout, but do it before calling other asynchronous functions.
 export default class TimersSandbox extends SandboxBase {
     timeouts: any[];
     setTimeout: any;
