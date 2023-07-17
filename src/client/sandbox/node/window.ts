@@ -1151,8 +1151,11 @@ export default class WindowSandbox extends SandboxBase {
                 return nativeMethods.inputValueGetter.call(this);
             },
             setter: function (this: HTMLInputElement, value) { // eslint-disable-line consistent-return
-                if (this.type.toLowerCase() === 'file')
-                    return windowSandbox.uploadSandbox.setUploadElementValue(this, value);
+                if (this.type.toLowerCase() === 'file') {
+                    windowSandbox.uploadSandbox.setUploadElementValue(this, value);
+
+                    return;
+                }
 
                 nativeMethods.inputValueSetter.call(this, value);
 

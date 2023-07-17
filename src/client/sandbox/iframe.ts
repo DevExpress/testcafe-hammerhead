@@ -14,7 +14,6 @@ import {
 import {
     isFirefox,
     isWebKit,
-    isIE,
 } from '../utils/browser';
 
 import NodeMutation from './node/mutation';
@@ -65,7 +64,7 @@ export default class IframeSandbox extends SandboxBase {
             this.iframeNativeMethodsBackup = new this.nativeMethods.constructor(contentDocument, contentWindow);
     }
 
-    private _ensureIframeNativeMethodsForIE (iframe: HTMLIFrameElement | HTMLFrameElement): void {
+    private _ensureIframeNativeMethodsForFirefox (iframe: HTMLIFrameElement | HTMLFrameElement): void {
         const contentWindow       = nativeMethods.contentWindowGetter.call(iframe);
         const contentDocument     = nativeMethods.contentDocumentGetter.call(iframe);
         const iframeNativeMethods = contentWindow[INTERNAL_PROPS.iframeNativeMethods];
@@ -83,9 +82,8 @@ export default class IframeSandbox extends SandboxBase {
         // https://code.google.com/p/chromium/issues/detail?id=578812
         this._ensureIframeNativeMethodsForChrome(iframe);
 
-        // NOTE: Restore native document methods for the iframe's document if it overrided earlier (IE9, IE10 only)
-        // https://github.com/DevExpress/testcafe-hammerhead/issues/279
-        this._ensureIframeNativeMethodsForIE(iframe);
+        // NOTE: Restore native document methods for the iframe's document if it overrided earlier
+        this._ensureIframeNativeMethodsForFirefox(iframe);
     }
 
     private _emitEvents (iframe: HTMLIFrameElement | HTMLFrameElement): void {
@@ -132,9 +130,6 @@ export default class IframeSandbox extends SandboxBase {
 
         if (isFirefox)
             return contentDocument.readyState !== 'uninitialized';
-
-        if (isIE)
-            return !!contentDocument.documentElement || contentWindow[INTERNAL_PROPS.documentWasCleaned];
 
         if (!contentWindow[INTERNAL_PROPS.documentWasCleaned] && isIframeWithSrcdoc(iframe))
             // eslint-disable-next-line no-restricted-properties
