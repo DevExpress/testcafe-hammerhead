@@ -64,12 +64,26 @@ export default class IframeSandbox extends SandboxBase {
             this.iframeNativeMethodsBackup = new this.nativeMethods.constructor(contentDocument, contentWindow);
     }
 
+    private _ensureIframeNativeMethodsForFirefox (iframe: HTMLIFrameElement | HTMLFrameElement): void {
+        const contentWindow       = nativeMethods.contentWindowGetter.call(iframe);
+        const contentDocument     = nativeMethods.contentDocumentGetter.call(iframe);
+        const iframeNativeMethods = contentWindow[INTERNAL_PROPS.iframeNativeMethods];
+
+        if (iframeNativeMethods) {
+            iframeNativeMethods.restoreDocumentMeths(contentWindow, contentDocument);
+            delete contentWindow[INTERNAL_PROPS.iframeNativeMethods];
+        }
+    }
+
     private _ensureIframeNativeMethods (iframe: HTMLIFrameElement | HTMLFrameElement): void {
         // NOTE: In Chrome, iframe with javascript protocol src raises the load event twice.
         // As a result, when the second load event is raised, we write the overridden methods to the native methods.
         // So, we need to save the native methods when the first load event is raised.
         // https://code.google.com/p/chromium/issues/detail?id=578812
         this._ensureIframeNativeMethodsForChrome(iframe);
+
+        // NOTE: Restore native document methods for the iframe's document if it overrided earlier
+        this._ensureIframeNativeMethodsForFirefox(iframe);
     }
 
     private _emitEvents (iframe: HTMLIFrameElement | HTMLFrameElement): void {
