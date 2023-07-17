@@ -47,25 +47,14 @@ export default class PageNavigationWatch extends EventEmiter {
         // NOTE: fires when the form is submitted by clicking the submit button
         eventSandbox.listeners.initElementListening(window, ['submit']);
         eventSandbox.listeners.addInternalEventBeforeListener(window, ['submit'], (e: Event) => {
-            let prevented = false;
             const target  = nativeMethods.eventTargetGetter.call(e);
 
             if (!isFormElement(target))
                 return;
 
-            const onPreventDefault = (preventedEvent: Event) => {
-                prevented = prevented || preventedEvent === e;
-            };
-
-            eventSandbox.on(eventSandbox.EVENT_PREVENTED_EVENT, onPreventDefault);
-
             nextTick()
                 .then(() => {
-                    eventSandbox.off(eventSandbox.EVENT_PREVENTED_EVENT, onPreventDefault);
-
-                    // NOTE: the defaultPrevented flag is saved between event raises in all browsers
-                    // except IE. In IE, it is reset to false before the next handler is executed.
-                    if (!e.defaultPrevented && !prevented)
+                    if (!e.defaultPrevented)
                         onFormSubmit(target as HTMLFormElement);
                 });
         });
@@ -95,23 +84,12 @@ export default class PageNavigationWatch extends EventEmiter {
             const link   = isAnchorElement(target) ? target : closest(target, 'a');
 
             if (link && !isShadowUIElement(link)) {
-                let prevented      = false;
                 const targetWindow = PageNavigationWatch._getTargetWindow(link);
                 const href         = nativeMethods.anchorHrefGetter.call(link);
 
-                const onPreventDefault = (preventedEvent: Event) => {
-                    prevented = prevented || preventedEvent === e;
-                };
-
-                eventSandbox.on(eventSandbox.EVENT_PREVENTED_EVENT, onPreventDefault);
-
                 nextTick()
                     .then(() => {
-                        eventSandbox.off(eventSandbox.EVENT_PREVENTED_EVENT, onPreventDefault);
-
-                        // NOTE: the defaultPrevented flag is saved between event raises in all browsers
-                        // except IE. In IE, it is reset to false before the next handler is executed.
-                        if (!e.defaultPrevented && !prevented)
+                        if (!e.defaultPrevented)
                             PageNavigationWatch._onNavigationTriggeredInWindow(targetWindow, href);
                     });
             }

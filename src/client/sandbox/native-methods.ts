@@ -564,7 +564,7 @@ class NativeMethods {
         this.hasAttributeNS                = nativeElement.hasAttributeNS;
         this.hasAttributes                 = nativeElement.hasAttributes;
         this.anchorToString                = win.HTMLAnchorElement.prototype.toString;
-        this.matches                       = nativeElement.matches || nativeElement.msMatchesSelector;
+        this.matches                       = nativeElement.matches;
         this.closest                       = nativeElement.closest;
 
         // NOTE: The 'insertAdjacent...' methods is located in HTMLElement prototype in IE11 only

@@ -16,7 +16,6 @@ import { DocumentCleanedEvent } from '../../typings/client';
 import NodeMutation from './node/mutation';
 import MessageSandbox from './event/message';
 import IframeSandbox from './iframe';
-import IEDebugSandbox from './ie-debug';
 import removeElement from '../utils/remove-element';
 import { overrideFunction } from '../utils/overriding';
 
@@ -50,8 +49,7 @@ export default class ShadowUI extends SandboxBase {
 
     constructor (private readonly _nodeMutation: NodeMutation,
         private readonly _messageSandbox: MessageSandbox,
-        private readonly _iframeSandbox: IframeSandbox,
-        private readonly _ieDebugSandbox: IEDebugSandbox) {
+        private readonly _iframeSandbox: IframeSandbox) {
         super();
 
         this.root                    = null;
@@ -650,7 +648,7 @@ export default class ShadowUI extends SandboxBase {
                 shadowUIElementCount++;
         }
 
-        if (shadowUIElementCount && !this._ieDebugSandbox.isDebuggerInitiator())
+        if (shadowUIElementCount)
             ShadowUI._checkElementsPosition(collection, length);
 
         return length - shadowUIElementCount;

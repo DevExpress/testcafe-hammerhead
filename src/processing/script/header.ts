@@ -84,8 +84,6 @@ const HEADER = trim(`
     ${SCRIPT_PROCESSING_END_HEADER_COMMENT}
 `);
 
-// NOTE: IE removes trailing newlines in script.textContent,
-// so a trailing newline in RegExp is optional
 const HEADER_RE                 = new RegExp(`${reEscape(SCRIPT_PROCESSING_START_COMMENT)}[\\S\\s]+?${reEscape(SCRIPT_PROCESSING_END_HEADER_COMMENT)}\n?`, 'gi');
 const PROCESSING_END_COMMENT_RE = new RegExp(`\n?${ reEscape(SCRIPT_PROCESSING_END_COMMENT) }\\s*`, 'gi');
 
