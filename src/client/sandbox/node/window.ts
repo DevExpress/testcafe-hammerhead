@@ -1541,7 +1541,7 @@ export default class WindowSandbox extends SandboxBase {
     private overrideInnerHTMLInElement (nativeAutomation: boolean) {
         const windowSandbox = this;
 
-        overrideDescriptor(this.window[nativeMethods.elementHTMLPropOwnerName].prototype, 'innerHTML', {
+        overrideDescriptor(this.window.Element.prototype, 'innerHTML', {
             getter: function (this: HTMLElement) {
                 if (!nativeAutomation && windowSandbox._documentTitleStorageInitializer && isTitleElement(this))
                     return windowSandbox._documentTitleStorageInitializer.storage.getTitleElementPropertyValue(this);
@@ -1630,7 +1630,7 @@ export default class WindowSandbox extends SandboxBase {
     private overrideOuterHTMLInElement () {
         const windowSandbox = this;
 
-        overrideDescriptor(this.window[nativeMethods.elementHTMLPropOwnerName].prototype, 'outerHTML', {
+        overrideDescriptor(this.window.Element.prototype, 'outerHTML', {
             getter: function () {
                 const outerHTML = nativeMethods.elementOuterHTMLGetter.call(this);
 

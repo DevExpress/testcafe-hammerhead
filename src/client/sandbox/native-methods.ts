@@ -6,7 +6,6 @@ import { isFunction } from '../utils/types';
 const NATIVE_CODE_RE = /\[native code]/;
 
 class NativeMethods {
-    isStoragePropsLocatedInProto: boolean;
     createDocumentFragment: Document['createDocumentFragment'];
     createElement: Document['createElement'];
     createElementNS: Document['createElementNS'];
@@ -49,7 +48,6 @@ class NativeMethods {
     append: Element['append'];
     prepend: Element['prepend'];
     after: Element['after'];
-    insertAdjacentMethodsOwner: Element;
     insertAdjacentElement: Element['insertAdjacentElement'];
     insertAdjacentHTML: Element['insertAdjacentHTML'];
     insertAdjacentText: Element['insertAdjacentText'];
@@ -192,7 +190,6 @@ class NativeMethods {
     isArray: ArrayConstructor['isArray']
     DOMParserParseFromString: any;
     arrayBufferIsView: any;
-    elementHTMLPropOwnerName: string;
     objectDataSetter: any;
     inputTypeSetter: any;
     inputValueSetter: any;
@@ -426,10 +423,6 @@ class NativeMethods {
         return docPrototype.hasOwnProperty(propName) ? 'Document' : 'HTMLDocument'; // eslint-disable-line no-prototype-builtins
     }
 
-    getStoragesPropsOwner (win: Window & typeof globalThis) {
-        return this.isStoragePropsLocatedInProto ? win.Window.prototype : win;
-    }
-
     refreshWorkerMeths (scope: any /* WorkerGlobalScope */) {
         this.importScripts = scope.importScripts;
     }
@@ -477,11 +470,8 @@ class NativeMethods {
         }
 
         // Event
-        // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
-        if (!win.EventTarget) {
-            this.documentAddEventListener    = docPrototype.addEventListener;
-            this.documentRemoveEventListener = docPrototype.removeEventListener;
-        }
+        this.documentAddEventListener    = docPrototype.addEventListener;
+        this.documentRemoveEventListener = docPrototype.removeEventListener;
 
         this.documentCreateEvent     = docPrototype.createEvent;
         // @ts-ignore Deprecated
@@ -567,13 +557,9 @@ class NativeMethods {
         this.matches                       = nativeElement.matches;
         this.closest                       = nativeElement.closest;
 
-        // NOTE: The 'insertAdjacent...' methods is located in HTMLElement prototype in IE11 only
-        this.insertAdjacentMethodsOwner = win.Element.prototype.hasOwnProperty('insertAdjacentElement') // eslint-disable-line no-prototype-builtins
-            ? win.Element.prototype
-            : win.HTMLElement.prototype;
-        this.insertAdjacentElement      = this.insertAdjacentMethodsOwner.insertAdjacentElement;
-        this.insertAdjacentHTML         = this.insertAdjacentMethodsOwner.insertAdjacentHTML;
-        this.insertAdjacentText         = this.insertAdjacentMethodsOwner.insertAdjacentText;
+        this.insertAdjacentElement      = win.Element.prototype.insertAdjacentElement;
+        this.insertAdjacentHTML         = win.Element.prototype.insertAdjacentHTML;
+        this.insertAdjacentText         = win.Element.prototype.insertAdjacentText;
 
         // Text node
         this.appendData = textNode.appendData;
@@ -591,17 +577,9 @@ class NativeMethods {
         }
 
         // Event
-        if (win.EventTarget) {
-            this.addEventListener    = win.EventTarget.prototype.addEventListener;
-            this.removeEventListener = win.EventTarget.prototype.removeEventListener;
-            this.dispatchEvent       = win.EventTarget.prototype.dispatchEvent;
-        }
-        // NOTE: IE11 has no EventTarget
-        else {
-            this.addEventListener    = nativeElement.addEventListener;
-            this.removeEventListener = nativeElement.removeEventListener;
-            this.dispatchEvent       = nativeElement.dispatchEvent;
-        }
+        this.addEventListener          = win.EventTarget.prototype.addEventListener;
+        this.removeEventListener       = win.EventTarget.prototype.removeEventListener;
+        this.dispatchEvent             = win.EventTarget.prototype.dispatchEvent;
         this.blur                      = nativeElement.blur;
         this.click                     = nativeElement.click;
         this.focus                     = nativeElement.focus;
@@ -620,10 +598,7 @@ class NativeMethods {
         const htmlElementStyleDescriptor = win.Object.getOwnPropertyDescriptor(win[this.htmlElementStylePropOwnerName].prototype, 'style');
 
         this.htmlElementStyleGetter = htmlElementStyleDescriptor.get;
-
-        // NOTE: IE does not allow to set a style property
-        if (htmlElementStyleDescriptor.set)
-            this.htmlElementStyleSetter = htmlElementStyleDescriptor.set;
+        this.htmlElementStyleSetter = htmlElementStyleDescriptor.set;
 
         const styleCssTextDescriptor = win.Object.getOwnPropertyDescriptor(win.CSSStyleDeclaration.prototype, 'cssText');
 
@@ -634,19 +609,12 @@ class NativeMethods {
     _refreshGettersAndSetters (win, isInWorker = false) {
         win = win || window;
 
-        const winProto = win.constructor.prototype;
-
-        // NOTE: Event properties is located in window prototype only in IE11
-        this.isEventPropsLocatedInProto = winProto.hasOwnProperty('onerror'); // eslint-disable-line no-prototype-builtins
-
-        const eventPropsOwner = this.isEventPropsLocatedInProto ? winProto : win;
-
-        const winOnBeforeUnloadDescriptor = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onbeforeunload');
-        const winOnUnloadDescriptor       = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onunload');
-        const winOnPageHideDescriptor     = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onpagehide');
-        const winOnMessageDescriptor      = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onmessage');
-        const winOnErrorDescriptor        = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onerror');
-        const winOnHashChangeDescriptor   = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onhashchange');
+        const winOnBeforeUnloadDescriptor = win.Object.getOwnPropertyDescriptor(win, 'onbeforeunload');
+        const winOnUnloadDescriptor       = win.Object.getOwnPropertyDescriptor(win, 'onunload');
+        const winOnPageHideDescriptor     = win.Object.getOwnPropertyDescriptor(win, 'onpagehide');
+        const winOnMessageDescriptor      = win.Object.getOwnPropertyDescriptor(win, 'onmessage');
+        const winOnErrorDescriptor        = win.Object.getOwnPropertyDescriptor(win, 'onerror');
+        const winOnHashChangeDescriptor   = win.Object.getOwnPropertyDescriptor(win, 'onhashchange');
 
         this.winOnBeforeUnloadSetter = winOnBeforeUnloadDescriptor && winOnBeforeUnloadDescriptor.set;
         this.winOnUnloadSetter       = winOnUnloadDescriptor && winOnUnloadDescriptor.set;
@@ -655,7 +623,7 @@ class NativeMethods {
         this.winOnErrorSetter        = winOnErrorDescriptor && winOnErrorDescriptor.set;
         this.winOnHashChangeSetter   = winOnHashChangeDescriptor && winOnHashChangeDescriptor.set;
 
-        const winOnUnhandledRejectionDescriptor = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onunhandledrejection');
+        const winOnUnhandledRejectionDescriptor = win.Object.getOwnPropertyDescriptor(win, 'onunhandledrejection');
 
         if (winOnUnhandledRejectionDescriptor)
             this.winOnUnhandledRejectionSetter = winOnUnhandledRejectionDescriptor.set;
@@ -690,23 +658,12 @@ class NativeMethods {
             this.requestReferrerGetter = win.Object.getOwnPropertyDescriptor(win.Request.prototype, 'referrer').get;
         }
 
-        if (win.XMLHttpRequest) {
-            const xhrResponseURLDescriptor = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'responseURL');
+        if (win.XMLHttpRequest)
+            this.xhrResponseURLGetter = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'responseURL').get;
 
-            // NOTE: IE doesn't support the 'responseURL' property
-            if (xhrResponseURLDescriptor)
-                this.xhrResponseURLGetter = xhrResponseURLDescriptor.get;
-        }
-
-        // eslint-disable-next-line no-restricted-properties
         if (win.Window) {
-            // NOTE: The 'localStorage' and 'sessionStorage' properties is located in window prototype only in IE11
-            this.isStoragePropsLocatedInProto = win.Window.prototype.hasOwnProperty('localStorage'); // eslint-disable-line no-prototype-builtins
-
-            const storagesPropsOwner = this.getStoragesPropsOwner(win);
-
-            this.winLocalStorageGetter   = win.Object.getOwnPropertyDescriptor(storagesPropsOwner, 'localStorage').get;
-            this.winSessionStorageGetter = win.Object.getOwnPropertyDescriptor(storagesPropsOwner, 'sessionStorage').get;
+            this.winLocalStorageGetter   = win.Object.getOwnPropertyDescriptor(win, 'localStorage').get;
+            this.winSessionStorageGetter = win.Object.getOwnPropertyDescriptor(win, 'sessionStorage').get;
         }
 
         if (isInWorker)
@@ -775,20 +732,11 @@ class NativeMethods {
             this.windowOriginSetter = windowOriginDescriptor.set;
         }
 
-        // NOTE: We need 'disabled' property only for Chrome.
-        // In Chrome it's located in HTMLInputElement.prototype
-        // But in IE11 it's located in HTMLElement.prototype
-        // So we need the null check
-        if (inputDisabledDescriptor) {
-            this.inputDisabledSetter = inputDisabledDescriptor.set;
-            this.inputDisabledGetter = inputDisabledDescriptor.get;
-        }
+        this.inputDisabledSetter = inputDisabledDescriptor.set;
+        this.inputDisabledGetter = inputDisabledDescriptor.get;
 
-        // NOTE: Html properties is located in HTMLElement prototype in IE11 only
-        this.elementHTMLPropOwnerName = win.Element.prototype.hasOwnProperty('innerHTML') ? 'Element' : 'HTMLElement'; // eslint-disable-line no-prototype-builtins
-
-        const elementInnerHTMLDescriptor = win.Object.getOwnPropertyDescriptor(win[this.elementHTMLPropOwnerName].prototype, 'innerHTML');
-        const elementOuterHTMLDescriptor = win.Object.getOwnPropertyDescriptor(win[this.elementHTMLPropOwnerName].prototype, 'outerHTML');
+        const elementInnerHTMLDescriptor = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'innerHTML');
+        const elementOuterHTMLDescriptor = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'outerHTML');
 
         // Setters
         this.objectDataSetter        = objectDataDescriptor.set;
@@ -837,14 +785,9 @@ class NativeMethods {
         this.anchorTextSetter           = anchorTextDescriptor.set;
         this.elementInnerHTMLSetter     = elementInnerHTMLDescriptor.set;
         this.elementOuterHTMLSetter     = elementOuterHTMLDescriptor.set;
-
-        // NOTE: Some browsers (for example, Edge, Internet Explorer 11, Safari) don't support the 'integrity' property.
-        if (scriptIntegrityDescriptor && linkIntegrityDescriptor) {
-            this.scriptIntegritySetter = scriptIntegrityDescriptor.set;
-            this.linkIntegritySetter   = linkIntegrityDescriptor.set;
-        }
-
-        this.titleElementTextSetter = titleElementTextDescriptor.set;
+        this.scriptIntegritySetter      = scriptIntegrityDescriptor.set;
+        this.linkIntegritySetter        = linkIntegrityDescriptor.set;
+        this.titleElementTextSetter     = titleElementTextDescriptor.set;
 
         // NOTE: the classList property is located in HTMLElement prototype in IE11
         this.elementClassListPropOwnerName = win.Element.prototype.hasOwnProperty('classList') ? 'Element' : 'HTMLElement'; // eslint-disable-line no-prototype-builtins
@@ -917,24 +860,11 @@ class NativeMethods {
         this.elementNextElementSiblingGetter = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'nextElementSibling').get;
         this.elementPrevElementSiblingGetter = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'previousElementSibling').get;
 
-        // NOTE: Some browsers (for example, Edge, Internet Explorer 11, Safari) don't support the 'integrity' property.
-        if (scriptIntegrityDescriptor && linkIntegrityDescriptor) {
-            this.scriptIntegrityGetter = scriptIntegrityDescriptor.get;
-            this.linkIntegrityGetter   = linkIntegrityDescriptor.get;
-        }
+        this.scriptIntegrityGetter = scriptIntegrityDescriptor.get;
+        this.linkIntegrityGetter   = linkIntegrityDescriptor.get;
 
-        // NOTE: In the Internet Explorer 11 the children property is located in HTMLElement.
-        const childrenPropOwner = win.Element.prototype.hasOwnProperty('children') // eslint-disable-line no-prototype-builtins
-            ? win.Element.prototype
-            : win.HTMLElement.prototype;
-
-        this.elementChildrenGetter = win.Object.getOwnPropertyDescriptor(childrenPropOwner, 'children').get;
-
-        const anchorOriginDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'origin');
-
-        // NOTE: IE and Edge don't support origin property
-        if (anchorOriginDescriptor)
-            this.anchorOriginGetter = anchorOriginDescriptor.get;
+        this.elementChildrenGetter = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'children').get;
+        this.anchorOriginGetter    = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'origin').get;
 
         const iframeSrcdocDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'srcdoc');
 

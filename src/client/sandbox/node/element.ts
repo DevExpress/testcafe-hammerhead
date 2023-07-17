@@ -1048,9 +1048,9 @@ export default class ElementSandbox extends SandboxBase {
         if (nativeMethods.elementReplaceWith)
             overrideFunction(window.Element.prototype, 'replaceWith', this.overriddenMethods.elementReplaceWith);
 
-        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentHTML', this.overriddenMethods.insertAdjacentHTML);
-        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentElement', this.overriddenMethods.insertAdjacentElement);
-        overrideFunction(nativeMethods.insertAdjacentMethodsOwner, 'insertAdjacentText', this.overriddenMethods.insertAdjacentText);
+        overrideFunction(window.Element.prototype, 'insertAdjacentHTML', this.overriddenMethods.insertAdjacentHTML);
+        overrideFunction(window.Element.prototype, 'insertAdjacentElement', this.overriddenMethods.insertAdjacentElement);
+        overrideFunction(window.Element.prototype, 'insertAdjacentText', this.overriddenMethods.insertAdjacentText);
 
         if (settings.nativeAutomation)
             return;
