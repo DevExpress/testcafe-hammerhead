@@ -1,7 +1,6 @@
 /*global Document, Window */
 import globalContextInfo from '../utils/global-context-info';
 import { isNativeFunction } from '../utils/overriding';
-import { isFunction } from '../utils/types';
 
 const NATIVE_CODE_RE = /\[native code]/;
 
@@ -248,7 +247,6 @@ class NativeMethods {
     winOnUnhandledRejectionSetter: any;
     winOnHashChangeSetter: any;
     webSocketUrlGetter: any;
-    elementClassListPropOwnerName: string;
     elementClassListGetter: any;
     messageEventOriginGetter: any;
     htmlCollectionLengthGetter: (this: HTMLCollection) => HTMLCollection['length'];
@@ -320,9 +318,7 @@ class NativeMethods {
     scriptIntegrityGetter: any;
     linkIntegrityGetter: any;
     anchorOriginGetter: any;
-    cssStyleSheetHrefGetter: any;
     nodeBaseURIGetter: any;
-    elementAttributesPropOwnerName: string;
     elementAttributesGetter: any;
     performanceEntryNameGetter: any;
     messageEventDataGetter: (this: MessageEvent) => MessageEvent['data'];
@@ -726,6 +722,7 @@ class NativeMethods {
         const iframeSandboxDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'sandbox');
         const metaHttpEquivDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLMetaElement.prototype, 'httpEquiv');
         const windowOriginDescriptor         = win.Object.getOwnPropertyDescriptor(win, 'origin');
+        const iframeSrcdocDescriptor         = win.Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'srcdoc');
 
         if (windowOriginDescriptor) {
             this.windowOriginGetter = windowOriginDescriptor.get;
@@ -789,11 +786,7 @@ class NativeMethods {
         this.linkIntegritySetter        = linkIntegrityDescriptor.set;
         this.titleElementTextSetter     = titleElementTextDescriptor.set;
 
-        // NOTE: the classList property is located in HTMLElement prototype in IE11
-        this.elementClassListPropOwnerName = win.Element.prototype.hasOwnProperty('classList') ? 'Element' : 'HTMLElement'; // eslint-disable-line no-prototype-builtins
-
-        this.elementClassListGetter = win.Object.getOwnPropertyDescriptor(win[this.elementClassListPropOwnerName].prototype, 'classList').get;
-
+        this.elementClassListGetter         = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'classList').get;
         this.htmlCollectionLengthGetter     = win.Object.getOwnPropertyDescriptor(win.HTMLCollection.prototype, 'length').get;
         this.nodeListLengthGetter           = win.Object.getOwnPropertyDescriptor(win.NodeList.prototype, 'length').get;
         this.elementChildElementCountGetter = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'childElementCount').get;
@@ -866,30 +859,11 @@ class NativeMethods {
         this.elementChildrenGetter = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'children').get;
         this.anchorOriginGetter    = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'origin').get;
 
-        const iframeSrcdocDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'srcdoc');
+        this.iframeSrcdocGetter = iframeSrcdocDescriptor.get;
+        this.iframeSrcdocSetter = iframeSrcdocDescriptor.set;
 
-        // NOTE: IE11 doesn't support the 'srcdoc' property
-        if (iframeSrcdocDescriptor) {
-            this.iframeSrcdocGetter = iframeSrcdocDescriptor.get;
-            this.iframeSrcdocSetter = iframeSrcdocDescriptor.set;
-        }
-
-        const cssStyleSheetHrefDescriptor = win.Object.getOwnPropertyDescriptor(win.CSSStyleSheet.prototype, 'href');
-
-        // NOTE: IE11 doesn't support the 'href' property
-        if (cssStyleSheetHrefDescriptor)
-            this.cssStyleSheetHrefGetter = cssStyleSheetHrefDescriptor.get;
-
-        const nodeBaseURIDescriptor = win.Object.getOwnPropertyDescriptor(win.Node.prototype, 'baseURI');
-
-        // NOTE: IE11 doesn't support the 'baseURI' property
-        if (nodeBaseURIDescriptor)
-            this.nodeBaseURIGetter = nodeBaseURIDescriptor.get;
-
-        // NOTE: The 'attributes' property is located in Node prototype in IE11 only
-        this.elementAttributesPropOwnerName = win.Element.prototype.hasOwnProperty('attributes') ? 'Element' : 'Node'; // eslint-disable-line no-prototype-builtins
-
-        this.elementAttributesGetter = win.Object.getOwnPropertyDescriptor(win[this.elementAttributesPropOwnerName].prototype, 'attributes').get;
+        this.nodeBaseURIGetter       = win.Object.getOwnPropertyDescriptor(win.Node.prototype, 'baseURI').get;
+        this.elementAttributesGetter = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'attributes').get;
 
         const htmlManifestDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLHtmlElement.prototype, 'manifest');
 
@@ -899,12 +873,8 @@ class NativeMethods {
             this.htmlManifestSetter = htmlManifestDescriptor.set;
         }
 
-        // NOTE: IE11 doesn't support the 'srcset' property
-        if (iframeSrcdocDescriptor) {
-            this.imageSrcsetSetter = imageSrcsetDescriptor.set;
-            this.imageSrcsetGetter = imageSrcsetDescriptor.get;
-        }
-
+        this.imageSrcsetSetter = imageSrcsetDescriptor.set;
+        this.imageSrcsetGetter = imageSrcsetDescriptor.get;
 
         this.titleElementTextGetter = titleElementTextDescriptor.get;
 
@@ -938,15 +908,12 @@ class NativeMethods {
         this.sendBeacon              = win.Navigator && win.Navigator.prototype.sendBeacon;
 
         if (win.XMLHttpRequest) {
-            // NOTE: IE11 has no EventTarget so we should save "Event" methods separately
-            const xhrEventProto = (win.EventTarget || win.XMLHttpRequest).prototype;
-
             this.xhrAbort                 = win.XMLHttpRequest.prototype.abort;
             this.xhrOpen                  = win.XMLHttpRequest.prototype.open;
             this.xhrSend                  = win.XMLHttpRequest.prototype.send;
-            this.xhrAddEventListener      = xhrEventProto.addEventListener;
-            this.xhrRemoveEventListener   = xhrEventProto.removeEventListener;
-            this.xhrDispatchEvent         = xhrEventProto.dispatchEvent;
+            this.xhrAddEventListener      = win.EventTarget.prototype.addEventListener;
+            this.xhrRemoveEventListener   = win.EventTarget.prototype.removeEventListener;
+            this.xhrDispatchEvent         = win.EventTarget.prototype.dispatchEvent;
             this.xhrGetResponseHeader     = win.XMLHttpRequest.prototype.getResponseHeader;
             this.xhrGetAllResponseHeaders = win.XMLHttpRequest.prototype.getAllResponseHeaders;
             this.xhrSetRequestHeader      = win.XMLHttpRequest.prototype.setRequestHeader;
@@ -1064,12 +1031,7 @@ class NativeMethods {
             this.tokenListToggle   = win.DOMTokenList.prototype.toggle;
             this.tokenListContains = win.DOMTokenList.prototype.contains;
 
-            const tokenListValueDescriptor = win.Object.getOwnPropertyDescriptor(win.DOMTokenList.prototype, 'value');
-
-            // NOTE: IE11 doesn't support the 'value' property of the DOMTokenList interface
-            if (tokenListValueDescriptor)
-                this.tokenListValueSetter = tokenListValueDescriptor.set;
-
+            this.tokenListValueSetter = win.Object.getOwnPropertyDescriptor(win.DOMTokenList.prototype, 'value').set;
 
             // Stylesheets
             this.styleGetPropertyValue = win.CSSStyleDeclaration.prototype.getPropertyValue;
@@ -1139,10 +1101,7 @@ class NativeMethods {
         this.DataTransferItemList = win.DataTransferItemList;
         this.DataTransferItem     = win.DataTransferItem;
         this.FileList             = win.FileList;
-
-        // NOTE: non-IE11 case. window.File in IE11 is not constructable.
-        if (win.File && isFunction(win.File))
-            this.File = win.File;
+        this.File                 = win.File;
     }
 
     refreshElectronMeths (vmModule): boolean {
@@ -1182,11 +1141,8 @@ class NativeMethods {
         NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'querySelectorAll', this.querySelectorAll);
 
         // Event
-        // NOTE: IE11 has no EventTarget
-        if (!window.EventTarget) {
-            NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'addEventListener', this.documentAddEventListener);
-            NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'removeEventListener', this.documentRemoveEventListener);
-        }
+        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'addEventListener', this.documentAddEventListener);
+        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'removeEventListener', this.documentRemoveEventListener);
         NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'createEvent', this.documentCreateEvent);
         NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'createTouch', this.documentCreateTouch);
         NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'createTouchList', this.documentCreateTouchList);
