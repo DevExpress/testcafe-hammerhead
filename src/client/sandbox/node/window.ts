@@ -496,10 +496,9 @@ export default class WindowSandbox extends SandboxBase {
 
     private overrideEventPropDescriptor (eventName: string, nativePropSetter): void {
         const windowSandbox   = this;
-        const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? this.window.Window.prototype : this.window;
 
         //@ts-ignore
-        overrideDescriptor(eventPropsOwner, 'on' + eventName, {
+        overrideDescriptor(this.window, 'on' + eventName, {
             getter: null,
             setter: handler => {
                 nativePropSetter.call(windowSandbox.window, handler);

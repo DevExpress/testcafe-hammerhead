@@ -139,10 +139,7 @@ export default class UnloadSandbox extends SandboxBase {
 
     private _overrideEventDescriptor (eventProperties: EventProperties) {
         // @ts-ignore
-        const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;
-
-        // @ts-ignore
-        overrideDescriptor(eventPropsOwner, 'on' + eventProperties.nativeEventName, {
+        overrideDescriptor(window, 'on' + eventProperties.nativeEventName, {
             getter: () => eventProperties.storedHandler,
             setter: handler => this.setOnEvent(eventProperties, window, handler),
         });

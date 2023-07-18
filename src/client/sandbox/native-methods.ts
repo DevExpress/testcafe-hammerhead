@@ -238,7 +238,6 @@ class NativeMethods {
     elementOuterHTMLSetter: any;
     scriptIntegritySetter: any;
     linkIntegritySetter: any;
-    isEventPropsLocatedInProto: boolean;
     winOnBeforeUnloadSetter: any;
     winOnUnloadSetter: any;
     winOnPageHideSetter: any;
@@ -1151,43 +1150,6 @@ class NativeMethods {
         NativeMethods._ensureDocumentMethodRestore(document, window[this.documentClosePropOwnerName].prototype, 'close', this.documentClose);
         NativeMethods._ensureDocumentMethodRestore(document, window[this.documentWritePropOwnerName].prototype, 'write', this.documentWrite);
         NativeMethods._ensureDocumentMethodRestore(document, window[this.documentWriteLnPropOwnerName].prototype, 'writeln', this.documentWriteLn);
-    }
-
-    refreshIfNecessary (doc: Document, win: Window & typeof globalThis) {
-        const tryToExecuteCode = (func: Function) => {
-            try {
-                return func();
-            }
-            catch (e) {
-                return true;
-            }
-        };
-
-        const needToRefreshDocumentMethods = tryToExecuteCode(
-            () => !doc.createElement || isNativeFunction(document.createElement));
-
-        const needToRefreshElementMethods = tryToExecuteCode(() => {
-            const nativeElement = this.createElement.call(doc, 'div');
-
-            return isNativeFunction(nativeElement.getAttribute);
-        });
-
-        const needToRefreshWindowMethods = tryToExecuteCode(() => {
-            this.setTimeout.call(win, () => void 0, 0);
-
-            return isNativeFunction(win.XMLHttpRequest.prototype.open);
-        });
-
-        // NOTE: T173709
-        if (needToRefreshDocumentMethods)
-            this.refreshDocumentMeths(doc, win);
-
-        if (needToRefreshElementMethods)
-            this.refreshElementMeths(doc, win);
-
-        // NOTE: T239109
-        if (needToRefreshWindowMethods)
-            this.refreshWindowMeths(win);
     }
 
     isNativeCode (fn: Function): boolean {
