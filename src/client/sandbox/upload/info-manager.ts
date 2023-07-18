@@ -1,6 +1,5 @@
 import COMMAND from '../../../session/command';
 import FileListWrapper from './file-list-wrapper';
-import * as Browser from '../../utils/browser';
 import * as HiddenInfo from './hidden-info';
 import Promise from 'pinkie';
 import { GetUploadedFilesServiceMessage, StoreUploadedFilesServiceMessage } from '../../../typings/upload';

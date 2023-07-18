@@ -16,7 +16,6 @@ import EventSandbox from '../event';
 import UploadSandbox from '../upload';
 import ShadowUI from '../shadow-ui';
 import CookieSandbox from '../cookie';
-import * as browserUtils from '../../utils/browser';
 import ChildWindowSandbox from '../child-window';
 import DocumentTitleStorage from './document/title-storage';
 import DocumentTitleStorageInitializer from './document/title-storage-initializer';

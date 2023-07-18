@@ -1148,11 +1148,10 @@ if (window.HTMLElement.prototype.matches && window.HTMLElement.prototype.closest
 }
 
 test('hammerhead should use the native classList getter in addClass, removeClass and hasClass functions (GH-1890)', function () {
-    var div                           = document.createElement('div');
-    var elementClassListPropOwnerName = window.Element.prototype.hasOwnProperty('classList') ? 'Element' : 'HTMLElement';
-    var storedСlassListDescriptor     = Object.getOwnPropertyDescriptor(window[elementClassListPropOwnerName].prototype, 'classList');
+    var div                       = document.createElement('div');
+    var storedСlassListDescriptor = Object.getOwnPropertyDescriptor(window.Element.prototype, 'classList');
 
-    Object.defineProperty(window[elementClassListPropOwnerName].prototype, 'classList', {
+    Object.defineProperty(window.Element.prototype, 'classList', {
         get: function () { /* eslint-disable-line getter-return */
             ok(false);
         },
@@ -1168,7 +1167,7 @@ test('hammerhead should use the native classList getter in addClass, removeClass
 
     div.parentNode.removeChild(div);
 
-    Object.defineProperty(window[elementClassListPropOwnerName], 'classList', storedСlassListDescriptor);
+    Object.defineProperty(window.Element, 'classList', storedСlassListDescriptor);
 });
 
 test('should not throw an error when process a script inside the svg (GH-2735)', function () {

@@ -331,10 +331,8 @@ class StorageSandboxProxyStrategy extends StorageSandboxStrategyBase implements 
     }
 
     private _overrideStoragesGetters () {
-        const storagesPropsOwner = this.nativeMethods.getStoragesPropsOwner(window);
-
         this.nativeMethods.objectDefineProperties(window, {
-            'localStorage': createOverriddenDescriptor(storagesPropsOwner, 'localStorage', {
+            'localStorage': createOverriddenDescriptor(window, 'localStorage', {
                 // @ts-ignore
                 getter: () => {
                     this.localStorageProxy.unwrapProxy().setContext(window);
@@ -343,7 +341,7 @@ class StorageSandboxProxyStrategy extends StorageSandboxStrategyBase implements 
                 },
             }),
 
-            'sessionStorage': createOverriddenDescriptor(storagesPropsOwner, 'sessionStorage', {
+            'sessionStorage': createOverriddenDescriptor(window, 'sessionStorage', {
                 // @ts-ignore
                 getter: () => {
                     this.sessionStorageProxy.unwrapProxy().setContext(window);

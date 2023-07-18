@@ -438,9 +438,6 @@ export default class WindowSandbox extends SandboxBase {
 
         this.overrideHrefInStyleSheet();
 
-        if (nativeMethods.cssStyleSheetHrefGetter)
-            this.overrideHrefInCSSStyleSheet();
-
         if (nativeMethods.nodeBaseURIGetter)
             this.overrideBaseURIInNode();
 
@@ -1410,14 +1407,6 @@ export default class WindowSandbox extends SandboxBase {
         });
     }
 
-    private overrideHrefInCSSStyleSheet () {
-        overrideDescriptor(this.window.CSSStyleSheet.prototype, 'href', {
-            getter: function () {
-                return getDestinationUrl(nativeMethods.cssStyleSheetHrefGetter.call(this));
-            },
-        });
-    }
-
     private overrideBaseURIInNode () {
         overrideDescriptor(this.window.Node.prototype, 'baseURI', {
             getter: function () {
@@ -1541,7 +1530,7 @@ export default class WindowSandbox extends SandboxBase {
     private overrideInnerHTMLInElement (nativeAutomation: boolean) {
         const windowSandbox = this;
 
-        overrideDescriptor(this.window[nativeMethods.elementHTMLPropOwnerName].prototype, 'innerHTML', {
+        overrideDescriptor(this.window.Element.prototype, 'innerHTML', {
             getter: function (this: HTMLElement) {
                 if (!nativeAutomation && windowSandbox._documentTitleStorageInitializer && isTitleElement(this))
                     return windowSandbox._documentTitleStorageInitializer.storage.getTitleElementPropertyValue(this);
@@ -1630,7 +1619,7 @@ export default class WindowSandbox extends SandboxBase {
     private overrideOuterHTMLInElement () {
         const windowSandbox = this;
 
-        overrideDescriptor(this.window[nativeMethods.elementHTMLPropOwnerName].prototype, 'outerHTML', {
+        overrideDescriptor(this.window.Element.prototype, 'outerHTML', {
             getter: function () {
                 const outerHTML = nativeMethods.elementOuterHTMLGetter.call(this);
 
@@ -1801,7 +1790,7 @@ export default class WindowSandbox extends SandboxBase {
     }
 
     private overrideAttributesInElement () {
-        overrideDescriptor(this.window[nativeMethods.elementAttributesPropOwnerName].prototype, 'attributes', {
+        overrideDescriptor(this.window.Element.prototype, 'attributes', {
             getter: function () {
                 return getAttributes(this);
             },
