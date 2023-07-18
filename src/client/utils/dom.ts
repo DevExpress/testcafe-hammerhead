@@ -9,8 +9,6 @@ import { sameOriginCheck } from './destination-location';
 import {
     isFirefox,
     isWebKit,
-    isIE,
-    isMSEdge,
     isSafari,
     isChrome,
 } from './browser';
@@ -104,8 +102,6 @@ export function instanceToString (instance: any): string {
 }
 
 export function getActiveElement (currentDocument?: Document) {
-    // NOTE: Sometimes document.activeElement returns an empty object or null (IE11).
-    // https://github.com/DevExpress/testcafe-hammerhead/issues/768
     const doc           = currentDocument || document;
     const activeElement = nativeMethods.documentActiveElementGetter.call(doc);
 
@@ -593,18 +589,12 @@ export function isElementFocusable (el: HTMLElement): boolean {
     if (isDisabledElement || isInvisibleElement || isNotDisplayedElement || isHiddenElement)
         return false;
 
-    if (isOptionElement(el) && isIE)
-        return false;
-
     if (isAnchorElement(el)) {
         if (tabIndex !== null)
             return true;
 
         return matches(el, 'a[href]');
     }
-
-    if (isTableDataCellElement(el) && isIE)
-        return true;
 
     return matches(el, FOCUSABLE_SELECTOR) || tabIndex !== null;
 }
@@ -616,12 +606,6 @@ export function isShadowUIElement (element: any): boolean {
 
 export function isWindow (instance: any): instance is Window {
     try {
-        // NOTE: The instanceToString call result has a strange values for the MessageEvent.target property:
-        // * [object DispHTMLWindow2] for IE11
-        // * [object Object] for MSEdge.
-        if ((isIE || isMSEdge) && instance && instance === instance.window)
-            instance = instance.window;
-
         if (!instance || !instance.toString || NATIVE_WINDOW_STR !== instanceToString(instance))
             return false;
     }
@@ -668,7 +652,7 @@ export function isLocation (instance: any): instance is Location {
     if (!instance)
         return false;
 
-    if (isIE || isSafari || isChrome || isFirefox)
+    if (isSafari || isChrome || isFirefox)
         return isLocationByProto(instance);
 
     return instance instanceof nativeMethods.locationClass ||

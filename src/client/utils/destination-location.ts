@@ -90,15 +90,10 @@ function parseLocationThroughAnchor (url: string) {
     // eslint-disable-next-line no-restricted-properties
     const destPort = sharedUrlUtils.parseUrl(url).port;
 
-    // NOTE: IE browser adds the default port for the https protocol while resolving.
     nativeMethods.anchorHrefSetter.call(resolver, get());
 
     const hostname = nativeMethods.anchorHostnameGetter.call(resolver);
-    let pathname   = nativeMethods.anchorPathnameGetter.call(resolver);
-
-    // NOTE: IE ignores the first '/' symbol in the pathname.
-    if (pathname.charAt(0) !== '/')
-        pathname = '/' + pathname;
+    const pathname = nativeMethods.anchorPathnameGetter.call(resolver);
 
     // TODO: Describe default ports logic.
     return {

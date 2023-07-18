@@ -1,8 +1,8 @@
 import { parseProxyUrl } from './url';
 
 const STACK_FRAME_REG_EXPS = [
-    /^\s*at .*\((\S+)\)/, // Chrome, IE (with function name)
-    /^\s*at (\S+)/, // Chrome, IE (without function name)
+    /^\s*at .*\((\S+)\)/, // Chrome (with function name)
+    /^\s*at (\S+)/, // Chrome (without function name)
     /^.*@(\S+)/, // Safari
     /(.+)/, // Any string
 ];

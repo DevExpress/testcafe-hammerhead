@@ -13,7 +13,6 @@ import {
 } from './dom';
 
 import { convertToProxyUrl, parseProxyUrl } from './url';
-import { isIE, isMSEdge } from './browser';
 import urlResolver from './url-resolver';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import { URL_ATTRS, ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../processing/dom/attributes';
@@ -74,9 +73,7 @@ htmlParser[HTML_PARSER_ELEMENT_FLAG] = true;
 
 function getHtmlDocument () {
     try {
-        // NOTE: IE bug: access denied.
-        if (htmlDocument.location)
-            htmlDocument.location.toString();
+        htmlDocument.location.toString();
     }
     catch (e) {
         htmlDocument = nativeMethods.createHTMLDocument.call(document.implementation, 'title');
@@ -118,10 +115,6 @@ function processHtmlInternal (html, process) {
 
     removeElement(container);
     processedHtml = unwrapHtmlText(processedHtml);
-
-    // NOTE: hack for IE (GH-1083)
-    if (isIE && !isMSEdge && html !== processedHtml)
-        processedHtml = removeExtraSvgNamespaces(html, processedHtml);
 
     return processedHtml;
 }
@@ -266,7 +259,6 @@ export function processHtml (html, options: ProcessHTMLOptions = {}) {
     const { parentTag, prepareDom, processedContext, isPage } = options;
 
     return processHtmlInternal(html, container => {
-        let doctypeElement  = null;
         const htmlElements  = [];
         let children        = [];
         let length          = 0;
@@ -301,8 +293,6 @@ export function processHtml (html, options: ProcessHTMLOptions = {}) {
 
             if (elTagName === FAKE_HEAD_TAG_NAME || elTagName === FAKE_BODY_TAG_NAME)
                 htmlElements.push(child);
-            else if (elTagName === FAKE_DOCTYPE_TAG_NAME)
-                doctypeElement = child;
         }
 
         if (!parentTag) {
@@ -316,8 +306,6 @@ export function processHtml (html, options: ProcessHTMLOptions = {}) {
                         nativeMethods.insertAdjacentHTML.call(htmlElement, InsertPosition.beforeEnd, SELF_REMOVING_SCRIPTS.iframeInit);
                 }
             }
-            else if (doctypeElement && isIE)
-                nativeMethods.insertAdjacentHTML.call(doctypeElement, InsertPosition.afterEnd, SELF_REMOVING_SCRIPTS.iframeInit);
             else if (isPage)
                 nativeMethods.insertAdjacentHTML.call(container, InsertPosition.afterBegin, SELF_REMOVING_SCRIPTS.iframeInit);
         }
@@ -338,29 +326,4 @@ export function isInternalHtmlParserElement (el) {
         el = nativeMethods.nodeParentNodeGetter.call(el);
 
     return !!el[HTML_PARSER_ELEMENT_FLAG];
-}
-
-function removeExtraSvgNamespaces (html, processedHtml) {
-    const initialSvgStrs = html.match(FIND_SVG_RE);
-    let index            = 0;
-
-    if (!initialSvgStrs)
-        return processedHtml;
-
-    return processedHtml.replace(FIND_SVG_RE, svgStr => {
-        const initialSvgStr = initialSvgStrs[index];
-        let initialNSAttrs  = initialSvgStr ? initialSvgStr.match(FIND_NS_ATTRS_RE) : null;
-
-        if (initialSvgStr)
-            index++;
-
-        return initialSvgStr ? svgStr.replace(FIND_NS_ATTRS_RE, () => {
-            const replacement = initialNSAttrs ? initialNSAttrs.join('') : '';
-
-            if (initialNSAttrs)
-                initialNSAttrs = null;
-
-            return replacement;
-        }) : svgStr;
-    });
 }

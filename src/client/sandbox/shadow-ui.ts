@@ -10,7 +10,6 @@ import { get as getStyle, set as setStyle } from '../utils/style';
 import { stopPropagation } from '../utils/event';
 import { getNativeQuerySelectorAll } from '../utils/query-selector';
 import HTMLCollectionWrapper from './node/live-node-list/html-collection-wrapper';
-import { getElementsByNameReturnsHTMLCollection } from '../utils/feature-detection';
 import { isChrome } from '../utils/browser';
 import { DocumentCleanedEvent } from '../../typings/client';
 import NodeMutation from './node/mutation';
@@ -312,9 +311,7 @@ export default class ShadowUI extends SandboxBase {
 
         overrideFunction(docProto, 'getElementsByName', function (this: Document, ...args: [string]) {
             const elements = nativeMethods.getElementsByName.apply(this, args);
-            const length   = getElementsByNameReturnsHTMLCollection
-                ? nativeMethods.htmlCollectionLengthGetter.call(elements)
-                : nativeMethods.nodeListLengthGetter.call(elements);
+            const length   = nativeMethods.nodeListLengthGetter.call(elements);
 
             return shadowUI._filterNodeList(elements, length);
         });

@@ -1,7 +1,7 @@
 import nativeMethods from '../sandbox/native-methods';
 import * as domUtils from './dom';
 import * as styleUtils from './style';
-import { isFirefox, isIE } from './browser';
+import { isFirefox } from './browser';
 import { isFunction } from './types';
 
 function getAreaElementRectangle (el, mapContainer) {
@@ -160,7 +160,7 @@ function getSvgElementRelativeRectangle (el) {
     }
 
 
-    if (isFirefox || isIE)
+    if (isFirefox)
         return elementRect;
 
     let strokeWidth = nativeMethods.getAttribute.call(el, 'stroke-width') || styleUtils.get(el, 'stroke-width');
@@ -305,15 +305,10 @@ export function getOffsetPosition (el, roundFn = Math.round) {
     const currentIframe  = isInIframe ? domUtils.getIframeByElement(doc) : null;
     const offsetPosition = doc === el ? styleUtils.getOffset(doc.documentElement) : styleUtils.getOffset(el);
 
-    // NOTE: The jquery .offset() function doesn't take the body's border into account (except IE7)
+    // NOTE: The jquery .offset() function doesn't take the body's border into account
     // http://bugs.jquery.com/ticket/7948.
 
-    // NOTE: Sometimes, in IE, the getElementFromPoint method returns a cross-domain iframe's documentElement,
-    // but there’s no way to access its body.
-    const borders = doc.body ? styleUtils.getBordersWidth(doc.body) : {
-        left: 0,
-        top:  0,
-    };
+    const borders = styleUtils.getBordersWidth(doc.body);
 
     const calcOffsetPositionFn = !isInIframe || !currentIframe ? calcOffsetPosition : calcOffsetPositionInIframe;
 
