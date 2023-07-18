@@ -218,9 +218,7 @@ export function getOptionHeight (select) {
     if (realSizeValue === 1)
         return getHeight(select);
 
-    return browserUtils.isIE && realSizeValue > childrenCount
-        ? Math.round(selectScrollHeight / childrenCount)
-        : Math.round(selectScrollHeight / Math.max(childrenCount, realSizeValue));
+    return Math.round(selectScrollHeight / Math.max(childrenCount, realSizeValue));
 }
 
 export function getSelectElementSize (select) {

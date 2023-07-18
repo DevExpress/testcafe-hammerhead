@@ -16,8 +16,6 @@ export function getNativeQuerySelector (el) {
 }
 
 export function getNativeQuerySelectorAll (el) {
-    // NOTE: Do not return the isDocument function instead of the isDomElement
-    // it leads to the `Invalid calling object` error in some cases in IE11 (GH-1846)
     if (isDomElement(el))
         return nativeMethods.elementQuerySelectorAll;
 

@@ -14,14 +14,6 @@ function create (script: string): string {
             (function () {
                 var currentScript = document.currentScript;
 
-                /* NOTE: IE11 doesn't support the 'currentScript' property */
-                if (!currentScript) {
-                    var scripts       = document.scripts;
-                    var scriptsLength = scripts.length;
-
-                    currentScript = scripts[scriptsLength - 1];
-                }
-
                 currentScript.parentNode.removeChild(currentScript);
 
                 ${ script }

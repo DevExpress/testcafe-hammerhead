@@ -1,5 +1,4 @@
 import nativeMethods from '../sandbox/native-methods';
-import { isIE } from './browser';
 
 export default class EventEmitter {
     eventsListeners: any;
@@ -16,22 +15,8 @@ export default class EventEmitter {
 
         let index  = 0;
 
-        while (listeners[index]) {
-            // HACK: For IE: after calling document.write, the IFrameSandbox event handler throws the
-            // 'Can't execute code from a freed script' exception because the document has been
-            // recreated.
-            if (isIE) {
-                try {
-                    listeners[index].toString();
-                }
-                catch (e) {
-                    nativeMethods.arraySplice.call(listeners, index, 1);
-                    continue;
-                }
-            }
-
+        while (listeners[index])
             listeners[index++].apply(this, args);
-        }
     }
 
     off (evt: string, listener?): void {
