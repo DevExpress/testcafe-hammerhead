@@ -20,19 +20,17 @@ import StorageSandbox from './storages';
 import ElectronSandbox from './electron';
 import ConsoleSandbox from './console';
 import StyleSandbox from './style';
-import { isIE, isElectron } from '../utils/browser';
+import { isElectron } from '../utils/browser';
 import { dispose as htmlUtilDispose } from '../utils/html';
 import { dispose as anchorCodeInstumentationDispose } from './code-instrumentation/properties/anchor';
 import { create as createSandboxBackup, get as getSandboxBackup } from './backup';
 import urlResolver from '../utils/url-resolver';
 import * as windowStorage from './windows-storage';
 import nativeMethods from '../sandbox/native-methods';
-import IEDebugSandbox from './ie-debug';
 import Transport from '../transport';
 import ChildWindowSandbox from './child-window';
 
 export default class Sandbox extends SandboxBase {
-    ieDebug: IEDebugSandbox;
     cookie: CookieSandbox;
     storageSandbox: StorageSandbox;
     xhr: XhrSandbox;
@@ -56,7 +54,6 @@ export default class Sandbox extends SandboxBase {
         createSandboxBackup(window, this);
         windowStorage.add(window);
 
-        const ieDebugSandbox        = new IEDebugSandbox();
         const listeners             = new Listeners();
         const nodeMutation          = new NodeMutation();
         const unloadSandbox         = new UnloadSandbox(listeners);
@@ -68,7 +65,6 @@ export default class Sandbox extends SandboxBase {
         const cookieSandbox         = new CookieSandbox(messageSandbox, unloadSandbox, childWindowSandbox);
 
         // API
-        this.ieDebug             = ieDebugSandbox;
         this.cookie              = cookieSandbox; // eslint-disable-line no-restricted-properties
         this.childWindow         = childWindowSandbox;
         this.storageSandbox      = new StorageSandbox(listeners, unloadSandbox, eventSimulator);
@@ -90,20 +86,6 @@ export default class Sandbox extends SandboxBase {
         this.windowStorage = windowStorage;
     }
 
-    // NOTE: In some cases, IE raises the "Can't execute code from a freed script" exception,
-    // so that we cannot use a sandbox created earlier and we have to create a new one.
-    private static _canUseSandbox (sandbox: Sandbox): boolean {
-        try {
-            //@ts-ignore
-            sandbox.off();
-        }
-        catch (e) {
-            return false;
-        }
-
-        return true;
-    }
-
     onIframeDocumentRecreated (iframe: HTMLFrameElement | HTMLIFrameElement): void {
         if (iframe) {
             const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
@@ -112,7 +94,7 @@ export default class Sandbox extends SandboxBase {
             // NOTE: Try to find an existing iframe sandbox.
             const sandbox = getSandboxBackup(contentWindow);
 
-            if (sandbox && Sandbox._canUseSandbox(sandbox)) {
+            if (sandbox) {
                 if (!contentWindow[INTERNAL_PROPS.sandboxIsReattached] || sandbox.document !== contentDocument) {
                     // NOTE: Inform the sandbox so that it restores communication with the recreated document.
                     sandbox.reattach(contentWindow, contentDocument);
@@ -126,7 +108,6 @@ export default class Sandbox extends SandboxBase {
                 // NOTE: If the iframe sandbox is not found, this means that iframe is not initialized.
                 // In this case, we need to inject Hammerhead.
 
-                // HACK: IE10 cleans up overridden methods after the document.write method call.
                 this.nativeMethods.restoreDocumentMeths(contentWindow, contentDocument);
 
                 // NOTE: A sandbox for this iframe is not found (iframe is not yet initialized).
@@ -138,10 +119,6 @@ export default class Sandbox extends SandboxBase {
 
     reattach (window: Window & typeof globalThis, document: Document): void {
         nativeMethods.objectDefineProperty(window, INTERNAL_PROPS.sandboxIsReattached, { value: true, configurable: false });
-
-        // NOTE: Assign the existing sandbox to the cleared document.
-        if (isIE)
-            this.nativeMethods.refreshIfNecessary(document, window);
 
         urlResolver.init(document);
 
@@ -170,7 +147,6 @@ export default class Sandbox extends SandboxBase {
         // NOTE: We need to reattach a sandbox to the recreated iframe document.
         this.node.mutation.on(this.node.mutation.DOCUMENT_CLEANED_EVENT, e => this.reattach(e.window, e.document));
 
-        this.ieDebug.attach(window);
         this.iframe.attach(window);
         this.xhr.attach(window);
         this.fetch.attach(window);
