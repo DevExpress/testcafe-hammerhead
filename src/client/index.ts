@@ -311,8 +311,12 @@ class Hammerhead {
         if (!navigationUrl)
             return;
 
-        // @ts-ignore
-        this.win.location = navigationUrl;
+        // eslint-disable-next-line no-restricted-properties
+        if (forceReload && this.win.location.href === navigationUrl)
+            this.win.location.reload();
+        else
+            // @ts-ignore
+            this.win.location = navigationUrl;
 
         if (forceReload) {
             this.sandbox.node.win.on(this.sandbox.node.win.HASH_CHANGE_EVENT, () => {
