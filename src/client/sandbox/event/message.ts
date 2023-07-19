@@ -200,10 +200,7 @@ export default class MessageSandbox extends SandboxBase {
     private overrideOnmessageInWindow () {
         const window = this.window;
 
-        // @ts-ignore
-        const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;
-
-        overrideDescriptor(eventPropsOwner, 'onmessage', {
+        overrideDescriptor(window, 'onmessage', {
             getter: () => this.storedOnMessageHandler,
             setter: handler => {
                 this.storedOnMessageHandler = isFunction(handler) ? handler : null;
