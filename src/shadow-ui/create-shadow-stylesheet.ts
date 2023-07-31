@@ -1,13 +1,13 @@
 import {
     default as css,
-    Rule,
-    Comment,
-    AtRule,
-    Document,
-    Host,
-    Media,
-    Supports,
-} from 'css';
+    CssRuleAST,
+    CssCommentAST,
+    CssAtRuleAST,
+    CssDocumentAST,
+    CssHostAST,
+    CssMediaAST,
+    CssSupportsAST,
+} from '@adobe/css-tools';
 
 import SHADOW_UI_CLASS_NAME from './class-name';
 
@@ -18,15 +18,15 @@ function transformSelector (selector: string): string {
     return selector.replace(ID_OR_CLASS_RE, ADD_POSTFIX_REPLACEMENT);
 }
 
-function addUIClassPostfix (rules: Rule[]|Comment[]|AtRule[]): void {
+function addUIClassPostfix (rules: CssRuleAST[]|CssCommentAST[]|CssAtRuleAST[]): void {
     for (const node of rules) {
         if (node.type === 'rule') {
-            const rule = node as Rule;
+            const rule = node as CssRuleAST;
 
             rule.selectors = rule.selectors && rule.selectors.map(transformSelector);
         }
 
-        const nodeWithRules = node as Document|Host|Media|Supports;
+        const nodeWithRules = node as CssDocumentAST|CssHostAST|CssMediaAST|CssSupportsAST;
 
         if (nodeWithRules.rules)
             addUIClassPostfix(nodeWithRules.rules);

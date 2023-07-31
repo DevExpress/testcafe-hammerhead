@@ -15,11 +15,11 @@
     "url": "git+https://github.com/DevExpress/testcafe-hammerhead.git"
   },
   "dependencies": {
+    "@adobe/css-tools": "^4.3.0-rc.1",
     "@electron/asar": "^3.2.3",
     "acorn-hammerhead": "0.6.2",
     "bowser": "1.6.0",
     "crypto-md5": "^1.0.0",
-    "css": "2.2.3",
     "debug": "4.3.1",
     "esotope-hammerhead": "0.6.4",
     "http-cache-semantics": "^4.1.0",
@@ -44,7 +44,6 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.1.0",
     "@rollup/plugin-node-resolve": "^11.1.1",
-    "@types/css": "0.0.31",
     "@types/estree": "0.0.46",
     "@types/lodash": "^4.14.129",
     "@types/lru-cache": "5.1.0",
