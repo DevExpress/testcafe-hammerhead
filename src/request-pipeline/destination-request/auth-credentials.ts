@@ -19,7 +19,7 @@ function getAuthMethName (res) {
 
 function addBasicReqInfo (credentials, reqOptions) {
     const authReqStr    = credentials.username + ':' + credentials.password;
-    const authReqHeader = 'Basic ' + new Buffer(authReqStr).toString('base64');
+    const authReqHeader = 'Basic ' + Buffer.from(authReqStr).toString('base64');
 
     reqOptions.headers['Authorization'] = authReqHeader;
 }

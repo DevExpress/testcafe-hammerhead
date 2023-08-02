@@ -2,7 +2,7 @@
 // WARNING: this file is used by both the client and the server.
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
-import { ASTNode } from 'parse5';
+import { Node } from 'parse5/dist/tree-adapters/default';
 
 export default abstract class BaseDomAdapter {
     EVENTS: string[] = ['onblur', 'onchange', 'onclick', 'oncontextmenu', 'oncopy', 'oncut',
@@ -16,24 +16,24 @@ export default abstract class BaseDomAdapter {
         'onmspointerout', 'onmspointerenter', 'onmspointerleave', 'onmsgotpointercapture', 'onmslostpointercapture',
     ];
 
-    abstract removeAttr (el: HTMLElement | ASTNode, attr: string): void;
-    abstract getAttr (el: HTMLElement | ASTNode, attr: string): string | null;
-    abstract hasAttr (el: HTMLElement | ASTNode, attr: string): boolean;
-    abstract isSVGElement (el: HTMLElement | ASTNode): boolean;
-    abstract hasEventHandler (el: HTMLElement | ASTNode): boolean;
-    abstract getTagName (el: Element | ASTNode): string;
-    abstract setAttr (el: HTMLElement | ASTNode, attr: string, value: string): void;
-    abstract setScriptContent (el: HTMLElement | ASTNode, content: string): void;
-    abstract getScriptContent (el: HTMLElement | ASTNode): string;
-    abstract getStyleContent (el: HTMLElement | ASTNode): string;
-    abstract setStyleContent (el: HTMLElement | ASTNode, content: string): void;
-    abstract needToProcessContent (el: HTMLElement | ASTNode): boolean;
+    abstract removeAttr (el: HTMLElement | Node, attr: string): void;
+    abstract getAttr (el: HTMLElement | Node, attr: string): string | null;
+    abstract hasAttr (el: HTMLElement | Node, attr: string): boolean;
+    abstract isSVGElement (el: HTMLElement | Node): boolean;
+    abstract hasEventHandler (el: HTMLElement | Node): boolean;
+    abstract getTagName (el: Element | Node): string;
+    abstract setAttr (el: HTMLElement | Node, attr: string, value: string): void;
+    abstract setScriptContent (el: HTMLElement | Node, content: string): void;
+    abstract getScriptContent (el: HTMLElement | Node): string;
+    abstract getStyleContent (el: HTMLElement | Node): string;
+    abstract setStyleContent (el: HTMLElement | Node, content: string): void;
+    abstract needToProcessContent (el: HTMLElement | Node): boolean;
     abstract needToProcessUrl (tagName: string, target: string): boolean;
-    abstract hasIframeParent (el: HTMLElement | ASTNode): boolean;
+    abstract hasIframeParent (el: HTMLElement | Node): boolean;
     abstract getProxyUrl (resourceUrl: string, opts: object): string;
-    abstract isTopParentIframe (el: HTMLElement | ASTNode): boolean;
+    abstract isTopParentIframe (el: HTMLElement | Node): boolean;
     abstract sameOriginCheck (destUrl: string, resourceUrl: string): boolean;
-    abstract getClassName (el: Element | ASTNode): string;
-    abstract isExistingTarget (target: string, el?: HTMLElement | ASTNode): boolean;
+    abstract getClassName (el: Element | Node): string;
+    abstract isExistingTarget (target: string, el?: HTMLElement | Node): boolean;
     abstract processSrcdocAttr (string: string): string;
 }
