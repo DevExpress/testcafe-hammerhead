@@ -29,7 +29,7 @@ import {
 } from './attributes';
 
 import BaseDomAdapter from './base-dom-adapter';
-import { Node, Element } from 'parse5/dist/tree-adapters/default';
+import { Node } from 'parse5/dist/tree-adapters/default';
 
 const CDATA_REG_EX                       = /^(\s)*\/\/<!\[CDATA\[([\s\S]*)\/\/\]\]>(\s)*$/;
 const HTML_COMMENT_POSTFIX_REG_EX        = /(\/\/[^\n]*|\n\s*)-->[^\n]*([\n\s]*)?$/;
