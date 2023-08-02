@@ -4,7 +4,12 @@ import * as urlUtils from '../../utils/url';
 import * as parse5Utils from '../../utils/parse5';
 import { SVG_NAMESPACE } from './namespaces';
 import DomProcessor from './index';
-import { ASTNode } from 'parse5';
+import {
+    Node,
+    Element,
+    ChildNode,
+    TextNode,
+} from 'parse5/dist/tree-adapters/default';
 import pageProcessor from '../resources/page';
 import Charset from '../encoding/charset';
 import RequestPipelineContext from '../../request-pipeline/context';
@@ -17,27 +22,27 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
         super();
     }
 
-    removeAttr (el: ASTNode, attr: string): void {
+    removeAttr (el: Element, attr: string): void {
         parse5Utils.removeAttr(el, attr);
     }
 
-    getAttr (el: ASTNode, attr: string): string | null {
+    getAttr (el: Node, attr: string): string | null {
         return parse5Utils.getAttr(el, attr);
     }
 
-    getClassName (el: ASTNode): string {
+    getClassName (el: Node): string {
         return this.getAttr(el, 'class') || '';
     }
 
-    hasAttr (el: ASTNode, attr: string): boolean {
+    hasAttr (el: Node, attr: string): boolean {
         return this.getAttr(el, attr) !== null;
     }
 
-    isSVGElement (el: ASTNode): boolean {
+    isSVGElement (el: Element): boolean {
         return el.namespaceURI === SVG_NAMESPACE;
     }
 
-    hasEventHandler (el: ASTNode): boolean {
+    hasEventHandler (el: Element): boolean {
         for (let i = 0; i < el.attrs.length; i++) {
             if (this.EVENTS.includes(el.attrs[i].name))
                 return true;
@@ -46,28 +51,28 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
         return false;
     }
 
-    getTagName (el: ASTNode): string {
+    getTagName (el: Element): string {
         return (el.tagName || '').toLowerCase();
     }
 
-    setAttr (el: ASTNode, attr: string, value: string) {
+    setAttr (el: Element, attr: string, value: string) {
         return parse5Utils.setAttr(el, attr, value);
     }
 
-    setScriptContent (script: ASTNode, content: string): void {
-        script.childNodes = [parse5Utils.createTextNode(content, script)];
+    setScriptContent (script: Element, content: string): void {
+        script.childNodes = [parse5Utils.createTextNode(content, script) as ChildNode];
     }
 
-    getScriptContent (script: ASTNode): string {
-        return script.childNodes?.[0]?.value || '';
+    getScriptContent (script: Element): string {
+        return (script.childNodes?.[0] as TextNode)?.value || '';
     }
 
-    getStyleContent (style: ASTNode): string {
-        return style.childNodes?.[0]?.value || '';
+    getStyleContent (style: Element): string {
+        return (style.childNodes?.[0] as TextNode)?.value || '';
     }
 
-    setStyleContent (style: ASTNode, content: string): void {
-        style.childNodes = [parse5Utils.createTextNode(content, style)];
+    setStyleContent (style: Element, content: string): void {
+        style.childNodes = [parse5Utils.createTextNode(content, style) as ChildNode];
     }
 
     needToProcessContent (): boolean {
@@ -94,9 +99,9 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
         return urlUtils.sameOriginCheck(location, checkedUrl);
     }
 
-    isExistingTarget (target: string, el: ASTNode): boolean {
+    isExistingTarget (target: string, el: Element): boolean {
         while (el.parentNode)
-            el = el.parentNode;
+            el = el.parentNode as Element;
 
         return !!parse5Utils.findElement(el, e => this.getAttr(e, 'name') === target);
     }

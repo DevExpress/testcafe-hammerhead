@@ -394,15 +394,19 @@ describe('Proxy', () => {
         });
 
         it('Should pass DNS errors to session', done => {
+            const UNRESOLVABLE_URL = 'http://www.some-unresolvable.url/';
+
             session.handlePageError = (ctx, err) => {
-                expect(err).eql('Failed to find a DNS-record for the resource at <a href="http://www.some-unresolvable.url/">http://www.some-unresolvable.url/</a>.');
+                expect(err).eql(`Failed to find a DNS-record for the resource at <a href="${UNRESOLVABLE_URL}">${UNRESOLVABLE_URL}</a>.`);
+
                 ctx.res.end();
                 done();
+
                 return true;
             };
 
             const options = {
-                url:     proxy.openSession('http://www.some-unresolvable.url', session),
+                url:     proxy.openSession(UNRESOLVABLE_URL, session),
                 headers: {
                     accept: PAGE_ACCEPT_HEADER,
                 },

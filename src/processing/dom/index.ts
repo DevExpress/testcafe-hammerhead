@@ -29,7 +29,7 @@ import {
 } from './attributes';
 
 import BaseDomAdapter from './base-dom-adapter';
-import { ASTNode } from 'parse5';
+import { Node, Element } from 'parse5/dist/tree-adapters/default';
 
 const CDATA_REG_EX                       = /^(\s)*\/\/<!\[CDATA\[([\s\S]*)\/\/\]\]>(\s)*$/;
 const HTML_COMMENT_POSTFIX_REG_EX        = /(\/\/[^\n]*|\n\s*)-->[^\n]*([\n\s]*)?$/;
@@ -137,7 +137,7 @@ export default class DomProcessor {
         el[ELEMENT_PROCESSED] = processed;
     }
 
-    _getRelAttribute (el: HTMLElement | ASTNode): string {
+    _getRelAttribute (el: HTMLElement | Node): string {
         return String(this.adapter.getAttr(el, 'rel')).toLowerCase();
     }
 
@@ -350,7 +350,7 @@ export default class DomProcessor {
         return null;
     }
 
-    getTargetAttr (el: Element | ASTNode): string | null {
+    getTargetAttr (el: Element | Node): string | null {
         const tagName = this.adapter.getTagName(el);
 
         for (const targetAttr of TARGET_ATTRS) {
@@ -362,9 +362,9 @@ export default class DomProcessor {
         return null;
     }
 
-    _isOpenLinkInIframe (el: HTMLElement | ASTNode): boolean {
+    _isOpenLinkInIframe (el: HTMLElement | Node): boolean {
         const tagName    = this.adapter.getTagName(el);
-        const targetAttr = this.getTargetAttr(el);
+        const targetAttr = this.getTargetAttr(el as Node);
         const target     = targetAttr ? this.adapter.getAttr(el, targetAttr) : null;
         const rel        = this._getRelAttribute(el);
 
