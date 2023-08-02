@@ -66,7 +66,6 @@ interface ElementProcessingPattern {
 type UrlReplacer = (url: string, resourceType?: string, charset?: string, isCrossDomain?: boolean, isUrlsSet?: boolean) => string;
 
 export default class DomProcessor {
-    readonly HTML_PROCESSING_REQUIRED_EVENT = 'hammerhead|event|html-processing-required';
     SVG_XLINK_HREF_TAGS: string[] = SVG_XLINK_HREF_TAGS;
     AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER = AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
     PROCESSED_PRELOAD_LINK_CONTENT_TYPE = PROCESSED_PRELOAD_LINK_CONTENT_TYPE;
