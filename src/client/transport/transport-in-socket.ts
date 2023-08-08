@@ -1,5 +1,5 @@
 import TransportBase from './transport-base';
-import { ServiceMessage, WebSocketServiceMessage } from '../../typings/proxy';
+import { WebSocketServiceMessage } from '../../typings/proxy';
 import Promise from 'pinkie';
 import settings from '../settings';
 import { parse, stringify } from '../../utils/json';
@@ -63,7 +63,7 @@ export default class TransportInSocket extends TransportBase {
             };
 
             msg.sessionId = settings.get().sessionId;
-            msg.id = id;
+            msg.id        = id;
 
             if (this._shouldAddReferer)
                 msg.referer = settings.get().referer;
