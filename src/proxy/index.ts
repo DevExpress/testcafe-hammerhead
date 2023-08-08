@@ -7,6 +7,7 @@ import Router from './router';
 import {
     StaticContent,
     ServiceMessage,
+    WebSocketServiceMessage,
     ServerInfo,
     ProxyOptions,
     RouterOptions,
@@ -39,7 +40,7 @@ import nodeWebSocket from 'ws';
 
 const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
 
-function parseAsJson (msg: Buffer): ServiceMessage | null {
+function parseAsJson (msg: Buffer): ServiceMessage | WebSocketServiceMessage | null {
     try {
         return parseJSON(msg.toString());
     }
@@ -197,7 +198,8 @@ export default class Proxy extends Router {
     }
 
     async _onServiceWebSocketMessage (ws, data, serverInfo): Promise<void> {
-        const msg     = parseAsJson(data);
+        const msg     = parseAsJson(data) as WebSocketServiceMessage;
+        const id      = msg && msg.id;
         const session = msg && this.openSessions.get(msg.sessionId);
 
         if (msg && session) {
@@ -206,16 +208,16 @@ export default class Proxy extends Router {
 
                 logger.serviceMsg.onMessage(msg, result);
 
-                ws.send(JSON.stringify(result));
+                ws.send(JSON.stringify({ result, id }));
             }
             catch (err) {
                 logger.serviceMsg.onError(msg, err);
 
-                ws.send(errToString(err));
+                ws.send(JSON.stringify({ result: errToString(err), id }));
             }
         }
         else
-            ws.send(SESSION_IS_NOT_OPENED_ERR);
+            ws.send(JSON.stringify({ result: SESSION_IS_NOT_OPENED_ERR, id }));
     }
 
     _onServiceMessagePreflight (_req: http.IncomingMessage, res: http.ServerResponse): void {

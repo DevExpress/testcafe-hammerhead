@@ -1,12 +1,14 @@
 import TransportBase from './transport-base';
-import { ServiceMessage } from '../../typings/proxy';
+import { ServiceMessage, WebSocketServiceMessage } from '../../typings/proxy';
 import Promise from 'pinkie';
 import settings from '../settings';
 import { parse, stringify } from '../../utils/json';
 import nativeMethods from '../sandbox/native-methods';
+import IntegerIdGenerator from '../utils/integer-id-generator';
 
 export default class TransportInSocket extends TransportBase {
     private socket: WebSocket;
+    private readonly _idGenerator = new IntegerIdGenerator();
 
     constructor () {
         super();
@@ -18,17 +20,23 @@ export default class TransportInSocket extends TransportBase {
         // NOTE: There is no special logic here.
     }
 
-    public queuedAsyncServiceMsg (msg: ServiceMessage): Promise<any> {
+    public queuedAsyncServiceMsg (msg: WebSocketServiceMessage): Promise<any> {
         return this.asyncServiceMsg(msg);
     }
 
-    public asyncServiceMsg (msg: ServiceMessage): Promise<any> {
+    public asyncServiceMsg (msg: WebSocketServiceMessage): Promise<any> {
+        const id = this._idGenerator.increment();
+
         return new Promise((resolve, reject) => {
             const handleMessage = (event) => {
-                cleanListeners();
                 this._activeServiceMsgCount--;
 
-                resolve(parse(event.data));
+                const data = parse(event.data);
+
+                if (data.id === id) {
+                    cleanListeners();
+                    resolve(data.result);
+                }
             };
 
             const handleError = (error) => {
@@ -55,6 +63,7 @@ export default class TransportInSocket extends TransportBase {
             };
 
             msg.sessionId = settings.get().sessionId;
+            msg.id = id;
 
             if (this._shouldAddReferer)
                 msg.referer = settings.get().referer;
