@@ -354,7 +354,7 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     getCorrectedTarget (target = ''): string {
-        if (settings.get().allowMultipleWindows)
+        if (settings.canOpenNewWindow)
             return target;
 
         if (target && !isKeywordTarget(target) && !windowsStorage.findByName(target) ||

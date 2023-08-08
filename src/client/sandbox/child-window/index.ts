@@ -82,7 +82,7 @@ export default class ChildWindowSandbox extends SandboxBase {
     }
 
     handleClickOnLinkOrArea (el: HTMLLinkElement | HTMLAreaElement): void {
-        if (!settings.get().allowMultipleWindows)
+        if (!settings.canOpenNewWindow)
             return;
 
         this._listeners.initElementListening(el, ['click']);
@@ -136,7 +136,7 @@ export default class ChildWindowSandbox extends SandboxBase {
     handleWindowOpen (window: Window, args: [string?, string?, string?, boolean?]): Window {
         const [url, target, parameters] = args;
 
-        if (settings.get().allowMultipleWindows && ChildWindowSandbox._shouldOpenInNewWindow(target, DefaultTarget.windowOpen)) {
+        if (settings.canOpenNewWindow && ChildWindowSandbox._shouldOpenInNewWindow(target, DefaultTarget.windowOpen)) {
             const openedWindowInfo = this._openUrlInNewWindow(url, target, parameters, window);
 
             return openedWindowInfo?.wnd;
@@ -151,7 +151,7 @@ export default class ChildWindowSandbox extends SandboxBase {
     }
 
     _handleFormSubmitting (window: Window): void {
-        if (!settings.get().allowMultipleWindows)
+        if (!settings.canOpenNewWindow)
             return;
 
         this._listeners.initElementListening(window, ['submit']);
