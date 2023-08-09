@@ -39,7 +39,7 @@ export default class UploadSandbox extends SandboxBase {
     static _getCurrentInfoManager (input: HTMLInputElement) {
         const contextWindow = input[INTERNAL_PROPS.processedContext];
 
-        return getSandboxBackup(contextWindow).upload.infoManager;
+        return contextWindow && getSandboxBackup(contextWindow).upload.infoManager;
     }
 
     /*eslint-disable max-nested-callbacks */
@@ -97,7 +97,9 @@ export default class UploadSandbox extends SandboxBase {
     }
 
     static getUploadElementValue (input: HTMLInputElement) {
-        return UploadSandbox._getCurrentInfoManager(input).getValue(input);
+        const infoManager = UploadSandbox._getCurrentInfoManager(input);
+
+        return infoManager ? infoManager.getValue(input) : '';
     }
 
     setUploadElementValue (input: HTMLInputElement, value: string): void {
