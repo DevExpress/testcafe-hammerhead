@@ -57,6 +57,56 @@ test('window.open', function () {
     settings.get().allowMultipleWindows = false;
 });
 
+test('window.open. Native Automation. Multiple windows are disabled', function () {
+    settings.get().nativeAutomation = true;
+
+    var storedOpenUrlInNewWindow = windowSandbox._childWindowSandbox._openUrlInNewWindow;
+    var handled = false;
+
+    windowSandbox._childWindowSandbox._openUrlInNewWindow = function (url, target) {
+        handled = true;
+
+        strictEqual(target, '_blank');
+    };
+
+    window.open('/test');
+
+    windowSandbox._childWindowSandbox._openUrlInNewWindow = storedOpenUrlInNewWindow;
+
+    settings.get().nativeAutomation = false;
+
+    strictEqual(handled, true);
+});
+
+test('Should open a new window in Native Automation by clicking a link', function () {
+    settings.get().nativeAutomation = true;
+
+    var storedOpenUrlInNewWindow = windowSandbox._childWindowSandbox._openUrlInNewWindow;
+    var handled = false;
+
+    hammerhead.sandbox.childWindow._openUrlInNewWindow = function () {
+        handled = true;
+    };
+
+    var link  = document.createElement('a');
+
+    link.innerText = 'link';
+    link.href      = 'http://example.com';
+    link.target    = '_blank';
+
+    document.body.appendChild(link);
+
+    nativeMethods.click.call(link);
+
+    windowSandbox._childWindowSandbox._openUrlInNewWindow = storedOpenUrlInNewWindow;
+
+    settings.get().nativeAutomation = false;
+
+    document.body.removeChild(link);
+
+    strictEqual(handled, true);
+});
+
 test('open child window considering base element', function () {
     settings.get().allowMultipleWindows = true;
 

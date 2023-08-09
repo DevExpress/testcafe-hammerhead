@@ -284,6 +284,7 @@ export default class WindowSandbox extends SandboxBase {
         this.overrideNextSiblingInMutationRecord();
         this.overridePreviousSiblingInMutationRecord();
         this.overrideValueInHTMLInputElement();
+        this.overrideOpenInWindow();
 
         if (settings.nativeAutomation)
             return;
@@ -295,8 +296,6 @@ export default class WindowSandbox extends SandboxBase {
 
         if (nativeMethods.objectAssign)
             this.overrideAssignInObject();
-
-        this.overrideOpenInWindow();
 
         if (window.FontFace)
             this.overrideFontFaceInWindow();
@@ -587,7 +586,7 @@ export default class WindowSandbox extends SandboxBase {
         if (originTarget)
             return this.nodeSandbox.element.getCorrectedTarget(String(originTarget));
 
-        return settings.get().allowMultipleWindows ? DefaultTarget.windowOpen : '_self';
+        return settings.canOpenNewWindow ? DefaultTarget.windowOpen : '_self';
     }
 
     private overrideFontFaceInWindow () {

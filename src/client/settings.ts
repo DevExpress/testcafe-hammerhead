@@ -33,6 +33,10 @@ class Settings {
     get nativeAutomation () {
         return this._settings.nativeAutomation;
     }
+
+    get canOpenNewWindow () {
+        return this._settings.nativeAutomation || this._settings.allowMultipleWindows;
+    }
 }
 
 const settings = new Settings();
