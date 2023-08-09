@@ -116,7 +116,7 @@ export default class UploadInfoManager {
         return null;
     }
 
-    getValue (input) {
+    getValue (input: HTMLInputElement) {
         const inputInfo = this.getUploadInfo(input);
 
         // eslint-disable-next-line no-restricted-properties

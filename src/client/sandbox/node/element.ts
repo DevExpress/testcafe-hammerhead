@@ -1005,7 +1005,7 @@ export default class ElementSandbox extends SandboxBase {
         domProcessor.processElement(el, urlUtils.convertToProxyUrl);
     }
 
-    addFileInputInfo (el: HTMLElement): void {
+    addFileInputInfo (el: HTMLInputElement): void {
         const infoManager = this._uploadSandbox.infoManager;
         const files       = infoManager.getFiles(el);
 

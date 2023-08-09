@@ -45,9 +45,6 @@ const WRAP_DOCTYPE_RE       = /<!doctype([^>]*)>/ig;
 const WRAP_DOCTYPE_TEMPLATE = `<${ FAKE_DOCTYPE_TAG_NAME }>$1</${ FAKE_DOCTYPE_TAG_NAME }>`;
 const UNWRAP_DOCTYPE_RE     = new RegExp(`<${ FAKE_DOCTYPE_TAG_NAME }>([\\S\\s]*?)</${ FAKE_DOCTYPE_TAG_NAME }>`, 'ig');
 
-const FIND_SVG_RE      = /<svg\s?[^>]*>/ig;
-const FIND_NS_ATTRS_RE = /\s(?:NS[0-9]+:[^"']+('|")[\S\s]*?\1|[^:]+:NS[0-9]+=(?:""|''))/g;
-
 const STORED_ATTRS_SELECTOR = (() => {
     const storedAttrs = [];
 
