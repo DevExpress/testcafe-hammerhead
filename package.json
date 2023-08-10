@@ -71,7 +71,7 @@
     "gulp-clone": "^2.0.1",
     "gulp-eslint": "^6.0.0",
     "gulp-ll-next": "^2.1.0",
-    "gulp-mocha-simple": "^1.1.0",
+    "gulp-mocha-simple": "^2.0.0",
     "gulp-mustache": "^3.0.1",
     "gulp-qunit-harness": "^1.0.3",
     "gulp-rename": "^1.2.2",
