@@ -394,7 +394,7 @@ export function correctMultipleSlashes (url: string, pageProtocol = ''): string 
     // "file://C:/document.txt" -> "file:///C:/document.txt"
     if (url.match(FILE_RE) || pageProtocol.match(FILE_RE)) {
         return url
-            .replace(/^(file:)?\/+(\/\/\/.*$)/i, '$1$2')
+            .replace(/^(file:)?\/{1,100}(\/\/\/.*$)/i, '$1$2')
             .replace(/^(file:)?\/*([A-Za-z]):/i, '$1///$2:');
     }
 
