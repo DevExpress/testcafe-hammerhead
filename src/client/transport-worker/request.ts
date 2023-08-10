@@ -1,5 +1,6 @@
 import { ServiceMessage } from '../../typings/proxy';
 import BUILTIN_HEADERS from '../../request-pipeline/builtin-header-names';
+import { getLocation } from '../utils/destination-location';
 interface RequestContext {
     url: string;
     msg: ServiceMessage;
@@ -48,10 +49,15 @@ function handleEvent (this: RequestContext, e: ProgressEvent) {
 }
 
 export default function request (url: string, msg: ServiceMessage, callback: RequestContext['callback']) {
+    const location    = getLocation();
+    const locationUrl = new URL(location);
+    const requestUrl  = new URL(url, location);
+
     const xhr                 = new XMLHttpRequest();
     const ctx: RequestContext = { url, msg, callback, handleEvent };
 
-    xhr.open('POST', url, true);
+    // eslint-disable-next-line no-restricted-properties
+    xhr.open('POST', locationUrl.origin + requestUrl.pathname, true);
     xhr.setRequestHeader(BUILTIN_HEADERS.cacheControl, 'no-cache, no-store, must-revalidate');
 
     xhr.addEventListener('load', ctx);
