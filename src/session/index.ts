@@ -97,7 +97,7 @@ export default abstract class Session extends EventEmitter {
         this.cookies                  = this.createCookies();
         this.requestHookEventProvider = new RequestHookEventProvider();
 
-        if (!options?.nativeAutomation)
+        if (!this.options.nativeAutomation)
             this.injectable.scripts.push(...SCRIPTS);
     }
 

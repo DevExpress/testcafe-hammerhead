@@ -29,14 +29,14 @@ export default class TransportInSocket extends TransportBase {
 
         return new Promise((resolve, reject) => {
             const handleMessage = (event) => {
-                this._activeServiceMsgCount--;
-
                 const data = parse(event.data);
 
-                if (data.id === id) {
-                    cleanListeners();
-                    resolve(data.result);
-                }
+                if (data.id !== id)
+                    return;
+
+                this._activeServiceMsgCount--;
+                cleanListeners();
+                resolve(data.result);
             };
 
             const handleError = (error) => {
