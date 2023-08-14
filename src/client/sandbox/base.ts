@@ -33,4 +33,8 @@ export default class SandboxBase extends EventEmitter {
         this.window           = window;
         this.document         = document || window.document;
     }
+
+    attachWindow (window: Window & typeof globalThis): void {
+        this.window = window;
+    }
 }

@@ -341,6 +341,7 @@ class Hammerhead {
 
         Hammerhead._setNativeAutomationForComponents(initSettings.nativeAutomation);
 
+        this.eventSandbox.message.attachWindow(this.win);
         this.transport.start(this.eventSandbox.message, !initSettings.nativeAutomation);
         this.sandbox.attach(this.win);
         this.pageNavigationWatch.start();
