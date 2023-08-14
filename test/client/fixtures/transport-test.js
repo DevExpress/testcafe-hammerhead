@@ -1,5 +1,4 @@
 var settings     = hammerhead.settings;
-var listeningCtx = hammerhead.sandboxUtils.listeningContext;
 
 var Promise       = hammerhead.Promise;
 var browserUtils  = hammerhead.utils.browser;
@@ -232,29 +231,11 @@ test('should use worker from top window for transport', function () {
 });
 
 test('should send queued messages', function () {
-    var msgEventCtx     = listeningCtx.getEventCtx(window, 'message');
-    var storedEventObj  = null;
     var iframeTransport = null;
-
-    msgEventCtx.internalBeforeHandlers.unshift(function (e, flag, preventEvent) {
-        var msgData = e.toString() === '[object MessageEvent]' ? nativeMethods.messageEventDataGetter.call(e) : e.data;
-
-        if (msgData.message.cmd !== 'hammerhead|command|get-message-port')
-            return;
-
-        storedEventObj = e;
-        msgEventCtx.internalBeforeHandlers.shift();
-        preventEvent();
-    });
 
     return createTestIframe()
         .then(function (iframe) {
             iframeTransport = iframe.contentWindow['%hammerhead%'].transport;
-        })
-        .then(function () {
-            return window.QUnitGlobals.wait(function () {
-                return storedEventObj;
-            }, 5000);
         })
         .then(function () {
             strictEqual(iframeTransport._implementation._transportWorker, null);
@@ -265,8 +246,6 @@ test('should send queued messages', function () {
             strictEqual(iframeTransport._implementation._queue.length, 1);
             strictEqual(iframeTransport._implementation._queue[0].queued, false);
             strictEqual(iframeTransport._implementation._queue[0].msg.test, 'me');
-
-            msgEventCtx.internalBeforeHandlers[0].call(window, storedEventObj);
 
             return msgPromise;
         })
