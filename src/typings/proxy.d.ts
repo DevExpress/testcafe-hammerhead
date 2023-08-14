@@ -16,6 +16,10 @@ export interface ServiceMessage {
     referer?: string;
 }
 
+export interface WebSocketServiceMessage extends ServiceMessage{
+    id?: number;
+}
+
 export interface StaticContent {
     content: string | Buffer;
     contentType: string;

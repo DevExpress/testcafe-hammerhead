@@ -71,6 +71,7 @@ interface SessionOptions {
     windowId: string;
     requestTimeout?: RequestTimeout;
     referer?: string;
+    nativeAutomation?: boolean;
 }
 
 export default abstract class Session extends EventEmitter {
@@ -81,7 +82,7 @@ export default abstract class Session extends EventEmitter {
     externalProxySettings: ExternalProxySettings | null = null;
     pageLoadCount = 0;
     pendingStateSnapshot: StateSnapshot | null = null;
-    injectable: InjectableResources = { scripts: [...SCRIPTS], styles: [], userScripts: [] };
+    injectable: InjectableResources = { scripts: [], styles: [], userScripts: [] };
     private _recordMode = false;
     options: SessionOptions;
     private _disableHttp2 = false;
@@ -95,6 +96,9 @@ export default abstract class Session extends EventEmitter {
         this.options                  = this._getOptions(options);
         this.cookies                  = this.createCookies();
         this.requestHookEventProvider = new RequestHookEventProvider();
+
+        if (!this.options.nativeAutomation)
+            this.injectable.scripts.push(...SCRIPTS);
     }
 
     private _getOptions (options: Partial<SessionOptions> = {}): SessionOptions {
