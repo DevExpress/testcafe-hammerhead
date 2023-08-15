@@ -29,9 +29,9 @@ import UploadSandbox from '../upload';
 import IframeSandbox from '../iframe';
 import EventSandbox from '../event';
 import ChildWindowSandbox from '../child-window';
-import isKeywordTarget from '../../../utils/is-keyword-target';
 import BUILTIN_HEADERS from '../../../request-pipeline/builtin-header-names';
 import toKebabCase from '../../utils/to-kebab-case';
+import getCorrectedTargetForSinglePageMode from '../../utils/get-corrected-target-for-single-page-mode';
 
 const RESTRICTED_META_HTTP_EQUIV_VALUES = [BUILTIN_HEADERS.refresh, BUILTIN_HEADERS.contentSecurityPolicy];
 
@@ -231,7 +231,7 @@ export default class ElementSandbox extends SandboxBase {
         else if (loweredAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName) ||
                  loweredAttr === 'formtarget' && DomProcessor.isTagWithFormTargetAttr(tagName)) {
             const currentTarget = nativeMethods.getAttribute.call(el, loweredAttr);
-            const newTarget     = this.getCorrectedTarget(value);
+            const newTarget     = getCorrectedTargetForSinglePageMode(value);
 
             if (newTarget !== currentTarget) {
                 const storedTargetAttr = DomProcessor.getStoredAttrName(attr);
@@ -351,17 +351,6 @@ export default class ElementSandbox extends SandboxBase {
             this.setAttributeCore(el, ['href', nativeMethods.getAttribute.call(el, 'href')]);
 
         return result;
-    }
-
-    getCorrectedTarget (target = ''): string {
-        if (settings.canOpenNewWindow)
-            return target;
-
-        if (target && !isKeywordTarget(target) && !windowsStorage.findByName(target) ||
-            /_blank/i.test(target))
-            return '_top';
-
-        return target;
     }
 
     private _hasAttributeCore (el: HTMLElement, args, isNs: boolean) {

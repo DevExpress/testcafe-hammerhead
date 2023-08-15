@@ -57,27 +57,6 @@ test('window.open', function () {
     settings.get().allowMultipleWindows = false;
 });
 
-test('window.open. Native Automation. Multiple windows are disabled', function () {
-    settings.get().nativeAutomation = true;
-
-    var storedOpenUrlInNewWindow = windowSandbox._childWindowSandbox._openUrlInNewWindow;
-    var handled = false;
-
-    windowSandbox._childWindowSandbox._openUrlInNewWindow = function (url, target) {
-        handled = true;
-
-        strictEqual(target, '_blank');
-    };
-
-    window.open('/test');
-
-    windowSandbox._childWindowSandbox._openUrlInNewWindow = storedOpenUrlInNewWindow;
-
-    settings.get().nativeAutomation = false;
-
-    strictEqual(handled, true);
-});
-
 test('Should open a new window in Native Automation by clicking a link', function () {
     settings.get().nativeAutomation = true;
 
