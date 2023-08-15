@@ -58,7 +58,8 @@ test('window.open', function () {
 });
 
 test('Should open a new window in Native Automation by clicking a link', function () {
-    settings.get().nativeAutomation = true;
+    settings.get().nativeAutomation     = true;
+    settings.get().allowMultipleWindows = true;
 
     var storedOpenUrlInNewWindow = windowSandbox._childWindowSandbox._openUrlInNewWindow;
     var handled = false;
@@ -79,7 +80,8 @@ test('Should open a new window in Native Automation by clicking a link', functio
 
     windowSandbox._childWindowSandbox._openUrlInNewWindow = storedOpenUrlInNewWindow;
 
-    settings.get().nativeAutomation = false;
+    settings.get().nativeAutomation     = false;
+    settings.get().allowMultipleWindows = false;
 
     document.body.removeChild(link);
 
