@@ -988,7 +988,7 @@ export default class ElementSandbox extends SandboxBase {
         if (!iframe.name)
             return;
 
-        const escapedIframeName  = iframe.name.replace(/"/g, '\\"');
+        const escapedIframeName  = iframe.name.replace(/("|\\)/g, '\\$1');
         const elementsWithTarget = nativeMethods.querySelectorAll.call(this.document, `*[target="${escapedIframeName}"]`);
 
         for (const el of elementsWithTarget)
