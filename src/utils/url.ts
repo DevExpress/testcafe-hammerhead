@@ -398,7 +398,7 @@ export function correctMultipleSlashes (url: string, pageProtocol = ''): string 
             .replace(/^(file:)?\/*([A-Za-z]):/i, '$1///$2:');
     }
 
-    return url.replace(/^(https?:)?\/+(\/\/.*$)/i, '$1$2');
+    return url.replace(/^(https?:)?\/{1,100}(\/\/.*$)/i, '$1$2');
 }
 
 export function processSpecialChars (url: string | URL): string {
