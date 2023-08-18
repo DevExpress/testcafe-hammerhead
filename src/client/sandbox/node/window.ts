@@ -77,7 +77,7 @@ import DefaultTarget from '../child-window/default-target';
 import { getNativeQuerySelectorAll } from '../../utils/query-selector';
 import DocumentTitleStorageInitializer from './document/title-storage-initializer';
 import { SET_SERVICE_WORKER_SETTINGS } from '../../worker/set-settings-command';
-
+import getCorrectedTargetForSinglePageMode from '../../utils/get-corrected-target-for-single-page-mode';
 
 type BlobProcessingSettings = {
     sessionId: string;
@@ -575,7 +575,7 @@ export default class WindowSandbox extends SandboxBase {
         const windowSandbox  = this;
 
         overrideFunction(this.window, 'open', function (...args: [string?, string?, string?, boolean?]) {
-            args[0] = getProxyUrl(args[0]);
+            args[0] = windowSandbox.getWindowOpenUrl(args[0]);
             args[1] = windowSandbox.getWindowOpenTarget(args[1]);
 
             return windowSandbox._childWindowSandbox.handleWindowOpen(windowSandbox.window, args);
@@ -584,9 +584,16 @@ export default class WindowSandbox extends SandboxBase {
 
     private getWindowOpenTarget (originTarget: string): string {
         if (originTarget)
-            return this.nodeSandbox.element.getCorrectedTarget(String(originTarget));
+            return getCorrectedTargetForSinglePageMode(String(originTarget));
 
-        return settings.canOpenNewWindow ? DefaultTarget.windowOpen : '_self';
+        return settings.get().allowMultipleWindows ? DefaultTarget.windowOpen : '_self';
+    }
+
+    private getWindowOpenUrl (originUrl: string): string {
+        if (settings.nativeAutomation)
+            return originUrl;
+
+        return getProxyUrl(originUrl);
     }
 
     private overrideFontFaceInWindow () {

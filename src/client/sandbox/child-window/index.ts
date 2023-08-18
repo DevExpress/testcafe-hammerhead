@@ -15,6 +15,8 @@ import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import getTopOpenerWindow from '../../utils/get-top-opener-window';
 import nextTick from '../../utils/next-tick';
 import { version, isSafari } from '../../utils/browser';
+import getCorrectedTargetForSinglePageMode from '../../utils/get-corrected-target-for-single-page-mode';
+
 
 const DEFAULT_WINDOW_PARAMETERS = 'width=500px, height=500px';
 const STORE_CHILD_WINDOW_CMD    = 'hammerhead|command|store-child-window';
@@ -57,7 +59,7 @@ export default class ChildWindowSandbox extends SandboxBase {
         windowParams = windowParams || DEFAULT_WINDOW_PARAMETERS;
         windowName   = windowName || windowId;
 
-        const newPageUrl                  = urlUtils.getPageProxyUrl(url, windowId);
+        const newPageUrl                  = settings.get().nativeAutomation ? url : urlUtils.getPageProxyUrl(url, windowId);
         const targetWindow                = window || this.window;
         const beforeWindowOpenedEventArgs = { isPrevented: false };
 
@@ -81,9 +83,30 @@ export default class ChildWindowSandbox extends SandboxBase {
         return el.target || base?.target;
     }
 
+    _handleClickOnLinkOrAreaInNativeAutomation (el: HTMLLinkElement | HTMLAreaElement): void {
+        this._listeners.initElementListening(el, ['click']);
+
+        this._listeners.addInternalEventAfterListener(el, ['click'], e => {
+            if (e.defaultPrevented)
+                return;
+
+            const isAnchor        = domUtils.isAnchorElement(el);
+            const targetGetter    = isAnchor ? nativeMethods.anchorTargetGetter : nativeMethods.areaTargetGetter;
+            const target          = targetGetter.call(el);
+            const correctedTarget = getCorrectedTargetForSinglePageMode(target);
+            const targetSetter    = isAnchor ? nativeMethods.anchorTargetSetter : nativeMethods.areaTargetSetter;
+
+            targetSetter.call(el, correctedTarget);
+        });
+    }
+
     handleClickOnLinkOrArea (el: HTMLLinkElement | HTMLAreaElement): void {
-        if (!settings.canOpenNewWindow)
+        if (!settings.get().allowMultipleWindows) {
+            if (settings.get().nativeAutomation)
+                this._handleClickOnLinkOrAreaInNativeAutomation(el);
+
             return;
+        }
 
         this._listeners.initElementListening(el, ['click']);
         this._listeners.addInternalEventAfterListener(el, ['click'], e => {
@@ -136,7 +159,7 @@ export default class ChildWindowSandbox extends SandboxBase {
     handleWindowOpen (window: Window, args: [string?, string?, string?, boolean?]): Window {
         const [url, target, parameters] = args;
 
-        if (settings.canOpenNewWindow && ChildWindowSandbox._shouldOpenInNewWindow(target, DefaultTarget.windowOpen)) {
+        if (settings.get().allowMultipleWindows && ChildWindowSandbox._shouldOpenInNewWindow(target, DefaultTarget.windowOpen)) {
             const openedWindowInfo = this._openUrlInNewWindow(url, target, parameters, window);
 
             return openedWindowInfo?.wnd;
@@ -150,9 +173,28 @@ export default class ChildWindowSandbox extends SandboxBase {
         return nativeMethods.windowOpen.apply(window, args);
     }
 
+    _handleFormSubmittingInNativeAutomation (window: Window): void {
+        this._listeners.initElementListening(window, ['submit']);
+        this._listeners.addInternalEventBeforeListener(window, ['submit'], (e: Event) => {
+            const form = nativeMethods.eventTargetGetter.call(e);
+
+            if (!domUtils.isFormElement(form))
+                return;
+
+            const formTarget      = nativeMethods.formTargetGetter.call(form);
+            const correctedTarget = getCorrectedTargetForSinglePageMode(formTarget);
+
+            nativeMethods.formTargetSetter.call(form, correctedTarget);
+        });
+    }
+
     _handleFormSubmitting (window: Window): void {
-        if (!settings.canOpenNewWindow)
+        if (!settings.get().allowMultipleWindows) {
+            if (settings.get().nativeAutomation)
+                this._handleFormSubmittingInNativeAutomation(window);
+
             return;
+        }
 
         this._listeners.initElementListening(window, ['submit']);
         this._listeners.addInternalEventBeforeListener(window, ['submit'], (e: Event) => {
