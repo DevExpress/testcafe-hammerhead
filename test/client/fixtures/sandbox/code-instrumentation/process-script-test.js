@@ -235,6 +235,16 @@ if (!browserUtils.isIOS) {
     });
 }
 
+if (!browserUtils.isSafari || browserUtils.version >= 16.4) {
+    test('static blocks', function () {
+        var script = `const {T:xc}={},Nc=class s{static{this.field="test"};}; window.output = Nc.field`;
+
+        eval(processScript(script));
+
+        strictEqual(window.output, 'test');
+    });
+}
+
 module('others');
 
 test('optional chaining', function () {
