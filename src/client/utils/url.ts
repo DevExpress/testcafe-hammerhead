@@ -19,9 +19,10 @@ export const DEFAULT_PROXY_SETTINGS = (function () {
     let proxyLocation  = locationWindow.location;
 
     while (!proxyLocation.hostname) {
-        // about:blank page in nativeAutomation mode
-        if (!globalContextInfo.isInWorker
-            && locationWindow === (locationWindow as Window).top)
+        const isAboutBlankPageInNativeAutomation = !globalContextInfo.isInWorker && locationWindow === (locationWindow as Window).top;
+        const isFileProtocolPageInNativeAutomation = proxyLocation.protocol === 'file:';
+
+        if (isAboutBlankPageInNativeAutomation || isFileProtocolPageInNativeAutomation)
             break;
 
         locationWindow = locationWindow.parent;
