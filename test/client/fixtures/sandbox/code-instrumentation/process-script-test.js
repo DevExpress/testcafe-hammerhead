@@ -270,12 +270,20 @@ test('optional chaining', function () {
             expected: void 0,
         },
         {
-            src:      'var obj = null; window.optionChainingResult = obj?.href?.["name"]?.();',
+            src:      'var obj = { href: "123" }; var name = "name"; window.optionChainingResult = obj?.link?.[name]?.();',
             expected: void 0,
         },
         {
-            src:      'var obj = { href: "123" }; window.optionChainingResult = obj?.link?.["name"]?.();',
+            src:      'var obj = { link: "123" }; var name = "name"; window.optionChainingResult = obj?.link?.[name]?.();',
             expected: void 0,
+        },
+        {
+            src:      'var name = "name"; window.optionChainingResult = obj?.link?.[name]?.();',
+            expected: void 0,
+        },
+        {
+            src:      'var obj = { link: { name: () => true } }; var name = "name"; window.optionChainingResult = obj?.link?.[name]?.();',
+            expected: true,
         },
     ];
 

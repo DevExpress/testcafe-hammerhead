@@ -74,10 +74,14 @@ export default class MethodCallInstrumentation extends SandboxBase {
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
         nativeMethods.objectDefineProperty(window, INSTRUCTION.callMethod, {
             value: (owner: any, methName: any, args: any[], optional = false) => {
-                if (isNullOrUndefined(owner) && !optional)
-                    MethodCallInstrumentation._error(`Cannot call method '${methName}' of ${inaccessibleTypeToStr(owner)}`);
+                if (isNullOrUndefined(owner)) {
+                    if (optional)
+                        return void 0;
 
-                if (!isFunction(owner?.[methName]) && !optional)
+                    MethodCallInstrumentation._error(`Cannot call method '${methName}' of ${inaccessibleTypeToStr(owner)}`);
+                }
+
+                if (!isFunction(owner[methName]) && !optional)
                     MethodCallInstrumentation._error(`'${methName}' is not a function`);
 
                 // OPTIMIZATION: previously we've performed the
@@ -85,13 +89,13 @@ export default class MethodCallInstrumentation extends SandboxBase {
                 // check which is quite slow. Now we use the
                 // fast RegExp check instead.
                 if (typeof methName === 'string' && shouldInstrumentMethod(methName)) {
-                    if (optional && !isFunction(owner?.[methName]))
+                    if (optional && !isFunction(owner[methName]))
                         return void 0;
                     else if (this.methodWrappers[methName].condition(owner))
                         return this.methodWrappers[methName].method(owner, args);
                 }
 
-                if (optional && !isFunction(owner?.[methName]))
+                if (optional && !isFunction(owner[methName]))
                     return void 0;
 
                 return fastApply(owner, methName, args);
