@@ -269,10 +269,6 @@ test('optional chaining', function () {
             src:      'var obj = null; var counter = 0; window.optionChainingResult = obj?.href[counter];',
             expected: void 0,
         },
-        {
-            src:      'var obj = { href: "123" }; var name = "name"; window.optionChainingResult = obj?.link?.[name]?.();',
-            expected: void 0,
-        },
     ];
 
     var additionalCases = [];
@@ -286,6 +282,10 @@ test('optional chaining', function () {
             },
             {
                 src:      'var obj = {}; window.optionChainingResult = obj["href"]?.();',
+                expected: void 0,
+            },
+            {
+                src:      'var obj = { href: "123" }; var name = "name"; window.optionChainingResult = obj?.link?.[name]?.();',
                 expected: void 0,
             },
         ];
