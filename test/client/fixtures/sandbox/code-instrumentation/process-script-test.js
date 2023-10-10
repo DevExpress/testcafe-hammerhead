@@ -284,6 +284,10 @@ test('optional chaining', function () {
                 src:      'var obj = {}; window.optionChainingResult = obj["href"]?.();',
                 expected: void 0,
             },
+            {
+                src:      'var obj = { href: "123" }; var name = "name"; window.optionChainingResult = obj?.link?.[name]?.();',
+                expected: void 0,
+            },
         ];
 
         for (let i = 0; i < additionalCases.length; i++)
