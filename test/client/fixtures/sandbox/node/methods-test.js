@@ -243,6 +243,16 @@ test('setAttribute: img src', function () {
     strictEqual(nativeMethods.getAttribute.call(img, 'src'), urlUtils.resolveUrlAsDest('/image.gif?param=value'));
 });
 
+test('setAttribute: img srcSet', function () {
+    var img = nativeMethods.createElement.call(document, 'img');
+
+    processDomMeth(img);
+
+    img.setAttribute('srcSet', '/image.gif?param=value 1x, /imagex2.gif?param=value 2x');
+
+    strictEqual(nativeMethods.getAttribute.call(img, 'srcset'), urlUtils.resolveUrlAsDest('/image.gif?param=value 1x, /imagex2.gif?param=value 2x', true));
+});
+
 test('canvasRenderingContext2D.drawImage', function () {
     var storedNativeMethod  = nativeMethods.canvasContextDrawImage;
     var crossDomainUrl      = 'http://crossdomain.com/image.png';
