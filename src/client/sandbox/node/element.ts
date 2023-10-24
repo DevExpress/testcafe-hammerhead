@@ -152,7 +152,7 @@ export default class ElementSandbox extends SandboxBase {
         const tagName     = domUtils.getTagName(el);
         const isUrlAttr   = domProcessor.isUrlAttr(el, attr, ns);
         const isEventAttr = domProcessor.EVENTS.indexOf(attr) !== -1;
-        const isUrlsSet   = attr === 'srcset';
+        const isUrlsSet   = loweredAttr === 'srcset';
 
         let needToCallTargetChanged = false;
         let needToRecalcHref        = false;
