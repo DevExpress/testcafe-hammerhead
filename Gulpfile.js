@@ -10,7 +10,6 @@ const mocha                 = require('gulp-mocha-simple');
 const mustache              = require('gulp-mustache');
 const rename                = require('gulp-rename');
 const uglify                = require('gulp-uglify');
-const util                  = require('gulp-util');
 const ll                    = require('gulp-ll-next');
 const gulpRunCommand        = require('gulp-run-command').default;
 const clone                 = require('gulp-clone');
@@ -23,6 +22,8 @@ gulpStep.install();
 
 const needBeautifyScripts = process.argv.includes('--beautify');
 const noBuild             = process.argv.includes('--no-build');
+
+var DEV_MODE = false;
 
 ll
     .install()
@@ -94,7 +95,7 @@ gulp.step('server-scripts-add-exports', () => {
 });
 
 gulp.step('server-scripts', () => {
-    const generateSourceMap = util.env.dev ? '--inlineSourceMap true' : '';
+    const generateSourceMap = DEV_MODE ? '--inlineSourceMap true' : '';
 
     return childProcess
         .spawn(`npx tsc -p tsconfig.json ${generateSourceMap}`, { shell: true, stdio: 'inherit' });
@@ -172,7 +173,7 @@ gulp.step('test-client-run', () => {
 gulp.task('test-client', gulp.series(BUILD_TASK, 'test-client-run'));
 
 gulp.step('set-dev-mode', done => {
-    util.env.dev = true;
+    DEV_MODE = true;
     done();
 });
 
@@ -181,7 +182,7 @@ gulp.task('test-client-dev', gulp.series('set-dev-mode', 'test-client'));
 gulp.step('test-client-cloud-run', () => {
     return gulp
         .src('./test/client/fixtures/**/*-test.js')
-        .pipe(qunitHarness(getClientTestSettings(), SAUCELABS_SETTINGS));
+        .pipe(qunitHarness(getClientTestSettings(DEV_MODE), SAUCELABS_SETTINGS));
 });
 
 gulp.task('test-client-cloud', gulp.series(BUILD_TASK, 'test-client-cloud-run'));
