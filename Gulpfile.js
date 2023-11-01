@@ -23,7 +23,7 @@ gulpStep.install();
 const needBeautifyScripts = process.argv.includes('--beautify');
 const noBuild             = process.argv.includes('--no-build');
 
-var DEV_MODE = false;
+let DEV_MODE = false;
 
 ll
     .install()
@@ -167,7 +167,7 @@ gulp.step('test-client-run', () => {
 
     return gulp
         .src('./test/client/fixtures/**/*-test.js')
-        .pipe(qunitHarness(getClientTestSettings()));
+        .pipe(qunitHarness(getClientTestSettings(DEV_MODE)));
 });
 
 gulp.task('test-client', gulp.series(BUILD_TASK, 'test-client-run'));
