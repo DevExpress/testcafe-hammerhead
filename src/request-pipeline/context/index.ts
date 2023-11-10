@@ -414,6 +414,11 @@ export default class RequestPipelineContext extends BaseRequestPipelineContext {
         this.nonProcessedDestResBody = value;
     }
 
+    closeConnectionOnError (): void {
+        if (this.req.socket)
+            this.req.socket.destroy();
+    }
+
     closeWithError (statusCode: number, resBody: string | Buffer = ''): void {
         if ('setHeader' in this.res && !this.res.headersSent) {
             this.res.statusCode = statusCode;
