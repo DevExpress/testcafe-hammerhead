@@ -426,6 +426,11 @@ export default class RequestPipelineContext extends BaseRequestPipelineContext {
         this.goToNextStage = false;
     }
 
+    closeConnectionOnError (): void {
+        if (this.req.socket)
+            this.req.socket.destroy();
+    }
+
     toProxyUrl (url: string, isCrossDomain: boolean, resourceType: string, charset?: string, reqOrigin?: string, credentials?: urlUtils.Credentials): string {
         const proxyHostname = this.serverInfo.hostname;
         const proxyProtocol = this.serverInfo.protocol;
