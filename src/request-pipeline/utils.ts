@@ -90,7 +90,7 @@ export function error (ctx: RequestPipelineContext, err: string) {
     if (ctx.isPage && !ctx.isIframe)
         ctx.session.handlePageError(ctx, err);
     else if (ctx.isAjax)
-        ctx.closeConnectionOnError();
+        ctx.req.destroy();
     else
         ctx.closeWithError(500, err.toString());
 }
