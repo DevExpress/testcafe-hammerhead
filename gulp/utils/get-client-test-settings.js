@@ -1,12 +1,10 @@
-const util = require('gulp-util');
-
-module.exports = function getClientTestSettings () {
+module.exports = function getClientTestSettings (devMode) {
     return {
         basePath:        './test/client/fixtures',
         port:            2000,
         crossDomainPort: 2001,
         scripts:         [
-            { src: '/hammerhead.js', path: util.env.dev ? './lib/client/hammerhead.js' : './lib/client/hammerhead.min.js' },
+            { src: '/hammerhead.js', path: devMode ? './lib/client/hammerhead.js' : './lib/client/hammerhead.min.js' },
             { src: '/before-test.js', path: './test/client/before-test.js' },
         ],
 
