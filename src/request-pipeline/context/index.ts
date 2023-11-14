@@ -427,8 +427,12 @@ export default class RequestPipelineContext extends BaseRequestPipelineContext {
     }
 
     closeConnectionOnError (): void {
-        if (this.req.socket)
+        this.req.destroy();
+
+        // For Node versions greater than 15.4, we check the socket. If req.destroy didn't destroy it, we call the corresponding method of the socket.
+        if (!this.req.socket?.destroyed)
             this.req.socket.destroy();
+
     }
 
     toProxyUrl (url: string, isCrossDomain: boolean, resourceType: string, charset?: string, reqOrigin?: string, credentials?: urlUtils.Credentials): string {
