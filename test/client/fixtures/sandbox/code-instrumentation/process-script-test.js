@@ -235,7 +235,7 @@ if (!browserUtils.isIOS) {
     });
 
     test('private identifier and property definition without value', function () {
-        var script = `const Nc = new class {#a; constructor(){this.#a = 4;}; output(){return this.#a;};}; window.prop = Nc.output()`;
+        var script = `class s{#a; constructor(){this.#a = 4;}; output(){return this.#a;};}; window.prop = new s().output()`;
 
         eval(processScript(script));
 
