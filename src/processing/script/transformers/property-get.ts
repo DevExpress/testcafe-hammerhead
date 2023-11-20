@@ -33,6 +33,7 @@ const transformer: Transformer<MemberExpression> = {
             return false;
 
         // Skip: object.#prop
+        // @ts-ignore
         if (node.property.type === Syntax.PrivateIdentifier)
             return false;
 
