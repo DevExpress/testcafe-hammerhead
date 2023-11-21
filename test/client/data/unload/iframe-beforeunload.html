@@ -1,0 +1,42 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+</head>
+<body>
+<button id="reload">reload</button>
+<script type="text/javascript">
+    var hammerhead = window['%hammerhead%'];
+    var hhPostMessage = hammerhead.sandbox.event.message.postMessage;
+
+    hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/https://example.com');
+    hammerhead.start({ crossDomainProxyPort: 2000 });
+
+    hammerhead.on(hammerhead.EVENTS.beforeUnload, e => {
+            if (e.prevented) {
+                hhPostMessage(window.parent, [true, '*'])
+            } else {
+                hhPostMessage(window.parent, [false, '*'])
+            }
+        });
+
+    var reload = document.querySelector('#reload');
+</script>
+<script>
+    window.addEventListener('message', function (m) {
+        const {state, returnValue} = m.data;
+
+        if (state !== 'reload')
+            return;
+
+        window.addEventListener('beforeunload', function (e) {
+            e.preventDefault();
+            e.returnValue = returnValue;
+        });
+
+        location.reload();
+    });
+</script>
+</body>
+</html>

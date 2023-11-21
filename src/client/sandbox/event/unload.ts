@@ -1,7 +1,7 @@
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import createPropertyDesc from '../../utils/create-property-desc.js';
-import { isFirefox, isIOS } from '../../utils/browser';
+import { isIOS } from '../../utils/browser';
 import { overrideDescriptor } from '../../utils/overriding';
 import Listeners from './listeners';
 import { isFunction } from '../../utils/types';
@@ -83,11 +83,9 @@ export default class UnloadSandbox extends SandboxBase {
             nativeMethods.objectDefineProperty(e, 'returnValue', createPropertyDesc({
                 get: () => eventProperties.storedReturnValue,
                 set: value => {
-                    // NOTE: In all browsers, if the property is set to any value, unload is prevented. In FireFox,
-                    // only if a value is set to an empty string, the unload operation is prevented.
                     eventProperties.storedReturnValue = UnloadSandbox._prepareStoredReturnValue(value);
 
-                    eventProperties.prevented = isFirefox ? value !== '' : true;
+                    eventProperties.prevented = true;
                 },
             }));
 
