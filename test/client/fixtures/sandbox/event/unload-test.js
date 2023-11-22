@@ -94,27 +94,12 @@ if (!browserUtils.isSafari) {
             });
     });
 
-    test('onbeforeunload handler must be called with and prevented native dialog with empty return value(GH-6815)', function () {
+    test('onbeforeunload handler must be called and prevented native dialog with empty returnValue and e.preventDefault (GH-6815)', function () {
         return createTestIframe({ src: getCrossDomainPageUrl('../../../data/unload/iframe-beforeunload.html') })
             .then(function (iframe) {
                 postMessage(iframe.contentWindow, [{
                     state:       'reload',
                     returnValue: '',
-                }, '*']);
-
-                return waitForMessage(window);
-            })
-            .then(function (returnValue) {
-                ok(returnValue);
-            });
-    });
-
-    test('onbeforeunload handler must be called with and prevented native dialog with return value(GH-6815)', function () {
-        return createTestIframe({ src: getCrossDomainPageUrl('../../../data/unload/iframe-beforeunload.html') })
-            .then(function (iframe) {
-                postMessage(iframe.contentWindow, [{
-                    state:       'reload',
-                    returnValue: 'message',
                 }, '*']);
 
                 return waitForMessage(window);

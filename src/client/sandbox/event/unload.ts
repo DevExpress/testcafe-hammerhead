@@ -83,9 +83,11 @@ export default class UnloadSandbox extends SandboxBase {
             nativeMethods.objectDefineProperty(e, 'returnValue', createPropertyDesc({
                 get: () => eventProperties.storedReturnValue,
                 set: value => {
+                    // NOTE: In all browsers, if the property is set to any value except empty string, unload is prevented.
                     eventProperties.storedReturnValue = UnloadSandbox._prepareStoredReturnValue(value);
 
-                    eventProperties.prevented = true;
+                    if (!eventProperties.prevented)
+                        eventProperties.prevented = value !== '';
                 },
             }));
 
