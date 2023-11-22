@@ -108,4 +108,19 @@ if (!browserUtils.isSafari) {
                 ok(returnValue);
             });
     });
+
+    test('onbeforeunload handler must be called with and prevented native dialog with returnValue and e.preventDefault (GH-6815)', function () {
+        return createTestIframe({ src: getCrossDomainPageUrl('../../../data/unload/iframe-beforeunload.html') })
+            .then(function (iframe) {
+                postMessage(iframe.contentWindow, [{
+                    state:       'reload',
+                    returnValue: 'message',
+                }, '*']);
+
+                return waitForMessage(window);
+            })
+            .then(function (returnValue) {
+                ok(returnValue);
+            });
+    });
 }
