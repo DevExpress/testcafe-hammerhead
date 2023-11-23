@@ -25,13 +25,16 @@
 </script>
 <script>
     window.addEventListener('message', function (m) {
-        const {state, returnValue} = m.data;
+        const { reload, returnValue, prevented } = m.data;
 
-        if (state !== 'reload')
+        if (!reload)
             return;
 
         window.addEventListener('beforeunload', function (e) {
-            e.preventDefault();
+
+            if (prevented)
+                e.preventDefault();
+
             e.returnValue = returnValue;
         });
 

@@ -94,33 +94,50 @@ if (!browserUtils.isSafari) {
             });
     });
 
-    test('onbeforeunload handler must be called and prevented native dialog with empty returnValue and e.preventDefault (GH-6815)', function () {
-        return createTestIframe({ src: getCrossDomainPageUrl('../../../data/unload/iframe-beforeunload.html') })
-            .then(function (iframe) {
-                postMessage(iframe.contentWindow, [{
-                    state:       'reload',
-                    returnValue: '',
-                }, '*']);
+    const testCasesOnbeforeunloadNativeDialog = [
+        {
+            returnValue:   '',
+            prevented:     true,
+            expectPrevent: true,
+            title:         ' and prevented native dialog with empty returnValue and e.preventDefault',
+        },
+        {
+            returnValue:   '',
+            prevented:     false,
+            expectPrevent: false,
+            title:         ' without prevented native dialog',
+        },
+        {
+            returnValue:   'message',
+            prevented:     true,
+            expectPrevent: true,
+            title:         ' and prevented native dialog with returnValue and e.preventDefault',
+        },
+        {
+            returnValue:   'message',
+            prevented:     false,
+            expectPrevent: true,
+            title:         ' and prevented native dialog with returnValue',
+        },
+    ];
 
-                return waitForMessage(window);
-            })
-            .then(function (returnValue) {
-                ok(returnValue);
-            });
-    });
+    testCasesOnbeforeunloadNativeDialog.forEach(testCase => {
+        const { returnValue, prevented, expectPrevent, title } = testCase;
 
-    test('onbeforeunload handler must be called with and prevented native dialog with returnValue and e.preventDefault (GH-6815)', function () {
-        return createTestIframe({ src: getCrossDomainPageUrl('../../../data/unload/iframe-beforeunload.html') })
-            .then(function (iframe) {
-                postMessage(iframe.contentWindow, [{
-                    state:       'reload',
-                    returnValue: 'message',
-                }, '*']);
+        test(`onbeforeunload handler must be called${title} (GH-6815)`, function () {
+            return createTestIframe({ src: getCrossDomainPageUrl('../../../data/unload/iframe-beforeunload.html') })
+                .then(function (iframe) {
+                    postMessage(iframe.contentWindow, [{
+                        reload: true,
+                        returnValue,
+                        prevented,
+                    }, '*']);
 
-                return waitForMessage(window);
-            })
-            .then(function (returnValue) {
-                ok(returnValue);
-            });
+                    return waitForMessage(window);
+                })
+                .then(function (isPrevented) {
+                    expectPrevent ? ok(isPrevented) : notOk(isPrevented);
+                });
+        });
     });
 }
