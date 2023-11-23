@@ -97,45 +97,45 @@ if (!browserUtils.isSafari) {
     const testCasesOnbeforeunloadNativeDialog = [
         {
             returnValue:   '',
-            needPrevented: true,
+            needPrevent:   true,
             expectPrevent: true,
-            title:         'and prevented native dialog with empty returnValue and e.preventDefault',
+            title:         'to prevent opening native dialog with empty return Value and e.preventDefault',
         },
         {
             returnValue:   '',
-            needPrevented: false,
+            needPrevent:   false,
             expectPrevent: false,
-            title:         'without prevented native dialog',
+            title:         'without preventing the opening native dialog',
         },
         {
             returnValue:   'message',
-            needPrevented: true,
+            needPrevent:   true,
             expectPrevent: true,
-            title:         'and prevented native dialog with returnValue and e.preventDefault',
+            title:         'the handler must be called to prevent opening native dialog with return Value and e.preventDefault',
         },
         {
             returnValue:   'message',
-            needPrevented: false,
+            needPrevent:   false,
             expectPrevent: true,
-            title:         'and prevented native dialog with returnValue',
+            title:         'the handler must be called to prevent opening native dialog with returnValue',
         },
     ];
 
     testCasesOnbeforeunloadNativeDialog.forEach(testCase => {
-        const { returnValue, needPrevented, expectPrevent, title } = testCase;
+        const { returnValue, needPrevent, expectPrevent, title } = testCase;
 
         test(`onbeforeunload handler must be called ${title} (GH-6815)`, function () {
             return createTestIframe({ src: getCrossDomainPageUrl('../../../data/unload/iframe-beforeunload.html') })
                 .then(function (iframe) {
                     postMessage(iframe.contentWindow, [{
                         returnValue,
-                        needPrevented,
+                        needPrevent,
                     }, '*']);
 
                     return waitForMessage(window);
                 })
                 .then(function (isPrevented) {
-                    expectPrevent ? ok(isPrevented) : notOk(isPrevented);
+                    strictEqual(isPrevented, expectPrevent);
                 });
         });
     });

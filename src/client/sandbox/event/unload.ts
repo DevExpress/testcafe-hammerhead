@@ -86,8 +86,7 @@ export default class UnloadSandbox extends SandboxBase {
                     // NOTE: In all browsers, if the property is set to any value except empty string, unload is prevented.
                     eventProperties.storedReturnValue = UnloadSandbox._prepareStoredReturnValue(value);
 
-                    if (!eventProperties.prevented)
-                        eventProperties.prevented = value !== '';
+                    eventProperties.prevented = eventProperties.prevented || value !== '';
                 },
             }));
 
