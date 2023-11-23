@@ -97,40 +97,39 @@ if (!browserUtils.isSafari) {
     const testCasesOnbeforeunloadNativeDialog = [
         {
             returnValue:   '',
-            prevented:     true,
+            needPrevented: true,
             expectPrevent: true,
-            title:         ' and prevented native dialog with empty returnValue and e.preventDefault',
+            title:         'and prevented native dialog with empty returnValue and e.preventDefault',
         },
         {
             returnValue:   '',
-            prevented:     false,
+            needPrevented: false,
             expectPrevent: false,
-            title:         ' without prevented native dialog',
+            title:         'without prevented native dialog',
         },
         {
             returnValue:   'message',
-            prevented:     true,
+            needPrevented: true,
             expectPrevent: true,
-            title:         ' and prevented native dialog with returnValue and e.preventDefault',
+            title:         'and prevented native dialog with returnValue and e.preventDefault',
         },
         {
             returnValue:   'message',
-            prevented:     false,
+            needPrevented: false,
             expectPrevent: true,
-            title:         ' and prevented native dialog with returnValue',
+            title:         'and prevented native dialog with returnValue',
         },
     ];
 
     testCasesOnbeforeunloadNativeDialog.forEach(testCase => {
-        const { returnValue, prevented, expectPrevent, title } = testCase;
+        const { returnValue, needPrevented, expectPrevent, title } = testCase;
 
-        test(`onbeforeunload handler must be called${title} (GH-6815)`, function () {
+        test(`onbeforeunload handler must be called ${title} (GH-6815)`, function () {
             return createTestIframe({ src: getCrossDomainPageUrl('../../../data/unload/iframe-beforeunload.html') })
                 .then(function (iframe) {
                     postMessage(iframe.contentWindow, [{
-                        reload: true,
                         returnValue,
-                        prevented,
+                        needPrevented,
                     }, '*']);
 
                     return waitForMessage(window);

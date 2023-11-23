@@ -5,7 +5,6 @@
     <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
 </head>
 <body>
-<button id="reload">reload</button>
 <script type="text/javascript">
     var hammerhead = window['%hammerhead%'];
     var hhPostMessage = hammerhead.sandbox.event.message.postMessage;
@@ -14,25 +13,16 @@
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
     hammerhead.on(hammerhead.EVENTS.beforeUnload, e => {
-            if (e.prevented) {
-                hhPostMessage(window.parent, [true, '*'])
-            } else {
-                hhPostMessage(window.parent, [false, '*'])
-            }
+            hhPostMessage(window.parent, [e.prevented, '*']);
         });
-
-    var reload = document.querySelector('#reload');
 </script>
 <script>
     window.addEventListener('message', function (m) {
-        const { reload, returnValue, prevented } = m.data;
-
-        if (!reload)
-            return;
+        const { returnValue, needPrevented } = m.data;
 
         window.addEventListener('beforeunload', function (e) {
 
-            if (prevented)
+            if (needPrevented)
                 e.preventDefault();
 
             e.returnValue = returnValue;
