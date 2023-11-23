@@ -32,6 +32,11 @@ const transformer: Transformer<MemberExpression> = {
         if (node.property.type === Syntax.Identifier && !shouldInstrumentProperty(node.property.name))
             return false;
 
+        // Skip: object.#prop
+        // @ts-ignore
+        if (node.property.type === Syntax.PrivateIdentifier)
+            return false;
+
         // Skip: super.prop
         if (node.object.type === Syntax.Super)
             return false;
