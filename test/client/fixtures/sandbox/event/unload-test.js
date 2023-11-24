@@ -111,13 +111,13 @@ if (!browserUtils.isSafari) {
             returnValue:   'message',
             needPrevent:   true,
             expectPrevent: true,
-            title:         'the handler must be called to prevent opening native dialog with return Value and e.preventDefault',
+            title:         'to prevent opening native dialog with return Value and e.preventDefault',
         },
         {
             returnValue:   'message',
             needPrevent:   false,
             expectPrevent: true,
-            title:         'the handler must be called to prevent opening native dialog with returnValue',
+            title:         'to prevent opening native dialog with returnValue',
         },
     ];
 
