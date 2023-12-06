@@ -140,11 +140,6 @@ declare module 'testcafe-hammerhead' {
         remove(res: IncomingMessageLikeInitOptions): void;
     }
 
-    interface encoderBody {
-        decodeBodyToString (content: Buffer, encoding: string, contentType: string): Promise<string>;
-        encodeBodyToBuffer (content: string, encoding: string, contentType: string): Promise<Buffer>;
-    }
-
     interface ContentTypeUtils {
         isPage (header: string): boolean;
         isTextPage (contentTypeHeader: string): boolean;
