@@ -140,6 +140,11 @@ declare module 'testcafe-hammerhead' {
         remove(res: IncomingMessageLikeInitOptions): void;
     }
 
+    interface encoderBody {
+        decodeBodyToString (content: Buffer, encoding: string, contentType: string): Promise<string>;
+        encodeBodyToBuffer (content: string, encoding: string, contentType: string): Promise<Buffer>;
+    }
+
     interface ContentTypeUtils {
         isPage (header: string): boolean;
         isTextPage (contentTypeHeader: string): boolean;
@@ -618,6 +623,12 @@ declare module 'testcafe-hammerhead' {
 
     /** Proxy injectable scripts **/
     export const INJECTABLE_SCRIPTS: string[];
+
+    /** Decode buffer to string **/
+    export function decodeBufferToString (content: Buffer, contentType: string): string;
+    
+    /** Encode string to buffer **/
+    export function encodeStringToBuffer (content: string, contentType: string): Buffer;
 
     /** Allows to accept cross-origin request for proxy routes **/
     function acceptCrossOrigin (res: ServerResponse): void;
