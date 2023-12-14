@@ -454,7 +454,7 @@ describe('Script processor', () => {
             { src: 'obj[{0}]--', expected: 'obj[{0}]--' },
             { src: 'obj[0]++', expected: 'obj[0]++' },
             { src: '++obj[0]', expected: '++obj[0]' },
-            { src: 'obj[someProperty](1,2,3)', expected: '__call$(obj,someProperty,[1,2,3], false, false)' },
+            { src: 'obj[someProperty](1,2,3)', expected: '__call$(obj,someProperty,[1,2,3])' },
 
             {
                 src: 'obj[{0}]-=value;obj[{0}]*=value;obj[{0}]/=value;' +
@@ -611,10 +611,10 @@ describe('Script processor', () => {
 
     it('Should process postMessage', () => {
         testProcessing([
-            { src: 'window.postMessage("", "")', expected: '__call$(window, "postMessage", ["", ""], false, false)' },
-            { src: 'window["postMessage"]("", "")', expected: '__call$(window, "postMessage", ["", ""], false, false)' },
-            { src: 'window[postMessage]("", "")', expected: '__call$(window, postMessage, ["", ""], false, false)' },
-            { src: 'some.postMessage("", "")', expected: '__call$(some, "postMessage", ["", ""], false, false)' },
+            { src: 'window.postMessage("", "")', expected: '__call$(window, "postMessage", ["", ""])' },
+            { src: 'window["postMessage"]("", "")', expected: '__call$(window, "postMessage", ["", ""])' },
+            { src: 'window[postMessage]("", "")', expected: '__call$(window, postMessage, ["", ""])' },
+            { src: 'some.postMessage("", "")', expected: '__call$(some, "postMessage", ["", ""])' },
             { src: 'window["some"]("", "")', expected: 'window["some"]("", "")' },
             { src: 'window.some.("", "")', expected: 'window.some.("", "")' },
 
@@ -869,7 +869,7 @@ describe('Script processor', () => {
         testMethodProcessing([
             {
                 src:      'obj.{0}?.()',
-                expected: '__call$(obj,"{0}",[],true,false)',
+                expected: '__call$(obj,"{0}",[],true)',
             },
             {
                 src:      'obj.[0]?.()',
@@ -1528,7 +1528,7 @@ describe('Script processor', () => {
                 {
                     src: 'Object.assign({}, { [(a, b)]: c } )',
 
-                    expected: '__call$(Object, "assign", [{}, { [(a, b)]: c }], false, false)',
+                    expected: '__call$(Object, "assign", [{}, { [(a, b)]: c }])',
                 },
             ]);
         });

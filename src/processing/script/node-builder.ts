@@ -168,8 +168,11 @@ export function createMethodCallWrapper (owner: Expression, method: Literal, met
     const methodArgsArray      = createArrayExpression(methodArgs);
     const args                 = [owner, method, methodArgsArray];
 
-    args.push(createSimpleLiteral(optional));
-    args.push(createSimpleLiteral(calleeOptional));
+    if (optional || calleeOptional)
+        args.push(createSimpleLiteral(optional));
+
+    if (calleeOptional)
+        args.push(createSimpleLiteral(calleeOptional));
 
     return createSimpleCallExpression(callMethodIdentifier, args);
 }

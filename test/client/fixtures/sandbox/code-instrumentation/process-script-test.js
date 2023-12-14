@@ -331,16 +331,18 @@ test('optional chaining', function () {
     }
 
     for (var i = 0; i < errorCases.length; i++) {
-        var testCase = errorCases[i];
-        var script   = processScript(testCase.src);
+        var testCase     = errorCases[i];
+        var script       = processScript(testCase.src);
+        var errorMessage = '';
 
         try {
             eval(script);
-            notOk(script);
         }
         catch (e) {
-            ok(e);
+            errorMessage = e.message;
         }
+
+        strictEqual(errorMessage, '\'name\' is not a function');
 
         delete window.optionChainingResult;
         delete window.obj;
