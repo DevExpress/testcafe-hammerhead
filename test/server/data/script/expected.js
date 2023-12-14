@@ -17,7 +17,7 @@ function liveHandler( event ) {
 
             data = fn.data;
             if ( !(data.beforeFilter &&  __get$(data.beforeFilter,event.type)  &&
-                   ! __call$(data.beforeFilter,event.type,[event]) ) ) {
+                   ! __call$(data.beforeFilter,event.type,[event],false,false) ) ) {
                 selectors.push( fn.selector );
             }
         } else {
