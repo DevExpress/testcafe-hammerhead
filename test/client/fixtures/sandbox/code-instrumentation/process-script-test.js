@@ -280,6 +280,7 @@ test('optional chaining', function () {
     ];
 
     var additionalCases = [];
+    var errorCases      = [];
 
     // NOTE: Safari until iOS 13.4 don't have full support optional chaining
     if (!browserUtils.isIOS || browserUtils.compareVersions([browserUtils.webkitVersion, '608.2.11']) === 1) {
@@ -302,6 +303,17 @@ test('optional chaining', function () {
             },
         ];
 
+        errorCases = [
+            {
+                src:      'var obj = { name: "123" }; var name = "name"; window.optionChainingResult = obj?.[name]();',
+                expected: void 0,
+            },
+            {
+                src:      'var obj = { link: {name: "123"} }; var name = "name"; window.optionChainingResult = obj.link?.[name]();',
+                expected: void 0,
+            },
+        ];
+
         for (let i = 0; i < additionalCases.length; i++)
             testCases.push(additionalCases[i]);
     }
@@ -313,6 +325,22 @@ test('optional chaining', function () {
         eval(script);
 
         strictEqual(window.optionChainingResult, testCase.expected);
+
+        delete window.optionChainingResult;
+        delete window.obj;
+    }
+
+    for (var i = 0; i < errorCases.length; i++) {
+        var testCase = errorCases[i];
+        var script   = processScript(testCase.src);
+
+        try {
+            eval(script);
+            notOk(script);
+        }
+        catch (e) {
+            ok(e);
+        }
 
         delete window.optionChainingResult;
         delete window.obj;
