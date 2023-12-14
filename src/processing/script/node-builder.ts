@@ -163,13 +163,13 @@ export function createPropertySetWrapper (propertyName: string, obj: Expression,
     return createSimpleCallExpression(setPropertyIdentifier, [obj, createSimpleLiteral(propertyName), value]);
 }
 
-export function createMethodCallWrapper (owner: Expression, method: Literal, methodArgs: (Expression | SpreadElement)[], optional = false, ownerOptional = false): CallExpression {
+export function createMethodCallWrapper (owner: Expression, method: Literal, methodArgs: (Expression | SpreadElement)[], optional = false, calleeOptional = false): CallExpression {
     const callMethodIdentifier = createIdentifier(INSTRUCTION.callMethod);
     const methodArgsArray      = createArrayExpression(methodArgs);
     const args                 = [owner, method, methodArgsArray];
 
     args.push(createSimpleLiteral(optional));
-    args.push(createSimpleLiteral(ownerOptional));
+    args.push(createSimpleLiteral(calleeOptional));
 
     return createSimpleCallExpression(callMethodIdentifier, args);
 }
