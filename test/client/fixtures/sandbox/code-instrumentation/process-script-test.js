@@ -301,6 +301,10 @@ test('optional chaining', function () {
                 src:      'var obj = { link: null }; var name = "name"; window.optionChainingResult = obj.link?.[name]();',
                 expected: void 0,
             },
+            {
+                src:      'var obj = {}; var name = "name"; window.optionChainingResult = obj[name]?.();',
+                expected: void 0,
+            },
         ];
 
         errorCases = [
