@@ -306,11 +306,11 @@ test('optional chaining', function () {
         errorCases = [
             {
                 src:      'var obj = { name: "123" }; var name = "name"; window.optionChainingResult = obj?.[name]();',
-                expected: void 0,
+                expected: '\'name\' is not a function',
             },
             {
                 src:      'var obj = { link: {name: "123"} }; var name = "name"; window.optionChainingResult = obj.link?.[name]();',
-                expected: void 0,
+                expected: '\'name\' is not a function',
             },
         ];
 
@@ -342,7 +342,7 @@ test('optional chaining', function () {
             errorMessage = e.message;
         }
 
-        strictEqual(errorMessage, '\'name\' is not a function');
+        strictEqual(errorMessage, testCase.expected);
 
         delete window.optionChainingResult;
         delete window.obj;
