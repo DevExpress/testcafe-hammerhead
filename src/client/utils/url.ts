@@ -209,7 +209,7 @@ export function overrideGetCrossDomainIframeProxyUrl (func: typeof getCrossDomai
     getCrossDomainIframeProxyUrl = func;
 }
 
-export function getPageProxyUrl (url: string, windowId: string): string {
+export function getPageProxyUrl (url: string, windowId: string, nativeAutomation?: boolean): string {
     const parsedProxyUrl = parseProxyUrl(url);
     let resourceType = null;
 
@@ -228,7 +228,7 @@ export function getPageProxyUrl (url: string, windowId: string): string {
     const isCrossDomainUrl = !destLocation.sameOriginCheck(destLocation.getLocation(), url);
     const proxyPort        = isCrossDomainUrl ? settings.get().crossDomainProxyPort : location.port.toString(); // eslint-disable-line no-restricted-properties
 
-    return getProxyUrl(url, { windowId, proxyPort, resourceType });
+    return getProxyUrl(url, { windowId, proxyPort, resourceType }, nativeAutomation);
 }
 
 export function getCrossDomainProxyPort (proxyPort: string) {

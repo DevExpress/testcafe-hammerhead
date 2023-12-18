@@ -200,7 +200,7 @@ export default abstract class Session extends EventEmitter {
         let payloadScript = '';
 
         if (withPayload)
-            payloadScript = isIframe ? await this.getIframePayloadScript(false) : await this.getPayloadScript();
+            payloadScript = isIframe ? await this.getIframePayloadScript(false) : await this.getPayloadScript(windowId);
 
         const taskScript = this._fillTaskScriptTemplate({
             serverInfo,
@@ -329,7 +329,7 @@ export default abstract class Session extends EventEmitter {
     }
 
     abstract getIframePayloadScript (iframeWithoutSrc: boolean): Promise<string>;
-    abstract getPayloadScript (): Promise<string>;
+    abstract getPayloadScript (windowId?: string): Promise<string>;
     abstract handleFileDownload (): void;
     abstract handleAttachment ({ isOpenedInNewWindow }: { isOpenedInNewWindow: boolean }): void;
     abstract handlePageError (ctx: RequestPipelineContext, err: string): void;
