@@ -619,6 +619,12 @@ declare module 'testcafe-hammerhead' {
     /** Proxy injectable scripts **/
     export const INJECTABLE_SCRIPTS: string[];
 
+    /** Extract String from Buffer **/
+    export function decodeBufferToString (content: Buffer, contentType: string): string;
+    
+    /** Convert String to Buffer **/
+    export function encodeStringToBuffer (content: string, contentType: string): Buffer;
+
     /** Allows to accept cross-origin request for proxy routes **/
     function acceptCrossOrigin (res: ServerResponse): void;
 
