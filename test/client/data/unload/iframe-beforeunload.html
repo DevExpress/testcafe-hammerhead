@@ -1,0 +1,33 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+    </head>
+    <body>
+        <script type="text/javascript">
+            var hammerhead    = window['%hammerhead%'];
+            var hhPostMessage = hammerhead.sandbox.event.message.postMessage;
+
+            hammerhead.utils.destLocation.forceLocation('http://localhost/sessionId/https://example.com');
+            hammerhead.start({ crossDomainProxyPort: 2000 });
+
+            hammerhead.on(hammerhead.EVENTS.beforeUnload, e => {
+                    hhPostMessage(window.parent, [e.prevented, '*']);
+                });
+                
+            window.addEventListener('message', function (m) {
+                const { returnValue, needPrevent } = m.data;
+
+                window.addEventListener('beforeunload', function (e) {
+                    if (needPrevent)
+                        e.preventDefault();
+
+                    e.returnValue = returnValue;
+                });
+
+                location.reload();
+            });
+        </script>
+    </body>
+</html>

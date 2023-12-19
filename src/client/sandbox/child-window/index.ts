@@ -16,7 +16,7 @@ import getTopOpenerWindow from '../../utils/get-top-opener-window';
 import nextTick from '../../utils/next-tick';
 import { version, isSafari } from '../../utils/browser';
 import getCorrectedTargetForSinglePageMode from '../../utils/get-corrected-target-for-single-page-mode';
-
+import isTargetBlank from '../../../utils/is-target-blank';
 
 const DEFAULT_WINDOW_PARAMETERS = 'width=500px, height=500px';
 const STORE_CHILD_WINDOW_CMD    = 'hammerhead|command|store-child-window';
@@ -48,18 +48,18 @@ export default class ChildWindowSandbox extends SandboxBase {
         target = target.toLowerCase();
 
         if (isKeywordTarget(target))
-            return target === '_blank';
+            return isTargetBlank(target);
 
         return !windowsStorage.findByName(target);
     }
 
-    private _openUrlInNewWindow (url: string, windowName?: string, windowParams?: string, window?: Window): OpenedWindowInfo | null {
+    private _openUrlInNewWindow (url: string, windowName?: string, windowParams?: string, window?: Window, form?: HTMLFormElement): OpenedWindowInfo | null {
         const windowId = getRandomInt16Value().toString();
 
         windowParams = windowParams || DEFAULT_WINDOW_PARAMETERS;
         windowName   = windowName || windowId;
 
-        const newPageUrl                  = settings.get().nativeAutomation ? url : urlUtils.getPageProxyUrl(url, windowId);
+        const newPageUrl                  = urlUtils.getPageProxyUrl(url, windowId, settings.get().nativeAutomation);
         const targetWindow                = window || this.window;
         const beforeWindowOpenedEventArgs = { isPrevented: false };
 
@@ -68,11 +68,12 @@ export default class ChildWindowSandbox extends SandboxBase {
         if (beforeWindowOpenedEventArgs.isPrevented)
             return null;
 
-        const openedWindow = nativeMethods.windowOpen.call(targetWindow, newPageUrl, windowName, windowParams);
+        const startPageUrl = settings.get().nativeAutomation ? SPECIAL_BLANK_PAGE : newPageUrl;
+        const openedWindow = nativeMethods.windowOpen.call(targetWindow, startPageUrl, windowName, windowParams);
 
         this._tryToStoreChildWindow(openedWindow, getTopOpenerWindow());
 
-        this.emit(this.WINDOW_OPENED_EVENT, { windowId, window: openedWindow });
+        this.emit(this.WINDOW_OPENED_EVENT, { windowId, window: openedWindow, windowName, pageUrl: newPageUrl, form });
 
         return { windowId, wnd: openedWindow };
     }
@@ -160,7 +161,7 @@ export default class ChildWindowSandbox extends SandboxBase {
         const [url, target, parameters] = args;
 
         if (settings.get().allowMultipleWindows && ChildWindowSandbox._shouldOpenInNewWindow(target, DefaultTarget.windowOpen)) {
-            const openedWindowInfo = this._openUrlInNewWindow(url, target, parameters, window);
+            const openedWindowInfo = this._openUrlInNewWindow(url, isTargetBlank(target) ? void 0 : target, parameters, window);
 
             return openedWindowInfo?.wnd;
         }
@@ -204,17 +205,21 @@ export default class ChildWindowSandbox extends SandboxBase {
                 !ChildWindowSandbox._shouldOpenInNewWindowOnElementAction(form, DefaultTarget.form))
                 return;
 
-            const aboutBlankUrl = urlUtils.getProxyUrl(SPECIAL_BLANK_PAGE);
-            const openedInfo    = this._openUrlInNewWindow(aboutBlankUrl);
+            const isNativeAutomation = settings.get().nativeAutomation;
+            const aboutBlankUrl      = urlUtils.getProxyUrl(SPECIAL_BLANK_PAGE, void 0, isNativeAutomation);
+            const openedInfo         = this._openUrlInNewWindow(aboutBlankUrl, void 0, void 0, void 0, form);
 
             if (!openedInfo)
                 return;
 
             const formAction    = nativeMethods.formActionGetter.call(form);
-            const newWindowUrl  = urlUtils.getPageProxyUrl(formAction, openedInfo.windowId);
+            const newWindowUrl  = urlUtils.getPageProxyUrl(formAction, openedInfo.windowId, isNativeAutomation);
 
             nativeMethods.formActionSetter.call(form, newWindowUrl);
             nativeMethods.formTargetSetter.call(form, openedInfo.windowId);
+
+            if (isNativeAutomation)
+                e.preventDefault();
 
             // TODO: On hammerhead start we need to clean up the window.name
             // It's necessary for form submit.

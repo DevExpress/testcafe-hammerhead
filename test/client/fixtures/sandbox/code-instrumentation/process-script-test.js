@@ -280,6 +280,7 @@ test('optional chaining', function () {
     ];
 
     var additionalCases = [];
+    var errorCases      = [];
 
     // NOTE: Safari until iOS 13.4 don't have full support optional chaining
     if (!browserUtils.isIOS || browserUtils.compareVersions([browserUtils.webkitVersion, '608.2.11']) === 1) {
@@ -296,6 +297,25 @@ test('optional chaining', function () {
                 src:      'var obj = { href: "123" }; var name = "name"; window.optionChainingResult = obj?.link?.[name]?.();',
                 expected: void 0,
             },
+            {
+                src:      'var obj = { link: null }; var name = "name"; window.optionChainingResult = obj.link?.[name]();',
+                expected: void 0,
+            },
+            {
+                src:      'var obj = {}; var name = "name"; window.optionChainingResult = obj[name]?.();',
+                expected: void 0,
+            },
+        ];
+
+        errorCases = [
+            {
+                src:      'var obj = { name: "123" }; var name = "name"; window.optionChainingResult = obj?.[name]();',
+                expected: '\'name\' is not a function',
+            },
+            {
+                src:      'var obj = { link: {name: "123"} }; var name = "name"; window.optionChainingResult = obj.link?.[name]();',
+                expected: '\'name\' is not a function',
+            },
         ];
 
         for (let i = 0; i < additionalCases.length; i++)
@@ -309,6 +329,24 @@ test('optional chaining', function () {
         eval(script);
 
         strictEqual(window.optionChainingResult, testCase.expected);
+
+        delete window.optionChainingResult;
+        delete window.obj;
+    }
+
+    for (var i = 0; i < errorCases.length; i++) {
+        var testCase     = errorCases[i];
+        var script       = processScript(testCase.src);
+        var errorMessage = '';
+
+        try {
+            eval(script);
+        }
+        catch (e) {
+            errorMessage = e.message;
+        }
+
+        strictEqual(errorMessage, testCase.expected);
 
         delete window.optionChainingResult;
         delete window.obj;

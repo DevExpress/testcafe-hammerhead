@@ -73,9 +73,9 @@ export default class MethodCallInstrumentation extends SandboxBase {
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
         nativeMethods.objectDefineProperty(window, INSTRUCTION.callMethod, {
-            value: (owner: any, methName: any, args: any[], optional = false) => {
+            value: (owner: any, methName: any, args: any[], optional = false, calleeOptional = false) => {
                 if (isNullOrUndefined(owner)) {
-                    if (optional)
+                    if (optional || calleeOptional)
                         return void 0;
 
                     MethodCallInstrumentation._error(`Cannot call method '${methName}' of ${inaccessibleTypeToStr(owner)}`);

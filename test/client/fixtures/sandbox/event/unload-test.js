@@ -93,4 +93,50 @@ if (!browserUtils.isSafari) {
                 strictEqual(returnValue, '[object BeforeUnloadEvent]');
             });
     });
+
+    const testCasesOnbeforeunloadNativeDialog = [
+        {
+            returnValue:   '',
+            needPrevent:   true,
+            expectPrevent: true,
+            title:         'to prevent opening native dialog with empty return Value and e.preventDefault',
+        },
+        {
+            returnValue:   '',
+            needPrevent:   false,
+            expectPrevent: false,
+            title:         'without preventing the opening native dialog',
+        },
+        {
+            returnValue:   'message',
+            needPrevent:   true,
+            expectPrevent: true,
+            title:         'to prevent opening native dialog with return Value and e.preventDefault',
+        },
+        {
+            returnValue:   'message',
+            needPrevent:   false,
+            expectPrevent: true,
+            title:         'to prevent opening native dialog with returnValue',
+        },
+    ];
+
+    testCasesOnbeforeunloadNativeDialog.forEach(testCase => {
+        const { returnValue, needPrevent, expectPrevent, title } = testCase;
+
+        test(`onbeforeunload handler must be called ${title} (GH-6815)`, function () {
+            return createTestIframe({ src: getCrossDomainPageUrl('../../../data/unload/iframe-beforeunload.html') })
+                .then(function (iframe) {
+                    postMessage(iframe.contentWindow, [{
+                        returnValue,
+                        needPrevent,
+                    }, '*']);
+
+                    return waitForMessage(window);
+                })
+                .then(function (isPrevented) {
+                    strictEqual(isPrevented, expectPrevent);
+                });
+        });
+    });
 }
