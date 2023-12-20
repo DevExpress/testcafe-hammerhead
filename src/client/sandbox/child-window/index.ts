@@ -59,7 +59,7 @@ export default class ChildWindowSandbox extends SandboxBase {
         windowParams = windowParams || DEFAULT_WINDOW_PARAMETERS;
         windowName   = windowName || windowId;
 
-        const newPageUrl                  = urlUtils.getPageProxyUrl(url, windowId, settings.get().nativeAutomation);
+        const newPageUrl                  = urlUtils.getPageProxyUrl(url, windowId, settings.nativeAutomation);
         const targetWindow                = window || this.window;
         const beforeWindowOpenedEventArgs = { isPrevented: false };
 
@@ -103,7 +103,7 @@ export default class ChildWindowSandbox extends SandboxBase {
 
     handleClickOnLinkOrArea (el: HTMLLinkElement | HTMLAreaElement): void {
         if (!settings.get().allowMultipleWindows) {
-            if (settings.get().nativeAutomation)
+            if (settings.nativeAutomation)
                 this._handleClickOnLinkOrAreaInNativeAutomation(el);
 
             return;
@@ -191,7 +191,7 @@ export default class ChildWindowSandbox extends SandboxBase {
 
     _handleFormSubmitting (window: Window): void {
         if (!settings.get().allowMultipleWindows) {
-            if (settings.get().nativeAutomation)
+            if (settings.nativeAutomation)
                 this._handleFormSubmittingInNativeAutomation(window);
 
             return;
