@@ -68,7 +68,7 @@ export default class ChildWindowSandbox extends SandboxBase {
         if (beforeWindowOpenedEventArgs.isPrevented)
             return null;
 
-        const startPageUrl = settings.get().nativeAutomation ? SPECIAL_BLANK_PAGE : newPageUrl;
+        const startPageUrl = settings.nativeAutomation ? SPECIAL_BLANK_PAGE : newPageUrl;
         const openedWindow = nativeMethods.windowOpen.call(targetWindow, startPageUrl, windowName, windowParams);
 
         this._tryToStoreChildWindow(openedWindow, getTopOpenerWindow());
@@ -205,7 +205,7 @@ export default class ChildWindowSandbox extends SandboxBase {
                 !ChildWindowSandbox._shouldOpenInNewWindowOnElementAction(form, DefaultTarget.form))
                 return;
 
-            const isNativeAutomation = settings.get().nativeAutomation;
+            const isNativeAutomation = settings.nativeAutomation;
             const aboutBlankUrl      = urlUtils.getProxyUrl(SPECIAL_BLANK_PAGE, void 0, isNativeAutomation);
             const openedInfo         = this._openUrlInNewWindow(aboutBlankUrl, void 0, void 0, void 0, form);
 
