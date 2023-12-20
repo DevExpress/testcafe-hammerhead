@@ -59,7 +59,7 @@ export default class ChildWindowSandbox extends SandboxBase {
         windowParams = windowParams || DEFAULT_WINDOW_PARAMETERS;
         windowName   = windowName || windowId;
 
-        const newPageUrl                  = urlUtils.getPageProxyUrl(url, windowId, settings.get().nativeAutomation);
+        const newPageUrl                  = urlUtils.getPageProxyUrl(url, windowId, settings.nativeAutomation);
         const targetWindow                = window || this.window;
         const beforeWindowOpenedEventArgs = { isPrevented: false };
 
@@ -68,7 +68,7 @@ export default class ChildWindowSandbox extends SandboxBase {
         if (beforeWindowOpenedEventArgs.isPrevented)
             return null;
 
-        const startPageUrl = settings.get().nativeAutomation ? SPECIAL_BLANK_PAGE : newPageUrl;
+        const startPageUrl = settings.nativeAutomation ? SPECIAL_BLANK_PAGE : newPageUrl;
         const openedWindow = nativeMethods.windowOpen.call(targetWindow, startPageUrl, windowName, windowParams);
 
         this._tryToStoreChildWindow(openedWindow, getTopOpenerWindow());
@@ -103,7 +103,7 @@ export default class ChildWindowSandbox extends SandboxBase {
 
     handleClickOnLinkOrArea (el: HTMLLinkElement | HTMLAreaElement): void {
         if (!settings.get().allowMultipleWindows) {
-            if (settings.get().nativeAutomation)
+            if (settings.nativeAutomation)
                 this._handleClickOnLinkOrAreaInNativeAutomation(el);
 
             return;
@@ -191,7 +191,7 @@ export default class ChildWindowSandbox extends SandboxBase {
 
     _handleFormSubmitting (window: Window): void {
         if (!settings.get().allowMultipleWindows) {
-            if (settings.get().nativeAutomation)
+            if (settings.nativeAutomation)
                 this._handleFormSubmittingInNativeAutomation(window);
 
             return;
@@ -205,7 +205,7 @@ export default class ChildWindowSandbox extends SandboxBase {
                 !ChildWindowSandbox._shouldOpenInNewWindowOnElementAction(form, DefaultTarget.form))
                 return;
 
-            const isNativeAutomation = settings.get().nativeAutomation;
+            const isNativeAutomation = settings.nativeAutomation;
             const aboutBlankUrl      = urlUtils.getProxyUrl(SPECIAL_BLANK_PAGE, void 0, isNativeAutomation);
             const openedInfo         = this._openUrlInNewWindow(aboutBlankUrl, void 0, void 0, void 0, form);
 
