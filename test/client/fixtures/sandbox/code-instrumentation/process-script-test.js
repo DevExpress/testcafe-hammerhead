@@ -241,6 +241,14 @@ if (!browserUtils.isIOS) {
 
         strictEqual(window.prop, 4);
     });
+
+    test('private identifier and property access', function () {
+        var script = `const name = "name"; class s {#a = { name: 123}; output(){return this.#a[name]}}; window.prop = new s().output()`;
+
+        eval(processScript(script));
+
+        strictEqual(window.prop, 123);
+    });
 }
 
 if (!browserUtils.isSafari || browserUtils.version >= 16.4) {
