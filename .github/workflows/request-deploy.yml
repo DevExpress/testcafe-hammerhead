@@ -8,9 +8,16 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
+  action-information:
+    runs-on: ubuntu-latest
+    steps: 
+        - name: Event name
+          run: echo "${{github.event_name}}"
+        - name: Author association
+          run: echo "${{github.event.pull_request.author_association}}"
+
   authenticate:
-    runs-on:     ubuntu-latest
+    runs-on: ubuntu-latest
     environment: authentication
     if: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.author_association == 'NONE' }} 
 

@@ -31,6 +31,7 @@ import BaseRequestHookEventFactory from './request-pipeline/request-hooks/events
 import BaseRequestPipelineContext from './request-pipeline/context/base';
 import isRedirectStatusCode from './utils/is-redirect-status-code';
 import * as contentTypeUtils from './utils/content-type';
+import { decodeBufferToString, encodeStringToBuffer } from './utils/encoding';
 
 export default {
     Proxy,
@@ -66,4 +67,6 @@ export default {
     ResponseInfo,
     isRedirectStatusCode,
     contentTypeUtils,
+    decodeBufferToString,
+    encodeStringToBuffer,
 };
