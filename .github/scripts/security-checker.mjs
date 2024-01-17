@@ -1,180 +1,236 @@
 const STATES = {
-  open:   'open',
-  closed: 'closed',
+    open:   'open',
+    closed: 'closed',
 };
 
 const LABELS = {
-  dependabot: 'dependabot',
-  codeq:      'codeql',
-  security:   'security notification',
+    dependabot: 'dependabot',
+    codeq:      'codeql',
+    security:   'security notification',
 };
 
 const ALERT_TYPES = {
-  dependabot: 'dependabot',
-  codeq:      'codeql',
+    dependabot: 'dependabot',
+    codeq:      'codeql',
 }
 
 class SecurityChecker {
-  constructor (github, context, issueRepo) {
-      this.github    = github;
-      this.issueRepo = issueRepo;
-      this.context   = {
-          owner: context.repo.owner,
-          repo:  context.repo.repo,
-      };
-  }
+    constructor(github, context, issueRepo) {
+        this.github    = github;
+        this.issueRepo = issueRepo;
+        this.context   = {
+            owner: context.repo.owner,
+            repo:  context.repo.repo,
+        };
+    }
 
-  async check () {
-      const dependabotAlerts = await this.getDependabotAlerts();
-      const codeqlAlerts     = await this.getCodeqlAlerts();
-      const existedIssues    = await this.getExistedIssues();
+    async check () {
+        const dependabotAlerts = await this.getDependabotAlerts();
+        const codeqlAlerts     = await this.getCodeqlAlerts();
+        const existedIssues    = await this.getExistedIssues();
 
-      this.alertDictionary = this.createAlertDictionary(existedIssues);
+        this.alertDictionary = this.createAlertDictionary(existedIssues);
 
-      await this.closeSpoiledIssues();
-      await this.createDependabotlIssues(dependabotAlerts);
-      await this.createCodeqlIssues(codeqlAlerts);
-  }
+        await this.closeSpoiledIssues();
+        await this.createDependabotlIssues(dependabotAlerts);
+        await this.createCodeqlIssues(codeqlAlerts);
+    }
 
-  async getDependabotAlerts () {
-      const { data } = await this.github.rest.dependabot.listAlertsForRepo({ state: STATES.open, ...this.context });
+    async getDependabotAlerts () {
+        const { data } = await this.github.rest.dependabot.listAlertsForRepo({ state: STATES.open, ...this.context });
 
-      return data;
-  }
+        return data;
+    }
 
-  async getCodeqlAlerts () {
-      try {
-          const { data } = await this.github.rest.codeScanning.listAlertsForRepo({ state: STATES.open, ...this.context });
+    async getCodeqlAlerts () {
+        try {
+            const { data } = await this.github.rest.codeScanning.listAlertsForRepo({ state: STATES.open, ...this.context });
 
-          return data;
-      }
-      catch (e) {
-          if (e.message.includes('no analysis found') || e.message.includes('Advanced Security must be enabled for this repository to use code scanning'))
-              return [];
+            return data;
+        }
+        catch (e) {
+            if (e.message.includes('no analysis found') || e.message.includes('Advanced Security must be enabled for this repository to use code scanning'))
+                return [];
 
-          throw e;
-      }
-  }
+            throw e;
+        }
+    }
 
-  async getExistedIssues () {
-      const { data: existedIssues } = await this.github.rest.issues.listForRepo({
-          owner:  this.context.owner,
-          repo:   this.issueRepo,
-          labels: [LABELS.security],
-          state:  STATES.open,
-      });
+    async getExistedIssues () {
+        const { data: existedIssues } = await this.github.rest.issues.listForRepo({
+            owner:  this.context.owner,
+            repo:   this.issueRepo,
+            labels: [LABELS.security],
+            state:  STATES.open,
+        });
 
-      return existedIssues;
-  }
+        return existedIssues;
+    }
 
-  createAlertDictionary (existedIssues) {
-      return existedIssues.reduce((res, issue) => {
-          const [, repo] = issue.body.match(/Repository:\s*`(.*)`/);
-          const [, url, type, number] = issue.body.match(/Link:\s*(https:.*\/(dependabot|code-scanning)\/(\d+))/);
+    createAlertDictionary (existedIssues) {
+        return existedIssues.reduce((res, issue) => {
+            const [, url, type] = issue.body.match(/(https:.*\/(dependabot|code-scanning)\/(\d+))/);
 
-          if (!url || repo !== this.context.repo)
-              return res;
+            if (!url)
+                return res;
 
-          res[url] = { issue, number, type };
+            if (type === ALERT_TYPES.dependabot) {
+                const [, cveId]  = issue.body.match(/CVE ID:\s*`(.*)`/);
+                const [, ghsaId] = issue.body.match(/GHSA ID:\s*`(.*)`/);
 
-          return res;
-      }, {});
-  }
+                res.set(issue.title, { issue, type, cveId, ghsaId });
+            }
+            else
+                res.set(issue.title, { issue, type });
 
-  async closeSpoiledIssues () {
-      for (const key in this.alertDictionary) {
-          const alert = this.alertDictionary[key];
+            return res;
+        }, new Map());
+    }
 
-          if (alert.type === ALERT_TYPES.dependabot) {
-              const isAlertOpened = await this.isDependabotAlertOpened(alert.number);
+    async closeSpoiledIssues () {
+        const regExpAlertNumbers = new RegExp(`(?<=\`${this.context.repo}\` - https:.*/dependabot/)\\d+`,'g');
 
-              if (isAlertOpened)
-                  continue;
+        for (const alert of this.alertDictionary.values()) {
 
-              await this.closeIssue(alert.issue.number);
-          }
-      }
-  }
+            if (alert.type === ALERT_TYPES.dependabot) {
+                const alertNumbers  = alert.issue.body.match(regExpAlertNumbers);
 
-  async isDependabotAlertOpened (alertNumber) {
-      const alert = await this.getDependabotAlertInfo(alertNumber);
+                if (!alertNumbers)
+                    continue;
 
-      return alert.state === STATES.open;
-  }
+                const updates   = {};
+                let changedBody = alert.issue.body;
 
-  async getDependabotAlertInfo (alertNumber) {
-      try {
-          const { data } = await this.github.rest.dependabot.getAlert({ alert_number: alertNumber, ...this.context });
+                for (let alertNumber of alertNumbers) {
+                    const isAlertOpened = await this.isDependabotAlertOpened(alertNumber);
 
-          return data;
-      }
-      catch (e) {
-          if (e.message.includes('No alert found for alert number'))
-              return {};
+                    if (isAlertOpened)
+                        continue;
 
-          throw e;
-      }
-  }
+                    changedBody = changedBody.replace(new RegExp(`\\[ \\](?= \`${this.context.repo}\` - https:.*/dependabot/${alertNumber})`), '[x]');
+                }
 
-  async closeIssue (issueNumber) {
-      return this.github.rest.issues.update({
-          owner:        this.context.owner,
-          repo:         this.issueRepo,
-          issue_number: issueNumber,
-          state:        STATES.closed,
-      });
-  }
+                updates.body         = changedBody;
+                updates.state        = !changedBody.match(/\[ \]/) ? STATES.closed : STATES.open;
+                updates.issue_number = alert.issue.number;
 
-  async createDependabotlIssues (dependabotAlerts) {
-    for (const alert of dependabotAlerts) {
-          if (!this.needCreateIssue(alert))
-              return;
+                await this.updateIssue(updates);
+            }
+        }
+    }
 
-          await this.createIssue({
-              labels:       [LABELS.dependabot, LABELS.security, alert.dependency.scope],
-              originRepo:   this.context.repo,
-              summary:      alert.security_advisory.summary,
-              description:  alert.security_advisory.description,
-              link:         alert.html_url,
-              issuePackage: alert.dependency.package.name,
-          });
-      }
-  }
+    async isDependabotAlertOpened (alertNumber) {
+        const alert = await this.getDependabotAlertInfo(alertNumber);
 
-  async createCodeqlIssues (codeqlAlerts) {
-      for (const alert of codeqlAlerts) {
-          if (!this.needCreateIssue(alert))
-              return;
+        return alert.state === STATES.open;
+    }
 
-          await this.createIssue({
-              labels:      [LABELS.codeql, LABELS.security],
-              originRepo:  this.context.repo,
-              summary:     alert.rule.description,
-              description: alert.most_recent_instance.message.text,
-              link:        alert.html_url,
-          });
-      }
-  }
+    async getDependabotAlertInfo (alertNumber) {
+        try {
+            const { data } = await this.github.rest.dependabot.getAlert({ alert_number: alertNumber, ...this.context });
 
-  needCreateIssue (alert) {
-      return !this.alertDictionary[alert.html_url] && Date.now() - new Date(alert.created_at) <= 1000 * 60 * 60 * 24;
-  }
+            return data;
+        }
+        catch (e) {
+            if (e.message.includes('No alert found for alert number'))
+                return {};
 
-  async createIssue ({ labels, originRepo, summary, description, link, issuePackage = '' }) {
-      const title = `[${originRepo}] ${summary}`;
-      const body = ''
-                    + `#### Repository: \`${originRepo}\`\n`
-                    + (issuePackage ? `#### Package: \`${issuePackage}\`\n` : '')
-                    + `#### Description:\n`
-                    + `${description}\n`
-                    + `#### Link: ${link}`;
+            throw e;
+        }
+    }
 
-      return this.github.rest.issues.create({
-          title, body, labels,
-          owner: this.context.owner,
-          repo:  this.issueRepo,
-      });
-  }
+    async updateIssue (updates) {
+        return this.github.rest.issues.update({
+            owner: this.context.owner,
+            repo:  this.issueRepo,
+            ...updates,
+        });
+    }
+
+
+    async createDependabotlIssues (dependabotAlerts) {
+        for (const alert of dependabotAlerts) {
+            if (this.needAddAlertToIssue(alert)) {
+                await this.addAlertToIssue(alert);
+            }
+            else if (this.needCreateIssue(alert)) {
+                await this.createIssue({
+                    labels:       [LABELS.dependabot, LABELS.security, alert.dependency.scope],
+                    originRepo:   this.context.repo,
+                    summary:      alert.security_advisory.summary,
+                    description:  alert.security_advisory.description,
+                    link:         alert.html_url,
+                    issuePackage: alert.dependency.package.name,
+                    cveId:        alert.security_advisory.cve_id,
+                    ghsaId:       alert.security_advisory.ghsa_id,
+                });
+            }
+        }
+    }
+
+    needAddAlertToIssue (alert) {
+        const regExpAlertNumber = new RegExp(`(?<=\`${this.context.repo}\` - https:.*/dependabot/)${alert.html_url.match(/(?<=https:.*\/)\d+/)}`);
+        const existedIssue      = this.alertDictionary.get(alert.security_advisory.summary);
+        const alertNumber       = existedIssue?.issue.body.match(regExpAlertNumber);
+        const isAlertExisted    = existedIssue?.issue.body.includes(`\`${this.context.repo}\``);
+
+        return existedIssue
+            && existedIssue.cveId === alert.security_advisory.cve_id
+            && existedIssue.ghsaId === alert.security_advisory.ghsa_id
+            && (!isAlertExisted || (isAlertExisted && !alertNumber));
+    }
+
+    async addAlertToIssue (alert) {
+        const updates   =  {};
+        const { issue } = this.alertDictionary.get(alert.security_advisory.summary);
+
+        updates.issue_number = issue.number;
+        updates.body         = issue.body.replace(/(?<=Repositories:)[\s\S]*?(?=####|$)/g, (match) => {
+            return match + `- [ ] \`${this.context.repo}\` - ${alert.html_url}\n`;
+        });
+
+        await this.updateIssue(updates);
+    }
+
+    async createCodeqlIssues (codeqlAlerts) {
+        for (const alert of codeqlAlerts) {
+            if (!this.needCreateIssue(alert, false))
+                continue;
+
+            await this.createIssue({
+                labels:      [LABELS.codeql, LABELS.security],
+                originRepo:  this.context.repo,
+                summary:     alert.rule.description,
+                description: alert.most_recent_instance.message.text,
+                link:        alert.html_url,
+            }, false);
+        }
+    }
+
+    needCreateIssue (alert, isDependabotAlert = true) {
+        const dictionaryKey = isDependabotAlert ? alert.security_advisory.summary : `[${this.context.repo}] ${alert.rule.description}`;
+
+        return !this.alertDictionary.get(dictionaryKey) && Date.now() - new Date(alert.created_at) <= 1000 * 60 * 60 * 24;
+    }
+
+    async createIssue ({ labels, originRepo, summary, description, link, issuePackage = '', cveId, ghsaId }, isDependabotAlert = true) {
+        const title = isDependabotAlert ? `${summary}` : `[${originRepo}] ${summary}`;
+        let body = ''
+            + `#### Repositories:\n`
+            + `- [ ] \`${originRepo}\` - ${link}\n`
+            + (issuePackage ? `#### Package: \`${issuePackage}\`\n` : '')
+            + `#### Description:\n`
+            + `${description}\n`;
+
+        if (isDependabotAlert)
+            body += `\n#### CVE ID: \`${cveId}\`\n#### GHSA ID: \`${ghsaId}\``;
+
+        return this.github.rest.issues.create({
+            title, body, labels,
+            owner: this.context.owner,
+            repo:  this.issueRepo,
+        });
+    }
 }
 
 export default SecurityChecker;
