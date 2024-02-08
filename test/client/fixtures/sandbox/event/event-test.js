@@ -199,7 +199,7 @@ test('firing and dispatching the events created in different ways (Q532574)', fu
 });
 
 asyncTest('calling function from handler parameter for window.onmessage event (T137892)', function () {
-    window.addEventListener('message', function (e) {
+    var messageHandler = function (e) {
         try {
             e.stopPropagation();
             ok(true);
@@ -208,9 +208,12 @@ asyncTest('calling function from handler parameter for window.onmessage event (T
             ok(false);
         }
         finally {
+            window.removeEventListener('message', messageHandler);
             start();
         }
-    });
+    };
+
+    window.addEventListener('message', messageHandler);
 
     eval(processScript('window.postMessage("hello", "*")'));
 });
