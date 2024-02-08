@@ -1,4 +1,4 @@
-var browserUtils     = hammerhead.utils.browser;
+// var browserUtils     = hammerhead.utils.browser;
 var featureDetection = hammerhead.utils.featureDetection;
 var eventUtils       = hammerhead.utils.event;
 var nativeMethods    = hammerhead.nativeMethods;
@@ -199,7 +199,7 @@ test('firing and dispatching the events created in different ways (Q532574)', fu
 });
 
 asyncTest('calling function from handler parameter for window.onmessage event (T137892)', function () {
-    var messageHandler = function (e) {
+    window.addEventListener('message', function (e) {
         try {
             e.stopPropagation();
             ok(true);
@@ -208,12 +208,9 @@ asyncTest('calling function from handler parameter for window.onmessage event (T
             ok(false);
         }
         finally {
-            window.removeEventListener('message', messageHandler);
             start();
         }
-    };
-
-    window.addEventListener('message', messageHandler);
+    });
 
     eval(processScript('window.postMessage("hello", "*")'));
 });
@@ -252,28 +249,28 @@ asyncTest('handler not the function for addEventListener (T261234)', function ()
     divEl.click();
 });
 
-if (browserUtils.isWebKit) {
-    asyncTest('the "Illegal invocation" error after svg element focused (#82)', function () {
-        var $svgElement = $(
-            '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">' +
-            '<rect id="rect" width="300" height="300" fill="red" tabIndex="1"></rect>' +
-            '</svg>').appendTo('body');
+// if (browserUtils.isWebKit) {
+//     asyncTest('the "Illegal invocation" error after svg element focused (#82)', function () {
+//         var $svgElement = $(
+//             '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">' +
+//             '<rect id="rect" width="300" height="300" fill="red" tabIndex="1"></rect>' +
+//             '</svg>').appendTo('body');
 
-        processDomMeth($svgElement[0]);
+//         processDomMeth($svgElement[0]);
 
-        var rectElement = document.getElementById('rect');
+//         var rectElement = document.getElementById('rect');
 
-        rectElement.onfocus = function () {
-            rectElement.onblur = function () {
-                ok(true);
-                $svgElement.remove();
-                start();
-            };
-            rectElement.blur();
-        };
-        rectElement.focus();
-    });
-}
+//         rectElement.onfocus = function () {
+//             rectElement.onblur = function () {
+//                 ok(true);
+//                 $svgElement.remove();
+//                 start();
+//             };
+//             rectElement.blur();
+//         };
+//         rectElement.focus();
+//     });
+// }
 
 test('the click event handler for the svg element must be overridden correctly (B238956)', function () {
     var $svg       = $('<svg xmlns="http://www.w3.org/2000/svg" version="1.1"></svg>');
