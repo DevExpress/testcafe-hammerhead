@@ -14,9 +14,7 @@ if (browserUtils.isWebKit) {
             '<rect id="rect" width="300" height="300" fill="red" tabIndex="1"></rect>' +
             '</svg>').appendTo('body');
 
-        var $divElement = $('<div>').text('Before processDomMeth');
-
-        $('body').append($divElement);
+        $('<div>').text('Before processDomMeth').appendTo('body');
 
         try {
             processDomMeth($svgElement[0]);
@@ -25,21 +23,23 @@ if (browserUtils.isWebKit) {
             $('<div>').text('Error: ' + e.message).appendTo('body');
         }
 
-
-        var $afterDiv = $('<div>').text('Text after processDomMeth');
-
-        $('body').append($afterDiv);
+        $('<div>').text('Text after processDomMeth').appendTo('body');
 
         var rectElement = document.getElementById('rect');
 
         rectElement.onfocus = function () {
             rectElement.onblur = function () {
+                $('<div>').text('Inside blur').appendTo('body');
                 ok(true);
+                $('<div>').text('After assertion').appendTo('body');
                 $svgElement.remove();
+                $('<div>').text('After svg remove').appendTo('body');
                 start();
             };
+            $('<div>').text('Before blur').appendTo('body');
             rectElement.blur();
         };
+        $('<div>').text('Before focus').appendTo('body');
         rectElement.focus();
     });
 }
