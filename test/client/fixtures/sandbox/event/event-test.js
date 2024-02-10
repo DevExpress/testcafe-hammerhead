@@ -37,11 +37,13 @@ if (browserUtils.isWebKit) {
                 start();
             };
             $('<div>').text('Before blur').appendTo('body');
-            rectElement.blur();
+            var focusEvent = new Event('blur');
+
+            rectElement.dispatchEvent(focusEvent);
         };
         $('<div>').text('Before focus').appendTo('body');
-        setTimeout(function () {
-            rectElement.focus();
-        }, 1000);
+        var focusEvent = new Event('focus');
+
+        rectElement.dispatchEvent(focusEvent);
     });
 }
