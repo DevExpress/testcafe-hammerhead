@@ -40,6 +40,8 @@ if (browserUtils.isWebKit) {
             rectElement.blur();
         };
         $('<div>').text('Before focus').appendTo('body');
-        rectElement.focus();
+        setTimeout(function () {
+            rectElement.focus();
+        }, 1000);
     });
 }
