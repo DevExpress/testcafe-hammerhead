@@ -18,7 +18,13 @@ if (browserUtils.isWebKit) {
 
         $('body').append($divElement);
 
-        processDomMeth($svgElement[0]);
+        try {
+            processDomMeth($svgElement[0]);
+        }
+        catch (e) {
+            $('<div>').text('Error: ' + e.message).appendTo('body');
+        }
+
 
         var $afterDiv = $('<div>').text('Text after processDomMeth');
 
