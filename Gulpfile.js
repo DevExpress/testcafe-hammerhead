@@ -181,7 +181,7 @@ gulp.task('test-client-dev', gulp.series('set-dev-mode', 'test-client'));
 
 gulp.step('test-client-cloud-run', () => {
     return gulp
-        .src('./test/client/fixtures/sandbox/event/event-test.js')
+        .src('./test/client/fixtures/**/*-test.js')
         .pipe(qunitHarness(getClientTestSettings(DEV_MODE), SAUCELABS_SETTINGS));
 });
 
