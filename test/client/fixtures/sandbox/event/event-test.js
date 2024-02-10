@@ -14,7 +14,15 @@ if (browserUtils.isWebKit) {
             '<rect id="rect" width="300" height="300" fill="red" tabIndex="1"></rect>' +
             '</svg>').appendTo('body');
 
+        var $divElement = $('<div>').text('Before processDomMeth');
+
+        $('body').append($divElement);
+
         processDomMeth($svgElement[0]);
+
+        var $afterDiv = $('<div>').text('Text after processDomMeth');
+
+        $('body').append($afterDiv);
 
         var rectElement = document.getElementById('rect');
 
