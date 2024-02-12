@@ -164,6 +164,7 @@ gulp.task('test-server', gulp.series(BUILD_TASK, 'disable-node-tls-reject-unauth
 
 gulp.step('test-client-run', () => {
     gulp.watch('./src/**/*.ts', BUILD_TASK);
+    console.log('testing');
 
     return gulp
         .src('./test/client/fixtures/**/*-test.js')
