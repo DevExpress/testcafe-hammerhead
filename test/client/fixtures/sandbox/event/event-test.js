@@ -266,11 +266,9 @@ if (browserUtils.isWebKit) {
                 $svgElement.remove();
                 start();
             };
-
-            rectElement.dispatchEvent(new Event('blur'));
+            rectElement.blur();
         };
-
-        rectElement.dispatchEvent(new Event('focus'));
+        rectElement.focus();
     });
 }
 

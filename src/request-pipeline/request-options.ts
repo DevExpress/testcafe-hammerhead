@@ -4,7 +4,7 @@ import {
     ExternalProxySettings,
     RequestOptionsInit,
 } from '../typings/session';
-import CachePolicy from 'http-cache-semantics';
+import { OutgoingHttpHeaders } from 'http';
 import BUILTIN_HEADERS from './builtin-header-names';
 import * as headerTransforms from './header-transforms';
 import { inject as injectUpload } from '../upload';
@@ -40,8 +40,8 @@ export default class RequestOptions {
     body: Buffer;
     isAjax: boolean;
     rawHeaders: string[];
-    headers: CachePolicy.Headers;
-    transformedHeaders: CachePolicy.Headers;
+    headers: OutgoingHttpHeaders;
+    transformedHeaders: OutgoingHttpHeaders;
     auth?: string;
     requestId: string;
     proxy?: ExternalProxySettings;
@@ -73,7 +73,7 @@ export default class RequestOptions {
         const self = obj;
 
         obj.headers = new Proxy(obj.headers, {
-            set (target: CachePolicy.Headers, propName: string, newValue: any): boolean {
+            set (target: OutgoingHttpHeaders, propName: string, newValue: any): boolean {
                 if (target[propName] !== newValue) {
                     const changedHeader = {
                         name:  propName,
@@ -86,7 +86,7 @@ export default class RequestOptions {
 
                 return Reflect.set(target, propName, newValue);
             },
-            deleteProperty (target: CachePolicy.Headers, propName: string): boolean {
+            deleteProperty (target: OutgoingHttpHeaders, propName: string): boolean {
                 if (propName in target) {
                     self._removedHeaders.push(propName);
                     self._eventEmitter.emit('headerRemoved', propName);
