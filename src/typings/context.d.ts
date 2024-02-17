@@ -19,5 +19,9 @@ export interface ResponseCacheEntry extends ResponseCacheEntryBase {
 
 export interface RequestCacheEntry {
     key: string;
-    value: CachePolicy;
+    value: {
+        cachePolicy: CachePolicy,
+        res: IncomingMessageLike,
+        hitCount: number,
+    };
 }
