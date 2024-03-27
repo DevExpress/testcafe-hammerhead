@@ -65,7 +65,7 @@
     "eslint": "^7.13.0",
     "eslint-plugin-hammerhead": "^0.4.0",
     "eslint-plugin-no-only-tests": "^2.0.1",
-    "express": "4.18.2",
+    "express": "4.19.2",
     "express-ntlm": "2.1.5",
     "gulp": "^4.0.0",
     "gulp-clone": "^2.0.1",
