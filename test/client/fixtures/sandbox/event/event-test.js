@@ -266,9 +266,11 @@ if (browserUtils.isWebKit) {
                 $svgElement.remove();
                 start();
             };
-            rectElement.blur();
+
+            rectElement.dispatchEvent(new Event('blur'));
         };
-        rectElement.focus();
+
+        rectElement.dispatchEvent(new Event('focus'));
     });
 }
 
