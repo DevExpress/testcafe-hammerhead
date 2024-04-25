@@ -391,7 +391,7 @@ export function isElementInDocument (el: Node, currentDocument?: Document): bool
 export function isElementInIframe (el: HTMLElement, currentDocument?: Document): boolean {
     const doc = currentDocument || findDocument(el);
 
-    return window.document !== doc;
+    return false;
 }
 
 export function isHammerheadAttr (attr): boolean {
