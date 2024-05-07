@@ -209,7 +209,7 @@ export function getElementRectangle (el) {
         rectangle = getSelectChildRectangle(el);
     else {
         const elementOffset     = getOffsetPosition(el);
-        const relativeRectangle = domUtils.isSVGElementOrChild(el) ? getSvgElementRelativeRectangle(el) : el.getBoundingClientRect();
+        const relativeRectangle = domUtils.isSVGElementOrChild(el) ? getSvgElementRelativeRectangle(el) : el.getClientRects()[0];
 
         rectangle = {
             height: relativeRectangle.height,
