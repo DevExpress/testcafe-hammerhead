@@ -547,7 +547,7 @@ if (window.WebSocket) {
             new WebSocket('');
         });
 
-        if (!isFirefox && !isChrome) {
+        if (!(isFirefox || isChrome)) {
             throws(function () {
                 new WebSocket('/path');
             });
