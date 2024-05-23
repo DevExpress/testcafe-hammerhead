@@ -9,7 +9,8 @@ var processScript   = hammerhead.utils.processing.script.processScript;
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
 
-// var isFirefox = browserUtils.isFirefox;
+var isFirefox = browserUtils.isFirefox;
+var isChrome  = browserUtils.isChrome;
 
 if (window.PerformanceNavigationTiming) {
     test('PerformanceNavigationTiming.name', function () {
@@ -537,29 +538,29 @@ if (window.WebSocket) {
     });
 
     /* eslint-disable no-new */
-    // test('throwing errors', function () {
-    //     throws(function () {
-    //         new WebSocket();
-    //     });
+    test('throwing errors', function () {
+        throws(function () {
+            new WebSocket();
+        });
 
-    //     throws(function () {
-    //         new WebSocket('');
-    //     });
+        throws(function () {
+            new WebSocket('');
+        });
 
-    //     if (!isFirefox) {
-    //         throws(function () {
-    //             new WebSocket('/path');
-    //         });
+        if (!isFirefox && !isChrome) {
+            throws(function () {
+                new WebSocket('/path');
+            });
 
-    //         throws(function () {
-    //             new WebSocket('//example.com');
-    //         });
+            throws(function () {
+                new WebSocket('//example.com');
+            });
 
-    //         throws(function () {
-    //             new WebSocket('http://example.com');
-    //         });
-    //     }
-    // });
+            throws(function () {
+                new WebSocket('http://example.com');
+            });
+        }
+    });
     /* eslint-enable no-new */
 }
 
