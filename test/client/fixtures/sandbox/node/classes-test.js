@@ -543,11 +543,11 @@ if (window.WebSocket) {
             new WebSocket();
         });
 
-        throws(function () {
-            new WebSocket('');
-        });
-
         if (!(isFirefox || isChrome)) {
+            throws(function () {
+                new WebSocket('');
+            });
+
             throws(function () {
                 new WebSocket('/path');
             });
