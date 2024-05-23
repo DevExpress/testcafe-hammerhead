@@ -3,7 +3,7 @@ export function inaccessibleTypeToStr (obj) {
 }
 
 export function isNullOrUndefined (obj) {
-    return obj === null || obj === void 0;
+    return obj === void 0 || isNull(obj);
 }
 
 export function isPrimitiveType (obj) {
