@@ -10,7 +10,6 @@ var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
 
 var isFirefox = browserUtils.isFirefox;
-var isChrome  = browserUtils.isChrome;
 
 if (window.PerformanceNavigationTiming) {
     test('PerformanceNavigationTiming.name', function () {
@@ -541,24 +540,26 @@ if (window.WebSocket) {
     test('throwing errors', function () {
         throws(function () {
             new WebSocket();
-        });
+        }, 'optional description here 1');
 
-        if (!(isFirefox || isChrome)) {
+        if (!isFirefox) {
             throws(function () {
                 new WebSocket('');
-            });
+            },
+            'optional description here 1'
+            );
 
             throws(function () {
                 new WebSocket('/path');
-            });
+            }, 'optional description here 2');
 
             throws(function () {
                 new WebSocket('//example.com');
-            });
+            }, 'optional description here 3');
 
             throws(function () {
                 new WebSocket('http://example.com');
-            });
+            }, 'optional description here 4');
         }
     });
     /* eslint-enable no-new */
