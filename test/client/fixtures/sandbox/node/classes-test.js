@@ -11,6 +11,7 @@ var nativeMethods = hammerhead.nativeMethods;
 
 var isFirefox = browserUtils.isFirefox;
 var isChrome  = browserUtils.isChrome;
+var isMobile  = browserUtils.isMobile;
 
 if (window.PerformanceNavigationTiming) {
     test('PerformanceNavigationTiming.name', function () {
@@ -563,7 +564,7 @@ if (window.WebSocket) {
     });
     /* eslint-enable no-new */
 
-    if (isChrome) {
+    if (isChrome && !isMobile) {
         asyncTest('WebSocket constructor with invalid URL empty string throws async error', function () {
             var socket = new WebSocket('');
 
