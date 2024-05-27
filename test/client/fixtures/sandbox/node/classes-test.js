@@ -11,7 +11,7 @@ var nativeMethods = hammerhead.nativeMethods;
 
 var isFirefox = browserUtils.isFirefox;
 var isChrome  = browserUtils.isChrome;
-var isMobile  = browserUtils.isMobile;
+// var isMobile  = browserUtils.isMobile;
 
 if (window.PerformanceNavigationTiming) {
     test('PerformanceNavigationTiming.name', function () {
