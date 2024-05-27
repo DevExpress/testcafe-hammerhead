@@ -547,13 +547,11 @@ if (window.WebSocket) {
             new WebSocket('http://example.com');
         });
 
-        if (!isChrome) {
+        if (!(isFirefox || isChrome)) {
             throws(function () {
                 new WebSocket('');
             });
-        }
 
-        if (!(isFirefox || isChrome)) {
             throws(function () {
                 new WebSocket('/path');
             });
@@ -579,35 +577,35 @@ if (window.WebSocket) {
                 start();
             };
         });
+
+        asyncTest('WebSocket constructor with invalid URL "/path" throws async error', function () {
+            var socket = new WebSocket('/path');
+
+            socket.onerror = function () {
+                ok(true, 'WebSocket connection failed as expected for /path.');
+                start();
+            };
+
+            socket.onopen = function () {
+                ok(false, 'WebSocket connection unexpectedly succeeded for /path.');
+                start();
+            };
+        });
+
+        asyncTest('WebSocket constructor with invalid URL "//example.com" throws async error', function () {
+            var socket = new WebSocket('//example.com');
+
+            socket.onerror = function () {
+                ok(true, 'WebSocket connection failed as expected for //example.com.');
+                start();
+            };
+
+            socket.onopen = function () {
+                ok(false, 'WebSocket connection unexpectedly succeeded for //example.com.');
+                start();
+            };
+        });
     }
-
-    asyncTest('WebSocket constructor with invalid URL "/path" throws async error', function () {
-        var socket = new WebSocket('/path');
-
-        socket.onerror = function () {
-            ok(true, 'WebSocket connection failed as expected for /path.');
-            start();
-        };
-
-        socket.onopen = function () {
-            ok(false, 'WebSocket connection unexpectedly succeeded for /path.');
-            start();
-        };
-    });
-
-    asyncTest('WebSocket constructor with invalid URL "//example.com" throws async error', function () {
-        var socket = new WebSocket('//example.com');
-
-        socket.onerror = function () {
-            ok(true, 'WebSocket connection failed as expected for //example.com.');
-            start();
-        };
-
-        socket.onopen = function () {
-            ok(false, 'WebSocket connection unexpectedly succeeded for //example.com.');
-            start();
-        };
-    });
 }
 
 module('regression');
