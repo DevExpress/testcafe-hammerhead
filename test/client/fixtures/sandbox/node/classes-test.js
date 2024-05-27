@@ -543,10 +543,6 @@ if (window.WebSocket) {
             new WebSocket();
         });
 
-        throws(function () {
-            new WebSocket('http://example.com');
-        });
-
         if (!(isFirefox || isChrome)) {
             throws(function () {
                 new WebSocket('');
@@ -558,6 +554,10 @@ if (window.WebSocket) {
 
             throws(function () {
                 new WebSocket('//example.com');
+            });
+
+            throws(function () {
+                new WebSocket('http://example.com');
             });
         }
     });
