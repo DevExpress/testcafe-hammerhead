@@ -566,6 +566,7 @@ if (window.WebSocket) {
 
     if (isChrome && !isMobile) {
         asyncTest('WebSocket constructor with invalid URL empty string throws async error', function () {
+            expect(1);
             const socket = new WebSocket('');
 
             socket.onerror = function () {
@@ -580,6 +581,7 @@ if (window.WebSocket) {
         });
 
         asyncTest('WebSocket constructor with invalid URL "/path" throws async error', function () {
+            expect(1);
             const socket = new WebSocket('/path');
 
             socket.onerror = function () {
@@ -594,6 +596,7 @@ if (window.WebSocket) {
         });
 
         asyncTest('WebSocket constructor with invalid URL "//example.com" throws async error', function () {
+            expect(1);
             const socket = new WebSocket('//example.com');
 
             socket.onerror = function () {
