@@ -609,6 +609,21 @@ if (window.WebSocket) {
                 start();
             };
         });
+
+        asyncTest('WebSocket constructor with invalid URL "http://example.com" throws async error', function () {
+            expect(1);
+            const socket = new WebSocket('http://example.com');
+
+            socket.onerror = function () {
+                ok(true, 'WebSocket connection failed as expected for http://example.com.');
+                start();
+            };
+
+            socket.onopen = function () {
+                ok(false, 'WebSocket connection unexpectedly succeeded for http://example.com.');
+                start();
+            };
+        });
     }
 }
 
