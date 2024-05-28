@@ -2,7 +2,6 @@ const CLIENT_TESTS_BROWSERS = [
     {
         platform:    'Windows 10',
         browserName: 'MicrosoftEdge',
-        version:     '124',
     },
     {
         platform:    'Windows 10',
