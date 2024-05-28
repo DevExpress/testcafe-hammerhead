@@ -556,11 +556,11 @@ if (window.WebSocket) {
             throws(function () {
                 new WebSocket('//example.com');
             });
-
-            throws(function () {
-                new WebSocket('http://example.com');
-            });
         }
+
+        throws(function () {
+            new WebSocket('http://example.com');
+        });
     });
     /* eslint-enable no-new */
 
