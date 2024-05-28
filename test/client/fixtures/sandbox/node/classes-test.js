@@ -11,7 +11,7 @@ var nativeMethods = hammerhead.nativeMethods;
 
 var isFirefox = browserUtils.isFirefox;
 var isChrome  = browserUtils.isChrome;
-// var isMobile  = browserUtils.isMobile;
+var isMobile  = browserUtils.isMobile;
 
 if (window.PerformanceNavigationTiming) {
     test('PerformanceNavigationTiming.name', function () {
@@ -556,57 +556,65 @@ if (window.WebSocket) {
             throws(function () {
                 new WebSocket('//example.com');
             });
-        }
 
-        throws(function () {
-            new WebSocket('http://example.com');
-        });
+            throws(function () {
+                new WebSocket('http://example.com');
+            });
+        }
     });
     /* eslint-enable no-new */
 
-    // if (isChrome && !isMobile) {
-    //     asyncTest('WebSocket constructor with invalid URL empty string throws async error', function () {
-    //         var socket = new WebSocket('');
+    if (isChrome && !isMobile) {
+        asyncTest('WebSocket constructor with invalid URL empty string throws async error', function () {
+            let socket;
 
-    //         socket.onerror = function () {
-    //             ok(true, 'WebSocket connection failed as expected for empty string.');
-    //             start();
-    //         };
+            try {
+                socket = new WebSocket('');
+            }
+            catch (e) {
+                // eslint-disable-next-line no-alert
+                window.alert(e);
+            }
 
-    //         socket.onopen = function () {
-    //             ok(false, 'WebSocket connection unexpectedly succeeded for empty string.');
-    //             start();
-    //         };
-    //     });
+            socket.onerror = function () {
+                ok(true, 'WebSocket connection failed as expected for empty string.');
+                start();
+            };
 
-    //     asyncTest('WebSocket constructor with invalid URL "/path" throws async error', function () {
-    //         var socket = new WebSocket('/path');
+            socket.onopen = function () {
+                ok(false, 'WebSocket connection unexpectedly succeeded for empty string.');
+                start();
+            };
+        });
 
-    //         socket.onerror = function () {
-    //             ok(true, 'WebSocket connection failed as expected for /path.');
-    //             start();
-    //         };
+        asyncTest('WebSocket constructor with invalid URL "/path" throws async error', function () {
+            const socket = new WebSocket('/path');
 
-    //         socket.onopen = function () {
-    //             ok(false, 'WebSocket connection unexpectedly succeeded for /path.');
-    //             start();
-    //         };
-    //     });
+            socket.onerror = function () {
+                ok(true, 'WebSocket connection failed as expected for /path.');
+                start();
+            };
 
-    //     asyncTest('WebSocket constructor with invalid URL "//example.com" throws async error', function () {
-    //         var socket = new WebSocket('//example.com');
+            socket.onopen = function () {
+                ok(false, 'WebSocket connection unexpectedly succeeded for /path.');
+                start();
+            };
+        });
 
-    //         socket.onerror = function () {
-    //             ok(true, 'WebSocket connection failed as expected for //example.com.');
-    //             start();
-    //         };
+        asyncTest('WebSocket constructor with invalid URL "//example.com" throws async error', function () {
+            const socket = new WebSocket('//example.com');
 
-    //         socket.onopen = function () {
-    //             ok(false, 'WebSocket connection unexpectedly succeeded for //example.com.');
-    //             start();
-    //         };
-    //     });
-    // }
+            socket.onerror = function () {
+                ok(true, 'WebSocket connection failed as expected for //example.com.');
+                start();
+            };
+
+            socket.onopen = function () {
+                ok(false, 'WebSocket connection unexpectedly succeeded for //example.com.');
+                start();
+            };
+        });
+    }
 }
 
 module('regression');
