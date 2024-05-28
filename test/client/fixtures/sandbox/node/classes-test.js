@@ -588,7 +588,15 @@ if (window.WebSocket) {
         });
 
         asyncTest('WebSocket constructor with invalid URL "/path" throws async error', function () {
-            const socket = new WebSocket('/path');
+            let socket;
+
+            try {
+                socket = new WebSocket('/path');
+            }
+            catch (e) {
+                // eslint-disable-next-line no-alert
+                window.alert(e);
+            }
 
             socket.onerror = function () {
                 ok(true, 'WebSocket connection failed as expected for /path.');
@@ -602,7 +610,15 @@ if (window.WebSocket) {
         });
 
         asyncTest('WebSocket constructor with invalid URL "//example.com" throws async error', function () {
-            const socket = new WebSocket('//example.com');
+            let socket;
+
+            try {
+                socket = new WebSocket('//example.com');
+            }
+            catch (e) {
+                // eslint-disable-next-line no-alert
+                window.alert(e);
+            }
 
             socket.onerror = function () {
                 ok(true, 'WebSocket connection failed as expected for //example.com.');
