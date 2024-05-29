@@ -565,7 +565,17 @@ if (window.WebSocket) {
 
     asyncTest('WebSocket constructor with invalid URL empty string throws async error', function () {
         expect(1);
-        const socket = new WebSocket('');
+
+        let socket;
+
+        try {
+            socket = new WebSocket('');
+        }
+        catch (e) {
+            ok(true, 'WebSocket connection failed as expected for empty string.');
+            start();
+        }
+
 
         socket.onerror = function () {
             ok(true, 'WebSocket connection failed as expected for empty string.');
@@ -580,7 +590,16 @@ if (window.WebSocket) {
 
     asyncTest('WebSocket constructor with invalid URL "/path" throws async error', function () {
         expect(1);
-        const socket = new WebSocket('/path');
+
+        let socket;
+
+        try {
+            socket = new WebSocket('/path');
+        }
+        catch (e) {
+            ok(true, 'WebSocket connection failed as expected for empty string.');
+            start();
+        }
 
         socket.onerror = function () {
             ok(true, 'WebSocket connection failed as expected for /path.');
@@ -595,7 +614,16 @@ if (window.WebSocket) {
 
     asyncTest('WebSocket constructor with invalid URL "//example.com" throws async error', function () {
         expect(1);
-        const socket = new WebSocket('//example.com');
+
+        let socket;
+
+        try {
+            socket = new WebSocket('//example.com');
+        }
+        catch (e) {
+            ok(true, 'WebSocket connection failed as expected for empty string.');
+            start();
+        }
 
         socket.onerror = function () {
             ok(true, 'WebSocket connection failed as expected for //example.com.');
@@ -610,7 +638,16 @@ if (window.WebSocket) {
 
     asyncTest('WebSocket constructor with invalid URL "http://example.com" throws async error', function () {
         expect(1);
-        const socket = new WebSocket('http://example.com');
+
+        let socket;
+
+        try {
+            socket = new WebSocket('http://example.com');
+        }
+        catch (e) {
+            ok(true, 'WebSocket connection failed as expected for empty string.');
+            start();
+        }
 
         socket.onerror = function () {
             ok(true, 'WebSocket connection failed as expected for http://example.com.');
