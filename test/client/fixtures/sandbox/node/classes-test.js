@@ -576,16 +576,17 @@ if (window.WebSocket) {
             start();
         }
 
+        if (socket) {
+            socket.onerror = function () {
+                ok(true, 'WebSocket connection failed as expected for empty string.');
+                start();
+            };
 
-        socket.onerror = function () {
-            ok(true, 'WebSocket connection failed as expected for empty string.');
-            start();
-        };
-
-        socket.onopen = function () {
-            ok(false, 'WebSocket connection unexpectedly succeeded for empty string.');
-            start();
-        };
+            socket.onopen = function () {
+                ok(false, 'WebSocket connection unexpectedly succeeded for empty string.');
+                start();
+            };
+        }
     });
 
     asyncTest('WebSocket constructor with invalid URL "/path" throws async error', function () {
@@ -601,15 +602,17 @@ if (window.WebSocket) {
             start();
         }
 
-        socket.onerror = function () {
-            ok(true, 'WebSocket connection failed as expected for /path.');
-            start();
-        };
+        if (socket) {
+            socket.onerror = function () {
+                ok(true, 'WebSocket connection failed as expected for /path.');
+                start();
+            };
 
-        socket.onopen = function () {
-            ok(false, 'WebSocket connection unexpectedly succeeded for /path.');
-            start();
-        };
+            socket.onopen = function () {
+                ok(false, 'WebSocket connection unexpectedly succeeded for /path.');
+                start();
+            };
+        }
     });
 
     asyncTest('WebSocket constructor with invalid URL "//example.com" throws async error', function () {
@@ -625,15 +628,17 @@ if (window.WebSocket) {
             start();
         }
 
-        socket.onerror = function () {
-            ok(true, 'WebSocket connection failed as expected for //example.com.');
-            start();
-        };
+        if (socket) {
+            socket.onerror = function () {
+                ok(true, 'WebSocket connection failed as expected for //example.com.');
+                start();
+            };
 
-        socket.onopen = function () {
-            ok(false, 'WebSocket connection unexpectedly succeeded for //example.com.');
-            start();
-        };
+            socket.onopen = function () {
+                ok(false, 'WebSocket connection unexpectedly succeeded for //example.com.');
+                start();
+            };
+        }
     });
 
     asyncTest('WebSocket constructor with invalid URL "http://example.com" throws async error', function () {
@@ -649,15 +654,17 @@ if (window.WebSocket) {
             start();
         }
 
-        socket.onerror = function () {
-            ok(true, 'WebSocket connection failed as expected for http://example.com.');
-            start();
-        };
+        if (socket) {
+            socket.onerror = function () {
+                ok(true, 'WebSocket connection failed as expected for http://example.com.');
+                start();
+            };
 
-        socket.onopen = function () {
-            ok(false, 'WebSocket connection unexpectedly succeeded for http://example.com.');
-            start();
-        };
+            socket.onopen = function () {
+                ok(false, 'WebSocket connection unexpectedly succeeded for http://example.com.');
+                start();
+            };
+        }
     });
 }
 
