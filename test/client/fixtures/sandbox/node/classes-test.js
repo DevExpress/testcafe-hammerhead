@@ -9,6 +9,37 @@ var processScript   = hammerhead.utils.processing.script.processScript;
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
 
+var isFirefox = browserUtils.isFirefox;
+var isChrome  = browserUtils.isChrome;
+
+function testInvalidWebSocketUrl (url) {
+    asyncTest('WebSocket constructor with invalid URL ' + url + ' throws async error', function () {
+        expect(1);
+
+        var socket;
+
+        try {
+            socket = new WebSocket(url);
+        }
+        catch (e) {
+            ok(true, 'WebSocket connection failed as expected for ' + url + '.');
+            start();
+        }
+
+        if (socket) {
+            socket.onerror = function () {
+                ok(true, 'WebSocket connection failed as expected for ' + url + '.');
+                start();
+            };
+
+            socket.onopen = function () {
+                ok(false, 'WebSocket connection unexpectedly succeeded for ' + url + '.');
+                start();
+            };
+        }
+    });
+}
+
 if (window.PerformanceNavigationTiming) {
     test('PerformanceNavigationTiming.name', function () {
         var storedNativePerformanceEntryNameGetter = nativeMethods.performanceEntryNameGetter;
@@ -540,23 +571,35 @@ if (window.WebSocket) {
             new WebSocket();
         });
 
-        throws(function () {
-            new WebSocket('');
-        });
+        if (!(isFirefox || isChrome)) {
+            throws(function () {
+                new WebSocket('');
+            });
 
-        throws(function () {
-            new WebSocket('/path');
-        });
+            throws(function () {
+                new WebSocket('/path');
+            });
 
-        throws(function () {
-            new WebSocket('//example.com');
-        });
+            throws(function () {
+                new WebSocket('//example.com');
+            });
 
-        throws(function () {
-            new WebSocket('http://example.com');
-        });
+            throws(function () {
+                new WebSocket('http://example.com');
+            });
+        }
     });
     /* eslint-enable no-new */
+
+    const invalidUrls = [
+        { url: '' },
+        { url: '/path' },
+        { url: '//example.com' },
+        { url: 'http://example.com' },
+    ];
+
+    for (let i = 0; i < invalidUrls.length; i++)
+        testInvalidWebSocketUrl(invalidUrls[i].url);
 }
 
 module('regression');

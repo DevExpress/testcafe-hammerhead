@@ -898,3 +898,7 @@ export function getAssociatedElement (el: HTMLElement): HTMLElement | null {
 
     return el.control || el.htmlFor && nativeMethods.getElementById.call(doc, el.htmlFor);
 }
+
+export function getClientRectangle (el: HTMLElement): DOMRect {
+    return el.getClientRects()[0] ?? el.getBoundingClientRect();
+}

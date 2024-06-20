@@ -1,7 +1,7 @@
 {
   "name": "testcafe-hammerhead",
   "description": "A powerful web-proxy used as a core for the TestCafe testing framework (https://github.com/DevExpress/testcafe).",
-  "version": "31.7.1",
+  "version": "31.7.2",
   "homepage": "https://github.com/DevExpress/testcafe-hammerhead",
   "bugs": {
     "url": "https://github.com/DevExpress/testcafe-hammerhead/issues"
@@ -78,7 +78,7 @@
     "gulp-run-command": "0.0.9",
     "gulp-step": "^1.0.1",
     "gulp-typescript": "^5.0.0",
-    "gulp-uglify": "^3.0.0",
+    "gulp-uglify": "^3.0.2",
     "js-beautify": "^1.13.5",
     "multiline": "^1.0.2",
     "openssl-self-signed-certificate": "1.1.6",

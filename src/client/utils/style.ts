@@ -319,7 +319,7 @@ export function getOffset (el) {
     if (!el || domUtils.isWindow(el) || domUtils.isDocument(el))
         return null;
 
-    let clientRect = el.getBoundingClientRect();
+    let clientRect = domUtils.getClientRectangle(el);
 
     // NOTE: A detached node or documentElement.
     const doc        = el.ownerDocument;
@@ -338,7 +338,7 @@ export function getOffset (el) {
     const scrollTop  = win.pageYOffset || docElement.scrollTop || doc.body.scrollTop;
     const scrollLeft = win.pageXOffset || docElement.scrollLeft || doc.body.scrollLeft;
 
-    clientRect = el.getBoundingClientRect();
+    clientRect = domUtils.getClientRectangle(el);
 
     return {
         top:  clientRect.top + scrollTop - clientTop,
