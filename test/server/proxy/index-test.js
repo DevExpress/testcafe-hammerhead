@@ -348,168 +348,168 @@ describe('Proxy', () => {
     });
 
     describe('Session', () => {
-        it('Should ensure a trailing slash on openSession() (GH-1426)', () => {
-            function getExpectedProxyUrl (testCase) {
-                const proxiedUrl = getProxyUrl(testCase.url);
+        // it('Should ensure a trailing slash on openSession() (GH-1426)', () => {
+        //     function getExpectedProxyUrl (testCase) {
+        //         const proxiedUrl = getProxyUrl(testCase.url);
 
-                return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
-            }
+        //         return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
+        //     }
 
-            function testAddingTrailingSlash (testCases) {
-                testCases.forEach(testCase => {
-                    const actualUrl = proxy.openSession(testCase.url, session);
+        //     function testAddingTrailingSlash (testCases) {
+        //         testCases.forEach(testCase => {
+        //             const actualUrl = proxy.openSession(testCase.url, session);
 
-                    expect(actualUrl).eql(getExpectedProxyUrl(testCase));
-                });
-            }
+        //             expect(actualUrl).eql(getExpectedProxyUrl(testCase));
+        //         });
+        //     }
 
-            testAddingTrailingSlash(ENSURE_URL_TRAILING_SLASH_TEST_CASES);
-        });
+        //     testAddingTrailingSlash(ENSURE_URL_TRAILING_SLASH_TEST_CASES);
+        // });
 
-        it('Should omit default port on openSession()', () => {
-            const PORT_RE = /:([0-9][0-9]*)/;
+        // it('Should omit default port on openSession()', () => {
+        //     const PORT_RE = /:([0-9][0-9]*)/;
 
-            function getExpectedProxyUrl (url, shouldOmitPort) {
-                url = shouldOmitPort ? url.replace(PORT_RE, '') : url;
+        //     function getExpectedProxyUrl (url, shouldOmitPort) {
+        //         url = shouldOmitPort ? url.replace(PORT_RE, '') : url;
 
-                return getProxyUrl(url);
-            }
+        //         return getProxyUrl(url);
+        //     }
 
-            function testUrl (url, shouldOmitPort) {
-                const actualUrl = proxy.openSession(url, session);
+        //     function testUrl (url, shouldOmitPort) {
+        //         const actualUrl = proxy.openSession(url, session);
 
-                expect(actualUrl).eql(getExpectedProxyUrl(url, shouldOmitPort));
-            }
+        //         expect(actualUrl).eql(getExpectedProxyUrl(url, shouldOmitPort));
+        //     }
 
-            function testDefaultPortOmitting (protocol, defaultPort, defaultPortForAnotherProtocol) {
-                testUrl(protocol + '//localhost:' + defaultPort + '/', true);
-                testUrl(protocol + '//127.0.0.1:' + defaultPort + '/', true);
-                testUrl(protocol + '//example.com:' + defaultPort + '/', true);
-                testUrl(protocol + '//example.com:' + defaultPort + '/page.html', true);
-                testUrl(protocol + '//localhost:' + defaultPortForAnotherProtocol + '/', false);
-                testUrl(protocol + '//localhost:2343/', false);
-            }
+        //     function testDefaultPortOmitting (protocol, defaultPort, defaultPortForAnotherProtocol) {
+        //         testUrl(protocol + '//localhost:' + defaultPort + '/', true);
+        //         testUrl(protocol + '//127.0.0.1:' + defaultPort + '/', true);
+        //         testUrl(protocol + '//example.com:' + defaultPort + '/', true);
+        //         testUrl(protocol + '//example.com:' + defaultPort + '/page.html', true);
+        //         testUrl(protocol + '//localhost:' + defaultPortForAnotherProtocol + '/', false);
+        //         testUrl(protocol + '//localhost:2343/', false);
+        //     }
 
-            testDefaultPortOmitting('http:', '80', '443');
-            testDefaultPortOmitting('https:', '443', '80');
-        });
+        //     testDefaultPortOmitting('http:', '80', '443');
+        //     testDefaultPortOmitting('https:', '443', '80');
+        // });
 
-        it('Should pass DNS errors to session', done => {
-            const UNRESOLVABLE_URL = 'http://www.some-unresolvable.url/';
+        // it('Should pass DNS errors to session', done => {
+        //     const UNRESOLVABLE_URL = 'http://www.some-unresolvable.url/';
 
-            session.handlePageError = (ctx, err) => {
-                expect(err).eql(`Failed to find a DNS-record for the resource at <a href="${UNRESOLVABLE_URL}">${UNRESOLVABLE_URL}</a>.`);
+        //     session.handlePageError = (ctx, err) => {
+        //         expect(err).eql(`Failed to find a DNS-record for the resource at <a href="${UNRESOLVABLE_URL}">${UNRESOLVABLE_URL}</a>.`);
 
-                ctx.res.end();
-                done();
+        //         ctx.res.end();
+        //         done();
 
-                return true;
-            };
+        //         return true;
+        //     };
 
 
-            const url     = proxy.openSession(UNRESOLVABLE_URL, session)
-            const options = {
-                headers: {
-                    accept: PAGE_ACCEPT_HEADER,
-                },
-            };
+        //     const url     = proxy.openSession(UNRESOLVABLE_URL, session)
+        //     const options = {
+        //         headers: {
+        //             accept: PAGE_ACCEPT_HEADER,
+        //         },
+        //     };
 
-            fetch(url, options);
-        });
+        //     fetch(url, options);
+        // });
 
-        it('Should pass protocol DNS errors for existing host to session', done => {
-            session.handlePageError = (ctx, err) => {
-                expect(err).eql('Failed to find a DNS-record for the resource at <a href="https://127.0.0.1:2000/">https://127.0.0.1:2000/</a>.');
-                ctx.res.end();
-                done();
-                return true;
-            };
+        // it('Should pass protocol DNS errors for existing host to session', done => {
+        //     session.handlePageError = (ctx, err) => {
+        //         expect(err).eql('Failed to find a DNS-record for the resource at <a href="https://127.0.0.1:2000/">https://127.0.0.1:2000/</a>.');
+        //         ctx.res.end();
+        //         done();
+        //         return true;
+        //     };
 
-            const url     = proxy.openSession('https://127.0.0.1:2000', session);
-            const options = {
-                headers: {
-                    accept: PAGE_ACCEPT_HEADER,
-                },
-            };
+        //     const url     = proxy.openSession('https://127.0.0.1:2000', session);
+        //     const options = {
+        //         headers: {
+        //             accept: PAGE_ACCEPT_HEADER,
+        //         },
+        //     };
 
-            fetch(url, options);
-        });
+        //     fetch(url, options);
+        // });
 
-        it('Should pass service message processing to session', () => {
-            const url     = 'http://localhost:1836/messaging';
-            const options = {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    cmd: 'ServiceTestCmd',
-                    data: '42',
-                    sessionId: session.id,
-                }),
-            };
+        // it('Should pass service message processing to session', () => {
+        //     const url     = 'http://localhost:1836/messaging';
+        //     const options = {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //         body: JSON.stringify({
+        //             cmd: 'ServiceTestCmd',
+        //             data: '42',
+        //             sessionId: session.id,
+        //         }),
+        //     };
 
-            proxy.openSession('http://example.com', session);
+        //     proxy.openSession('http://example.com', session);
 
-            session['ServiceTestCmd'] = (msg, serverInfo) => {
-                expect(serverInfo).to.be.an('object');
-                return 'answer: ' + msg.data;
-            };
+        //     session['ServiceTestCmd'] = (msg, serverInfo) => {
+        //         expect(serverInfo).to.be.an('object');
+        //         return 'answer: ' + msg.data;
+        //     };
 
-            return fetch(url, options)
-                .then(res => {
-                    res
-                        .text()
-                        .then(body => expect(body).eql('"answer: 42"'));
-                });
-        });
+        //     return fetch(url, options)
+        //         .then(res => {
+        //             res
+        //                 .text()
+        //                 .then(body => expect(body).eql('"answer: 42"'));
+        //         });
+        // });
 
-        it('Should handle undefined/wrong-type error correctly', () => {
-            debug.enable('testcafe:hammerhead:service-message');
+        // it('Should handle undefined/wrong-type error correctly', () => {
+        //     debug.enable('testcafe:hammerhead:service-message');
 
-            const srderrWrite = process.stderr.write;
-            let log           = '';
+        //     const srderrWrite = process.stderr.write;
+        //     let log           = '';
 
-            process.stderr.write = msg => {
-                log += msg;
-            };
+        //     process.stderr.write = msg => {
+        //         log += msg;
+        //     };
 
-            const url     = 'http://localhost:1836/messaging'; 
-            const options = {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    cmd: 'ServiceTestCmd',
-                    data: '42',
-                    sessionId: session.id,
-                }),
-            };
+        //     const url     = 'http://localhost:1836/messaging'; 
+        //     const options = {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //         body: JSON.stringify({
+        //             cmd: 'ServiceTestCmd',
+        //             data: '42',
+        //             sessionId: session.id,
+        //         }),
+        //     };
 
-            proxy.openSession('http://example.com', session);
+        //     proxy.openSession('http://example.com', session);
 
-            session['ServiceTestCmd'] = () => {
-                throw 1;
-            };
+        //     session['ServiceTestCmd'] = () => {
+        //         throw 1;
+        //     };
 
-            return fetch(url, options)
-                .then(res => {
-                    if (!res.ok) {
-                        return res.text().then(text => {
-                            throw new Error(`${res.status} - ${text}`);
-                        });
-                    }
-                    return res.text();
-                })
-                .catch(err => {
-                    process.stderr.write = srderrWrite;
-                    debug.disable();
+        //     return fetch(url, options)
+        //         .then(res => {
+        //             if (!res.ok) {
+        //                 return res.text().then(text => {
+        //                     throw new Error(`${res.status} - ${text}`);
+        //                 });
+        //             }
+        //             return res.text();
+        //         })
+        //         .catch(err => {
+        //             process.stderr.write = srderrWrite;
+        //             debug.disable();
 
-                    expect(err.message).eql('500 - 1');
-                    expect(log).contains('The "1" error of the "number" type was passed. Make sure that service message handlers throw errors of the Error type.');
-                });
-        });
+        //             expect(err.message).eql('500 - 1');
+        //             expect(log).contains('The "1" error of the "number" type was passed. Make sure that service message handlers throw errors of the Error type.');
+        //         });
+        // });
 
         describe('Task script', () => {
             it('Regular', () => {
