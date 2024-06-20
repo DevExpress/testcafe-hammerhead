@@ -7,7 +7,6 @@ const urlLib                 = require('url');
 const net                    = require('net');
 const { noop }               = require('lodash');
 const { getFreePort }        = require('endpoint-utils');
-const request                = require('request-promise-native');
 const DestinationRequest     = require('../../../lib/request-pipeline/destination-request');
 const RequestPipelineContext = require('../../../lib/request-pipeline/context');
 const scriptHeader           = require('../../../lib/processing/script/header');
@@ -24,6 +23,7 @@ const {
     compareCode,
     getBasicProxyUrl,
     createDestinationServer,
+    request,
 } = require('../common/utils');
 
 const Credentials = urlUtils.Credentials;
@@ -259,8 +259,8 @@ describe('Regression', () => {
         };
 
         return request(options)
-            .then(parsedBody => {
-                expect(parsedBody).to.be.false;
+            .then(({ body }) => {
+                expect(body).to.be.false;
             });
     });
 
@@ -321,7 +321,7 @@ describe('Regression', () => {
             })
             .catch(err => {
                 const responseTime = Date.now();
-
+                console.log(err)
                 expect(err.toString()).include('socket hang up');
                 expect(responseTime - requestTime).above(session.options.requestTimeout.ajax);
 
@@ -339,7 +339,7 @@ describe('Regression', () => {
         };
 
         return request(options)
-            .then(body => {
+            .then(({ body }) => {
                 const expected = fs.readFileSync('test/server/data/empty-page/expected.html').toString();
 
                 compareCode(body, expected);
@@ -417,7 +417,7 @@ describe('Regression', () => {
         proxy.openSession('http://127.0.0.1:2000', session);
 
         return request(options)
-            .then(body => {
+            .then(({ body }) => {
                 expect(body).eql('http://example.com');
             });
     });
@@ -527,14 +527,14 @@ describe('Regression', () => {
         proxy.openSession('http://example.com', session);
 
         return request(options)
-            .then(parsedBody => {
-                expect(parsedBody.cookie).to.be.undefined;
+            .then(({ body }) => {
+                expect(body.cookie).to.be.undefined;
             });
     });
 
     it('Should add a leading slash to the pathname part of url (GH-608)', () => {
-        return request(proxy.openSession('http://127.0.0.1:2000?key=value', session))
-            .then(body => {
+        return request({url: proxy.openSession('http://127.0.0.1:2000?key=value', session)})
+            .then(({ body }) => {
                 expect(body).eql('/?key=value');
             });
     });
@@ -624,7 +624,7 @@ describe('Regression', () => {
         };
 
         return request(options)
-            .then(body => {
+            .then(({ body }) => {
                 expect(body).eql('');
             });
     });
@@ -650,7 +650,7 @@ describe('Regression', () => {
             };
 
             return request(options)
-                .then(body => {
+                .then(({ body }) => {
                     expect(body).is.empty;
                 });
         });
@@ -664,7 +664,7 @@ describe('Regression', () => {
             };
 
             return request(options)
-                .then(body => {
+                .then(({ body }) => {
                     expect(body).is.empty;
                 });
         });
@@ -732,7 +732,7 @@ describe('Regression', () => {
         };
 
         return request(options)
-            .then(body => {
+            .then(({ body }) => {
                 const expected = fs.readFileSync('test/server/data/page-with-frameset/expected.html').toString();
 
                 compareCode(body, expected);
@@ -750,7 +750,7 @@ describe('Regression', () => {
         };
 
         return request(options)
-            .then(body => {
+            .then(({ body }) => {
                 compareCode(body, 'pdf');
             });
     });
@@ -766,7 +766,7 @@ describe('Regression', () => {
         };
 
         return request(options)
-            .then(body => {
+            .then(({ body }) => {
                 expect(body).is.not.empty;
             });
     });
@@ -792,14 +792,14 @@ describe('Regression', () => {
 
         return Promise.all([
             request(options1)
-                .then(parsedBody => {
-                    expect(parsedBody['authorization']).to.be.undefined;
-                    expect(parsedBody['proxy-authorization']).to.be.undefined;
+                .then(({ body }) => {
+                    expect(body['authorization']).to.be.undefined;
+                    expect(body['proxy-authorization']).to.be.undefined;
                 }),
             request(options2)
-                .then(parsedBody => {
-                    expect(parsedBody['authorization']).eql('Basic 1243==');
-                    expect(parsedBody['proxy-authorization']).eql('Digital 423==');
+                .then(({ body }) => {
+                    expect(body['authorization']).eql('Basic 1243==');
+                    expect(body['proxy-authorization']).eql('Digital 423==');
                 }),
         ]);
     });
@@ -869,7 +869,7 @@ describe('Regression', () => {
         proxy.openSession('http://127.0.0.1:2000/', session);
 
         return request(options)
-            .then(body => {
+            .then(({ body }) => {
                 expect(body).contains(scriptHeader.SCRIPT_PROCESSING_START_COMMENT);
                 expect(handleFileDownloadIsRaised).to.be.false;
                 session.handleFileDownload = storedHandleFileDownload;
@@ -927,7 +927,7 @@ describe('Regression', () => {
                 url: getProxyUrl('http://127.0.0.1:2000/redirect/' + encodedUrl, { isIframe: true }),
 
                 resolveWithFullResponse: true,
-                followRedirect:          false,
+                redirect:                'manual',
                 simple:                  false,
                 headers:                 {
                     referer: getProxyUrl(opts.referer),
@@ -1120,12 +1120,9 @@ describe('Regression', () => {
         };
 
         return request(options)
-            .then(() => {
-                expect.fail('Request should raise an error');
-            })
-            .catch(err => {
+            .then(err => {
                 expect(err.statusCode).eql(500);
-                expect(err.response.body).to.include('test error message');
+                expect(err.body).to.include('test error message');
 
                 resourceProcessor.process = storedProcessFn;
             });
@@ -1139,7 +1136,7 @@ describe('Regression', () => {
                 url: proxy.openSession('http://127.0.0.1:2000/redirect-with-status/' + statusCode, session),
 
                 resolveWithFullResponse: true,
-                followRedirect:          false,
+                redirect:                'manual',
                 simple:                  false,
             };
 
@@ -1218,8 +1215,8 @@ describe('Regression', () => {
         };
 
         return request(options)
-            .then(rawHeadersNames => {
-                expect(rawHeadersNames).to.include.members(['if-none-match', 'X-Requested-With', 'ConTEnt-tyPE']);
+            .then(({ body }) => {
+                expect(body).to.include.members(['if-none-match', 'X-Requested-With', 'ConTEnt-tyPE']);
             });
     });
 
@@ -1235,15 +1232,15 @@ describe('Regression', () => {
         session.cookies.setByServer('http://127.0.0.1:2002/', ['test=test']);
 
         return request(options)
-            .then(rawHeadersNames => {
-                expect(rawHeadersNames).to.include.members(['Referer', 'Cookie']);
+            .then(({ body }) => {
+                expect(body).to.include.members(['Referer', 'Cookie']);
 
                 delete options.headers.Referer;
                 options.headers.referer = getProxyUrl('http://127.0.0.1:2000/');
 
                 return request(options);
             })
-            .then(rawHeadersNames => expect(rawHeadersNames).to.include.members(['referer', 'cookie']));
+            .then(({ body }) => expect(body).to.include.members(['referer', 'cookie']));
     });
 
     it('Should skip the "x-frame-options" header if request has the CSP header and it contains "frame-ancestors" option (GH-1666)', () => {
@@ -1272,7 +1269,7 @@ describe('Regression', () => {
         session.handlePageError = (ctx, err) => expect(err).eql(null);
 
         return request(options)
-            .then(body => {
+            .then(({ body }) => {
                 expect(body).contains('<h1>Compressible response content.</h1>');
             });
     });
@@ -1342,10 +1339,7 @@ describe('Regression', () => {
         };
 
         return request(options)
-            .then(() => {
-                expect.fail('Request should raise an "304" error');
-            })
-            .catch(err => {
+            .then(err => {
                 expect(err.statusCode).eql(304);
             })
             .then(() => new Promise(resolve => setTimeout(resolve, 2000)))
@@ -1514,7 +1508,7 @@ describe('Regression', () => {
                 'http://example.com', Credentials.omit, true),
 
             resolveWithFullResponse: true,
-            followRedirect:          false,
+            redirect:                'manual',
             simple:                  false,
         };
 

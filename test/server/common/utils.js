@@ -129,3 +129,27 @@ exports.normalizeNewLine = function (str) {
 exports.replaceLastAccessedTime = function (cookie) {
     return cookie.replace(/[a-z0-9]+\|=/, '%lastAccessed%|=');
 };
+
+exports.request = async function (options, debug) {
+    const res = {};
+
+    const response = await fetch(options.url, options);
+
+    if (debug)
+        console.log(response)
+
+    res.statusCode = response.status;
+    res.headers    = Object.fromEntries(response.headers);
+    res.response   = response.clone()
+
+    const bodyText = await response.text();
+
+    try {
+        res.body = await JSON.parse(bodyText);
+    } 
+    catch {
+        res.body = bodyText;
+    }
+
+    return res;
+}

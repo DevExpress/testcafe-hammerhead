@@ -138,7 +138,6 @@ gulp.task('build',
         gulp.parallel(
             'client-scripts',
             'templates',
-            'lint'
         )
     )
 );

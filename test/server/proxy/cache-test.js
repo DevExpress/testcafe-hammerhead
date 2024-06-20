@@ -1,4 +1,3 @@
-const request       = require('request-promise-native');
 const fs            = require('fs');
 const { expect }    = require('chai');
 const requestsCache = require('../../../lib/request-pipeline/cache');
@@ -103,12 +102,17 @@ describe('Cache', () => {
         return sessionNumber * 2 + requestNumber;
     }
 
+    async function request (url, requestParameters) {
+        return fetch(url, requestParameters)
+            .then(res => res.text())
+    }
+
     async function testRequestCaching ({ requestParameters, expectedResultFile, isAjax, shouldCache }) {
         for (let i = 0; i < SESSION_COUNT; i++) {
             const session                 = createSession();
             const clonedRequestParameters = Object.assign({}, requestParameters);
 
-            clonedRequestParameters.url = getBasicProxyUrl(clonedRequestParameters.url, { isAjax }, void 0, void 0, false, session);
+            url = getBasicProxyUrl(clonedRequestParameters.url, { isAjax }, void 0, void 0, false, session);
 
             proxy.openSession('http://example.com/', session);
 
@@ -119,7 +123,7 @@ describe('Cache', () => {
 
             let expectedServerRouteCalls = getExpectedServerRouteCall(i, 1, shouldCache);
 
-            let currentResult = await request(clonedRequestParameters);
+            let currentResult = await request(url, clonedRequestParameters);
 
             expect(serverRouteCalls).eql(expectedServerRouteCalls);
 
@@ -128,7 +132,7 @@ describe('Cache', () => {
             else
                 expect(currentResult.length).gt(0);
 
-            currentResult = await request(clonedRequestParameters);
+            currentResult = await request(url, clonedRequestParameters);
 
             expectedServerRouteCalls = getExpectedServerRouteCall(i, 2, shouldCache);
 

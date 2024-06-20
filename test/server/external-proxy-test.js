@@ -2,11 +2,10 @@ const http                    = require('http');
 const https                   = require('https');
 const urlLib                  = require('url');
 const net                     = require('net');
-const request                 = require('request-promise-native');
 const { expect }              = require('chai');
 const selfSignedCertificate   = require('openssl-self-signed-certificate');
 const Session                 = require('../../lib/session');
-const { createAndStartProxy } = require('./common/utils');
+const { createAndStartProxy, request } = require('./common/utils');
 
 const sockets = [];
 
@@ -164,10 +163,10 @@ describe('External proxy', () => {
     it('Should send the http request through the proxy', () => {
         session.setExternalProxySettings('127.0.0.1:2002');
 
-        const proxyUrl = proxy.openSession('http://127.0.0.1:2000/path', session);
+        const url = proxy.openSession('http://127.0.0.1:2000/path', session);
 
-        return request(proxyUrl)
-            .then(body => {
+        return request({url})
+            .then(({ body }) => {
                 expect(body).eql('/path');
                 expect(proxyLogs.length).eql(1);
                 expect(proxyLogs[0].url).eql('http://127.0.0.1:2000/path');
@@ -178,10 +177,10 @@ describe('External proxy', () => {
     it('Should send the https request through the proxy', () => {
         session.setExternalProxySettings('127.0.0.1:2002');
 
-        const proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session);
+        const url = proxy.openSession('https://127.0.0.1:2001/path', session);
 
-        return request(proxyUrl)
-            .then(body => {
+        return request({url})
+            .then(({ body }) => {
                 expect(body).eql('/path');
                 expect(proxyLogs.length).eql(1);
                 expect(proxyLogs[0].url).eql('127.0.0.1:2001');
@@ -190,10 +189,10 @@ describe('External proxy', () => {
     });
 
     it('Should send the http request through the proxy with auth', () => {
-        const proxyUrl = proxy.openSession('http://127.0.0.1:2000/path', session, 'login:pass@127.0.0.1:2002');
+        const url = proxy.openSession('http://127.0.0.1:2000/path', session, 'login:pass@127.0.0.1:2002');
 
-        return request(proxyUrl)
-            .then(body => {
+        return request({url})
+            .then(({ body }) => {
                 expect(body).eql('/path');
                 expect(proxyLogs.length).eql(1);
                 expect(proxyLogs[0].url).eql('http://127.0.0.1:2000/path');
@@ -202,10 +201,10 @@ describe('External proxy', () => {
     });
 
     it('Should send the https request through the proxy with auth', () => {
-        const proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session, 'login:pass@127.0.0.1:2002');
+        const url = proxy.openSession('https://127.0.0.1:2001/path', session, 'login:pass@127.0.0.1:2002');
 
-        return request(proxyUrl)
-            .then(body => {
+        return request({url})
+            .then(({ body }) => {
                 expect(body).eql('/path');
                 expect(proxyLogs.length).eql(1);
                 expect(proxyLogs[0].url).eql('127.0.0.1:2001');
@@ -293,10 +292,10 @@ describe('External proxy', () => {
         it('http', () => {
             session.setExternalProxySettings({ url: '127.0.0.1:2002', bypassRules: ['127.0.0.1:2000'] });
 
-            const proxyUrl = proxy.openSession('http://127.0.0.1:2000/path', session);
+            const url = proxy.openSession('http://127.0.0.1:2000/path', session);
 
-            return request(proxyUrl)
-                .then(body => {
+            return request({url})
+                .then(({ body }) => {
                     expect(body).eql('/path');
                     expect(proxyLogs.length).eql(0);
                     expect(session.externalProxySettings).eql({
@@ -311,10 +310,10 @@ describe('External proxy', () => {
         it('https', () => {
             session.setExternalProxySettings({ url: '127.0.0.1:2002', bypassRules: ['127.0.0.1:2001'] });
 
-            const proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session);
+            const url = proxy.openSession('https://127.0.0.1:2001/path', session);
 
-            return request(proxyUrl)
-                .then(body => {
+            return request({url})
+                .then(({ body }) => {
                     expect(body).eql('/path');
                     expect(proxyLogs.length).eql(0);
                     expect(session.externalProxySettings).eql({

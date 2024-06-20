@@ -2,12 +2,12 @@ const expect       = require('chai').expect;
 const express      = require('express');
 const ntlm         = require('express-ntlm');
 const auth         = require('basic-auth');
-const request      = require('request-promise-native');
 const headersUtils = require('../../lib/utils/headers');
 
 const {
     createAndStartProxy,
     createSession,
+    request,
 } = require('./common/utils');
 
 describe('Authentication', () => { // eslint-disable-line
@@ -125,14 +125,11 @@ describe('Authentication', () => { // eslint-disable-line
             };
 
             return request(options)
-                .then(() => {
-                    expect.fail('Request should raise an "401" error');
-                })
-                .catch(err => {
+                .then(err => {
                     expect(err.statusCode).equal(401);
-                    expect(err.error).equal('Access denied');
+                    expect(err.body).equal('Access denied');
                     // NOTE: prevent showing the native credentials window.
-                    expect(err.response.headers['www-authenticate']).eql(headersUtils.addAuthenticatePrefix('Basic realm="example"'));
+                    expect(err.headers['www-authenticate']).eql(headersUtils.addAuthenticatePrefix('Basic realm="example"'));
                 });
         });
 

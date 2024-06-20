@@ -1,5 +1,4 @@
 const fs                               = require('fs');
-const request                          = require('request-promise-native');
 const { expect }                       = require('chai');
 const express                          = require('express');
 const iconv                            = require('iconv-lite');
@@ -12,7 +11,7 @@ const { processScript }                = require('../../lib/processing/script');
 const pageProcessor                    = require('../../lib/processing/resources/page');
 const stylesheetProcessor              = require('../../lib/processing/resources/stylesheet');
 const manifestProcessor                = require('../../lib/processing/resources/manifest');
-const { createAndStartProxy }          = require('./common/utils');
+const { createAndStartProxy, request }          = require('./common/utils');
 
 
 function normalizeCode (code) {
@@ -162,7 +161,7 @@ describe('Content charset', () => {
             };
 
             return request(options)
-                .then(body => {
+                .then(({ body }) => {
                     compareCode(body, expectedBody);
                 });
         }
@@ -235,8 +234,8 @@ describe('Content charset', () => {
             const url          = getProxyUrl('http://127.0.0.1:2000' +
                                              destUrl, urlUtils.getResourceTypeString(resourceType), expectedCharset);
 
-            return request(url)
-                .then(body => {
+            return request({url})
+                .then(({ body }) => {
                     compareCode(body, expectedBody);
                 });
         }
@@ -268,8 +267,8 @@ describe('Content charset', () => {
 
     describe('Other resources', () => {
         function testResourceCharset (expectedBody, charsetStr, url) {
-            return request(url)
-                .then(body => {
+            return request({ url })
+                .then(({ body }) => {
                     compareCode(body, iconv.encode(expectedBody, charsetStr, { addBOM: /\/bom$/.test(url) }).toString());
                 });
         }
