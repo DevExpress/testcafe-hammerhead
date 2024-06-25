@@ -9,6 +9,7 @@ const { expect }            = require('chai');
 const urlUtils              = require('../../../lib/utils/url');
 const Proxy                 = require('../../../lib/proxy');
 const selfSignedCertificate = require('openssl-self-signed-certificate');
+const createServer          = require('net').createServer;
 
 const {
     PROXY_HOSTNAME,
@@ -128,4 +129,54 @@ exports.normalizeNewLine = function (str) {
 
 exports.replaceLastAccessedTime = function (cookie) {
     return cookie.replace(/[a-z0-9]+\|=/, '%lastAccessed%|=');
+};
+
+function createServerOnFreePort () {
+    return new Promise(resolve => {
+        const server = createServer();
+
+        server.once('listening', () => {
+            resolve(server);
+        });
+
+        server.listen(0);
+    });
+}
+
+function closeServers (servers) {
+    return Promise.all(servers.map(server => {
+        return new Promise(resolve => {
+            server.once('close', resolve);
+            server.close();
+        });
+    }));
+}
+
+function getFreePorts (count) {
+    const serverPromises = [];
+    let ports          = null;
+
+    // NOTE: Sequentially collect listening
+    // servers to avoid interference.
+    for (let i = 0; i < count; i++)
+        serverPromises.push(createServerOnFreePort());
+
+    return Promise.all(serverPromises)
+        .then(servers => {
+            ports = servers.map(server => {
+                return server.address().port;
+            });
+
+            return servers;
+        })
+        .then(closeServers)
+        .then(() => {
+            return ports;
+        });
+}
+
+exports.getFreePort = function () {
+    return getFreePorts(1).then(ports => {
+        return ports[0];
+    });
 };
