@@ -1,7 +1,7 @@
 const WebSocket             = require('ws');
 const selfSignedCertificate = require('openssl-self-signed-certificate');
 const https                 = require('https');
-const { getFreePort }       = require('endpoint-utils');
+const { getFreePort }       = require('../common/utils');
 
 const {
     createDestinationServer,
