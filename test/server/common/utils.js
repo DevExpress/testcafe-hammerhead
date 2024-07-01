@@ -180,3 +180,39 @@ exports.getFreePort = function () {
         return ports[0];
     });
 };
+
+function parseResponse (response) {
+    const contentType = response.headers.get('content-type');
+
+    if (contentType && contentType.includes('application/json'))
+        return response.json();
+
+    return response.text();
+}
+
+exports.request = async function (options) {
+    const res = {};
+    let url = options.url;
+
+    if (typeof options === 'string') {
+        url = options;
+        options = {};
+    }
+
+    /*eslint-disable no-undef*/
+    const response = await fetch(url, options);
+    /*eslint-enable no-undef*/
+
+    res.statusCode = response.status;
+    res.headers    = Object.fromEntries(response.headers);
+    res.response   = response.clone();
+
+    try {
+        res.body = await parseResponse(response);
+    }
+    catch {
+        return res;
+    }
+
+    return res;
+};

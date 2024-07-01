@@ -2,11 +2,14 @@ const http                    = require('http');
 const https                   = require('https');
 const urlLib                  = require('url');
 const net                     = require('net');
-const request                 = require('request-promise-native');
 const { expect }              = require('chai');
 const selfSignedCertificate   = require('openssl-self-signed-certificate');
 const Session                 = require('../../lib/session');
-const { createAndStartProxy } = require('./common/utils');
+
+const {
+    createAndStartProxy,
+    request,
+} = require('./common/utils');
 
 const sockets = [];
 
@@ -167,7 +170,7 @@ describe('External proxy', () => {
         const proxyUrl = proxy.openSession('http://127.0.0.1:2000/path', session);
 
         return request(proxyUrl)
-            .then(body => {
+            .then(({ body }) => {
                 expect(body).eql('/path');
                 expect(proxyLogs.length).eql(1);
                 expect(proxyLogs[0].url).eql('http://127.0.0.1:2000/path');
@@ -181,7 +184,7 @@ describe('External proxy', () => {
         const proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session);
 
         return request(proxyUrl)
-            .then(body => {
+            .then(({ body }) => {
                 expect(body).eql('/path');
                 expect(proxyLogs.length).eql(1);
                 expect(proxyLogs[0].url).eql('127.0.0.1:2001');
@@ -193,7 +196,7 @@ describe('External proxy', () => {
         const proxyUrl = proxy.openSession('http://127.0.0.1:2000/path', session, 'login:pass@127.0.0.1:2002');
 
         return request(proxyUrl)
-            .then(body => {
+            .then(({ body }) => {
                 expect(body).eql('/path');
                 expect(proxyLogs.length).eql(1);
                 expect(proxyLogs[0].url).eql('http://127.0.0.1:2000/path');
@@ -205,7 +208,7 @@ describe('External proxy', () => {
         const proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session, 'login:pass@127.0.0.1:2002');
 
         return request(proxyUrl)
-            .then(body => {
+            .then(({ body }) => {
                 expect(body).eql('/path');
                 expect(proxyLogs.length).eql(1);
                 expect(proxyLogs[0].url).eql('127.0.0.1:2001');
@@ -296,7 +299,7 @@ describe('External proxy', () => {
             const proxyUrl = proxy.openSession('http://127.0.0.1:2000/path', session);
 
             return request(proxyUrl)
-                .then(body => {
+                .then(({ body }) => {
                     expect(body).eql('/path');
                     expect(proxyLogs.length).eql(0);
                     expect(session.externalProxySettings).eql({
@@ -314,7 +317,7 @@ describe('External proxy', () => {
             const proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session);
 
             return request(proxyUrl)
-                .then(body => {
+                .then(({ body }) => {
                     expect(body).eql('/path');
                     expect(proxyLogs.length).eql(0);
                     expect(session.externalProxySettings).eql({
