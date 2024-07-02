@@ -3,13 +3,13 @@ const {
     createAndStartProxy,
     getFileProtocolUrl,
     compareCode,
+    request,
 } = require('../common/utils');
 
 const {
     PAGE_ACCEPT_HEADER,
 } = require('../common/constants');
 
-const request    = require('request-promise-native');
 const fs         = require('fs');
 const os         = require('os');
 const path       = require('path');
@@ -50,7 +50,7 @@ describe('file:// protocol', () => {
         };
 
         return request(options)
-            .then(body => {
+            .then(({ body }) => {
                 // NOTE: The host property is empty in url with file: protocol.
                 // The expected.html template is used for both tests with http: and file: protocol.
                 const expected = fs.readFileSync('test/server/data/page/expected.html').toString()
@@ -72,7 +72,7 @@ describe('file:// protocol', () => {
         };
 
         return request(options)
-            .then(body => {
+            .then(({ body }) => {
                 const expected = fs.readFileSync('test/server/data/stylesheet/expected.css').toString();
 
                 compareCode(body, expected);
@@ -93,7 +93,7 @@ describe('file:// protocol', () => {
         };
 
         return request(options)
-            .then(body => {
+            .then(({ body }) => {
                 const filePath = 'test/server/data/page-with-file-protocol/expected-' + filePostfix + '.html';
                 const expected = fs.readFileSync(filePath).toString();
 
@@ -115,7 +115,7 @@ describe('file:// protocol', () => {
             };
 
             return request(options)
-                .then(body => {
+                .then(({ body }) => {
                     const expected = fs.readFileSync('test/server/data/page-with-file-protocol/expected-win.html').toString();
 
                     compareCode(body, expected);

@@ -1,6 +1,5 @@
 const selfSignedCertificate = require('openssl-self-signed-certificate');
 const { expect }            = require('chai');
-const request               = require('request-promise-native');
 const fs                    = require('fs');
 
 const {
@@ -8,6 +7,7 @@ const {
     createAndStartProxy,
     compareCode,
     createDestinationServer,
+    request,
 } = require('../common/utils');
 
 const {
@@ -67,7 +67,7 @@ describe('https proxy', () => {
         expect(options.url).eql('https://127.0.0.1:1836/sessionId*12345/http://127.0.0.1:2000/page');
 
         return request(options)
-            .then(body => {
+            .then(({ body }) => {
                 const expected = fs.readFileSync('test/server/data/page/expected-https.html').toString();
 
                 compareCode(body, expected);
