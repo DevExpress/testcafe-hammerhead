@@ -184,20 +184,20 @@ exports.getFreePort = function () {
 function parseResponse (response) {
     const contentType = response.headers.get('content-type');
 
-    if (contentType && contentType.includes('application/json'))
-        return response.json();
-
-    return response.text();
+    return contentType?.includes('application/json')
+        ? response.json()
+        : response.text();
 }
 
 exports.request = async function (options) {
     const res = {};
-    let url = options.url;
+    const url = typeof options === 'string'
+        ? options
+        : options.url;
 
-    if (typeof options === 'string') {
-        url = options;
-        options = {};
-    }
+    options = typeof options === 'string'
+        ? {}
+        : options;
 
     /*eslint-disable no-undef*/
     const response = await fetch(url, options);
@@ -210,9 +210,9 @@ exports.request = async function (options) {
     try {
         res.body = await parseResponse(response);
     }
-    catch {
+    finally {
+        /*eslint-disable no-unsafe-finally*/
         return res;
+        /*eslint-enable no-unsafe-finally*/
     }
-
-    return res;
 };
