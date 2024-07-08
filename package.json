@@ -93,7 +93,7 @@
   "main": "lib/index",
   "types": "ts-defs/index.d.ts",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=16.0.0"
   },
   "files": [
     "lib",
