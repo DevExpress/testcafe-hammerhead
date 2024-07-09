@@ -190,12 +190,13 @@ function parseResponse (response) {
 }
 
 exports.request = async function (options) {
-    const res = {};
-    const url = typeof options === 'string'
+    const res      = {};
+    const isString = typeof options === 'string';
+    const url      = isString
         ? options
         : options.url;
 
-    options = typeof options === 'string'
+    options = isString
         ? {}
         : options;
 
