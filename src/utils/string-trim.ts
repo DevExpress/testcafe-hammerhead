@@ -11,5 +11,5 @@
 // iframe is initialized, so that the iframe will lose access to the native method.
 
 export default function (str: string): string {
-    return typeof str === 'string' ? str.replace(/(^\s+)|(\s+$)/g, '') : str;
+    return typeof str === 'string' ? str.replace(/(^\s+)|(?<!\s)(\s+$)/g, '') : str;
 }
