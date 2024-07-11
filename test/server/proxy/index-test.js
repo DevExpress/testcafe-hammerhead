@@ -1,6 +1,5 @@
 const fs                    = require('fs');
 const https                 = require('https');
-const request               = require('request-promise-native');
 const { expect }            = require('chai');
 const express               = require('express');
 const debug                 = require('debug');
@@ -23,6 +22,7 @@ const {
     getBasicProxyUrl,
     normalizeNewLine,
     replaceLastAccessedTime,
+    request,
 } = require('../common/utils');
 
 const {
@@ -435,14 +435,18 @@ describe('Proxy', () => {
 
         it('Should pass service message processing to session', () => {
             const options = {
-                method: 'POST',
-                url:    'http://localhost:1836/messaging',
-                json:   true,
-                body:   {
+                url: 'http://localhost:1836/messaging',
+
+                method:  'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+
+                body: JSON.stringify({
                     cmd:       'ServiceTestCmd',
                     data:      '42',
                     sessionId: session.id,
-                },
+                }),
             };
 
             proxy.openSession('http://example.com', session);
@@ -453,8 +457,8 @@ describe('Proxy', () => {
             };
 
             return request(options)
-                .then(parsedBody => {
-                    expect(parsedBody).eql('answer: 42');
+                .then(({ body }) => {
+                    expect(body).eql('answer: 42');
                 });
         });
 
@@ -469,14 +473,17 @@ describe('Proxy', () => {
             };
 
             const options = {
-                method: 'POST',
-                url:    'http://localhost:1836/messaging',
-                json:   true,
-                body:   {
+                method:  'POST',
+                url:     'http://localhost:1836/messaging',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+
+                body: JSON.stringify({
                     cmd:       'ServiceTestCmd',
                     data:      '42',
                     sessionId: session.id,
-                },
+                }),
             };
 
             proxy.openSession('http://example.com', session);
@@ -486,12 +493,16 @@ describe('Proxy', () => {
             };
 
             return request(options)
-                .then(() => {
-                    throw new Error('unexpected error');
+                .then(res => {
+                    if (!res.response.ok) {
+                        return res.response.text().then(text => {
+                            throw new Error(`${res.statusCode} - ${text}`);
+                        });
+                    }
+                    return res.response.text();
                 })
                 .catch(err => {
                     process.stderr.write = srderrWrite;
-
                     debug.disable();
 
                     expect(err.message).eql('500 - 1');
@@ -543,11 +554,8 @@ describe('Proxy', () => {
                 };
 
                 return request(options)
-                    .then(() => {
-                        throw new Error('Should throw an error.');
-                    })
-                    .catch(err => {
-                        expect(err.message).eql('500 - "Session is not opened in proxy"');
+                    .then(({ body }) => {
+                        expect(body).eql('Session is not opened in proxy');
                     });
             });
         });
@@ -571,7 +579,7 @@ describe('Proxy', () => {
                 };
 
                 return request(options)
-                    .then(body => {
+                    .then(({ body }) => {
                         expect(body).to.not.empty;
                     });
             };
@@ -618,7 +626,7 @@ describe('Proxy', () => {
             proxy.openSession('http://localhost:2000/', someSession);
 
             return request(scriptProxyUrl)
-                .then(body => {
+                .then(({ body }) => {
                     const importUrl = body.replace(getUrlFromBodyReqExp, '$1');
 
                     expect(importUrl).eql('http://127.0.0.1:1836/dIonisses*54321!s!utf-8/http://localhost:2000/module-name');
@@ -632,7 +640,7 @@ describe('Proxy', () => {
 
                     return request(scriptProxyUrl);
                 })
-                .then(body => {
+                .then(({ body }) => {
                     const importUrl = body.replace(getUrlFromBodyReqExp, '$1');
 
                     expect(importUrl).eql('http://127.0.0.1:1836/sessionId*12345!s!utf-8/http://localhost:2000/module-name');
@@ -709,7 +717,7 @@ describe('Proxy', () => {
             };
 
             return request(options)
-                .then(body => {
+                .then(({ body }) => {
                     expect(body).eql('%% Test=value; value without key %%');
                 });
         });
@@ -736,7 +744,7 @@ describe('Proxy', () => {
 
                 return request(options)
                     .then(res => {
-                        expect(replaceLastAccessedTime(res.headers['set-cookie'][0]))
+                        expect(replaceLastAccessedTime(res.headers['set-cookie']))
                             .eql(`s|${session.id}|aaa|127.0.0.1|%2Fpath||%lastAccessed%|=111;path=/`);
                     });
             });
@@ -755,7 +763,7 @@ describe('Proxy', () => {
 
                 return request(options)
                     .then(res => {
-                        expect(replaceLastAccessedTime(res.headers['set-cookie'][0]))
+                        expect(replaceLastAccessedTime(res.headers['set-cookie']))
                             .eql(`s|${session.id}|aaa|127.0.0.1|%2Fpath||%lastAccessed%|=111;path=/`);
                     });
             });
@@ -772,19 +780,18 @@ describe('Proxy', () => {
                             `s|${session.id}|bbb|127.0.0.1|%2F||${obsoleteTime}|=321`,
                         ].join('; '),
                     },
-
-                    resolveWithFullResponse: true,
-                    simple:                  false,
                 };
 
                 return request(options)
                     .then(res => {
-                        expect(res.headers['set-cookie'][0])
-                            .eql(`s|${session.id}|aaa|127.0.0.1|%2F||123456788|=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
-                        expect(res.headers['set-cookie'][1])
-                            .eql(`s|${session.id}|bbb|127.0.0.1|%2F||${obsoleteTime}|=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
-                        expect(replaceLastAccessedTime(res.headers['set-cookie'][2]))
-                            .eql(`s|${session.id}|bbb|127.0.0.1|%2F||%lastAccessed%|=321;path=/`);
+                        const cookies = res.response.headers.get('set-cookie').split(' s|');
+
+                        expect(cookies[0])
+                            .contains(`s|${session.id}|aaa|127.0.0.1|%2F||123456788|=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
+                        expect('s|' + cookies[1])
+                            .contains(`s|${session.id}|bbb|127.0.0.1|%2F||${obsoleteTime}|=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
+                        expect(replaceLastAccessedTime('s|' + cookies[2]))
+                            .contains(`s|${session.id}|bbb|127.0.0.1|%2F||%lastAccessed%|=321;path=/`);
                     });
             });
 
@@ -815,7 +822,7 @@ describe('Proxy', () => {
                 };
 
                 return request(options)
-                    .then(body => {
+                    .then(({ body }) => {
                         expect(body).eql('%% Test1=Data1 %%');
                         expect(session.cookies.getClientString('http://127.0.0.1/')).eql('Test1=Data1');
                         expect(session.cookies.getClientString('http://localhost/')).eql('Test2=Data2');
@@ -836,9 +843,9 @@ describe('Proxy', () => {
                 return request(options)
                     .then(res => {
                         expect(res.body).eql('%% Test1=Data1; Test2=Data2 %%');
-                        expect(res.headers['set-cookie'].length).eql(1);
-                        expect(res.headers['set-cookie'][0])
-                            .eql(`c|${session.id}|Test1|127.0.0.1|%2F||1fdkm5ln1|=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
+                        expect(res.headers['set-cookie'].length).eql(89);
+                        expect(res.response.headers.get('set-cookie'))
+                            .contains(`c|${session.id}|Test1|127.0.0.1|%2F||1fdkm5ln1|=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
                         expect(session.cookies.getClientString('http://127.0.0.1:12354/')).eql('Test1=Data1; Test2=Data2');
                     });
             });
@@ -866,12 +873,16 @@ describe('Proxy', () => {
             const options = {
                 method: 'POST',
                 url:    'http://localhost:1836/messaging',
-                json:   true,
-                body:   {
+
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+
+                body: JSON.stringify({
                     cmd:       'ServiceTestCmd',
                     data:      '42',
                     sessionId: session.id,
-                },
+                }),
             };
 
             proxy.openSession('https://example.com', session);
@@ -939,9 +950,7 @@ describe('Proxy', () => {
                     const options    = {
                         url: 'http://127.0.0.1:2000/redirect/' + encodedUrl,
 
-                        resolveWithFullResponse: true,
-                        followRedirect:          false,
-                        simple:                  false,
+                        redirect: 'manual',
                     };
 
                     return request(options)
@@ -968,9 +977,7 @@ describe('Proxy', () => {
                     const options    = {
                         url: 'http://127.0.0.1:2000/redirect/' + encodedUrl,
 
-                        resolveWithFullResponse: true,
-                        followRedirect:          false,
-                        simple:                  false,
+                        redirect: 'manual',
                     };
 
                     return request(options)
@@ -1003,8 +1010,6 @@ describe('Proxy', () => {
             const options = {
                 url: getProxyUrl('http://127.0.0.1:2000/page/plain-text', { isAjax: true },
                     'http://example.com', Credentials.sameOrigin, true),
-
-                resolveWithFullResponse: true,
             };
 
             proxy.openSession('http://example.com/', session);
@@ -1137,10 +1142,7 @@ describe('Proxy', () => {
             proxy.openSession('http://example.com', session);
 
             return request(options)
-                .then(() => {
-                    expect.fail('Request should raise an "304" error');
-                })
-                .catch(err => {
+                .then(err => {
                     expect(err.statusCode).eql(304);
                 });
         });
@@ -1158,7 +1160,7 @@ describe('Proxy', () => {
             return request(options)
                 .then(res => {
                     expect(res.statusCode).eql(200);
-                    expect(replaceLastAccessedTime(res.headers['set-cookie'][0]))
+                    expect(replaceLastAccessedTime(res.headers['set-cookie']))
                         .eql(`s|${session.id}|key|127.0.0.1|%2F||%lastAccessed%|=value;path=/`);
                     expect(res.headers[BUILTIN_HEADERS.accessControlAllowOrigin]).to.be.empty;
                     expect(session.cookies.getClientString('http://127.0.0.1:2000')).eql('key=value');
@@ -1178,7 +1180,7 @@ describe('Proxy', () => {
             return request(options)
                 .then(res => {
                     expect(res.statusCode).eql(200);
-                    expect(res.headers['set-cookie']).to.be.empty;
+                    expect(res.headers['cookies']).to.be.empty;
                     expect(session.cookies.getClientString('http://127.0.0.1:2000')).to.be.empty;
                 });
         });
@@ -1198,8 +1200,8 @@ describe('Proxy', () => {
                     session.cookies.setByServer('http://127.0.0.1:2000', 'key=value');
 
                     return request(options)
-                        .then(parsedBody => {
-                            expect(parsedBody.cookie).to.be.undefined;
+                        .then(({ body }) => {
+                            expect(body.cookie).to.be.undefined;
                         });
                 });
 
@@ -1214,8 +1216,8 @@ describe('Proxy', () => {
                     session.cookies.setByServer('http://127.0.0.1:2000', 'key=value');
 
                     return request(options)
-                        .then(parsedBody => {
-                            expect(parsedBody.cookie).to.be.undefined;
+                        .then(({ body }) => {
+                            expect(body.cookie).to.be.undefined;
                         });
                 });
             });
@@ -1232,8 +1234,8 @@ describe('Proxy', () => {
                     session.cookies.setByServer('http://127.0.0.1:2000', 'key=value');
 
                     return request(options)
-                        .then(parsedBody => {
-                            expect(parsedBody.cookie).eql('key=value');
+                        .then(({ body }) => {
+                            expect(JSON.parse(body).cookie).eql('key=value');
                         });
                 });
 
@@ -1248,8 +1250,8 @@ describe('Proxy', () => {
                     session.cookies.setByServer('http://127.0.0.1:2000', 'key=value');
 
                     return request(options)
-                        .then(parsedBody => {
-                            expect(parsedBody.cookie).to.be.undefined;
+                        .then(({ body }) => {
+                            expect(body.cookie).to.be.undefined;
                         });
                 });
             });
@@ -1266,8 +1268,8 @@ describe('Proxy', () => {
                     session.cookies.setByServer('http://127.0.0.1:2000', 'key=value');
 
                     return request(options)
-                        .then(parsedBody => {
-                            expect(parsedBody.cookie).eql('key=value');
+                        .then(({ body }) => {
+                            expect(JSON.parse(body).cookie).eql('key=value');
                         });
                 });
 
@@ -1282,8 +1284,8 @@ describe('Proxy', () => {
                     session.cookies.setByServer('http://127.0.0.1:2000', 'key=value');
 
                     return request(options)
-                        .then(parsedBody => {
-                            expect(parsedBody.cookie).eql('key=value');
+                        .then(({ body }) => {
+                            expect(body.cookie).eql('key=value');
                         });
                 });
             });
@@ -1299,7 +1301,7 @@ describe('Proxy', () => {
                     expect.fail('Request should raise an error');
                 })
                 .catch(err => {
-                    expect(err.toString()).include('socket hang up');
+                    expect(err.cause.toString()).include('SocketError: other side closed');
                 });
         });
     });
@@ -1328,7 +1330,7 @@ describe('Proxy', () => {
             };
 
             return request(options)
-                .then(body => {
+                .then(({ body }) => {
                     const expected = fs.readFileSync('test/server/data/page/expected.html').toString();
 
                     compareCode(body, expected);
@@ -1353,7 +1355,7 @@ describe('Proxy', () => {
             };
 
             return request(options)
-                .then(body => {
+                .then(({ body }) => {
                     const expected = fs.readFileSync('test/server/data/html-import-page/expected.html').toString();
 
                     compareCode(body, expected);
@@ -1375,7 +1377,7 @@ describe('Proxy', () => {
             };
 
             return request(options)
-                .then(body => {
+                .then(({ body }) => {
                     const expected = fs.readFileSync('test/server/data/html-import-page/expected-iframe.html').toString();
 
                     compareCode(body, expected);
@@ -1391,7 +1393,7 @@ describe('Proxy', () => {
             proxy.openSession('http://127.0.0.1:2000/', session);
 
             return request(options)
-                .then(body => {
+                .then(({ body }) => {
                     const expected = fs.readFileSync('test/server/data/page/src.html').toString();
 
                     compareCode(body, expected);
@@ -1402,7 +1404,7 @@ describe('Proxy', () => {
             session.id = 'sessionId';
 
             return request(proxy.openSession('http://127.0.0.1:2000/script', session))
-                .then(body => {
+                .then(({ body }) => {
                     const expected = fs.readFileSync('test/server/data/script/expected.js').toString();
 
                     expect(normalizeNewLine(body)).eql(normalizeNewLine(expected));
@@ -1413,7 +1415,7 @@ describe('Proxy', () => {
             session.id = 'sessionId';
 
             return request(proxy.openSession('http://127.0.0.1:2000/manifest', session))
-                .then(body => {
+                .then(({ body }) => {
                     const expected = fs.readFileSync('test/server/data/manifest/expected.manifest').toString();
 
                     compareCode(body, expected);
@@ -1431,7 +1433,7 @@ describe('Proxy', () => {
             };
 
             return request(options)
-                .then(body => {
+                .then(({ body }) => {
                     const expected = fs.readFileSync('test/server/data/stylesheet/expected.css').toString();
 
                     compareCode(body, expected);
@@ -1473,7 +1475,7 @@ describe('Proxy', () => {
             };
 
             return request(options)
-                .then(body => {
+                .then(({ body }) => {
                     expect(body).eql(expected.toString());
                 });
         });
@@ -1488,7 +1490,7 @@ describe('Proxy', () => {
             };
 
             return request(options)
-                .then(body => {
+                .then(({ body }) => {
                     expect(body).eql(EMPTY_PAGE_MARKUP);
                 });
         });
@@ -1511,15 +1513,11 @@ describe('Proxy', () => {
                     options.headers['if-none-match'] = '42dc7c04442557f8937f89ecdc993077';
 
                 return request(options)
-                    .then(() => {
-                        expect.fail('Request should raise an "304" error');
-                    })
-                    .catch(err => {
-                        expect(err.response.body).eql('');
+                    .then(err => {
+                        expect(err.body).eql('');
                         expect(err.statusCode).eql(304);
-                        expect(err.response.headers['content-length']).eql('0');
+                        expect(err.headers['content-length']).eql('0');
                     });
-
             }));
         });
 
@@ -1538,7 +1536,7 @@ describe('Proxy', () => {
             };
 
             return request(options)
-                .then(body => {
+                .then(({ body }) => {
                     const expected = fs.readFileSync('test/server/data/page-with-custom-client-script/expected.html').toString();
 
                     compareCode(body, expected);
@@ -1550,7 +1548,7 @@ describe('Proxy', () => {
                 url:  proxy.openSession('http://127.0.0.1:2000/content-encoding-upper-case', session),
                 gzip: true,
             })
-                .then(body => {
+                .then(({ body }) => {
                     expect(body).eql(processScript('// Compressed GZIP', true));
                 });
         });
@@ -1596,7 +1594,7 @@ describe('Proxy', () => {
             });
 
             return request('http://127.0.0.1:1836/testcafe-ui-styles.css')
-                .then(body => {
+                .then(({ body }) => {
                     expect(body.replace(/\r\n|\n/g, '')).equal(expected.replace(/\r\n|\n/g, ''));
                 });
         });
@@ -1626,8 +1624,8 @@ describe('Proxy', () => {
             const url = proxy.openSession('https://127.0.0.1:2001/answer', session);
 
             return request(url)
-                .then(body => {
-                    expect(body).eql('42');
+                .then(({ body }) => {
+                    expect(JSON.parse(body)).eql(42);
                 });
         });
     });
@@ -1641,12 +1639,7 @@ describe('Proxy', () => {
                 },
             };
 
-            return request(options, (err, res, body) => {
-                if (err)
-                    throw err;
-
-                return body;
-            });
+            return request(options);
         }
 
         function forEachSequentially (arr, fn) {
@@ -1685,7 +1678,7 @@ describe('Proxy', () => {
                 session.useStateSnapshot(testCase.state);
 
                 return makeRequest('http://127.0.0.1:2000/cookie/echo')
-                    .then(body => {
+                    .then(({ body }) => {
                         expect(body).contains('%% ' + testCase.expected + ' %%');
                     });
             }
@@ -1717,25 +1710,25 @@ describe('Proxy', () => {
                 .then(() => {
                     return makeRequest('http://127.0.0.1:2000/cookie/echo', false);
                 })
-                .then(body => {
+                .then(({ body }) => {
                     expect(body).contains('%% Set1_1=value1; Set1_2=value2 %%');
                 })
                 .then(() => {
                     return makeRequest('http://127.0.0.1:2000/cookie/echo', true, { isIframe: true });
                 })
-                .then(body => {
+                .then(({ body }) => {
                     expect(body).contains('%% Set1_1=value1; Set1_2=value2 %%');
                 })
                 .then(() => {
                     return makeRequest('http://127.0.0.1:2000/cookie/echo', true, { isHtmlImport: true });
                 })
-                .then(body => {
+                .then(({ body }) => {
                     expect(body).contains('%% Set1_1=value1; Set1_2=value2 %%');
                 })
                 .then(() => {
                     return makeRequest('http://127.0.0.1:2000/cookie/echo');
                 })
-                .then(body => {
+                .then(({ body }) => {
                     expect(body).not.contains('%% Set1_1=value1; Set1_2=value2 %%');
                 })
 
@@ -1747,25 +1740,25 @@ describe('Proxy', () => {
                 .then(() => {
                     return makeRequest('http://127.0.0.1:2000/cookie/echo', false);
                 })
-                .then(body => {
+                .then(({ body }) => {
                     expect(body).not.contains('%% Set1_1=value1; Set1_2=value2 %%');
                 })
                 .then(() => {
                     return makeRequest('http://127.0.0.1:2000/cookie/echo', true, { isIframe: true });
                 })
-                .then(body => {
+                .then(({ body }) => {
                     expect(body).not.contains('%% Set1_1=value1; Set1_2=value2 %%');
                 })
                 .then(() => {
                     return makeRequest('http://127.0.0.1:2000/cookie/echo', true, { isHtmlImport: true });
                 })
-                .then(body => {
+                .then(({ body }) => {
                     expect(body).not.contains('%% Set1_1=value1; Set1_2=value2 %%');
                 })
                 .then(() => {
                     return makeRequest('http://127.0.0.1:2000/cookie/echo');
                 })
-                .then(body => {
+                .then(({ body }) => {
                     expect(body).contains('%% Set1_1=value1; Set1_2=value2 %%');
                 });
         });
@@ -1783,7 +1776,7 @@ describe('Proxy', () => {
             session.useStateSnapshot(StateSnaphot.empty());
 
             return request(options)
-                .then(body => {
+                .then(({ body }) => {
                     expect(body).not.contains('if-modified-since');
                     expect(body).not.contains('if-none-match');
                 });

@@ -1,4 +1,3 @@
-const request       = require('request-promise-native');
 const fs            = require('fs');
 const { expect }    = require('chai');
 const requestsCache = require('../../../lib/request-pipeline/cache');
@@ -15,6 +14,7 @@ const {
     createAndStartProxy,
     compareCode,
     getBasicProxyUrl,
+    request,
 } = require('../common/utils');
 
 const emitter       = new EventEmitter();
@@ -124,9 +124,9 @@ describe('Cache', () => {
             expect(serverRouteCalls).eql(expectedServerRouteCalls);
 
             if (expectedResult)
-                compareCode(currentResult, expectedResult);
+                compareCode(currentResult.body, expectedResult);
             else
-                expect(currentResult.length).gt(0);
+                expect(currentResult.body.length).gt(0);
 
             currentResult = await request(clonedRequestParameters);
 
@@ -135,9 +135,9 @@ describe('Cache', () => {
             expect(serverRouteCalls).eql(expectedServerRouteCalls);
 
             if (expectedResult)
-                compareCode(currentResult, expectedResult);
+                compareCode(currentResult.body, expectedResult);
             else
-                expect(currentResult.length).gt(0);
+                expect(currentResult.body.length).gt(0);
         }
 
         serverRouteCalls = 0;

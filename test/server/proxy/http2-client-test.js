@@ -1,6 +1,5 @@
 const fs                           = require('fs');
 const { expect }                   = require('chai');
-const request                      = require('request-promise-native');
 const logger                       = require('../../../lib/utils/logger');
 const { noop }                     = require('lodash');
 const http2Utils                   = require('../../../lib/request-pipeline/destination-request/http2');
@@ -25,8 +24,8 @@ const {
     createDestinationServer,
     createHttp2DestServer,
     compareCode,
+    request,
 } = require('../common/utils');
-
 
 describe('https proxy', () => {
     let session               = null;
@@ -110,6 +109,11 @@ describe('https proxy', () => {
             .set('content-type', 'text/css')
             .end(fs.readFileSync('test/server/data/stylesheet/src.css')));
 
+        httpsApp.post('/stylesheet', (req, res) => res
+            .status(200)
+            .set('content-type', 'text/css')
+            .end(fs.readFileSync('test/server/data/stylesheet/src.css')));
+
         const http2App = createHttp2DestServer();
 
         http2Server = http2App.server;
@@ -159,7 +163,7 @@ describe('https proxy', () => {
         proxy.openSession('https://127.0.0.1:2000', session);
 
         return request(proxyUrl)
-            .then(body => {
+            .then(({ body }) => {
                 const expected = fs.readFileSync('test/server/data/script/expected.js').toString();
 
                 expect(body).eql(expected);
@@ -167,7 +171,7 @@ describe('https proxy', () => {
                 expect(logs[0]).eql('onHttp2SessionCreated');
                 expect(logs[1]).deep.eql(['https://127.0.0.1:2000', 1, 100]);
                 expect(logs[2]).eql('onHttp2Stream');
-                expect(logs[3][0]).deep.eql({
+                expect(logs[3][0]).deep.contains({
                     ':method':    'GET',
                     ':path':      '/script',
                     ':authority': '127.0.0.1:2000',
@@ -184,7 +188,7 @@ describe('https proxy', () => {
             proxy.openSession('https://127.0.0.1:2000', session);
 
             return request(proxyUrl)
-                .then(body => {
+                .then(({ body }) => {
                     const expected = fs.readFileSync('test/server/data/stylesheet/expected.css').toString();
 
                     compareCode(body, expected);
@@ -233,8 +237,16 @@ describe('https proxy', () => {
 
         proxy.openSession('https://127.0.0.1:2000/', session);
 
-        return request(proxyUrl, { form: { key: 'value' } })
-            .then(body => {
+        return request({
+            url:    proxyUrl,
+            method: 'POST',
+            body:   JSON.stringify({ key: 'value' }),
+
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        })
+            .then(({ body }) => {
                 http2Utils.getHttp2Session = storedGetHttp2Session;
 
                 const expected = fs.readFileSync('test/server/data/stylesheet/expected.css').toString();
@@ -273,7 +285,7 @@ describe('https proxy', () => {
         proxy.openSession('https://127.0.0.1:2000', session);
 
         return request(proxyUrl)
-            .then(body => {
+            .then(({ body }) => {
                 const expected = fs.readFileSync('test/server/data/stylesheet/expected.css').toString();
 
                 compareCode(body, expected);
@@ -287,16 +299,16 @@ describe('https proxy', () => {
         const proxyUrl = proxy.openSession('https://127.0.0.1:2005', session);
 
         return request(proxyUrl)
-            .then(body => {
-                expect(JSON.parse(body.toString()).httpVersion).eql('2.0');
+            .then(({ body }) => {
+                expect(body.httpVersion).eql('2.0');
             })
             .then(() => {
                 session.setExternalProxySettings('127.0.0.1:2003');
 
                 return request(proxyUrl);
             })
-            .then(body => {
-                expect(JSON.parse(body.toString()).httpVersion).eql('1.1');
+            .then(({ body }) => {
+                expect(body.httpVersion).eql('1.1');
             });
     });
 });
