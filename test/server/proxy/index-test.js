@@ -494,12 +494,10 @@ describe('Proxy', () => {
 
             return request(options)
                 .then(res => {
-                    if (!res.response.ok) {
-                        return res.response.text().then(text => {
-                            throw new Error(`${res.statusCode} - ${text}`);
-                        });
-                    }
-                    return res.response.text();
+                    if (!res.ok)
+                        throw new Error(`${res.statusCode} - ${res.body}`);
+
+                    return res.body;
                 })
                 .catch(err => {
                     process.stderr.write = srderrWrite;
@@ -784,7 +782,7 @@ describe('Proxy', () => {
 
                 return request(options)
                     .then(res => {
-                        const cookies = res.response.headers.get('set-cookie').split(' s|');
+                        const cookies = res.originHeaders.get('set-cookie').split(' s|');
 
                         expect(cookies[0])
                             .contains(`s|${session.id}|aaa|127.0.0.1|%2F||123456788|=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
@@ -844,7 +842,7 @@ describe('Proxy', () => {
                     .then(res => {
                         expect(res.body).eql('%% Test1=Data1; Test2=Data2 %%');
                         expect(res.headers['set-cookie'].length).eql(89);
-                        expect(res.response.headers.get('set-cookie'))
+                        expect(res.headers['set-cookie'])
                             .contains(`c|${session.id}|Test1|127.0.0.1|%2F||1fdkm5ln1|=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
                         expect(session.cookies.getClientString('http://127.0.0.1:12354/')).eql('Test1=Data1; Test2=Data2');
                     });

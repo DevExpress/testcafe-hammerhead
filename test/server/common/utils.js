@@ -204,9 +204,10 @@ exports.request = async function (options) {
     const response = await fetch(url, options);
     /*eslint-enable no-undef*/
 
-    res.statusCode = response.status;
-    res.headers    = Object.fromEntries(response.headers);
-    res.response   = response.clone();
+    res.statusCode    = response.status;
+    res.headers       = Object.fromEntries(response.headers);
+    res.originHeaders = response.headers;
+    res.ok            = response.ok;
 
     try {
         res.body = await parseResponse(response);
