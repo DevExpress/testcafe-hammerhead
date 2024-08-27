@@ -900,5 +900,11 @@ export function getAssociatedElement (el: HTMLElement): HTMLElement | null {
 }
 
 export function getClientRectangle (el: HTMLElement): DOMRect {
-    return el.getClientRects()[0] ?? el.getBoundingClientRect();
+    const rects = el.getClientRects();
+
+    for (let i = 0; i < rects.length; i++) {
+        if (rects[i].height > 0 && rects[i].width > 0)
+            return rects[i];
+    }
+    return el.getBoundingClientRect();
 }
