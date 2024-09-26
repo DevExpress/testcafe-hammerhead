@@ -44,20 +44,26 @@ gulp.step('client-scripts-bundle', () => {
 });
 
 gulp.step('client-scripts-processing', () => {
+    const uglifyOptions = {
+        compress: {
+            comparisons: false,
+        },
+    };
+
     const script = gulp.src('./src/client/index.js.wrapper.mustache')
         .pipe(mustache({ source: fs.readFileSync('./lib/client/hammerhead.js').toString() }))
         .pipe(rename('hammerhead.js'));
 
     const bundledScript = script.pipe(clone())
-        .pipe(uglify())
+        .pipe(uglify(uglifyOptions))
         .pipe(rename('hammerhead.min.js'));
 
     const bundledTransportWorker = gulp.src('./lib/client/transport-worker.js')
-        .pipe(uglify())
+        .pipe(uglify(uglifyOptions))
         .pipe(rename('transport-worker.min.js'));
 
     const bundledWorkerHammerhead = gulp.src('./lib/client/worker-hammerhead.js')
-        .pipe(uglify())
+        .pipe(uglify(uglifyOptions))
         .pipe(rename('worker-hammerhead.min.js'));
 
     return mergeStreams(script, bundledScript, bundledTransportWorker, bundledWorkerHammerhead)
