@@ -46,23 +46,23 @@ const HEADER = trim(`
     ${STRICT_MODE_PLACEHOLDER}
     ${SW_SCOPE_HEADER_VALUE}
 
-    if (typeof window !== 'undefined' && window){
+    if (typeof globalThis !== 'undefined' && globalThis){
         ${PROCESS_DOM_METHOD}
 
-        if (window.${INSTRUCTION.getProperty} && typeof ${INSTRUCTION.getProperty} === 'undefined')
-            var ${INSTRUCTION.getLocation} = window.${INSTRUCTION.getLocation},
-                ${INSTRUCTION.setLocation} = window.${INSTRUCTION.setLocation},
-                ${INSTRUCTION.setProperty} = window.${INSTRUCTION.setProperty},
-                ${INSTRUCTION.getProperty} = window.${INSTRUCTION.getProperty},
-                ${INSTRUCTION.callMethod} = window.${INSTRUCTION.callMethod},
-                ${INSTRUCTION.getEval} = window.${INSTRUCTION.getEval},
-                ${INSTRUCTION.processScript} = window.${INSTRUCTION.processScript},
-                ${INSTRUCTION.processHtml} = window.${INSTRUCTION.processHtml},
-                ${INSTRUCTION.getPostMessage} = window.${INSTRUCTION.getPostMessage},
-                ${INSTRUCTION.getProxyUrl} = window.${INSTRUCTION.getProxyUrl},
-                ${INSTRUCTION.restArray} = window.${INSTRUCTION.restArray},
-                ${INSTRUCTION.restObject} = window.${INSTRUCTION.restObject},
-                ${INSTRUCTION.arrayFrom} = window.${INSTRUCTION.arrayFrom};
+        if (globalThis.${INSTRUCTION.getProperty} && typeof ${INSTRUCTION.getProperty} === 'undefined')
+            var ${INSTRUCTION.getLocation} = globalThis.${INSTRUCTION.getLocation},
+                ${INSTRUCTION.setLocation} = globalThis.${INSTRUCTION.setLocation},
+                ${INSTRUCTION.setProperty} = globalThis.${INSTRUCTION.setProperty},
+                ${INSTRUCTION.getProperty} = globalThis.${INSTRUCTION.getProperty},
+                ${INSTRUCTION.callMethod} = globalThis.${INSTRUCTION.callMethod},
+                ${INSTRUCTION.getEval} = globalThis.${INSTRUCTION.getEval},
+                ${INSTRUCTION.processScript} = globalThis.${INSTRUCTION.processScript},
+                ${INSTRUCTION.processHtml} = globalThis.${INSTRUCTION.processHtml},
+                ${INSTRUCTION.getPostMessage} = globalThis.${INSTRUCTION.getPostMessage},
+                ${INSTRUCTION.getProxyUrl} = globalThis.${INSTRUCTION.getProxyUrl},
+                ${INSTRUCTION.restArray} = globalThis.${INSTRUCTION.restArray},
+                ${INSTRUCTION.restObject} = globalThis.${INSTRUCTION.restObject},
+                ${INSTRUCTION.arrayFrom} = globalThis.${INSTRUCTION.arrayFrom};
     } else {
         if (typeof ${INSTRUCTION.getProperty} === 'undefined')
             var ${INSTRUCTION.getLocation} = function(l){return l},
