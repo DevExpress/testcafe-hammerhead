@@ -24,7 +24,7 @@ const CLIENT_TESTS_BROWSERS = [
     {
         browserName:     'Safari',
         deviceName:      'iPhone 7 Plus Simulator',
-        platformVersion: '11.3',
+        platformVersion: '12.2',
         platformName:    'iOS',
     },
     {
