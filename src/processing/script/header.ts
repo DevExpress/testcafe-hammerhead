@@ -24,7 +24,7 @@ if (typeof importScripts !== "undefined" && /\\[native code]/g.test(importScript
 }
 `;
 
-const PROCESS_DOM_METHOD = `window['${INTERNAL_PROPS.processDomMethodName}'] && window['${INTERNAL_PROPS.processDomMethodName}']();`;
+const PROCESS_DOM_METHOD = `globalThis.window['${INTERNAL_PROPS.processDomMethodName}'] && globalThis.window['${INTERNAL_PROPS.processDomMethodName}']();`;
 
 function trim (val: string): string {
     return val.replace(/\n(?!$)\s*/g, '');
@@ -34,7 +34,7 @@ const NATIVE_AUTOMATION_HEADER = trim(`
     ${SCRIPT_PROCESSING_START_COMMENT}
     ${STRICT_MODE_PLACEHOLDER}
 
-    if (typeof window !== 'undefined' && window) {
+    if (typeof globalThis.window !== 'undefined' && globalThis.window) {
         ${PROCESS_DOM_METHOD}
     }
 
@@ -46,23 +46,23 @@ const HEADER = trim(`
     ${STRICT_MODE_PLACEHOLDER}
     ${SW_SCOPE_HEADER_VALUE}
 
-    if (typeof globalThis !== 'undefined' && globalThis){
+    if (typeof globalThis.window !== 'undefined' && globalThis.window){
         ${PROCESS_DOM_METHOD}
 
-        if (globalThis.${INSTRUCTION.getProperty} && typeof ${INSTRUCTION.getProperty} === 'undefined')
-            var ${INSTRUCTION.getLocation} = globalThis.${INSTRUCTION.getLocation},
-                ${INSTRUCTION.setLocation} = globalThis.${INSTRUCTION.setLocation},
-                ${INSTRUCTION.setProperty} = globalThis.${INSTRUCTION.setProperty},
-                ${INSTRUCTION.getProperty} = globalThis.${INSTRUCTION.getProperty},
-                ${INSTRUCTION.callMethod} = globalThis.${INSTRUCTION.callMethod},
-                ${INSTRUCTION.getEval} = globalThis.${INSTRUCTION.getEval},
-                ${INSTRUCTION.processScript} = globalThis.${INSTRUCTION.processScript},
-                ${INSTRUCTION.processHtml} = globalThis.${INSTRUCTION.processHtml},
-                ${INSTRUCTION.getPostMessage} = globalThis.${INSTRUCTION.getPostMessage},
-                ${INSTRUCTION.getProxyUrl} = globalThis.${INSTRUCTION.getProxyUrl},
-                ${INSTRUCTION.restArray} = globalThis.${INSTRUCTION.restArray},
-                ${INSTRUCTION.restObject} = globalThis.${INSTRUCTION.restObject},
-                ${INSTRUCTION.arrayFrom} = globalThis.${INSTRUCTION.arrayFrom};
+        if (globalThis.window.${INSTRUCTION.getProperty} && typeof ${INSTRUCTION.getProperty} === 'undefined')
+            var ${INSTRUCTION.getLocation} = globalThis.window.${INSTRUCTION.getLocation},
+                ${INSTRUCTION.setLocation} = globalThis.window.${INSTRUCTION.setLocation},
+                ${INSTRUCTION.setProperty} = globalThis.window.${INSTRUCTION.setProperty},
+                ${INSTRUCTION.getProperty} = globalThis.window.${INSTRUCTION.getProperty},
+                ${INSTRUCTION.callMethod} = globalThis.window.${INSTRUCTION.callMethod},
+                ${INSTRUCTION.getEval} = globalThis.window.${INSTRUCTION.getEval},
+                ${INSTRUCTION.processScript} = globalThis.window.${INSTRUCTION.processScript},
+                ${INSTRUCTION.processHtml} = globalThis.window.${INSTRUCTION.processHtml},
+                ${INSTRUCTION.getPostMessage} = globalThis.window.${INSTRUCTION.getPostMessage},
+                ${INSTRUCTION.getProxyUrl} = globalThis.window.${INSTRUCTION.getProxyUrl},
+                ${INSTRUCTION.restArray} = globalThis.window.${INSTRUCTION.restArray},
+                ${INSTRUCTION.restObject} = globalThis.window.${INSTRUCTION.restObject},
+                ${INSTRUCTION.arrayFrom} = globalThis.window.${INSTRUCTION.arrayFrom};
     } else {
         if (typeof ${INSTRUCTION.getProperty} === 'undefined')
             var ${INSTRUCTION.getLocation} = function(l){return l},
