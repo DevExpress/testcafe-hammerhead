@@ -100,7 +100,7 @@ module('getElementsByTagName', function () {
         var elementsCount = 0;
         var expectedProps = ['item', 'namedItem', 'length'];
 
-        if (browserUtils.isMacPlatform && browserUtils.isSafari)
+        if ((browserUtils.isMacPlatform || browserUtils.isIOS) && browserUtils.isSafari)
             expectedProps.push('constructor');
 
         for (var idx in collection) {
