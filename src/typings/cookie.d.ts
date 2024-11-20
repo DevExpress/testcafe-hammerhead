@@ -3,7 +3,7 @@ export interface CookieRecord {
     key: string;
     domain: string;
     path: string;
-    expires: Date | 'Infinity';
+    expires: Date | 'Infinity' | null;
     maxAge: number | 'Infinity' | '-Infinity' | null;
     lastAccessed: Date;
     syncKey?: string;

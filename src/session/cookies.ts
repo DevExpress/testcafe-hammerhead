@@ -1,4 +1,6 @@
-import { CookieJar, Cookie } from 'tough-cookie';
+import {
+    CookieJar, Cookie, CreateCookieOptions,
+} from 'tough-cookie';
 import BYTES_PER_COOKIE_LIMIT from './cookie-limit';
 import { castArray, flattenDeep } from 'lodash';
 import { parseUrl } from '../utils/url';
@@ -136,11 +138,11 @@ export default class Cookies {
                 maxAge:   maxAge || void 0,
                 sameSite: sameSite || 'none',
                 value, secure, httpOnly,
-            };
+            } as ExternalCookies;
         });
     }
 
-    private _convertToCookieProperties (externalCookie: ExternalCookies[]): Cookie.Properties[] {
+    private _convertToCookieProperties (externalCookie: ExternalCookies[]): CreateCookieOptions[] {
         return externalCookie.map(cookie => {
             const { name, ...rest } = cookie;
 
@@ -158,13 +160,13 @@ export default class Cookies {
         });
     }
 
-    private _filterCookies (cookies: Cookie[], filters: Cookie.Properties): Cookie[] {
-        const filterKeys = Object.keys(filters) as (keyof Cookie.Properties)[];
+    private _filterCookies (cookies: Cookie[], filters: CreateCookieOptions): Cookie[] {
+        const filterKeys = Object.keys(filters) as (keyof CreateCookieOptions)[];
 
         return cookies.filter(cookie => filterKeys.every(key => cookie[key] === filters[key]));
     }
 
-    private _getCookiesByApi (cookie: Cookie.Properties, urls?: Url[], strict = false): Cookie[] {
+    private _getCookiesByApi (cookie: CreateCookieOptions, urls?: Url[], strict = false): Cookie[] {
         const { key, domain, path, ...filters } = cookie;
 
         const currentUrls = domain && path ? [{ domain, path }] : urls;
