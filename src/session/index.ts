@@ -29,6 +29,7 @@ import { formatSyncCookie } from '../utils/cookie';
 import { SCRIPTS } from './injectables';
 import { ConfigureResponseEventData } from '../request-pipeline/request-hooks/typings';
 import { EventEmitter } from 'events';
+import { CookieRecord } from '../typings/cookie';
 
 
 const TASK_TEMPLATE = read('../client/task.js.mustache');
@@ -144,7 +145,7 @@ export default abstract class Session extends EventEmitter {
             path:         syncCookie.path || '',
             lastAccessed: new Date(),
             syncKey:      '',
-        }));
+        } as CookieRecord));
     }
 
     _fillTaskScriptTemplate ({ serverInfo, isFirstPageLoad, referer, cookie, iframeTaskScriptTemplate, payloadScript, allowMultipleWindows, isRecordMode, windowId }: TaskScriptTemplateOpts): string {
