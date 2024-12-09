@@ -289,6 +289,11 @@ describe('Script processor', () => {
                           ': function(){var _hh$temp1 = "#123"; return __set$Loc(location,_hh$temp1)||(location=_hh$temp1);}.call(this);',
             },
             {
+                src: 'class C { location }',
+
+                expected: 'class C { location }',
+            },
+            {
                 src: 'if (location) { location = newLocation; } else location = "#123";',
 
                 expected: 'if (__get$Loc(location)) {' +
