@@ -68,6 +68,11 @@ const transformer: Transformer<Identifier> = {
         if (parent.type === Syntax.MethodDefinition)
             return false;
 
+        // Skip: class X { location }
+        // @ts-ignore
+        if (parent.type === Syntax.PropertyDefinition)
+            return false;
+
         // Skip: class location { x () {} }
         if (parent.type === Syntax.ClassDeclaration)
             return false;
