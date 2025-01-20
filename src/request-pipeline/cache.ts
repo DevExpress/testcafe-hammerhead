@@ -52,7 +52,7 @@ export function create (reqOptions: RequestOptions, res: DestinationResponse): R
 export function add (entry: RequestCacheEntry): void {
     const { key, value } = entry;
 
-    requestsCache.set(key, value, value.cachePolicy.timeToLive());
+    requestsCache.set(key, value, { size: value.cachePolicy.timeToLive() });
 }
 
 export function getResponse (reqOptions: RequestOptions): ResponseCacheEntryBase | undefined {
