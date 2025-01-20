@@ -1,4 +1,4 @@
-import LRUCache from 'lru-cache';
+import { LRUCache } from 'lru-cache';
 
 import {
     ResponseCacheEntry,
@@ -14,12 +14,7 @@ import IncomingMessageLike from './incoming-message-like';
 
 
 const requestsCache = new LRUCache<string, ResponseCacheEntry>({
-    max:    50 * 1024 * 1024, // Max cache size is 50 MBytes.
-    length: responseCacheEntry => {
-        // NOTE: Length is resource content size.
-        // 1 character is 1 bite.
-        return responseCacheEntry.res.getBody()?.length || 0;
-    },
+    max: 50 * 1024 * 1024, // Max cache size is 50 MBytes.
 });
 
 function getCacheKey (requestOptions: RequestOptions): string {

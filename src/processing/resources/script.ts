@@ -1,5 +1,5 @@
 import ResourceProcessorBase from './resource-processor-base';
-import LRUCache from 'lru-cache';
+import { LRUCache } from 'lru-cache';
 import { processScript } from '../script';
 import RequestPipelineContext from '../../request-pipeline/context';
 import Charset from '../encoding/charset';
@@ -13,8 +13,7 @@ class ScriptResourceProcessor extends ResourceProcessorBase {
         super();
 
         this.jsCache = new LRUCache({
-            max:    50 * 1024 * 1024, // NOTE: Max cache size is 50 MBytes.
-            length: n => n.length, // NOTE: 1 char ~ 1 byte.
+            max: 50 * 1024 * 1024, // NOTE: Max cache size is 50 MBytes.
         });
     }
 
