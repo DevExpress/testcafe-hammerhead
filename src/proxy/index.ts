@@ -327,7 +327,7 @@ export default class Proxy extends Router {
         this._registerServiceRoutes(!!developmentMode);
     }
     close (): void {
-        scriptProcessor.jsCache.reset();
+        scriptProcessor.jsCache.clear();
         this.server1?.close(); // eslint-disable-line no-unused-expressions
         this.server2?.close(); // eslint-disable-line no-unused-expressions
         this._closeSockets();
