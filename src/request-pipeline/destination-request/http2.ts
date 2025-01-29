@@ -5,7 +5,7 @@ import http2, {
     IncomingHttpStatusHeader,
 } from 'http2';
 
-import LRUCache from 'lru-cache';
+import { LRUCache } from 'lru-cache';
 import { noop } from 'lodash';
 import RequestOptions from '../request-options';
 import { isConnectionResetError } from '../connection-reset-guard';
@@ -38,7 +38,7 @@ const unsupportedOrigins = [] as string[];
 const pendingSessions    = new Map<string, Promise<ClientHttp2Session | null>>();
 const sessionsCache      = new LRUCache<string, ClientHttp2Session>({
     max:     HTTP2_SESSIONS_CACHE_SIZE,
-    dispose: (_, session) => {
+    dispose: (session) => {
         if (!session.closed)
             session.close();
     },
@@ -82,11 +82,11 @@ export async function getHttp2Session (requestId: string, origin: string): Promi
                 pendingSessions.delete(origin);
                 sessionsCache.set(origin, session);
 
-                logger.destination.onHttp2SessionCreated(requestId, origin, sessionsCache.length, HTTP2_SESSIONS_CACHE_SIZE);
+                logger.destination.onHttp2SessionCreated(requestId, origin, sessionsCache.size, HTTP2_SESSIONS_CACHE_SIZE);
 
                 session.once('close', () => {
-                    sessionsCache.del(origin);
-                    logger.destination.onHttp2SessionClosed(requestId, origin, sessionsCache.length, HTTP2_SESSIONS_CACHE_SIZE);
+                    sessionsCache.delete(origin);
+                    logger.destination.onHttp2SessionClosed(requestId, origin, sessionsCache.size, HTTP2_SESSIONS_CACHE_SIZE);
                 });
                 session.off('error', errorHandler);
                 session.once('error', (err: NodeJS.ErrnoException) => {
@@ -97,7 +97,7 @@ export async function getHttp2Session (requestId: string, origin: string): Promi
                 });
                 session.setTimeout(HTTP2_SESSION_TIMEOUT, () => {
                     logger.destination.onHttp2SessionTimeout(origin, HTTP2_SESSION_TIMEOUT);
-                    sessionsCache.del(origin);
+                    sessionsCache.delete(origin);
                 });
 
                 resolve(session);
@@ -139,5 +139,5 @@ export function createResponseLike (stream: Http2Stream, response: IncomingHttpH
 }
 
 export function clearSessionsCache () {
-    sessionsCache.reset();
+    sessionsCache.clear();
 }
