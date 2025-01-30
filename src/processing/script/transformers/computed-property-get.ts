@@ -54,6 +54,9 @@ const transformer: Transformer<MemberExpression> = {
         if (parent.type === Syntax.ForInStatement && parent.left === node)
             return false;
 
+        if (parent.type === Syntax.ChainExpression)
+            return false;
+
         return true;
     },
 
