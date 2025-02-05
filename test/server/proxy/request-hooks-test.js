@@ -923,7 +923,7 @@ describe('Request Hooks', () => {
     });
 
     describe('Should allow specifying the configure request data', () => {
-        it.only('Options', async () => {
+        it('Options', async () => {
             let responseEventIsRaised      = false;
             let configureResponseEventId   = null;
             const url                      = 'http://127.0.0.1:2000/script';
