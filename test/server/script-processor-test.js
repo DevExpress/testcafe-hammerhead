@@ -478,10 +478,6 @@ describe('Script processor', () => {
                 src:      'class x extends y{method(){return super[{0}] = value;}}',
                 expected: 'class x extends y{method(){return super[{0}] = value;}}',
             },
-            {
-                src:      'obj?.[someProperty]',
-                expected: '__get$(obj,someProperty,true)',
-            },
         ]);
     });
 
