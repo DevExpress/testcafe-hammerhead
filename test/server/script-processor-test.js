@@ -480,7 +480,7 @@ describe('Script processor', () => {
             },
             {
                 src:      'obj?.[someProperty]',
-                expected: 'obj?.[someProperty]',
+                expected: '__get$(obj,someProperty,true)',
             },
         ]);
     });
