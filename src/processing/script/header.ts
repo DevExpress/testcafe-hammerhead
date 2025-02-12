@@ -68,7 +68,7 @@ const HEADER = trim(`
             var ${INSTRUCTION.getLocation} = function(l){return l},
                 ${INSTRUCTION.setLocation} = function(l,v){return l = v},
                 ${INSTRUCTION.setProperty} = function(o,p,v){return o[p] = v},
-                ${INSTRUCTION.getProperty} = function(o,p){return o[p]},
+                ${INSTRUCTION.getProperty} = function(o,p,opt=false){return opt&&(o===undefined||o===null)?undefined:o[p]},
                 ${INSTRUCTION.callMethod} = function(o,p,a){return o[p].apply(o,a)},
                 ${INSTRUCTION.getEval} = function(e){return e},
                 ${INSTRUCTION.processScript} = function(s){return s},
