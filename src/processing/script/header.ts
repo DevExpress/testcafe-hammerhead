@@ -19,8 +19,22 @@ const WORKER_SETTINGS_PLACEHOLDER = '{worker-settings}';
 
 const IMPORT_WORKER_HAMMERHEAD = `
 if (typeof importScripts !== "undefined" && /\\[native code]/g.test(importScripts.toString())) {
+    function isModule() {
+        try{ 
+            importScripts("data:,"); 
+            return false;
+        } catch(e) {}
+        
+        return true;
+    }
+
     var ${INSTRUCTION.getWorkerSettings} = function () {return ${WORKER_SETTINGS_PLACEHOLDER}};
-    importScripts((location.origin || (location.protocol + "//" + location.host)) + "${SERVICE_ROUTES.workerHammerhead}");
+    debugger;
+    if (isModule()) {
+        import((location.origin || (location.protocol + "//" + location.host)) + "${SERVICE_ROUTES.workerHammerhead}");
+    } else {
+        importScripts((location.origin || (location.protocol + "//" + location.host)) + "${SERVICE_ROUTES.workerHammerhead}");
+    }
 }
 `;
 
