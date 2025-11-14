@@ -49,10 +49,16 @@ export default class StyleSandbox extends SandboxBase {
     private detectBrowserFeatures () {
         const features: any = {};
 
-        // NOTE: The CSS2Properties class is supported only in the Firefox
+        // @ts-expect-error NOTE: The CSS2Properties class is supported only in Firefox < 144
         // and its prototype contains all property descriptors
-        // @ts-ignore
         features.css2PropertiesProtoContainsAllProps = !!window.CSS2Properties;
+
+        // @ts-expect-error NOTE: The CSSStyleProperties class is supported only in Firefox >= 144 and Safari >= 26
+        const cssStylePropertiesClass = window.CSSStyleProperties;
+
+        features.cssStylePropertiesProtoContainsAllProps = !!cssStylePropertiesClass
+            && this.nativeMethods.objectHasOwnProperty.call(cssStylePropertiesClass.prototype, 'background')
+            && this.nativeMethods.objectHasOwnProperty.call(cssStylePropertiesClass.prototype, 'background-image');
 
         features.cssStyleDeclarationProtoContainsUrlProps = this.nativeMethods.objectHasOwnProperty
             .call(window.CSSStyleDeclaration.prototype, 'background');
@@ -63,7 +69,7 @@ export default class StyleSandbox extends SandboxBase {
         features.cssStyleDeclarationContainsAllProps = features.cssStyleDeclarationProtoContainsUrlProps &&
             features.cssStyleDeclarationProtoContainsDashedProps;
 
-        if (!features.css2PropertiesProtoContainsAllProps && !features.cssStyleDeclarationProtoContainsUrlProps) {
+        if (!features.css2PropertiesProtoContainsAllProps && !features.cssStylePropertiesProtoContainsAllProps && !features.cssStyleDeclarationProtoContainsUrlProps) {
             const testDiv              = this.nativeMethods.createElement.call(document, 'div');
             let propertySetterIsCalled = false;
             const testDivDescriptor    = this.nativeMethods.objectGetOwnPropertyDescriptor
@@ -100,7 +106,9 @@ export default class StyleSandbox extends SandboxBase {
 
         this.overrideStyleInElement();
 
-        if (this.FEATURES.css2PropertiesProtoContainsAllProps)
+        if (this.FEATURES.cssStylePropertiesProtoContainsAllProps)
+            this.overridePropsInCSSStyleProperties();
+        else if (this.FEATURES.css2PropertiesProtoContainsAllProps)
             this.overridePropsInCSS2Properties();
         else
             this.overridePropsInCSSStyleDeclaration();
@@ -123,7 +131,7 @@ export default class StyleSandbox extends SandboxBase {
         const styleSandbox  = this;
 
         overrideDescriptor(this.window[nativeMethods.htmlElementStylePropOwnerName].prototype, 'style', {
-            getter: this.FEATURES.css2PropertiesProtoContainsAllProps || this.FEATURES.cssStyleDeclarationContainsAllProps
+            getter: this.FEATURES.css2PropertiesProtoContainsAllProps || this.FEATURES.cssStylePropertiesProtoContainsAllProps || this.FEATURES.cssStyleDeclarationContainsAllProps
                 ? null
                 : function (this: Window) {
                     const style = nativeMethods.htmlElementStyleGetter.call(this);
@@ -218,6 +226,16 @@ export default class StyleSandbox extends SandboxBase {
         for (const prop of this.DASHED_URL_PROPS)
         // @ts-ignore
             this.overrideStyleProp(this.window.CSS2Properties.prototype, prop);
+    }
+
+    private overridePropsInCSSStyleProperties () {
+        for (const prop of this.URL_PROPS)
+        // @ts-ignore
+            this.overrideStyleProp(this.window.CSSStyleProperties.prototype, prop);
+
+        for (const prop of this.DASHED_URL_PROPS)
+        // @ts-ignore
+            this.overrideStyleProp(this.window.CSSStyleProperties.prototype, prop);
     }
 
     private overridePropsInCSSStyleDeclaration () {
