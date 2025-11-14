@@ -181,7 +181,7 @@ describe('External proxy', () => {
     it('Should send the https request through the proxy', () => {
         session.setExternalProxySettings('127.0.0.1:2002');
 
-        const proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session);
+        const proxyUrl = proxy.openSession('https://localhost:2001/path', session);
 
         return request(proxyUrl)
             .then(({ body }) => {
@@ -205,7 +205,7 @@ describe('External proxy', () => {
     });
 
     it('Should send the https request through the proxy with auth', () => {
-        const proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session, 'login:pass@127.0.0.1:2002');
+        const proxyUrl = proxy.openSession('https://localhost:2001/path', session, 'login:pass@127.0.0.1:2002');
 
         return request(proxyUrl)
             .then(({ body }) => {
@@ -225,7 +225,7 @@ describe('External proxy', () => {
             done();
         };
 
-        const proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session, '127.0.0.1:2055');
+        const proxyUrl = proxy.openSession('https://localhost:2001/path', session, '127.0.0.1:2055');
 
         request({
             url:     proxyUrl,
@@ -282,7 +282,7 @@ describe('External proxy', () => {
             done();
         };
 
-        const proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session, 'login:passwd@127.0.0.1:2002');
+        const proxyUrl = proxy.openSession('https://localhost:2001/path', session, 'login:passwd@127.0.0.1:2002');
 
         request({
             url:     proxyUrl,
@@ -314,7 +314,7 @@ describe('External proxy', () => {
         it('https', () => {
             session.setExternalProxySettings({ url: '127.0.0.1:2002', bypassRules: ['127.0.0.1:2001'] });
 
-            const proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session);
+            const proxyUrl = proxy.openSession('https://localhost:2001/path', session);
 
             return request(proxyUrl)
                 .then(({ body }) => {
