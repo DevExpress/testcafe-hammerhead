@@ -187,7 +187,7 @@ describe('External proxy', () => {
             .then(({ body }) => {
                 expect(body).eql('/path');
                 expect(proxyLogs.length).eql(1);
-                expect(proxyLogs[0].url).eql('127.0.0.1:2001');
+                expect(proxyLogs[0].url).eql('localhost:2001');
                 expect(proxyLogs[0].auth).to.be.undefined;
             });
     });
@@ -211,7 +211,7 @@ describe('External proxy', () => {
             .then(({ body }) => {
                 expect(body).eql('/path');
                 expect(proxyLogs.length).eql(1);
-                expect(proxyLogs[0].url).eql('127.0.0.1:2001');
+                expect(proxyLogs[0].url).eql('localhost:2001');
                 expect(proxyLogs[0].auth).eql(formatAuthHeader('login:pass'));
             });
     });
