@@ -312,7 +312,7 @@ describe('External proxy', () => {
         });
 
         it('https', () => {
-            session.setExternalProxySettings({ url: '127.0.0.1:2002', bypassRules: ['127.0.0.1:2001'] });
+            session.setExternalProxySettings({ url: '127.0.0.1:2002', bypassRules: ['localhost:2001'] });
 
             const proxyUrl = proxy.openSession('https://localhost:2001/path', session);
 
@@ -324,7 +324,7 @@ describe('External proxy', () => {
                         host:        '127.0.0.1:2002',
                         hostname:    '127.0.0.1',
                         port:        '2002',
-                        bypassRules: ['127.0.0.1:2001'],
+                        bypassRules: ['localhost:2001'],
                     });
                 });
         });
