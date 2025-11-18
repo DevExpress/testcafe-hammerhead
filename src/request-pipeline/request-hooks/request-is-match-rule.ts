@@ -14,6 +14,7 @@ function matchUrl (optionValue: any, checkedValue: any): boolean {
 
     if (typeof optionValue === 'string') {
         optionValue = ensureOriginTrailingSlash(optionValue);
+        checkedValue = ensureOriginTrailingSlash(checkedValue);
 
         return optionValue === checkedValue;
     }
