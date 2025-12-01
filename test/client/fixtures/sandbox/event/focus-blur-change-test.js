@@ -759,6 +759,7 @@ if (window.HTMLInputElement.prototype.createTextRange) {
     });
 }
 
+// NOTE: The test is not executed in iOS Safari because of Saucelabs emulator instability
 if (!browserUtils.isIOS) {
     asyncTest('active window doesn\'t change after focusing ShadowUI element in iframe', function () {
         return createTestIframe({ src: getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html') })
@@ -1029,6 +1030,7 @@ test('querySelector must return active element even when browser is not focused 
     strictEqual(result.length, 0);
 });
 
+// NOTE: The test is not executed in iOS Safari because of Saucelabs emulator instability
 if (!browserUtils.isIOS) {
     asyncTest('error on the http://phonejs.devexpress.com/Demos/?url=KitchenSink&sm=3 page (B237723)', function () {
         var errorRaised = false;
