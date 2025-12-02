@@ -759,29 +759,32 @@ if (window.HTMLInputElement.prototype.createTextRange) {
     });
 }
 
-asyncTest('active window doesn\'t change after focusing ShadowUI element in iframe', function () {
-    return createTestIframe({ src: getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html') })
-        .then(function (iframe) {
-            var iframeWindow = iframe.contentWindow;
-            var divElement   = iframeWindow.document.body.getElementsByTagName('div')[0];
+// NOTE: The test is not executed in iOS Safari because of Saucelabs emulator instability
+if (!browserUtils.isIOS) {
+    asyncTest('active window doesn\'t change after focusing ShadowUI element in iframe', function () {
+        return createTestIframe({ src: getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html') })
+            .then(function (iframe) {
+                var iframeWindow = iframe.contentWindow;
+                var divElement   = iframeWindow.document.body.getElementsByTagName('div')[0];
 
-            divElement.setAttribute('class', SHADOW_UI_CLASSNAME.postfix);
+                divElement.setAttribute('class', SHADOW_UI_CLASSNAME.postfix);
 
-            focusBlur.focus(divElement, function () {
-                window.QUnitGlobals
-                    .wait(function () {
-                        return activeWindowTracker.isCurrentWindowActive() &&
-                               !iframeWindow.activeWindowTracker.isCurrentWindowActive();
-                    })
-                    .then(function () {
-                        ok(activeWindowTracker.isCurrentWindowActive());
-                        notOk(iframeWindow.activeWindowTracker.isCurrentWindowActive());
+                focusBlur.focus(divElement, function () {
+                    window.QUnitGlobals
+                        .wait(function () {
+                            return activeWindowTracker.isCurrentWindowActive() &&
+                                !iframeWindow.activeWindowTracker.isCurrentWindowActive();
+                        })
+                        .then(function () {
+                            ok(activeWindowTracker.isCurrentWindowActive());
+                            notOk(iframeWindow.activeWindowTracker.isCurrentWindowActive());
 
-                        start();
-                    });
+                            start();
+                        });
+                });
             });
-        });
-});
+    });
+}
 
 asyncTest('check that scrolling does not happen when focus is set (after mouse events)', function () {
     var parentDiv = document.createElement('div');
@@ -1027,22 +1030,25 @@ test('querySelector must return active element even when browser is not focused 
     strictEqual(result.length, 0);
 });
 
-asyncTest('error on the http://phonejs.devexpress.com/Demos/?url=KitchenSink&sm=3 page (B237723)', function () {
-    var errorRaised = false;
+// NOTE: The test is not executed in iOS Safari because of Saucelabs emulator instability
+if (!browserUtils.isIOS) {
+    asyncTest('error on the http://phonejs.devexpress.com/Demos/?url=KitchenSink&sm=3 page (B237723)', function () {
+        var errorRaised = false;
 
-    return createTestIframe({ src: getSameDomainPageUrl('../../../data/event-sandbox/focus-blur-sandbox.html') })
-        .then(function (iframe) {
-            try {
-                iframe.contentWindow.focusInput();
-            }
-            catch (e) {
-                errorRaised = true;
-            }
+        return createTestIframe({ src: getSameDomainPageUrl('../../../data/event-sandbox/focus-blur-sandbox.html') })
+            .then(function (iframe) {
+                try {
+                    iframe.contentWindow.focusInput();
+                }
+                catch (e) {
+                    errorRaised = true;
+                }
 
-            ok(!errorRaised, 'error is not raised');
-            startNext();
-        });
-});
+                ok(!errorRaised, 'error is not raised');
+                startNext();
+            });
+    });
+}
 
 asyncTest('scrolling elements with "overflow=hidden" should be restored after focus (GH-221)', function () {
     var parentDiv      = document.createElement('div');

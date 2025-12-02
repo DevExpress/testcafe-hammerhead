@@ -54,8 +54,15 @@ test('createNativeXHR', function () {
 
     var isWrappedFunctionRE = /return 'function is wrapped'/;
 
+    var SKIP_PROPS = [
+        'msCachingEnabled',
+        'setAttributionReporting',
+        'setPrivateToken',
+        'when',
+    ];
+
     for (var prop in xhr) {
-        if (typeof xhr[prop] === 'function' && prop !== 'msCachingEnabled') {
+        if (typeof xhr[prop] === 'function' && !SKIP_PROPS.includes(prop)) {
             var prototype = getPrototypeFromChainContainsProp(window.XMLHttpRequest.prototype, prop);
             var storedFn  = prototype[prop];
 
