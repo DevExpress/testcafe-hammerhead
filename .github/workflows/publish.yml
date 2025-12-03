@@ -14,15 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     environment: npmjs
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.release.target_commitish }}
       - run: git fetch --force --tags
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 24
           registry-url: 'https://registry.npmjs.org'
-      - run: npm install
+
+      - run: npm ci
       - run: npm run publish-please-only
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
