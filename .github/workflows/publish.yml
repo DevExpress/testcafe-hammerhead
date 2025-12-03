@@ -12,7 +12,7 @@ jobs:
   publish:
     if: ${{ !github.event.release.draft }}
     runs-on: ubuntu-latest
-    environment: release
+    environment: npmjs
     steps:
       - uses: actions/checkout@v3
         with:
