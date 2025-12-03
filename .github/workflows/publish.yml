@@ -5,14 +5,14 @@ on:
     types: [published]
 
 permissions:
-  id-token: write
+  id-token: write  # Required for OIDC (Trusted Publishing)
   contents: read
 
 jobs:
   publish:
     if: ${{ !github.event.release.draft }}
     runs-on: ubuntu-latest
-    environment: release
+    environment: npmjs
     steps:
       - uses: actions/checkout@v4
         with:
