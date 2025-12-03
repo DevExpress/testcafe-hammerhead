@@ -27,5 +27,4 @@ jobs:
         run: npm install -g npm@latest
       - run: npm install
       - run: npm run publish-please-only
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
