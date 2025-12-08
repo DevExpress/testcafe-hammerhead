@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@adobe/css-tools": "^4.3.0-rc.1",
+    "@belym.a.2105/sauce-tunnel": "https://github.com/Bayheck/Builds/raw/main/belym.a.2105-sauce-tunnel-3.0.0.tgz",
     "@electron/asar": "^3.2.3",
     "acorn-hammerhead": "0.6.2",
     "bowser": "1.6.0",
