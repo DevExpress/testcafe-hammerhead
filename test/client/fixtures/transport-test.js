@@ -101,61 +101,65 @@ if (!browserUtils.isWebKit && !browserUtils.isFirefox) {
     });
 }
 else {
-    QUnit.skip('resend aborted async service msg (WebKit)', function () {
-        settings.get().sessionId = '%%%testUid%%%';
+    const isSaucelabs = location.hostname !== 'localhost';
 
-        var requestId = Math.random();
+    if (!isSaucelabs) {
+        test('resend aborted async service msg (WebKit)', function () {
+            settings.get().sessionId = '%%%testUid%%%';
 
-        ok(!nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId));
+            var requestId = Math.random();
 
-        return transport.asyncServiceMsg({ id: requestId, rejectForTest: true })
-            .then(function () {
-                var storedMsgStr = nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId);
-                var storedMsg    = JSON.parse(storedMsgStr)[0];
+            ok(!nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId));
 
-                ok(storedMsgStr);
-                strictEqual(storedMsg.id, requestId);
+            return transport.asyncServiceMsg({ id: requestId, rejectForTest: true })
+                .then(function () {
+                    var storedMsgStr = nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId);
+                    var storedMsg    = JSON.parse(storedMsgStr)[0];
 
-                nativeMethods.storageRemoveItem.call(nativeLocalStorage, settings.get().sessionId);
-            });
-    });
+                    ok(storedMsgStr);
+                    strictEqual(storedMsg.id, requestId);
 
-    QUnit.skip('do not duplicate messages in store (WebKit)', function () {
-        settings.get().sessionId = '%%%testUid%%%';
+                    nativeMethods.storageRemoveItem.call(nativeLocalStorage, settings.get().sessionId);
+                });
+        });
 
-        ok(!nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId));
+        test('do not duplicate messages in store (WebKit)', function () {
+            settings.get().sessionId = '%%%testUid%%%';
 
-        var msg         = { test: 'testValue', rejectForTest: true };
-        var msgPromises = [
-            transport.asyncServiceMsg(msg),
-            transport.asyncServiceMsg(msg),
-        ];
+            ok(!nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId));
 
-        return Promise.all(msgPromises)
-            .then(function () {
-                var storedMsgStr = nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId);
-                var storedMsgArr = JSON.parse(storedMsgStr);
+            var msg         = { test: 'testValue', rejectForTest: true };
+            var msgPromises = [
+                transport.asyncServiceMsg(msg),
+                transport.asyncServiceMsg(msg),
+            ];
 
-                strictEqual(storedMsgArr.length, 1);
+            return Promise.all(msgPromises)
+                .then(function () {
+                    var storedMsgStr = nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId);
+                    var storedMsgArr = JSON.parse(storedMsgStr);
 
-                nativeMethods.storageRemoveItem.call(nativeLocalStorage, settings.get().sessionId);
-            });
-    });
+                    strictEqual(storedMsgArr.length, 1);
 
-    QUnit.skip('do not resend aborted async service msg if it contains "disableResending" flag (WebKit)', function () {
-        settings.get().sessionId = '%%%testUid%%%';
+                    nativeMethods.storageRemoveItem.call(nativeLocalStorage, settings.get().sessionId);
+                });
+        });
 
-        ok(!nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId));
+        test('do not resend aborted async service msg if it contains "disableResending" flag (WebKit)', function () {
+            settings.get().sessionId = '%%%testUid%%%';
 
-        return sendAsyncServiceMsgWithDisableResendingFlag()
-            .then(function () {
-                var storedMsgStr = nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId);
+            ok(!nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId));
 
-                strictEqual(storedMsgStr, null);
+            return sendAsyncServiceMsgWithDisableResendingFlag()
+                .then(function () {
+                    var storedMsgStr = nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId);
 
-                nativeMethods.storageRemoveItem.call(nativeLocalStorage, settings.get().sessionId);
-            });
-    });
+                    strictEqual(storedMsgStr, null);
+
+                    nativeMethods.storageRemoveItem.call(nativeLocalStorage, settings.get().sessionId);
+                });
+        });
+    }
 }
 
 test('asyncServiceMessage - should reject if enableRejecting is true', function () {
