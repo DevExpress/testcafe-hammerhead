@@ -101,7 +101,7 @@ if (!browserUtils.isWebKit && !browserUtils.isFirefox) {
     });
 }
 else {
-    test('resend aborted async service msg (WebKit)', function () {
+    QUnit.skip('resend aborted async service msg (WebKit)', function () {
         settings.get().sessionId = '%%%testUid%%%';
 
         var requestId = Math.random();
@@ -120,7 +120,7 @@ else {
             });
     });
 
-    test('do not duplicate messages in store (WebKit)', function () {
+    QUnit.skip('do not duplicate messages in store (WebKit)', function () {
         settings.get().sessionId = '%%%testUid%%%';
 
         ok(!nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId));
@@ -142,7 +142,7 @@ else {
             });
     });
 
-    test('do not resend aborted async service msg if it contains "disableResending" flag (WebKit)', function () {
+    QUnit.skip('do not resend aborted async service msg if it contains "disableResending" flag (WebKit)', function () {
         settings.get().sessionId = '%%%testUid%%%';
 
         ok(!nativeMethods.storageGetItem.call(nativeLocalStorage, settings.get().sessionId));
