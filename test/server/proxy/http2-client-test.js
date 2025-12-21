@@ -160,7 +160,7 @@ describe('https proxy', () => {
     it('Should send request through http2', () => {
         const proxyUrl = getProxyUrl('https://127.0.0.1:2000/script', { isScript: true });
 
-        proxy.openSession('https://127.0.0.1:2000', session);
+        proxy.openSession('https://localhost:2000', session);
 
         return request(proxyUrl)
             .then(({ body }) => {
@@ -185,7 +185,7 @@ describe('https proxy', () => {
 
             const proxyUrl = getProxyUrl('https://127.0.0.1:2002/stylesheet');
 
-            proxy.openSession('https://127.0.0.1:2000', session);
+            proxy.openSession('https://localhost:2000', session);
 
             return request(proxyUrl)
                 .then(({ body }) => {
@@ -235,7 +235,7 @@ describe('https proxy', () => {
 
         http2Utils.getHttp2Session = () => sessionMock;
 
-        proxy.openSession('https://127.0.0.1:2000/', session);
+        proxy.openSession('https://localhost:2000/', session);
 
         return request({
             url:    proxyUrl,
@@ -262,7 +262,7 @@ describe('https proxy', () => {
 
         const proxyUrl = getProxyUrl('https://127.0.0.1:2000/http1.1-required');
 
-        proxy.openSession('https://127.0.0.1:2000', session);
+        proxy.openSession('https://localhost:2000', session);
 
         return request(proxyUrl)
             .catch(() => {
@@ -282,7 +282,7 @@ describe('https proxy', () => {
 
         const proxyUrl = getProxyUrl('https://127.0.0.1:2002/stylesheet');
 
-        proxy.openSession('https://127.0.0.1:2000', session);
+        proxy.openSession('https://localhost:2000', session);
 
         return request(proxyUrl)
             .then(({ body }) => {
@@ -296,7 +296,7 @@ describe('https proxy', () => {
     });
 
     it('Should use http1 if external proxy is enabled', () => {
-        const proxyUrl = proxy.openSession('https://127.0.0.1:2005', session);
+        const proxyUrl = proxy.openSession('https://localhost:2005', session);
 
         return request(proxyUrl)
             .then(({ body }) => {
