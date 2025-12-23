@@ -20,7 +20,7 @@ const WORKER_SETTINGS_PLACEHOLDER = '{worker-settings}';
 const IMPORT_WORKER_HAMMERHEAD = `
 if (typeof importScripts !== "undefined" && /\\[native code]/g.test(importScripts.toString())) {
     function isModule() {
-        try{ 
+        try { 
             importScripts("data:,"); 
             return false;
         } catch(e) {}
