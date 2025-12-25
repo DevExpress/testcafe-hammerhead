@@ -23,10 +23,7 @@ if (typeof importScripts !== "undefined" && /\\[native code]/g.test(importScript
         try { 
             importScripts("data:,"); 
             return false;
-        } catch(e) {
-            // importScripts() throws in module worker contexts; catching this error is expected
-            // and is used solely to detect whether the current worker is a module worker.
-        }
+        } catch(e) {}
         
         return true;
     }
