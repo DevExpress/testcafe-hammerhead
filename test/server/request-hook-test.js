@@ -378,6 +378,13 @@ describe('Request is match rule', async () => {
         });
     });
 
+    it('Origin trailing slash normalization', async () => {
+        const rule        = new RequestFilterRule('http://example.com/');
+        const requestInfo = { url: 'http://example.com' };
+
+        expect(await requestIsMatchRule(rule, requestInfo)).to.be.true;
+    });
+
     it('RequestFilterRule.ANY', async () => {
         expect(await requestIsMatchRule(RequestFilterRule.ANY, { url: 'https://example.com' })).to.be.true;
         expect(await requestIsMatchRule(RequestFilterRule.ANY, { url: 'https://example.com/index.html' })).to.be.true;
