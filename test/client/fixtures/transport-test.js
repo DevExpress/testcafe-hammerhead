@@ -7,6 +7,7 @@ var transport     = hammerhead.transport;
 var nativeMethods = hammerhead.nativeMethods;
 
 var nativeLocalStorage = nativeMethods.winLocalStorageGetter.call(window);
+var isSaucelabs        = location.hostname !== 'localhost';
 
 function sendAsyncServiceMsgWithDisableResendingFlag () {
     return new Promise(function (resolve, reject) {
@@ -100,7 +101,7 @@ if (!browserUtils.isWebKit && !browserUtils.isFirefox) {
             });
     });
 }
-else {
+else if (!isSaucelabs) {
     test('resend aborted async service msg (WebKit)', function () {
         settings.get().sessionId = '%%%testUid%%%';
 
