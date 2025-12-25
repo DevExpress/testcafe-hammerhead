@@ -42,6 +42,7 @@
     "ws": "^7.4.6"
   },
   "devDependencies": {
+    "@devexpress/gulp-qunit-harness": "^1.1.0",
     "@rollup/plugin-commonjs": "^17.1.0",
     "@rollup/plugin-node-resolve": "^11.1.1",
     "@testcafe/publish-please": "^5.6.0",
@@ -74,7 +75,6 @@
     "gulp-ll-next": "^2.1.0",
     "gulp-mocha-simple": "^2.0.0",
     "gulp-mustache": "^3.0.1",
-    "gulp-qunit-harness": "^1.0.3",
     "gulp-rename": "^1.2.2",
     "gulp-run-command": "0.0.9",
     "gulp-step": "^1.0.1",
