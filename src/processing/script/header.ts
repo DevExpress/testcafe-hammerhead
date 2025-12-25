@@ -34,7 +34,7 @@ if (typeof importScripts !== "undefined" && /\\[native code]/g.test(importScript
     var ${INSTRUCTION.getWorkerSettings} = function () {return ${WORKER_SETTINGS_PLACEHOLDER}};
     
     if (isModule()) {
-        import((location.origin || (location.protocol + "//" + location.host)) + "${SERVICE_ROUTES.workerHammerhead}");
+        (async function () { await import((location.origin || (location.protocol + "//" + location.host)) + "${SERVICE_ROUTES.workerHammerhead}"); })();
     } else {
         importScripts((location.origin || (location.protocol + "//" + location.host)) + "${SERVICE_ROUTES.workerHammerhead}");
     }
