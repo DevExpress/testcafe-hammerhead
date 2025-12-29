@@ -21,7 +21,7 @@ const IMPORT_WORKER_HAMMERHEAD = `
 if (typeof importScripts !== "undefined" && /\\[native code]/g.test(importScripts.toString())) {
     function isModule() {
         try { 
-            importScripts("data:,"); 
+            importScripts("data:text/javascript,"); 
             return false;
         } catch(e) {}
         
