@@ -213,7 +213,10 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     postMessage (contentWindow: Window, args) {
-        const targetUrl = args[1] || destLocation.getOriginHeader();
+        const targetUrl =
+            typeof args[1] === 'string'
+                ? args[1]
+                : destLocation.getOriginHeader();
 
         // NOTE: Here, we pass all messages as "no preference" ("*").
         // We do an origin check in "_onWindowMessage" to access the target origin.
