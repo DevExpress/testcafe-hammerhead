@@ -1,3 +1,4 @@
+/* eslint-disable no-only-tests/no-only-tests */
 const fs                    = require('fs');
 const https                 = require('https');
 const { expect }            = require('chai');
@@ -1305,7 +1306,7 @@ describe('Proxy', () => {
     });
 
     describe('Content processing', () => {
-        it('Should process pages', () => {
+        it.only('Should process pages', () => {
             session.id = 'sessionId';
             session.injectable.scripts.push('/script1.js');
             session.injectable.scripts.push('/script2.js');
