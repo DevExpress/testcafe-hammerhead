@@ -19,21 +19,11 @@ const WORKER_SETTINGS_PLACEHOLDER = '{worker-settings}';
 
 const IMPORT_WORKER_HAMMERHEAD = `
 if (typeof importScripts !== "undefined" && /\\[native code]/g.test(importScripts.toString())) {
-    function isModule() {
-        try { 
-            importScripts("data:text/javascript,"); 
-            return false;
-        } catch(e) {}
-        
-        return true;
-    }
-
     var ${INSTRUCTION.getWorkerSettings} = function () {return ${WORKER_SETTINGS_PLACEHOLDER}};
-    
-    if (isModule()) {
-        (async function () { await import((location.origin || (location.protocol + "//" + location.host)) + "${SERVICE_ROUTES.workerHammerhead}"); })();
-    } else {
+    try {
         importScripts((location.origin || (location.protocol + "//" + location.host)) + "${SERVICE_ROUTES.workerHammerhead}");
+    } catch (e) {
+        (async function () { await import((location.origin || (location.protocol + "//" + location.host)) + "${SERVICE_ROUTES.workerHammerhead}"); })();
     }
 }
 `;
