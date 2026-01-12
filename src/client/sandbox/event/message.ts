@@ -117,7 +117,7 @@ export default class MessageSandbox extends SandboxBase {
         return null;
     }
 
-    private static _wrapMessage (type: MessageType, message, targetUrl?: string | URL) {
+    private static _wrapMessage (type: MessageType, message, targetUrl?: string) {
         const parsedDest = destLocation.getParsed();
         const originUrl  = formatUrl({
             /*eslint-disable no-restricted-properties*/
@@ -216,9 +216,9 @@ export default class MessageSandbox extends SandboxBase {
         const targetUrl = args[1] || destLocation.getOriginHeader();
 
         // NOTE: We do NOT support the postMessage(message, options) overload.
-        // The second argument is expected to be `targetOrigin` (string or URL).
+        // The second argument is expected to be `targetOrigin` (string).
         // If an options object is provided instead, the call is considered invalid and will be aborted.
-        if (typeof targetUrl !== 'string' && !(targetUrl instanceof URL)) {
+        if (typeof targetUrl !== 'string') {
             nativeMethods.consoleMeths.log(`testcafe-hammerhead: postMessage called with invalid targetOrigin; aborting call (type: ${typeof targetUrl})`);
             return null;
         }
