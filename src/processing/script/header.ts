@@ -17,7 +17,6 @@ const STRICT_MODE_PLACEHOLDER     = '{strict-placeholder}';
 const SW_SCOPE_HEADER_VALUE       = '{sw-scope-header-value}';
 const WORKER_SETTINGS_PLACEHOLDER = '{worker-settings}';
 
-// NOTE: we need try/catch if a worker with ES module (fix for https://github.com/DevExpress/testcafe/issues/8251)
 const IMPORT_WORKER_HAMMERHEAD = `
 if (typeof importScripts !== "undefined" && /\\[native code]/g.test(importScripts.toString())) {
     var ${INSTRUCTION.getWorkerSettings} = function () {return ${WORKER_SETTINGS_PLACEHOLDER}};
