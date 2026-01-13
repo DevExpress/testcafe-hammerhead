@@ -35,6 +35,22 @@ asyncTest('should pass "transfer" argument for "postMessage" (GH-1535)', functio
     callMethod(window, 'postMessage', ['test', '*', [channel.port1]]);
 });
 
+asyncTest('should not accept an object as "targetOrigin"', function () {
+    var called = false;
+    var handler = function () {
+        called = true;
+    };
+
+    window.addEventListener('message', handler);
+    callMethod(window, 'postMessage', ['message', { test: 1 }]);
+
+    window.setTimeout(function () {
+        ok(!called, 'message should not be delivered');
+        window.removeEventListener('message', handler);
+        start();
+    }, 100);
+});
+
 asyncTest('onmessage event', function () {
     var count = 0;
 

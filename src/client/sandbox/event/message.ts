@@ -215,6 +215,14 @@ export default class MessageSandbox extends SandboxBase {
     postMessage (contentWindow: Window, args) {
         const targetUrl = args[1] || destLocation.getOriginHeader();
 
+        // NOTE: We do NOT support the postMessage(message, options) overload.
+        // The second argument is expected to be `targetOrigin` (string).
+        // If an options object is provided instead, the call is considered invalid and will be aborted.
+        if (typeof targetUrl !== 'string') {
+            nativeMethods.consoleMeths.log(`testcafe-hammerhead: postMessage called with invalid targetOrigin; aborting call (type: ${typeof targetUrl})`);
+            return null;
+        }
+
         // NOTE: Here, we pass all messages as "no preference" ("*").
         // We do an origin check in "_onWindowMessage" to access the target origin.
         args[1] = '*';
