@@ -11,7 +11,6 @@ const mustache              = require('gulp-mustache');
 const rename                = require('gulp-rename');
 const uglify                = require('gulp-uglify');
 const ll                    = require('gulp-ll-next');
-const gulpRunCommand        = require('gulp-run-command').default;
 const clone                 = require('gulp-clone');
 const mergeStreams          = require('merge-stream');
 const getClientTestSettings = require('./gulp/utils/get-client-test-settings');
@@ -151,6 +150,23 @@ gulp.task('build',
 
 const BUILD_TASK = noBuild ? () => Promise.resolve() : gulp.registry().get('build');
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+async function runCommands (commands) {
+    for (const command of commands) {
+        const commandExitCode = await new Promise((resolve, reject) => {
+            const child = childProcess.spawn(command, { shell: true, stdio: 'inherit' });
+
+            child.on('error', reject);
+            child.on('close', (code) => {
+                resolve(code ?? 1);
+            });
+        });
+
+        if (commandExitCode !== 0)
+            throw new Error(`Command "${command}" exited with code ${commandExitCode}`);
+    }
+}
+
 // Test
 gulp.step('test-server-run', () => {
     return gulp.src('./test/server/**/*-test.js', { read: false })
@@ -227,17 +243,21 @@ gulp.step('cached-http-playground-server', () => {
 
 gulp.task('cached-http-playground', gulp.series(BUILD_TASK, 'cached-http-playground-server'));
 
-gulp.step('test-functional-testcafe-proxy-run', gulpRunCommand([
-    'chmod +x ./test/functional/run-testcafe-functional-tests.sh',
-    './test/functional/run-testcafe-functional-tests.sh',
-]));
+gulp.step('test-functional-testcafe-proxy-run', async () => {
+    await runCommands([
+        'chmod +x ./test/functional/run-testcafe-functional-tests.sh',
+        './test/functional/run-testcafe-functional-tests.sh',
+    ]);
+});
 
 gulp.task('test-functional-testcafe-proxy', gulp.series(BUILD_TASK, 'test-functional-testcafe-proxy-run'));
 
-gulp.step('test-functional-testcafe-native-automation-run', gulpRunCommand([
-    'chmod +x ./test/functional/run-testcafe-functional-tests.sh',
-    './test/functional/run-testcafe-functional-tests.sh',
-]));
+gulp.step('test-functional-testcafe-native-automation-run', async () => {
+    await runCommands([
+        'chmod +x ./test/functional/run-testcafe-functional-tests.sh',
+        './test/functional/run-testcafe-functional-tests.sh',
+    ]);
+});
 
 gulp.task('test-functional-testcafe-native-automation', gulp.series(BUILD_TASK, 'test-functional-testcafe-native-automation-run'));
 
