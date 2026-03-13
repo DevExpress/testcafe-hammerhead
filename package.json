@@ -76,7 +76,6 @@
     "gulp-mocha-simple": "^2.0.0",
     "gulp-mustache": "^3.0.1",
     "gulp-rename": "^1.2.2",
-    "gulp-run-command": "0.0.9",
     "gulp-step": "^1.0.1",
     "gulp-typescript": "^5.0.0",
     "gulp-uglify": "^3.0.2",
