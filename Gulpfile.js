@@ -1,5 +1,5 @@
 const del                   = require('del');
-const eslint                = require('gulp-eslint');
+const eslint                = require('gulp-eslint-new');
 const fs                    = require('fs');
 const { Transform }         = require('stream');
 const childProcess          = require('child_process');
@@ -143,9 +143,9 @@ gulp.task('build',
         gulp.parallel(
             'client-scripts',
             'templates',
-            'lint'
-        )
-    )
+            'lint',
+        ),
+    ),
 );
 
 const BUILD_TASK = noBuild ? () => Promise.resolve() : gulp.registry().get('build');

@@ -127,7 +127,7 @@ export function getWidth (el) {
 
         return Math.max(
             el.body[scrollProp], doc[scrollProp],
-            el.body[offsetProp], doc[offsetProp]
+            el.body[offsetProp], doc[offsetProp],
         );
     }
 
@@ -159,7 +159,7 @@ export function getHeight (el) {
 
         return Math.max(
             el.body[scrollProp], doc[scrollProp],
-            el.body[offsetProp], doc[offsetProp]
+            el.body[offsetProp], doc[offsetProp],
         );
     }
 

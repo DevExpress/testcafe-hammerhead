@@ -557,7 +557,7 @@ export default class WindowSandbox extends SandboxBase {
                     const sourceSymbols = nativeMethods.objectGetOwnPropertySymbols.call(windowSandbox.window.Object, source);
                     const sourceKeys    = nativeMethods.arrayConcat.call(
                         nativeMethods.objectKeys.call(windowSandbox.window.Object, source),
-                        sourceSymbols
+                        sourceSymbols,
                     );
 
                     for (const key of sourceKeys)

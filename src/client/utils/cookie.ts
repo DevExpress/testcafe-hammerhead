@@ -102,6 +102,7 @@ export function formatClientString (parsedCookie) {
     return cookieStr;
 }
 
+// eslint-disable-next-line no-restricted-properties
 export function setDefaultValues (parsedCookie, { hostname, pathname }) {
     if (!parsedCookie.domain)
         parsedCookie.domain = hostname; // eslint-disable-line no-restricted-properties

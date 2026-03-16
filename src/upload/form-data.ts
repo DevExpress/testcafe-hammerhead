@@ -138,13 +138,13 @@ export default class FormData {
                 this.boundary,
                 bufferUtils.CRLF,
                 entry.toBuffer(),
-                bufferUtils.CRLF
+                bufferUtils.CRLF,
             );
         }
 
         chunks.push(
             this._boundaryEnd,
-            bufferUtils.CRLF
+            bufferUtils.CRLF,
         );
 
         chunks = chunks.concat(this._epilogue);

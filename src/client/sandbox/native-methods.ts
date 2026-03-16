@@ -64,7 +64,7 @@ class NativeMethods {
     insertCell: any;
     insertTableRow: any;
     insertTBodyRow: any;
-    importScripts: (...urls: string[]) => void
+    importScripts: (...urls: string[]) => void;
     removeAttribute: any;
     removeAttributeNS: any;
     removeAttributeNode: any;
@@ -156,7 +156,7 @@ class NativeMethods {
     dateNow: DateConstructor['now'];
     math: any;
     mathRandom: any;
-    // eslint-disable-next-line @typescript-eslint/ban-types
+    // eslint-disable-next-line @typescript-eslint/no-restricted-types
     objectToString: Object['toString'];
     objectAssign: ObjectConstructor['assign'];
     objectKeys: ObjectConstructor['keys'];
@@ -186,7 +186,7 @@ class NativeMethods {
     arrayReverse: any;
     arrayReduce: any;
     arrayFrom: any;
-    isArray: ArrayConstructor['isArray']
+    isArray: ArrayConstructor['isArray'];
     DOMParserParseFromString: any;
     arrayBufferIsView: any;
     objectDataSetter: any;
