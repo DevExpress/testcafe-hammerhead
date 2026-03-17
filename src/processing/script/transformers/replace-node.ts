@@ -22,6 +22,7 @@ export default function replaceNode<T extends Node> (node: Node | null, newNode:
         newNode.originStart = newNode.start = node.start;
         newNode.originEnd = newNode.end = node.end;
     }
-    else
+    else {
         newNode.start = newNode.end = newNode.originStart = newNode.originEnd = oldNode[1] ? oldNode[1].start! : parent.start! + 1;
+    }
 }
