@@ -23,7 +23,6 @@ export default function replaceNode<T extends Node> (node: Node | null, newNode:
         newNode.originEnd = newNode.end = node.end;
     }
     else {
-        /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
         newNode.start = newNode.end = newNode.originStart = newNode.originEnd = oldNode[1] ? oldNode[1].start! : parent.start! + 1;
     }
 }

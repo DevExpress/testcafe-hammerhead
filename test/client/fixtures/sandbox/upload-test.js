@@ -174,7 +174,7 @@ test('hidden input should not affect both the length/count value and the element
     document.body.appendChild(form);
     form.appendChild(input1);
 
-    var expectedElements = [input1, input2]; // eslint-disable-line @typescript-eslint/no-unused-vars
+    var expectedElements = [input1, input2];
 
     function checkElements (iterableObj) {
         var index = 0;

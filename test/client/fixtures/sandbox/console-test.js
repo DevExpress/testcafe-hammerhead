@@ -88,13 +88,11 @@ if (window.console && typeof window.console.log !== 'undefined') {
 
         hammerhead.on(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);
 
-        /* eslint-disable no-console */
         window.console.log(1, 2);
         window.console.warn(3, 4);
         window.console.error(5, 6);
         window.console.info(7, 8);
         window.console.log(void 0, null, emptyObj, objWithToString);
-        /* eslint-enable no-console */
 
         deepEqual(handledConsoleMethodNames, ['log', 'warn', 'error', 'info', 'log']);
         deepEqual(log, [1, 2, 3, 4, 5, 6, 7, 8, void 0, null, emptyObj, objWithToString]);

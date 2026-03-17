@@ -105,10 +105,10 @@ export function formatClientString (parsedCookie) {
 // eslint-disable-next-line no-restricted-properties
 export function setDefaultValues (parsedCookie, { hostname, pathname }) {
     if (!parsedCookie.domain)
-        parsedCookie.domain = hostname; // eslint-disable-line no-restricted-properties
+        parsedCookie.domain = hostname;
 
     if (!parsedCookie.path || parsedCookie.path.charAt(0) !== '/') {
-        const path        = pathname; // eslint-disable-line no-restricted-properties
+        const path        = pathname;
         const defaultPath = path.slice(0, path.lastIndexOf('/'));
 
         parsedCookie.path = defaultPath || '/';

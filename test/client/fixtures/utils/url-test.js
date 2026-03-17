@@ -518,7 +518,6 @@ test('location.port must return the empty string (T262593)', function () {
         'var iframesrc = document.location.protocol + "//" + document.location.hostname + port + "/" + "?IFRAME";',
     ].join('\n')));
 
-    // eslint-disable-next-line no-undef
     strictEqual(iframesrc, 'https://example.com/?IFRAME');
 });
 

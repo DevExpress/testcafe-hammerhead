@@ -156,7 +156,6 @@ class NativeMethods {
     dateNow: DateConstructor['now'];
     math: any;
     mathRandom: any;
-    // eslint-disable-next-line @typescript-eslint/no-restricted-types
     objectToString: Object['toString'];
     objectAssign: ObjectConstructor['assign'];
     objectKeys: ObjectConstructor['keys'];
@@ -415,7 +414,7 @@ class NativeMethods {
     }
 
     static _getDocumentPropOwnerName (docPrototype, propName: string) {
-        return docPrototype.hasOwnProperty(propName) ? 'Document' : 'HTMLDocument'; // eslint-disable-line no-prototype-builtins
+        return docPrototype.hasOwnProperty(propName) ? 'Document' : 'HTMLDocument';
     }
 
     refreshWorkerMeths (scope: any /* WorkerGlobalScope */) {
@@ -488,7 +487,7 @@ class NativeMethods {
                 documentCookieDescriptor.get = parentNativeMethods.documentCookieGetter;
                 documentCookieDescriptor.set = parentNativeMethods.documentCookieSetter;
             }
-            catch {} // eslint-disable-line no-empty
+            catch {}
         }
 
         this.documentReferrerGetter      = win.Object.getOwnPropertyDescriptor(docPrototype, 'referrer').get;
@@ -566,7 +565,6 @@ class NativeMethods {
 
                 this.elementGetElementsByTagName = parentNativeMethods.elementGetElementsByTagName;
             }
-            // eslint-disable-next-line no-empty
             catch (e) {
             }
         }
@@ -588,7 +586,7 @@ class NativeMethods {
 
         // Style
         // NOTE: The 'style' descriptor is located in the Element.prototype in the Safari on IOS
-        this.htmlElementStylePropOwnerName = win.Element.prototype.hasOwnProperty('style') ? 'Element' : 'HTMLElement'; // eslint-disable-line no-prototype-builtins
+        this.htmlElementStylePropOwnerName = win.Element.prototype.hasOwnProperty('style') ? 'Element' : 'HTMLElement';
 
         const htmlElementStyleDescriptor = win.Object.getOwnPropertyDescriptor(win[this.htmlElementStylePropOwnerName].prototype, 'style');
 

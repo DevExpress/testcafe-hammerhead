@@ -8,7 +8,7 @@ export default class HoverSandbox extends SandboxBase {
     private _hoverElementFixed = false;
     private _lastHoveredElement: any = null;
 
-    constructor (private readonly _listeners: Listeners) { //eslint-disable-line no-unused-vars
+    constructor (private readonly _listeners: Listeners) {
         super();
     }
 

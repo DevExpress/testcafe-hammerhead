@@ -23,7 +23,7 @@ export default class UnloadSandbox extends SandboxBase {
     beforeUnloadProperties: EventProperties;
     unloadProperties: EventProperties;
 
-    constructor (private readonly _listeners: Listeners) { //eslint-disable-line no-unused-vars
+    constructor (private readonly _listeners: Listeners) {
         super();
 
         this.beforeUnloadProperties = {

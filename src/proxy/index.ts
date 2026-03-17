@@ -121,8 +121,8 @@ export default class Proxy extends Router {
             socket.on('close', () => this.sockets.delete(socket));
         };
 
-        this.server1?.on('connection', handler); // eslint-disable-line no-unused-expressions
-        this.server2?.on('connection', handler); // eslint-disable-line no-unused-expressions
+        this.server1?.on('connection', handler);
+        this.server2?.on('connection', handler);
     }
 
     _registerServiceRoutes (developmentMode: boolean): void {
@@ -328,8 +328,8 @@ export default class Proxy extends Router {
     }
     close (): void {
         scriptProcessor.jsCache.clear();
-        this.server1?.close(); // eslint-disable-line no-unused-expressions
-        this.server2?.close(); // eslint-disable-line no-unused-expressions
+        this.server1?.close();
+        this.server2?.close();
         this._closeSockets();
         resetKeepAliveConnections();
     }

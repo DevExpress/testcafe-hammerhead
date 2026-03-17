@@ -895,6 +895,6 @@ test('we should not break a user script which uses new browser API if we are not
 
         Object.defineProperty(obj, 'some', Object.getOwnPropertyDescriptor(locWrapper, 'newAPIProp'));
 
-        obj.some; // eslint-disable-line no-unused-expressions
+        obj.some;
     });
 });

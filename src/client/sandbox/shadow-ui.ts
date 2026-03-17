@@ -19,7 +19,7 @@ import removeElement from '../utils/remove-element';
 import { overrideFunction } from '../utils/overriding';
 
 const IS_NON_STATIC_POSITION_RE = /fixed|relative|absolute/;
-const CLASSNAME_RE              = /\.((?:\\.|[-\w]|[^\x00-\xa0])+)/g; // eslint-disable-line no-control-regex
+const CLASSNAME_RE              = /\.((?:\\.|[-\w]|[^\x00-\xa0])+)/g;
 
 const IS_SHADOW_CONTAINER_FLAG            = 'hammerhead|shadow-ui|container-flag';
 const IS_SHADOW_CONTAINER_COLLECTION_FLAG = 'hammerhead|shadow-ui|container-collection-flag';

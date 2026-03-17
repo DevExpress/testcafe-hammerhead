@@ -107,7 +107,6 @@ export default class PageNavigationWatch extends EventEmiter {
         try {
             win[INTERNAL_PROPS.hammerhead].pageNavigationWatch.onNavigationTriggered(url);
         }
-        // eslint-disable-next-line no-empty
         catch (e) {
         }
     }

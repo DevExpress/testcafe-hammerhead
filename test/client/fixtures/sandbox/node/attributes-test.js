@@ -1080,7 +1080,6 @@ test('the "Maximum call stack size exceeded" error should not occurs when the se
                 var element = testCases[attr];
 
                 element[attr] = 'value';
-                // eslint-disable-next-line no-unused-expressions
                 element[attr];
             });
 
