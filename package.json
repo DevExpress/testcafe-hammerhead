@@ -17,13 +17,13 @@
   "dependencies": {
     "@adobe/css-tools": "^4.3.0-rc.1",
     "@electron/asar": "^3.2.3",
+    "@node-ntlm/core": "^0.3.2",
     "acorn-hammerhead": "0.6.2",
     "bowser": "1.6.0",
     "crypto-md5": "^1.0.0",
     "debug": "4.3.1",
     "esotope-hammerhead": "0.6.9",
     "http-cache-semantics": "^4.1.0",
-    "httpntlm": "^1.8.10",
     "iconv-lite": "0.5.1",
     "lodash": "^4.17.21",
     "lru-cache": "11.0.2",
@@ -45,7 +45,6 @@
     "@devexpress/gulp-qunit-harness": "^1.1.0",
     "@rollup/plugin-commonjs": "^17.1.0",
     "@rollup/plugin-node-resolve": "^11.1.1",
-    "@testcafe/publish-please": "^5.6.0",
     "@types/estree": "0.0.46",
     "@types/lodash": "^4.14.129",
     "@types/lru-cache": "7.10.10",
@@ -99,9 +98,6 @@
     "ts-defs"
   ],
   "scripts": {
-    "test": "gulp travis",
-    "publish-please-only": "publish-please",
-    "publish-please": "del-cli package-lock.json node_modules && npm i && publish-please",
-    "prepublish": "publish-please guard"
+    "test": "gulp travis"
   }
 }
