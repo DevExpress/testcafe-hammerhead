@@ -6,7 +6,6 @@ const childProcess          = require('child_process');
 const gulp                  = require('gulp');
 const gulpStep              = require('gulp-step');
 const qunitHarness          = require('@devexpress/gulp-qunit-harness');
-const mocha                 = require('gulp-mocha-simple');
 const mustache              = require('gulp-mustache');
 const rename                = require('gulp-rename');
 const uglify                = require('gulp-uglify');
@@ -16,6 +15,7 @@ const mergeStreams          = require('merge-stream');
 const getClientTestSettings = require('./gulp/utils/get-client-test-settings');
 const SAUCELABS_SETTINGS    = require('./gulp/saucelabs-settings');
 const runPlayground         = require('./gulp/utils/run-playground');
+const { runCommands } = require('./gulp/utils/run-shell-commands');
 
 gulpStep.install();
 
@@ -150,31 +150,13 @@ gulp.task('build',
 
 const BUILD_TASK = noBuild ? () => Promise.resolve() : gulp.registry().get('build');
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-async function runCommands (commands) {
-    for (const command of commands) {
-        const commandExitCode = await new Promise((resolve, reject) => {
-            const child = childProcess.spawn(command, { shell: true, stdio: 'inherit' });
-
-            child.on('error', reject);
-            child.on('close', (code) => {
-                resolve(code ?? 1);
-            });
-        });
-
-        if (commandExitCode !== 0)
-            throw new Error(`Command "${command}" exited with code ${commandExitCode}`);
-    }
-}
-
 // Test
-gulp.step('test-server-run', () => {
-    return gulp.src('./test/server/**/*-test.js', { read: false })
-        .pipe(mocha({
-            // NOTE: Disable timeouts in debug mode.
-            timeout:   typeof v8debug !== 'undefined' || !!process.debugPort ? Infinity : 2000,
-            fullTrace: true,
-        }));
+gulp.step('test-server-run', async () => {
+    const timeout = typeof v8debug !== 'undefined' || !!process.debugPort ? 0 : 2000;
+
+    await runCommands([
+        `npx mocha --full-trace --timeout ${timeout} "./test/server/**/*-test.js"`,
+    ]);
 });
 
 gulp.step('disable-node-tls-reject-unauthorized', done => {

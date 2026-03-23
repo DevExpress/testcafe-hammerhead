@@ -73,13 +73,13 @@
     "gulp-clone": "^2.0.1",
     "gulp-eslint-new": "^2.6.1",
     "gulp-ll-next": "^2.1.0",
-    "gulp-mocha-simple": "^2.0.0",
     "gulp-mustache": "^3.0.1",
     "gulp-rename": "^1.2.2",
     "gulp-step": "^1.0.1",
     "gulp-typescript": "^5.0.0",
     "gulp-uglify": "^3.0.2",
     "js-beautify": "^1.13.5",
+    "mocha": "^11.3.0",
     "multiline": "^1.0.2",
     "openssl-self-signed-certificate": "1.1.6",
     "rollup": "^2.38.5",
@@ -101,10 +101,8 @@
     "test": "gulp travis"
   },
   "overrides": {
-    "gulp-mocha-simple": {
-      "mocha": {
-        "serialize-javascript": "^7.0.4"
-      }
+    "mocha": {
+      "serialize-javascript": "^7.0.4"
     }
   }
 }
