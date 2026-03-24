@@ -155,7 +155,7 @@ gulp.step('test-server-run', async () => {
     const timeout = typeof v8debug !== 'undefined' || !!process.debugPort ? 0 : 2000;
 
     await runCommands([
-        `npx mocha --full-trace --timeout ${timeout} "./test/server/**/*-test.js"`,
+        `npx --no-install mocha --full-trace --timeout ${timeout} "./test/server/**/*-test.js"`,
     ]);
 });
 
