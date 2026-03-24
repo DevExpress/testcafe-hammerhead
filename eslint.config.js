@@ -65,7 +65,7 @@ module.exports = [
             'no-sequences':                           2,
             'no-shadow':                              2,
             'no-shadow-restricted-names':             2,
-            'no-spaced-func':                        2,
+            'func-call-spacing':                      2,
             'no-trailing-spaces':                     2,
             'no-undef-init':                          2,
             'no-unused-expressions':                  2,
