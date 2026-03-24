@@ -60,7 +60,7 @@ export function unshiftElement (el: Element, parent: Element): void {
     el.namespaceURI = parent.namespaceURI;
     el.parentNode   = parent;
 
-    parent.childNodes?.unshift(el); // eslint-disable-line no-unused-expressions
+    parent.childNodes?.unshift(el);
 }
 
 export function insertBeforeFirstScript (el: Element, parent: Element): void {
@@ -82,7 +82,7 @@ export function findNextNonTextNode (parent: Element, startIndex: number): Node 
 
     let currentNode: Node;
 
-    while (currentNode = parent.childNodes[startIndex]) { // eslint-disable-line no-cond-assign
+    while (currentNode = parent.childNodes[startIndex]) {
         if (currentNode.nodeName !== '#text')
             return currentNode;
 
@@ -96,7 +96,7 @@ export function appendNode (node: Element, parent: Element, index: number): void
     node.namespaceURI = parent.namespaceURI;
     node.parentNode   = parent;
 
-    parent.childNodes?.splice(index, 0, node); // eslint-disable-line no-unused-expressions
+    parent.childNodes?.splice(index, 0, node);
 }
 
 export function removeNode (node: Element): void {
@@ -123,7 +123,7 @@ export function findElementsByTagNames (root: Element | Document, tagNames: stri
     return elements;
 }
 
-export function findElement (el: Element, predicate: (el: Element) => boolean): Element | null { // eslint-disable-line no-shadow
+export function findElement (el: Element, predicate: (el: Element) => boolean): Element | null {
     if (isElementNode(el) && predicate(el))
         return el;
 

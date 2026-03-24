@@ -23,7 +23,6 @@ if (nativeMethods.Proxy) {
             '}',
         ];
 
-        // eslint-disable-next-line no-new-func
         var evalFactory = new Function(code.join('\n'));
         var testObj     = { data: { a: 777 } };
         var proxy       = new Proxy(testObj, {

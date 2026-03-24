@@ -1,4 +1,3 @@
-/*eslint-disable no-unused-expressions*/
 var DOMMutationTracker = hammerhead.sandboxUtils.domMutationTracker;
 
 var shadowUI      = hammerhead.sandbox.shadowUI;

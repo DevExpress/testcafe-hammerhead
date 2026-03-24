@@ -1,4 +1,4 @@
-enum DefaultTarget { // eslint-disable-line no-shadow
+enum DefaultTarget {
     form = '_self',
     linkOrArea = '_self',
     windowOpen = '_blank'

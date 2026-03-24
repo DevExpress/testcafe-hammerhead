@@ -16,7 +16,7 @@ var validDateStr = validDate.toUTCString();
 // There is a browser bug with strange restoring deleted cookie in next tick after QUnit.testDone.
 // At present, we are forced to disable some test runs in Safari 15.1 and later.
 // Need trying to turn on the disabled tests on the next Safari versions (15.3 and later)
-var isGreaterThanSafari15_1 = browserUtils.isSafari && parseFloat(browserUtils.fullVersion) >= '15.1'; //eslint-disable-line camelcase
+var isGreaterThanSafari15_1 = browserUtils.isSafari && parseFloat(browserUtils.fullVersion) >= '15.1';
 
 function clearCookie () {
     nativeMethods.documentCookieGetter.call(document)
@@ -30,7 +30,7 @@ function clearCookie () {
     settings.get().cookie = '';
 }
 
-if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
+if (!isGreaterThanSafari15_1) {
     QUnit.testDone(function () {
         clearCookie();
     });
@@ -376,19 +376,19 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
                 nativeMethods.documentCookieSetter.call(document, 's|sessionId|cafe|example.com|%2F||1fckm5lnl|=321;path=/');
                 nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl|=123;path=/');
 
-                document.cookie; // eslint-disable-line no-unused-expressions
+                document.cookie;
 
                 checkCookies('cafe=321; test=123');
 
                 nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lz3|=321;path=/');
 
-                iframe.contentDocument.cookie; // eslint-disable-line no-unused-expressions
+                iframe.contentDocument.cookie;
 
                 checkCookies('cafe=321; test=321');
 
                 nativeMethods.documentCookieSetter.call(document, 's|sessionId|cafe|example.com|%2F|0|1fckm5lz6|=value;path=/');
 
-                embeddedIframe.contentDocument.cookie; // eslint-disable-line no-unused-expressions
+                embeddedIframe.contentDocument.cookie;
 
                 checkCookies('test=321');
             });
@@ -440,7 +440,7 @@ if (!isGreaterThanSafari15_1) { //eslint-disable-line camelcase
                 ]);
             })
             .then(function () {
-                document.cookie; // eslint-disable-line no-unused-expressions
+                document.cookie;
 
                 expectedCookies = 'cafe=321; test=123';
 

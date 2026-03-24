@@ -1152,7 +1152,7 @@ test('hammerhead should use the native classList getter in addClass, removeClass
     var storedСlassListDescriptor = Object.getOwnPropertyDescriptor(window.Element.prototype, 'classList');
 
     Object.defineProperty(window.Element.prototype, 'classList', {
-        get: function () { /* eslint-disable-line getter-return */
+        get: function () {
             ok(false);
         },
 
@@ -1182,7 +1182,7 @@ test('should not throw an error when process a script inside the svg (GH-2735)',
         '<svg xmlns="http://www.w3.org/2000/svg" width="6cm" height="5cm" viewBox="0 0 600 500" version="1.1">',
         '  <script type="application/ecmascript"> <![CDATA[',
         '    var some = 123;',
-        '  ]]> <\/script>', // eslint-disable-line
+        '  ]]> <\/script>',
         '</svg>',
     ].join('\n');
 

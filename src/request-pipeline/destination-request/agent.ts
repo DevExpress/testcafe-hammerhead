@@ -6,13 +6,11 @@ import tunnel from 'tunnel-agent';
 
 const SSL3_HOST_CACHE_SIZE = 1000;
 
-/* eslint-disable no-unused-vars */
-enum TYPE { // eslint-disable-line no-shadow
+enum TYPE {
     SSL3 = 'SSL3',
     TLS = 'TLS',
     HTTP = 'HTTP'
 }
-/* eslint-enable no-unused-vars */
 
 const ssl3HostCache = new LRUCache({ max: SSL3_HOST_CACHE_SIZE });
 

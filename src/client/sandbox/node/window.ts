@@ -557,7 +557,7 @@ export default class WindowSandbox extends SandboxBase {
                     const sourceSymbols = nativeMethods.objectGetOwnPropertySymbols.call(windowSandbox.window.Object, source);
                     const sourceKeys    = nativeMethods.arrayConcat.call(
                         nativeMethods.objectKeys.call(windowSandbox.window.Object, source),
-                        sourceSymbols
+                        sourceSymbols,
                     );
 
                     for (const key of sourceKeys)
@@ -1152,7 +1152,7 @@ export default class WindowSandbox extends SandboxBase {
 
                 return nativeMethods.inputValueGetter.call(this);
             },
-            setter: function (this: HTMLInputElement, value) { // eslint-disable-line consistent-return
+            setter: function (this: HTMLInputElement, value) {
                 if (this.type.toLowerCase() === 'file') {
                     windowSandbox.uploadSandbox.setUploadElementValue(this, value);
 

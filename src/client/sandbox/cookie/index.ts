@@ -21,7 +21,7 @@ import ChildWindowSandbox from '../child-window';
 import getTopOpenerWindow from '../../utils/get-top-opener-window';
 import { isNull, isNumber } from '../../utils/types';
 
-const MIN_DATE_VALUE = new nativeMethods.date(0).toUTCString(); // eslint-disable-line new-cap
+const MIN_DATE_VALUE = new nativeMethods.date(0).toUTCString();
 
 interface CookieSandboxStrategy {
     getCookie: () => string;
@@ -71,7 +71,6 @@ class CookieSandboxProxyStrategy implements CookieSandboxStrategy {
     getCookie (): string {
         this.syncCookie(true);
 
-        // eslint-disable-next-line no-restricted-properties
         return settings.get().cookie || '';
     }
 
@@ -92,13 +91,10 @@ class CookieSandboxProxyStrategy implements CookieSandboxStrategy {
 
         // NOTE: All Hammerhad sessions have the same domain, so we need to validate the Domain attribute manually
         // according to a test url.
-        // eslint-disable-next-line no-restricted-properties
         if (!cookieUtils.domainMatch(parsedDestLocation.hostname, parsedCookie.domain))
             return;
 
-        // eslint-disable-next-line no-restricted-properties
         if ((!parsedCookie.secure || parsedDestLocation.protocol === 'https:') &&
-            // eslint-disable-next-line no-restricted-properties
             cookieUtils.pathMatch(parsedDestLocation.pathname, parsedCookie.path)) {
             const currentDate   = cookieUtils.getUTCDate();
             let clientCookieStr = null;
@@ -195,7 +191,6 @@ class CookieSandboxProxyStrategy implements CookieSandboxStrategy {
     }
 
     _canSetCookie (cookie, setByClient: boolean): boolean {
-        // eslint-disable-next-line no-restricted-properties
         if (setByClient && (cookie.length > BYTES_PER_COOKIE_LIMIT || destLocation.getParsed().protocol === 'file:'))
             return false;
 
@@ -238,7 +233,7 @@ export default class CookieSandbox extends SandboxBase {
     }
 
     static _updateClientCookieStr (cookieKey, newCookieStr: string): void {
-        const cookieStr      = settings.get().cookie; // eslint-disable-line no-restricted-properties
+        const cookieStr      = settings.get().cookie;
         const cookies        = cookieStr ? cookieStr.split(';') : [];
         const changedCookies = [];
         let replaced         = false;
@@ -262,7 +257,7 @@ export default class CookieSandbox extends SandboxBase {
         if (!replaced && newCookieStr !== null)
             changedCookies.push(newCookieStr);
 
-        settings.get().cookie = changedCookies.join('; '); // eslint-disable-line no-restricted-properties
+        settings.get().cookie = changedCookies.join('; ');
     }
 
     static isSyncCookieExists (parsedCookie: CookieRecord, clientCookieStr: string): boolean {

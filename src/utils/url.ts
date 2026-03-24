@@ -38,7 +38,7 @@ export const SPECIAL_PAGES                                    = [SPECIAL_BLANK_P
 export const HTTP_DEFAULT_PORT  = '80';
 export const HTTPS_DEFAULT_PORT = '443';
 
-export enum Credentials { include, sameOrigin, omit, unknown } // eslint-disable-line no-shadow
+export enum Credentials { include, sameOrigin, omit, unknown }
 
 const SPECIAL_PAGE_DEST_RESOURCE_INFO = {
     protocol:      'about:',
@@ -150,8 +150,6 @@ function convertHostToLowerCase (url: string): string {
 }
 
 export function getURLString (url: string | URL): string {
-    // TODO: fix it
-    // eslint-disable-next-line no-undef
     if (url === null && /iPad|iPhone/i.test(window.navigator.userAgent))
         return '';
 
