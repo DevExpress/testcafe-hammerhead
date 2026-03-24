@@ -10,7 +10,7 @@ export default class ActiveWindowTracker extends SandboxBase {
     private _activeWindow: Window = null;
     private _isActive = false;
 
-    constructor (private readonly _messageSandbox: MessageSandbox) { //eslint-disable-line no-unused-vars
+    constructor (private readonly _messageSandbox: MessageSandbox) {
         super();
     }
 

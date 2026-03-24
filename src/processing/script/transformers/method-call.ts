@@ -49,7 +49,7 @@ const transformer: Transformer<CallExpression> = {
         const callee         = node.callee as MemberExpression;
         const method         = callee.computed
             ? callee.property as Literal
-            : createSimpleLiteral((callee.property as Identifier).name); // eslint-disable-line no-extra-parens
+            : createSimpleLiteral((callee.property as Identifier).name);
         const optional       = (node as SimpleCallExpression).optional;
         const calleeOptional = callee.optional;
 

@@ -18,6 +18,7 @@ function replaceNativeAccessor (descriptor, accessorName: string, newAccessor) {
     descriptor[accessorName] = newAccessor;
 }
 
+// eslint-disable-next-line no-restricted-properties
 export function createOverriddenDescriptor<O extends object, K extends keyof O> (obj: O, prop: K, { getter, setter, value }: PropertySettings<O, K>) {
     const descriptor = nativeMethods.objectGetOwnPropertyDescriptor(obj, prop);
 

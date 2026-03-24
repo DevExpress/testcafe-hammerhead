@@ -23,7 +23,7 @@ export default class SandboxBase extends EventEmitter {
                 return !!frameElement && !isElementInDocument(frameElement, findDocument(frameElement));
             }
         }
-        catch (e) { // eslint-disable-line no-empty
+        catch (e) {
         }
 
         return true;

@@ -13,7 +13,7 @@ import {
 import charsetEncoder from 'iconv-lite';
 import Charset from './charset';
 
-const enum CONTENT_ENCODING { // eslint-disable-line no-shadow
+const enum CONTENT_ENCODING {
     GZIP = 'gzip',
     DEFLATE = 'deflate',
     BROTLI = 'br'

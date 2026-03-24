@@ -20,7 +20,7 @@ import UnloadSandbox from './unload';
 import { isFunction } from '../../utils/types';
 import settings from '../../settings';
 
-enum MessageType { // eslint-disable-line no-shadow
+enum MessageType {
     Service = 'hammerhead|service-msg',
     User = 'hammerhead|user-msg'
 }
@@ -252,7 +252,6 @@ export default class MessageSandbox extends SandboxBase {
                         ports,
                     });
                 }
-                // eslint-disable-next-line no-empty
                 catch (e) {
                 }
             }

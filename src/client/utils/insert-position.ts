@@ -1,4 +1,4 @@
-enum InsertPosition { // eslint-disable-line no-shadow
+enum InsertPosition {
     beforeBegin = 'beforebegin',
     afterBegin = 'afterbegin',
     beforeEnd = 'beforeend',

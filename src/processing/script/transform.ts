@@ -57,10 +57,8 @@ const objectToString = Object.prototype.toString;
 const objectKeys     = Object.keys;
 
 function getChange (node: Node, parentType: Node['type']): CodeChange {
-    /*eslint-disable @typescript-eslint/no-non-null-assertion*/
     const start = node.originStart!;
     const end   = node.originEnd!;
-    /*eslint-disable @typescript-eslint/no-non-null-assertion*/
 
     return { start, end, node, parentType };
 }

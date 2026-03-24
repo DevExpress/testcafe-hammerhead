@@ -200,9 +200,7 @@ exports.request = async function (options) {
         ? {}
         : options;
 
-    /*eslint-disable no-undef*/
     const response = await fetch(url, options);
-    /*eslint-enable no-undef*/
 
     res.statusCode    = response.status;
     res.headers       = Object.fromEntries(response.headers);
@@ -213,8 +211,6 @@ exports.request = async function (options) {
         res.body = await parseResponse(response);
     }
     finally {
-        /*eslint-disable no-unsafe-finally*/
         return res;
-        /*eslint-enable no-unsafe-finally*/
     }
 };
