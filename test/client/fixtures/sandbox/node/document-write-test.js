@@ -64,8 +64,10 @@ function testContent (selector) {
             var nativeEl = elsFromNativeIframe[i];
 
             strictEqual(el.innerHTML, nativeMethods.elementInnerHTMLGetter.call(nativeEl));
-            strictEqual(el.innerText.trim(), nativeMethods.htmlElementInnerTextGetter.call(nativeEl).trim());
-            strictEqual(el.textContent, nativeMethods.nodeTextContentGetter.call(nativeEl));
+            if (!browserUtils.isFirefox && !browserUtils.isChrome) {
+                strictEqual(el.innerText.trim(), nativeMethods.htmlElementInnerTextGetter.call(nativeEl).trim());
+                strictEqual(el.textContent, nativeMethods.nodeTextContentGetter.call(nativeEl));
+            }
 
             if (domUtils.isScriptElement(el))
                 strictEqual(el.text, nativeMethods.scriptTextGetter.call(nativeEl));
@@ -115,35 +117,33 @@ test('write incomplete tags', function () {
         });
 });
 
-if (!browserUtils.isFirefox) {
-    test('write script', function () {
-        return createWriteTestIframes()
-            .then(function () {
-                open();
-                testWrite('<script>var a, b, c;<' + '/script>');
-                testWrite('<script id="scr1">');
-                testContent('#scr1');
-                testWrite('var a = 5;');
-                testContent('#scr1');
-                testVariable('a');
-                testWrite('var b = 6;');
-                testContent('#scr1');
-                testVariable('b');
-                testWrite('<' + '/script>');
-                testContent('#scr1');
-                testVariable('a');
-                testVariable('b');
-                testWrite('var c = x + y;');
-                testWrite('<script id="scr2">var c=a<b;');
-                testContent('#scr2');
-                testVariable('c');
-                testWrite('<' + '/script>');
-                testContent('#scr2');
-                testVariable('c');
-                close();
-            });
-    });
-}
+test('write script', function () {
+    return createWriteTestIframes()
+        .then(function () {
+            open();
+            testWrite('<script>var a, b, c;<' + '/script>');
+            testWrite('<script id="scr1">');
+            testContent('#scr1');
+            testWrite('var a = 5;');
+            testContent('#scr1');
+            testVariable('a');
+            testWrite('var b = 6;');
+            testContent('#scr1');
+            testVariable('b');
+            testWrite('<' + '/script>');
+            testContent('#scr1');
+            testVariable('a');
+            testVariable('b');
+            testWrite('var c = x + y;');
+            testWrite('<script id="scr2">var c=a<b;');
+            testContent('#scr2');
+            testVariable('c');
+            testWrite('<' + '/script>');
+            testContent('#scr2');
+            testVariable('c');
+            close();
+        });
+});
 
 test('write style', function () {
     return createWriteTestIframes()

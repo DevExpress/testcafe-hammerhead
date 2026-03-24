@@ -6,7 +6,6 @@ const CLIENT_TESTS_BROWSERS = [
     {
         platform:    'Windows 10',
         browserName: 'chrome',
-        version:     '146',
     },
     {
         platform:    'Windows 10',

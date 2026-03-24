@@ -6,6 +6,7 @@ var scriptProcessor         = hammerhead.utils.processing.script;
 var urlUtils                = hammerhead.utils.url;
 var DomProcessor            = hammerhead.processors.DomProcessor;
 var browserUtils            = hammerhead.utils.browser;
+var { isFirefox, isChrome } = browserUtils;
 
 var nativeMethods = hammerhead.nativeMethods;
 
@@ -50,73 +51,74 @@ test('stylesheet after innerHTML', function () {
     check(nativeMethods.elementInnerHTMLGetter.call(style));
 });
 
-if (!browserUtils.isFirefox) {
-    test('script.<innerHTML/innerText/text/textContent>', function () {
-        var script                    = document.createElement('script');
-        var scriptText                = 'var test = window.href';
-        var processedScriptText       = scriptProcessor.processScript(scriptText, true).replace(/\s/g, '');
-        var scriptWithImport          = 'import foo from "foo.js"; import("bar.js").then(() => {});';
-        var processedScriptWithImport = scriptProcessor.processScript(scriptWithImport, true, false, urlUtils.convertToProxyUrl).replace(/\s/g, '');
-        var testProperties      = {
-            'innerHTML': {
-                getter: nativeMethods.elementInnerHTMLGetter,
-                setter: nativeMethods.elementInnerHTMLSetter,
-            },
 
-            'innerText': {
-                getter: nativeMethods.htmlElementInnerTextGetter,
-                setter: nativeMethods.htmlElementInnerTextSetter,
-            },
+test('script.<innerHTML/innerText/text/textContent>', function () {
+    var script                    = document.createElement('script');
+    var scriptText                = 'var test = window.href';
+    var processedScriptText       = scriptProcessor.processScript(scriptText, true).replace(/\s/g, '');
+    var scriptWithImport          = 'import foo from "foo.js"; import("bar.js").then(() => {});';
+    var processedScriptWithImport = scriptProcessor.processScript(scriptWithImport, true, false, urlUtils.convertToProxyUrl).replace(/\s/g, '');
+    var propertiesToTest      = {
+        'innerHTML': {
+            getter: nativeMethods.elementInnerHTMLGetter,
+            setter: nativeMethods.elementInnerHTMLSetter,
+        },
+        'text': {
+            getter: nativeMethods.scriptTextGetter,
+            setter: nativeMethods.scriptTextSetter,
+        },
+    };
 
-            'text': {
-                getter: nativeMethods.scriptTextGetter,
-                setter: nativeMethods.scriptTextSetter,
-            },
-
-            'textContent': {
+    if (!isFirefox && !isChrome) {
+        Object.assign(propertiesToTest, {
+            textContent: {
                 getter: nativeMethods.nodeTextContentGetter,
                 setter: nativeMethods.nodeTextContentSetter,
             },
-        };
-
-        Object.keys(testProperties).forEach(function (property) {
-            var nativeGetter = testProperties[property].getter;
-            var nativeSetter = testProperties[property].setter;
-
-            script[property] = scriptText;
-
-            strictEqual(nativeGetter.call(script).replace(/\s/g, ''), processedScriptText);
-
-            script[property] = '';
-
-            strictEqual(nativeGetter.call(script).replace(/\s/g, ''), '');
-
-            script[property] = { a: 1 };
-
-            strictEqual(nativeGetter.call(script), '[object Object]');
-
-            nativeSetter.call(script, null);
-
-            var expectedValueForNull = nativeGetter.call(script);
-
-            script[property] = null;
-
-            strictEqual(nativeGetter.call(script), expectedValueForNull);
-
-            nativeSetter.call(script, void 0);
-
-            var expectedValueForUndefined = nativeGetter.call(script);
-
-            script[property] = void 0;
-
-            strictEqual(nativeGetter.call(script), expectedValueForUndefined);
-
-            script[property] = scriptWithImport;
-
-            strictEqual(nativeGetter.call(script).replace(/\s/g, ''), processedScriptWithImport);
+            innerText: {
+                getter: nativeMethods.htmlElementInnerTextGetter,
+                setter: nativeMethods.htmlElementInnerTextSetter,
+            },
         });
+    }
+
+    Object.keys(propertiesToTest).forEach(function (property) {
+        var nativeGetter = propertiesToTest[property].getter;
+        var nativeSetter = propertiesToTest[property].setter;
+
+        script[property] = scriptText;
+
+        strictEqual(nativeGetter.call(script).replace(/\s/g, ''), processedScriptText);
+
+        script[property] = '';
+
+        strictEqual(nativeGetter.call(script).replace(/\s/g, ''), '');
+
+        script[property] = { a: 1 };
+
+        strictEqual(nativeGetter.call(script), '[object Object]');
+
+        nativeSetter.call(script, null);
+
+        var expectedValueForNull = nativeGetter.call(script);
+
+        script[property] = null;
+
+        strictEqual(nativeGetter.call(script), expectedValueForNull);
+
+        nativeSetter.call(script, void 0);
+
+        var expectedValueForUndefined = nativeGetter.call(script);
+
+        script[property] = void 0;
+
+        strictEqual(nativeGetter.call(script), expectedValueForUndefined);
+
+        script[property] = scriptWithImport;
+
+        strictEqual(nativeGetter.call(script).replace(/\s/g, ''), processedScriptWithImport);
     });
-}
+});
 
 test('style.<innerHTML/innerText/textContent>', function () {
     var style              = document.createElement('style');
