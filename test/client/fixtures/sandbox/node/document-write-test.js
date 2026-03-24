@@ -54,7 +54,7 @@ function testHTML () {
     strictEqual(outerHTML, nativeMethods.elementOuterHTMLGetter.call(nativeIframeForWrite.contentDocument.documentElement));
 }
 
-function testContent (selector) {
+function testContent (selector, skipTextContentAndInnerTextChecks = false) {
     var elsFromNativeIframe = nativeIframeForWrite.contentDocument.querySelectorAll(selector);
     var elsFromIframe       = processedIframeForWrite.contentDocument.querySelectorAll(selector);
 
@@ -64,7 +64,7 @@ function testContent (selector) {
             var nativeEl = elsFromNativeIframe[i];
 
             strictEqual(el.innerHTML, nativeMethods.elementInnerHTMLGetter.call(nativeEl));
-            if (!browserUtils.isFirefox && !browserUtils.isChrome) {
+            if (!skipTextContentAndInnerTextChecks) {
                 strictEqual(el.innerText.trim(), nativeMethods.htmlElementInnerTextGetter.call(nativeEl).trim());
                 strictEqual(el.textContent, nativeMethods.nodeTextContentGetter.call(nativeEl));
             }
@@ -118,6 +118,8 @@ test('write incomplete tags', function () {
 });
 
 test('write script', function () {
+    var skipTextContentAndInnerTextChecks = browserUtils.isFirefox || browserUtils.isChrome;
+
     return createWriteTestIframes()
         .then(function () {
             open();
@@ -131,7 +133,7 @@ test('write script', function () {
             testContent('#scr1');
             testVariable('b');
             testWrite('<' + '/script>');
-            testContent('#scr1');
+            testContent('#scr1', skipTextContentAndInnerTextChecks);
             testVariable('a');
             testVariable('b');
             testWrite('var c = x + y;');
@@ -139,7 +141,7 @@ test('write script', function () {
             testContent('#scr2');
             testVariable('c');
             testWrite('<' + '/script>');
-            testContent('#scr2');
+            testContent('#scr2', skipTextContentAndInnerTextChecks);
             testVariable('c');
             close();
         });
