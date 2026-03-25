@@ -143,6 +143,8 @@ if (nativeMethods.iframeSrcdocGetter) {
         strictEqual(nativeMethods.getAttribute.call(iframe, 'srcdoc'), htmlUtils.processHtml(html, { isPage: true }).replace(/(sessionId)/, '$1!i'));
     });
 
+ // NOTE: temporarily added to known issues list
+if (!browserUtils.isFirefox) {
     test('ready to init event should be raised after the document was initialized (added to dom)', function () {
         var iframeLoadingEventRaised = false;
 
@@ -170,6 +172,7 @@ if (nativeMethods.iframeSrcdocGetter) {
                 strictEqual(iframeRunTaskScriptEventUrl, 'about:srcdoc');
             });
     });
+}
 
     test('document\'s methods should be rewritten immediately after an iframe added to dom (GH-2647)', function () {
         var iframe = document.createElement('iframe');

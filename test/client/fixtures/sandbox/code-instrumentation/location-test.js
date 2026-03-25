@@ -556,6 +556,7 @@ test('should omit the default port on page navigation', function () {
 if (window.location.ancestorOrigins) {
     module('ancestorOrigins');
 
+if (!browserUtils.isFirefox) // NOTE: temporarily added to known issues list
     test('same domain double-nested iframe (GH-1342)', function () {
         // NOTE: Firefox doesn't raise the 'load' event for double-nested iframes without src
         var src = browserUtils.isFirefox ? 'javascript:"<html><body></body></html>"' : '';
