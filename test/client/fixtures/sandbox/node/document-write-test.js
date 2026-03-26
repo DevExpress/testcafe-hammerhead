@@ -64,6 +64,8 @@ function testContent (selector, skipTextContentAndInnerTextChecks = false) {
             var nativeEl = elsFromNativeIframe[i];
 
             strictEqual(el.innerHTML, nativeMethods.elementInnerHTMLGetter.call(nativeEl));
+
+            // NOTE: temporarily added to known issues list
             if (!skipTextContentAndInnerTextChecks) {
                 strictEqual(el.innerText.trim(), nativeMethods.htmlElementInnerTextGetter.call(nativeEl).trim());
                 strictEqual(el.textContent, nativeMethods.nodeTextContentGetter.call(nativeEl));

@@ -69,6 +69,7 @@ test('script.<innerHTML/innerText/text/textContent>', function () {
         },
     };
 
+    // NOTE: temporarily added to known issues list
     if (!isFirefox && !isChrome) {
         Object.assign(propertiesToTest, {
             textContent: {
