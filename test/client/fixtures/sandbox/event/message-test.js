@@ -35,20 +35,46 @@ asyncTest('should pass "transfer" argument for "postMessage" (GH-1535)', functio
     callMethod(window, 'postMessage', ['test', '*', [channel.port1]]);
 });
 
-asyncTest('should not accept an object as "targetOrigin"', function () {
-    var called = false;
-    var handler = function () {
-        called = true;
+asyncTest('should support postMessage(message, options) overload', function () {
+    var eventHandlerObject = {
+        handleEvent: function (e) {
+            strictEqual(e.data, 'options-overload-test');
+            window.removeEventListener('message', eventHandlerObject);
+            start();
+        },
+    };
+
+    window.addEventListener('message', eventHandlerObject);
+    callMethod(window, 'postMessage', ['options-overload-test', { targetOrigin: '*' }]);
+});
+
+asyncTest('should support postMessage(message, options) overload with transfer', function () {
+    var channel = new MessageChannel();
+
+    var eventHandlerObject = {
+        handleEvent: function (e) {
+            strictEqual(e.data, 'options-transfer-test');
+            strictEqual(e.ports.length, 1);
+            window.removeEventListener('message', eventHandlerObject);
+            start();
+        },
+    };
+
+    window.addEventListener('message', eventHandlerObject);
+    callMethod(window, 'postMessage', ['options-transfer-test', { targetOrigin: '*', transfer: [channel.port1] }]);
+});
+
+asyncTest('should deliver message when postMessage is called with an object as second argument', function () {
+    var handler = function (e) {
+        if (e.data === 'object-arg-test') {
+            ok(true, 'message should be delivered via options overload');
+            window.removeEventListener('message', handler);
+            start();
+        }
     };
 
     window.addEventListener('message', handler);
-    callMethod(window, 'postMessage', ['message', { test: 1 }]);
-
-    window.setTimeout(function () {
-        ok(!called, 'message should not be delivered');
-        window.removeEventListener('message', handler);
-        start();
-    }, 100);
+    callMethod(window, 'postMessage', ['object-arg-test', { test: 1 }]);
 });
 
 asyncTest('onmessage event', function () {
