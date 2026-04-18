@@ -1,5 +1,10 @@
 name: Test Server (Latest)
 
+permissions:
+  contents: read
+  statuses: write
+  actions: read
+
 on:
   workflow_dispatch:
     inputs:
