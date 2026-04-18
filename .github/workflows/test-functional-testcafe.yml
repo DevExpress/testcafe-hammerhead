@@ -2,6 +2,8 @@ name: Test Functional Proxy (TestCafe)
 
 permissions:
   contents: read
+  statuses: write
+  actions: read
 
 on:
   workflow_call:
