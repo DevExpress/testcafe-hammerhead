@@ -32,7 +32,7 @@ const CHARSET_BOM_LIST: CharsetBOM[] = [
     },
 ];
 
-enum CharsetPriority { // eslint-disable-line no-shadow
+enum CharsetPriority {
     BOM = 3,
     CONTENT_TYPE = 2,
     URL = 1,

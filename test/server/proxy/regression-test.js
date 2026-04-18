@@ -1582,7 +1582,7 @@ describe('Regression', () => {
 
         return request(options)
             .then(() => {
-                expect(session.options.referer).eql(getProxyUrl('http://example.com/'),);
+                expect(session.options.referer).eql(getProxyUrl('http://example.com/'));
             });
     });
 

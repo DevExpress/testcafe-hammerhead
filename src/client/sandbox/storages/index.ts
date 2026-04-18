@@ -126,6 +126,7 @@ class StorageSandboxProxyStrategy extends StorageSandboxStrategyBase implements 
         };
     }
 
+    // eslint-disable-next-line no-restricted-properties
     restore ({ localStorage, sessionStorage }: StoragesBackup): void {
         this.localStorageProxy.unwrapProxy().restore(localStorage);
         this.sessionStorageProxy.unwrapProxy().restore(sessionStorage);

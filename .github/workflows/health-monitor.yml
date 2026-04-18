@@ -27,7 +27,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: 16
+          node-version: 22
 
       - name: Checkout the Health Monitor repository
         uses: actions/checkout@v2
@@ -101,7 +101,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: 16
+          node-version: 22
 
       - name: Checkout the Health Monitor repository
         uses: actions/checkout@v2
@@ -134,7 +134,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: ${{ fromJSON(steps.get-pr-to-checkout.outputs.result).head.repo.full_name }}
-          ref: ${{ fromJSON(steps.get-pr-to-checkout.outputs.result).head.ref }}
+          ref: ${{ fromJSON(steps.get-pr-to-checkout.outputs.result).head.sha }}
           path: ./HealthMonitor/testcafe-hammerhead
 
       - name: Write the current testcafe-hammerhead abbreviated commit hash to a file

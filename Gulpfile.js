@@ -1,22 +1,21 @@
 const del                   = require('del');
-const eslint                = require('gulp-eslint');
+const eslint                = require('gulp-eslint-new');
 const fs                    = require('fs');
 const { Transform }         = require('stream');
 const childProcess          = require('child_process');
 const gulp                  = require('gulp');
 const gulpStep              = require('gulp-step');
 const qunitHarness          = require('@devexpress/gulp-qunit-harness');
-const mocha                 = require('gulp-mocha-simple');
 const mustache              = require('gulp-mustache');
 const rename                = require('gulp-rename');
 const uglify                = require('gulp-uglify');
 const ll                    = require('gulp-ll-next');
-const gulpRunCommand        = require('gulp-run-command').default;
 const clone                 = require('gulp-clone');
 const mergeStreams          = require('merge-stream');
 const getClientTestSettings = require('./gulp/utils/get-client-test-settings');
 const SAUCELABS_SETTINGS    = require('./gulp/saucelabs-settings');
 const runPlayground         = require('./gulp/utils/run-playground');
+const { runCommands } = require('./gulp/utils/run-shell-commands');
 
 gulpStep.install();
 
@@ -144,21 +143,20 @@ gulp.task('build',
         gulp.parallel(
             'client-scripts',
             'templates',
-            'lint'
-        )
-    )
+            'lint',
+        ),
+    ),
 );
 
 const BUILD_TASK = noBuild ? () => Promise.resolve() : gulp.registry().get('build');
 
 // Test
-gulp.step('test-server-run', () => {
-    return gulp.src('./test/server/**/*-test.js', { read: false })
-        .pipe(mocha({
-            // NOTE: Disable timeouts in debug mode.
-            timeout:   typeof v8debug !== 'undefined' || !!process.debugPort ? Infinity : 2000,
-            fullTrace: true,
-        }));
+gulp.step('test-server-run', async () => {
+    const timeout = typeof v8debug !== 'undefined' || !!process.debugPort ? 0 : 2000;
+
+    await runCommands([
+        `npx --no-install mocha --full-trace --timeout ${timeout} "./test/server/**/*-test.js"`,
+    ]);
 });
 
 gulp.step('disable-node-tls-reject-unauthorized', done => {
@@ -227,17 +225,21 @@ gulp.step('cached-http-playground-server', () => {
 
 gulp.task('cached-http-playground', gulp.series(BUILD_TASK, 'cached-http-playground-server'));
 
-gulp.step('test-functional-testcafe-proxy-run', gulpRunCommand([
-    'chmod +x ./test/functional/run-testcafe-functional-tests.sh',
-    './test/functional/run-testcafe-functional-tests.sh',
-]));
+gulp.step('test-functional-testcafe-proxy-run', async () => {
+    await runCommands([
+        'chmod +x ./test/functional/run-testcafe-functional-tests.sh',
+        './test/functional/run-testcafe-functional-tests.sh',
+    ]);
+});
 
 gulp.task('test-functional-testcafe-proxy', gulp.series(BUILD_TASK, 'test-functional-testcafe-proxy-run'));
 
-gulp.step('test-functional-testcafe-native-automation-run', gulpRunCommand([
-    'chmod +x ./test/functional/run-testcafe-functional-tests.sh',
-    './test/functional/run-testcafe-functional-tests.sh',
-]));
+gulp.step('test-functional-testcafe-native-automation-run', async () => {
+    await runCommands([
+        'chmod +x ./test/functional/run-testcafe-functional-tests.sh',
+        './test/functional/run-testcafe-functional-tests.sh',
+    ]);
+});
 
 gulp.task('test-functional-testcafe-native-automation', gulp.series(BUILD_TASK, 'test-functional-testcafe-native-automation-run'));
 

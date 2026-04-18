@@ -1,4 +1,9 @@
-import { ntlm } from 'httpntlm';
+import {
+    createType1Message,
+    createType3Message,
+    extractNtlmMessageFromAuthenticateHeader,
+    parseType2Message,
+} from '@node-ntlm/core';
 
 
 const authMethods = ['NTLM', 'Basic'];
@@ -26,24 +31,23 @@ function addBasicReqInfo (credentials, reqOptions) {
 
 function addNTLMNegotiateMessageReqInfo (credentials, reqOptions, protocolInterface) {
     const agent = new protocolInterface.Agent();
+    const ntlmCredentials = getNTLMCredentialsInfo(credentials);
 
     agent.maxSockets = 1;
     reqOptions.agent = agent;
 
     reqOptions.headers['connection']    = 'keep-alive';
-    reqOptions.headers['Authorization'] = ntlm.createType1Message({
-        domain:      credentials.domain || '',
-        workstation: credentials.workstation || '',
-    });
+    reqOptions.headers['Authorization'] = createType1Message(ntlmCredentials);
 }
 
 function addNTLMAuthenticateReqInfo (credentials, reqOptions, res) {
-    const type2msg = ntlm.parseType2Message(res.headers['www-authenticate']);
-    const type3msg = ntlm.createType3Message(type2msg, {
+    const ntlmCredentials = getNTLMCredentialsInfo(credentials);
+    const type2msg        = getType2Message(res);
+    const type3msg        = createType3Message(type2msg, {
         username:    credentials.username,
         password:    credentials.password,
-        domain:      credentials.domain || '',
-        workstation: credentials.workstation || '',
+        domain:      ntlmCredentials.domain,
+        workstation: ntlmCredentials.workstation,
     });
 
     reqOptions.headers['Authorization'] = type3msg;
@@ -51,9 +55,36 @@ function addNTLMAuthenticateReqInfo (credentials, reqOptions, res) {
 }
 
 function isChallengeMessage (res) {
-    return !!ntlm.parseType2Message(res.headers['www-authenticate'], function () {
-        return void 0;
-    });
+    try {
+        const type2msg = extractNtlmMessageFromAuthenticateHeader(getAuthenticateHeaderValue(res));
+
+        return !!type2msg && !!parseType2Message(type2msg);
+    }
+    catch (e) {
+        return false;
+    }
+}
+
+function getNTLMCredentialsInfo (credentials) {
+    return {
+        domain:      (credentials.domain || '').toUpperCase(),
+        workstation: (credentials.workstation || '').toUpperCase(),
+    };
+}
+
+function getAuthenticateHeaderValue (res) {
+    const authHeader = res.headers['www-authenticate'];
+
+    return Array.isArray(authHeader) ? authHeader.join(',') : authHeader;
+}
+
+function getType2Message (res) {
+    const type2msg = extractNtlmMessageFromAuthenticateHeader(getAuthenticateHeaderValue(res));
+
+    if (!type2msg)
+        throw new Error('Cannot find the NTLM challenge message in the WWW-Authenticate header.');
+
+    return parseType2Message(type2msg);
 }
 
 export function addCredentials (credentials, reqOptions, res, protocolInterface) {

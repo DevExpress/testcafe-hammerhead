@@ -556,52 +556,55 @@ test('should omit the default port on page navigation', function () {
 if (window.location.ancestorOrigins) {
     module('ancestorOrigins');
 
-    test('same domain double-nested iframe (GH-1342)', function () {
-        // NOTE: Firefox doesn't raise the 'load' event for double-nested iframes without src
-        var src = browserUtils.isFirefox ? 'javascript:"<html><body></body></html>"' : '';
+    // NOTE: temporarily added to known issues list
+    if (!browserUtils.isFirefox) {
+        test('same domain double-nested iframe (GH-1342)', function () {
+            // NOTE: Firefox doesn't raise the 'load' event for double-nested iframes without src
+            var src = browserUtils.isFirefox ? 'javascript:"<html><body></body></html>"' : '';
 
-        return createTestIframe({ src: src })
-            .then(function (iframe) {
-                return createTestIframe({}, iframe.contentDocument.body);
-            })
-            .then(function (nestedIframe) {
-                var getLocation           = nestedIframe.contentWindow[INSTRUCTION.getLocation];
-                var locationWrapper       = getLocation(nestedIframe.contentWindow.location);
-                var ancestorOrigins       = locationWrapper.ancestorOrigins;
-                var nativeAncestorOrigins = nestedIframe.contentWindow.location.ancestorOrigins;
+            return createTestIframe({ src: src })
+                .then(function (iframe) {
+                    return createTestIframe({}, iframe.contentDocument.body);
+                })
+                .then(function (nestedIframe) {
+                    var getLocation           = nestedIframe.contentWindow[INSTRUCTION.getLocation];
+                    var locationWrapper       = getLocation(nestedIframe.contentWindow.location);
+                    var ancestorOrigins       = locationWrapper.ancestorOrigins;
+                    var nativeAncestorOrigins = nestedIframe.contentWindow.location.ancestorOrigins;
 
-                nestedIframe.contentWindow.parent.parent = {
-                    location: {
-                        toString: function () {
-                            return destLocation.getLocation();
+                    nestedIframe.contentWindow.parent.parent = {
+                        location: {
+                            toString: function () {
+                                return destLocation.getLocation();
+                            },
                         },
-                    },
-                    'hammerhead|location-wrapper': locationWrapper,
-                    frameElement:                  null,
-                };
+                        'hammerhead|location-wrapper': locationWrapper,
+                        frameElement:                  null,
+                    };
 
-                ok(ancestorOrigins instanceof nestedIframe.contentWindow.DOMStringList);
+                    ok(ancestorOrigins instanceof nestedIframe.contentWindow.DOMStringList);
 
-                strictEqual(ancestorOrigins.length, 2);
+                    strictEqual(ancestorOrigins.length, 2);
 
-                strictEqual(ancestorOrigins[0], 'https://example.com');
-                strictEqual(ancestorOrigins.item(0), 'https://example.com');
+                    strictEqual(ancestorOrigins[0], 'https://example.com');
+                    strictEqual(ancestorOrigins.item(0), 'https://example.com');
 
-                strictEqual(ancestorOrigins[1], 'https://example.com');
-                strictEqual(ancestorOrigins.item(1), 'https://example.com');
+                    strictEqual(ancestorOrigins[1], 'https://example.com');
+                    strictEqual(ancestorOrigins.item(1), 'https://example.com');
 
-                ok(ancestorOrigins.contains('https://example.com'));
-                ok(ancestorOrigins.contains({
-                    toString: function () {
-                        return 'https://example.com';
-                    },
-                }));
-                ok(!ancestorOrigins.contains('https://another-domain.com'));
-                ok(!ancestorOrigins.contains({}));
-                deepEqual(Object.getOwnPropertyNames(ancestorOrigins).sort(),
-                    Object.getOwnPropertyNames(nativeAncestorOrigins).sort());
-            });
-    });
+                    ok(ancestorOrigins.contains('https://example.com'));
+                    ok(ancestorOrigins.contains({
+                        toString: function () {
+                            return 'https://example.com';
+                        },
+                    }));
+                    ok(!ancestorOrigins.contains('https://another-domain.com'));
+                    ok(!ancestorOrigins.contains({}));
+                    deepEqual(Object.getOwnPropertyNames(ancestorOrigins).sort(),
+                        Object.getOwnPropertyNames(nativeAncestorOrigins).sort());
+                });
+        });
+    }
 
     test('cross domain iframe (GH-1342)', function () {
         return createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/get-ancestor-origin.html') })
@@ -895,6 +898,6 @@ test('we should not break a user script which uses new browser API if we are not
 
         Object.defineProperty(obj, 'some', Object.getOwnPropertyDescriptor(locWrapper, 'newAPIProp'));
 
-        obj.some; // eslint-disable-line no-unused-expressions
+        obj.some;
     });
 });

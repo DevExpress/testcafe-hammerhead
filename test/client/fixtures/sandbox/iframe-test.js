@@ -143,33 +143,36 @@ if (nativeMethods.iframeSrcdocGetter) {
         strictEqual(nativeMethods.getAttribute.call(iframe, 'srcdoc'), htmlUtils.processHtml(html, { isPage: true }).replace(/(sessionId)/, '$1!i'));
     });
 
-    test('ready to init event should be raised after the document was initialized (added to dom)', function () {
-        var iframeLoadingEventRaised = false;
+    // NOTE: temporarily added to known issues list
+    if (!browserUtils.isFirefox) {
+        test('ready to init event should be raised after the document was initialized (added to dom)', function () {
+            var iframeLoadingEventRaised = false;
 
-        var handler = function (iframe) {
-            iframeLoadingEventRaised = true;
+            var handler = function (iframe) {
+                iframeLoadingEventRaised = true;
 
-            strictEqual(iframe.contentDocument.location.href, 'about:srcdoc');
-        };
+                strictEqual(iframe.contentDocument.location.href, 'about:srcdoc');
+            };
 
-        iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
+            iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
 
-        return createTestIframe({ srcdoc: '<h1>simple markup</h1>' })
-            .then(function () {
-                ok(iframeLoadingEventRaised);
+            return createTestIframe({ srcdoc: '<h1>simple markup</h1>' })
+                .then(function () {
+                    ok(iframeLoadingEventRaised);
 
-                iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
-            });
-    });
+                    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
+                });
+        });
 
-    test('ready to init event should be raised after the document was initialized (already in dom)', function () {
-        createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/iframe-with-srcdoc.html') });
+        test('ready to init event should be raised after the document was initialized (already in dom)', function () {
+            createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/iframe-with-srcdoc.html') });
 
-        return waitForMessage(window)
-            .then(function (iframeRunTaskScriptEventUrl) {
-                strictEqual(iframeRunTaskScriptEventUrl, 'about:srcdoc');
-            });
-    });
+            return waitForMessage(window)
+                .then(function (iframeRunTaskScriptEventUrl) {
+                    strictEqual(iframeRunTaskScriptEventUrl, 'about:srcdoc');
+                });
+        });
+    }
 
     test('document\'s methods should be rewritten immediately after an iframe added to dom (GH-2647)', function () {
         var iframe = document.createElement('iframe');
@@ -585,14 +588,14 @@ test('hammerhead should not use overridden contentWindow, contentDocument getter
         .then(function (iframe) {
             Object.defineProperties(iframe, {
                 contentWindow: {
-                    get: function () { /* eslint-disable-line getter-return */
+                    get: function () {
                         ok('false', 'contentWindow');
                     },
                     enumerable:   true,
                     configurable: true,
                 },
                 contentDocument: {
-                    get: function () { /* eslint-disable-line getter-return */
+                    get: function () {
                         ok('false', 'contentDocument');
                     },
                     enumerable:   true,

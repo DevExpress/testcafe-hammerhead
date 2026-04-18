@@ -35,7 +35,7 @@ import getCorrectedTargetForSinglePageMode from '../../utils/get-corrected-targe
 
 const RESTRICTED_META_HTTP_EQUIV_VALUES = [BUILTIN_HEADERS.refresh, BUILTIN_HEADERS.contentSecurityPolicy];
 
-enum AttributeType { // eslint-disable-line no-shadow
+enum AttributeType {
     Ns,
     Node
 }
@@ -183,14 +183,14 @@ export default class ElementSandbox extends SandboxBase {
                     const isScript         = tagName === 'script';
                     const isCrossDomainUrl = !settings.nativeAutomation && isSupportedProtocol && !sameOriginCheck(this.window.location.toString(), value);
                     let resourceType       = domProcessor.getElementResourceType(el);
-                    const elCharset        = isScript && (el as HTMLScriptElement).charset; // eslint-disable-line no-extra-parens
+                    const elCharset        = isScript && (el as HTMLScriptElement).charset;
                     const currentDocument  = el.ownerDocument || this.document;
 
                     if (loweredAttr === 'formaction' && !nativeMethods.hasAttribute.call(el, 'formtarget')) {
                         resourceType = urlUtils.stringifyResourceType({ isForm: true });
 
-                        if ((el as HTMLFormElement).form && nativeMethods.hasAttribute.call((el as HTMLFormElement).form, 'action')) { // eslint-disable-line no-extra-parens
-                            const parsedFormAction = urlUtils.parseProxyUrl(nativeMethods.formActionGetter.call((el as HTMLFormElement).form)); // eslint-disable-line no-extra-parens
+                        if ((el as HTMLFormElement).form && nativeMethods.hasAttribute.call((el as HTMLFormElement).form, 'action')) {
+                            const parsedFormAction = urlUtils.parseProxyUrl(nativeMethods.formActionGetter.call((el as HTMLFormElement).form));
 
                             if (parsedFormAction)
                                 resourceType = parsedFormAction.resourceType;
@@ -341,7 +341,7 @@ export default class ElementSandbox extends SandboxBase {
 
         const result = setAttrMeth.apply(el, args);
 
-        if (tagName === 'img' && !el[INTERNAL_PROPS.forceProxySrcForImage] && (el as HTMLImageElement).complete && !isFirefox) // eslint-disable-line no-extra-parens
+        if (tagName === 'img' && !el[INTERNAL_PROPS.forceProxySrcForImage] && (el as HTMLImageElement).complete && !isFirefox)
             el[INTERNAL_PROPS.cachedImage] = true;
 
         if (needToCallTargetChanged)
@@ -512,7 +512,7 @@ export default class ElementSandbox extends SandboxBase {
 
     private _addNodeCore<K, A extends (string | Node)[]> (
         parent: Element | Node & ParentNode, context: Element | Node & ParentNode,
-        newNodesRange: [number, number], args: A, nativeFn: (...args: A) => K, checkBody = true, stringifyNode = false): K {// eslint-disable-line no-shadow
+        newNodesRange: [number, number], args: A, nativeFn: (...args: A) => K, checkBody = true, stringifyNode = false): K {
 
         this._prepareNodesForInsertion(args, newNodesRange, parent, stringifyNode);
 
@@ -540,7 +540,7 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
-    private _removeNodeCore <K, A extends Node[]> (context: Node, args: A, removingNode: Node, nativeFn: (...args: A) => K): K { // eslint-disable-line no-shadow
+    private _removeNodeCore <K, A extends Node[]> (context: Node, args: A, removingNode: Node, nativeFn: (...args: A) => K): K {
         this._onRemoveFileInputInfo(removingNode);
         this._onRemoveIframe(removingNode);
 
@@ -577,7 +577,7 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     private _insertAdjacentTextOrElement<K, A extends [string, string | Element]> (
-        context: Element, args: A, nativeFn: (...args: A) => K): K { // eslint-disable-line no-shadow
+        context: Element, args: A, nativeFn: (...args: A) => K): K {
 
         const position = args[0]?.toLocaleLowerCase?.();
         const parent   = position === InsertPosition.beforeBegin || position === InsertPosition.afterEnd

@@ -480,7 +480,6 @@ test('should correctly send headers when the "withCredentials" property is chang
             xhr.setRequestHeader('content-type', 'text/plain');
             xhr.withCredentials = false;
 
-            // eslint-disable-next-line consistent-return
             return new Promise(function (resolve) {
                 xhr.addEventListener('load', resolve);
                 xhr.send();

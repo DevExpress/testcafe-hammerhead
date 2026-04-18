@@ -585,7 +585,7 @@ module('childNodes', function () {
 
         var root = shadowUI.getRoot();
 
-        for (var i = 0, childNode; childNode = getProperty(document.body.childNodes, i); i++) { // eslint-disable-line no-cond-assign
+        for (var i = 0, childNode; childNode = getProperty(document.body.childNodes, i); i++) {
             if (childNode === root)
                 ok(false, 'ShadowUI root was found');
         }
@@ -1339,7 +1339,7 @@ test('the isBodyElementWithChildren method should use native length getter', fun
     var storedLengthDescriptor = Object.getOwnPropertyDescriptor(HTMLCollection.prototype, 'length');
 
     Object.defineProperty(HTMLCollection.prototype, 'length', {
-        get: function () { /* eslint-disable-line getter-return */
+        get: function () {
             ok(false);
         },
 

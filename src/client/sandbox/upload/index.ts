@@ -42,7 +42,6 @@ export default class UploadSandbox extends SandboxBase {
         return contextWindow && getSandboxBackup(contextWindow).upload.infoManager;
     }
 
-    /*eslint-disable max-nested-callbacks */
     attach (window: Window & typeof globalThis) {
         super.attach(window);
 
@@ -88,7 +87,6 @@ export default class UploadSandbox extends SandboxBase {
         }
     }
 
-    /*eslint-enable max-nested-callbacks */
 
     static getFiles (input: HTMLInputElement) {
         const files = nativeMethods.inputFilesGetter.call(input);

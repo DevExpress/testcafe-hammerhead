@@ -1,4 +1,4 @@
-enum RequestEventNames { // eslint-disable-line no-shadow
+enum RequestEventNames {
     onRequest = 'onRequest',
     onConfigureResponse = 'onConfigureResponse',
     onResponse = 'onResponse'

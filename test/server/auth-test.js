@@ -10,7 +10,7 @@ const {
     request,
 } = require('./common/utils');
 
-describe('Authentication', () => { // eslint-disable-line
+describe('Authentication', () => {
     let proxy   = null;
     let session = null;
 

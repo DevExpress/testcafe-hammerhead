@@ -28,7 +28,7 @@ interface SyncCookieMsg {
 export default class WindowSync {
     private _win: Window | null = null;
     private _messageIdGenerator: IntegerIdGenerator | null = null;
-    private _resolversMap: Map<number, () => void> = new Map<number, () => void>(); // eslint-disable-line no-spaced-func
+    private _resolversMap: Map<number, () => void> = new Map<number, () => void>(); // eslint-disable-line func-call-spacing
 
     constructor (private readonly _cookieSandbox: CookieSandbox,
         private readonly _messageSandbox: MessageSandbox,
