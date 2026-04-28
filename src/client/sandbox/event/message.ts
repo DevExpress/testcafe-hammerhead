@@ -215,19 +215,35 @@ export default class MessageSandbox extends SandboxBase {
     postMessage (contentWindow: Window, args) {
         const targetUrl = args[1] || destLocation.getOriginHeader();
 
-        // NOTE: We do NOT support the postMessage(message, options) overload.
-        // The second argument is expected to be `targetOrigin` (string).
-        // If an options object is provided instead, the call is considered invalid and will be aborted.
         if (typeof targetUrl !== 'string') {
+            if (targetUrl && typeof targetUrl === 'object')
+                return this._postMessageWithOptionsOverload(contentWindow, args, targetUrl);
+
             nativeMethods.consoleMeths.log(`testcafe-hammerhead: postMessage called with invalid targetOrigin; aborting call (type: ${typeof targetUrl})`);
             return null;
         }
 
+        return this._postMessageWrapped(contentWindow, args, targetUrl);
+    }
+
+    private _postMessageWithOptionsOverload (contentWindow: Window, args, options) {
+        const resolvedTargetUrl = typeof options.targetOrigin === 'string'
+            ? options.targetOrigin
+            : destLocation.getOriginHeader();
+
+        const originalMessage = args[0];
+
+        args[0] = MessageSandbox._wrapMessage(MessageType.User, originalMessage, resolvedTargetUrl);
+        args[1] = nativeMethods.objectAssign({}, options, { targetOrigin: '*' });
+
+        return fastApply(contentWindow, 'postMessage', args);
+    }
+
+    private _postMessageWrapped (contentWindow: Window, args, targetUrl: string) {
         // NOTE: Here, we pass all messages as "no preference" ("*").
         // We do an origin check in "_onWindowMessage" to access the target origin.
         args[1] = '*';
         args[0] = MessageSandbox._wrapMessage(MessageType.User, args[0], targetUrl);
-
 
         return fastApply(contentWindow, 'postMessage', args);
     }
