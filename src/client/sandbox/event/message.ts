@@ -107,22 +107,14 @@ export default class MessageSandbox extends SandboxBase {
     private _onWindowMessage (e: MessageEvent, originListener): void {
         const data = MessageSandbox._getMessageData(e);
 
-        if (data.type === MessageType.Service)
-            return null;
-
-        if (data.type === MessageType.User) {
+        if (data.type !== MessageType.Service) {
             const originUrl = destLocation.get();
 
             if (data.targetUrl === '*' || destLocation.sameOriginCheck(originUrl, data.targetUrl))
                 return callEventListener(this.window, originListener, e);
-
-            return null;
         }
 
-        // NOTE: unwrapped messages arrive when the Hammerhead envelope could not be structured-cloned
-        // (e.g. Firefox with MessagePort transfers). The browser already validated the target origin
-        // before delivering the MessageEvent, so it is safe to pass through to the listener.
-        return callEventListener(this.window, originListener, e);
+        return null;
     }
 
     private static _wrapMessage (type: MessageType, message, targetUrl?: string) {
@@ -197,10 +189,7 @@ export default class MessageSandbox extends SandboxBase {
                 const target = nativeMethods.eventTargetGetter.call(this);
                 const data   = nativeMethods.messageEventDataGetter.call(this);
 
-                // NOTE: only unwrap messages that carry the Hammerhead user-message envelope.
-                // Raw (unwrapped) messages — which may arrive when the envelope could not be
-                // structured-cloned alongside transferable objects — are returned as-is.
-                if (data && data.type === MessageType.User && isWindow(target))
+                if (data && data.type !== MessageType.Service && isWindow(target))
                     return MessageSandbox._getOriginMessageData(data);
 
                 return data;
@@ -226,9 +215,6 @@ export default class MessageSandbox extends SandboxBase {
     postMessage (contentWindow: Window, args) {
         const targetUrl = args[1] || destLocation.getOriginHeader();
 
-        // NOTE: postMessage has two overloads:
-        //   1. postMessage(message, targetOrigin, transfer?) — legacy
-        //   2. postMessage(message, { targetOrigin, transfer? }) — modern options overload
         if (typeof targetUrl !== 'string') {
             if (targetUrl && typeof targetUrl === 'object')
                 return this._postMessageWithOptionsOverload(contentWindow, args, targetUrl);
@@ -249,36 +235,14 @@ export default class MessageSandbox extends SandboxBase {
         args[0] = MessageSandbox._wrapMessage(MessageType.User, originalMessage, resolvedTargetUrl);
         args[1] = nativeMethods.objectAssign({}, options, { targetOrigin: '*' });
 
-        try {
-            return fastApply(contentWindow, 'postMessage', args);
-        }
-        catch (err) {
-            args[0] = originalMessage;
-            args[1] = nativeMethods.objectAssign({}, options, { targetOrigin: '*' });
-
-            return fastApply(contentWindow, 'postMessage', args);
-        }
+        return fastApply(contentWindow, 'postMessage', args);
     }
 
     private _postMessageWrapped (contentWindow: Window, args, targetUrl: string) {
-        const originalMessage = args[0];
-
         args[1] = '*';
-        args[0] = MessageSandbox._wrapMessage(MessageType.User, originalMessage, targetUrl);
+        args[0] = MessageSandbox._wrapMessage(MessageType.User, args[0], targetUrl);
 
-        try {
-            return fastApply(contentWindow, 'postMessage', args);
-        }
-        catch (err) {
-            // NOTE: structured clone may fail when transferable objects (e.g. MessagePort) are
-            // present in the transfer list. This is observed in Firefox where the Hammerhead
-            // message envelope breaks the clone+transfer semantics. Fall back to sending the
-            // original message without wrapping — the receiving side handles unwrapped messages.
-            args[0] = originalMessage;
-            args[1] = '*';
-
-            return fastApply(contentWindow, 'postMessage', args);
-        }
+        return fastApply(contentWindow, 'postMessage', args);
     }
 
     sendServiceMsg (msg, targetWindow: Window, ports?: Transferable[]) {
