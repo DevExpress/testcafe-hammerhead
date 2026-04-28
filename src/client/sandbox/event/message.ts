@@ -219,6 +219,7 @@ export default class MessageSandbox extends SandboxBase {
             if (targetUrl && typeof targetUrl === 'object')
                 return this._postMessageWithOptionsOverload(contentWindow, args, targetUrl);
 
+            nativeMethods.consoleMeths.log(`testcafe-hammerhead: postMessage called with invalid targetOrigin; aborting call (type: ${typeof targetUrl})`);
             return null;
         }
 
@@ -239,6 +240,8 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     private _postMessageWrapped (contentWindow: Window, args, targetUrl: string) {
+        // NOTE: Here, we pass all messages as "no preference" ("*").
+        // We do an origin check in "_onWindowMessage" to access the target origin.
         args[1] = '*';
         args[0] = MessageSandbox._wrapMessage(MessageType.User, args[0], targetUrl);
 
