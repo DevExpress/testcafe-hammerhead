@@ -213,20 +213,17 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     postMessage (contentWindow: Window, args) {
-        const targetUrl = args[1] || destLocation.getOriginHeader();
+        if (!args[1] || typeof args[1] === 'string')
+            return this._postMessage(contentWindow, args);
+        else if (typeof args[1] === 'object')
+            return this._postMessageWithOptions(contentWindow, args, args[1]);
 
-        if (typeof targetUrl !== 'string') {
-            if (targetUrl && typeof targetUrl === 'object')
-                return this._postMessageWithOptionsOverload(contentWindow, args, targetUrl);
+        nativeMethods.consoleMeths.log(`testcafe-hammerhead: postMessage called with invalid targetOrigin; aborting call (type: ${typeof args[1]})`);
 
-            nativeMethods.consoleMeths.log(`testcafe-hammerhead: postMessage called with invalid targetOrigin; aborting call (type: ${typeof targetUrl})`);
-            return null;
-        }
-
-        return this._postMessageWrapped(contentWindow, args, targetUrl);
+        return null;
     }
 
-    private _postMessageWithOptionsOverload (contentWindow: Window, args, options) {
+    private _postMessageWithOptions (contentWindow: Window, args, options) {
         const resolvedTargetUrl = typeof options.targetOrigin === 'string'
             ? options.targetOrigin
             : destLocation.getOriginHeader();
@@ -239,7 +236,9 @@ export default class MessageSandbox extends SandboxBase {
         return fastApply(contentWindow, 'postMessage', args);
     }
 
-    private _postMessageWrapped (contentWindow: Window, args, targetUrl: string) {
+    private _postMessage (contentWindow: Window, args) {
+        const targetUrl = args[1] || destLocation.getOriginHeader();
+
         // NOTE: Here, we pass all messages as "no preference" ("*").
         // We do an origin check in "_onWindowMessage" to access the target origin.
         args[1] = '*';
