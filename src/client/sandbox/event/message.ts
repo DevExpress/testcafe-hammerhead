@@ -229,9 +229,7 @@ export default class MessageSandbox extends SandboxBase {
             ? options.targetOrigin
             : destLocation.getOriginHeader();
 
-        const originalMessage = args[0];
-
-        args[0] = MessageSandbox._wrapMessage(MessageType.User, originalMessage, resolvedTargetUrl);
+        args[0] = MessageSandbox._wrapMessage(MessageType.User, args[0], resolvedTargetUrl);
         args[1] = nativeMethods.objectAssign({}, options, { targetOrigin: '*' });
 
         return fastApply(contentWindow, 'postMessage', args);
