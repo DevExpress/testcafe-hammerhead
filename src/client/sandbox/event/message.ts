@@ -214,16 +214,16 @@ export default class MessageSandbox extends SandboxBase {
 
     postMessage (contentWindow: Window, args) {
         if (!args[1] || typeof args[1] === 'string')
-            return this._postMessage(contentWindow, args);
+            return MessageSandbox._postMessage(contentWindow, args);
         else if (typeof args[1] === 'object')
-            return this._postMessageWithOptions(contentWindow, args);
+            return MessageSandbox._postMessageWithOptions(contentWindow, args);
 
         nativeMethods.consoleMeths.log(`testcafe-hammerhead: postMessage called with invalid targetOrigin; aborting call (type: ${typeof args[1]})`);
 
         return null;
     }
 
-    private _postMessageWithOptions (contentWindow: Window, args) {
+    private static _postMessageWithOptions (contentWindow: Window, args) {
         const options = args[1];
         const resolvedTargetUrl = typeof options.targetOrigin === 'string'
             ? options.targetOrigin
@@ -235,7 +235,7 @@ export default class MessageSandbox extends SandboxBase {
         return fastApply(contentWindow, 'postMessage', args);
     }
 
-    private _postMessage (contentWindow: Window, args) {
+    private static _postMessage (contentWindow: Window, args) {
         const targetUrl = args[1] || destLocation.getOriginHeader();
 
         // NOTE: Here, we pass all messages as "no preference" ("*").
