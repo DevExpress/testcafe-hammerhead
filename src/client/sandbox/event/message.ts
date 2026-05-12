@@ -223,7 +223,8 @@ export default class MessageSandbox extends SandboxBase {
         return null;
     }
 
-    private _postMessageWithOptions (contentWindow: Window, args, options) {
+    private _postMessageWithOptions (contentWindow: Window, args) {
+        const options = args[1];
         const resolvedTargetUrl = typeof options.targetOrigin === 'string'
             ? options.targetOrigin
             : destLocation.getOriginHeader();
