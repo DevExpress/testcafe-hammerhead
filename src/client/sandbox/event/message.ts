@@ -216,7 +216,7 @@ export default class MessageSandbox extends SandboxBase {
         if (!args[1] || typeof args[1] === 'string')
             return this._postMessage(contentWindow, args);
         else if (typeof args[1] === 'object')
-            return this._postMessageWithOptions(contentWindow, args, args[1]);
+            return this._postMessageWithOptions(contentWindow, args);
 
         nativeMethods.consoleMeths.log(`testcafe-hammerhead: postMessage called with invalid targetOrigin; aborting call (type: ${typeof args[1]})`);
 
