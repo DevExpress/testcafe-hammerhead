@@ -22,4 +22,3 @@ jobs:
     with:
       test-script: 'npx --no-install gulp test-functional-testcafe-proxy --no-build'
       testcafe-gulp-task: 'test-functional-local-headless-chrome'
-      node-version: 22

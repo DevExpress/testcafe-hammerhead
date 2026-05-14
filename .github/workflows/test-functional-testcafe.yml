@@ -17,7 +17,7 @@ on:
       node-version:
         required: false
         type: number
-        default: 22
+        default: 16
       matrix-jobs-count:
         required: false
         type: number
