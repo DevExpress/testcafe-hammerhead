@@ -22,4 +22,5 @@ jobs:
     with:
       test-script: 'npx --no-install gulp test-functional-testcafe-native-automation --no-build'
       testcafe-gulp-task: 'test-functional-local-native-automation'
+      node-version: 22
       display: ':99.0'
