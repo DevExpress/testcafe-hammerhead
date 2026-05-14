@@ -54,7 +54,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
       - run: npm ci
-      - run: npx gulp test-client-cloud --no-build
+      - run: npx --no-install gulp test-client-cloud --no-build
         timeout-minutes: 60
 
       - uses: DevExpress/testcafe-build-system/actions/set-status@main

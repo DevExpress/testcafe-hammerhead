@@ -32,7 +32,7 @@ jobs:
           ref: ${{steps.prep.outputs.sha}}
       - run: |
           npm ci
-          npx gulp build
+          npx --no-install gulp build
           npm pack
       - id: package-name
         uses: actions/github-script@v6

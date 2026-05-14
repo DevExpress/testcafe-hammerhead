@@ -20,5 +20,5 @@ jobs:
   test:
     uses: ./.github/workflows/test-functional-testcafe.yml
     with:
-      test-script: 'npx gulp test-functional-testcafe-proxy --no-build'
+      test-script: 'npx --no-install gulp test-functional-testcafe-proxy --no-build'
       testcafe-gulp-task: 'test-functional-local-headless-chrome'
