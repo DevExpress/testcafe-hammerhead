@@ -43,5 +43,3 @@ Read our [Contributing Guide](https://github.com/DevExpress/testcafe-hammerhead/
 [![Build Status](https://img.shields.io/github/checks-status/DevExpress/testcafe-hammerhead/master?label=Tests)](https://github.com/DevExpress/testcafe-hammerhead/commits/master)
 
 [![Sauce Test Status](https://saucelabs.com/browser-matrix/testcafebot.svg)](https://saucelabs.com/u/testcafebot)
-
-[![Health Monitor](http://4.227.198.23:13500/badge/last-commit.svg)](http://4.227.198.23:13500/)
