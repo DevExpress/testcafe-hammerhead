@@ -33,7 +33,7 @@ content = content.replace(
     '.catch(function (errs) {\n'
     '                    // Node 22+: synchronous require() of .mjs is supported, so the test\n'
     '                    // succeeds instead of failing — accept this as correct behaviour.\n'
-    '                    if (parseInt(process.version.slice(1)) >= 22) return;'
+    '                    if (parseInt(process.version.slice(1).split('.')[0]) >= 22) return;'
 )
 with open(path2, 'w') as f:
     f.write(content)
