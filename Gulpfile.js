@@ -39,7 +39,7 @@ gulp.task('clean-lib', () => {
 
 gulp.step('client-scripts-bundle', () => {
     return childProcess
-        .spawn('npx rollup -c', { shell: true, stdio: 'inherit' });
+        .spawn('npx --no-install rollup -c', { shell: true, stdio: 'inherit' });
 });
 
 gulp.step('client-scripts-processing', () => {
@@ -103,7 +103,7 @@ gulp.step('server-scripts', () => {
     const generateSourceMap = DEV_MODE ? '--inlineSourceMap true' : '';
 
     return childProcess
-        .spawn(`npx tsc -p tsconfig.json ${generateSourceMap}`, { shell: true, stdio: 'inherit' });
+        .spawn(`npx --no-install tsc -p tsconfig.json ${generateSourceMap}`, { shell: true, stdio: 'inherit' });
 });
 
 gulp.step('templates', () => {
@@ -242,4 +242,3 @@ gulp.step('test-functional-testcafe-native-automation-run', async () => {
 });
 
 gulp.task('test-functional-testcafe-native-automation', gulp.series(BUILD_TASK, 'test-functional-testcafe-native-automation-run'));
-

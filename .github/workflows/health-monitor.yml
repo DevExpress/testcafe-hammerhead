@@ -48,17 +48,17 @@ jobs:
       - name: Install testcafe-hammerhead dependencies and run a build task
         run: |
           npm ci
-          npx gulp build
+          npx --no-install gulp build
         working-directory: ./HealthMonitor/testcafe-hammerhead
 
       - name: Install Health Monitor dependencies
         run: |
           npm ci
-          npm i testcafe-hammerhead ../testcafe-hammerhead --save
+          npm link ../testcafe-hammerhead
         working-directory: ./HealthMonitor/health-monitor
 
       - name: Run Health Monitor
-        run: npx gulp health-monitor
+        run: npx --no-install gulp health-monitor
         working-directory: ./HealthMonitor/health-monitor
 
   pr-branch:
@@ -144,15 +144,15 @@ jobs:
       - name: Install testcafe-hammerhead dependencies and run a build task
         run: |
           npm ci
-          npx gulp build
+          npx --no-install gulp build
         working-directory: ./HealthMonitor/testcafe-hammerhead
 
       - name: Install Health Monitor dependencies
         run: |
           npm ci
-          npm i testcafe-hammerhead ../testcafe-hammerhead --save
+          npm link ../testcafe-hammerhead
         working-directory: ./HealthMonitor/health-monitor
 
       - name: Run Health Monitor
-        run: npx gulp health-monitor
+        run: npx --no-install gulp health-monitor
         working-directory: ./HealthMonitor/health-monitor
