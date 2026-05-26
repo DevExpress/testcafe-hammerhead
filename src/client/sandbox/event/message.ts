@@ -213,21 +213,35 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     postMessage (contentWindow: Window, args) {
-        const targetUrl = args[1] || destLocation.getOriginHeader();
+        if (!args[1] || typeof args[1] === 'string')
+            return MessageSandbox._postMessage(contentWindow, args);
+        else if (typeof args[1] === 'object')
+            return MessageSandbox._postMessageWithOptions(contentWindow, args);
 
-        // NOTE: We do NOT support the postMessage(message, options) overload.
-        // The second argument is expected to be `targetOrigin` (string).
-        // If an options object is provided instead, the call is considered invalid and will be aborted.
-        if (typeof targetUrl !== 'string') {
-            nativeMethods.consoleMeths.log(`testcafe-hammerhead: postMessage called with invalid targetOrigin; aborting call (type: ${typeof targetUrl})`);
-            return null;
-        }
+        nativeMethods.consoleMeths.log(`testcafe-hammerhead: postMessage called with invalid targetOrigin; aborting call (type: ${typeof args[1]})`);
+
+        return null;
+    }
+
+    private static _postMessageWithOptions (contentWindow: Window, args) {
+        const options = args[1];
+        const resolvedTargetUrl = typeof options.targetOrigin === 'string'
+            ? options.targetOrigin
+            : destLocation.getOriginHeader();
+
+        args[0] = MessageSandbox._wrapMessage(MessageType.User, args[0], resolvedTargetUrl);
+        args[1] = nativeMethods.objectAssign({}, options, { targetOrigin: '*' });
+
+        return fastApply(contentWindow, 'postMessage', args);
+    }
+
+    private static _postMessage (contentWindow: Window, args) {
+        const targetUrl = args[1] || destLocation.getOriginHeader();
 
         // NOTE: Here, we pass all messages as "no preference" ("*").
         // We do an origin check in "_onWindowMessage" to access the target origin.
         args[1] = '*';
         args[0] = MessageSandbox._wrapMessage(MessageType.User, args[0], targetUrl);
-
 
         return fastApply(contentWindow, 'postMessage', args);
     }
