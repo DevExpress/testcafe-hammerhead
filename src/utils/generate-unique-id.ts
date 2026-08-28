@@ -4,7 +4,7 @@ const UNIQUE_ID_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP
 const DEFAULT_ID_LENGTH  = 9;
 
 export default function (length?: number): string {
-    const generator = customAlphabet(UNIQUE_ID_ALPHABET, length || DEFAULT_ID_LENGTH);
+    const generator = customAlphabet(UNIQUE_ID_ALPHABET, DEFAULT_ID_LENGTH);
 
-    return generator();
+    return generator(length || DEFAULT_ID_LENGTH);
 }
