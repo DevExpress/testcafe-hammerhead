@@ -3,6 +3,7 @@ import {
     CssRuleAST,
     CssCommentAST,
     CssAtRuleAST,
+    CssDeclarationAST,
     CssDocumentAST,
     CssHostAST,
     CssMediaAST,
@@ -14,11 +15,13 @@ import SHADOW_UI_CLASS_NAME from './class-name';
 const ID_OR_CLASS_RE          = /#[a-zA-Z0-9_-]+|\.-?[a-zA-Z0-9_][a-zA-Z0-9_-]*/g;
 const ADD_POSTFIX_REPLACEMENT = '$&' + SHADOW_UI_CLASS_NAME.postfix;
 
+type CssNodeWithRules = CssRuleAST|CssCommentAST|CssAtRuleAST|CssDeclarationAST;
+
 function transformSelector (selector: string): string {
     return selector.replace(ID_OR_CLASS_RE, ADD_POSTFIX_REPLACEMENT);
 }
 
-function addUIClassPostfix (rules: CssRuleAST[]|CssCommentAST[]|CssAtRuleAST[]): void {
+function addUIClassPostfix (rules: CssNodeWithRules[]): void {
     for (const node of rules) {
         if (node.type === 'rule') {
             const rule = node as CssRuleAST;
