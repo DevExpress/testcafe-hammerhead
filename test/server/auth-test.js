@@ -31,7 +31,7 @@ describe('Authentication', () => {
 
             app.use(ntlm());
 
-            app.all('*', (req, res) => res.end(JSON.stringify(req.ntlm)));
+            app.use((req, res) => res.end(JSON.stringify(req.ntlm)));
 
             ntlmServer = app.listen(1506);
         });
@@ -73,7 +73,7 @@ describe('Authentication', () => {
         before(() => {
             const app = express();
 
-            app.all('*', (req, res) => {
+            app.use((req, res) => {
                 const credentials = auth(req);
 
                 if (!credentials || credentials.name !== 'username' || credentials.pass !== 'password') {
