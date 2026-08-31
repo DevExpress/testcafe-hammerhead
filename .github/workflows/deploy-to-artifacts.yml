@@ -34,6 +34,32 @@ jobs:
           npm ci
           npx --no-install gulp build
           npm pack
+      - name: Show npm debug logs on failure
+        if: failure()
+        run: |
+          shopt -s nullglob
+          logs=("$HOME/.npm/_logs/"*.log)
+
+          if [ ${#logs[@]} -eq 0 ]; then
+            echo "No npm debug logs found in $HOME/.npm/_logs"
+            exit 0
+          fi
+
+          echo "Found ${#logs[@]} npm debug log(s):"
+          printf ' - %s\n' "${logs[@]}"
+
+          for log in "${logs[@]}"; do
+            echo "===== $log ====="
+            cat "$log"
+            echo
+          done
+      - name: Upload npm debug logs artifact on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-debug-logs
+          path: ~/.npm/_logs/*.log
+          if-no-files-found: warn
       - id: package-name
         uses: actions/github-script@v6
         with:
