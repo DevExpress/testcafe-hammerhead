@@ -61,7 +61,7 @@ export default class IframeSandbox extends SandboxBase {
         }
         else if (this._shouldSaveIframeNativeMethods(iframe))
             // @ts-ignore
-            this.iframeNativeMethodsBackup = new this.nativeMethods.constructor(contentDocument, contentWindow);
+            this.iframeNativeMethodsBackup = new this.nativeMethods.constructor(contentDocument, contentWindow); // eslint-disable-line new-cap
     }
 
     private _ensureIframeNativeMethodsForFirefox (iframe: HTMLIFrameElement | HTMLFrameElement): void {

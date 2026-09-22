@@ -103,7 +103,7 @@ test('window.Blob([data], { type: "" }) should return correct result for `ArrayB
             var i;
 
             if (constructor === ArrayBuffer) {
-                arrayBuffer = new constructor(bmpExample.signature.length);
+                arrayBuffer = new constructor(bmpExample.signature.length); // eslint-disable-line new-cap
                 typedArray  = new Uint8Array(arrayBuffer);
 
                 for (i = 0; i < typedArray.length; i++)
@@ -118,12 +118,12 @@ test('window.Blob([data], { type: "" }) should return correct result for `ArrayB
                 for (i = 0; i < typedArray.length; i++)
                     typedArray[i] = bmpExample.signature[i];
 
-                var dataView = new constructor(arrayBuffer);
+                var dataView = new constructor(arrayBuffer); // eslint-disable-line new-cap
 
                 data = dataView;
             }
             else {
-                typedArray = new constructor(bmpExample.signature);
+                typedArray = new constructor(bmpExample.signature); // eslint-disable-line new-cap
                 data       = typedArray;
             }
 
@@ -135,7 +135,7 @@ test('window.Blob([data], { type: "" }) should return correct result for `ArrayB
 
                 var resultTypedArray = constructor === ArrayBuffer || constructor === DataView
                     ? new Uint8Array(resultArrayBuffer)
-                    : new constructor(resultArrayBuffer);
+                    : new constructor(resultArrayBuffer); // eslint-disable-line new-cap
 
                 var resultArray = [].slice.call(resultTypedArray);
 
@@ -243,7 +243,7 @@ test('window.File([data], "file.name", { type: "" }) should return correct resul
             var i;
 
             if (constructor === ArrayBuffer) {
-                arrayBuffer = new constructor(bmpExample.signature.length);
+                arrayBuffer = new constructor(bmpExample.signature.length); // eslint-disable-line new-cap
                 typedArray  = new Uint8Array(arrayBuffer);
 
                 for (i = 0; i < typedArray.length; i++)
@@ -258,12 +258,12 @@ test('window.File([data], "file.name", { type: "" }) should return correct resul
                 for (i = 0; i < typedArray.length; i++)
                     typedArray[i] = bmpExample.signature[i];
 
-                var dataView = new constructor(arrayBuffer);
+                var dataView = new constructor(arrayBuffer); // eslint-disable-line new-cap
 
                 data = dataView;
             }
             else {
-                typedArray = new constructor(bmpExample.signature);
+                typedArray = new constructor(bmpExample.signature); // eslint-disable-line new-cap
                 data       = typedArray;
             }
 
@@ -275,7 +275,7 @@ test('window.File([data], "file.name", { type: "" }) should return correct resul
 
                 var resultTypedArray = constructor === ArrayBuffer || constructor === DataView
                     ? new Uint8Array(resultArrayBuffer)
-                    : new constructor(resultArrayBuffer);
+                    : new constructor(resultArrayBuffer); // eslint-disable-line new-cap
 
                 var resultArray = [].slice.call(resultTypedArray);
 
