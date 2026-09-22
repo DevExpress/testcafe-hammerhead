@@ -152,7 +152,7 @@ export default class NodeSandbox extends SandboxBase {
             // NOTE: Before overriding the iframe, we must restore native document methods.
             // Therefore, we save them before they are overridden.
             // @ts-ignore
-            const iframeNativeMethods = new this.nativeMethods.constructor(contentDocument, contentWindow);
+            const iframeNativeMethods = new this.nativeMethods.constructor(contentDocument, contentWindow); // eslint-disable-line new-cap
 
             contentWindow[INTERNAL_PROPS.iframeNativeMethods] = iframeNativeMethods;
 
