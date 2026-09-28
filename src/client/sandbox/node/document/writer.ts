@@ -8,7 +8,7 @@ import {
     isScriptElement,
 } from '../../../utils/dom';
 
-import { isChrome, isFirefox } from '../../../utils/browser';
+import { isAndroid, isChrome, isFirefox } from '../../../utils/browser';
 import { processScript } from '../../../../processing/script';
 import styleProcessor from '../../../../processing/style';
 import { getProxyUrl, convertToProxyUrl } from '../../../utils/url';
@@ -169,7 +169,7 @@ export default class DocumentWriter {
             const nonClosedElContent = nativeMethods.nodeTextContentGetter.call(this.nonClosedEl);
             const elContent = nativeMethods.nodeTextContentGetter.call(elWithContent).replace(BEGIN_REMOVE_RE, '');
 
-            if (isChrome && nonClosedElContent && elContent)
+            if (isChrome && !isAndroid && nonClosedElContent && elContent)
                 this.contentForProcessing = nonClosedElContent + '\n' + elContent;
             else
                 this.contentForProcessing = nonClosedElContent + elContent;
