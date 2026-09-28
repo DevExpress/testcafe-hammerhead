@@ -8,7 +8,7 @@ import {
     isScriptElement,
 } from '../../../utils/dom';
 
-import { isFirefox } from '../../../utils/browser';
+import { isChrome, isFirefox } from '../../../utils/browser';
 import { processScript } from '../../../../processing/script';
 import styleProcessor from '../../../../processing/style';
 import { getProxyUrl, convertToProxyUrl } from '../../../utils/url';
@@ -166,8 +166,13 @@ export default class DocumentWriter {
         DocumentWriter._setUnclosedElementFlag(elWithContent);
 
         if (this.isClosingContentEl && (isScriptElement(elWithContent) || isStyleElement(elWithContent))) {
-            this.contentForProcessing = nativeMethods.nodeTextContentGetter.call(this.nonClosedEl) +
-                                        nativeMethods.nodeTextContentGetter.call(elWithContent).replace(BEGIN_REMOVE_RE, '');
+            const nonClosedElContent = nativeMethods.nodeTextContentGetter.call(this.nonClosedEl);
+            const elContent = nativeMethods.nodeTextContentGetter.call(elWithContent).replace(BEGIN_REMOVE_RE, '');
+
+            if (isChrome && nonClosedElContent && elContent)
+                this.contentForProcessing = nonClosedElContent + '\n' + elContent;
+            else
+                this.contentForProcessing = nonClosedElContent + elContent;
 
             nativeMethods.nodeTextContentSetter.call(elWithContent, '');
         }
