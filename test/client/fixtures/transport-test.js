@@ -292,7 +292,7 @@ test('hammerhead should remove service data from local storage on the first sess
     // NOTE: Add service data.
     nativeMethods.storageSetItem.call(nativeLocalStorage, sessionId, 'some-serive-data');
 
-    var hh = new hammerhead.constructor(window);
+    var hh = new hammerhead.constructor(window); // eslint-disable-line new-cap
 
     hh.start(settings.get(), window);
 

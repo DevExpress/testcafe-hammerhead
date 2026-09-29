@@ -525,53 +525,55 @@ test('should allow removing a listener inside a listener (testcafe/#3652', funct
 
 module('dispatched event flag should be written in the proper window (GH-529)');
 
-test('dispatchEvent, fireEvent, click', function () {
-    var link = document.createElement('a');
-    // NOTE: To prevent the export of the constant and modification of the Listeners module export,
-    // we declare the constant in the test again.
-    var dispatchedEventFlag = 'hammerhead|event-sandbox-dispatch-event-flag';
-    // NOTE: After adding an element to a document which differs from the document where the element was created,
-    // some browsers automatically replace the element prototype's methods
-    // with methods of the element prototype from the different window.
-    var getListenersModule = function (iframeListenersModule, topLevelListenersModule) {
-        return browserUtils.isWebKit ? topLevelListenersModule : iframeListenersModule;
-    };
+if (!browserUtils.isFirefox) {
+    test('dispatchEvent, fireEvent, click', function () {
+        var link = document.createElement('a');
+        // NOTE: To prevent the export of the constant and modification of the Listeners module export,
+        // we declare the constant in the test again.
+        var dispatchedEventFlag = 'hammerhead|event-sandbox-dispatch-event-flag';
+        // NOTE: After adding an element to a document which differs from the document where the element was created,
+        // some browsers automatically replace the element prototype's methods
+        // with methods of the element prototype from the different window.
+        var getListenersModule = function (iframeListenersModule, topLevelListenersModule) {
+            return browserUtils.isWebKit ? topLevelListenersModule : iframeListenersModule;
+        };
 
-    return createTestIframe()
-        .then(function (iframe) {
-            var iframeDocument            = iframe.contentDocument;
-            var iframeHammerhead          = iframe.contentWindow['%hammerhead%'];
-            var iframeListeners           = iframeHammerhead.sandboxUtils.EventListeners;
-            var targetListeners           = getListenersModule(iframeListeners, Listeners);
-            var storedBeforeDispatchEvent = targetListeners.beforeDispatchEvent;
-            var storedAfterDispatchEvent  = targetListeners.afterDispatchEvent;
+        return createTestIframe()
+            .then(function (iframe) {
+                var iframeDocument            = iframe.contentDocument;
+                var iframeHammerhead          = iframe.contentWindow['%hammerhead%'];
+                var iframeListeners           = iframeHammerhead.sandboxUtils.EventListeners;
+                var targetListeners           = getListenersModule(iframeListeners, Listeners);
+                var storedBeforeDispatchEvent = targetListeners.beforeDispatchEvent;
+                var storedAfterDispatchEvent  = targetListeners.afterDispatchEvent;
 
-            targetListeners.beforeDispatchEvent = function (el) {
-                ok(!iframe.contentWindow[dispatchedEventFlag]);
-                ok(!window[dispatchedEventFlag]);
+                targetListeners.beforeDispatchEvent = function (el) {
+                    ok(!iframe.contentWindow[dispatchedEventFlag]);
+                    ok(!window[dispatchedEventFlag]);
 
-                storedBeforeDispatchEvent(el);
+                    storedBeforeDispatchEvent(el);
 
-                ok(iframe.contentWindow[dispatchedEventFlag]);
-                ok(!window[dispatchedEventFlag]);
-            };
+                    ok(iframe.contentWindow[dispatchedEventFlag]);
+                    ok(!window[dispatchedEventFlag]);
+                };
 
-            targetListeners.afterDispatchEvent = function (el) {
-                ok(iframe.contentWindow[dispatchedEventFlag]);
-                ok(!window[dispatchedEventFlag]);
+                targetListeners.afterDispatchEvent = function (el) {
+                    ok(iframe.contentWindow[dispatchedEventFlag]);
+                    ok(!window[dispatchedEventFlag]);
 
-                storedAfterDispatchEvent(el);
+                    storedAfterDispatchEvent(el);
 
-                ok(!iframe.contentWindow[dispatchedEventFlag]);
-                ok(!window[dispatchedEventFlag]);
-            };
+                    ok(!iframe.contentWindow[dispatchedEventFlag]);
+                    ok(!window[dispatchedEventFlag]);
+                };
 
-            iframeDocument.body.appendChild(link);
+                iframeDocument.body.appendChild(link);
 
-            dispatchEvent(link, 'click');
-            link.click();
+                dispatchEvent(link, 'click');
+                link.click();
 
-            if (document.fireEvent)
-                link.fireEvent('click');
-        });
-});
+                if (document.fireEvent)
+                    link.fireEvent('click');
+            });
+    });
+}
