@@ -8,7 +8,11 @@ import {
     isScriptElement,
 } from '../../../utils/dom';
 
-import { isAndroid, isChrome, isFirefox } from '../../../utils/browser';
+import {
+    isAndroid,
+    isChrome,
+    isFirefox,
+} from '../../../utils/browser';
 import { processScript } from '../../../../processing/script';
 import styleProcessor from '../../../../processing/style';
 import { getProxyUrl, convertToProxyUrl } from '../../../utils/url';
