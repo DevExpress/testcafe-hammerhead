@@ -133,7 +133,8 @@ export default class EventSandbox extends SandboxBase {
             const focusedEl = nativeMethods.eventTargetGetter.call(e);
             const activeEl  = domUtils.getActiveElement(document);
 
-            if (!domUtils.isShadowUIElement(focusedEl) && !domUtils.isShadowUIElement(activeEl))
+            // NOTE: document.activeElement and document.body can be null, for example while the document is loading
+            if (activeEl && !domUtils.isShadowUIElement(focusedEl) && !domUtils.isShadowUIElement(activeEl))
                 shadowUI.setLastActiveElement(activeEl);
         };
 

@@ -601,7 +601,7 @@ export function isElementFocusable (el: HTMLElement): boolean {
 
 export function isShadowUIElement (element: any): boolean {
     // @ts-ignore
-    return !!element[INTERNAL_PROPS.shadowUIElement];
+    return !!element && !!element[INTERNAL_PROPS.shadowUIElement];
 }
 
 export function isWindow (instance: any): instance is Window {
