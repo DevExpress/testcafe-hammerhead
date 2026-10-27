@@ -95,7 +95,8 @@ class StyleProcessor {
         if (!stylesheetPartsFound)
             return css;
 
-        for (let i = 0; i < parts.length; i += 2) {
+        // NOTE: only trim whitespace before a processing start marker, not after the last processed stylesheet.
+        for (let i = 0; i < parts.length - 1; i += 2) {
             let whiteSpaceCount = 0;
 
             // NOTE: search for whitespaces from the end of the string

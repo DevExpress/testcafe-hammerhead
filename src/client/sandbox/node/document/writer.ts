@@ -173,7 +173,7 @@ export default class DocumentWriter {
             const nonClosedElContent = nativeMethods.nodeTextContentGetter.call(this.nonClosedEl);
             const elContent = nativeMethods.nodeTextContentGetter.call(elWithContent).replace(BEGIN_REMOVE_RE, '');
 
-            if (isChrome && !isAndroid && nonClosedElContent && elContent)
+            if (isChrome && !isAndroid && nonClosedElContent && elContent && !isStyleElement(elWithContent))
                 this.contentForProcessing = nonClosedElContent + '\n' + elContent;
             else
                 this.contentForProcessing = nonClosedElContent + elContent;
