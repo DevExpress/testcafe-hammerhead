@@ -298,28 +298,30 @@ export default class DocumentWriter {
         this.contentForProcessing = '';
     }
 
-    _processClosedStyleElement (styleEl) {
-        const content = nativeMethods.nodeTextContentGetter.call(styleEl) + this.contentForProcessing;
+    _processClosedStyleElement(styleEl, pendingContent) {
+        const content = nativeMethods.nodeTextContentGetter.call(styleEl) + pendingContent;
         const processedContent = styleProcessor.process(content, getProxyUrl, true);
 
         nativeMethods.nodeTextContentSetter.call(styleEl, processedContent);
-
-        this.contentForProcessing = '';
     }
 
     write (args, ln, isDocumentCleaned) {
-        const htmlChunk     = this._processHtmlChunk(nativeMethods.arrayJoin.call(args, ''), isDocumentCleaned);
-        const isNonClosedEl = this.nonClosedEl && this.contentForProcessing;
-        const isNonClosedStyleEl = this.isClosingContentEl && this.nonClosedEl && isStyleElement(this.nonClosedEl);
+        const htmlChunk           = this._processHtmlChunk(nativeMethods.arrayJoin.call(args, ''), isDocumentCleaned);
+        const isNonClosedEl       = this.nonClosedEl && this.contentForProcessing;
+        const isNonClosedStyleEl  = this.nonClosedEl && this.isClosingContentEl && isStyleElement(this.nonClosedEl);
+        const styleEl             = isNonClosedStyleEl ? this.nonClosedEl : null;
+        const pendingStyleContent = isNonClosedStyleEl ? this.contentForProcessing : '';
 
-        if (isNonClosedEl && !isNonClosedStyleEl)
+        if (isNonClosedStyleEl)
+            this.contentForProcessing = '';
+        else if (isNonClosedEl)
             this._processClosedElement(this.nonClosedEl);
 
         const nativeWriteMethod = ln ? nativeMethods.documentWriteLn : nativeMethods.documentWrite;
         const result            = nativeWriteMethod.call(this.document, htmlChunk);
 
         if (isNonClosedStyleEl)
-            this._processClosedStyleElement(this.nonClosedEl);
+            this._processClosedStyleElement(styleEl, pendingStyleContent);
 
         if (!this.isEndMarkerInDOM && !this.isAddContentToEl) {
             let el = this.document.documentElement;
