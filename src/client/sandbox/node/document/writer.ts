@@ -298,7 +298,7 @@ export default class DocumentWriter {
         this.contentForProcessing = '';
     }
 
-    _processClosedStyleElement(styleEl, pendingContent) {
+    _processClosedStyleElement (styleEl, pendingContent) {
         const content = nativeMethods.nodeTextContentGetter.call(styleEl) + pendingContent;
         const processedContent = styleProcessor.process(content, getProxyUrl, true);
 
