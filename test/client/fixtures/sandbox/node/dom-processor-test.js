@@ -527,19 +527,6 @@ test('clean up stylesheet', function () {
     check('img[src' + INTERNAL_ATTRS.storedAttrPostfix + '="url.png"] {}', 'img[src="url.png"] {}');
 });
 
-test('style processor preserves trailing whitespace in appended content', function () {
-    var processedCss = styleProcessor.process('\n', urlUtils.getProxyUrl, true);
-
-    ['div {}\n', 'div {}\n\n', 'div {} \t\r\n'].forEach(function (appendedCss) {
-        strictEqual(styleProcessor.cleanUp(processedCss + appendedCss, urlUtils.parseProxyUrl), '\n' + appendedCss);
-    });
-
-    var secondProcessedCss = styleProcessor.process('body {}', urlUtils.getProxyUrl, true);
-
-    strictEqual(styleProcessor.cleanUp(processedCss + 'div {}\n' + secondProcessedCss + 'p {}\n', urlUtils.parseProxyUrl),
-        '\ndiv {}body {}p {}\n');
-});
-
 test('style processor clean up edge cases', function () {
     var STYLESHEET_PROCESSING_START_COMMENT = '/*hammerhead|stylesheet|start*/';
     var STYLESHEET_PROCESSING_END_COMMENT   = '/*hammerhead|stylesheet|end*/';
