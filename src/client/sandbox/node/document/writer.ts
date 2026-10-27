@@ -8,11 +8,7 @@ import {
     isScriptElement,
 } from '../../../utils/dom';
 
-import {
-    isAndroid,
-    isChrome,
-    isFirefox,
-} from '../../../utils/browser';
+import { isFirefox } from '../../../utils/browser';
 import { processScript } from '../../../../processing/script';
 import styleProcessor from '../../../../processing/style';
 import { getProxyUrl, convertToProxyUrl } from '../../../utils/url';
@@ -171,17 +167,9 @@ export default class DocumentWriter {
 
         if (this.isClosingContentEl && (isScriptElement(elWithContent) || isStyleElement(elWithContent))) {
             const elContent = nativeMethods.nodeTextContentGetter.call(elWithContent).replace(BEGIN_REMOVE_RE, '');
+            const nonClosedElContent = nativeMethods.nodeTextContentGetter.call(this.nonClosedEl);
 
-            if (isStyleElement(elWithContent))
-                this.contentForProcessing = elContent;
-            else {
-                const nonClosedElContent = nativeMethods.nodeTextContentGetter.call(this.nonClosedEl);
-
-                if (isChrome && !isAndroid && nonClosedElContent && elContent)
-                    this.contentForProcessing = nonClosedElContent + '\n' + elContent;
-                else
-                    this.contentForProcessing = nonClosedElContent + elContent;
-            }
+            this.contentForProcessing = isStyleElement(elWithContent) ? elContent : nonClosedElContent + elContent;
 
             nativeMethods.nodeTextContentSetter.call(elWithContent, '');
         }
@@ -299,37 +287,39 @@ export default class DocumentWriter {
         return htmlChunk;
     }
 
-    _processClosedStyleElement (styleEl) {
-        // NOTE: Chrome buffers the text written into a non-closed element and appends it to the DOM
-        // only when the next token is parsed. So, the full content of the style element is available
-        // only after its closing tag is written natively.
-        const content = nativeMethods.nodeTextContentGetter.call(styleEl) + this.contentForProcessing;
+    _processClosedElement (el) {
+        let processedContent = this.contentForProcessing;
 
-        nativeMethods.nodeTextContentSetter.call(styleEl, styleProcessor.process(content, getProxyUrl, true));
+        if (isScriptElement(el))
+            processedContent = processScript(this.contentForProcessing, true, false, convertToProxyUrl, void 0, settings.nativeAutomation);
+
+        nativeMethods.nodeTextContentSetter.call(el, processedContent);
+
+        this.contentForProcessing = '';
+    }
+
+    _processClosedStyleElement (styleEl) {
+        const content = nativeMethods.nodeTextContentGetter.call(styleEl) + this.contentForProcessing;
+        const processedContent = styleProcessor.process(content, getProxyUrl, true);
+
+        nativeMethods.nodeTextContentSetter.call(styleEl, processedContent);
 
         this.contentForProcessing = '';
     }
 
     write (args, ln, isDocumentCleaned) {
         const htmlChunk     = this._processHtmlChunk(nativeMethods.arrayJoin.call(args, ''), isDocumentCleaned);
-        const closedStyleEl = this.isClosingContentEl && this.nonClosedEl && isStyleElement(this.nonClosedEl) ? this.nonClosedEl : null;
+        const isNonClosedEl = this.nonClosedEl && this.contentForProcessing;
+        const isNonClosedStyleEl = this.isClosingContentEl && this.nonClosedEl && isStyleElement(this.nonClosedEl);
 
-        if (this.nonClosedEl && this.contentForProcessing && !closedStyleEl) {
-            let processedContent = this.contentForProcessing;
-
-            if (isScriptElement(this.nonClosedEl))
-                processedContent = processScript(this.contentForProcessing, true, false, convertToProxyUrl, void 0, settings.nativeAutomation);
-
-            nativeMethods.nodeTextContentSetter.call(this.nonClosedEl, processedContent);
-
-            this.contentForProcessing = '';
-        }
+        if (isNonClosedEl && !isNonClosedStyleEl)
+            this._processClosedElement(this.nonClosedEl);
 
         const nativeWriteMethod = ln ? nativeMethods.documentWriteLn : nativeMethods.documentWrite;
         const result            = nativeWriteMethod.call(this.document, htmlChunk);
 
-        if (closedStyleEl)
-            this._processClosedStyleElement(closedStyleEl);
+        if (isNonClosedStyleEl)
+            this._processClosedStyleElement(this.nonClosedEl);
 
         if (!this.isEndMarkerInDOM && !this.isAddContentToEl) {
             let el = this.document.documentElement;
