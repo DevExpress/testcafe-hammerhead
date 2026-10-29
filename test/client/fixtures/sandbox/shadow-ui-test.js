@@ -1315,6 +1315,40 @@ test('should not process shadow ui elements (GH-1570)', function () {
         ok(!shadowUIElements[i][INTERNAL_PROPS.processedContext]);
 });
 
+test('isShadowUIElement should return false for null and undefined', function () {
+    strictEqual(domUtils.isShadowUIElement(null), false);
+    strictEqual(domUtils.isShadowUIElement(void 0), false);
+});
+
+test('should not throw an error on focus if document.activeElement and document.body are null', function () {
+    var storedActiveElGetter = hammerhead.nativeMethods.documentActiveElementGetter;
+    var input                = document.createElement('input');
+    var lastActiveElement    = shadowUI.getLastActiveElement();
+
+    document.body.appendChild(input);
+
+    hammerhead.nativeMethods.documentActiveElementGetter = function () {
+        return null;
+    };
+
+    Object.defineProperty(document, 'body', { get: function () {
+        return null;
+    }, configurable: true });
+
+    try {
+        input.dispatchEvent(new FocusEvent('focus'));
+
+        strictEqual(shadowUI.getLastActiveElement(), lastActiveElement);
+    }
+    finally {
+        hammerhead.nativeMethods.documentActiveElementGetter = storedActiveElGetter;
+
+        delete document.body;
+
+        input.parentNode.removeChild(input);
+    }
+});
+
 test('isShadowUIElement should not throw an error if a cross-domain window is passed', function () {
     return createTestIframe({ src: getCrossDomainPageUrl('../../data/cross-domain/get-message.html') })
         .then(function (crossDomainIframe) {

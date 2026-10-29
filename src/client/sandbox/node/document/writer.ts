@@ -8,11 +8,7 @@ import {
     isScriptElement,
 } from '../../../utils/dom';
 
-import {
-    isAndroid,
-    isChrome,
-    isFirefox,
-} from '../../../utils/browser';
+import { isFirefox } from '../../../utils/browser';
 import { processScript } from '../../../../processing/script';
 import styleProcessor from '../../../../processing/style';
 import { getProxyUrl, convertToProxyUrl } from '../../../utils/url';
@@ -170,13 +166,10 @@ export default class DocumentWriter {
         DocumentWriter._setUnclosedElementFlag(elWithContent);
 
         if (this.isClosingContentEl && (isScriptElement(elWithContent) || isStyleElement(elWithContent))) {
-            const nonClosedElContent = nativeMethods.nodeTextContentGetter.call(this.nonClosedEl);
             const elContent = nativeMethods.nodeTextContentGetter.call(elWithContent).replace(BEGIN_REMOVE_RE, '');
+            const nonClosedElContent = nativeMethods.nodeTextContentGetter.call(this.nonClosedEl);
 
-            if (isChrome && !isAndroid && nonClosedElContent && elContent)
-                this.contentForProcessing = nonClosedElContent + '\n' + elContent;
-            else
-                this.contentForProcessing = nonClosedElContent + elContent;
+            this.contentForProcessing = isStyleElement(elWithContent) ? elContent : nonClosedElContent + elContent;
 
             nativeMethods.nodeTextContentSetter.call(elWithContent, '');
         }
@@ -294,24 +287,41 @@ export default class DocumentWriter {
         return htmlChunk;
     }
 
+    _processClosedElement (el) {
+        let processedContent = this.contentForProcessing;
+
+        if (isScriptElement(el))
+            processedContent = processScript(this.contentForProcessing, true, false, convertToProxyUrl, void 0, settings.nativeAutomation);
+
+        nativeMethods.nodeTextContentSetter.call(el, processedContent);
+
+        this.contentForProcessing = '';
+    }
+
+    _processClosedStyleElement (styleEl, pendingContent) {
+        const content = nativeMethods.nodeTextContentGetter.call(styleEl) + pendingContent;
+        const processedContent = styleProcessor.process(content, getProxyUrl, true);
+
+        nativeMethods.nodeTextContentSetter.call(styleEl, processedContent);
+    }
+
     write (args, ln, isDocumentCleaned) {
-        const htmlChunk = this._processHtmlChunk(nativeMethods.arrayJoin.call(args, ''), isDocumentCleaned);
+        const htmlChunk           = this._processHtmlChunk(nativeMethods.arrayJoin.call(args, ''), isDocumentCleaned);
+        const isNonClosedEl       = this.nonClosedEl && this.contentForProcessing;
+        const isNonClosedStyleEl  = this.nonClosedEl && this.isClosingContentEl && isStyleElement(this.nonClosedEl);
+        const styleEl             = isNonClosedStyleEl ? this.nonClosedEl : null;
+        const pendingStyleContent = isNonClosedStyleEl ? this.contentForProcessing : '';
 
-        if (this.nonClosedEl && this.contentForProcessing) {
-            let processedContent = this.contentForProcessing;
-
-            if (isScriptElement(this.nonClosedEl))
-                processedContent = processScript(this.contentForProcessing, true, false, convertToProxyUrl, void 0, settings.nativeAutomation);
-            else if (isStyleElement(this.nonClosedEl))
-                processedContent = styleProcessor.process(this.contentForProcessing, getProxyUrl, true);
-
-            nativeMethods.nodeTextContentSetter.call(this.nonClosedEl, processedContent);
-
+        if (isNonClosedStyleEl)
             this.contentForProcessing = '';
-        }
+        else if (isNonClosedEl)
+            this._processClosedElement(this.nonClosedEl);
 
         const nativeWriteMethod = ln ? nativeMethods.documentWriteLn : nativeMethods.documentWrite;
         const result            = nativeWriteMethod.call(this.document, htmlChunk);
+
+        if (isNonClosedStyleEl)
+            this._processClosedStyleElement(styleEl, pendingStyleContent);
 
         if (!this.isEndMarkerInDOM && !this.isAddContentToEl) {
             let el = this.document.documentElement;
