@@ -9,7 +9,6 @@ const qunitHarness          = require('@devexpress/gulp-qunit-harness');
 const mustache              = require('gulp-mustache');
 const rename                = require('gulp-rename');
 const uglify                = require('gulp-uglify');
-const ll                    = require('gulp-ll-next');
 const clone                 = require('gulp-clone');
 const mergeStreams          = require('merge-stream');
 const getClientTestSettings = require('./gulp/utils/get-client-test-settings');
@@ -23,14 +22,6 @@ const needBeautifyScripts = process.argv.includes('--beautify');
 const noBuild             = process.argv.includes('--no-build');
 
 let DEV_MODE = false;
-
-ll
-    .install()
-    .tasks('lint')
-    .onlyInDebug([
-        'server-scripts',
-        'client-scripts-bundle',
-    ]);
 
 // Build
 gulp.task('clean-lib', () => {
@@ -138,12 +129,16 @@ gulp.task('lint', gulp.parallel('lint-js', 'lint-ts'));
 gulp.task('build',
     gulp.series(
         'clean-lib',
-        'server-scripts',
-        'server-scripts-add-exports',
         gulp.parallel(
-            'client-scripts',
-            'templates',
             'lint',
+            gulp.series(
+                'server-scripts',
+                'server-scripts-add-exports',
+                gulp.parallel(
+                    'client-scripts',
+                    'templates',
+                ),
+            ),
         ),
     ),
 );
